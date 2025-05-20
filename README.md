@@ -8,6 +8,7 @@
 1. set up env
     ```
     conda create -n mcpbench_dev python=3.12
+    conda activate mcpbench_dev
     pip install -r requirements.txt
     ```
 
