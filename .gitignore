@@ -6,3 +6,4 @@ sample_files
 storage/
 debug.py
 legacy/
+configs/global_configs.py
