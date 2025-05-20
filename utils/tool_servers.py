@@ -3,6 +3,8 @@ from typing import List, Dict, Optional, Union, Literal
 import asyncio
 import os
 
+from configs.global_configs import global_configs
+
 ServerNameLiteral = Literal[
     'filesystem',
     'aviation',
@@ -66,10 +68,6 @@ class MCPServerManager:
             name='高德地图',
             params={
                 "url": "https://mcp.api-inference.modelscope.cn/sse/af7d9dedc84e4b",
-                # "env": {
-                #     "HTTPS_PROXY": "http://deepseek:+ogyigDac5@ss.deepseek.com:3128",
-                #     "HTTP_PROXY": "http://deepseek:+ogyigDac5@ss.deepseek.com:3128",
-                # }
             },
             cache_tools_list=True,
         )
@@ -80,8 +78,6 @@ class MCPServerManager:
             params={
                 "command": "npx",
                 "args": [
-                    "--proxy=http://deepseek:+ogyigDac5@ss.deepseek.com:3128",
-                    "--https-proxy=http://deepseek:+ogyigDac5@ss.deepseek.com:3128",
                     "-y", 
                     "@playwright/mcp@latest"
                 ]
@@ -95,13 +91,7 @@ class MCPServerManager:
             params={
                 "command": "npx",
                 "args": [
-                    "--proxy=http://deepseek:+ogyigDac5@ss.deepseek.com:3128",
-                    "--https-proxy=http://deepseek:+ogyigDac5@ss.deepseek.com:3128",
                     "-y", "@modelcontextprotocol/server-puppeteer"],
-                # "env": {
-                #     "HTTPS_PROXY": "http://deepseek:+ogyigDac5@ss.deepseek.com:3128",
-                #     "HTTP_PROXY": "http://deepseek:+ogyigDac5@ss.deepseek.com:3128",
-                # }
             },
             cache_tools_list=True,
         )
@@ -112,10 +102,6 @@ class MCPServerManager:
             name='fetch',
             params={
                 "url": "https://mcp.api-inference.modelscope.cn/sse/01e5d883e78449",
-                # "env": {
-                #     "HTTPS_PROXY": "http://deepseek:+ogyigDac5@ss.deepseek.com:3128",
-                #     "HTTP_PROXY": "http://deepseek:+ogyigDac5@ss.deepseek.com:3128",
-                # }
             },
             cache_tools_list=True,
         )
@@ -143,10 +129,6 @@ class MCPServerManager:
                     "arxiv-mcp-server",
                     "--storage-path", self.agent_workspace
                 ],
-                # "env": {
-                #     "HTTPS_PROXY": "http://deepseek:+ogyigDac5@ss.deepseek.com:3128",
-                #     "HTTP_PROXY": "http://deepseek:+ogyigDac5@ss.deepseek.com:3128",
-                # }
             },
             cache_tools_list=True,
         )
@@ -158,10 +140,6 @@ class MCPServerManager:
             name='edgeone',
             params={
                 "url": "https://mcp.api-inference.modelscope.cn/sse/d92929d50e834a",
-                # "env": {
-                #     "HTTPS_PROXY": "http://deepseek:+ogyigDac5@ss.deepseek.com:3128",
-                #     "HTTP_PROXY": "http://deepseek:+ogyigDac5@ss.deepseek.com:3128",
-                # }
             },
             cache_tools_list=True,
         )
@@ -205,10 +183,6 @@ class MCPServerManager:
             params={
                 "command": "uvx",
                 "args": ["mcp-scholarly"],
-                # "env": {
-                #     "HTTPS_PROXY": "http://deepseek:+ogyigDac5@ss.deepseek.com:3128",
-                #     "HTTP_PROXY": "http://deepseek:+ogyigDac5@ss.deepseek.com:3128",
-                # }
             },
             cache_tools_list=True,
         )
@@ -219,10 +193,6 @@ class MCPServerManager:
             name='antv_chart',
             params={
                 "url": "https://mcp.api-inference.modelscope.cn/sse/55c878ff004641",
-                # "env": {
-                #     "HTTPS_PROXY": "http://deepseek:+ogyigDac5@ss.deepseek.com:3128",
-                #     "HTTP_PROXY": "http://deepseek:+ogyigDac5@ss.deepseek.com:3128",
-                # }
             },
             cache_tools_list=True,
         )
@@ -234,8 +204,6 @@ class MCPServerManager:
             params={
                 "command": "npx",
                 "args": [
-                    "--proxy=http://deepseek:+ogyigDac5@ss.deepseek.com:3128",
-                    "--https-proxy=http://deepseek:+ogyigDac5@ss.deepseek.com:3128",
                     "-y",
                     "mcp-server-code-runner@latest"
                 ],
@@ -243,16 +211,12 @@ class MCPServerManager:
             cache_tools_list=True,
         )
 
-        # 高德地图位置服务
+        # Slack
         # https://modelscope.cn/mcp/servers/@amap/amap-maps
         self.servers['slack'] = MCPServerSse(
             name='Slack',
             params={
                 "url": "https://mcp.api-inference.modelscope.cn/sse/ce2c0b9ef05442",
-                # "env": {
-                #     "HTTPS_PROXY": "http://deepseek:+ogyigDac5@ss.deepseek.com:3128",
-                #     "HTTP_PROXY": "http://deepseek:+ogyigDac5@ss.deepseek.com:3128",
-                # }
             },
             cache_tools_list=True,
         )
