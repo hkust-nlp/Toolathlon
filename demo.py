@@ -259,7 +259,7 @@ async def main():
     # 未来一段时间打算骑自行车从广州出发到北京，帮我规划一下行程，要求兼顾路程、住宿和游玩的地方，并且注意一下适合骑行的天气，最后查询一些旅游网站，优化这个行程方案。
     log_file = "./storage/amap/amap_xxx_00001/log.jsonl"
 
-    config = Dict(needed_mcp_servers = ['github','12306'],
+    config = Dict(needed_mcp_servers = ['scholarly_search','time'],
                       instruction="你是一个bot",
                       id="amap_xxx_00001",
                       meta={},

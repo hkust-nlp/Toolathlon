@@ -170,8 +170,8 @@ class MCPServerManager:
         self.servers['codesavant'] = MCPServerStdio(
             name='codesavant',
             params={
-                "command": "python",
-                "args": [f"{self.local_servers_paths}/mcp-codesavant-main/codesavant.py"]
+                "command": "uv",
+                "args": ["run", f"{self.local_servers_paths}/mcp-codesavant-main/codesavant.py"]
             },
             cache_tools_list=True,
         )
@@ -183,6 +183,10 @@ class MCPServerManager:
             params={
                 "command": "uvx",
                 "args": ["mcp-scholarly"],
+                "env": {
+                    "HTTPS_PROXY": global_configs['proxy'],
+                    "HTTP_PROXY": global_configs['proxy'],
+                }
             },
             cache_tools_list=True,
         )
@@ -232,7 +236,6 @@ class MCPServerManager:
                     "GITHUB_PERSONAL_ACCESS_TOKEN": "<YOUR_TOKEN>"
                 }
             },
-            client_session_timeout_seconds=60,
             cache_tools_list=True,
         )
 
@@ -246,8 +249,6 @@ class MCPServerManager:
         )
         
 
-        
-         
     async def connect_servers(self, server_names: Optional[List[ServerNameLiteral]] = None):
         """
         连接指定的服务器
