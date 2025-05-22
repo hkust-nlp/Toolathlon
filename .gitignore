@@ -1,4 +1,4 @@
-.*/__pychche__
+**/__pycache__/
 .venv
 .python-version
 pyproject.toml
