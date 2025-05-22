@@ -12,8 +12,6 @@ import asyncio
 import json, jsonlines
 import uuid
 import datetime
-from local_tools.tool_bash import tool_bash
-from local_tools.tool_search import tool_search
 from utils.tool_servers import MCPServerManager
 from utils.model_provider import model_provider, models
 
@@ -40,10 +38,8 @@ class AgentLifecycle(AgentHooks):
     def __init__(self):
         super().__init__()
     async def on_start(self, context: RunContextWrapper, agent: Agent) -> None:
-        print("AgentLifecycle | on_start")
         pass
     async def on_end(self, context: RunContextWrapper, agent: Agent, output: Any) -> None:
-        print("AgentLifecycle | on_end")
         pass
 
 class RunLifecycle(RunHooks):
@@ -249,17 +245,21 @@ async def run_agent(config, res_log_file) -> None:
         await mcp_manager.disconnect_servers()
 
 async def main():
-    # in the main part, we set an example of solving one task and evaling one task
     from addict import Dict
-    os_info = platform.platform()
-    if "Linux" in os_info: # 若在服务器上，加proxy
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--with_proxy",action="store_true")
+    args = parser.parse_args()
+    
+    if args.with_proxy:
         os.environ['http_proxy'] = global_configs['proxy']
         os.environ['https_proxy'] = global_configs['proxy']
 
     # 未来一段时间打算骑自行车从广州出发到北京，帮我规划一下行程，要求兼顾路程、住宿和游玩的地方，并且注意一下适合骑行的天气，最后查询一些旅游网站，优化这个行程方案。
     log_file = "./storage/amap/amap_xxx_00001/log.jsonl"
 
-    config = Dict(needed_mcp_servers = ['amap','filesystem','time'],
+    config = Dict(needed_mcp_servers = ['github','12306'],
                       instruction="你是一个bot",
                       id="amap_xxx_00001",
                       meta={},

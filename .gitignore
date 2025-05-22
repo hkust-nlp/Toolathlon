@@ -1,8 +1,14 @@
 .*/__pychche__
+.venv
+.python-version
+pyproject.toml
+uv.lock
+
 local_tools
 local_servers
 node_modules
 sample_files
+
 storage/
 debug.py
 legacy/

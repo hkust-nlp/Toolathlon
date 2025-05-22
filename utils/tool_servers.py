@@ -221,6 +221,31 @@ class MCPServerManager:
             cache_tools_list=True,
         )
 
+        # 【开发机上暂不可用】Puppeteer
+        self.servers['github'] = MCPServerStdio(
+            name='github',
+            params={
+                "command": "npx",
+                "args": [
+                    "-y", "@modelcontextprotocol/server-github"],
+                "env": {
+                    "GITHUB_PERSONAL_ACCESS_TOKEN": "<YOUR_TOKEN>"
+                }
+            },
+            client_session_timeout_seconds=60,
+            cache_tools_list=True,
+        )
+
+
+        self.servers['12306'] = MCPServerSse(
+            name='12306',
+            params={
+                "url": "https://mcp.api-inference.modelscope.cn/sse/e8b10afe5d864c",
+            },
+            cache_tools_list=True,
+        )
+        
+
         
          
     async def connect_servers(self, server_names: Optional[List[ServerNameLiteral]] = None):
