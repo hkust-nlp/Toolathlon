@@ -14,6 +14,14 @@ from configs.global_configs import global_configs
 ### IMPORTED
 class CustomModelProvider(ModelProvider):
     def get_model(self, model_name: str | None) -> Model:
+        client = AsyncOpenAI(
+            api_key=global_configs['ds_key'],
+            base_url=global_configs['base_url_ds']
+        ) if model_name == 'deepseek-chat' or model_name == 'deepseek-reasoner' else AsyncOpenAI(
+            api_key=global_configs['non_ds_key'],
+            base_url=global_configs['base_url_non_ds'],
+            http_client=httpx.AsyncClient(proxies=proxy)
+        )
         return OpenAIChatCompletionsModel(model=model_name, openai_client=client)
 
 model_provider = CustomModelProvider()
@@ -36,15 +44,7 @@ models = {
         'qwen-32b': 'qwen2.5-32b-instruct',
         'qwen-7b': 'qwen2.5-7b-instruct',
     }
-model = models['gpt-4.1-mini']
 
-client = AsyncOpenAI(
-    api_key=global_configs['ds_key'],
-    base_url=global_configs['base_url_ds']
-) if model == 'deepseek-chat' or model == 'deepseek-reasoner' else AsyncOpenAI(
-    api_key=global_configs['non_ds_key'],
-    base_url=global_configs['base_url_non_ds'],
-    http_client=httpx.AsyncClient(proxies=proxy)
-)
+
 set_tracing_disabled(disabled=True)
 ### IMPORTED

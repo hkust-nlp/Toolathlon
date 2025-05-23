@@ -29,7 +29,7 @@ class CustomJSONEncoder(json.JSONEncoder):
         return super().default(o)
 
 
-model_name = "gpt-4.1-mini"
+model_name = "claude-3.7"
 
 all_tools = []
 
@@ -99,6 +99,11 @@ async def initialze(config):
         print("reset/remove workspace to initialize")
         shutil.rmtree(agent_workspace)
     os.makedirs(agent_workspace)
+    if "arxiv_local" in config.needed_mcp_servers:
+        cache_dir = os.path.join(agent_workspace,"arxiv_local_storage")
+        os.makedirs(cache_dir)
+        assert os.path.exists(cache_dir)
+        print("[arxiv_local] arxiv local cache dir hsa been established")
     # TODO: prepare the needed files under this workspace
     ...
     flag = True # indicate whether it is initialized properly
@@ -262,13 +267,21 @@ async def main():
 
     log_file = os.path.join(task_root_folder,"log.json")
 
-    config = Dict(needed_mcp_servers = [
-                                        # 'filesystem', 'variflight', 'amap', 
-                                        'playwright', 
-                                        # 'puppeteer','fetch', 
-                                        # 'time', 'arxiv_local', 'edgeone', 
-                                        # 'shadcn_ui', 'leetcode', 'codesavant', 
-                                        # 'scholarly_search', 'antv_chart', 'code_runner', 
+    config = Dict(needed_mcp_servers = [ # please uncomment these lines to test the mcp server you added, see `utils/tool_servers.py`
+                                        'filesystem',
+                                        'amap' ,
+                                        # 'variflight', 
+                                        # 'playwright', 
+                                        # 'puppeteer', # not tested
+                                        # 'fetch', 
+                                        # 'time', 
+                                        # 'arxiv_local', 
+                                        # 'edgeone', 
+                                        # 'shadcn_ui', 'leetcode', 
+                                        # 'codesavant', 
+                                        # 'scholarly_search', 
+                                        # 'antv_chart', 
+                                        # 'code_runner', 
                                         # 'slack', 'github', '12306'
                                         ],
                       instruction="你是一个bot",

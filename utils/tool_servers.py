@@ -33,8 +33,8 @@ class MCPServerManager:
     def __init__(self, agent_workspace):
         """初始化 MCP 服务器管理器"""
         
-        self.local_servers_paths = f"{os.path.dirname(os.path.abspath(__file__))}/local_servers" # 所有eval的共有运行路径，安装一些包
-        self.agent_workspace = agent_workspace
+        self.local_servers_paths = os.path.abspath("./local_servers") # 所有eval的共有运行路径，安装一些包
+        self.agent_workspace = os.path.abspath(agent_workspace)
         self.servers: Dict[str, Union[MCPServerStdio, MCPServerSse]] = {}
         self._initialize_servers()
         self.connected_servers = []
@@ -107,7 +107,13 @@ class MCPServerManager:
             params={
                 "command": "npx",
                 "args": [
-                    "-y", "@modelcontextprotocol/server-puppeteer"],
+                    "-y", "@modelcontextprotocol/server-puppeteer",
+                    "--no-sandbox", # switch on this on container
+                    ],
+                # "env": { # this is necessary
+                    # "HTTPS_PROXY": global_configs['proxy'],
+                    # "HTTP_PROXY": global_configs['proxy'],
+                # }
             },
             cache_tools_list=True,
         )
@@ -119,16 +125,16 @@ class MCPServerManager:
             params={
                 "url": "https://mcp.api-inference.modelscope.cn/sse/01e5d883e78449",
             },
+            client_session_timeout_seconds=10,
             cache_tools_list=True,
         )
 
         # Time
-        # get your time according to your timezone
         self.servers['time'] = MCPServerStdio(
             name='time',
             params={
-                "command": "uvx",
-                "args": ["mcp-server-time"]
+                "command": "python",
+                "args": ["-m", "mcp_server_time", "--local-timezone=Asia/Hong_Kong"]
             },
             cache_tools_list=True,
         )
@@ -146,7 +152,12 @@ class MCPServerManager:
                     "arxiv-mcp-server",
                     "--storage-path", f"{self.agent_workspace}/arxiv_local_storage"
                 ],
+                "env": { # this is necessary
+                    "HTTPS_PROXY": global_configs['proxy'],
+                    "HTTP_PROXY": global_configs['proxy'],
+                }
             },
+            client_session_timeout_seconds=10,
             cache_tools_list=True,
         )
         
@@ -200,11 +211,12 @@ class MCPServerManager:
             params={
                 "command": "uvx",
                 "args": ["mcp-scholarly"],
-                # "env": {
-                #     "HTTPS_PROXY": global_configs['proxy'],
-                #     "HTTP_PROXY": global_configs['proxy'],
-                # }
+                "env": {
+                    "HTTPS_PROXY": global_configs['proxy'],
+                    "HTTP_PROXY": global_configs['proxy'],
+                }
             },
+            # client_session_timeout_seconds=20,
             cache_tools_list=True,
         )
 
