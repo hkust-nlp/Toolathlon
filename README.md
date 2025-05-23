@@ -7,7 +7,7 @@
 #### Basic Env Setup
 0. install uv
 
-    please refer to the official [website](https://github.com/astral-sh/uv), you may need to swithc on some proxies in this process
+    please refer to the official [website](https://github.com/astral-sh/uv), you may need to switch on some proxies in this process
 
     you should be able to see some guide after `uv`
 

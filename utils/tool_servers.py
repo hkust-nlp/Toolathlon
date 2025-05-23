@@ -7,7 +7,7 @@ from configs.global_configs import global_configs
 
 ServerNameLiteral = Literal[
     'filesystem',
-    'aviation',
+    'variflight',
     'amap',
     'playwright',
     'puppeteer',
@@ -20,7 +20,10 @@ ServerNameLiteral = Literal[
     'codesavant',
     'scholarly_search',
     'antv_chart',
-    'code_runner'
+    'code_runner',
+    'slack',
+    'github',
+    '12306'
 ]
 
 
@@ -41,7 +44,9 @@ class MCPServerManager:
     def _initialize_servers(self):
         """初始化所有 MCP 服务器"""
         print(f">>servers工作区: {self.agent_workspace}")
+        
         # 文件系统
+        # https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem
         self.servers['filesystem'] = MCPServerStdio(
             name='filesystem',
             params={
@@ -53,11 +58,11 @@ class MCPServerManager:
         )
 
         # 飞常准航空
-        # sk-iEPwPSLIm-ZysIF3uqWUaWrpx8U0gh8kwCklGvdw-ho
-        self.servers['aviation'] = MCPServerSse(
-            name='飞常准-Aviation',
+        # sk-vd4XzwcgukiXynPveHE6GYgzoL1aVLKxb9QMmHAZnSQ
+        self.servers['variflight'] = MCPServerSse(
+            name='variflight',
             params={
-                "url": "https://mcp.api-inference.modelscope.cn/sse/16bed1fed8484a",
+                "url": "https://mcp.api-inference.modelscope.cn/sse/03e18b661de74f",
             },
             cache_tools_list=True,
         )
@@ -72,20 +77,31 @@ class MCPServerManager:
             cache_tools_list=True,
         )
 
-        # 【开发机上暂不可用】Playwright
+        # 一个使用 Playwright 提供浏览器自动化功能的 Model Context Protocol (MCP) 服务器。
+        # https://github.com/microsoft/playwright-mcp
         self.servers['playwright'] = MCPServerStdio(
             name='playwright',
             params={
                 "command": "npx",
                 "args": [
                     "-y", 
-                    "@playwright/mcp@latest"
-                ]
+                    "@playwright/mcp@latest",
+                    "--headless", # no visual elements
+                    "--isolated", # every time, initialize a new session, and no cache is stored
+                    "--no-sandbox", # this may brings danger, if your machine support sandbox, please delete this
+                    "--browser", "chromium", # please use chromium, others may need sudo to install
+                    ],
+                "env": { # this is necessary
+                    "HTTPS_PROXY": global_configs['proxy'],
+                    "HTTP_PROXY": global_configs['proxy'],
+                }
             },
+            client_session_timeout_seconds=10,
             cache_tools_list=True,
         )
 
-        # 【开发机上暂不可用】Puppeteer
+        # 一个使用 Puppeteer 提供浏览器自动化功能的 Model Context Protocol 服务器。该服务器使 LLMs 能够与网页交互、截屏以及在真实的浏览器环境中执行 JavaScript。
+        # https://github.com/modelcontextprotocol/servers/tree/main/src/puppeteer
         self.servers['puppeteer'] = MCPServerStdio(
             name='puppeteer',
             params={
@@ -107,11 +123,12 @@ class MCPServerManager:
         )
 
         # Time
+        # get your time according to your timezone
         self.servers['time'] = MCPServerStdio(
             name='time',
             params={
-                "command": "python",
-                "args": ["-m", "mcp_server_time", "--local-timezone=Asia/Hong_Kong"]
+                "command": "uvx",
+                "args": ["mcp-server-time"]
             },
             cache_tools_list=True,
         )
@@ -127,7 +144,7 @@ class MCPServerManager:
                     f"{self.local_servers_paths}/arxiv-mcp-server",
                     "run",
                     "arxiv-mcp-server",
-                    "--storage-path", self.agent_workspace
+                    "--storage-path", f"{self.agent_workspace}/arxiv_local_storage"
                 ],
             },
             cache_tools_list=True,
@@ -183,10 +200,10 @@ class MCPServerManager:
             params={
                 "command": "uvx",
                 "args": ["mcp-scholarly"],
-                "env": {
-                    "HTTPS_PROXY": global_configs['proxy'],
-                    "HTTP_PROXY": global_configs['proxy'],
-                }
+                # "env": {
+                #     "HTTPS_PROXY": global_configs['proxy'],
+                #     "HTTP_PROXY": global_configs['proxy'],
+                # }
             },
             cache_tools_list=True,
         )
@@ -216,7 +233,7 @@ class MCPServerManager:
         )
 
         # Slack
-        # https://modelscope.cn/mcp/servers/@amap/amap-maps
+        # https://github.com/modelcontextprotocol/servers/tree/main/src/slack
         self.servers['slack'] = MCPServerSse(
             name='Slack',
             params={
@@ -225,7 +242,8 @@ class MCPServerManager:
             cache_tools_list=True,
         )
 
-        # 【开发机上暂不可用】Puppeteer
+        # Github
+        # https://github.com/modelcontextprotocol/servers/tree/main/src/github
         self.servers['github'] = MCPServerStdio(
             name='github',
             params={
@@ -239,7 +257,8 @@ class MCPServerManager:
             cache_tools_list=True,
         )
 
-
+        # 12306 CN train tickets
+        # https://modelscope.cn/mcp/servers/@Joooook/12306-mcp
         self.servers['12306'] = MCPServerSse(
             name='12306',
             params={

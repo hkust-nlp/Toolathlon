@@ -230,7 +230,7 @@ async def run_agent(config, res_log_file) -> None:
         print(123, e)
 
     finally:
-        with open(res_log_file, 'a', encoding='utf-8') as f:
+        with open(res_log_file, "w", encoding='utf-8') as f:
             result = {'config':config,
                       'request_id': str(uuid.uuid4()), 
                       'date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 
@@ -241,7 +241,7 @@ async def run_agent(config, res_log_file) -> None:
 
             # 使用自定义的JSON编码器将字典转换为字符串，确保布尔值输出为小写的true或false形式
             json_output = json.dumps(result, ensure_ascii=False, cls=CustomJSONEncoder)
-            f.write(json_output + '\n')
+            f.write(json_output)
         await mcp_manager.disconnect_servers()
 
 async def main():
@@ -257,18 +257,29 @@ async def main():
         os.environ['https_proxy'] = global_configs['proxy']
 
     # 未来一段时间打算骑自行车从广州出发到北京，帮我规划一下行程，要求兼顾路程、住宿和游玩的地方，并且注意一下适合骑行的天气，最后查询一些旅游网站，优化这个行程方案。
-    log_file = "./storage/amap/amap_xxx_00001/log.jsonl"
+    
+    task_root_folder = "./storage/mixed/mixed_xxx_00001/"
 
-    config = Dict(needed_mcp_servers = ['scholarly_search','time'],
+    log_file = os.path.join(task_root_folder,"log.json")
+
+    config = Dict(needed_mcp_servers = [
+                                        # 'filesystem', 'variflight', 'amap', 
+                                        'playwright', 
+                                        # 'puppeteer','fetch', 
+                                        # 'time', 'arxiv_local', 'edgeone', 
+                                        # 'shadcn_ui', 'leetcode', 'codesavant', 
+                                        # 'scholarly_search', 'antv_chart', 'code_runner', 
+                                        # 'slack', 'github', '12306'
+                                        ],
                       instruction="你是一个bot",
-                      id="amap_xxx_00001",
+                      id="mixed_xxx_00001",
                       meta={},
-                      agent_workspace="./storage/amap/amap_xxx_00001/workspace"
+                      agent_workspace=os.path.join(task_root_folder,"workspace")
                       )
 
     await run_agent(config=config, res_log_file=log_file)
 
-    sample_dump_line = read_all(log_file)[-1]
+    sample_dump_line = read_all(log_file)
 
     eval_res = await eval_agent(sample_dump_line)
 
