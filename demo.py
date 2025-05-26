@@ -264,9 +264,9 @@ async def main():
 
     task_config = Dict(needed_mcp_servers = [ # please uncomment these lines to test the mcp server you added, 
                                               # see `utils/tool_servers.py`
-                                            'filesystem',
-                                            'amap' ,
-                                            # 'variflight', 
+                                            # 'filesystem',
+                                            # 'amap' ,
+                                            'variflight', 
                                             # 'playwright', 
                                             # 'puppeteer',
                                             # 'fetch', 

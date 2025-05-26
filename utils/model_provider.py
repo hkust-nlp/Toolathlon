@@ -25,7 +25,7 @@ class CustomModelProviderAiHubMix(ModelProvider):
         return OpenAIChatCompletionsModel(model=model_name, openai_client=client)
 
 model_provider_mapping = {
-    "ds_internel": CustomModelProvider,
+    "ds_internal": CustomModelProvider,
     "aihubmix": CustomModelProviderAiHubMix,
 }
 
