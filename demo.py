@@ -7,19 +7,16 @@ from agents import (
     ModelSettings, ToolCallItem, MessageOutputItem, ToolCallOutputItem, RunContextWrapper,
     AgentHooks, RunHooks, TContext, Tool
 )
-from openai import AsyncOpenAI
 import asyncio
-import json, jsonlines
+import json
 import uuid
 import datetime
 from utils.tool_servers import MCPServerManager
-from utils.model_provider import model_provider, models
-
+from utils.model_provider import model_provider_mapping, model_shortname2fullname_mapping
 from utils.helper import *
-
 import shutil
-
 from configs.global_configs import global_configs
+import traceback
 
 # 自定义JSON编码器，用于处理将Python中的布尔值转换为小写的'true'和'false'形式输出
 class CustomJSONEncoder(json.JSONEncoder):
@@ -27,12 +24,6 @@ class CustomJSONEncoder(json.JSONEncoder):
         if isinstance(o, bool):
             return str(o).lower()  # 将布尔值转换为小写的'true'或'false'字符串
         return super().default(o)
-
-
-model_name = "claude-3.7"
-
-all_tools = []
-
 
 class AgentLifecycle(AgentHooks):
     def __init__(self):
@@ -103,14 +94,13 @@ async def initialze(config):
         cache_dir = os.path.join(agent_workspace,"arxiv_local_storage")
         os.makedirs(cache_dir)
         assert os.path.exists(cache_dir)
-        print("[arxiv_local] arxiv local cache dir hsa been established")
+        print("[arxiv_local] arxiv local cache dir has been established")
     # TODO: prepare the needed files under this workspace
     ...
     flag = True # indicate whether it is initialized properly
     return flag
-        
 
-async def run_agent(config, res_log_file) -> None:
+async def run_agent(task_config, model_config, res_log_file) -> None:
     """
     单任务执行
     config需要包括的内容：
@@ -119,15 +109,15 @@ async def run_agent(config, res_log_file) -> None:
         - id = 唯一识别序列号
         - meta = 其他信息
     """
-    global all_tools
+    all_tools = []
 
     # 初始化工作区
-    await initialze(config)
+    await initialze(task_config)
 
     # 创建并启动mcp服务器
-    mcp_manager = MCPServerManager(agent_workspace=config.agent_workspace)
+    mcp_manager = MCPServerManager(agent_workspace=task_config.agent_workspace)
     # 连接到该任务需要的mcp servers
-    await mcp_manager.connect_servers(config.needed_mcp_servers)
+    await mcp_manager.connect_servers(task_config.needed_mcp_servers)
 
     # hooks initialize
     agent_hooks = AgentLifecycle()
@@ -139,17 +129,17 @@ async def run_agent(config, res_log_file) -> None:
         # agent initialize
         agent = Agent(
             name="Assistant",
-            instructions=generate_sp,
-            model=model_provider.get_model(models[model_name]),
+            instructions=task_config.system_prompt_instructions,
+            model=model_config.provider.get_model(model_config.model_real_name),
             mcp_servers=[*mcp_manager.get_all_connected_servers()], # 指定mcp servers
-            tools=[], # TODO：是否要提供非mcp的tools ... my personal view is that we need some basic operations like cmd execution, but we can also use a mcp server to do that
+            tools=[],
             hooks=agent_hooks,
-            model_settings=ModelSettings( # TODO: fix here
-                temperature=1.0,
-                top_p=1.0,
-                max_tokens=4096,
-                tool_choice="auto",
-                parallel_tool_calls=True, # 禁止并行调用， TODO: 先禁止并行调用，不过不确定对于非gpt模型管不管用
+            model_settings=ModelSettings(
+                temperature=model_config.temperature,
+                top_p=model_config.top_p,
+                max_tokens=model_config.max_tokens,
+                tool_choice=model_config.tool_choice,
+                parallel_tool_calls=model_config.parallel_tool_calls,
             ),
         )
 
@@ -180,15 +170,14 @@ async def run_agent(config, res_log_file) -> None:
                 starting_agent=agent,
                 input=logs,
                 run_config=RunConfig(
-                    model_provider=model_provider,
+                    model_provider=model_config.provider,
                 ),
                 hooks=run_hooks,
-                max_turns=40,
+                max_turns=model_config.max_inner_turns,
             )
 
             print(f"assistant: {result.final_output}")
             logs.extend([item.to_input_item() for item in result.new_items])
-
 
             item_index = 0
             while item_index < len(result.new_items):
@@ -232,11 +221,12 @@ async def run_agent(config, res_log_file) -> None:
                     item_index += 1
 
     except Exception as e:
-        print(123, e)
+        traceback.print_exc()
+        print("Error when interacting with agent - ", e)
 
     finally:
         with open(res_log_file, "w", encoding='utf-8') as f:
-            result = {'config':config,
+            result = {'config':task_config,
                       'request_id': str(uuid.uuid4()), 
                       'date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 
                       'tool_calls': {'tools': all_tools, 'tool_choice': 'auto'}, 
@@ -254,43 +244,68 @@ async def main():
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--with_proxy",action="store_true")
+    parser.add_argument("--with_proxy", action="store_true")
+    parser.add_argument("--model_short_name", default="gpt-4.1-mini")
+    parser.add_argument("--model_provider_name", default="aihubmix")
     args = parser.parse_args()
     
     if args.with_proxy:
         os.environ['http_proxy'] = global_configs['proxy']
         os.environ['https_proxy'] = global_configs['proxy']
 
-    # 未来一段时间打算骑自行车从广州出发到北京，帮我规划一下行程，要求兼顾路程、住宿和游玩的地方，并且注意一下适合骑行的天气，最后查询一些旅游网站，优化这个行程方案。
     
     task_root_folder = "./storage/mixed/mixed_xxx_00001/"
 
     log_file = os.path.join(task_root_folder,"log.json")
 
-    config = Dict(needed_mcp_servers = [ # please uncomment these lines to test the mcp server you added, see `utils/tool_servers.py`
-                                        'filesystem',
-                                        'amap' ,
-                                        # 'variflight', 
-                                        # 'playwright', 
-                                        # 'puppeteer', # not tested
-                                        # 'fetch', 
-                                        # 'time', 
-                                        # 'arxiv_local', 
-                                        # 'edgeone', 
-                                        # 'shadcn_ui', 'leetcode', 
-                                        # 'codesavant', 
-                                        # 'scholarly_search', 
-                                        # 'antv_chart', 
-                                        # 'code_runner', 
-                                        # 'slack', 'github', '12306'
-                                        ],
-                      instruction="你是一个bot",
+    model_provider = model_provider_mapping[args.model_provider_name]()
+    model_shortname2fullname = model_shortname2fullname_mapping[args.model_provider_name]
+    model_real_name = model_shortname2fullname[args.model_short_name]
+
+    task_config = Dict(needed_mcp_servers = [ # please uncomment these lines to test the mcp server you added, 
+                                              # see `utils/tool_servers.py`
+                                            'filesystem',
+                                            'amap' ,
+                                            # 'variflight', 
+                                            # 'playwright', 
+                                            # 'puppeteer',
+                                            # 'fetch', 
+                                            # 'time', 
+                                            # 'arxiv_local', 
+                                            # 'edgeone', 
+                                            # 'shadcn_ui', 
+                                            # 'leetcode', 
+                                            # 'codesavant', 
+                                            # 'scholarly_search', 
+                                            # 'antv_chart', 
+                                            # 'code_runner', 
+                                            # 'slack', 
+                                            # 'github', 
+                                            # '12306'
+                                            ],
+                      system_prompt_instructions="你是一个bot",
                       id="mixed_xxx_00001",
                       meta={},
                       agent_workspace=os.path.join(task_root_folder,"workspace")
                       )
 
-    await run_agent(config=config, res_log_file=log_file)
+
+    model_config = Dict(# model related
+                        model_real_name=model_real_name,
+                        provider=model_provider,
+                        # generation related
+                        temperature=0.0,
+                        top_p=1.0,
+                        max_tokens=4096,
+                        # tool call related
+                        tool_choice="auto",
+                        parallel_tool_calls=True,
+                        max_inner_turns=20,
+                        )
+
+    await run_agent(config=task_config, 
+                    model_config=model_config,
+                    res_log_file=log_file,)
 
     sample_dump_line = read_all(log_file)
 

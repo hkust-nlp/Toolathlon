@@ -4,6 +4,9 @@
 ----
 ### Quick Start
 
+#### About Proxy
+Please see `FAQs/setup_proxy.md` to see how to set up a proxy for your terminal/cmd. I only provide some general guides, so you may need extra effort to solve the proxy issue, e.g. via Google Search and asking LLMs.
+
 #### Basic Env Setup
 0. install uv
 
@@ -46,5 +49,6 @@
     you may encounter some proxy issue, see `FAQs/npx_install.md`.
 
 #### Demo
-
-1. try `uv run demo.py`
+1. Set up global configs
+    please fill in the blanks in `configs/global_configs_example.py` and copy the filled one as `configs/global_configs.py`.
+2. Try `uv run demo.py`
