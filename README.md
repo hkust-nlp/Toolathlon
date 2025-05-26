@@ -51,4 +51,10 @@ Please see `FAQs/setup_proxy.md` to see how to set up a proxy for your terminal/
 #### Demo
 1. Set up global configs
     please fill in the blanks in `configs/global_configs_example.py` and copy the filled one as `configs/global_configs.py`.
-2. Try `uv run demo.py`
+2. Try `uv run demo.py` (suppose you are using aihubmix)
+    ```
+    uv run demo.py \
+    --with_proxy \
+    --model_short_name gpt-4.1 \
+    --model_provider_name aihubmix
+    ```
