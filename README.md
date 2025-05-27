@@ -1,4 +1,7 @@
 # MCPBench-Dev
+
+Project Page: https://www.notion.so/hkust-nlp/Meeting-Notes-1f939bdc1c6b80fbbc7fe5ea22c2d038
+
 ----
 #### NOTE: this readme is still under construction, please do not hesitiate to ping me (junlong) at any time. You are always welcomed!
 ----
