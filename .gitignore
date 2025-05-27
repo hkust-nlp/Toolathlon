@@ -14,4 +14,5 @@ debug.py
 debug.js
 legacy/
 configs/global_configs.py
-./dumps/
+configs/token_key_session.py
+dumps
