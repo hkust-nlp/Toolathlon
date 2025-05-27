@@ -9,7 +9,9 @@ local_servers
 node_modules
 sample_files
 
-storage/
+./storage/
 debug.py
+debug.js
 legacy/
 configs/global_configs.py
+./dumps/
