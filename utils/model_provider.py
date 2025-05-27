@@ -2,16 +2,17 @@ from agents import ModelProvider, OpenAIChatCompletionsModel, Model, set_tracing
 from openai import AsyncOpenAI
 import httpx
 from configs.global_configs import global_configs
+from addict import Dict
 
 class CustomModelProvider(ModelProvider):
     def get_model(self, model_name: str | None) -> Model:
-        proxy = { 'http://': global_configs['proxy'], 'https://': global_configs['proxy']}
+        proxy = { 'http://': global_configs.proxy, 'https://': global_configs.proxy}
         client = AsyncOpenAI(
-            api_key=global_configs['ds_key'],
-            base_url=global_configs['base_url_ds']
+            api_key=global_configs.ds_key,
+            base_url=global_configs.base_url_ds
         ) if model_name == 'deepseek-chat' or model_name == 'deepseek-reasoner' else AsyncOpenAI(
-            api_key=global_configs['non_ds_key'],
-            base_url=global_configs['base_url_non_ds'],
+            api_key=global_configs.non_ds_key,
+            base_url=global_configs.base_url_non_ds,
             http_client=httpx.AsyncClient(proxies=proxy)
         )
         return OpenAIChatCompletionsModel(model=model_name, openai_client=client)
@@ -19,8 +20,8 @@ class CustomModelProvider(ModelProvider):
 class CustomModelProviderAiHubMix(ModelProvider):
     def get_model(self, model_name: str | None) -> Model:
         client = AsyncOpenAI(
-            api_key=global_configs['non_ds_key'],
-            base_url=global_configs['base_url_non_ds'],
+            api_key=global_configs.non_ds_key,
+            base_url=global_configs.base_url_non_ds,
         )
         return OpenAIChatCompletionsModel(model=model_name, openai_client=client)
 
@@ -29,57 +30,127 @@ model_provider_mapping = {
     "aihubmix": CustomModelProviderAiHubMix,
 }
 
-model_shortname2fullname_ds_internal = {
-        'deekseek-v3': 'deepseek-chat',
-        'deepseek-r1': 'deepseek-reasoner',
-
-        'gpt-4o': 'azure-gpt-4o-2024-11-20',
-        'gpt-4.1': 'azure-gpt-4.1-2025-04-14',
-        'gpt-4.1-mini': 'azure-gpt-4.1-mini-2025-04-14',
-        'gpt-4.1-nano': 'azure-gpt-4.1-nano-2025-04-14',
-        'o4-mini': 'azure-o4-mini-2025-04-16',
-        
-        'claude-3.7-sonnet': 'cloudsway-claude-3-7-sonnet-20250219',
-        'claude-4-sonnet': 'claude-sonnet-4-20250514',
-        'claude-4-opus': 'claude-opus-4-20250514',
-
-        'qwen3-235b-a22b': 'qwen3-235b-a22b',
-        'qwen3-32b': 'qwen3-32b',
-        'qwen3-30b-a3b': 'qwen3-30b-a3b',
-        'qwq-plus': 'qwq-plus-2025-03-05',
-        'qwq-32b': 'qwq-32b',
-
-        'gemini-2.5-flash' : 'gemini-2.5-flash-preview-05-20',
-        'gemini-2.5-pro': 'cloudsway-gemini-2.5-pro-preview-05-06',
-    }
-
-model_shortname2fullname_aihubmix = {
-        'deekseek-v3': 'DeepSeek-V3',
-        'deepseek-r1': 'DeepSeek-R1',
-
-        'gpt-4o': 'gpt-4o-2024-11-20',
-        'gpt-4.1': 'gpt-4.1',
-        'gpt-4.1-mini': 'gpt-4.1-mini',
-        'gpt-4.1-nano': 'gpt-4.1-nano',
-        'o4-mini': 'o4-mini',
-        
-        'claude-3.7-sonnet': 'cloudsway-claude-3-7-sonnet-20250219',
-        'claude-4-sonnet': 'claude-sonnet-4-20250514',
-        'claude-4-opus': 'claude-opus-4-20250514',
-
-        'qwen3-235b-a22b': 'Qwen/Qwen3-235B-A22B',
-        'qwen3-32b': 'Qwen/Qwen3-32B',
-        'qwen3-30b-a3b': 'Qwen/Qwen3-30B-A3B',
-        # 'qwq-plus': 'qwq-plus-2025-03-05', # [REMINDER] no qwq plus on aihubmix
-        'qwq-32b': 'Qwen/QwQ-32B',
-
-        'gemini-2.5-flash' : 'gemini-2.5-flash-preview-05-20',
-        'gemini-2.5-pro': 'gemini-2.5-pro-preview-05-06',
-    }
-
-model_shortname2fullname_mapping = {
-    "ds_internal": model_shortname2fullname_ds_internal,
-    "aihubmix": model_shortname2fullname_aihubmix
+API_MAPPINGS = {
+    'deepseek-v3': Dict(
+        api_model={"ds_internal": "deepseek-chat",
+                   "aihubmix": "DeepSeek-V3"},
+        price=[0, 0],
+        concurrency=32
+    ),
+    'deepseek-r1': Dict(
+        api_model={"ds_internal": "deepseek-reasoner",
+                   "aihubmix": "DeepSeek-R1"},
+        price=[0, 0],
+        concurrency=32
+    ),
+    'gpt-4o': Dict(
+        api_model={"ds_internal": "azure-gpt-4o-2024-11-20",
+                   "aihubmix": "gpt-4o-2024-11-20"},
+        price=[0.005, 0.015],
+        concurrency=32
+    ),
+    'gpt-4o-mini': Dict(
+        api_model={"ds_internal": "azure-gpt-4o-mini-2024-07-18",
+                   "aihubmix": "gpt-4o-mini"},
+        price=[0.00015, 0.0006],
+        concurrency=32
+    ),
+    'gpt-4.1': Dict(
+        api_model={"ds_internal": "azure-gpt-4.1-2025-04-14",
+                   "aihubmix": "gpt-4.1"},
+        price=[0.002, 0.008],
+        concurrency=32
+    ),
+    'gpt-4.1-mini': Dict(
+        api_model={"ds_internal": "azure-gpt-4.1-mini-2025-04-14",
+                   "aihubmix": "gpt-4.1-mini"},
+        price=[0.0004, 0.0016],
+        concurrency=32
+    ),
+    'gpt-4.1-nano': Dict(
+        api_model={"ds_internal": "azure-gpt-4.1-nano-2025-04-14",
+                   "aihubmix": "gpt-4.1-nano"},
+        price=[0.0001, 0.0004],
+        concurrency=32
+    ),
+    'o4-mini': Dict(
+        api_model={"ds_internal": "azure-o4-mini-2025-04-16",
+                   "aihubmix": "o4-mini"},
+        price=[0.0011, 0.0044],
+        concurrency=32
+    ),
+    'claude-3.7-sonnet': Dict(
+        api_model={"ds_internal": "cloudsway-claude-3-7-sonnet-20250219",
+                   "aihubmix": "cloudsway-claude-3-7-sonnet-20250219"},
+        price=[0.003, 0.015],
+        concurrency=32
+    ),
+    'claude-4-sonnet': Dict(
+        api_model={"ds_internal": "claude-sonnet-4-20250514",
+                   "aihubmix": "claude-sonnet-4-20250514"},
+        price=[0.003, 0.015],
+        concurrency=32
+    ),
+    'claude-4-opus': Dict(
+        api_model={"ds_internal": "claude-opus-4-20250514",
+                   "aihubmix": "claude-opus-4-20250514"},
+        price=[0.015, 0.075],
+        concurrency=32
+    ),
+    'qwen3-235b-a22b': Dict(
+        api_model={"ds_internal": "qwen3-235b-a22b",
+                   "aihubmix": "Qwen/Qwen3-235B-A22B"},
+        price=[0.004, 0.04],
+        concurrency=32
+    ),
+    'qwen3-32b': Dict(
+        api_model={"ds_internal": "qwen3-32b",
+                   "aihubmix": "Qwen/Qwen3-32B"},
+        price=[0.002, 0.02],
+        concurrency=32
+    ),
+    'qwen3-30b-a3b': Dict(
+        api_model={"ds_internal": "qwen3-30b-a3b",
+                   "aihubmix": "Qwen/Qwen3-30B-A3B"},
+        price=[0.0015, 0.015],
+        concurrency=32
+    ),
+    'qwq-plus': Dict(
+        api_model={"ds_internal": "qwq-plus-2025-03-05",
+                   "aihubmix": None},  # No qwq plus on aihubmix
+        price=[0, 0],
+        concurrency=32
+    ),
+    'qwq-32b': Dict(
+        api_model={"ds_internal": "qwq-32b",
+                   "aihubmix": "Qwen/QwQ-32B"},
+        price=[0.14/1000, 0.56/1000],
+        concurrency=32
+    ),
+    'gemini-2.5-flash': Dict(
+        api_model={"ds_internal": "gemini-2.5-flash-preview-05-20",
+                   "aihubmix": "gemini-2.5-flash-preview-05-20"},
+        price=[0.00015, 0.0035],
+        concurrency=32
+    ),
+    'gemini-2.5-pro': Dict(
+        api_model={"ds_internal": "cloudsway-gemini-2.5-pro-preview-05-06",
+                   "aihubmix": "gemini-2.5-pro-preview-05-06"},
+        price=[0.00125, 0.010],
+        concurrency=32
+    ),
+    'grok-3-beta': Dict(
+        api_model={"ds_internal": "grok-3-beta",
+                   "aihubmix": "grok-3-beta"},
+        price=[0.003, 0.015],
+        concurrency=32
+    ),
+    'grok-3-mini-beta': Dict(
+        api_model={"ds_internal": "grok-3-mini-beta",
+                   "aihubmix": "grok-3-mini-beta"},
+        price=[0.0003, 0.0005],
+        concurrency=32
+    )
 }
 
 set_tracing_disabled(disabled=True)

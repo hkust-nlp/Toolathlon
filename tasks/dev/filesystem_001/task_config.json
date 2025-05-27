@@ -1,0 +1,19 @@
+{
+    "id": "dev_filesystem_001",
+    
+    "task_root": "./dumps/dev/filesystem_001/",
+    "log_file": "./dumps/dev/filesystem_001/log.json",
+    "agent_workspace": "./dumps/dev/filesystem_001/workspace",
+    
+    "needed_mcp_servers": ["filesystem"],
+    "meta": {},
+    
+    "system_prompt_instructions":"you are a smart agent to deal with issues about filesystem",
+
+    "initial_workspace":"./initial_states/dev/filesystem_001/workspace",
+    "initial_process_command":"python -m initial_states.dev.filesystem_001.preprocess",
+
+    "groundtruth_workspace": "./groundtruth/dev/filesystem_001/workspace",
+    "check_local_state_command": "python -m groundtruth.dev.filesystem_001.check_local",
+    "check_log_command": "python -m groundtruth.dev.filesystem_001.check_log"
+}

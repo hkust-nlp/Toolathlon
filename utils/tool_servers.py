@@ -5,24 +5,26 @@ import os
 
 from configs.global_configs import global_configs
 
+from configs.token_key_session import all_token_key_session
+
 ServerNameLiteral = Literal[
     'filesystem',
     'variflight',
     'amap',
     'playwright',
-    'puppeteer',
     'fetch',
     'time',
     'arxiv_local',
     'edgeone',
     'shadcn_ui',
-    'leetcode',
+    'leetcode', # ?
+    'leetcode_hosted', # ?
     'codesavant',
     'scholarly_search',
     'antv_chart',
     'code_runner',
     'slack',
-    'github',
+    'github', # ?
     '12306'
 ]
 
@@ -92,31 +94,33 @@ class MCPServerManager:
                     "--browser", "chromium", # please use chromium, others may need sudo to install
                     ],
                 "env": { # this is necessary
-                    "HTTPS_PROXY": global_configs['proxy'],
-                    "HTTP_PROXY": global_configs['proxy'],
+                    "HTTPS_PROXY": global_configs.proxy,
+                    "HTTP_PROXY": global_configs.proxy,
                 }
             },
             client_session_timeout_seconds=10,
             cache_tools_list=True,
         )
 
-        # 一个使用 Puppeteer 提供浏览器自动化功能的 Model Context Protocol 服务器。该服务器使 LLMs 能够与网页交互、截屏以及在真实的浏览器环境中执行 JavaScript。
-        # https://github.com/modelcontextprotocol/servers/tree/main/src/puppeteer
-        self.servers['puppeteer'] = MCPServerStdio(
-            name='puppeteer',
-            params={
-                "command": "npx",
-                "args": [
-                    "-y", "@modelcontextprotocol/server-puppeteer",
-                    "--no-sandbox", # switch on this on container
-                    ],
-                # "env": { # this is necessary
-                    # "HTTPS_PROXY": global_configs['proxy'],
-                    # "HTTP_PROXY": global_configs['proxy'],
-                # }
-            },
-            cache_tools_list=True,
-        )
+        """
+        puppeteer is removed as its function can be covered by playwright
+        """
+        # # 一个使用 Puppeteer 提供浏览器自动化功能的 Model Context Protocol 服务器。该服务器使 LLMs 能够与网页交互、截屏以及在真实的浏览器环境中执行 JavaScript。
+        # # https://github.com/modelcontextprotocol/servers/tree/main/src/puppeteer
+        # self.servers['puppeteer'] = MCPServerStdio(
+        #     name='puppeteer',
+        #     params={
+        #         "command": "npx",
+        #         "args": [
+        #             "-y", "@modelcontextprotocol/server-puppeteer",
+        #             ],
+        #         # "env": { # this is necessary
+        #             # "HTTPS_PROXY": global_configs.proxy,
+        #             # "HTTP_PROXY": global_configs.proxy,
+        #         # }
+        #     },
+        #     cache_tools_list=True,
+        # )
 
         # Fetch 抓取网页并获得 raw HTML 或者转化后的markdown
         # https://modelscope.cn/mcp/servers/@modelcontextprotocol/fetch
@@ -153,8 +157,8 @@ class MCPServerManager:
                     "--storage-path", f"{self.agent_workspace}/arxiv_local_storage"
                 ],
                 "env": { # this is necessary
-                    "HTTPS_PROXY": global_configs['proxy'],
-                    "HTTP_PROXY": global_configs['proxy'],
+                    "HTTPS_PROXY": global_configs.proxy,
+                    "HTTP_PROXY": global_configs.proxy,
                 }
             },
             client_session_timeout_seconds=10,
@@ -167,56 +171,83 @@ class MCPServerManager:
         self.servers['edgeone'] = MCPServerSse(
             name='edgeone',
             params={
-                "url": "https://mcp.api-inference.modelscope.cn/sse/d92929d50e834a",
+                "url": "https://mcp.api-inference.modelscope.cn/sse/f81c4bfac3d748",
+                "env": { # this is necessary
+                    "HTTPS_PROXY": global_configs.proxy,
+                    "HTTP_PROXY": global_configs.proxy,
+                }
+            },
+            client_session_timeout_seconds=60,
+            cache_tools_list=True,
+        )
+
+        """
+        这个服务好像掉了
+        """
+        # LeetCode 数据库检索
+        # https://modelscope.cn/mcp/servers/@jinzcdev/leetcode-mcp-server
+        self.servers['leetcode_hosted'] = MCPServerSse(
+            name='leetcode_hosted',
+            params={
+                "url" : "https://mcp.api-inference.modelscope.cn/sse/45efa7330e8345",
             },
             cache_tools_list=True,
         )
 
+        self.servers['leetcode'] = MCPServerStdio(
+            name='leetcode',
+            params={
+                "command": "npx",
+                "args": [
+                    "-y",
+                    f"@jinzcdev/leetcode-mcp-server",
+                    "--site",
+                    "global",
+                    # "--session", 
+                    # all_token_key_session.leetcode_session
+                ],
+            },
+            cache_tools_list=True,
+        )
 
         # 访问 shadcn/ui 组件文档和示例
         # https://modelscope.cn/mcp/servers/@ymadd/shadcn-ui-mcp-server
         self.servers['shadcn_ui'] = MCPServerSse(
-            name='shadcn-ui',
+            name='shadcn_ui',
             params={
-                "url": "https://mcp.api-inference.modelscope.cn/sse/83df379713b24c"
+                "url": "https://mcp.api-inference.modelscope.cn/sse/72adf3b7c25742",
             },
             cache_tools_list=True,
         )
 
-        # LeetCode 数据库检索
-        # https://modelscope.cn/mcp/servers/@jinzcdev/leetcode-mcp-server
-        self.servers['leetcode'] = MCPServerSse(
-            name='leetcode',
-            params={
-                "url": "https://mcp.api-inference.modelscope.cn/sse/30f7d9b277ec4f"
-            },
-            cache_tools_list=True,
-        )
-
-        # 代码读写与沙箱执行
-        # https://modelscope.cn/mcp/servers/@twolven/mcp-codesavant
-        self.servers['codesavant'] = MCPServerStdio(
-            name='codesavant',
-            params={
-                "command": "uv",
-                "args": ["run", f"{self.local_servers_paths}/mcp-codesavant-main/codesavant.py"]
-            },
-            cache_tools_list=True,
-        )
+        """
+        codesavant is removed as its function can be covered by code_runner
+        """
+        # # 代码读写与沙箱执行
+        # # https://modelscope.cn/mcp/servers/@twolven/mcp-codesavant
+        # self.servers['codesavant'] = MCPServerStdio(
+        #     name='codesavant',
+        #     params={
+        #         "command": "uv",
+        #         "args": ["run", f"{self.local_servers_paths}/mcp-codesavant-main/codesavant.py"]
+        #     },
+        #     cache_tools_list=True,
+        # )
 
         # 学术搜索，通过关键词搜索 arxiv 和 谷歌学术上的文章（但无法下载全文）
         # https://modelscope.cn/mcp/servers/@adityak74/mcp-scholarly
         self.servers['scholarly_search'] = MCPServerStdio(
             name='scholarly',
             params={
-                "command": "uvx",
-                "args": ["mcp-scholarly"],
+                "command": "uv", 
+                # if use uvx, this mcp is install temeorailiy and will be deleted after the process
+                "args": ["run","mcp-scholarly"],
                 "env": {
-                    "HTTPS_PROXY": global_configs['proxy'],
-                    "HTTP_PROXY": global_configs['proxy'],
+                    "HTTPS_PROXY": global_configs.proxy_backup,
+                    "HTTP_PROXY": global_configs.proxy_backup,
                 }
             },
-            # client_session_timeout_seconds=20,
+            client_session_timeout_seconds=5,
             cache_tools_list=True,
         )
 
@@ -226,6 +257,10 @@ class MCPServerManager:
             name='antv_chart',
             params={
                 "url": "https://mcp.api-inference.modelscope.cn/sse/55c878ff004641",
+                "env": {
+                    "HTTPS_PROXY": global_configs.proxy,
+                    "HTTP_PROXY": global_configs.proxy,
+                }
             },
             cache_tools_list=True,
         )
@@ -263,10 +298,11 @@ class MCPServerManager:
                 "args": [
                     "-y", "@modelcontextprotocol/server-github"],
                 "env": {
-                    "GITHUB_PERSONAL_ACCESS_TOKEN": "<YOUR_TOKEN>"
+                    "GITHUB_PERSONAL_ACCESS_TOKEN": all_token_key_session.github_token,
                 }
             },
             cache_tools_list=True,
+            client_session_timeout_seconds=50,
         )
 
         # 12306 CN train tickets

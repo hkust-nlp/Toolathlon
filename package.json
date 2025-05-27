@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@jinzcdev/leetcode-mcp-server": "^1.1.0",
     "@modelcontextprotocol/server-filesystem": "^2025.3.28",
     "@modelcontextprotocol/server-github": "^2025.4.8",
     "@modelcontextprotocol/server-puppeteer": "^2025.5.12",

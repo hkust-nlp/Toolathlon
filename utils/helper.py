@@ -14,6 +14,9 @@ import subprocess
 from typing import List
 from termcolor import colored
 import pickle
+import os
+import shutil
+import asyncio
 
 BASIC_TYPES = [int, float, str, bool, None, list, dict, set, tuple]
 
@@ -365,6 +368,78 @@ def get_total_items_with_wc(filename):
     result = subprocess.run(['wc', '-l', filename], stdout=subprocess.PIPE, text=True)
     total_lines = int(result.stdout.split()[0])  # wc输出的形式是: 行数 文件名, 所以只取第一部分
     return total_lines
+
+async def copy_folder_contents(source_folder, target_folder):
+    """
+    将源文件夹A的所有内容复制到目标文件夹B
+    
+    参数:
+        source_folder: 源文件夹路径（A）
+        target_folder: 目标文件夹路径（B）
+    """
+    # 检查源文件夹是否存在
+    if not os.path.exists(source_folder):
+        raise FileNotFoundError(f"Error: Source directory `{source_folder}` does not exist!")
+    
+    # 检查源路径是否为文件夹
+    if not os.path.isdir(source_folder):
+        raise NotADirectoryError(f"Error: `{source_folder}` is not a directory!")
+    
+    # 如果目标文件夹不存在，创建它
+    if not os.path.exists(target_folder):
+        os.makedirs(target_folder)
+        print(f"Target directory `{target_folder}` has been created!")
+    
+    # 遍历源文件夹中的所有内容
+    for item in os.listdir(source_folder):
+        source_path = os.path.join(source_folder, item)
+        target_path = os.path.join(target_folder, item)
+        
+        try:
+            if os.path.isdir(source_path):
+                # 如果是文件夹，递归复制
+                shutil.copytree(source_path, target_path, dirs_exist_ok=True)
+            else:
+                # 如果是文件，直接复制
+                shutil.copy2(source_path, target_path)
+        except Exception as e:
+            print(f"Error in copying `{item}` : {str(e)}")
+    
+    print(f"Copy done! `{source_folder}` -> `{target_folder}`")
+
+async def run_command(command):
+    """
+    异步执行命令并返回输出
+    
+    Args:
+        command: 要执行的命令字符串
+        
+    Returns:
+        tuple: (stdout, stderr, return_code)
+    """
+    # 创建子进程
+    process = await asyncio.create_subprocess_shell(
+        command,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE
+    )
+    
+    print(f"Executing command : {command}")
+
+    # 等待命令执行完成
+    _, stderr = await process.communicate()
+    
+    if process.returncode!=0:
+        raise RuntimeError(f"Failed in executing the command: {stderr.decode()}")
+
+    print("Successfully executed!")
+
+async def specifical_inialize_for_mcp(task_config):
+    if "arxiv_local" in task_config.needed_mcp_servers:
+        cache_dir = os.path.join(task_config.agent_workspace,"arxiv_local_storage")
+        os.makedirs(cache_dir, exist_ok=True)
+        assert os.path.exists(cache_dir)
+        print("[arxiv_local] arxiv local cache dir has been established")
 
 if __name__=="__main__":
     pass
