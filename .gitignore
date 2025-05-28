@@ -16,3 +16,4 @@ legacy/
 configs/global_configs.py
 configs/token_key_session.py
 dumps
+./logs
