@@ -1,0 +1,18 @@
+# arxiv论文搜索、下载至本地、阅读
+# https://modelscope.cn/mcp/servers/@blazickjp/arxiv-mcp-server
+type: stdio
+name: ArXiv 搜索服务(本地)
+params:
+  command: uv
+  args:
+    - "--directory"
+    - "${local_servers_paths}/arxiv-mcp-server"
+    - "run"
+    - "arxiv-mcp-server"
+    - "--storage-path"
+    - "${agent_workspace}/arxiv_local_storage"
+  env:
+    HTTPS_PROXY: "${config.proxy}"
+    HTTP_PROXY: "${config.proxy}"
+client_session_timeout_seconds: 10
+cache_tools_list: true

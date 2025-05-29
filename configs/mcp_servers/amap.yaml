@@ -1,0 +1,7 @@
+# 高德地图位置服务
+# https://modelscope.cn/mcp/servers/@amap/amap-maps
+type: sse
+name: 高德地图
+params:
+  url: "https://mcp.api-inference.modelscope.cn/sse/af7d9dedc84e4b"
+cache_tools_list: true

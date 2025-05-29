@@ -1,0 +1,7 @@
+# 12306 中国铁路票务查询
+# https://modelscope.cn/mcp/servers/@Joooook/12306-mcp
+type: sse
+name: 12306
+params:
+  url: "https://mcp.api-inference.modelscope.cn/sse/e8b10afe5d864c"
+cache_tools_list: true

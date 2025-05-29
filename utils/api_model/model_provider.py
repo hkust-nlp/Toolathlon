@@ -154,3 +154,14 @@ API_MAPPINGS = {
 }
 
 set_tracing_disabled(disabled=True)
+
+def calculate_cost(model_name, input_tokens, output_tokens):
+    prices = API_MAPPINGS[model_name]['price']
+    input_price_per_1k = prices[0] / 1000
+    output_price_per_1k = prices[1] / 1000
+    
+    input_cost = input_tokens * input_price_per_1k
+    output_cost = output_tokens * output_price_per_1k
+    total_cost = input_cost + output_cost
+    
+    return input_cost, output_cost, total_cost

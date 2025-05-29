@@ -1,0 +1,6 @@
+# 飞常准航空服务
+type: sse
+name: variflight
+params:
+  url: "https://mcp.api-inference.modelscope.cn/sse/03e18b661de74f"
+cache_tools_list: true

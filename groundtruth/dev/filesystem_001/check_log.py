@@ -1,5 +1,5 @@
 from argparse import ArgumentParser
-from utils.helper import read_json
+from utils.general.helper import read_json
 
 if __name__=="__main__":
     parser = ArgumentParser()

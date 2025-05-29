@@ -1,0 +1,11 @@
+# EdgeOne Pages - 用于将 HTML 内容部署到 EdgeOne Pages 并获取公开可访问 URL
+# https://modelscope.cn/mcp/servers/@TencentEdgeOne/edgeone-pages-mcp
+type: sse
+name: edgeone
+params:
+  url: "https://mcp.api-inference.modelscope.cn/sse/f81c4bfac3d748"
+  env:
+    HTTPS_PROXY: "${config.proxy}"
+    HTTP_PROXY: "${config.proxy}"
+client_session_timeout_seconds: 60
+cache_tools_list: true

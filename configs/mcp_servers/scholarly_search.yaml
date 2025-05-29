@@ -1,0 +1,14 @@
+# 学术搜索 - 通过关键词搜索 arxiv 和谷歌学术上的文章（但无法下载全文）
+# https://modelscope.cn/mcp/servers/@adityak74/mcp-scholarly
+type: stdio
+name: scholarly
+params:
+  command: uv
+  args:
+    - "run"
+    - "mcp-scholarly"
+  env:
+    HTTPS_PROXY: "${config.proxy_backup}"
+    HTTP_PROXY: "${config.proxy_backup}"
+client_session_timeout_seconds: 5
+cache_tools_list: true

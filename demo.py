@@ -3,6 +3,7 @@ import os, platform
 from agents import (
     Agent,
     RunConfig,
+    Usage,
     Runner,
     ModelSettings, ToolCallItem, MessageOutputItem, ToolCallOutputItem, RunContextWrapper,
     AgentHooks, RunHooks, TContext, Tool
@@ -11,19 +12,21 @@ import asyncio
 import json
 import uuid
 import datetime
-from utils.tool_servers import MCPServerManager
-from utils.model_provider import API_MAPPINGS, model_provider_mapping
-# from utils.utils import *
+from utils.mcp.tool_servers import MCPServerManager
+from utils.api_model.model_provider import API_MAPPINGS, model_provider_mapping, calculate_cost
 import shutil
 from configs.global_configs import global_configs
 import traceback
-from utils.helper import copy_folder_contents, read_json, run_command, specifical_inialize_for_mcp
+from utils.general.helper import copy_folder_contents, read_json, run_command, specifical_inialize_for_mcp
 from enum import Enum
 
 from prompt_toolkit import PromptSession
 from prompt_toolkit.patch_stdout import patch_stdout
 
 from addict import Dict
+
+from utils.roles.user import User, UserConfig
+from utils.api_model.openai_client import AsyncOpenAIClientWithRetry
 
 class TaskStatus(Enum):
     SUCCESS = "success"
@@ -164,7 +167,11 @@ async def initialze(task_config, show_traceback=False):
     print(f"Successfully initialize workspace for {task_config.id}!")
     return True
 
-async def run_agent(task_config, model_config) -> None:
+async def run_agent(task_config, 
+                    model_config, 
+                    user_client,
+                    user_config, 
+                    mcp_config_path) -> None:
     """
     单任务执行
     config需要包括的内容：
@@ -183,7 +190,8 @@ async def run_agent(task_config, model_config) -> None:
     task_config.agent_workspace = os.path.join(task_config.task_root,"workspace")
 
     # 创建并启动mcp服务器
-    mcp_manager = MCPServerManager(agent_workspace=task_config.agent_workspace)
+    mcp_manager = MCPServerManager(agent_workspace=task_config.agent_workspace,
+                                   config_dir=mcp_config_path)
     # 连接到该任务需要的mcp servers
     await mcp_manager.connect_servers(task_config.needed_mcp_servers)
 
@@ -192,6 +200,7 @@ async def run_agent(task_config, model_config) -> None:
     run_hooks = RunLifecycle()
     agent = None
 
+    # 启动agent
     try:
         print(">>初始化agent loop")
         # agent initialize
@@ -210,6 +219,7 @@ async def run_agent(task_config, model_config) -> None:
                 parallel_tool_calls=model_config.parallel_tool_calls,
             ),
         )
+        usage = Usage()
        
         mcp_tools = await agent.get_all_tools()
         print(f">>可用工具列表 (x{len(mcp_tools)})")
@@ -220,6 +230,22 @@ async def run_agent(task_config, model_config) -> None:
         print(e)
         print(">>初始化错误")
 
+    # 启动user
+    try:
+        real_user_config = UserConfig(
+            starting_system_prompt=task_config.user_system_prompt_setting,
+            temperature=user_config.temperature,
+            top_p=user_config.top_p,
+            model = user_config.model_short_name,
+            max_tokens = user_config.max_tokens,
+        )
+        user_simulator = User(client = user_client,
+                        user_config=real_user_config)
+        user_simulator.initialize_conversation()
+    except Exception as e:
+        print(e)
+        print(">>模拟用户启动错误")
+
 
     # interac_loop
     logs = []
@@ -227,12 +253,15 @@ async def run_agent(task_config, model_config) -> None:
     # TODO: 这里现在还需要用户来扮演，理想情况下应该是单轮/固定多轮/LLM扮演下的多轮（这里需要再起一个user llm provider）
     try:
         while True:
-            user_query = await get_user_input()
-            if user_query == 'quit':
-                break
+            user_query = await user_simulator.interact()
+
+            print(f"user: {user_query}")
 
             logs.append({"role": "user", "content": user_query})
             logs_to_record.append({"role": "user", "content": user_query})
+
+            if '#### STOP' in user_query:
+                break
 
             result = await Runner.run(
                 starting_agent=agent,
@@ -244,8 +273,13 @@ async def run_agent(task_config, model_config) -> None:
                 max_turns=model_config.max_inner_turns,
             )
 
+            for raw_response in result.raw_responses:
+                usage.add(raw_response.usage)
+
             print(f"assistant: {result.final_output}")
             logs.extend([item.to_input_item() for item in result.new_items])
+
+            user_simulator.receive_message(result.final_output)
 
             item_index = 0
             while item_index < len(result.new_items):
@@ -294,6 +328,23 @@ async def run_agent(task_config, model_config) -> None:
         task_status = TaskStatus.FAILED
 
     finally:
+        user_cost = user_simulator.get_cost_summary()
+        print("===模拟用户的开销如下===")
+        for k,v in user_cost.items():
+            print(f"{k} : {v}")
+        print("===Agent的开销如下===")
+        _, _, total_cost = calculate_cost(model_config.model_short_name,
+                                          usage.input_tokens,
+                                          usage.output_tokens)
+        agent_cost = {
+            "total_cost": total_cost,
+            "total_input_tokens" : usage.input_tokens,
+            "total_output_tokens" : usage.output_tokens,
+            "total_requests":usage.requests,
+        }
+        for k,v in agent_cost.items():
+            print(f"{k} : {v}")
+
         with open(res_log_file, "w", encoding='utf-8') as f:
             result = {'config':task_config,
                       'request_id': str(uuid.uuid4()), 
@@ -315,8 +366,10 @@ async def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--with_proxy", action="store_true")
     parser.add_argument("--model_short_name", default="gpt-4.1-mini")
+    parser.add_argument("--user_model_short_name", default="gpt-4.1")
     parser.add_argument("--model_provider_name", default="aihubmix")
     parser.add_argument("--task_config", default="tasks/dev/filesystem_001/task_config.json")
+    parser.add_argument("--mcp_config_path", default="configs/mcp_servers")
     args = parser.parse_args()
     
     if args.with_proxy:
@@ -327,6 +380,7 @@ async def main():
     model_real_name = API_MAPPINGS[args.model_short_name].api_model[args.model_provider_name]
 
     model_config = Dict(# model related
+                        model_short_name=args.model_short_name,
                         model_real_name=model_real_name,
                         provider=model_provider,
                         # generation related
@@ -339,9 +393,27 @@ async def main():
                         max_inner_turns=20,
                         )
 
+    user_config = Dict(
+        model_short_name = args.user_model_short_name,
+        model_provider_name = args.model_provider_name,
+        top_p=1.0,
+        temperature=0.7,
+        max_tokens=1024,
+    )
+
     task_config = Dict(read_json(args.task_config))
 
-    await run_agent(task_config=task_config,model_config=model_config)
+    user_client = AsyncOpenAIClientWithRetry(
+        api_key = global_configs.non_ds_key,
+        base_url = global_configs.base_url_non_ds,
+        provider = user_config.model_provider_name,
+    )
+
+    await run_agent(task_config=task_config,
+                    model_config=model_config,
+                    user_client=user_client,
+                    user_config = user_config,
+                    mcp_config_path=args.mcp_config_path)
 
     log_file = task_config.log_file
 

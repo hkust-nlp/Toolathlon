@@ -1,0 +1,8 @@
+# LeetCode 数据库检索（托管版本）
+# https://modelscope.cn/mcp/servers/@jinzcdev/leetcode-mcp-server
+# 注意：此服务可能不稳定
+type: sse
+name: leetcode_hosted
+params:
+  url: "https://mcp.api-inference.modelscope.cn/sse/45efa7330e8345"
+cache_tools_list: true

@@ -1,0 +1,8 @@
+# Fetch 抓取网页并获得 raw HTML 或者转化后的 markdown
+# https://modelscope.cn/mcp/servers/@modelcontextprotocol/fetch
+type: sse
+name: fetch
+params:
+  url: "https://mcp.api-inference.modelscope.cn/sse/01e5d883e78449"
+client_session_timeout_seconds: 10
+cache_tools_list: true

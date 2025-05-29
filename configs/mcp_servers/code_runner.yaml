@@ -1,0 +1,10 @@
+# 代码执行器 - 可运行几乎所有的常见语言（目前环境中只装了 python 和 node）
+# https://modelscope.cn/mcp/servers/@formulahendry/mcp-server-code-runner
+type: stdio
+name: code_runner
+params:
+  command: npx
+  args:
+    - "-y"
+    - "mcp-server-code-runner@latest"
+cache_tools_list: true

@@ -1,0 +1,13 @@
+# GitHub API 集成
+# https://github.com/modelcontextprotocol/servers/tree/main/src/github
+type: stdio
+name: github
+params:
+  command: npx
+  args:
+    - "-y"
+    - "@modelcontextprotocol/server-github"
+  env:
+    GITHUB_PERSONAL_ACCESS_TOKEN: "${token.github_token}"
+client_session_timeout_seconds: 50
+cache_tools_list: true
