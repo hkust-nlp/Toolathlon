@@ -13,7 +13,7 @@ import json
 import uuid
 import datetime
 from utils.mcp.tool_servers import MCPServerManager
-from utils.api_model.model_provider import API_MAPPINGS, model_provider_mapping, calculate_cost
+from utils.api_model.model_provider import model_provider_mapping, calculate_cost
 import shutil
 from configs.global_configs import global_configs
 import traceback
@@ -23,10 +23,15 @@ from enum import Enum
 from prompt_toolkit import PromptSession
 from prompt_toolkit.patch_stdout import patch_stdout
 
-from addict import Dict
-
-from utils.roles.user import User, UserConfig
+from utils.roles.user import User, UserRuntimeConfig
 from utils.api_model.openai_client import AsyncOpenAIClientWithRetry
+
+from utils.data_structures.task_config import TaskConfig
+from utils.data_structures.agent_config import AgentConfig
+from utils.data_structures.mcp_config import MCPConfig
+from utils.data_structures.user_config import UserConfig
+
+from agents import ModelProvider
 
 class TaskStatus(Enum):
     SUCCESS = "success"
@@ -95,7 +100,7 @@ async def eval_agent(dump_line):
         - remote status ： 手动调用MCP server检查remote status是否正常修改 [不知道是否可能]
     利用上述内容来完成对任务执行成功与否的判断
     """
-    task_config = Dict(dump_line['config'])
+    task_config = TaskConfig.from_dict(dump_line['config'])
     task_status = dump_line['status']
 
     if task_status != TaskStatus.SUCCESS.value:
@@ -104,24 +109,24 @@ async def eval_agent(dump_line):
     # thing we need to do evaluate
     res_log_file = task_config.log_file
     agent_workspace = task_config.agent_workspace
-    groundtruth_workspace = task_config.groundtruth_workspace
-    check_local_state_command = task_config.check_local_state_command
-    check_log_command = task_config.check_log_command
+    groundtruth_workspace = task_config.evaluation.groundtruth_workspace
+    eval_local_state_command = task_config.evaluation.local_state_command
+    eval_log_command = task_config.evaluation.log_command
 
-    # check log
-    if check_log_command is not None:
+    # eval log
+    if eval_log_command is not None:
         try:
             args = f"--res_log_file {res_log_file}"
-            command = f"{check_log_command} {args}"
+            command = f"{eval_log_command} {args}"
             await run_command(command)
         except:
             return {"pass":False, "failure": "fail_to_pass_log_check"}
         
-    # check status
-    if check_local_state_command is not None:
+    # eval status
+    if eval_local_state_command is not None:
         try:
             args = f"--agent_workspace {agent_workspace} --groundtruth_workspace {groundtruth_workspace}"
-            command = f"{check_local_state_command} {args}"
+            command = f"{eval_local_state_command} {args}"
             await run_command(command)
         except:
             return {"pass":False, "failure": "fail_to_pass_local_state_check"}
@@ -134,7 +139,7 @@ async def initialze(task_config, show_traceback=False):
     
     log_file = task_config.log_file
     agent_workspace = task_config.agent_workspace
-    initial_state_workspace = task_config.initial_workspace
+    initial_state_workspace = task_config.initialization.workspace
 
     try:
         # remove existing ones
@@ -150,9 +155,9 @@ async def initialze(task_config, show_traceback=False):
         await copy_folder_contents(initial_state_workspace, agent_workspace)
 
         # do some preprocessing if needed
-        if task_config.initial_process_command is not None:
+        if task_config.initialization.process_command is not None:
             args = f"--agent_workspace {task_config.agent_workspace}"
-            command = f"{task_config.initial_process_command} {args}"
+            command = f"{task_config.initialization.process_command} {args}"
             await run_command(command)
             
         # other specific operations for mcp servers
@@ -167,18 +172,24 @@ async def initialze(task_config, show_traceback=False):
     print(f"Successfully initialize workspace for {task_config.id}!")
     return True
 
-async def run_agent(task_config, 
-                    model_config, 
-                    user_client,
-                    user_config, 
-                    mcp_config_path) -> None:
+def build_user_client(user_config: UserConfig):
+    return AsyncOpenAIClientWithRetry(
+        api_key = global_configs.non_ds_key,
+        base_url = global_configs.base_url_non_ds,
+        provider = user_config.model.provider,
+    )
+
+def build_agent_model_provider(agent_config:AgentConfig):
+    return model_provider_mapping[agent_config.model.provider]()
+
+async def run_agent(task_config: TaskConfig, 
+                    agent_config: AgentConfig, 
+                    agent_model_provider: ModelProvider,
+                    user_config: UserConfig, 
+                    user_client: AsyncOpenAIClientWithRetry,
+                    mcp_config: MCPConfig) -> None:
     """
     单任务执行
-    config需要包括的内容：
-        - needed_mcp_servers = 该任务需要连接哪些mcp server [目前先保持静态，即连接的mcp列表在任务执行中不会改变]
-        - instruction = 该任务的system prompt
-        - id = 唯一识别序列号
-        - meta = 其他信息
     """
     all_tools = []
 
@@ -191,7 +202,7 @@ async def run_agent(task_config,
 
     # 创建并启动mcp服务器
     mcp_manager = MCPServerManager(agent_workspace=task_config.agent_workspace,
-                                   config_dir=mcp_config_path)
+                                   config_dir=mcp_config.server_config_path)
     # 连接到该任务需要的mcp servers
     await mcp_manager.connect_servers(task_config.needed_mcp_servers)
 
@@ -206,17 +217,17 @@ async def run_agent(task_config,
         # agent initialize
         agent = Agent(
             name="Assistant",
-            instructions=task_config.system_prompt_instructions,
-            model=model_config.provider.get_model(model_config.model_real_name),
+            instructions=task_config.system_prompts.agent,
+            model=agent_model_provider.get_model(agent_config.model.real_name),
             mcp_servers=[*mcp_manager.get_all_connected_servers()], # 指定mcp servers
             tools=[],
             hooks=agent_hooks,
             model_settings=ModelSettings(
-                temperature=model_config.temperature,
-                top_p=model_config.top_p,
-                max_tokens=model_config.max_tokens,
-                tool_choice=model_config.tool_choice,
-                parallel_tool_calls=model_config.parallel_tool_calls,
+                temperature=agent_config.generation.temperature,
+                top_p=agent_config.generation.top_p,
+                max_tokens=agent_config.generation.max_tokens,
+                tool_choice=agent_config.tool.tool_choice,
+                parallel_tool_calls=agent_config.tool.parallel_tool_calls,
             ),
         )
         usage = Usage()
@@ -232,20 +243,16 @@ async def run_agent(task_config,
 
     # 启动user
     try:
-        real_user_config = UserConfig(
-            starting_system_prompt=task_config.user_system_prompt_setting,
-            temperature=user_config.temperature,
-            top_p=user_config.top_p,
-            model = user_config.model_short_name,
-            max_tokens = user_config.max_tokens,
+        user_runtime_config = UserRuntimeConfig(
+            global_config= user_config,
+            starting_system_prompt=task_config.system_prompts.user,
         )
         user_simulator = User(client = user_client,
-                        user_config=real_user_config)
+                              user_config=user_runtime_config)
         user_simulator.initialize_conversation()
     except Exception as e:
         print(e)
         print(">>模拟用户启动错误")
-
 
     # interac_loop
     logs = []
@@ -267,10 +274,10 @@ async def run_agent(task_config,
                 starting_agent=agent,
                 input=logs,
                 run_config=RunConfig(
-                    model_provider=model_config.provider,
+                    model_provider=agent_model_provider,
                 ),
                 hooks=run_hooks,
-                max_turns=model_config.max_inner_turns,
+                max_turns=agent_config.tool.max_inner_turns,
             )
 
             for raw_response in result.raw_responses:
@@ -333,7 +340,7 @@ async def run_agent(task_config,
         for k,v in user_cost.items():
             print(f"{k} : {v}")
         print("===Agent的开销如下===")
-        _, _, total_cost = calculate_cost(model_config.model_short_name,
+        _, _, total_cost = calculate_cost(agent_config.model.short_name,
                                           usage.input_tokens,
                                           usage.output_tokens)
         agent_cost = {
@@ -346,7 +353,7 @@ async def run_agent(task_config,
             print(f"{k} : {v}")
 
         with open(res_log_file, "w", encoding='utf-8') as f:
-            result = {'config':task_config,
+            result = {'config':task_config.to_dict(),
                       'request_id': str(uuid.uuid4()), 
                       'date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 
                       'tool_calls': {'tools': all_tools, 'tool_choice': 'auto'}, 
@@ -360,60 +367,37 @@ async def run_agent(task_config,
             f.write(json_output)
         await mcp_manager.disconnect_servers()
 
+
 async def main():
     import argparse
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--with_proxy", action="store_true")
-    parser.add_argument("--model_short_name", default="gpt-4.1-mini")
-    parser.add_argument("--user_model_short_name", default="gpt-4.1")
-    parser.add_argument("--model_provider_name", default="aihubmix")
+    parser.add_argument("--eval_config", default="scripts/eval_config.json")
     parser.add_argument("--task_config", default="tasks/dev/filesystem_001/task_config.json")
-    parser.add_argument("--mcp_config_path", default="configs/mcp_servers")
     args = parser.parse_args()
     
     if args.with_proxy:
         os.environ['http_proxy'] = global_configs.proxy
         os.environ['https_proxy'] = global_configs.proxy
 
-    model_provider = model_provider_mapping[args.model_provider_name]()
-    model_real_name = API_MAPPINGS[args.model_short_name].api_model[args.model_provider_name]
+    eval_config_dict = read_json(args.eval_config)
 
-    model_config = Dict(# model related
-                        model_short_name=args.model_short_name,
-                        model_real_name=model_real_name,
-                        provider=model_provider,
-                        # generation related
-                        temperature=0.0,
-                        top_p=1.0,
-                        max_tokens=4096,
-                        # tool call related
-                        tool_choice="auto",
-                        parallel_tool_calls=False,
-                        max_inner_turns=20,
-                        )
+    mcp_config = MCPConfig.from_dict(eval_config_dict['mcp']) # global mcp config
+    agent_config = AgentConfig.from_dict(eval_config_dict['agent']) # global agent config
+    user_config = UserConfig.from_dict(eval_config_dict['user']) # global user config
 
-    user_config = Dict(
-        model_short_name = args.user_model_short_name,
-        model_provider_name = args.model_provider_name,
-        top_p=1.0,
-        temperature=0.7,
-        max_tokens=1024,
-    )
+    task_config = TaskConfig.from_dict(read_json(args.task_config)) # task specific config
 
-    task_config = Dict(read_json(args.task_config))
+    agent_model_provider = build_agent_model_provider(agent_config)
+    user_client = build_user_client(user_config)
 
-    user_client = AsyncOpenAIClientWithRetry(
-        api_key = global_configs.non_ds_key,
-        base_url = global_configs.base_url_non_ds,
-        provider = user_config.model_provider_name,
-    )
-
-    await run_agent(task_config=task_config,
-                    model_config=model_config,
-                    user_client=user_client,
+    await run_agent(task_config = task_config,
+                    agent_config = agent_config,
+                    agent_model_provider=agent_model_provider,
+                    user_client = user_client,
                     user_config = user_config,
-                    mcp_config_path=args.mcp_config_path)
+                    mcp_config = mcp_config)
 
     log_file = task_config.log_file
 

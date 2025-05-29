@@ -6,21 +6,21 @@ from dataclasses import dataclass, field
 
 from utils.general.base_models import Message, MessageRole, CostReport
 from utils.api_model.openai_client import AsyncOpenAIClientWithRetry
+from utils.data_structures.user_config import UserConfig
 
 import random
 
 logger = logging.getLogger(__name__)
 
 @dataclass
-class UserConfig:
+class UserRuntimeConfig:
     """用户配置"""
+    global_config: UserConfig
+
     starting_system_prompt: str
     user_id: Optional[str] = None
     max_history: int = 50
-    temperature: float = 0.7
-    top_p: float = 1.0
-    max_tokens: Optional[int] = None
-    model: Optional[str] = None
+
     metadata: Optional[Dict[str, Any]] = None
     track_costs: bool = True  # 是否追踪成本
 
@@ -72,7 +72,7 @@ class User:
     def __init__(
         self, 
         client: AsyncOpenAIClientWithRetry,
-        user_config: UserConfig
+        user_config: UserRuntimeConfig
     ):
         """
         初始化用户
@@ -195,12 +195,12 @@ class User:
         
         # 合并配置参数
         request_params = {
-            "temperature": self.config.temperature,
-            "max_tokens": self.config.max_tokens,
-            "top_p": self.config.top_p,
+            "temperature": self.config.global_config.generation.temperature,
+            "max_tokens": self.config.global_config.generation.max_tokens,
+            "top_p": self.config.global_config.generation.top_p,
         }
-        if self.config.model:
-            request_params["model"] = self.config.model
+        if self.config.global_config.model.short_name:
+            request_params["model"] = self.config.global_config.model.short_name
         
         # 覆盖任何传入的参数
         request_params.update(kwargs)
@@ -218,7 +218,6 @@ class User:
                     messages,
                     **request_params
                 )
-                
                 # 更新成本追踪
                 if cost_report and self.cost_tracker:
                     self.cost_tracker.add_cost_report(cost_report)
@@ -353,8 +352,8 @@ class User:
             "is_initialized": self.is_initialized,
             "config": {
                 "max_history": self.config.max_history,
-                "temperature": self.config.temperature,
-                "model": self.config.model,
+                "temperature": self.config.global_config.generation.temperature,
+                "model": self.config.global_config.model.short_name,
                 "track_costs": self.config.track_costs
             }
         }
@@ -387,8 +386,8 @@ class User:
                 "interaction_count": self.interaction_count,
                 "config": {
                     "starting_system_prompt": self.config.starting_system_prompt,
-                    "temperature": self.config.temperature,
-                    "model": self.config.model,
+                    "temperature": self.config.global_config.generation.temperature,
+                    "model": self.config.global_config.model.short_name,
                     "track_costs": self.config.track_costs
                 },
                 "messages": self._prepare_messages_for_api()
@@ -545,133 +544,6 @@ class CostAnalyzer:
         return report_text
 
 
-# 使用示例
-async def user_example():
-    """User 类使用示例"""
-    from configs.global_configs import global_configs
-    
-    # 创建共享的客户端
-    client = AsyncOpenAIClientWithRetry(
-        api_key=global_configs.non_ds_key,
-        base_url=global_configs.base_url_non_ds,
-        model_name="gpt-4o-mini",
-        provider="ds_internal",
-        global_concurrency=10  # 全局并发控制
-    )
-    
-    async with client:
-        # 创建用户配置
-        user_config = UserConfig(
-            starting_system_prompt="You are a customer looking for product recommendations. You have a budget of $500 and are interested in electronics, but you hate american goods. Always remember that you are the customer, but not the shopping assistant or the agent.",
-            user_id="customer_001",
-            temperature=0.8,
-            top_p=1.0,
-            max_history=20
-        )
-        
-        # 创建用户
-        user = User(client, user_config)
-        
-        # 初始化对话
-        user.initialize_conversation()
-        
-        # 第一轮交互
-        response1 = await user.interact()
-        print(f"User: {user.get_last_user_message().content}")
-        print(f"Assistant: {response1}\n")
-        
-        # 接收外部消息
-        user.receive_message("How about Huawei MateBook, that should be good and under your budget.")
-        
-        # 第二轮交互
-        response2 = await user.interact()
-        print(f"User: {user.get_last_user_message().content}")
-        print(f"Assistant: {response2}\n")
-        
-        # 继续对话
-        user.receive_message("Sorry, I justed check huawei have all been sold out in our store. Will you also consider a second-handed iphone?")
-        response3 = await user.interact()
-        print(f"User: {user.get_last_user_message().content}")
-        print(f"Assistant: {response3}\n")
-        
-        # 获取统计信息
-        stats = user.get_statistics()
-        print("\n=== User Statistics ===")
-        print(f"Interaction count: {stats['interaction_count']}")
-        print(f"Message counts: {stats['message_counts']}")
-        print(f"Total tokens used: {stats['total_tokens_used']}")
-        
-        # 导出对话
-        print("\n=== Exported Conversation ===")
-        print(user.export_conversation(format="json"))
-
-# 批量用户模拟示例
-async def batch_users_example():
-    """批量用户模拟示例"""
-    from configs.global_configs import global_configs
-    
-    # 创建共享客户端
-    client = AsyncOpenAIClientWithRetry(
-        api_key=global_configs.non_ds_key,
-        base_url=global_configs.base_url_non_ds,
-        model_name="gpt-4o-mini",
-        provider="ds_internal",
-        global_concurrency=20
-    )
-    
-    async with client:
-        # 创建多个用户
-        user_personas = [
-            "You are a tech enthusiast looking for the latest gadgets.",
-            "You are a budget-conscious shopper seeking the best deals.",
-            "You are a parent buying educational toys for your children.",
-            "You are a fitness enthusiast looking for workout equipment.",
-            "You are a student needing supplies for college."
-        ]
-        
-        users = []
-        for i, persona in enumerate(user_personas):
-            config = UserConfig(
-                starting_system_prompt=persona,
-                user_id=f"user_{i:03d}",
-                temperature=0.7 + (i * 0.05)  # 不同的温度
-            )
-            users.append(User(client, config))
-        
-        # 并发交互
-        async def simulate_user_interaction(user: User, rounds: int = 3):
-            """模拟用户交互"""
-            user.initialize_conversation()
-            
-            for round in range(rounds):
-                response = await user.interact()
-                print(f"{user.user_id} - Round {round + 1}: {response[:100]}...")
-                await asyncio.sleep(0.5)  # 模拟思考时间
-            
-            return user.get_statistics()
-        
-        # 运行所有用户
-        tasks = [simulate_user_interaction(user) for user in users]
-        results = await asyncio.gather(*tasks)
-        
-        # 汇总结果
-        print("\n=== Batch Simulation Results ===")
-        total_interactions = sum(r['interaction_count'] for r in results)
-        total_tokens = sum(r['total_tokens_used'] for r in results)
-        
-        print(f"Total users: {len(users)}")
-        print(f"Total interactions: {total_interactions}")
-        print(f"Total tokens used: {total_tokens}")
-        print(f"Average interactions per user: {total_interactions / len(users):.1f}")
-        print(f"Average tokens per user: {total_tokens / len(users):.1f}")
-        
-        # 显示每个用户的统计
-        print("\n=== Individual User Stats ===")
-        for stats in results:
-            print(f"{stats['user_id']}: {stats['interaction_count']} interactions, "
-                  f"{stats['message_counts']['total']} messages, "
-                  f"{stats['total_tokens_used']} tokens")
-
 # 用户池管理器
 class UserPool:
     """管理多个用户的池"""
@@ -681,7 +553,7 @@ class UserPool:
         self.users: Dict[str, User] = {}
         self._lock = asyncio.Lock()
     
-    async def create_user(self, user_config: UserConfig) -> User:
+    async def create_user(self, user_config: UserRuntimeConfig) -> User:
         """创建新用户"""
         user = User(self.client, user_config)
         
@@ -703,7 +575,7 @@ class UserPool:
                 return True
             return False
     
-    async def create_users_batch(self, configs: List[UserConfig]) -> List[User]:
+    async def create_users_batch(self, configs: List[UserRuntimeConfig]) -> List[User]:
         """批量创建用户"""
         users = []
         for config in configs:
@@ -807,157 +679,6 @@ class UserBehaviorSimulator:
         
         return results
 
-# 高级用户场景示例
-async def advanced_user_scenarios():
-    """高级用户场景示例"""
-    from configs.global_configs import global_configs
-    
-    # 创建客户端
-    client = AsyncOpenAIClientWithRetry(
-        api_key=global_configs.non_ds_key,
-        base_url=global_configs.base_url_non_ds,
-        model_name="gpt-4o-mini",
-        provider="ds_internal",
-        global_concurrency=30
-    )
-    
-    async with client:
-        # 场景1: 客服对话模拟
-        print("=== 场景1: 客服对话模拟 ===")
-        
-        # 创建用户池
-        user_pool = UserPool(client)
-        
-        # 创建不同类型的客户
-        customer_configs = [
-            UserConfig(
-                starting_system_prompt="You are an angry customer who had a bad experience with a product.",
-                user_id="angry_customer",
-                temperature=0.9
-            ),
-            UserConfig(
-                starting_system_prompt="You are a confused elderly person trying to understand how to use technology.",
-                user_id="confused_customer",
-                temperature=0.7
-            ),
-            UserConfig(
-                starting_system_prompt="You are a satisfied customer wanting to upgrade your service plan.",
-                user_id="happy_customer",
-                temperature=0.6
-            ),
-        ]
-        
-        customers = await user_pool.create_users_batch(customer_configs)
-        
-        # 模拟客服消息
-        support_message = "Hello! I'm here to help. How can I assist you today?"
-        
-        # 广播消息给所有客户
-        await user_pool.broadcast_message(support_message)
-        
-        # 获取所有响应
-        responses = await user_pool.interact_all_users()
-        
-        for user_id, response in responses.items():
-            print(f"\n{user_id}: {response}")
-        
-        # 场景2: 用户行为模拟
-        print("\n\n=== 场景2: 真实用户行为模拟 ===")
-        
-        test_user_config = UserConfig(
-            starting_system_prompt="You are a casual user browsing an online store, sometimes interested, sometimes distracted.",
-            user_id="browsing_user",
-            temperature=0.75
-        )
-        
-        test_user = User(client, test_user_config)
-        simulator = UserBehaviorSimulator(test_user)
-        
-        # 设置不同的行为模式
-        print("\n--- Active User Behavior ---")
-        simulator.set_behavior("active")
-        
-        store_messages = [
-            "Welcome to our store! Check out today's special deals!",
-            "I see you're looking at electronics. We have a 20% discount on all laptops today.",
-            "Would you like to see our warranty options?",
-        ]
-        
-        for behavior in ["active", "moderate", "passive"]:
-            print(f"\n--- {behavior.capitalize()} User Behavior ---")
-            simulator.set_behavior(behavior)
-            
-            # 清除历史以重新开始
-            test_user.clear_history(keep_system=True)
-            test_user.initialize_conversation()
-            
-            results = await simulator.simulate_conversation_flow(
-                store_messages[:2]  # 只用前两条消息测试
-            )
-            
-            for incoming, response in results:
-                print(f"Store: {incoming}")
-                if response:
-                    print(f"User: {response}")
-                else:
-                    print("User: (no response)")
-                print()
-        
-        # 场景3: A/B测试模拟
-        print("\n=== 场景3: A/B测试用户群体 ===")
-        
-        # 创建两组用户进行A/B测试
-        group_a_prompt = "You are a price-sensitive shopper who always looks for the best deals and compares prices."
-        group_b_prompt = "You are a quality-focused shopper who values premium products and good service over price."
-        
-        # 每组创建5个用户
-        group_a_users = []
-        group_b_users = []
-        
-        for i in range(5):
-            # A组用户
-            config_a = UserConfig(
-                starting_system_prompt=group_a_prompt,
-                user_id=f"group_a_user_{i}",
-                temperature=0.7 + (i * 0.05)
-            )
-            group_a_users.append(await user_pool.create_user(config_a))
-            
-            # B组用户
-            config_b = UserConfig(
-                starting_system_prompt=group_b_prompt,
-                user_id=f"group_b_user_{i}",
-                temperature=0.7 + (i * 0.05)
-            )
-            group_b_users.append(await user_pool.create_user(config_b))
-        
-        # 测试两种不同的营销信息
-        marketing_a = "HUGE SALE! 50% OFF everything! Limited time only!"
-        marketing_b = "Discover our premium collection. Handcrafted quality that lasts a lifetime."
-        
-        # A组接收营销信息A
-        for user in group_a_users:
-            user.receive_message(marketing_a)
-        
-        # B组接收营销信息B
-        for user in group_b_users:
-            user.receive_message(marketing_b)
-        
-        # 收集响应
-        print("\n--- Group A Responses (Price-sensitive + Discount message) ---")
-        for user in group_a_users:
-            response = await user.interact()
-            print(f"{user.user_id}: {response[:100]}...")
-        
-        print("\n--- Group B Responses (Quality-focused + Premium message) ---")
-        for user in group_b_users:
-            response = await user.interact()
-            print(f"{user.user_id}: {response[:100]}...")
-        
-        # 获取所有统计
-        all_stats = user_pool.get_all_statistics()
-        print(f"\n总共创建了 {len(all_stats)} 个用户")
-
 # 扩展的用户池管理器，带成本追踪
 class UserPoolWithCostTracking(UserPool):
     """带成本追踪的用户池管理器"""
@@ -993,179 +714,6 @@ class UserPoolWithCostTracking(UserPool):
                 break
             await asyncio.sleep(1)  # 每秒检查一次
 
-# 使用示例
-async def cost_tracking_example():
-    """成本追踪示例"""
-    from configs.global_configs import global_configs
-    
-    # 创建客户端
-    client = AsyncOpenAIClientWithRetry(
-        api_key=global_configs.non_ds_key,
-        base_url=global_configs.base_url_non_ds,
-        model_name="gpt-4o-mini",
-        provider="ds_internal",
-        track_costs=True  # 确保客户端也追踪成本
-    )
-    
-    async with client:
-        print("=== 成本追踪示例 ===\n")
-        
-        # 创建单个用户
-        user_config = UserConfig(
-            starting_system_prompt="You are a helpful assistant who likes to have detailed conversations.",
-            user_id="cost_test_user",
-            temperature=0.7,
-            track_costs=True  # 启用成本追踪
-        )
-        
-        user = User(client, user_config)
-        user.initialize_conversation()
-        
-        # 进行几轮对话
-        conversations = [
-            "Tell me about the history of artificial intelligence in detail.",
-            "What are the key milestones in AI development?",
-            "How do neural networks work? Please explain with examples.",
-            "What's the difference between supervised and unsupervised learning?"
-        ]
-        
-        for i, message in enumerate(conversations):
-            print(f"\n--- Round {i+1} ---")
-            user.receive_message(message)
-            response = await user.interact()
-            
-            print(f"User: {message}")
-            print(f"Assistant: {response[:100]}...")
-            print(f"Current total cost: ${user.get_total_cost():.4f}")
-            
-            # 显示本次交互的成本
-            if user.cost_tracker and user.cost_tracker.cost_history:
-                last_cost = user.cost_tracker.cost_history[-1]
-                print(f"This interaction: ${last_cost.total_cost:.4f} "
-                      f"(in: {last_cost.input_tokens}, out: {last_cost.output_tokens})")
-        
-        # 显示最终成本摘要
-        print("\n=== Final Cost Summary ===")
-        summary = user.get_cost_summary()
-        print(f"Total cost: ${summary['total_cost']:.4f}")
-        print(f"Total interactions: {summary['interaction_count']}")
-        print(f"Average per interaction: ${summary['average_cost_per_interaction']:.4f}")
-        print(f"Total tokens: {summary['total_input_tokens'] + summary['total_output_tokens']}")
-        
-        # 导出包含成本的对话
-        print("\n=== Exporting conversation with costs ===")
-        export = user.export_conversation(format="json", include_costs=True)
-        print(export[:500] + "..." if len(export) > 500 else export)
-
-async def batch_cost_analysis_example():
-    """批量用户成本分析示例"""
-    from configs.global_configs import global_configs
-    
-    # 创建客户端
-    client = AsyncOpenAIClientWithRetry(
-        api_key=global_configs.non_ds_key,
-        base_url=global_configs.base_url_non_ds,
-        model_name="gpt-4o-mini",
-        provider="ds_internal",
-        global_concurrency=20,
-        track_costs=True
-    )
-    
-    async with client:
-        print("=== 批量用户成本分析 ===\n")
-        
-        # 创建用户池
-        user_pool = UserPoolWithCostTracking(client)
-        
-        # 创建不同类型的用户
-        user_types = [
-            {
-                "prompt": "You are a verbose customer service agent who provides detailed explanations.",
-                "id_prefix": "verbose",
-                "count": 3
-            },
-            {
-                "prompt": "You are a concise assistant who gives brief, to-the-point answers.",
-                "id_prefix": "concise",
-                "count": 3
-            },
-            {
-                "prompt": "You are a technical expert who uses complex terminology.",
-                "id_prefix": "technical",
-                "count": 2
-            }
-        ]
-        
-        # 创建用户
-        all_users = []
-        for user_type in user_types:
-            for i in range(user_type["count"]):
-                config = UserConfig(
-                    starting_system_prompt=user_type["prompt"],
-                    user_id=f"{user_type['id_prefix']}_user_{i}",
-                    track_costs=True
-                )
-                user = await user_pool.create_user(config)
-                all_users.append(user)
-        
-        # 模拟对话
-        questions = [
-            "What is machine learning?",
-            "Explain quantum computing",
-            "How does blockchain work?"
-        ]
-        
-        for question in questions:
-            print(f"\n--- Broadcasting: {question} ---")
-            await user_pool.broadcast_message(question)
-            responses = await user_pool.interact_all_users()
-            
-            # 显示每个用户的响应长度和成本
-            for user_id, response in responses.items():
-                user = await user_pool.get_user(user_id)
-                if user:
-                    print(f"{user_id}: {len(response)} chars, Total cost: ${user.get_total_cost():.4f}")
-        
-        # 成本分析
-        print("\n=== Cost Analysis ===")
-        analyzer = user_pool.get_cost_analyzer()
-        
-        # 生成报告
-        report = analyzer.generate_cost_report()
-        print(report)
-        
-        # 显示成本对比
-        print("\n=== Cost Comparison by User Type ===")
-        for user_type in user_types:
-            prefix = user_type["id_prefix"]
-            type_users = [u for u in all_users if u.user_id.startswith(prefix)]
-            type_costs = [u.get_total_cost() for u in type_users]
-            
-            if type_costs:
-                avg_cost = sum(type_costs) / len(type_costs)
-                print(f"{prefix.capitalize()} users: Avg cost = ${avg_cost:.4f}")
-        
-        # 设置成本监控
-        async def cost_alert(total_cost, summary):
-            print(f"\n⚠️ COST ALERT: Total pool cost exceeded threshold!")
-            print(f"Total cost: ${total_cost:.4f}")
-            print(f"Top spenders: {summary['top_spenders'][:3]}")
-        
-        # 这里只是演示，实际使用时可以设置合适的阈值
-        threshold = user_pool.get_total_pool_cost() * 1.1  # 当前成本的110%
-        
-        print(f"\n监控成本阈值设置为: ${threshold:.4f}")
-        print(f"当前总成本: ${user_pool.get_total_pool_cost():.4f}")
 
 if __name__ == "__main__":
-    # 运行示例
-    import sys
-    
-    if len(sys.argv) > 1 and sys.argv[1] == "advanced":
-        asyncio.run(advanced_user_scenarios())
-    elif len(sys.argv) > 1 and sys.argv[1] == "batch":
-        asyncio.run(batch_users_example())
-    elif len(sys.argv) > 1 and sys.argv[1] == "cost":
-        asyncio.run(cost_tracking_example())
-    else:
-        asyncio.run(user_example())
+    pass

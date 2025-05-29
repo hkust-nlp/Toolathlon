@@ -6,14 +6,12 @@ from addict import Dict
 
 class CustomModelProvider(ModelProvider):
     def get_model(self, model_name: str | None) -> Model:
-        proxy = { 'http://': global_configs.proxy, 'https://': global_configs.proxy}
         client = AsyncOpenAI(
             api_key=global_configs.ds_key,
             base_url=global_configs.base_url_ds
         ) if model_name == 'deepseek-chat' or model_name == 'deepseek-reasoner' else AsyncOpenAI(
             api_key=global_configs.non_ds_key,
             base_url=global_configs.base_url_non_ds,
-            http_client=httpx.AsyncClient(proxies=proxy)
         )
         return OpenAIChatCompletionsModel(model=model_name, openai_client=client)
 

@@ -68,6 +68,8 @@ class AsyncOpenAIClientWithRetry:
         self.api_key = api_key
         self.base_url = base_url
         self.model_name = model_name
+        if self.model_name is not None:
+            logger.warning("A default model name is set to the client, however, it will be override if another model name is provided in `chat_completion(...)`. Please be careful to this point!")
         self.provider = provider
         self.max_retries = max_retries
         self.base_sleep = base_sleep
