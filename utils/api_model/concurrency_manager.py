@@ -7,7 +7,7 @@ from utils.api_model.semaphore import SmartAsyncSemaphore
 from utils.api_model.openai_client import AsyncOpenAIClientWithRetry
 
 # 设置日志
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 
 

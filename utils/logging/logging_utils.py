@@ -11,7 +11,7 @@ import time
 import logging
 
 # 设置日志
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 
 class RequestLogger:

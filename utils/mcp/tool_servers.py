@@ -11,7 +11,10 @@ from configs.token_key_session import all_token_key_session
 class MCPServerManager:
     """MCP 服务器管理器，用于初始化和管理多个 MCP 服务器"""
 
-    def __init__(self, agent_workspace: str, config_dir: str = "configs/mcp_servers"):
+    def __init__(self, 
+                 agent_workspace: str, 
+                 config_dir: str = "configs/mcp_servers",
+                 debug: bool = False):
         """
         初始化 MCP 服务器管理器
         
@@ -23,6 +26,7 @@ class MCPServerManager:
         self.agent_workspace = os.path.abspath(agent_workspace)
         self.servers: Dict[str, Union[MCPServerStdio, MCPServerSse]] = {}
         self.connected_servers = []
+        self.debug = debug
         
         # 从配置文件加载服务器
         self._load_servers_from_configs(config_dir)
@@ -33,8 +37,9 @@ class MCPServerManager:
         if not config_path.exists():
             raise ValueError(f"配置目录不存在: {config_dir}")
         
-        print(f">>从配置目录加载服务器: {config_dir}")
-        print(f">>servers工作区: {self.agent_workspace}")
+        if self.debug:
+            print(f">>从配置目录加载服务器: {config_dir}")
+            print(f">>servers工作区: {self.agent_workspace}")
         
         # 读取所有 yaml 配置文件
         for config_file in config_path.glob("*.yaml"):
@@ -72,7 +77,8 @@ class MCPServerManager:
             raise ValueError(f"不支持的服务器类型: {server_type}")
         
         self.servers[server_name] = server
-        print(f"  - 已预加载服务器: {server_name} (类型: {server_type})")
+        if self.debug:
+            print(f"  - 已预加载服务器: {server_name} (类型: {server_type})")
 
     def _get_template_variables(self) -> Dict[str, str]:
         """动态获取所有可用的模板变量"""
@@ -141,7 +147,8 @@ class MCPServerManager:
 
         if connect_tasks:
             await asyncio.gather(*connect_tasks)
-            print(f">>已成功连接 {len(connect_tasks)} 个 MCP 服务器")
+            if self.debug:
+                print(f">>已成功连接 {len(connect_tasks)} 个 MCP 服务器")
 
     async def disconnect_servers(self):
         """断开所有服务器连接"""

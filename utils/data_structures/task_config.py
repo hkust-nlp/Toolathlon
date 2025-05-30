@@ -22,8 +22,14 @@ class Evaluation:
     log_command: str
 
 @dataclass
+class StopConditions:
+    """评估配置"""
+    user_phrases: List[str] = None
+    tool_names: List[str] = None
+
+@dataclass
 class TaskConfig:
-    """文件系统任务配置"""
+    """任务配置"""
     # 基本信息
     id: str
     needed_mcp_servers: List[str]
@@ -31,8 +37,10 @@ class TaskConfig:
     system_prompts: SystemPrompts
     initialization: Initialization
     evaluation: Evaluation
+    stop: StopConditions
     log_file: Optional[str] = None
     agent_workspace: Optional[str] = None
+    max_turns: int = None
     meta: Dict = field(default_factory=dict)
     
     def __post_init__(self):
@@ -50,6 +58,16 @@ class TaskConfig:
         # 如果没有指定 agent_workspace，自动生成
         if self.agent_workspace is None:
             self.agent_workspace = str(task_root_path / "workspace")
+
+        # 设置一些默认的停止条件
+        if self.stop.tool_names is None:
+            self.stop.tool_names = []
+        
+        if self.stop.user_phrases is None:
+            self.stop.user_phrases = ["#### STOP"]
+
+        if self.max_turns is None:
+            self.max_turns = 50
     
     # 使用 Path 对象的属性方法
     @property
@@ -79,6 +97,8 @@ class TaskConfig:
             evaluation=Evaluation(**data['evaluation']),
             log_file=data.get('log_file'),
             agent_workspace=data.get('agent_workspace'),
+            stop=StopConditions(**data.get('stop',{})),
+            max_turns=data.get("max_turns"),
             meta=data.get('meta', {})
         )
     
@@ -98,6 +118,10 @@ class TaskConfig:
                 'workspace': self.initialization.workspace,
                 'process_command': self.initialization.process_command
             },
+            'stop': {
+                'user_phrases':self.stop.user_phrases,
+                'tool_names':self.stop.tool_names,
+            },
             'evaluation': {
                 'groundtruth_workspace': self.evaluation.groundtruth_workspace,
                 'local_state_command': self.evaluation.local_state_command,
@@ -105,7 +129,7 @@ class TaskConfig:
             },
             'meta': self.meta
         }
-    
+
     def ensure_directories(self):
         """确保所有必要的目录存在"""
         # 创建任务根目录

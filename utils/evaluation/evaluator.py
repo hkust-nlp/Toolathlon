@@ -1,0 +1,127 @@
+from typing import Dict, Any, List, Optional
+from utils.roles.task_agent import TaskStatus
+from utils.data_structures.task_config import TaskConfig
+from utils.general.helper import run_command, read_json
+import logging
+import os
+
+class TaskEvaluator:
+    """任务评估器"""
+    
+    @staticmethod
+    async def evaluate_one(dump_line: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        单任务评估
+        预期可能会被检查的内容：
+            - user response：检查用户端的所有输出
+            - response：检查llm的所有输出
+            - tool calls：检查llm的所有tool calls
+            - tool outputs：检查所有tool outputs
+            ====== 对以下内容的检查需要从config再启动 ======
+            - local status：检查特定工作目录下的文件（比如保存了一些东西，修改了一些东西etc）
+            - remote status：手动调用MCP server检查remote status是否正常修改 [不知道是否可能]
+        利用上述内容来完成对任务执行成功与否的判断
+        """
+        task_config = TaskConfig.from_dict(dump_line['config'])
+        task_status = dump_line['status']
+
+        # 首先检查任务是否成功完成
+        if task_status != TaskStatus.SUCCESS.value:
+            return {
+                "pass": False, 
+                "failure": "task_not_successfully_executed",
+                "details": f"Task status: {task_status}"
+            }
+
+        # 准备评估所需的信息
+        res_log_file = task_config.log_file
+        agent_workspace = task_config.agent_workspace
+        groundtruth_workspace = task_config.evaluation.groundtruth_workspace
+        eval_local_state_command = task_config.evaluation.local_state_command
+        eval_log_command = task_config.evaluation.log_command
+
+        # 评估日志
+        if eval_log_command is not None:
+            try:
+                args = f"--res_log_file {res_log_file}"
+                command = f"{eval_log_command} {args}"
+                await run_command(command)
+            except Exception as e:
+                return {
+                    "pass": False, 
+                    "failure": "fail_to_pass_log_check",
+                    "details": str(e)
+                }
+            
+        # 评估本地状态
+        if eval_local_state_command is not None:
+            try:
+                args = f"--agent_workspace {agent_workspace} --groundtruth_workspace {groundtruth_workspace}"
+                command = f"{eval_local_state_command} {args}"
+                await run_command(command)
+            except Exception as e:
+                return {
+                    "pass": False, 
+                    "failure": "fail_to_pass_local_state_check",
+                    "details": str(e)
+                }
+
+        return {
+            "pass": True,
+            "details": "All evaluation checks passed"
+        }
+    
+    @staticmethod
+    async def evaluate_from_log_file(log_file_path: str) -> Dict[str, Any]:
+        """从日志文件评估任务"""
+        try:
+            if not os.path.exists(log_file_path):
+                return {
+                    "pass": False,
+                    "failure": "log_file_not_found",
+                    "details": f"Log file not found: {log_file_path}"
+                }
+            
+            dump_line = read_json(log_file_path)
+            return await TaskEvaluator.evaluate_one(dump_line)
+            
+        except Exception as e:
+            logging.error(f"Error evaluating from log file {log_file_path}: {e}")
+            return {
+                "pass": False,
+                "failure": "evaluation_error",
+                "details": str(e)
+            }
+    
+    @staticmethod
+    async def batch_evaluate(run_results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """批量评估任务结果"""
+        eval_results = []
+        
+        for run_result in run_results:
+            eval_result = {
+                "task_config_path": run_result["task_config_path"],
+                "task_id": run_result.get("task_id", "unknown"),
+            }
+            
+            if not run_result.get("success", False):
+                eval_result["evaluation"] = {
+                    "pass": False,
+                    "failure": "task_execution_failed",
+                    "details": run_result.get("error", "Unknown error")
+                }
+            else:
+                log_file = run_result.get("log_file")
+                if log_file:
+                    eval_result["evaluation"] = await TaskEvaluator.evaluate_from_log_file(log_file)
+                else:
+                    eval_result["evaluation"] = {
+                        "pass": False,
+                        "failure": "no_log_file",
+                        "details": "No log file generated"
+                    }
+            
+            eval_result["pass"] = eval_result["evaluation"]["pass"]
+            eval_results.append(eval_result)
+        
+        return eval_results

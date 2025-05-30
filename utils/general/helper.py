@@ -18,6 +18,13 @@ import os
 import shutil
 import asyncio
 
+from utils.api_model.openai_client import AsyncOpenAIClientWithRetry
+from utils.api_model.model_provider import model_provider_mapping
+from utils.data_structures.agent_config import AgentConfig
+from utils.data_structures.user_config import UserConfig
+from configs.global_configs import global_configs
+from agents import ModelProvider
+
 BASIC_TYPES = [int, float, str, bool, None, list, dict, set, tuple]
 
 def elegant_show(something, level=0, sid=0, full=False, max_list=None):
@@ -369,7 +376,7 @@ def get_total_items_with_wc(filename):
     total_lines = int(result.stdout.split()[0])  # wc输出的形式是: 行数 文件名, 所以只取第一部分
     return total_lines
 
-async def copy_folder_contents(source_folder, target_folder):
+async def copy_folder_contents(source_folder, target_folder, debug=False):
     """
     将源文件夹A的所有内容复制到目标文件夹B
     
@@ -388,7 +395,8 @@ async def copy_folder_contents(source_folder, target_folder):
     # 如果目标文件夹不存在，创建它
     if not os.path.exists(target_folder):
         os.makedirs(target_folder)
-        print(f"Target directory `{target_folder}` has been created!")
+        if debug:
+            print(f"Target directory `{target_folder}` has been created!")
     
     # 遍历源文件夹中的所有内容
     for item in os.listdir(source_folder):
@@ -405,9 +413,10 @@ async def copy_folder_contents(source_folder, target_folder):
         except Exception as e:
             print(f"Error in copying `{item}` : {str(e)}")
     
-    print(f"Copy done! `{source_folder}` -> `{target_folder}`")
+    if debug:
+        print(f"Copy done! `{source_folder}` -> `{target_folder}`")
 
-async def run_command(command):
+async def run_command(command,debug=False):
     """
     异步执行命令并返回输出
     
@@ -423,16 +432,17 @@ async def run_command(command):
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE
     )
-    
-    print(f"Executing command : {command}")
+    if debug:
+        print(f"Executing command : {command}")
 
     # 等待命令执行完成
     _, stderr = await process.communicate()
     
     if process.returncode!=0:
         raise RuntimeError(f"Failed in executing the command: {stderr.decode()}")
-
-    print("Successfully executed!")
+    
+    if debug:
+        print("Successfully executed!")
 
 async def specifical_inialize_for_mcp(task_config):
     if "arxiv_local" in task_config.needed_mcp_servers:
@@ -440,6 +450,26 @@ async def specifical_inialize_for_mcp(task_config):
         os.makedirs(cache_dir, exist_ok=True)
         assert os.path.exists(cache_dir)
         print("[arxiv_local] arxiv local cache dir has been established")
+
+def build_user_client(user_config: UserConfig) -> AsyncOpenAIClientWithRetry:
+    """构建用户客户端"""
+    return AsyncOpenAIClientWithRetry(
+        api_key=global_configs.non_ds_key,
+        base_url=global_configs.base_url_non_ds,
+        provider=user_config.model.provider,
+    )
+
+def build_agent_model_provider(agent_config: AgentConfig) -> ModelProvider:
+    """构建Agent模型提供者"""
+    return model_provider_mapping[agent_config.model.provider]()
+
+def setup_proxy(use_proxy: bool = False) -> None:
+    """设置代理"""
+    if use_proxy:
+        import os
+        os.environ['http_proxy'] = global_configs.proxy
+        os.environ['https_proxy'] = global_configs.proxy
+        print("Proxy enabled")
 
 if __name__=="__main__":
     pass

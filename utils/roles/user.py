@@ -58,7 +58,7 @@ class UserCostTracker:
     def get_summary(self) -> Dict[str, Any]:
         """获取成本摘要"""
         return {
-            "total_cost": self.total_cost,
+            "total_cost": round(self.total_cost,4),
             "total_input_tokens": self.total_input_tokens,
             "total_output_tokens": self.total_output_tokens,
             "total_requests": len(self.cost_history),
@@ -265,7 +265,7 @@ class User:
         """获取总成本"""
         return self.cost_tracker.total_cost if self.cost_tracker else 0.0
     
-    def get_cost_summary(self) -> Dict[str, Any]:
+    def get_cost_summary(self, detailed=False) -> Dict[str, Any]:
         """获取详细的成本摘要"""
         if not self.cost_tracker:
             return {
@@ -275,6 +275,11 @@ class User:
             }
         
         summary = self.cost_tracker.get_summary()
+        if not detailed:
+            summary.pop("average_cost_per_request")
+            summary.pop("by_model")
+            return summary
+        
         summary["tracking_enabled"] = True
         summary["user_id"] = self.user_id
         summary["interaction_count"] = self.interaction_count

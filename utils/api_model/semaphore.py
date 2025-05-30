@@ -4,7 +4,7 @@ import logging
 from contextlib import asynccontextmanager
 
 # 设置日志
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 
 # Python 3.12+ 版本的智能信号量

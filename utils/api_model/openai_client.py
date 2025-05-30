@@ -15,7 +15,7 @@ from utils.logging.logging_utils import RequestLogger
 from utils.api_model.model_provider import API_MAPPINGS, calculate_cost
 
 # 设置日志
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 
 def log_retry(retry_state):
