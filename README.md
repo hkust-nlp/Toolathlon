@@ -60,7 +60,18 @@ Please see `FAQs/setup_proxy.md` to see how to set up a proxy for your terminal/
 2. Try `uv run demo.py` (suppose you are using aihubmix)
     ```
     uv run demo.py \
-    --with_proxy \
-    --model_short_name gpt-4.1 \
-    --model_provider_name aihubmix
+    --eval_config scripts/eval_config.json \
+    --task_config tasks/dev/filesystem_001.json \
+    --debug
+    ```
+
+#### Eval
+1. Try this
+
+    ```
+    uv run main.py \
+    --task_dir tasks/dev \
+    --eval_config scripts/eval_config.json \
+    --max_concurrent 10 \
+    --output eval_results/batch_results.json
     ```
