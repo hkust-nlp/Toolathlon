@@ -66,6 +66,8 @@ Please see `FAQs/setup_proxy.md` to see how to set up a proxy for your terminal/
     ```
 
 #### Eval
+In real evaluation setting, we now use the `task_dir` to specify the subset we want to evaluate a model, the following command take the `dev` subset as an example.
+
 1. Try this
 
     ```
@@ -73,7 +75,7 @@ Please see `FAQs/setup_proxy.md` to see how to set up a proxy for your terminal/
     --task_dir tasks/dev \
     --eval_config scripts/eval_config.json \
     --max_concurrent 10 \
-    --output eval_results/batch_results.json
+    --output eval_results/dev/batch_results.json
     ```
 
 ### Overview of Framework

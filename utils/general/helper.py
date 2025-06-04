@@ -18,6 +18,12 @@ import os
 import shutil
 import asyncio
 
+import json
+import os
+import fcntl
+import time
+import errno
+
 from utils.api_model.openai_client import AsyncOpenAIClientWithRetry
 from utils.api_model.model_provider import model_provider_mapping
 from utils.data_structures.agent_config import AgentConfig
@@ -223,13 +229,48 @@ def update_json(key, txt_file_path="files/test.txt", json_file_path="files/test.
     with open(json_file_path, "w") as f:
         json.dump(data, f)
 
-def write_json(data, json_file_path, mode="w"):
-    # data is a dict, json-serilizable
+def write_json(data, json_file_path, mode="w", timeout=10):
+    """
+    线程/进程安全的JSON写入函数
+    
+    Args:
+        data: dict或list，必须是JSON可序列化的
+        json_file_path: JSON文件路径
+        mode: 文件打开模式，默认"w"
+        timeout: 获取锁的超时时间（秒）
+    """
     assert isinstance(data, dict) or isinstance(data, list)
-    if not os.path.exists(os.path.dirname(json_file_path)):
-        os.makedirs(os.path.dirname(json_file_path))
-    with open(json_file_path, mode) as f:
-        f.write(json.dumps(data))
+    
+    # 确保目录存在
+    dir_path = os.path.dirname(json_file_path)
+    if dir_path and not os.path.exists(dir_path):
+        os.makedirs(dir_path, exist_ok=True)
+    
+    start_time = time.time()
+    
+    while True:
+        try:
+            with open(json_file_path, mode) as f:
+                # 获取排他锁
+                fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                try:
+                    # 写入JSON数据
+                    json.dump(data, f, ensure_ascii=False, indent=2)
+                    f.flush()  # 确保数据写入
+                    os.fsync(f.fileno())  # 确保写入磁盘
+                finally:
+                    # 释放锁
+                    fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+                break
+                
+        except IOError as e:
+            if e.errno != errno.EAGAIN and e.errno != errno.EACCES:
+                raise
+            # 检查超时
+            if time.time() - start_time > timeout:
+                raise TimeoutError(f"无法在{timeout}秒内获取文件锁: {json_file_path}")
+            # 短暂休眠后重试
+            time.sleep(0.01)
 
 def write_all(data, file_path, mode="w"):
     if file_path.endswith(".jsonl"):

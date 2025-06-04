@@ -42,6 +42,7 @@ class TaskConfig:
     agent_workspace: Optional[str] = None
     max_turns: int = None
     meta: Dict = field(default_factory=dict)
+    global_task_config: Dict = None
     
     def __post_init__(self):
         """在初始化后自动设置默认值"""
@@ -50,6 +51,11 @@ class TaskConfig:
         
         # 规范化 task_root（保持字符串格式以保持向后兼容）
         self.task_root = str(task_root_path)
+
+        # 从global task config载入dump_path并更新task_root_path, 方便多次测量前后互不影响
+        if self.global_task_config is not None and "dump_path" in self.global_task_config:
+            self.task_root = str(self.global_task_config['dump_path'] / task_root_path)
+            task_root_path = Path(self.task_root)
         
         # 如果没有指定 log_file，自动生成
         if self.log_file is None:
@@ -66,8 +72,8 @@ class TaskConfig:
         if self.stop.user_phrases is None:
             self.stop.user_phrases = ["#### STOP"]
 
-        if self.max_turns is None:
-            self.max_turns = 50
+        if self.global_task_config is not None and "max_turns" in self.global_task_config:
+            self.max_turns = self.global_task_config['max_turns']
     
     # 使用 Path 对象的属性方法
     @property
@@ -86,7 +92,7 @@ class TaskConfig:
         return Path(self.agent_workspace)
     
     @classmethod
-    def from_dict(cls, data: dict) -> 'TaskConfig':
+    def from_dict(cls, data: dict, global_task_config: dict = None) -> 'TaskConfig':
         """从字典创建TaskConfig实例"""
         return cls(
             id=data['id'],
@@ -99,7 +105,8 @@ class TaskConfig:
             agent_workspace=data.get('agent_workspace'),
             stop=StopConditions(**data.get('stop',{})),
             max_turns=data.get("max_turns"),
-            meta=data.get('meta', {})
+            meta=data.get('meta', {}),
+            global_task_config=global_task_config,
         )
     
     def to_dict(self) -> dict:

@@ -1,7 +1,7 @@
 from typing import Dict, Any, List, Optional
 from utils.roles.task_agent import TaskStatus
 from utils.data_structures.task_config import TaskConfig
-from utils.general.helper import run_command, read_json
+from utils.general.helper import run_command, read_json, write_json
 import logging
 import os
 
@@ -74,16 +74,25 @@ class TaskEvaluator:
     @staticmethod
     async def evaluate_from_log_file(log_file_path: str) -> Dict[str, Any]:
         """从日志文件评估任务"""
-        try:
+        try:            
             if not os.path.exists(log_file_path):
                 return {
                     "pass": False,
                     "failure": "log_file_not_found",
                     "details": f"Log file not found: {log_file_path}"
                 }
+
+            # if we can load pre exist eval res, we just load it
+            eval_file_path = os.path.join(os.path.dirname(log_file_path),"eval_res.json")
+            if os.path.exists(eval_file_path):
+                eval_res = read_json(eval_file_path)
+                return eval_res
             
+            # otherwise, we do real eval and store the eval result
             dump_line = read_json(log_file_path)
-            return await TaskEvaluator.evaluate_one(dump_line)
+            eval_res = await TaskEvaluator.evaluate_one(dump_line)
+            write_json(eval_res, eval_file_path)
+            return eval_res
             
         except Exception as e:
             logging.error(f"Error evaluating from log file {log_file_path}: {e}")

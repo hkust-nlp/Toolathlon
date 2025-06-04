@@ -5,6 +5,7 @@ from utils.data_structures.task_config import TaskConfig
 from utils.task_runner.runner import TaskRunner
 from utils.evaluation.evaluator import TaskEvaluator
 from utils.general.helper import setup_proxy
+# from utils.openai_agents_monkey_patch.custom_run_impl import *
 
 
 async def main():
@@ -18,6 +19,10 @@ async def main():
                        help="Path to task config file")
     parser.add_argument("--debug", action="store_true", 
                        help="Whether to enable debug print")
+    parser.add_argument("--allow_resume", action="store_true", 
+                       help="Whether to enable resume")
+    parser.add_argument("--manual", action="store_true", 
+                       help="Whether to enable manual input")
     args = parser.parse_args()
     
     # 设置代理（如果需要）
@@ -29,7 +34,7 @@ async def main():
     
     # 解析配置
     mcp_config, agent_config, user_config = TaskRunner.load_configs(eval_config_dict)
-    task_config = TaskConfig.from_dict(task_config_dict)
+    task_config = TaskConfig.from_dict(task_config_dict, eval_config_dict['global_task_config'])
 
     # 运行任务
     print("=== Starting Task Execution ===")
@@ -39,6 +44,8 @@ async def main():
         user_config=user_config,
         mcp_config=mcp_config,
         debug=args.debug,
+        allow_resume=args.allow_resume,
+        manual=args.manual,
     )
     
     print(f"\n=== Task completed with status: {task_status.value} ===")
@@ -56,7 +63,7 @@ async def main():
     print(f"Details: {eval_res.get('details', 'N/A')}")
     if not eval_res.get('pass', False):
         print(f"Failure Reason: {eval_res.get('failure', 'Unknown')}")
-    
+
     return 0 if eval_res.get("pass", False) else 1
 
 if __name__ == "__main__":

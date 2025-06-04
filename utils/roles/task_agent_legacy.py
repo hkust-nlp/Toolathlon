@@ -5,7 +5,6 @@ import uuid
 import datetime
 import traceback
 from enum import Enum
-import pickle
 
 from agents import (
     Agent,
@@ -30,18 +29,11 @@ from utils.data_structures.mcp_config import MCPConfig
 from utils.data_structures.user_config import UserConfig
 import shutil
 
-import asyncio
-from prompt_toolkit import PromptSession
-from prompt_toolkit.patch_stdout import patch_stdout
-
-
-
 class TaskStatus(Enum):
     SUCCESS = "success"
     FAILED = "failed"
     TIMEOUT = "timeout"
-    MAX_TURNS_REACHED = "max_turns_reached"
-    INTERRUPTED = "interrupted"  # 新增状态：表示任务被中断
+    MAX_TURNS_REACHED = "max_turns_reached"  # 新增状态
 
 class CustomJSONEncoder(json.JSONEncoder):
     """自定义JSON编码器，用于处理将Python中的布尔值转换为小写的'true'和'false'形式输出"""
@@ -63,10 +55,9 @@ class TaskAgent:
         mcp_config: MCPConfig,
         agent_hooks=None,
         run_hooks=None,
-        termination_checker: Optional[Callable[[str, List[Dict], str], bool]] = None,
-        debug: bool = False,
-        allow_resume: bool = False,
-        manual: bool = False,
+        termination_checker: Optional[Callable[[str, List[Dict], str], bool]] = None,  # 新增参数
+        debug: bool = False,  # 新增参数
+        allow_resume: bool = False
     ):
         self.task_config = task_config
         self.agent_config = agent_config
@@ -76,7 +67,7 @@ class TaskAgent:
         self.mcp_config = mcp_config
         self.agent_hooks = agent_hooks
         self.run_hooks = run_hooks
-        self.termination_checker = termination_checker or self._default_termination_checker
+        self.termination_checker = termination_checker or self._default_termination_checker  # 新增
         
         self.agent: Optional[Agent] = None
         self.mcp_manager: Optional[MCPServerManager] = None
@@ -99,23 +90,8 @@ class TaskAgent:
 
         self.debug = debug
         self.allow_resume = allow_resume
-        self.manual = manual
-        if self.manual:
-            # 全局会话，避免重复创建
-            self._session = PromptSession()
-        
-        # 新增：检查点文件路径
-        self.checkpoint_file = None
-        self.checkpoint_interval = 1  # 每隔多少轮保存一次检查点
     
-
-
-    async def ainput(self,prompt='> '):
-        """异步版本的 input() 函数"""
-        with patch_stdout():
-            return await self._session.prompt_async(prompt)
-
-    def _debug_print(self, *args):
+    def _debug_print(self,*args):
         if self.debug:
             print(*args)
 
@@ -124,97 +100,6 @@ class TaskAgent:
         if check_target=='user':
             return '#### STOP' in content
         return False
-    
-    def _get_checkpoint_path(self) -> str:
-        """获取检查点文件路径"""
-        if self.checkpoint_file is None:
-            self.checkpoint_file = os.path.join(self.task_config.task_root, "checkpoint.pkl")
-        return self.checkpoint_file
-    
-    async def _save_checkpoint(self) -> None:
-        """保存当前执行状态到检查点"""
-        if not self.allow_resume:
-            return
-            
-        checkpoint_data = {
-            # 保存核心状态
-            'logs': self.logs.copy(),
-            'logs_to_record': self.logs_to_record.copy(),
-            'all_tools': self.all_tools.copy(),
-            'stats': self.stats.copy(),
-            'usage': {
-                'input_tokens': self.usage.input_tokens,
-                'output_tokens': self.usage.output_tokens,
-                'requests': self.usage.requests
-            },
-            # 保存用户模拟器状态
-            'user_simulator_state': self.user_simulator.get_state() if hasattr(self.user_simulator, 'get_state') else {
-                'conversation_history': self.user_simulator.conversation_history if self.user_simulator else []
-            },
-            # 保存时间戳
-            'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            # 版本信息，用于兼容性检查
-            'version': '1.0'
-        }
-        
-        try:
-            with open(self._get_checkpoint_path(), 'wb') as f:
-                pickle.dump(checkpoint_data, f)
-            self._debug_print(f"Checkpoint saved at turn {self.stats['interaction_turns']}")
-        except Exception as e:
-            self._debug_print(f"Failed to save checkpoint: {e}")
-    
-    async def _load_checkpoint(self) -> bool:
-        """从检查点恢复执行状态"""
-        if not self.allow_resume:
-            return False
-            
-        checkpoint_path = self._get_checkpoint_path()
-        if not os.path.exists(checkpoint_path):
-            self._debug_print("No checkpoint found")
-            return False
-            
-        try:
-            with open(checkpoint_path, 'rb') as f:
-                checkpoint_data = pickle.load(f)
-            
-            # 恢复状态
-            self.logs = checkpoint_data['logs']
-            self.logs_to_record = checkpoint_data['logs_to_record']
-            self.all_tools = checkpoint_data['all_tools']
-            self.stats = checkpoint_data['stats']
-            
-            # 恢复Usage对象
-            usage_data = checkpoint_data['usage']
-            self.usage.input_tokens = usage_data['input_tokens']
-            self.usage.output_tokens = usage_data['output_tokens']
-            self.usage.requests = usage_data['requests']
-            
-            # 恢复用户模拟器状态
-            if self.user_simulator:
-                if hasattr(self.user_simulator, 'set_state'):
-                    self.user_simulator.set_state(checkpoint_data['user_simulator_state'])
-                else:
-                    # 简单恢复对话历史
-                    self.user_simulator.conversation_history = checkpoint_data['user_simulator_state'].get('conversation_history', [])
-            
-            self._debug_print(f"Checkpoint loaded from {checkpoint_data['timestamp']}")
-            self._debug_print(f"Resuming from turn {self.stats['interaction_turns']}")
-            return True
-            
-        except Exception as e:
-            self._debug_print(f"Failed to load checkpoint: {e}")
-            return False
-    
-    def _remove_checkpoint(self) -> None:
-        """删除检查点文件"""
-        checkpoint_path = self._get_checkpoint_path()
-        if os.path.exists(checkpoint_path):
-            try:
-                os.remove(checkpoint_path)
-                self._debug_print("Checkpoint removed")
-            except Exception as e:
-                self._debug_print(f"Failed to remove checkpoint: {e}")
     
     async def initialize_workspace(self, show_traceback=False) -> bool:
         """初始化工作空间"""
@@ -225,12 +110,7 @@ class TaskAgent:
         initial_state_workspace = self.task_config.initialization.workspace
 
         try:
-            # 如果允许恢复，检查是否已有工作空间和检查点
-            if self.allow_resume and os.path.exists(agent_workspace) and os.path.exists(self._get_checkpoint_path()):
-                self._debug_print("Found existing workspace and checkpoint, will attempt to resume")
-                return True
-            
-            # 否则，执行正常的初始化流程
+            # 移除已存在的工作空间
             if os.path.exists(agent_workspace):
                 self._debug_print("Reset/Remove an existing agent workspace.")
                 shutil.rmtree(agent_workspace)
@@ -238,9 +118,6 @@ class TaskAgent:
             if os.path.exists(log_file):
                 self._debug_print("Reset/Remove an existing log file.")
                 os.remove(log_file)
-            
-            # 删除旧的检查点（如果有）
-            self._remove_checkpoint()
             
             # 复制初始状态文件
             await copy_folder_contents(initial_state_workspace, agent_workspace, self.debug)
@@ -400,75 +277,48 @@ class TaskAgent:
     
     async def run_interaction_loop(self) -> None:
         """运行交互循环"""
-        # 如果是恢复模式，尝试加载检查点
-        resumed = False
-        if self.allow_resume:
-            resumed = await self._load_checkpoint()
-        
         while self.stats["interaction_turns"] < self.task_config.max_turns:
-            try:
-                # 获取用户输入
-                if self.manual:
-                    user_query = await self.ainput("user: ")
-                else:
-                    user_query = await self.user_simulator.interact()
-                    self._debug_print(f"user: {user_query}")
-                
-                self.logs.append({"role": "user", "content": user_query})
-                self.logs_to_record.append({"role": "user", "content": user_query})
-                
-                # 增加交互轮次计数
-                self.stats["interaction_turns"] += 1
-                
-                # 检查用户输入的终止条件
-                if self.termination_checker(user_query, [], 'user'):
-                    self._debug_print("Termination condition met by user input")
-                    break
-                
-                # Agent 响应
-                result = await Runner.run(
-                    starting_agent=self.agent,
-                    input=self.logs,
-                    run_config=RunConfig(model_provider=self.agent_model_provider),
-                    hooks=self.run_hooks,
-                    max_turns=self.agent_config.tool.max_inner_turns,
-                )
-                
-                # 更新统计信息
-                for raw_response in result.raw_responses:
-                    self.usage.add(raw_response.usage)
-                    self.stats["agent_llm_requests"] += 1
-                
-                self._debug_print(f"assistant: {result.final_output}")
-                self.logs.extend([item.to_input_item() for item in result.new_items])
-                
-                self.user_simulator.receive_message(result.final_output)
-                
-                # 处理响应并获取工具调用
-                recent_tool_calls = await self.process_agent_response(result)
-                
-                # 检查Agent响应的终止条件
-                if self.termination_checker(result.final_output, recent_tool_calls, 'agent'):
-                    self._debug_print("Termination condition met by agent response")
-                    break
-                
-                # 定期保存检查点
-                if self.allow_resume and self.stats["interaction_turns"] % self.checkpoint_interval == 0:
-                    await self._save_checkpoint()
-                    
-            except KeyboardInterrupt:
-                # 处理用户中断
-                self._debug_print("\nInterrupted by user")
-                if self.allow_resume:
-                    await self._save_checkpoint()
-                    self.task_status = TaskStatus.INTERRUPTED
-                raise
-            except Exception as e:
-                # 处理其他异常
-                self._debug_print(f"\nError during interaction: {e}")
-                if self.allow_resume:
-                    await self._save_checkpoint()
-                raise
+            # 获取用户输入
+            user_query = await self.user_simulator.interact()
+            self._debug_print(f"user: {user_query}")
+            
+            self.logs.append({"role": "user", "content": user_query})
+            self.logs_to_record.append({"role": "user", "content": user_query})
+            
+            # 增加交互轮次计数
+            self.stats["interaction_turns"] += 1
+            
+            # 检查用户输入的终止条件
+            if self.termination_checker(user_query, [], 'user'):
+                self._debug_print("Termination condition met by user input")
+                break
+            
+            # Agent 响应
+            result = await Runner.run(
+                starting_agent=self.agent,
+                input=self.logs,
+                run_config=RunConfig(model_provider=self.agent_model_provider),
+                hooks=self.run_hooks,
+                max_turns=self.agent_config.tool.max_inner_turns,
+            )
+            
+            # 更新统计信息
+            for raw_response in result.raw_responses:
+                self.usage.add(raw_response.usage)
+                self.stats["agent_llm_requests"] += 1
+            
+            self._debug_print(f"assistant: {result.final_output}")
+            self.logs.extend([item.to_input_item() for item in result.new_items])
+            
+            self.user_simulator.receive_message(result.final_output)
+            
+            # 处理响应并获取工具调用
+            recent_tool_calls = await self.process_agent_response(result)
+            
+            # 检查Agent响应的终止条件
+            if self.termination_checker(result.final_output, recent_tool_calls, 'agent'):
+                self._debug_print("Termination condition met by agent response")
+                break
         
         # 检查是否因为达到最大轮次而终止
         if self.stats["interaction_turns"] >= self.task_config.max_turns:
@@ -517,7 +367,6 @@ class TaskAgent:
                 'key_stats': self.stats,
                 'agent_cost': self.agent_cost,
                 'user_cost': self.user_cost,
-                'resumed': self.allow_resume,  # 标记是否使用了恢复功能
             }
             
             json_output = json.dumps(result, ensure_ascii=False, cls=CustomJSONEncoder)
@@ -531,13 +380,13 @@ class TaskAgent:
     async def run(self) -> TaskStatus:
         """运行整个任务"""
         try:
+            # 初始化工作区
+            if not await self.initialize_workspace():
+                return TaskStatus.FAILED
+            
             # 设置日志文件路径
             self.task_config.log_file = os.path.join(self.task_config.task_root, "log.json")
             self.task_config.agent_workspace = os.path.join(self.task_config.task_root, "workspace")
-            
-            # 初始化工作区（如果允许恢复且有检查点，则跳过重新初始化）
-            if not await self.initialize_workspace():
-                return TaskStatus.FAILED
             
             # 设置MCP服务器
             await self.setup_mcp_servers()
@@ -552,22 +401,11 @@ class TaskAgent:
             await self.run_interaction_loop()
             
             # 如果没有设置其他状态，则为成功
-            if self.task_status not in [TaskStatus.MAX_TURNS_REACHED, TaskStatus.INTERRUPTED]:
+            if self.task_status != TaskStatus.MAX_TURNS_REACHED:
                 self.task_status = TaskStatus.SUCCESS
             
-            # 任务完成，删除检查点
-            if self.task_status == TaskStatus.SUCCESS:
-                self._remove_checkpoint()
-                
-        except KeyboardInterrupt:
-            self._debug_print("Task interrupted by user")
-            if self.task_status != TaskStatus.INTERRUPTED:
-                self.task_status = TaskStatus.INTERRUPTED
-                
         except Exception as e:
             self._debug_print("Error when running agent -", e)
-            if self.debug:
-                traceback.print_exc()
             self.task_status = TaskStatus.FAILED
             
         finally:

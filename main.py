@@ -22,11 +22,13 @@ logger = logging.getLogger(__name__)
 class BatchTaskProcessor:
     """批量任务处理器"""
     
-    def __init__(self, eval_config_path: str, max_concurrent: int = 1, debug: bool = False):
+    def __init__(self, eval_config_path: str, max_concurrent: int = 1, debug: bool = False, allow_resume: bool = False):
         self.eval_config_dict = read_json(eval_config_path)
+        self.global_task_config = self.eval_config_dict.get("global_task_config")
         self.mcp_config, self.agent_config, self.user_config = TaskRunner.load_configs(self.eval_config_dict)
         self.max_concurrent = max_concurrent
         self.debug = debug
+        self.allow_resume = allow_resume
         
     def find_task_configs(self, directory: str) -> List[str]:
         """递归查找目录下所有的任务配置文件"""
@@ -52,7 +54,9 @@ class BatchTaskProcessor:
                     agent_config=self.agent_config,
                     user_config=self.user_config,
                     mcp_config=self.mcp_config,
-                    debug=self.debug
+                    global_task_config=self.global_task_config,
+                    debug = self.debug,
+                    allow_resume=self.allow_resume
                 )
         
         # 创建进度条
@@ -124,6 +128,8 @@ async def main():
                        help="Maximum number of concurrent tasks")
     parser.add_argument("--debug", action="store_true", 
                        help="Whether to enable debug print")
+    parser.add_argument("--allow_resume", action="store_true", 
+                       help="Whether to enable resume")
     parser.add_argument("--output", default="batch_results.json",
                        help="Output file for batch results")
     parser.add_argument("--filter", help="Filter task files by pattern (e.g., 'filesystem_*')")
@@ -136,7 +142,8 @@ async def main():
     processor = BatchTaskProcessor(
         eval_config_path=args.eval_config,
         max_concurrent=args.max_concurrent,
-        debug=args.debug
+        debug=args.debug,
+        allow_resume=args.allow_resume
     )
     
     # 查找任务配置文件
@@ -193,6 +200,8 @@ async def main():
             print(f"  ... and {len(failed_tasks) - 10} more")
     
     # 保存详细结果
+    if not os.path.exists(args.output):
+        os.makedirs(os.path.dirname(args.output))
     with open(args.output, 'w') as f:
         json.dump(results, f, indent=2)
     print(f"\nDetailed results saved to: {args.output}")

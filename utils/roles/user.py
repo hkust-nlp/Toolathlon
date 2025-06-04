@@ -334,7 +334,7 @@ class User:
             if msg.role == MessageRole.ASSISTANT:
                 return msg
         return None
-    
+
     def get_statistics(self) -> Dict[str, Any]:
         """获取用户统计信息（包含成本）"""
         message_counts = {
@@ -368,7 +368,19 @@ class User:
             stats["cost_summary"] = self.get_cost_summary()
         
         return stats
+
+    def get_state(self) -> Dict:
+        """获取当前状态用于保存"""
+        return {
+            'conversation_history': self.conversation_history.copy(),
+            # 添加其他需要保存的状态
+        }
     
+    def set_state(self, state: Dict) -> None:
+        """从保存的状态恢复"""
+        self.conversation_history = state.get('conversation_history', [])
+        # 恢复其他状态
+
     def export_conversation(self, format: str = "json", include_costs: bool = True) -> Union[str, List[Dict[str, Any]]]:
         """
         导出对话历史

@@ -22,6 +22,8 @@ class TaskRunner:
         user_config: UserConfig,
         mcp_config: MCPConfig,
         debug: bool=False,
+        allow_resume: bool=False,
+        manual: bool=False,
     ) -> TaskStatus:
         """运行单个任务"""
         # 构建模型提供者和客户端
@@ -46,6 +48,8 @@ class TaskRunner:
                                         user_stop_phrases=task_config.stop.user_phrases,
                                         agent_stop_tools=task_config.stop.tool_names),
             debug=debug,
+            allow_resume=allow_resume,
+            manual=manual,
         )
         
         return await task_agent.run()
@@ -56,7 +60,9 @@ class TaskRunner:
         agent_config: AgentConfig,
         user_config: UserConfig,
         mcp_config: MCPConfig,
+        global_task_config: dict,
         debug: bool = False,
+        allow_resume: bool = False
     ) -> Dict[str, Any]:
         """运行单个任务并返回详细结果"""
         from utils.general.helper import read_json
@@ -71,19 +77,31 @@ class TaskRunner:
         try:
             # 加载任务配置
             task_config_dict = read_json(task_config_path)
-            task_config = TaskConfig.from_dict(task_config_dict)
+            task_config = TaskConfig.from_dict(task_config_dict, global_task_config)
             result["task_id"] = task_config_dict.get("id", "unknown")
             
-            # 运行任务
-            task_status = await TaskRunner.run_single_task(
-                task_config=task_config,
-                agent_config=agent_config,
-                user_config=user_config,
-                mcp_config=mcp_config,
-                debug=debug,
-            )
-            
-            result["status"] = task_status.value
+            can_skip=False
+            if task_config.log_file and os.path.exists(task_config.log_file):
+                dump_line = read_json(task_config.log_file)
+                if dump_line.get('status', None) == TaskStatus.SUCCESS.value:
+                    can_skip = True
+
+            if not can_skip:
+                # 运行任务
+                task_status = await TaskRunner.run_single_task(
+                    task_config=task_config,
+                    agent_config=agent_config,
+                    user_config=user_config,
+                    mcp_config=mcp_config,
+                    debug=debug,
+                    allow_resume=allow_resume,
+                )
+                
+                result["status"] = task_status.value
+            else:
+                # 直接使用之前已经跑好的结果
+                result["status"] = TaskStatus.SUCCESS.value
+
             result["execution_time"] = (datetime.now() - start_time).total_seconds()
             result["log_file"] = task_config.log_file
             

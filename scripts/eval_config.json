@@ -1,13 +1,14 @@
 {
     "global_task_config":{
-        "default_max_turns": 50
+        "max_turns": 50,
+        "dump_path":"./dumps/run1"
     },
     "mcp":{
         "server_config_path": "configs/mcp_servers"
     },
     "agent":{
         "model":{
-            "short_name": "gpt-4o-mini",
+            "short_name": "gpt-4.1-mini",
             "provider": "ds_internal"
         },
         "generation":{
