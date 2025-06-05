@@ -21,6 +21,16 @@ async def my_execute_function_tool_calls(
             if config.trace_include_sensitive_data:
                 span_fn.span_data.input = tool_call.arguments
             try:
+                # basially, if the tool has an explicitly stated argument named like `path`
+                # we can identify it and stop it before the tool is actually called
+                # however, if we cannot do this
+                # e.g. the argument is a python code, and the code tries to acces some other files
+                # then it is very hard to detect such behaviour
+                # and we may need system level sandbox technique to avoid that
+                # which is hard on my dev machine
+
+                # we can also have other techniques, see https://www.notion.so/hkust-nlp/Sandbox-20839bdc1c6b8014936ef7c11c57b189
+                # however, on my dev machine, this is hard to implement as I donot have sudo previlige ...
                 _, _, result = await asyncio.gather(
                     hooks.on_tool_start(context_wrapper, agent, func_tool),
                     (

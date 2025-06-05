@@ -1,0 +1,13 @@
+# headless gmail 集成
+# https://github.com/baryhuang/mcp-headless-gmail
+type: stdio
+name: gmail_headless
+params:
+  command: npx
+  args:
+    - "-y"
+    - "@peakmojo/mcp-server-headless-gmail"
+  # env:
+  #   GITHUB_PERSONAL_ACCESS_TOKEN: "${token.github_token}"
+client_session_timeout_seconds: 10
+cache_tools_list: true

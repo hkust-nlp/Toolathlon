@@ -1,6 +1,6 @@
 {
     "id": "manual_001",
-    "needed_mcp_servers": ["code_runner"],
+    "needed_mcp_servers": ["claude_post"],
     "task_root": "./manual/manual_001/",
     "system_prompts":{
         "agent": "you are a smart agent",
@@ -11,7 +11,7 @@
         "process_command": null
     },
     "evaluation": {
-        "groundtruth_workspace": "./groundtruth/manual/filesystem_001/workspace",
+        "groundtruth_workspace": "./groundtruth/manual/manual_001/workspace",
         "local_state_command": null,
         "log_command": null
     },

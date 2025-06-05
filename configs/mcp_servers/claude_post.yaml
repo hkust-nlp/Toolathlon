@@ -1,0 +1,16 @@
+# arxiv论文搜索、下载至本地、阅读
+# https://modelscope.cn/mcp/servers/@blazickjp/arxiv-mcp-server
+type: stdio
+name: claude_post
+params:
+  command: uv
+  args:
+    - "--directory"
+    - "${local_servers_paths}/claude-post/src/email_client"
+    - "run"
+    - "email-client"
+  env:
+    HTTPS_PROXY: "${config.proxy}"
+    HTTP_PROXY: "${config.proxy}"
+client_session_timeout_seconds: 10
+cache_tools_list: true
