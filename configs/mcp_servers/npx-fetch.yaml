@@ -1,0 +1,11 @@
+# 网页内容抓取并转换为各种格式（HTML、JSON、Markdown、纯文本）
+# https://www.modelscope.cn/mcp/servers/@tokenizin-agency/mcp-npx-fetch
+type: stdio
+name: npx-fetch
+params:
+  command: npx
+  args:
+    - "-y"
+    - "@tokenizin/mcp-npx-fetch"
+client_session_timeout_seconds: 100
+cache_tools_list: true

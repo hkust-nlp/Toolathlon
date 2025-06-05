@@ -1,0 +1,11 @@
+# 知识图谱记忆
+# https://www.modelscope.cn/mcp/servers/@modelcontextprotocol/knowledge-graph-memory-server
+type: stdio
+name: memory
+params:
+  command: npx
+  args:
+    - "-y"
+    - "@modelcontextprotocol/server-memory"
+client_session_timeout_seconds: 100
+cache_tools_list: true

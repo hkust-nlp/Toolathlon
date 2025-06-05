@@ -1,0 +1,11 @@
+# 今天吃什么 菜单
+# https://www.modelscope.cn/mcp/servers/@worryzyy/howtocook-mcp
+type: stdio
+name: howtocook
+params:
+  command: npx
+  args:
+    - "-y"
+    - "howtocook-mcp"
+client_session_timeout_seconds: 100
+cache_tools_list: true

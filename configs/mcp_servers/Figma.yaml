@@ -1,0 +1,13 @@
+# Figma
+# https://www.modelscope.cn/mcp/servers/@GLips/Figma-Context-MCP
+type: stdio
+name: Figma
+params:
+  command: npx
+  args:
+    - "-y"
+    - "figma-developer-mcp"
+    - "--figma-api-key=figd_E4gcLjqosyeZ4ddbzqcNuDPCQjlCauKKMZoSUpHY"
+    - "--stdio"
+client_session_timeout_seconds: 100
+cache_tools_list: true

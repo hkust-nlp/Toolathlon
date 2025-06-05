@@ -1,0 +1,15 @@
+# 提供实时天气预报数据，收费
+# https://www.modelscope.cn/mcp/servers/@CodeByWaqas/weather-mcp-server
+type: stdio
+name: weather
+params:
+  command: uv
+  args:
+    - "--directory"
+    - "/<absolute-path>/weather-mcp-server/src/resources"
+    - "run"
+    - "server.py"
+  env:
+    WEATHER_API_KEY: "YOUR_API_KEY"
+client_session_timeout_seconds: 100
+cache_tools_list: true

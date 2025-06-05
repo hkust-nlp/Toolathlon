@@ -1,0 +1,11 @@
+# EdgeOne Pages MCP 一个用于将 HTML 内容部署到 EdgeOne Pages 并获取公开可访问 URL 的 MCP 服务
+# MCP tool里已经有了，但是这个版本是Npx运行，已有的edgeone.yaml是host运行
+# https://www.modelscope.cn/mcp/servers/@TencentEdgeOne/edgeone-pages-mcp
+type: stdio
+name: edgeone-pages-mcp-server
+params:
+  command: npx
+  args:
+    - "edgeone-pages-mcp-server"
+client_session_timeout_seconds: 100
+cache_tools_list: true

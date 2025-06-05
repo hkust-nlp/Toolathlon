@@ -1,0 +1,10 @@
+# Bing中文搜索
+# https://www.modelscope.cn/mcp/servers/@yan5236/bing-cn-mcp-server
+type: stdio
+name: bing-cn
+params:
+  command: npx
+  args:
+    - "bing-cn-mcp"
+client_session_timeout_seconds: 100
+cache_tools_list: true

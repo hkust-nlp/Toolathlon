@@ -1,0 +1,15 @@
+# 微信读书
+# https://www.modelscope.cn/mcp/servers/@package/mcp-server-weread
+type: stdio
+name: weread
+params:
+  command: npx
+  args:
+    - "-y"
+    - "weread"
+  env:
+    CC_URL: "https://cc.chenge.ink"
+    CC_ID:  "pCBTyX6ieBV3dL4ouAfCgk"
+    CC_PASSWORD: "6kPytCkZLBL3iganLJgY7v"
+client_session_timeout_seconds: 50
+cache_tools_list: true
