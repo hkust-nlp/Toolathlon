@@ -12,6 +12,10 @@ from utils.general.helper import read_json, setup_proxy
 from utils.task_runner.runner import TaskRunner
 from utils.evaluation.evaluator import TaskEvaluator
 
+# monkey patch to solve
+from utils.openai_agents_monkey_patch.custom_run_impl import *
+from utils.openai_agents_monkey_patch.custom_mcp_util import *
+
 # 设置日志
 logging.basicConfig(
     level=logging.INFO,
