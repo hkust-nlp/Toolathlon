@@ -9,3 +9,4 @@ params:
     - "@modelcontextprotocol/server-sequential-thinking"
 client_session_timeout_seconds: 10
 cache_tools_list: true
+# this tool is aborted as compared to `configs/mcp_servers/think-tool.yaml`, this tool is too complex

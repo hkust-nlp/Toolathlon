@@ -1,0 +1,10 @@
+# 虚拟货币币价
+# https://github.com/truss44/mcp-crypto-price
+type: stdio
+name: crypto-price
+params:
+  command: npx
+  args:
+    - "-y"
+    - "mcp-crypto-price"
+cache_tools_list: true

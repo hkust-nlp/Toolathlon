@@ -1,5 +1,6 @@
-# 文件系统服务器 - 用于读写文件
-# https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem
+# firecrawl搜索
+# https://github.com/mendableai/firecrawl-mcp-server
+# good performance but paid
 type: stdio
 name: firecrawl
 params:

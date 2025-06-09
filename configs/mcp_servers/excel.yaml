@@ -1,26 +1,14 @@
+# we choose a more powerful excel server
+# https://github.com/haris-musa/excel-mcp-server/blob/main/TOOLS.md
+# replace `configs/legacy_servers/excel.yaml`
+# `uv add excel-mcp-server` to install
 type: stdio
 name: excel
 params:
-  command: cmd
+  command: uv
   args:
-    - "/c"
-    - "npx"
-    - "--yes"
-    - "@negokaz/excel-mcp-server"
-  env:
-    EXCEL_MCP_PAGING_CELLS_LIMIT: "4000"
+    - "run"
+    - "excel-mcp-server"
+    - "stdio"
 client_session_timeout_seconds: 100
 cache_tools_list: true
-
-# 对于非windows系统
-# {
-#     "mcpServers": {
-#         "excel": {
-#             "command": "npx",
-#             "args": ["--yes", "@negokaz/excel-mcp-server"],
-#             "env": {
-#                 "EXCEL_MCP_PAGING_CELLS_LIMIT": "4000"
-#             }
-#         }
-#     }
-# }

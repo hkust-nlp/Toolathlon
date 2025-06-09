@@ -8,3 +8,4 @@ params:
     - "bing-cn-mcp"
 client_session_timeout_seconds: 100
 cache_tools_list: true
+# this server is not that robust

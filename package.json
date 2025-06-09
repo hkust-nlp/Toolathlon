@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "@antv/mcp-server-chart": "^0.4.1",
+    "@cgize/mcp-think-tool": "^1.0.1",
     "@cocal/google-calendar-mcp": "^1.3.0",
     "@e2b/mcp-server": "^0.2.0",
     "@gongrzhe/server-calendar-autoauth-mcp": "^1.0.2",
@@ -11,9 +12,14 @@
     "@modelcontextprotocol/server-memory": "^2025.4.25",
     "@modelcontextprotocol/server-puppeteer": "^2025.5.12",
     "@modelcontextprotocol/server-sequential-thinking": "^0.6.2",
+    "@negokaz/excel-mcp-server": "^0.10.3",
     "@playwright/mcp": "^0.0.28",
+    "@tokenizin/mcp-npx-fetch": "^1.0.0",
+    "12306-mcp": "^0.3.2",
     "edgeone-pages-mcp": "^0.0.11",
     "firecrawl-mcp": "^1.11.0",
+    "hyperbrowser-mcp": "^1.0.25",
+    "mcp-crypto-price": "^1.2.0",
     "mcp-deepwiki": "^0.0.10",
     "mcp-server-code-runner": "^0.1.7",
     "shadcn-ui-mcp-server": "^0.1.2",

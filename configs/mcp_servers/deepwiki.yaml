@@ -1,6 +1,6 @@
 # Deepwiki MCP 服务器
 # 通过 MCP 接收一个 Deepwiki URL，爬取所有相关页面，将其转换为 Markdown 格式，并返回一个文档或按页面列出的列表
-# https://www.modelscope.cn/mcp/servers/@regenrek/mcp-deepwiki
+# https://github.com/regenrek/deepwiki-mcp
 name: deepwiki
 params:
   command: npx

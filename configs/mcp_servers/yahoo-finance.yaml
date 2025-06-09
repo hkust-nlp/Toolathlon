@@ -1,0 +1,13 @@
+# this server need to be installed locally
+# see `install_records/yahoo_finance.md`
+type: stdio
+name: yahoo-finance
+params:
+  command: uv
+  args:
+    - "--directory"
+    - "local_servers/yahoo-finance-mcp"
+    - "run"
+    - "server.py"
+client_session_timeout_seconds: 10
+cache_tools_list: true

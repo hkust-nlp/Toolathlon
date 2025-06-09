@@ -1,0 +1,10 @@
+type: stdio
+name: hyperbrowser
+params:
+  command: npx
+  args:
+    - "-y"
+    - "hyperbrowser-mcp"
+  # env:
+  #   FIRECRAWL_API_KEY: "${token.firecrawl_token}"
+cache_tools_list: true

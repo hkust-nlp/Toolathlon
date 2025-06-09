@@ -1,7 +1,8 @@
 # 网页内容抓取并转换为各种格式（HTML、JSON、Markdown、纯文本）
 # https://www.modelscope.cn/mcp/servers/@tokenizin-agency/mcp-npx-fetch
+# seems to be an updated version of fetch
 type: stdio
-name: npx-fetch
+name: fetch
 params:
   command: npx
   args:

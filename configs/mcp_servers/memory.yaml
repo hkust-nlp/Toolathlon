@@ -1,5 +1,5 @@
 # 知识图谱记忆
-# https://www.modelscope.cn/mcp/servers/@modelcontextprotocol/knowledge-graph-memory-server
+# https://github.com/modelcontextprotocol/servers/tree/main/src/memory
 type: stdio
 name: memory
 params:
@@ -11,3 +11,4 @@ params:
     MEMORY_FILE_PATH: "${agent_workspace}/memory/memory.json"
 client_session_timeout_seconds: 100
 cache_tools_list: true
+# this server will read/write the memory.json

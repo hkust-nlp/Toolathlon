@@ -1,0 +1,27 @@
+# windows
+# type: stdio
+# name: excel
+# params:
+#   command: cmd
+#   args:
+#     - "/c"
+#     - "npx"
+#     - "--yes"
+#     - "@negokaz/excel-mcp-server"
+#   env:
+#     EXCEL_MCP_PAGING_CELLS_LIMIT: "4000"
+# client_session_timeout_seconds: 100
+# cache_tools_list: true
+
+# non-windows
+type: stdio
+name: excel
+params:
+  command: npx
+  args:
+    - "-y"
+    - "@negokaz/excel-mcp-server"
+  env:
+    EXCEL_MCP_PAGING_CELLS_LIMIT: "4000"
+client_session_timeout_seconds: 100
+cache_tools_list: true

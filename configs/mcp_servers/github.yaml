@@ -1,9 +1,10 @@
 # GitHub API 集成
 # https://github.com/modelcontextprotocol/servers/tree/main/src/github
+# make sure you have podman or docker when using this server
 type: stdio
 name: github
 params:
-  command: podman
+  command: podman # or `docker`
   args:
     - "run"
     - "-i"
