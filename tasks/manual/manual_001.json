@@ -1,6 +1,6 @@
 {
     "id": "manual_001",
-    "needed_mcp_servers": ["claude_post"],
+    "needed_mcp_servers": ["gmail", "google_calendar"],
     "task_root": "./manual/manual_001/",
     "system_prompts":{
         "agent": "you are a smart agent",

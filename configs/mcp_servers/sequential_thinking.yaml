@@ -1,0 +1,11 @@
+# sequential thinking 
+# https://github.com/modelcontextprotocol/servers/tree/main/src/sequentialthinking
+type: stdio
+name: sequential_thinking
+params:
+  command: npx
+  args:
+    - "-y"
+    - "@modelcontextprotocol/server-sequential-thinking"
+client_session_timeout_seconds: 10
+cache_tools_list: true

@@ -491,6 +491,11 @@ async def specifical_inialize_for_mcp(task_config):
         os.makedirs(cache_dir, exist_ok=True)
         assert os.path.exists(cache_dir)
         print("[arxiv_local] arxiv local cache dir has been established")
+    if "memory" in task_config.needed_mcp_servers:
+        cache_dir = os.path.join(task_config.agent_workspace,"memory")
+        os.makedirs(cache_dir, exist_ok=True)
+        assert os.path.exists(cache_dir)
+        print("[memory] memory cache dir has been established")
 
 def build_user_client(user_config: UserConfig) -> AsyncOpenAIClientWithRetry:
     """构建用户客户端"""

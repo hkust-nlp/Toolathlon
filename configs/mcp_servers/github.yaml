@@ -3,11 +3,15 @@
 type: stdio
 name: github
 params:
-  command: npx
+  command: podman
   args:
-    - "-y"
-    - "@modelcontextprotocol/server-github"
-  # env:
-  #   GITHUB_PERSONAL_ACCESS_TOKEN: "${token.github_token}"
+    - "run"
+    - "-i"
+    - "--rm"
+    - "-e"
+    - "GITHUB_PERSONAL_ACCESS_TOKEN"
+    - "ghcr.io/github/github-mcp-server"
+  env:
+    GITHUB_PERSONAL_ACCESS_TOKEN: "${token.github_token}"
 client_session_timeout_seconds: 50
 cache_tools_list: true

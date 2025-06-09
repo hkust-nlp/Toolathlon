@@ -1,0 +1,11 @@
+# 检查本地git状态
+# https://github.com/modelcontextprotocol/servers/tree/main/src/git
+type: stdio
+name: git
+params:
+  command: python
+  args:
+    - "-m"
+    - "mcp_server_git"
+client_session_timeout_seconds: 10
+cache_tools_list: true

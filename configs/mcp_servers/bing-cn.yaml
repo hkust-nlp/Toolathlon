@@ -1,5 +1,5 @@
 # Bing中文搜索
-# https://www.modelscope.cn/mcp/servers/@yan5236/bing-cn-mcp-server
+# https://github.com/yan5236/bing-cn-mcp-server
 type: stdio
 name: bing-cn
 params:

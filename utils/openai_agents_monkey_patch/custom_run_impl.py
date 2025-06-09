@@ -18,6 +18,7 @@ async def my_execute_function_tool_calls(
         func_tool: FunctionTool, tool_call: ResponseFunctionToolCall
     ) -> Any:
         with function_span(func_tool.name) as span_fn:
+            # logger.warning("我在这里！！！！！！！！！！！！")
             if config.trace_include_sensitive_data:
                 span_fn.span_data.input = tool_call.arguments
             try:
@@ -56,10 +57,11 @@ async def my_execute_function_tool_calls(
                         data={"tool_name": func_tool.name, "error": str(e)},
                     )
                 )
-                if isinstance(e, AgentsException):
-                    raise e
-                raise UserError(f"Error running tool {func_tool.name}: {e}") from e
-
+                # fix: instead of raising an error and destory the whole dialogue, we choose to return this error as a result
+                # if isinstance(e, AgentsException):
+                #     raise e
+                # raise UserError(f"Error running tool {func_tool.name}: {e}") from e
+                return f"Error running tool {func_tool.name}: {e}"
             if config.trace_include_sensitive_data:
                 span_fn.span_data.output = result
         return result

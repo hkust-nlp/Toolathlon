@@ -16,13 +16,15 @@ pass
     npm install @playwright/mcp@latest
     ```
 
-2. install playwright&chromium (optional if you have already installed in your machine)
+2. install playwright&chromium, this will install the corresponding chromium for the playwright used in the mcp
     ```
-    npm install playwright
+    cd node_modules/@playwright/mcp
     npx playwright install chromium
     ```
 
-3. set params
+3. you may see warnings if you are not using Ubuntu 20.04, for example, we use AlmaLinux 9, then you can just set `export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1` to ignore these warning
+
+4. set params
     ```
     playwright_mcp_server = MCPServerStdio(
         name='playwright',

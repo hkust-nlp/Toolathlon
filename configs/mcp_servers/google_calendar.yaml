@@ -1,11 +1,11 @@
 # headless gmail 集成
 # https://github.com/GongRzhe/Gmail-MCP-Server
 type: stdio
-name: gmail
+name: google_calendar
 params:
   command: npx
   args:
     - "-y"
-    - "@gongrzhe/server-gmail-autoauth-mcp"
+    - "@gongrzhe/server-calendar-autoauth-mcp"
 client_session_timeout_seconds: 10
 cache_tools_list: true

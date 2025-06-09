@@ -13,6 +13,8 @@ Please set a saperate branch for yourselves in for development. Do not push to m
 #### About Proxy
 Please see `FAQs/setup_proxy.md` to see how to set up a proxy for your terminal/cmd. I only provide some general guides, so you may need extra effort to solve the proxy issue, e.g. via Google Search and asking LLMs.
 
+You may need to configure some proxies for your MCP servers, e.g. `configs/mcp_servers/playwright.yaml`. You just need to uncomment the corresponding lines, the code will automatically load proxy from `configs/global_configs.py`
+
 #### Basic Env Setup
 0. install uv
 

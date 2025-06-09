@@ -1,10 +1,10 @@
 # AntV 绘制可视化图表，返回图表图片的 URL
-# https://modelscope.cn/mcp/servers/@antvis/mcp-server-chart
-type: sse
+# https://github.com/antvis/mcp-server-chart
+type: stdio
 name: antv_chart
 params:
-  url: "https://mcp.api-inference.modelscope.cn/sse/55c878ff004641"
-  env:
-    HTTPS_PROXY: "${config.proxy}"
-    HTTP_PROXY: "${config.proxy}"
+  command: npx
+  args:
+    - "-y"
+    - "@antv/mcp-server-chart"
 cache_tools_list: true

@@ -1,7 +1,10 @@
 # 访问 shadcn/ui 组件文档和示例
-# https://modelscope.cn/mcp/servers/@ymadd/shadcn-ui-mcp-server
-type: sse
+# https://github.com/ymadd/shadcn-ui-mcp-server
+type: stdio
 name: shadcn_ui
 params:
-  url: "https://mcp.api-inference.modelscope.cn/sse/72adf3b7c25742"
+  command: npx
+  args:
+    - "-y"
+    - "shadcn-ui-mcp-server"
 cache_tools_list: true

@@ -5,7 +5,9 @@ from utils.data_structures.task_config import TaskConfig
 from utils.task_runner.runner import TaskRunner
 from utils.evaluation.evaluator import TaskEvaluator
 from utils.general.helper import setup_proxy
-# from utils.openai_agents_monkey_patch.custom_run_impl import *
+
+from utils.openai_agents_monkey_patch.custom_run_impl import *
+from utils.openai_agents_monkey_patch.custom_mcp_util import *
 
 
 async def main():
