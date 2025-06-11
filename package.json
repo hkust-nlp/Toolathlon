@@ -1,5 +1,7 @@
 {
   "dependencies": {
+    "@41px/mcp-xmind": "^1.1.1",
+    "@adenot/mcp-google-search": "^0.2.0",
     "@antv/mcp-server-chart": "^0.4.1",
     "@cgize/mcp-think-tool": "^1.0.1",
     "@cocal/google-calendar-mcp": "^1.3.0",
@@ -9,20 +11,31 @@
     "@jinzcdev/leetcode-mcp-server": "^1.1.0",
     "@modelcontextprotocol/server-filesystem": "^2025.3.28",
     "@modelcontextprotocol/server-github": "^2025.4.8",
+    "@modelcontextprotocol/server-google-maps": "^0.6.2",
     "@modelcontextprotocol/server-memory": "^2025.4.25",
     "@modelcontextprotocol/server-puppeteer": "^2025.5.12",
     "@modelcontextprotocol/server-sequential-thinking": "^0.6.2",
     "@negokaz/excel-mcp-server": "^0.10.3",
     "@playwright/mcp": "^0.0.28",
+    "@sinco-lab/mcp-youtube-transcript": "^0.0.8",
+    "@sylphlab/pdf-reader-mcp": "^0.3.23",
+    "@sylphlab/tools-pdf": "^0.7.1",
+    "@sylphlab/tools-pdf-mcp": "^0.5.1",
     "@tokenizin/mcp-npx-fetch": "^1.0.0",
     "12306-mcp": "^0.3.2",
-    "edgeone-pages-mcp": "^0.0.11",
+    "edgeone-pages-mcp": "^0.0.6",
     "firecrawl-mcp": "^1.11.0",
     "hyperbrowser-mcp": "^1.0.25",
     "mcp-crypto-price": "^1.2.0",
     "mcp-deepwiki": "^0.0.10",
     "mcp-server-code-runner": "^0.1.7",
     "shadcn-ui-mcp-server": "^0.1.2",
-    "zod": "^3.25.23"
+    "zod": "^3.25.23",
+    "zubeid-youtube-mcp-server": "^1.0.0"
+  },
+  "overrides": {
+    "@sylphlab/tools-pdf": {
+      "mupdf": "1.3.6"
+    }
   }
 }

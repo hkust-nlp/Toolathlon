@@ -42,6 +42,8 @@ class TaskConfig:
     agent_workspace: Optional[str] = None
     max_turns: int = None
     meta: Dict = field(default_factory=dict)
+
+    agent_short_name: str = None
     global_task_config: Dict = None
     
     def __post_init__(self):
@@ -54,7 +56,13 @@ class TaskConfig:
 
         # 从global task config载入dump_path并更新task_root_path, 方便多次测量前后互不影响
         if self.global_task_config is not None and "dump_path" in self.global_task_config:
-            self.task_root = str(self.global_task_config['dump_path'] / task_root_path)
+            # 把modelname拼在global_task_config.dump_path后面
+            global_dump_path = self.global_task_config['dump_path']
+            if global_dump_path.endswith(self.agent_short_name) or global_dump_path.endswith(self.agent_short_name+'/'):
+                pass
+            else:
+                global_dump_path = Path(global_dump_path)/Path(self.agent_short_name)
+            self.task_root = str(global_dump_path / task_root_path)
             task_root_path = Path(self.task_root)
         
         # 如果没有指定 log_file，自动生成
@@ -92,7 +100,10 @@ class TaskConfig:
         return Path(self.agent_workspace)
     
     @classmethod
-    def from_dict(cls, data: dict, global_task_config: dict = None) -> 'TaskConfig':
+    def from_dict(cls, 
+                  data: dict, 
+                  agent_short_name: str = None,
+                  global_task_config: dict = None) -> 'TaskConfig':
         """从字典创建TaskConfig实例"""
         return cls(
             id=data['id'],
@@ -106,6 +117,7 @@ class TaskConfig:
             stop=StopConditions(**data.get('stop',{})),
             max_turns=data.get("max_turns"),
             meta=data.get('meta', {}),
+            agent_short_name = agent_short_name,
             global_task_config=global_task_config,
         )
     

@@ -1,0 +1,13 @@
+# https://github.com/adenot/mcp-google-search
+type: stdio
+name: googlesearch
+params:
+  command: npx
+  args:
+    - "-y"
+    - "@adenot/mcp-google-search"
+  env:
+    GOOGLE_API_KEY: "${token.google_cloud_console_api_key}"
+    GOOGLE_SEARCH_ENGINE_ID: "${token.google_search_engine_id}"
+client_session_timeout_seconds: 20
+cache_tools_list: true

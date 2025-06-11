@@ -29,16 +29,16 @@ model_provider_mapping = {
 }
 
 API_MAPPINGS = {
-    'deepseek-v3': Dict(
+    'deepseek-v3-0324': Dict(
         api_model={"ds_internal": "deepseek-chat",
                    "aihubmix": "DeepSeek-V3"},
-        price=[0, 0],
+        price=[0.272/1000, 1.088/1000],
         concurrency=32
     ),
-    'deepseek-r1': Dict(
+    'deepseek-r1-0528': Dict(
         api_model={"ds_internal": "deepseek-reasoner",
                    "aihubmix": "DeepSeek-R1"},
-        price=[0, 0],
+        price=[0.546/1000, 2.184/1000],
         concurrency=32
     ),
     'gpt-4o': Dict(
@@ -53,19 +53,19 @@ API_MAPPINGS = {
         price=[0.00015, 0.0006],
         concurrency=32
     ),
-    'gpt-4.1': Dict(
+    'gpt-4.1-0414': Dict(
         api_model={"ds_internal": "azure-gpt-4.1-2025-04-14",
                    "aihubmix": "gpt-4.1"},
         price=[0.002, 0.008],
         concurrency=32
     ),
-    'gpt-4.1-mini': Dict(
+    'gpt-4.1-mini-0414': Dict(
         api_model={"ds_internal": "azure-gpt-4.1-mini-2025-04-14",
                    "aihubmix": "gpt-4.1-mini"},
         price=[0.0004, 0.0016],
         concurrency=32
     ),
-    'gpt-4.1-nano': Dict(
+    'gpt-4.1-nano-0414': Dict(
         api_model={"ds_internal": "azure-gpt-4.1-nano-2025-04-14",
                    "aihubmix": "gpt-4.1-nano"},
         price=[0.0001, 0.0004],
@@ -77,20 +77,32 @@ API_MAPPINGS = {
         price=[0.0011, 0.0044],
         concurrency=32
     ),
+    'o3': Dict(
+        api_model={"ds_internal": "?????", # no o3 in ds internal
+                   "aihubmix": "o3"},
+        price=[0.010, 0.040],
+        concurrency=32
+    ),
+    'o3-pro': Dict(
+        api_model={"ds_internal": "?????", # no o3-pro in ds internal
+                   "aihubmix": "o3-pro"}, # no o3-pro in aihubmix
+        price=[0.022, 0.088],
+        concurrency=32
+    ),
     'claude-3.7-sonnet': Dict(
         api_model={"ds_internal": "cloudsway-claude-3-7-sonnet-20250219",
                    "aihubmix": "cloudsway-claude-3-7-sonnet-20250219"},
         price=[0.003, 0.015],
         concurrency=32
     ),
-    'claude-4-sonnet': Dict(
-        api_model={"ds_internal": "claude-sonnet-4-20250514",
+    'claude-4-sonnet-0514': Dict(
+        api_model={"ds_internal": "oai-api-claude-sonnet-4-20250514",
                    "aihubmix": "claude-sonnet-4-20250514"},
         price=[0.003, 0.015],
         concurrency=32
     ),
-    'claude-4-opus': Dict(
-        api_model={"ds_internal": "claude-opus-4-20250514",
+    'claude-4-opus-0514': Dict(
+        api_model={"ds_internal": "oai-api-claude-opus-4-20250514",
                    "aihubmix": "claude-opus-4-20250514"},
         price=[0.015, 0.075],
         concurrency=32
@@ -125,15 +137,21 @@ API_MAPPINGS = {
         price=[0.14/1000, 0.56/1000],
         concurrency=32
     ),
-    'gemini-2.5-flash': Dict(
+    'gemini-2.5-flash-0520': Dict(
         api_model={"ds_internal": "gemini-2.5-flash-preview-05-20",
                    "aihubmix": "gemini-2.5-flash-preview-05-20"},
         price=[0.00015, 0.0035],
         concurrency=32
     ),
-    'gemini-2.5-pro': Dict(
+    'gemini-2.5-pro-0506': Dict(
         api_model={"ds_internal": "cloudsway-gemini-2.5-pro-preview-05-06",
                    "aihubmix": "gemini-2.5-pro-preview-05-06"},
+        price=[0.00125, 0.010],
+        concurrency=32
+    ),
+    'gemini-2.5-pro-0605': Dict(
+        api_model={"ds_internal": "cloudsway-gemini-2.5-pro-preview-06-05",
+                   "aihubmix": "gemini-2.5-pro-preview-06-05"},
         price=[0.00125, 0.010],
         concurrency=32
     ),

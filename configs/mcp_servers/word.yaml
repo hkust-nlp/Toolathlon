@@ -1,0 +1,13 @@
+# a word mcp server
+# https://github.com/GongRzhe/Office-Word-MCP-Server
+type: stdio
+name: word
+params:
+  command: uvx
+  args:
+    # - "run"
+    - "--from"
+    - "office-word-mcp-server"
+    - "word_mcp_server"
+client_session_timeout_seconds: 10
+cache_tools_list: true

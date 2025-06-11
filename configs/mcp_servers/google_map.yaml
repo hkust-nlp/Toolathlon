@@ -1,0 +1,13 @@
+# 谷歌地图
+# https://github.com/modelcontextprotocol/servers-archived/tree/main/src/google-maps
+type: stdio
+name: google_map
+params:
+  command: npx
+  args:
+    - "-y"
+    - "@modelcontextprotocol/server-google-maps"
+  env:
+    GOOGLE_MAPS_API_KEY: "${token.google_cloud_console_api_key}"
+client_session_timeout_seconds: 10
+cache_tools_list: true

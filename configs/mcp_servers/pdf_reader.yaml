@@ -1,0 +1,12 @@
+# pdf reader
+# https://github.com/sylphxltd/pdf-reader-mcp
+type: stdio
+name: pdf-reader
+params:
+  command: npx
+  args:
+    - "-y"
+    - "@sylphlab/tools-pdf-mcp"
+  cwd: "${agent_workspace}"
+client_session_timeout_seconds: 10
+cache_tools_list: true

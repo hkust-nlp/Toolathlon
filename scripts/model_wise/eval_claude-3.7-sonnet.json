@@ -1,14 +1,14 @@
 {
     "global_task_config":{
         "max_turns": 50,
-        "dump_path":"./dumps/run1"
+        "dump_path":"./recorded_trajectories/run1"
     },
     "mcp":{
         "server_config_path": "configs/mcp_servers"
     },
     "agent":{
         "model":{
-            "short_name": "gpt-4.1-mini",
+            "short_name": "claude-3.7-sonnet",
             "provider": "ds_internal"
         },
         "generation":{
@@ -24,7 +24,7 @@
     },
     "user":{
         "model":{
-            "short_name": "gpt-4.1",
+            "short_name": "gpt-4.1-0414",
             "provider": "ds_internal"
         },
         "generation":{

@@ -1,5 +1,5 @@
-# headless gmail 集成
-# https://github.com/GongRzhe/Gmail-MCP-Server
+# 谷歌日历
+# https://github.com/GongRzhe/Calendar-Autoauth-MCP-Server
 type: stdio
 name: google_calendar
 params:

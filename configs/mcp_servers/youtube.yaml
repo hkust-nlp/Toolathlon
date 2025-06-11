@@ -1,0 +1,14 @@
+# mcp 4 youtube
+# https://github.com/ZubeidHendricks/youtube-mcp-server
+# this servers has been mostly fixed, however, the transcript retrieval is still buddy .. .idk why
+type: stdio
+name: youtube
+params:
+  command: npx
+  args:
+    - "-y"
+    - "zubeid-youtube-mcp-server"
+  env:
+    YOUTUBE_API_KEY: "${token.google_cloud_console_api_key}"
+client_session_timeout_seconds: 20
+cache_tools_list: true

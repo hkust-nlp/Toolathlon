@@ -1,5 +1,6 @@
 import asyncio
 import argparse
+from distutils.command.config import dump_file
 from utils.general.helper import read_json
 from utils.data_structures.task_config import TaskConfig
 from utils.task_runner.runner import TaskRunner
@@ -36,7 +37,9 @@ async def main():
     
     # 解析配置
     mcp_config, agent_config, user_config = TaskRunner.load_configs(eval_config_dict)
-    task_config = TaskConfig.from_dict(task_config_dict, eval_config_dict['global_task_config'])
+    task_config = TaskConfig.from_dict(task_config_dict, 
+                                       agent_config.model.short_name,
+                                       eval_config_dict['global_task_config'],)
 
     # 运行任务
     print("=== Starting Task Execution ===")
@@ -56,7 +59,7 @@ async def main():
     print("\n=== Starting Task Evaluation ===")
     log_file = task_config.log_file
     dump_line = read_json(log_file)
-    eval_res = await TaskEvaluator.evaluate_one(dump_line)
+    eval_res = await TaskEvaluator.evaluate_from_log_file(log_file)
     
     print(f"\n=== Evaluation Results ===")
     print(f"Pass: {eval_res.get('pass', False)}")

@@ -56,6 +56,18 @@ You may need to configure some proxies for your MCP servers, e.g. `configs/mcp_s
     it will automatically check the `package.json` and `package-lock.json`
     you may encounter some proxy issue, see `FAQs/npx_install.md`.
 
+3. install local uv tools
+
+    some mcp servers are launched via `uvx`, so we install them in advance to avoid installing them every time
+    ```
+    uv tool install office-powerpoint-mcp-server
+    uv tool install office-word-mcp-server
+    ```
+
+    they will be by default installed under ~/.local/share/uv/tools
+    
+    you can also assign another install dir via `UV_TOOL_DIR` envoronment var
+
 #### Demo
 1. Set up global configs
     please fill in the blanks in `configs/global_configs_example.py` and copy the filled one as `configs/global_configs.py`.

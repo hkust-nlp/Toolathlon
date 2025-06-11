@@ -77,7 +77,9 @@ class TaskRunner:
         try:
             # 加载任务配置
             task_config_dict = read_json(task_config_path)
-            task_config = TaskConfig.from_dict(task_config_dict, global_task_config)
+            task_config = TaskConfig.from_dict(task_config_dict, 
+                                               agent_config.model.short_name,
+                                               global_task_config)
             result["task_id"] = task_config_dict.get("id", "unknown")
             
             can_skip=False
