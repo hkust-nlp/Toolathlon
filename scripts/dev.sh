@@ -1,4 +1,4 @@
-# this is a dev to run multiple tasks, we not skip this
+# this is a dev to run multiple tasks, we now skip this in development stage
 uv run main.py \
 --task_dir tasks/dev \
 --eval_config scripts/eval_config.json \
