@@ -19,3 +19,5 @@ dumps
 ./logs
 eval_results
 tasks/manual
+initial_states/manual
+groundtruth/manual
