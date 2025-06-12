@@ -1,23 +1,12 @@
-.venv/lib/python3.12/site-packages/mcp_scholarly/google_scholar.py L14
-
-please use the new 
+https://github.com/adityak74/mcp-scholarly
+请在 local_servers按照说明安装
 ```
-    @staticmethod
-    def _parse_results(search_results):
-        articles = []
-        results_iter = 0
-        for searched_article in search_results:
-            bib = searched_article.get('bib', {})
-            title = bib.get('title', 'No title')
-            abstract = bib.get('abstract', 'No abstract available')
-            pub_url = searched_article.get('pub_url', 'No URL available')
-            
-            article_string = f"Title: {title}\nAbstract: {abstract}\nURL: {pub_url}"
-            articles.append(article_string)
-            results_iter += 1
-            if results_iter >= MAX_RESULTS:
-                break
-        return articles
+cd ./local_servers
+git clone https://github.com/adityak74/mcp-scholarly.git
+cd mcp-scholarly
+git checkout 514306af56b750df9b3f017b19b08bdbf05fcde3
+uv venv
+source .venv/bin/activate
+uv pip install -e .
+cd ..
 ```
-to replace the original one.
-I have raise a pull request and been merged, but i am not sure if the pypi will be updated as well ...

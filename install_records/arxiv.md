@@ -1,1 +1,0 @@
-!!! the vanilla search interface of arxiv i.e. export.arxiv, is extremely bad, so in turns, please do not use `arxiv-mcp-server`'s search tool in general ... or we just keep this on purpose, to see if model can find the issue here.

@@ -6,7 +6,7 @@ params:
   command: uv
   args:
     - "--directory"
-    - "local_servers/yahoo-finance-mcp"
+    - "${local_servers_paths}/yahoo-finance-mcp"
     - "run"
     - "server.py"
 client_session_timeout_seconds: 10

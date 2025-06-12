@@ -1,6 +1,6 @@
 {
     "id": "manual_001",
-    "needed_mcp_servers": ["youtube"],
+    "needed_mcp_servers": ["scholarly"],
     "task_root": "./manual/manual_001/",
     "system_prompts":{
         "agent": "you are a smart agent",

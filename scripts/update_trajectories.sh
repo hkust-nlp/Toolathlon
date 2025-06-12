@@ -3,9 +3,13 @@
 # also, you should assign a developed task config, with fully supported all components
 # include everything
 
-# we tun off the `--manual` to let gpt-4.1-0414 play as the user
+# we turn off the `--manual` to let gpt-4.1-0414 play as the user
 
 # for --debug, you can either use it or not, depending on if you want to see the full trajectory
+
+# the dump path in `scripts/model_wise/eval_gpt-4.1-nano.json` is usually `recorded_trajectories`
+# which will not be blocked by `.gitignore` and thus will be uploaded to our github repo
+
 uv run demo.py \
 --eval_config scripts/model_wise/eval_gpt-4.1-nano.json \
 --task_config tasks/dev/filesystem_001.json \
