@@ -18,3 +18,4 @@ configs/global_configs.py
 dumps
 ./logs
 eval_results
+tasks/manual
