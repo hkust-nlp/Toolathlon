@@ -59,7 +59,7 @@ async def main():
     print("\n=== Starting Task Evaluation ===")
     log_file = task_config.log_file
     dump_line = read_json(log_file)
-    eval_res = await TaskEvaluator.evaluate_from_log_file(log_file)
+    eval_res = await TaskEvaluator.evaluate_from_log_file(log_file, allow_resume=args.allow_resume)
     
     print(f"\n=== Evaluation Results ===")
     print(f"Pass: {eval_res.get('pass', False)}")

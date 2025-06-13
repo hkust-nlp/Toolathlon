@@ -74,7 +74,7 @@ class BatchTaskProcessor:
             
         # 评估所有任务
         logger.info("Starting batch evaluation")
-        eval_results = await TaskEvaluator.batch_evaluate(run_results)
+        eval_results = await TaskEvaluator.batch_evaluate(run_results,allow_resume = self.allow_resume)
         
         # 汇总结果
         summary = self.summarize_results(run_results, eval_results)

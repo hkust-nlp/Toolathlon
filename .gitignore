@@ -19,3 +19,8 @@ dumps
 ./logs
 eval_results
 tasks/manual
+initial_states/manual
+groundtruth/manual
+# 忽略所有名为 manual 的文件夹
+manual/
+scripts/debug_manual.sh
