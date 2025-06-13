@@ -72,7 +72,7 @@ class TaskEvaluator:
         }
     
     @staticmethod
-    async def evaluate_from_log_file(log_file_path: str) -> Dict[str, Any]:
+    async def evaluate_from_log_file(log_file_path: str, allow_resume: bool = False) -> Dict[str, Any]:
         """从日志文件评估任务"""
         try:            
             if not os.path.exists(log_file_path):
@@ -82,9 +82,9 @@ class TaskEvaluator:
                     "details": f"Log file not found: {log_file_path}"
                 }
 
-            # if we can load pre exist eval res, we just load it
+            # if allow_resume AND we can load pre exist eval res, we just load it
             eval_file_path = os.path.join(os.path.dirname(log_file_path),"eval_res.json")
-            if os.path.exists(eval_file_path):
+            if allow_resume and os.path.exists(eval_file_path):
                 eval_res = read_json(eval_file_path)
                 return eval_res
             
@@ -103,7 +103,7 @@ class TaskEvaluator:
             }
     
     @staticmethod
-    async def batch_evaluate(run_results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    async def batch_evaluate(run_results: List[Dict[str, Any]], allow_resume: bool=False) -> List[Dict[str, Any]]:
         """批量评估任务结果"""
         eval_results = []
         
@@ -122,7 +122,7 @@ class TaskEvaluator:
             else:
                 log_file = run_result.get("log_file")
                 if log_file:
-                    eval_result["evaluation"] = await TaskEvaluator.evaluate_from_log_file(log_file)
+                    eval_result["evaluation"] = await TaskEvaluator.evaluate_from_log_file(log_file, allow_resume = allow_resume)
                 else:
                     eval_result["evaluation"] = {
                         "pass": False,
