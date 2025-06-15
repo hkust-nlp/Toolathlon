@@ -503,6 +503,10 @@ class TaskAgent:
         """保存运行结果到日志文件"""
         res_log_file = self.task_config.log_file
         
+        if not os.path.exists(os.path.dirname(res_log_file)):
+            # in case the folder is not built in initialization stage
+            os.makedirs(os.path.dirname(res_log_file))
+
         with open(res_log_file, "w", encoding='utf-8') as f:
             result = {
                 'config': self.task_config.to_dict(),

@@ -8,12 +8,12 @@
     },
     "initialization": {
         "workspace": "./initial_states/dev/filesystem_001/workspace",
-        "process_command": "python -m initial_states.dev.filesystem_001.preprocess"
+        "process_command": "uv run -m initial_states.dev.filesystem_001.preprocess"
     },
     "evaluation": {
         "groundtruth_workspace": "./groundtruth/dev/filesystem_001/workspace",
-        "local_state_command": "python -m groundtruth.dev.filesystem_001.check_local",
-        "log_command": "python -m groundtruth.dev.filesystem_001.check_log"
+        "local_state_command": "uv run -m groundtruth.dev.filesystem_001.check_local",
+        "log_command": "uv run -m groundtruth.dev.filesystem_001.check_log"
     },
     "meta": {}
 }

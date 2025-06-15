@@ -3,8 +3,9 @@
 type: stdio
 name: git
 params:
-  command: python
+  command: uv
   args:
+    - "run"
     - "-m"
     - "mcp_server_git"
 client_session_timeout_seconds: 10

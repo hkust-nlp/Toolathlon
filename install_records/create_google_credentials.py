@@ -7,6 +7,7 @@ import requests
 SCOPES = [
     'https://www.googleapis.com/auth/drive',
     'https://www.googleapis.com/auth/gmail.modify',
+    'https://mail.google.com/',
     'https://www.googleapis.com/auth/calendar',
     'https://www.googleapis.com/auth/youtube',
     # 'https://www.googleapis.com/auth/maps',

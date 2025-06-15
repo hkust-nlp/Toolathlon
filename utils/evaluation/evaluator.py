@@ -39,6 +39,7 @@ class TaskEvaluator:
         groundtruth_workspace = task_config.evaluation.groundtruth_workspace
         eval_local_state_command = task_config.evaluation.local_state_command
         eval_log_command = task_config.evaluation.log_command
+        eval_remote_state_command = task_config.evaluation.remote_state_command
 
         # 评估日志
         if eval_log_command is not None:
@@ -63,6 +64,19 @@ class TaskEvaluator:
                 return {
                     "pass": False, 
                     "failure": "fail_to_pass_local_state_check",
+                    "details": str(e)
+                }
+    
+        # 评估远程状态
+        if eval_remote_state_command is not None:
+            try:
+                args = f"--agent_workspace {agent_workspace} --groundtruth_workspace {groundtruth_workspace} --res_log_file {res_log_file}"
+                command = f"{eval_remote_state_command} {args}"
+                await run_command(command)
+            except Exception as e:
+                return {
+                    "pass": False, 
+                    "failure": "fail_to_pass_remote_state_check",
                     "details": str(e)
                 }
 
