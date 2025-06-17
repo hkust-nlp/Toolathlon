@@ -1,4 +1,4 @@
-# this is the debug script when you are developing new tasks
+# this is the debug script when you are developing new tasksAdd commentMore actions
 
 # the task config you need to configature is `tasks/manual/manual_001.json`
 # and you can tune the model you want to test in `scripts/debug_eval_config.json`
