@@ -91,7 +91,7 @@ API_MAPPINGS = {
     ),
     'claude-3.7-sonnet': Dict(
         api_model={"ds_internal": "cloudsway-claude-3-7-sonnet-20250219",
-                   "aihubmix": "cloudsway-claude-3-7-sonnet-20250219"},
+                   "aihubmix": "claude-3-7-sonnet-20250219"},
         price=[0.003, 0.015],
         concurrency=32
     ),
