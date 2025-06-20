@@ -1,0 +1,11 @@
+# https://huggingface.co/settings/mcp
+type: stdio
+name: huggingface
+params:
+  command: "npx"
+  args:
+    - "mcp-remote"
+    - "https://huggingface.co/mcp"
+    - "--header"
+    - "Authorization: Bearer ${token.huggingface_token}"
+cache_tools_list: true 

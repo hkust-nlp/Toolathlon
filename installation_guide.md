@@ -50,6 +50,8 @@ In this file we guide you how to install all needed servers for this project.
 
     `gmail` & `google_calendar`: see `install_records/gmail_and_calendar.md`
 
+    `ocr`: see `install_records/tesseract.md` (we need to install tesseract by ourselves!)
+
 5. configurate some tokens and keys
     
     Within the scope of this project, we have setup some keys and tokens by ourselves in `configs/token_key_session.py`, so you do not need to do it again by yourselves. Please just use them freely please.
