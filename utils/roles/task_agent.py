@@ -477,7 +477,11 @@ class TaskAgent:
     
     def get_cost_summary(self) -> Tuple[Dict, Dict]:
         """获取成本摘要"""
-        user_cost = self.user_simulator.get_cost_summary()
+        # 添加空值检查，防止 user_simulator 为 None
+        if self.user_simulator is None:
+            user_cost = {"total_cost": 0, "total_input_tokens": 0, "total_output_tokens": 0, "total_requests": 0}
+        else:
+            user_cost = self.user_simulator.get_cost_summary()
         
         _, _, total_cost = calculate_cost(
             self.agent_config.model.short_name,
@@ -503,6 +507,10 @@ class TaskAgent:
         """保存运行结果到日志文件"""
         res_log_file = self.task_config.log_file
         
+        if not os.path.exists(os.path.dirname(res_log_file)):
+            # in case the folder is not built in initialization stage
+            os.makedirs(os.path.dirname(res_log_file))
+
         with open(res_log_file, "w", encoding='utf-8') as f:
             result = {
                 'config': self.task_config.to_dict(),

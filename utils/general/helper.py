@@ -425,6 +425,18 @@ async def copy_folder_contents(source_folder, target_folder, debug=False):
         source_folder: 源文件夹路径（A）
         target_folder: 目标文件夹路径（B）
     """
+
+    # 如果目标文件夹不存在，创建它
+    if not os.path.exists(target_folder):
+        os.makedirs(target_folder)
+        if debug:
+            print(f"Target directory `{target_folder}` has been created!")
+
+    # 如果源文件夹为null，说明不需要本地初始化
+    if source_folder is None:
+        print("Source directory is None, not need to copy & paste.")
+        return
+
     # 检查源文件夹是否存在
     if not os.path.exists(source_folder):
         raise FileNotFoundError(f"Error: Source directory `{source_folder}` does not exist!")
@@ -432,12 +444,6 @@ async def copy_folder_contents(source_folder, target_folder, debug=False):
     # 检查源路径是否为文件夹
     if not os.path.isdir(source_folder):
         raise NotADirectoryError(f"Error: `{source_folder}` is not a directory!")
-    
-    # 如果目标文件夹不存在，创建它
-    if not os.path.exists(target_folder):
-        os.makedirs(target_folder)
-        if debug:
-            print(f"Target directory `{target_folder}` has been created!")
     
     # 遍历源文件夹中的所有内容
     for item in os.listdir(source_folder):
@@ -457,12 +463,14 @@ async def copy_folder_contents(source_folder, target_folder, debug=False):
     if debug:
         print(f"Copy done! `{source_folder}` -> `{target_folder}`")
 
-async def run_command(command,debug=False):
+async def run_command(command, debug=False, show_output=False):
     """
     异步执行命令并返回输出
     
     Args:
         command: 要执行的命令字符串
+        debug: 是否打印调试信息
+        show_output: 是否打印命令的输出
         
     Returns:
         tuple: (stdout, stderr, return_code)
@@ -477,13 +485,24 @@ async def run_command(command,debug=False):
         print(f"Executing command : {command}")
 
     # 等待命令执行完成
-    _, stderr = await process.communicate()
+    stdout, stderr = await process.communicate()
     
-    if process.returncode!=0:
-        raise RuntimeError(f"Failed in executing the command: {stderr.decode()}")
+    # 解码输出
+    stdout_decoded = stdout.decode()
+    stderr_decoded = stderr.decode()
+    
+    if process.returncode != 0:
+        raise RuntimeError(f"Failed in executing the command: {stderr_decoded}")
     
     if debug:
         print("Successfully executed!")
+    
+    # 如果需要显示输出
+    if show_output and stdout_decoded:
+        print(f"Command output:\n{stdout_decoded}")
+    
+    # 返回输出和返回码，以便调用者可以进一步处理
+    return stdout_decoded, stderr_decoded, process.returncode
 
 async def specifical_inialize_for_mcp(task_config):
     if "arxiv_local" in task_config.needed_mcp_servers:

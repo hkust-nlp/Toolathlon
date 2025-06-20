@@ -1,3 +1,4 @@
+import logging
 from addict import Dict
 # I am gradually modifying the tokens to the pseudo account in this project
 all_token_key_session = Dict(
@@ -9,5 +10,6 @@ all_token_key_session = Dict(
     edgeone_token = "IP7o6Pdy6nNIG9g+MNld8Ucb8I2RLyikAnAacLMPs0E=",
     firecrawl_token = "fc-88402686bf9f44c797ef5d2bedc0267d",
     google_cloud_console_api_key = "AIzaSyD8Q5ZPqCDZIgjOwBc9QtbdFLfGkijBmMU",
-    google_search_engine_id = "d08f1d4bbe2294372"
+    google_search_engine_id = "d08f1d4bbe2294372",
+    huggingface_token = "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",
 )

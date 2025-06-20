@@ -29,6 +29,7 @@
     "hyperbrowser-mcp": "^1.0.25",
     "mcp-crypto-price": "^1.2.0",
     "mcp-deepwiki": "^0.0.10",
+    "mcp-remote": "^0.1.16",
     "mcp-server-code-runner": "^0.1.7",
     "shadcn-ui-mcp-server": "^0.1.2",
     "zod": "^3.25.23",

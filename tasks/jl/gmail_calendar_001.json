@@ -1,0 +1,20 @@
+{
+    "id": "jl_gmail_calendar_001",
+    "needed_mcp_servers": ["gmail","google_calendar"],
+    "task_root": "./jl/gmail_calendar_001/",
+    "system_prompts":{
+        "agent": {"path": "initial_states/jl/gmail_calendar_001/agent_system_prompt.txt"},
+        "user": {"path": "initial_states/jl/gmail_calendar_001/user_system_prompt.txt"}
+    },
+    "initialization": {
+        "workspace": null,
+        "process_command": "uv run -m initial_states.jl.gmail_calendar_001.preprocess"
+    },
+    "evaluation": {
+        "groundtruth_workspace": "./groundtruth/jl/gmail_calendar_001/workspace",
+        "local_state_command": null,
+        "log_command": null,
+        "remote_state_command": "uv run -m groundtruth.jl.gmail_calendar_001.check_remote"
+    },
+    "meta": {}
+}

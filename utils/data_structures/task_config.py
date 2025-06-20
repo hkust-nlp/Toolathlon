@@ -5,8 +5,34 @@ from pathlib import Path
 @dataclass
 class SystemPrompts:
     """系统提示信息"""
-    agent: str
-    user: str
+    agent: Union[str, Dict]
+    user: Union[str, Dict]
+    
+    def __post_init__(self):
+        """初始化后处理，支持从文件路径读取内容"""
+        self.agent = self._process_prompt(self.agent)
+        self.user = self._process_prompt(self.user)
+    
+    def _process_prompt(self, prompt_input: Union[str, Dict]) -> str:
+        """处理提示输入，如果是字典则从路径读取文件内容
+        
+        向前兼容：
+        - 如果输入是字符串，直接返回（保持原有行为）
+        - 如果输入是字典且包含'path'键，从文件读取内容
+        """
+        if isinstance(prompt_input, str):
+            # 向前兼容：直接返回字符串内容
+            return prompt_input
+        elif isinstance(prompt_input, dict) and "path" in prompt_input:
+            try:
+                with open(prompt_input["path"], 'r', encoding='utf-8') as f:
+                    return f.read()
+            except FileNotFoundError:
+                raise FileNotFoundError(f"找不到提示文件: {prompt_input['path']}")
+            except Exception as e:
+                raise Exception(f"读取提示文件失败 {prompt_input['path']}: {e}")
+        else:
+            raise ValueError("提示输入必须是字符串或包含'path'键的字典")
 
 @dataclass
 class Initialization:
@@ -20,6 +46,7 @@ class Evaluation:
     groundtruth_workspace: str
     local_state_command: str
     log_command: str
+    remote_state_command: str
 
 @dataclass
 class StopConditions:
@@ -144,7 +171,8 @@ class TaskConfig:
             'evaluation': {
                 'groundtruth_workspace': self.evaluation.groundtruth_workspace,
                 'local_state_command': self.evaluation.local_state_command,
-                'log_command': self.evaluation.log_command
+                'log_command': self.evaluation.log_command,
+                'remote_state_command': self.evaluation.remote_state_command
             },
             'meta': self.meta
         }
@@ -169,6 +197,7 @@ class TaskConfig:
 
 # 使用示例
 if __name__ == "__main__":
+    # TODO: the following example is decrapated
     # 原始数据
     config_data = {
         "id": "dev_filesystem_001",
