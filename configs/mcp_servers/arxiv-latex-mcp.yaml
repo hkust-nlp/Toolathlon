@@ -1,0 +1,13 @@
+# this server need to be installed locally
+# see `install_records/arxiv_latex.md`
+type: stdio
+name: arxiv-latex
+params:
+  command: uv
+  args:
+    - "--directory"
+    - "${local_servers_paths}/arxiv-latex-mcp"
+    - "run"
+    - "arxiv-latex-mcp.py"
+client_session_timeout_seconds: 10
+cache_tools_list: true 
