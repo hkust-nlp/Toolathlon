@@ -8,3 +8,4 @@ params:
     - "-y"
     - "12306-mcp"
 cache_tools_list: true
+client_session_timeout_seconds: 30
