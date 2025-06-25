@@ -25,8 +25,13 @@ class MCPServerManager:
         self.local_servers_paths = os.path.abspath("./local_servers")
         self.agent_workspace = os.path.abspath(agent_workspace)
         self.servers: Dict[str, Union[MCPServerStdio, MCPServerSse]] = {}
-        self.connected_servers = []
+        self.connected_servers: Dict[str, Union[MCPServerStdio, MCPServerSse]] = {}
         self.debug = debug
+        self._lock = asyncio.Lock()
+        # 保存每个服务器的任务，确保在同一个任务中管理生命周期
+        self._server_tasks: Dict[str, asyncio.Task] = {}
+        # 保存连接完成的事件
+        self._connection_events: Dict[str, asyncio.Event] = {}
         
         # 从配置文件加载服务器
         self._load_servers_from_configs(config_dir)
@@ -129,46 +134,180 @@ class MCPServerManager:
         
         return replace_templates(params)
 
+    async def _manage_server_lifecycle(self, name: str, server: Union[MCPServerStdio, MCPServerSse]):
+        """在单个任务中管理服务器的完整生命周期"""
+        event = self._connection_events.get(name)
+        try:
+            async with server:  # 使用服务器的上下文管理器，这会自动调用 connect()
+                # 连接成功后，添加到已连接列表
+                self.connected_servers[name] = server
+                
+                # 设置连接完成事件
+                if event:
+                    event.set()
+                
+                if self.debug:
+                    print(f"  - 服务器 {name} 已连接")
+                    # 尝试获取工具列表以验证连接
+                    try:
+                        tools = await server.list_tools()
+                        print(f"    可用工具数: {len(tools)}")
+                    except Exception as e:
+                        print(f"    获取工具列表失败: {e}")
+                
+                # 保持连接，直到任务被取消
+                try:
+                    await asyncio.sleep(float('inf'))  # 无限等待
+                except asyncio.CancelledError:
+                    # 正常取消，进行清理
+                    if self.debug:
+                        print(f"  - 正在断开服务器 {name}")
+                    raise  # 重新抛出以触发 __aexit__
+                    
+        except asyncio.CancelledError:
+            # 预期的取消，不记录为错误
+            pass
+        except Exception as e:
+            print(f"服务器 {name} 生命周期管理出错: {e}")
+            if event and not event.is_set():
+                event.set()  # 确保事件被设置，避免死等
+        finally:
+            # 清理
+            self.connected_servers.pop(name, None)
+            self._server_tasks.pop(name, None)
+            self._connection_events.pop(name, None)
+            if self.debug:
+                print(f"  - 服务器 {name} 已完全断开")
+
     async def connect_servers(self, server_names: Optional[List[str]] = None):
         """连接指定的服务器"""
         if server_names is None:
             server_names = list(self.servers.keys())
 
-        connect_tasks = []
-        for name in server_names:
-            if name in self.servers:
-                try:
-                    connect_tasks.append(self.servers[name].connect())
-                    self.connected_servers.append(self.servers[name])
-                except Exception as e:
-                    print(f"服务器 {name} 连接失败: {e}")
+        async with self._lock:
+            tasks_to_wait = []
+            
+            for name in server_names:
+                if name not in self.servers:
+                    print(f"警告: 未找到名为 '{name}' 的服务器")
+                    continue
+                    
+                if name in self._server_tasks:
+                    if self.debug:
+                        print(f"服务器 '{name}' 已在运行，跳过")
+                    continue
+                
+                server = self.servers[name]
+                
+                # 创建连接完成事件
+                event = asyncio.Event()
+                self._connection_events[name] = event
+                
+                # 创建任务来管理服务器生命周期
+                task = asyncio.create_task(
+                    self._manage_server_lifecycle(name, server),
+                    name=f"mcp_server_{name}"
+                )
+                self._server_tasks[name] = task
+                tasks_to_wait.append((name, event))
+            
+            # 等待所有服务器连接完成
+            if tasks_to_wait:
+                if self.debug:
+                    print(f">>正在连接 {len(tasks_to_wait)} 个服务器...")
+                
+                # 等待所有连接事件
+                wait_tasks = [event.wait() for name, event in tasks_to_wait]
+                await asyncio.gather(*wait_tasks)
+                
+                # 验证连接
+                connected_count = sum(1 for name, _ in tasks_to_wait if name in self.connected_servers)
+                if self.debug:
+                    print(f">>已成功连接 {connected_count}/{len(tasks_to_wait)} 个 MCP 服务器")
+
+    async def disconnect_servers(self, server_names: Optional[List[str]] = None):
+        """断开指定服务器连接"""
+        async with self._lock:
+            if server_names is None:
+                servers_to_disconnect = list(self._server_tasks.keys())
             else:
-                print(f"警告: 未找到名为 '{name}' 的服务器")
-
-        if connect_tasks:
-            await asyncio.gather(*connect_tasks)
+                servers_to_disconnect = [
+                    name for name in server_names 
+                    if name in self._server_tasks
+                ]
+            
+            if not servers_to_disconnect:
+                if self.debug:
+                    print("没有需要断开的服务器")
+                return
+            
             if self.debug:
-                print(f">>已成功连接 {len(connect_tasks)} 个 MCP 服务器")
+                print(f">>正在断开 {len(servers_to_disconnect)} 个服务器...")
+            
+            # 取消任务，这会触发服务器的清理
+            tasks_to_cancel = []
+            for name in servers_to_disconnect:
+                if task := self._server_tasks.get(name):
+                    task.cancel()
+                    tasks_to_cancel.append(task)
+            
+            # 等待所有任务完成清理
+            if tasks_to_cancel:
+                await asyncio.gather(*tasks_to_cancel, return_exceptions=True)
+            
+            if self.debug:
+                disconnected_count = sum(
+                    1 for name in servers_to_disconnect 
+                    if name not in self.connected_servers
+                )
+                print(f">>已断开 {disconnected_count}/{len(servers_to_disconnect)} 个 MCP 服务器")
 
-    async def disconnect_servers(self):
-        """断开所有服务器连接"""
-        disconnect_tasks = []
-        for server in self.connected_servers:
-            disconnect_tasks.append(server.cleanup())
+    async def ensure_all_disconnected(self):
+        """确保所有服务器都已断开（用于清理）"""
+        # 先尝试正常断开
+        await self.disconnect_servers()
+        
+        # 强制取消所有剩余的任务
+        remaining_tasks = list(self._server_tasks.values())
+        if remaining_tasks:
+            for task in remaining_tasks:
+                if not task.done():
+                    task.cancel()
+            
+            # 等待所有任务完成
+            await asyncio.gather(*remaining_tasks, return_exceptions=True)
+        
+        self._server_tasks.clear()
+        self.connected_servers.clear()
+        self._connection_events.clear()
 
-        if disconnect_tasks:
-            await asyncio.gather(*disconnect_tasks)
-            print(f">>已断开 {len(disconnect_tasks)} 个 MCP 服务器连接")
+    def get_all_connected_servers(self) -> List[Union[MCPServerStdio, MCPServerSse]]:
+        """获取所有已连接的服务器实例"""
+        return list(self.connected_servers.values())
 
-    def get_all_connected_servers(self):
-        return self.connected_servers
+    def get_connected_server_names(self) -> List[str]:
+        """获取所有已连接的服务器名称"""
+        return list(self.connected_servers.keys())
 
     def get_available_servers(self) -> List[str]:
+        """获取所有可用的服务器名称（包括未连接的）"""
         return list(self.servers.keys())
     
+    def is_server_connected(self, server_name: str) -> bool:
+        """检查指定服务器是否已连接"""
+        return server_name in self.connected_servers
+
     def list_available_template_variables(self):
         """列出所有可用的模板变量（调试用）"""
         vars = self._get_template_variables()
         print("可用的模板变量:")
         for key, value in sorted(vars.items()):
             print(f"  ${{{key}}} = {value}")
+
+    async def __aenter__(self):
+        """异步上下文管理器入口"""
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """异步上下文管理器出口，自动断开所有连接"""
+        await self.ensure_all_disconnected()
