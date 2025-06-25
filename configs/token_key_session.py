@@ -1,5 +1,6 @@
 import logging
 from addict import Dict
+import os
 # I am gradually modifying the tokens to the pseudo account in this project
 all_token_key_session = Dict(
     # added, use pseudo account!
@@ -12,4 +13,10 @@ all_token_key_session = Dict(
     google_cloud_console_api_key = "AIzaSyD8Q5ZPqCDZIgjOwBc9QtbdFLfGkijBmMU",
     google_search_engine_id = "d08f1d4bbe2294372",
     huggingface_token = "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",
+    linkedin_email = "xxx",
+    linkedin_password = "xxx",
+    canvas_api_token = "xxx",
+    canvas_domain = "xxx",
+    wandb_api_key = "b3abe195bd69c07bdc47469d3956ac8d0c008714",
+    tessdata_prefix = os.environ["TESSDATA_PREFIX"],
 )

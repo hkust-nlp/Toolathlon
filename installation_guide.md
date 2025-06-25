@@ -23,14 +23,17 @@ In this file we guide you how to install all needed servers for this project.
 
     Some mcp servers are launched via `uvx`, so we install them in advance to avoid installing them every time
 
+    Note: They will be by default installed under ~/.local/share/uv/tool
+    
+    You can also assign another install dir via `UV_TOOL_DIR` envoronment var
+
+    After you configurate these installation paths, please do the following
+
     ```
     uv tool install office-powerpoint-mcp-server
     uv tool install office-word-mcp-server
+    uv tool install git+https://github.com/wandb/wandb-mcp-server
     ```
-
-    They will be by default installed under ~/.local/share/uv/tools
-    
-    You can also assign another install dir via `UV_TOOL_DIR` envoronment var
 
 4. build from source
 
@@ -50,7 +53,7 @@ In this file we guide you how to install all needed servers for this project.
 
     `gmail` & `google_calendar`: see `install_records/gmail_and_calendar.md`
 
-    `ocr`: see `install_records/tesseract.md` (we need to install tesseract by ourselves!)
+    `ocr`: see `install_records/tesseract.md` (we need to install tesseract by ourselves on our lab cluster since no sudo is available)
 
 5. configurate some tokens and keys
     

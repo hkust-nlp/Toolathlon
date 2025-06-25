@@ -1,0 +1,19 @@
+# this server need to be installed locally
+# see `install_records/linkedin_scraper.md`
+type: stdio
+name: linkedin
+params:
+  command: uv
+  args:
+    - "--directory"
+    - "${local_servers_paths}/linkedin-mcp-server"
+    - "run"
+    - "main.py"
+    - "--no-setup"
+    # - "--debug"
+  env:
+    # CHROMEDRIVER: "~/bin/chromedriver"
+    LINKEDIN_EMAIL: "${token.linkedin_email}"
+    LINKEDIN_PASSWORD: "${token.linkedin_password}"
+client_session_timeout_seconds: 100
+cache_tools_list: true
