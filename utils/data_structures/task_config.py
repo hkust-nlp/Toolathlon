@@ -2,37 +2,39 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Union
 from pathlib import Path
 
+from agents import agent_span
+from psutil import users
+from utils.general.helper import path_to_module, read_json
+import os
+
 @dataclass
 class SystemPrompts:
     """系统提示信息"""
     agent: Union[str, Dict]
     user: Union[str, Dict]
     
-    def __post_init__(self):
-        """初始化后处理，支持从文件路径读取内容"""
-        self.agent = self._process_prompt(self.agent)
-        self.user = self._process_prompt(self.user)
-    
-    def _process_prompt(self, prompt_input: Union[str, Dict]) -> str:
-        """处理提示输入，如果是字典则从路径读取文件内容
-        
-        向前兼容：
-        - 如果输入是字符串，直接返回（保持原有行为）
-        - 如果输入是字典且包含'path'键，从文件读取内容
-        """
-        if isinstance(prompt_input, str):
-            # 向前兼容：直接返回字符串内容
-            return prompt_input
-        elif isinstance(prompt_input, dict) and "path" in prompt_input:
-            try:
-                with open(prompt_input["path"], 'r', encoding='utf-8') as f:
-                    return f.read()
-            except FileNotFoundError:
-                raise FileNotFoundError(f"找不到提示文件: {prompt_input['path']}")
-            except Exception as e:
-                raise Exception(f"读取提示文件失败 {prompt_input['path']}: {e}")
+    @classmethod
+    def build(cls, task_dir: str):
+        agent_sp_path = Path("tasks")/task_dir/"docs"/"agent_system_prompt.md"
+        user_sp_path = Path("tasks")/task_dir/"docs"/"user_system_prompt.md"
+        if agent_sp_path.exists():
+            with open(agent_sp_path, 'r', encoding='utf-8') as f:
+                agent_sp = f.read()
         else:
-            raise ValueError("提示输入必须是字符串或包含'path'键的字典")
+            agent_sp = None
+        if user_sp_path.exists():
+            with open(user_sp_path, 'r', encoding='utf-8') as f:
+                user_sp = f.read()
+        else:
+            user_sp = None
+        return cls(agent=agent_sp, user=user_sp)
+
+    def apply(self, agent_workspace: str, task_str: str):
+        if self.agent is not None:
+            self.agent = self.agent.replace("!!<<<<||||workspace_dir||||>>>>!!", agent_workspace)
+        if self.user is not None:
+            self.user = self.user.replace("!!<<<<||||task_description||||>>>>!!", task_str)
+        return self
 
 @dataclass
 class Initialization:
@@ -40,13 +42,38 @@ class Initialization:
     workspace: str
     process_command: str
 
+    @classmethod
+    def build(cls, task_dir: str):
+        workspace_path = Path("tasks")/task_dir/"initial_workspace"
+        process_command_path = Path("tasks")/task_dir/"preprocess"/"main.py"
+        if process_command_path.exists():
+            process_command = f"uv run -m {path_to_module(process_command_path)}"
+        else:
+            process_command = None
+        if workspace_path.exists():
+            workspace = str(workspace_path)
+        else:
+            workspace = None
+        return cls(workspace=workspace, process_command=process_command)
+
 @dataclass
 class Evaluation:
     """评估配置"""
     groundtruth_workspace: str
-    local_state_command: str
-    log_command: str
-    remote_state_command: str
+    evaluation_command: str
+    @classmethod
+    def build(cls, task_dir: str):
+        groundtruth_workspace_path = Path("tasks")/task_dir/"groundtruth_workspace"
+        evaluation_command_path = Path("tasks")/task_dir/"evaluation"/"main.py"
+        if evaluation_command_path.exists():
+            evaluation_command = f"uv run -m {path_to_module(evaluation_command_path)}"
+        else:
+            evaluation_command = None
+        if groundtruth_workspace_path.exists():
+            groundtruth_workspace = str(groundtruth_workspace_path)
+        else:
+            groundtruth_workspace = None
+        return cls(groundtruth_workspace=groundtruth_workspace, evaluation_command=evaluation_command)
 
 @dataclass
 class StopConditions:
@@ -54,20 +81,38 @@ class StopConditions:
     user_phrases: List[str] = None
     tool_names: List[str] = None
 
+    @classmethod
+    def build(cls, stop_conditions: Dict):
+        if stop_conditions is None: 
+            stop_conditions = {}
+        if "user_phrases" in stop_conditions:
+            user_phrases = stop_conditions["user_phrases"]
+        else:
+            user_phrases = ["#### STOP"]
+        if "tool_names" in stop_conditions:
+            tool_names = stop_conditions["tool_names"]
+        else:
+            tool_names = ['claim_done']
+        return cls(user_phrases=user_phrases, tool_names=tool_names)
+
 @dataclass
 class TaskConfig:
     """任务配置"""
     # 基本信息
-    id: str
-    needed_mcp_servers: List[str]
-    task_root: str
-    system_prompts: SystemPrompts
-    initialization: Initialization
-    evaluation: Evaluation
-    stop: StopConditions
+    task_dir: str # 相对于 tasks的路径
+    id: str = None
+    needed_mcp_servers: List[str] = None
+    task_root: str = None
+    task_str: str = None
+    system_prompts: SystemPrompts = None
+    initialization: Initialization = None
+    evaluation: Evaluation = None
+    stop: StopConditions = None
     log_file: Optional[str] = None
     agent_workspace: Optional[str] = None
     max_turns: int = None
+    max_steps_under_single_turn_mode: int = None
+    single_turn_mode: bool = False
     meta: Dict = field(default_factory=dict)
 
     agent_short_name: str = None
@@ -75,11 +120,36 @@ class TaskConfig:
     
     def __post_init__(self):
         """在初始化后自动设置默认值"""
+        assert self.task_dir is not None, "task_dir is required"
+        assert len(Path(self.task_dir).parts) == 2, "task_dir must be a relative path under tasks/ with format 'split/task_name'"
+
+        if self.task_root is None:
+            self.task_root = self.task_dir
+        
+        if self.id is None:
+            self.id = '-'.join(Path(self.task_dir).parts)
+
+        if self.single_turn_mode:
+            # 给task_root的最后一级加一个single_user_turn前缀， 如 xx/yy变为xx/SingleUserTurn-yy
+            task_root_parts = Path(self.task_root).parts
+            if len(task_root_parts) >= 1:
+                # 获取最后一级目录名并添加前缀
+                last_part = task_root_parts[-1]
+                new_last_part = f"SingleUserTurn-{last_part}"
+                # 重新构建路径
+                new_parts = list(task_root_parts[:-1]) + [new_last_part]
+                self.task_root = str(Path(*new_parts))
+        
         # 使用 Path 对象处理路径
         task_root_path = Path(self.task_root)
         
         # 规范化 task_root（保持字符串格式以保持向后兼容）
         self.task_root = str(task_root_path)
+
+        if self.task_str is None:
+            task_str_path = Path("tasks")/self.task_dir/"docs"/"task.md"
+            with open(task_str_path, 'r', encoding='utf-8') as f:
+                self.task_str = f.read()
 
         # 从global task config载入dump_path并更新task_root_path, 方便多次测量前后互不影响
         if self.global_task_config is not None and "dump_path" in self.global_task_config:
@@ -100,15 +170,14 @@ class TaskConfig:
         if self.agent_workspace is None:
             self.agent_workspace = str(task_root_path / "workspace")
 
-        # 设置一些默认的停止条件
-        if self.stop.tool_names is None:
-            self.stop.tool_names = []
-        
-        if self.stop.user_phrases is None:
-            self.stop.user_phrases = ["#### STOP"]
-
         if self.global_task_config is not None and "max_turns" in self.global_task_config:
             self.max_turns = self.global_task_config['max_turns']
+
+        if self.global_task_config is not None and "max_steps_under_single_turn_mode" in self.global_task_config:
+            self.max_steps_under_single_turn_mode = self.global_task_config['max_steps_under_single_turn_mode']
+        
+        self.system_prompts.apply(self.agent_workspace, self.task_str)
+        
     
     # 使用 Path 对象的属性方法
     @property
@@ -127,35 +196,50 @@ class TaskConfig:
         return Path(self.agent_workspace)
     
     @classmethod
-    def from_dict(cls, 
-                  data: dict, 
+    def from_dict(cls, task_config_dict: dict) -> 'TaskConfig':
+        # 从一个to_dict的对象还原回来
+        # 请注意里面evaluation, system_prompts, initialization, stop都是None, 需要手动构建
+        task_config_dict['evaluation'] = Evaluation(**task_config_dict['evaluation'])
+        task_config_dict['system_prompts'] = SystemPrompts(**task_config_dict['system_prompts'])
+        task_config_dict['initialization'] = Initialization(**task_config_dict['initialization'])
+        task_config_dict['stop'] = StopConditions(**task_config_dict['stop'])
+        return cls(**task_config_dict)
+
+    @classmethod
+    def build(cls, 
+                  task_dir: str, 
                   agent_short_name: str = None,
-                  global_task_config: dict = None) -> 'TaskConfig':
+                  global_task_config: dict = None,
+                  single_turn_mode: bool = False) -> 'TaskConfig':
         """从字典创建TaskConfig实例"""
+        task_config_dict = read_json(Path("tasks")/task_dir/"task_config.json")
         return cls(
-            id=data['id'],
-            needed_mcp_servers=data['needed_mcp_servers'],
-            task_root=data['task_root'],
-            system_prompts=SystemPrompts(**data['system_prompts']),
-            initialization=Initialization(**data['initialization']),
-            evaluation=Evaluation(**data['evaluation']),
-            log_file=data.get('log_file'),
-            agent_workspace=data.get('agent_workspace'),
-            stop=StopConditions(**data.get('stop',{})),
-            max_turns=data.get("max_turns"),
-            meta=data.get('meta', {}),
+            task_dir=task_dir,
+            needed_mcp_servers=task_config_dict['needed_mcp_servers'],
+            max_turns=task_config_dict.get("max_turns"),
+            meta=task_config_dict.get('meta', {}),
             agent_short_name = agent_short_name,
             global_task_config=global_task_config,
+            stop=StopConditions.build(task_config_dict.get('stop')),
+            system_prompts=SystemPrompts.build(task_dir),
+            initialization=Initialization.build(task_dir),
+            evaluation=Evaluation.build(task_dir),
+            single_turn_mode=single_turn_mode,
         )
     
     def to_dict(self) -> dict:
         """转换为字典"""
         return {
+            'task_dir': self.task_dir,
             'id': self.id,
             'needed_mcp_servers': self.needed_mcp_servers,
             'task_root': self.task_root,
+            'task_str': self.task_str,
             'log_file': self.log_file,
             'agent_workspace': self.agent_workspace,
+            'max_turns': self.max_turns,
+            'max_steps_under_single_turn_mode': self.max_steps_under_single_turn_mode,
+            'single_turn_mode': self.single_turn_mode,
             'system_prompts': {
                 'agent': self.system_prompts.agent,
                 'user': self.system_prompts.user
@@ -170,9 +254,7 @@ class TaskConfig:
             },
             'evaluation': {
                 'groundtruth_workspace': self.evaluation.groundtruth_workspace,
-                'local_state_command': self.evaluation.local_state_command,
-                'log_command': self.evaluation.log_command,
-                'remote_state_command': self.evaluation.remote_state_command
+                'evaluation_command': self.evaluation.evaluation_command
             },
             'meta': self.meta
         }
@@ -197,118 +279,4 @@ class TaskConfig:
 
 # 使用示例
 if __name__ == "__main__":
-    # TODO: the following example is decrapated
-    # 原始数据
-    config_data = {
-        "id": "dev_filesystem_001",
-        "needed_mcp_servers": ["filesystem"],
-        "task_root": "./dumps/dev/filesystem_001/",
-        "system_prompts": {
-            "agent": "you are a smart agent to deal with issues about filesystem",
-            "user": "你是一位正在与agent对话的用户，你这次交互的主要目标任务是管理个人工作区（如列出文件）并追踪一周的财务支出..."
-        },
-        "initialization": {
-            "workspace": "./initial_states/dev/filesystem_001/workspace",
-            "process_command": "python -m initial_states.dev.filesystem_001.preprocess",
-        },
-        "evaluation": {
-            "groundtruth_workspace": "./groundtruth/dev/filesystem_001/workspace",
-            "local_state_command": "python -m groundtruth.dev.filesystem_001.check_local",
-            "log_command": "python -m groundtruth.dev.filesystem_001.check_log"
-        },
-        "meta": {}
-    }
-    
-    # 示例1：使用字典初始化
-    task_config1 = TaskConfig(config_data)
-    print("示例1 - 完整配置：")
-    print(f"  Task ID: {task_config1.id}")
-    print(f"  Task root: {task_config1.task_root}")
-    print(f"  Log file: {task_config1.log_file}")
-    print(f"  Agent workspace: {task_config1.agent_workspace}")
-    
-    # 示例2：不提供 log_file 和 agent_workspace，测试自动生成
-    config_data2 = {
-        "id": "dev_filesystem_002",
-        "needed_mcp_servers": ["filesystem"],
-        "task_root": "./dumps/dev/filesystem_002",  # 注意：没有结尾的斜杠
-        "system_prompts": {
-            "agent": "you are a smart agent",
-            "user": "you are a user"
-        },
-        "initialization": {
-            "workspace": "./initial_states/dev/filesystem_002/workspace",
-            "process_command": "python -m initial_states.dev.filesystem_002.preprocess",
-        },
-        "evaluation": {
-            "groundtruth_workspace": "./groundtruth/dev/filesystem_002/workspace",
-            "local_state_command": "python -m groundtruth.dev.filesystem_002.check_local",
-            "log_command": "python -m groundtruth.dev.filesystem_002.check_log"
-        }
-    }
-    
-    task_config2 = TaskConfig(config_data2)
-    print("\n示例2 - 自动生成路径：")
-    print(f"  Task ID: {task_config2.id}")
-    print(f"  Task root: {task_config2.task_root}")
-    print(f"  Log file: {task_config2.log_file}")
-    print(f"  Agent workspace: {task_config2.agent_workspace}")
-    
-    # 示例3：测试不同的路径格式
-    print("\n示例3 - 测试路径处理：")
-    test_paths = [
-        "./dumps/dev/test1/",
-        "./dumps/dev/test2",
-        "dumps\\dev\\test3",  # Windows 风格
-        "./dumps/./dev/../dev/test4/",  # 带有相对路径
-    ]
-    
-    for i, path in enumerate(test_paths):
-        config = {
-            "id": f"test_{i}",
-            "needed_mcp_servers": ["filesystem"],
-            "task_root": path,
-            "system_prompts": {"agent": "agent", "user": "user"},
-            "initialization": {"workspace": "./ws", "process_command": "cmd"},
-            "evaluation": {
-                "groundtruth_workspace": "./gt",
-                "local_state_command": "cmd1",
-                "log_command": "cmd2"
-            }
-        }
-        task = TaskConfig(config)
-        print(f"  原始路径: {path}")
-        print(f"  规范化后: {task.task_root}")
-        print(f"  日志文件: {task.log_file}")
-        print()
-    
-    # 示例4：使用 Path 对象的便利功能
-    print("示例4 - Path 对象功能：")
-    task = TaskConfig(config_data)
-    print(f"  任务根目录是否存在: {task.task_root_path.exists()}")
-    print(f"  日志文件父目录: {task.log_file_path.parent}")
-    print(f"  工作区绝对路径: {task.agent_workspace_path.absolute()}")
-    
-    # 可以调用 ensure_directories 来创建所有必要的目录
-    # task.ensure_directories()
-    
-    # 示例5：正常的关键字参数初始化仍然支持
-    print("\n示例5 - 关键字参数初始化：")
-    task_config3 = TaskConfig(
-        id="manual_test",
-        needed_mcp_servers=["filesystem"],
-        task_root="./manual_test/",
-        system_prompts=SystemPrompts(agent="test agent", user="test user"),
-        initialization=Initialization(
-            workspace="./manual_workspace",
-            process_command="echo 'hello'"
-        ),
-        evaluation=Evaluation(
-            groundtruth_workspace="./manual_gt",
-            local_state_command="python check.py",
-            log_command="python log.py"
-        ),
-        meta={"version": "1.0"}
-    )
-    print(f"  ID: {task_config3.id}")
-    print(f"  Meta: {task_config3.meta}")
+    pass

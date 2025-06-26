@@ -1,0 +1,20 @@
+{
+    "id": "jl_manual_001",
+    "needed_mcp_servers": ["github"],
+    "task_root": "./jl/manual_001/",
+    "system_prompts":{
+        "agent": "",
+        "user": ""
+    },
+    "initialization": {
+        "workspace": null,
+        "process_command": null
+    },
+    "evaluation": {
+        "groundtruth_workspace": "./groundtruth/jl/manual_001/workspace",
+        "local_state_command": null,
+        "log_command": null,
+        "remote_state_command": null
+    },
+    "meta": {}
+}

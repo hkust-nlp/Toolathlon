@@ -24,6 +24,7 @@ class TaskRunner:
         debug: bool=False,
         allow_resume: bool=False,
         manual: bool=False,
+        single_turn_mode: bool=False,
     ) -> TaskStatus:
         """运行单个任务"""
         # 构建模型提供者和客户端
@@ -50,6 +51,7 @@ class TaskRunner:
             debug=debug,
             allow_resume=allow_resume,
             manual=manual,
+            single_turn_mode=single_turn_mode,
         )
         
         return await task_agent.run()

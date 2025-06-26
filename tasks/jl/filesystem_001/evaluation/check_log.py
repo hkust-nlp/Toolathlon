@@ -1,11 +1,4 @@
-from argparse import ArgumentParser
-from utils.general.helper import read_json
-
-if __name__=="__main__":
-    parser = ArgumentParser()
-    parser.add_argument("--res_log_file", required=True)
-    args = parser.parse_args()
-
+def check_log(res_log: dict):
     needed_contents = {
         "food_total": 530,
         "traffic_total": 54.4,
@@ -19,8 +12,7 @@ if __name__=="__main__":
 
     needed_to_check = len(checked_cache)
 
-    data = read_json(args.res_log_file)
-    messages = data['messages']
+    messages = res_log['messages']
 
     for turn in messages:
         if needed_to_check==0:
@@ -44,9 +36,12 @@ if __name__=="__main__":
             if not checked:
                 error_msg+=f"`{name}` = {needed_contents[name]} not found!\n"
         # there are still some key components not reported
-        raise RuntimeError(f"Fail to find all needed outputs in the log!\n{error_msg}".strip())
+        error = f"Fail to find all needed outputs in the log!\n{error_msg}".strip()
+        return False, error
 
-    print("Pass test!")
+    return True, None
+
+    
             
 
         

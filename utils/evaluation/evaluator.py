@@ -37,48 +37,52 @@ class TaskEvaluator:
         res_log_file = task_config.log_file
         agent_workspace = task_config.agent_workspace
         groundtruth_workspace = task_config.evaluation.groundtruth_workspace
-        eval_local_state_command = task_config.evaluation.local_state_command
-        eval_log_command = task_config.evaluation.log_command
-        eval_remote_state_command = task_config.evaluation.remote_state_command
+        eval_command = task_config.evaluation.evaluation_command
 
-        # 评估日志
-        if eval_log_command is not None:
-            try:
-                args = f"--res_log_file {res_log_file}"
-                command = f"{eval_log_command} {args}"
-                await run_command(command)
-            except Exception as e:
+        # 评估所有内容
+        if eval_command is not None:
+            # try:
+            args = f"--res_log_file {res_log_file} --agent_workspace {agent_workspace} --groundtruth_workspace {groundtruth_workspace}"
+            command = f"{eval_command} {args}"
+            output, _, returncode = await run_command(command)
+            if returncode != 0:
                 return {
                     "pass": False, 
-                    "failure": "fail_to_pass_log_check",
-                    "details": str(e)
+                    "failure": output,
+                    # "details": err
                 }
+            # except Exception as e:
+            #     return {
+            #         "pass": False, 
+            #         "failure": "fail_to_pass_log_check",
+            #         "details": str(e)
+            #     }
             
-        # 评估本地状态
-        if eval_local_state_command is not None:
-            try:
-                args = f"--agent_workspace {agent_workspace} --groundtruth_workspace {groundtruth_workspace}"
-                command = f"{eval_local_state_command} {args}"
-                await run_command(command)
-            except Exception as e:
-                return {
-                    "pass": False, 
-                    "failure": "fail_to_pass_local_state_check",
-                    "details": str(e)
-                }
+        # # 评估本地状态
+        # if eval_local_state_command is not None:
+        #     try:
+        #         args = f"--agent_workspace {agent_workspace} --groundtruth_workspace {groundtruth_workspace}"
+        #         command = f"{eval_local_state_command} {args}"
+        #         await run_command(command)
+        #     except Exception as e:
+        #         return {
+        #             "pass": False, 
+        #             "failure": "fail_to_pass_local_state_check",
+        #             "details": str(e)
+        #         }
     
-        # 评估远程状态
-        if eval_remote_state_command is not None:
-            try:
-                args = f"--agent_workspace {agent_workspace} --groundtruth_workspace {groundtruth_workspace} --res_log_file {res_log_file}"
-                command = f"{eval_remote_state_command} {args}"
-                await run_command(command)
-            except Exception as e:
-                return {
-                    "pass": False, 
-                    "failure": "fail_to_pass_remote_state_check",
-                    "details": str(e)
-                }
+        # # 评估远程状态
+        # if eval_remote_state_command is not None:
+        #     try:
+        #         args = f"--agent_workspace {agent_workspace} --groundtruth_workspace {groundtruth_workspace} --res_log_file {res_log_file}"
+        #         command = f"{eval_remote_state_command} {args}"
+        #         await run_command(command)
+        #     except Exception as e:
+        #         return {
+        #             "pass": False, 
+        #             "failure": "fail_to_pass_remote_state_check",
+        #             "details": str(e)
+        #         }
 
         return {
             "pass": True,

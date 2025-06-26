@@ -9,11 +9,14 @@ if __name__=="__main__":
     args = parser.parse_args()
 
     from configs.google_accounts import account_info
-    from configs.personal_info import personal_info
+    # from configs.personal_info import personal_info
 
     print("发邮件以构建初始状态")
+    # 先清理gmail和calendar
+    # 然后发邮件
+    print("清理gmail和calendar")
     asyncio.run(run_command(
-                f"uv run -m initial_states.jl.gmail_calendar_001.clean_gmail_calendar --credentials_file {args.credentials_file}"
+                f"uv run -m tasks.jl.gmail_calendar_001.preprocess.clean_gmail_calendar --credentials_file {args.credentials_file}"
                 ,debug=True,show_output=True))
 
     sender_email = account_info.aux_google_account_1.email
@@ -21,10 +24,10 @@ if __name__=="__main__":
     receiver = account_info.main_google_account.email
 
     # TODO: now hardcoded here
-    email_jsonl_file = "initial_states/jl/gmail_calendar_001/emails.jsonl"
+    email_jsonl_file = "tasks/jl/gmail_calendar_001/files/emails.jsonl"
 
     asyncio.run(run_command(
-                f"uv run -m initial_states.jl.gmail_calendar_001.send_email -s {sender_email} "
+                f"uv run -m tasks.jl.gmail_calendar_001.preprocess.send_email -s {sender_email} "
                 f"-p '{sender_app_password}' "
                 f"-r {receiver} "
                 f"-j {email_jsonl_file} "
@@ -32,7 +35,15 @@ if __name__=="__main__":
                 # f"--quiet "
                 f"--no-confirm"
                 ,debug=True,show_output=True))
+    
+    # 等待直到所有邮件都已收到
+    print("等待邮件接收完成...")
+    asyncio.run(run_command(
+                f"uv run -m tasks.jl.gmail_calendar_001.preprocess.wait_for_emails "
+                f"--credentials_file {args.credentials_file} "
+                f"--email_jsonl_file {email_jsonl_file} "
+                f"--max_wait_minutes 5 "
+                f"--check_interval 5"
+                ,debug=True,show_output=True))
+    
     print("已通过发送邮件构建初始状态！")
-
-
-
