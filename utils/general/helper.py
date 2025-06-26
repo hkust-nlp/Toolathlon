@@ -31,6 +31,12 @@ from utils.data_structures.user_config import UserConfig
 from configs.global_configs import global_configs
 from agents import ModelProvider
 
+from pathlib import Path
+from typing import Union
+
+
+
+
 BASIC_TYPES = [int, float, str, bool, None, list, dict, set, tuple]
 
 def elegant_show(something, level=0, sid=0, full=False, max_list=None):
@@ -491,8 +497,8 @@ async def run_command(command, debug=False, show_output=False):
     stdout_decoded = stdout.decode()
     stderr_decoded = stderr.decode()
     
-    if process.returncode != 0:
-        raise RuntimeError(f"Failed in executing the command: {stderr_decoded}")
+    # if process.returncode != 0:
+    #     raise RuntimeError(f"Failed in executing the command: {stderr_decoded}")
     
     if debug:
         print("Successfully executed!")
@@ -543,6 +549,29 @@ def setup_proxy(use_proxy: bool = False) -> None:
         os.environ['http_proxy'] = global_configs.proxy
         os.environ['https_proxy'] = global_configs.proxy
         print("Proxy enabled")
+
+def path_to_module(path: Union[str, Path]) -> str:
+    """将文件路径转换为模块格式
+    
+    例如:
+    - 'xx/yy/zz.py' -> 'xx.yy.zz'
+    - 'xx\\yy\\zz.py' -> 'xx.yy.zz'
+    - './xx/yy/zz.py' -> 'xx.yy.zz'
+    - '../xx/yy/zz.py' -> '..xx.yy.zz'
+    """
+    p = Path(path)
+    
+    # 获取不带后缀的路径
+    if p.suffix == '.py':
+        p = p.with_suffix('')
+    
+    # 将路径部分用点连接
+    parts = p.parts
+    
+    # 过滤掉当前目录标记 '.'
+    parts = [part for part in parts if part != '.']
+    
+    return '.'.join(parts)
 
 if __name__=="__main__":
     pass

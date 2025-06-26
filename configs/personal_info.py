@@ -2,7 +2,7 @@ from addict import Dict
 from configs.google_accounts import account_info
 
 personal_info = Dict(
-    name = "John Titor",
+    name = "John Doe",
     email = account_info.main_google_account.email,
     # phone = "+1 647 600 0000",
     # address = "123 Main St, Anytown, USA",

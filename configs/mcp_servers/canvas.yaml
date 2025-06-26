@@ -1,0 +1,14 @@
+# canvas
+# https://github.com/DMontgomery40/mcp-canvas-lms
+type: stdio
+name: canvas
+params:
+  command: npx
+  args:
+    - "-y"
+    - "canvas-mcp-server"
+  env:
+    CANVAS_API_TOKEN: "${token.canvas_api_token}"
+    CANVAS_DOMAIN: "${token.canvas_domain}"
+client_session_timeout_seconds: 10
+cache_tools_list: true

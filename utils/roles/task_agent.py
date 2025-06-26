@@ -67,6 +67,7 @@ class TaskAgent:
         debug: bool = False,
         allow_resume: bool = False,
         manual: bool = False,
+        single_turn_mode: bool = False,
     ):
         self.task_config = task_config
         self.agent_config = agent_config
@@ -107,6 +108,8 @@ class TaskAgent:
         # 新增：检查点文件路径
         self.checkpoint_file = None
         self.checkpoint_interval = 1  # 每隔多少轮保存一次检查点
+
+        self.single_turn_mode = single_turn_mode
     
 
 
@@ -249,7 +252,7 @@ class TaskAgent:
             if self.task_config.initialization.process_command is not None:
                 args = f"--agent_workspace {self.task_config.agent_workspace}"
                 command = f"{self.task_config.initialization.process_command} {args}"
-                await run_command(command)
+                await run_command(command, show_output=True)
                 
             # MCP服务器特定的初始化操作
             await specifical_inialize_for_mcp(self.task_config)
@@ -405,10 +408,17 @@ class TaskAgent:
         if self.allow_resume:
             resumed = await self._load_checkpoint()
         
-        while self.stats["interaction_turns"] < self.task_config.max_turns:
+        if self.single_turn_mode:
+            real_max_turns = 1
+        else:
+            real_max_turns = self.task_config.max_turns
+
+        while self.stats["interaction_turns"] < real_max_turns:
             try:
                 # 获取用户输入
-                if self.manual:
+                if self.single_turn_mode:
+                    user_query = self.task_config.task_str
+                elif self.manual:
                     user_query = await self.ainput("user: ")
                 else:
                     user_query = await self.user_simulator.interact()
@@ -431,7 +441,7 @@ class TaskAgent:
                     input=self.logs,
                     run_config=RunConfig(model_provider=self.agent_model_provider),
                     hooks=self.run_hooks,
-                    max_turns=self.agent_config.tool.max_inner_turns,
+                    max_turns=self.agent_config.tool.max_inner_turns if not self.single_turn_mode else self.task_config.max_steps_under_single_turn_mode,
                 )
                 
                 # 更新统计信息

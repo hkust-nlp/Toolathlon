@@ -1,0 +1,14 @@
+# a word mcp server
+# https://github.com/GongRzhe/Office-Word-MCP-Server
+type: stdio
+name: wandb
+params:
+  command: uvx
+  args:
+    - "--from"
+    - "wandb-mcp-server"
+    - "wandb_mcp_server"
+  env:
+    WANDB_API_KEY: "${token.wandb_api_key}"
+client_session_timeout_seconds: 10
+cache_tools_list: true

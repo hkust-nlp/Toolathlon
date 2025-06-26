@@ -18,7 +18,6 @@ async def my_execute_function_tool_calls(
         func_tool: FunctionTool, tool_call: ResponseFunctionToolCall
     ) -> Any:
         with function_span(func_tool.name) as span_fn:
-            # logger.warning("我在这里！！！！！！！！！！！！")
             if config.trace_include_sensitive_data:
                 span_fn.span_data.input = tool_call.arguments
             try:
@@ -41,7 +40,6 @@ async def my_execute_function_tool_calls(
                     ),
                     func_tool.on_invoke_tool(context_wrapper, tool_call.arguments),
                 )
-
                 await asyncio.gather(
                     hooks.on_tool_end(context_wrapper, agent, func_tool, result),
                     (

@@ -53,12 +53,12 @@ def compare_google_calendar_times(pred_google_time, groundtruth_iso_time, tolera
     return diff <= tolerance_seconds
 
 async def main(args):
-    print("假装远程测测...")
+    # print("假装远程测测...")
     xx_MCPServerManager = MCPServerManager(agent_workspace="./") # a pseudo server manager
     google_calendar_server = xx_MCPServerManager.servers['google_calendar']
     await google_calendar_server.connect()
 
-    available_tools = await google_calendar_server.list_tools()
+    # available_tools = await google_calendar_server.list_tools()
 
     # for tool in available_tools:
     #     pprint(tool.model_dump_json())
@@ -74,7 +74,7 @@ async def main(args):
 
     # pprint(events_in_target_date)
     content_text = events_in_target_date.content[0].text
-    print(content_text)
+    # print(content_text)
     start_pos = content_text.find("[")
     end_pos = content_text.rfind("]")
     xx = content_text[start_pos:end_pos+1]
@@ -88,11 +88,16 @@ async def main(args):
         summary = event['summary']
         if all(x in summary.lower() for x in ['icml','camera', 'ready']):
             start_time = event['start']
+            print(f"找到活动时间: {start_time}, 和gt_time: {gt_time} 进行比较")
             if compare_google_calendar_times(start_time,gt_time,300): # 5 mins difference is acceptable
                 found=True
+                print("符合要求")
+            else:
+                print("不符合要求")
     
     if not found:
-        raise ValueError("未能找到符合要求的活动安排")
+        print("未能找到符合要求的活动安排")
+        exit(1)
 
     print("远程测试通过...")
 
