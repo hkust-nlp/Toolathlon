@@ -5,8 +5,3 @@ uv run demo.py \
 --task_dir jl/set-conf-cr-ddl \
 --debug
 # --multi_turn_mode
-
-uv run demo.py \
---eval_config scripts/model_wise/eval_claude-4-sonnet.json \
---task_dir jl/set-conf-cr-ddl \
---debug
