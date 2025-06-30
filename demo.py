@@ -27,8 +27,8 @@ async def main():
                        help="Whether to enable resume")
     parser.add_argument("--manual", action="store_true", 
                        help="Whether to enable manual input")
-    parser.add_argument("--single_turn_mode", action="store_true", 
-                       help="Whether to enable single turn mode")
+    parser.add_argument("--multi_turn_mode", action="store_true", 
+                       help="Whether to enable multi turn mode")
     args = parser.parse_args()
     
     # 设置代理（如果需要）
@@ -43,7 +43,10 @@ async def main():
     # task_config = TaskConfig.from_dict(task_config_dict, 
     #                                    agent_config.model.short_name,
     #                                    eval_config_dict['global_task_config'],)
-    task_config = TaskConfig.build(args.task_dir, agent_config.model.short_name, eval_config_dict['global_task_config'],args.single_turn_mode)
+    task_config = TaskConfig.build(args.task_dir, 
+                                   agent_config.model.short_name, 
+                                   eval_config_dict['global_task_config'],
+                                   not args.multi_turn_mode)
 
     # 运行任务
     print("=== Starting Task Execution ===")
@@ -55,7 +58,7 @@ async def main():
         debug=args.debug,
         allow_resume=args.allow_resume,
         manual=args.manual,
-        single_turn_mode=args.single_turn_mode,
+        single_turn_mode=not args.multi_turn_mode,
     )
     
     print(f"\n=== Task completed with status: {task_status.value} ===")

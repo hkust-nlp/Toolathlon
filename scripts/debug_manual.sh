@@ -1,22 +1,13 @@
-# this is the debug script when you are developing new tasksAdd commentMore actions
+# 参数说明
+# eval_config 控制使用的模型，输出保存路径，采样参数等；开发阶段请在scripts/debug_eval_config.json里修改
+# task_dir 任务路径，请使用相对于`tasks`的相对路径
+# debug 开启debug模式，打印所有信息
+# manual 使用真实用户，否则使用模拟用户
+# multi_turn_mode 开启多轮模式，否则使用单轮模式；单轮模式下，核心任务直接作为第一轮用户输入，此后不再有模拟用户
 
-# the task config you need to configature is `tasks/manual/manual_001.json`
-# and you can tune the model you want to test in `scripts/debug_eval_config.json`
-
-# please do not change the generation paramerters, the key arguments to adjust is `provider` and `short_name`
-# see `utils/api_model/model_provider.py` to check what models you can use
-
-# you can use --manual to switch off the llm-simulated user
-# othewise, the user is simulated by gpt-4.1-0414 according to the user system prompt
-
-# the --debug argument will print all information so that you can see the complete interaction history
-
-# after the interaction, you will see the interaction hostory in "./dumps/run1" as recorded in `scripts/debug_eval_config.json`
-
-# I have set the `dumps` in /gitignore, so this is completely your local env, and will not interfere with the recorded_trajectories
 uv run demo.py \
 --eval_config scripts/debug_eval_config.json \
---task_dir jl/gmail_calendar_001 \
+--task_dir jl/count-weekly-cost \
 --debug
+# --multi_turn_mode
 # --manual \
-# --single_turn_mode
