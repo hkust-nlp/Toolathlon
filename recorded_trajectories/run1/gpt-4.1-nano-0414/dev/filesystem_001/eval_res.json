@@ -1,5 +1,0 @@
-{
-  "pass": false,
-  "failure": "fail_to_pass_log_check",
-  "details": "Failed in executing the command: Traceback (most recent call last):\n  File \"<frozen runpy>\", line 198, in _run_module_as_main\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/ssddata/junlong/projects/mcpbench_dev/groundtruth/dev/filesystem_001/check_log.py\", line 47, in <module>\n    raise RuntimeError(f\"Fail to find all needed outputs in the log!\\n{error_msg}\".strip())\nRuntimeError: Fail to find all needed outputs in the log!\n`food_total` = 530 not found!\n`traffic_total` = 54.4 not found!\n`others_total` = 91 not found!\n`all_total` = 675.4 not found!\n"
-}

@@ -16,7 +16,7 @@
 # I have set the `dumps` in /gitignore, so this is completely your local env, and will not interfere with the recorded_trajectories
 uv run demo.py \
 --eval_config scripts/debug_eval_config.json \
---task_dir jl/gmail_calendar_001 \
+--task_dir jl/set-icml-cr-ddl \
 --debug
 # --manual \
 # --single_turn_mode

@@ -1,6 +1,7 @@
 import asyncio
 from argparse import ArgumentParser
-from utils.general.helper import run_command
+from pathlib import Path
+from utils.general.helper import run_command, get_module_path
 
 if __name__=="__main__":
     parser = ArgumentParser()
@@ -16,7 +17,7 @@ if __name__=="__main__":
     # 然后发邮件
     print("清理gmail和calendar")
     asyncio.run(run_command(
-                f"uv run -m tasks.jl.gmail_calendar_001.preprocess.clean_gmail_calendar --credentials_file {args.credentials_file}"
+                f"uv run -m {get_module_path('clean_gmail_calendar')} --credentials_file {args.credentials_file}"
                 ,debug=True,show_output=True))
 
     sender_email = account_info.aux_google_account_1.email
@@ -24,14 +25,16 @@ if __name__=="__main__":
     receiver = account_info.main_google_account.email
 
     # TODO: now hardcoded here
-    email_jsonl_file = "tasks/jl/gmail_calendar_001/files/emails.jsonl"
+    email_jsonl_file = Path(__file__).parent / ".." / "files" / "emails.jsonl"
+    placeholder_file_path = Path(__file__).parent / ".." / "files" / "placeholder_values.json"
 
     asyncio.run(run_command(
-                f"uv run -m tasks.jl.gmail_calendar_001.preprocess.send_email -s {sender_email} "
+                f"uv run -m {get_module_path('send_email')} -s {sender_email} "
                 f"-p '{sender_app_password}' "
                 f"-r {receiver} "
                 f"-j {email_jsonl_file} "
                 f"--delay 1.0 "
+                f"--placeholder {placeholder_file_path} "
                 # f"--quiet "
                 f"--no-confirm"
                 ,debug=True,show_output=True))
@@ -39,7 +42,7 @@ if __name__=="__main__":
     # 等待直到所有邮件都已收到
     print("等待邮件接收完成...")
     asyncio.run(run_command(
-                f"uv run -m tasks.jl.gmail_calendar_001.preprocess.wait_for_emails "
+                f"uv run -m {get_module_path('wait_for_emails')} "
                 f"--credentials_file {args.credentials_file} "
                 f"--email_jsonl_file {email_jsonl_file} "
                 f"--max_wait_minutes 5 "

@@ -573,5 +573,35 @@ def path_to_module(path: Union[str, Path]) -> str:
     
     return '.'.join(parts)
 
+def get_module_path(replace_last: str = None) -> str:
+    """
+    获取以.连接的包路径（相对于当前工作目录），可选替换最后一级。
+    - replace_last: 若指定，则将最后一级（通常是文件名）替换为该值
+    """
+    import inspect
+    # 获取调用栈，找到第一个不在helper.py的py文件
+    stack = inspect.stack()
+    target_file = None
+    for frame in stack:
+        fname = frame.filename
+        if not fname.endswith("helper.py") and fname.endswith(".py"):
+            target_file = os.path.abspath(fname)
+            break
+    if target_file is None:
+        raise RuntimeError("无法自动推断目标文件路径")
+    
+    # 以当前工作目录为根目录
+    cwd = os.getcwd()
+    # 计算相对路径
+    relative_path = os.path.relpath(target_file, cwd)
+    module_path = os.path.splitext(relative_path)[0].replace(os.sep, ".")
+    
+    if replace_last is not None:
+        parts = module_path.split('.')
+        parts[-1] = replace_last
+        module_path = '.'.join(parts)
+    
+    return module_path
+
 if __name__=="__main__":
     pass

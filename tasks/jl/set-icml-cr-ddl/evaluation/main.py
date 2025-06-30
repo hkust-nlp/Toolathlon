@@ -3,13 +3,14 @@ import os
 from utils.general.helper import read_json
 import asyncio
 from pprint import pprint
-
+from pathlib import Path
 from utils.mcp.tool_servers import MCPServerManager
 
 import json
 
 from datetime import datetime
 import pytz
+from datetime import timedelta
 
 def parse_iso_time(iso_string):
     """
@@ -44,11 +45,12 @@ def compare_google_calendar_times(pred_google_time, groundtruth_iso_time, tolera
             raise ValueError("Invalid time format")
     
     parsed_time1 = parse_google_time(pred_google_time)
-    print(parsed_time1)
+    # print(parsed_time1)
     parsed_time2 = parse_iso_time(groundtruth_iso_time)
-    print(parsed_time2)
+    # print(parsed_time2)
     
     diff = abs((parsed_time1 - parsed_time2).total_seconds())
+    print(f"时间差: {diff} 秒 = {diff/60} 分钟 = {diff/3600} 小时")
 
     return diff <= tolerance_seconds
 
@@ -63,10 +65,17 @@ async def main(args):
     # for tool in available_tools:
     #     pprint(tool.model_dump_json())
 
+    today_file_path = Path(__file__).parent.parent / "groundtruth_workspace" / "today.txt"
+    with open(today_file_path, 'r', encoding='utf-8') as f:
+        today = f.read() # ISO like 2025-06-30
+    target_date = (datetime.strptime(today, '%Y-%m-%d') + timedelta(days=11)).date()
+    
+    print(f"搜索从{target_date} 00:00 到 {target_date} 23:59 （AoE）的日历事件")
+
     events_in_target_date = await google_calendar_server.call_tool(tool_name="list_events",
                                                              arguments={
-                                                                    "timeMin": "2025-06-05T00:00:00-12:00",
-                                                                    "timeMax": "2025-06-05T23:59:59-12:00",
+                                                                    "timeMin": f"{target_date}T00:00:00-12:00",
+                                                                    "timeMax": f"{target_date}T23:59:59-12:00",
                                                                     "orderBy": "startTime"
                                                                     })
 
@@ -82,13 +91,15 @@ async def main(args):
 
     found=False
 
-    gt_time = "2025-06-05T20:59:00-12:00"
+    # groundtruth should be today+11 days, 20:59， AoE
+    gt_time = f"{target_date}T20:59:00-12:00"
+    print(f"目标时间: {gt_time}")
 
     for event in xx_s:
         summary = event['summary']
-        if all(x in summary.lower() for x in ['icml','camera', 'ready']):
+        if all(x in summary.lower() for x in ['coml', 'camera', 'ready']):
             start_time = event['start']
-            print(f"找到活动时间: {start_time}, 和gt_time: {gt_time} 进行比较")
+            print(f"找到活动时间: {start_time}, 和目标时间: {gt_time} 进行比较")
             if compare_google_calendar_times(start_time,gt_time,300): # 5 mins difference is acceptable
                 found=True
                 print("符合要求")

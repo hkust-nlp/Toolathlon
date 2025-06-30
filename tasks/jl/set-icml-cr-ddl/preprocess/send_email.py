@@ -10,8 +10,9 @@ import json
 import sys
 from pathlib import Path
 import re
+from datetime import datetime, timedelta
 
-from configs.personal_info import personal_info
+# from configs.personal_info import personal_info
 
 class EmailSendError(Exception):
     """邮件发送错误"""
@@ -134,7 +135,10 @@ class GmailSender:
         
         return success_count, fail_count, failed_emails
 
-def format_email_with_personal_info(email_data, verbose=True):
+def format_email_with_personal_info(email_data, 
+                                    placeholder_values, 
+                                    today,
+                                    verbose=True):
     """
     使用personal_info中的键值对格式化邮件数据
     占位符格式: <<<<||||key||||>>>>
@@ -154,16 +158,48 @@ def format_email_with_personal_info(email_data, verbose=True):
             if isinstance(value, str):
                 try:
                     # 查找所有占位符 <<<<||||key||||>>>>
-                    pattern = r'<<<<\|\|\|\|(\w+)\|\|\|\|>>>>'
+                    pattern = r'<<<<\|\|\|\|([\w+]+)\|\|\|\|>>>>'
                     matches = re.findall(pattern, value)
                     
                     formatted_value = value
                     for match in matches:
                         placeholder = f'<<<<||||{match}||||>>>>'
-                        if match in personal_info:
-                            replacement = str(personal_info[match])
+                        print(f"DEBUG: 匹配到占位符: {match}")
+                        if match in placeholder_values:
+                            replacement = str(placeholder_values[match])
                             formatted_value = formatted_value.replace(placeholder, replacement)
                             _log(f"替换占位符: {placeholder} -> {replacement}")
+                        # 如果是日期或者年份
+                        elif match == 'year' or match.startswith('today+'):
+                            print(f"DEBUG: 进入日期处理分支，match={match}")
+                            # 我会传入今天的日期，以ISO格式，例如2025-06-30
+                            # 请你把year替换为今天+30天后的年份
+                            # 对于日期，请把today+X替换为对应的日期
+                            try:
+                                if match == 'year':
+                                    print(">>>>>>>>>>", today)
+                                    print(">>>>>>>>>>", match)
+                                    # 计算今天+30天后的年份
+                                    today_date = datetime.fromisoformat(today)
+                                    future_date = today_date + timedelta(days=30)
+                                    replacement = str(future_date.year)
+                                elif match.startswith('today+'):
+                                    print(">>>>>>>>>>", today)
+                                    print(">>>>>>>>>>", match)
+                                    # 解析today+X格式，X是天数
+                                    days_to_add = int(match[6:])  # 去掉'today+'前缀
+                                    today_date = datetime.fromisoformat(today)
+                                    future_date = today_date + timedelta(days=days_to_add)
+                                    replacement = future_date.strftime('%Y-%m-%d')
+                                else:
+                                    replacement = placeholder  # 保持原样
+                                
+                                formatted_value = formatted_value.replace(placeholder, replacement)
+                                _log(f"替换占位符: {placeholder} -> {replacement}")
+                            except (ValueError, TypeError) as e:
+                                _log(f"⚠️  日期处理错误: {e}", force=True)
+                                # 如果日期处理失败，保持原占位符
+                                pass
                         else:
                             _log(f"⚠️  未找到personal_info中的键: {match}", force=True)
                     
@@ -180,10 +216,11 @@ def format_email_with_personal_info(email_data, verbose=True):
         _log(f"⚠️  格式化邮件数据时出错: {e}", force=True)
         return email_data
 
-def load_emails_from_jsonl(file_path, verbose=True):
+def load_emails_from_jsonl(file_path, placeholder_file_path, verbose=True):
     """
     从JSONL文件加载邮件数据
     :param file_path: JSONL文件路径
+    :param placeholder_file_path: 占位符文件路径
     :param verbose: 是否打印详细信息
     :return: 邮件列表
     """
@@ -192,6 +229,22 @@ def load_emails_from_jsonl(file_path, verbose=True):
             print(message)
     
     emails = []
+    placeholder_values = {}
+    with open(placeholder_file_path, 'r', encoding='utf-8') as f:
+        placeholder_values = json.load(f)
+
+    # 获取今天的日期，格式为ISO格式 (YYYY-MM-DD)
+    today = datetime.now().strftime('%Y-%m-%d')
+    
+    # 保存today时间到文件，用于后续eval
+    # 相对于send_email.py文件的位置：../groundtruth_workspace/today.txt
+    script_dir = Path(__file__).parent.parent
+    today_file_path = script_dir / 'groundtruth_workspace' / 'today.txt'
+    # today_file_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(today_file_path, 'w', encoding='utf-8') as f:
+        f.write(today)
+    _log(f"✅ 已保存today时间到: {today_file_path}")
+
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             for line_num, line in enumerate(f, 1):
@@ -214,7 +267,7 @@ def load_emails_from_jsonl(file_path, verbose=True):
                         email_data['content_type'] = 'auto'
                     
                     # 使用personal_info格式化邮件数据
-                    formatted_email = format_email_with_personal_info(email_data, verbose=verbose)
+                    formatted_email = format_email_with_personal_info(email_data, placeholder_values, today, verbose=verbose)
                     emails.append(formatted_email)
                     
                 except json.JSONDecodeError as e:
@@ -273,6 +326,12 @@ JSONL文件格式示例:
         required=True,
         help='包含邮件内容的JSONL文件路径'
     )
+
+    parser.add_argument(
+        '--placeholder', '-pl',
+        required=True,
+        help='包含占位符的JSONL文件路径'
+    )
     
     parser.add_argument(
         '--delay', '-d',
@@ -317,6 +376,7 @@ def main():
         print(f"发件人邮箱: {args.sender}")
         print(f"收件人邮箱: {args.receiver}")
         print(f"邮件数据文件: {args.jsonl}")
+        print(f"占位符文件: {args.placeholder}")
         print(f"发送延迟: {args.delay} 秒")
         print("=" * 60)
         print()
@@ -324,8 +384,10 @@ def main():
     # 加载邮件数据
     if verbose:
         print("正在加载邮件数据...")
-    emails = load_emails_from_jsonl(args.jsonl, verbose=verbose)
     
+    emails = load_emails_from_jsonl(args.jsonl, args.placeholder, verbose=verbose)
+
+
     if not emails:
         print("❌ 没有有效的邮件数据")
         sys.exit(1)
