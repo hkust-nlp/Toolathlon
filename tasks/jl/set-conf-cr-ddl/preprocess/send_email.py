@@ -1,9 +1,7 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from email.header import Header
 import time
-from email import policy
 from email.utils import formataddr
 import argparse
 import json
@@ -67,7 +65,7 @@ class GmailSender:
             server.send_message(msg)
             server.quit()
             
-            self._log(f"✅ 邮件发送成功！")
+            self._log("✅ 邮件发送成功！")
             self._log(f"   发件人：{sender_name}")
             self._log(f"   收件人：{receiver_email}")
             self._log(f"   主题：{subject}")
@@ -130,7 +128,7 @@ class GmailSender:
                 self._log(f"等待 {delay} 秒后发送下一封邮件...\n")
                 time.sleep(delay)
         
-        self._log(f"\n批量发送完成！")
+        self._log("\n批量发送完成！")
         self._log(f"成功: {success_count} 封，失败: {fail_count} 封")
         
         return success_count, fail_count, failed_emails
@@ -454,7 +452,7 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except EmailSendError as e:
+    except EmailSendError:
         sys.exit(1)
     except KeyboardInterrupt:
         print("\n\n程序被用户中断")
