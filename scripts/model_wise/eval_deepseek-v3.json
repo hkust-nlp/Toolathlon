@@ -1,7 +1,8 @@
 {
     "global_task_config":{
         "max_turns": 50,
-        "dump_path":"./recorded_trajectories/run1"
+        "max_steps_under_single_turn_mode": 50,
+        "dump_path":"./recorded_trajectories_v2/run1"
     },
     "mcp":{
         "server_config_path": "configs/mcp_servers"

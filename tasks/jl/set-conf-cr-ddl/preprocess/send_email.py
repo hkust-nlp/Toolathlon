@@ -158,44 +158,46 @@ def format_email_with_personal_info(email_data,
             if isinstance(value, str):
                 try:
                     # 查找所有占位符 <<<<||||key||||>>>>
-                    pattern = r'<<<<\|\|\|\|([\w+]+)\|\|\|\|>>>>'
+                    pattern = r'<<<<\|\|\|\|([\w+-]+)\|\|\|\|>>>>'
                     matches = re.findall(pattern, value)
                     
                     formatted_value = value
                     for match in matches:
                         placeholder = f'<<<<||||{match}||||>>>>'
-                        print(f"DEBUG: 匹配到占位符: {match}")
+                        # print(f"DEBUG: 匹配到占位符: {match}")
                         if match in placeholder_values:
                             replacement = str(placeholder_values[match])
                             formatted_value = formatted_value.replace(placeholder, replacement)
-                            _log(f"替换占位符: {placeholder} -> {replacement}")
+                            # _log(f"替换占位符: {placeholder} -> {replacement}")
                         # 如果是日期或者年份
-                        elif match == 'year' or match.startswith('today+'):
-                            print(f"DEBUG: 进入日期处理分支，match={match}")
+                        elif match == 'year' or match.startswith('today+') or match.startswith('today-'):
+                            # print(f"DEBUG: 进入日期处理分支，match={match}")
                             # 我会传入今天的日期，以ISO格式，例如2025-06-30
                             # 请你把year替换为今天+30天后的年份
                             # 对于日期，请把today+X替换为对应的日期
                             try:
                                 if match == 'year':
-                                    print(">>>>>>>>>>", today)
-                                    print(">>>>>>>>>>", match)
                                     # 计算今天+30天后的年份
                                     today_date = datetime.fromisoformat(today)
                                     future_date = today_date + timedelta(days=30)
                                     replacement = str(future_date.year)
                                 elif match.startswith('today+'):
-                                    print(">>>>>>>>>>", today)
-                                    print(">>>>>>>>>>", match)
                                     # 解析today+X格式，X是天数
                                     days_to_add = int(match[6:])  # 去掉'today+'前缀
                                     today_date = datetime.fromisoformat(today)
                                     future_date = today_date + timedelta(days=days_to_add)
                                     replacement = future_date.strftime('%Y-%m-%d')
+                                elif match.startswith('today-'):
+                                    # 解析today-X格式，X是天数
+                                    days_to_subtract = int(match[6:])  # 去掉'today-'前缀
+                                    today_date = datetime.fromisoformat(today)
+                                    past_date = today_date - timedelta(days=days_to_subtract)
+                                    replacement = past_date.strftime('%Y-%m-%d')
                                 else:
                                     replacement = placeholder  # 保持原样
                                 
                                 formatted_value = formatted_value.replace(placeholder, replacement)
-                                _log(f"替换占位符: {placeholder} -> {replacement}")
+                                # _log(f"替换占位符: {placeholder} -> {replacement}")
                             except (ValueError, TypeError) as e:
                                 _log(f"⚠️  日期处理错误: {e}", force=True)
                                 # 如果日期处理失败，保持原占位符

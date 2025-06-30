@@ -1,0 +1,4 @@
+{
+  "pass": false,
+  "failure": "log check failed:  Fail to find all needed outputs in the log!\n`traffic_total` = 54.4 not found!\n`others_total` = 91 not found!\n`all_total` = 675.4 not found!\n"
+}

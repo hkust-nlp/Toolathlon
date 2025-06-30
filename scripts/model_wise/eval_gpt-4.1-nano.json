@@ -1,7 +1,8 @@
 {
     "global_task_config":{
         "max_turns": 50,
-        "dump_path":"./recorded_trajectories/run1"
+        "max_steps_under_single_turn_mode": 50,
+        "dump_path":"./recorded_trajectories_v2/run1"
     },
     "mcp":{
         "server_config_path": "configs/mcp_servers"
@@ -9,7 +10,7 @@
     "agent":{
         "model":{
             "short_name": "gpt-4.1-nano-0414",
-            "provider": "ds_internal"
+            "provider": "aihubmix"
         },
         "generation":{
             "temperature":0.6,
@@ -25,7 +26,7 @@
     "user":{
         "model":{
             "short_name": "gpt-4.1-0414",
-            "provider": "ds_internal"
+            "provider": "aihubmix"
         },
         "generation":{
             "temperature":1.0,
