@@ -4,7 +4,7 @@ from utils.general.helper import read_json
 import asyncio
 from pprint import pprint
 from pathlib import Path
-from utils.mcp.tool_servers import MCPServerManager
+from utils.mcp.tool_servers import MCPServerManager, call_tool_with_retry, ToolCallError
 
 import json
 
@@ -58,28 +58,26 @@ async def main(args):
     # print("假装远程测测...")
     xx_MCPServerManager = MCPServerManager(agent_workspace="./") # a pseudo server manager
     google_calendar_server = xx_MCPServerManager.servers['google_calendar']
-    await google_calendar_server.connect()
+    with google_calendar_server as server:
+        today_file_path = Path(__file__).parent.parent / "groundtruth_workspace" / "today.txt"
+        with open(today_file_path, 'r', encoding='utf-8') as f:
+            today = f.read() # ISO like 2025-06-30
+        target_date = (datetime.strptime(today, '%Y-%m-%d') + timedelta(days=11)).date()
+        
+        print(f"搜索从{target_date} 00:00 到 {target_date} 23:59 （AoE）的日历事件")
 
-    # available_tools = await google_calendar_server.list_tools()
-
-    # for tool in available_tools:
-    #     pprint(tool.model_dump_json())
-
-    today_file_path = Path(__file__).parent.parent / "groundtruth_workspace" / "today.txt"
-    with open(today_file_path, 'r', encoding='utf-8') as f:
-        today = f.read() # ISO like 2025-06-30
-    target_date = (datetime.strptime(today, '%Y-%m-%d') + timedelta(days=11)).date()
-    
-    print(f"搜索从{target_date} 00:00 到 {target_date} 23:59 （AoE）的日历事件")
-
-    events_in_target_date = await google_calendar_server.call_tool(tool_name="list_events",
-                                                             arguments={
-                                                                    "timeMin": f"{target_date}T00:00:00-12:00",
-                                                                    "timeMax": f"{target_date}T23:59:59-12:00",
-                                                                    "orderBy": "startTime"
-                                                                    })
-
-    await google_calendar_server.cleanup()
+        try:
+            events_in_target_date = await call_tool_with_retry(server, "list_events", {
+                "timeMin": f"{target_date}T00:00:00-12:00",
+                "timeMax": f"{target_date}T23:59:59-12:00",
+                "orderBy": "startTime"
+            })
+        except ToolCallError as e:
+            print(f"检测时，工具调用失败: {e}")
+            exit(2)
+        except Exception as e:
+            print(f"其他错误: {e}")
+            exit(1)
 
     # pprint(events_in_target_date)
     content_text = events_in_target_date.content[0].text

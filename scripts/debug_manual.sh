@@ -7,7 +7,7 @@
 
 uv run demo.py \
 --eval_config scripts/debug_eval_config.json \
---task_dir jl/count-weekly-cost \
+--task_dir jl/train-ticket-plan \
 --debug
-# --multi_turn_mode
-# --manual \
+# --multi_turn_mode \
+# --manual
