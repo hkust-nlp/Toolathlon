@@ -12,7 +12,8 @@ SCOPES = [
     'https://www.googleapis.com/auth/youtube',
     # 'https://www.googleapis.com/auth/maps',
     'https://www.googleapis.com/auth/documents',
-    'https://www.googleapis.com/auth/spreadsheets'
+    'https://www.googleapis.com/auth/spreadsheets',
+    'https://www.googleapis.com/auth/forms',
 ]
 
 def manual_oauth_flow_debug():
