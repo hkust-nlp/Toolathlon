@@ -282,7 +282,8 @@ class TaskAgent:
         self.agent = Agent(
             name="Assistant",
             instructions=self.task_config.system_prompts.agent,
-            model=self.agent_model_provider.get_model(self.agent_config.model.real_name),
+            model=self.agent_model_provider.get_model(self.agent_config.model.real_name, 
+                                                      debug = self.debug),
             mcp_servers=[*self.mcp_manager.get_all_connected_servers()],
             tools=[tool_sleep, tool_done], # FIXME: hardcoded now, should be dynamic
             hooks=self.agent_hooks,
@@ -450,7 +451,7 @@ class TaskAgent:
                     self.usage.add(raw_response.usage)
                     self.stats["agent_llm_requests"] += 1
                 
-                self._debug_print(f"assistant: {result.final_output}")
+                # self._debug_print(f"assistant: {result.final_output}")
                 self.logs.extend([item.to_input_item() for item in result.new_items])
                 
                 self.user_simulator.receive_message(result.final_output)
