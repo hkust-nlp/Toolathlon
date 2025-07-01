@@ -23,6 +23,6 @@ initial_states/manual
 groundtruth/manual
 # 忽略所有名为 manual 的文件夹
 manual/
-scripts/debug_manual.sh
-scripts/debug_eval_config.json
-scripts/update_trajectories.sh
+# scripts/debug_manual.sh
+# scripts/debug_eval_config.json
+# scripts/update_trajectories.sh

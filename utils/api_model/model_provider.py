@@ -1,6 +1,12 @@
 import asyncio
-from agents import ModelProvider, OpenAIChatCompletionsModel, Model, set_tracing_disabled
+from agents import (
+    ModelProvider, 
+    OpenAIChatCompletionsModel, 
+    Model, 
+    set_tracing_disabled,
+)
 from openai import AsyncOpenAI
+from openai.types.responses import ResponseOutputMessage
 import httpx
 from configs.global_configs import global_configs
 from addict import Dict
@@ -13,22 +19,31 @@ from addict import Dict
 class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
     def __init__(self, model: str, openai_client: AsyncOpenAI, 
                  retry_times: int = 5, # FIXME: hardcoded now, should be dynamic
-                 retry_delay: float = 5.0): # FIXME: hardcoded now, should be dynamic
+                 retry_delay: float = 5.0,
+                 debug: bool = True): # FIXME: hardcoded now, should be dynamic
         super().__init__(model=model, openai_client=openai_client)
         self.retry_times = retry_times
         self.retry_delay = retry_delay
+        self.debug = debug
 
     async def get_response(self, *args, **kwargs):
         for i in range(self.retry_times):
             try:
-                return await super().get_response(*args, **kwargs)
+                model_response = await super().get_response(*args, **kwargs)
+                output_items = model_response.output
+                if self.debug:
+                    for item in output_items:
+                        if isinstance(item, ResponseOutputMessage):
+                            print("assistant: ", item.content[0].text)
+                return model_response
             except Exception as e:
-                print(f"Error in get_response: {e}, retry {i+1}/{self.retry_times}, waiting {self.retry_delay} seconds...")
+                if self.debug:
+                    print(f"Error in get_response: {e}, retry {i+1}/{self.retry_times}, waiting {self.retry_delay} seconds...")
                 await asyncio.sleep(self.retry_delay)
         raise Exception(f"Failed to get response after {self.retry_times} retries, error: {e}")
 
 class CustomModelProvider(ModelProvider):
-    def get_model(self, model_name: str | None) -> Model:
+    def get_model(self, model_name: str | None, debug: bool = True) -> Model:
         client = AsyncOpenAI(
             api_key=global_configs.ds_key,
             base_url=global_configs.base_url_ds
@@ -36,15 +51,19 @@ class CustomModelProvider(ModelProvider):
             api_key=global_configs.non_ds_key,
             base_url=global_configs.base_url_non_ds,
         )
-        return OpenAIChatCompletionsModelWithRetry(model=model_name, openai_client=client)
+        return OpenAIChatCompletionsModelWithRetry(model=model_name, 
+                                                   openai_client=client,
+                                                   debug=debug)
 
 class CustomModelProviderAiHubMix(ModelProvider):
-    def get_model(self, model_name: str | None) -> Model:
+    def get_model(self, model_name: str | None, debug: bool = True) -> Model:
         client = AsyncOpenAI(
             api_key=global_configs.non_ds_key,
             base_url=global_configs.base_url_non_ds,
         )
-        return OpenAIChatCompletionsModelWithRetry(model=model_name, openai_client=client)
+        return OpenAIChatCompletionsModelWithRetry(model=model_name, 
+                                                   openai_client=client,
+                                                   debug=debug)
 
 model_provider_mapping = {
     "ds_internal": CustomModelProvider,

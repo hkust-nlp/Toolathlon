@@ -25,12 +25,12 @@ class RunLifecycle(RunHooks):
     async def on_agent_start(self, context: RunContextWrapper, agent: Agent) -> None:
         """Agent开始运行时的钩子"""
         if self.debug:
-            print('>>on_agent_start')
+            pass
         
     async def on_agent_end(self, context: RunContextWrapper, agent: Agent, output: Any) -> None:
         """Agent结束运行时的钩子"""
         if self.debug:
-            print('>>on_agent_end')
+            pass
         
     async def on_tool_start(
         self,

@@ -91,6 +91,7 @@ class User:
         # 添加系统提示
         if self.config.starting_system_prompt:
             self._add_system_prompt(self.config.starting_system_prompt)
+            logger.info(f"Created user {self.user_id} with system prompt: {self.config.starting_system_prompt[:50]}...")
         
         # 用户状态
         self.is_initialized = False
@@ -102,7 +103,7 @@ class User:
         # 成本追踪
         self.cost_tracker = UserCostTracker() if self.config.track_costs else None
         
-        logger.info(f"Created user {self.user_id} with system prompt: {self.config.starting_system_prompt[:50]}...")
+        
     
     def _generate_user_id(self) -> str:
         """生成用户ID"""
