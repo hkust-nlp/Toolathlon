@@ -1,8 +1,31 @@
+import asyncio
 from agents import ModelProvider, OpenAIChatCompletionsModel, Model, set_tracing_disabled
 from openai import AsyncOpenAI
 import httpx
 from configs.global_configs import global_configs
 from addict import Dict
+
+# TODO: 实现一个带等待重试机制的继承OpenAIChatCompletionsModel的类
+# 我需要多两个参数，一个是重试次数，一个是每次重试的等待时间
+# 然后新的类的get_response参数是以上述重试参数调用父类的同名函数，并打印提示信息
+# 如果最后还是报错，那就raise 相应的报错内容，as if 是父类的get_response报错
+
+class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
+    def __init__(self, model: str, openai_client: AsyncOpenAI, 
+                 retry_times: int = 5, # FIXME: hardcoded now, should be dynamic
+                 retry_delay: float = 5.0): # FIXME: hardcoded now, should be dynamic
+        super().__init__(model=model, openai_client=openai_client)
+        self.retry_times = retry_times
+        self.retry_delay = retry_delay
+
+    async def get_response(self, *args, **kwargs):
+        for i in range(self.retry_times):
+            try:
+                return await super().get_response(*args, **kwargs)
+            except Exception as e:
+                print(f"Error in get_response: {e}, retry {i+1}/{self.retry_times}, waiting {self.retry_delay} seconds...")
+                await asyncio.sleep(self.retry_delay)
+        raise Exception(f"Failed to get response after {self.retry_times} retries, error: {e}")
 
 class CustomModelProvider(ModelProvider):
     def get_model(self, model_name: str | None) -> Model:
@@ -13,7 +36,7 @@ class CustomModelProvider(ModelProvider):
             api_key=global_configs.non_ds_key,
             base_url=global_configs.base_url_non_ds,
         )
-        return OpenAIChatCompletionsModel(model=model_name, openai_client=client)
+        return OpenAIChatCompletionsModelWithRetry(model=model_name, openai_client=client)
 
 class CustomModelProviderAiHubMix(ModelProvider):
     def get_model(self, model_name: str | None) -> Model:
@@ -21,7 +44,7 @@ class CustomModelProviderAiHubMix(ModelProvider):
             api_key=global_configs.non_ds_key,
             base_url=global_configs.base_url_non_ds,
         )
-        return OpenAIChatCompletionsModel(model=model_name, openai_client=client)
+        return OpenAIChatCompletionsModelWithRetry(model=model_name, openai_client=client)
 
 model_provider_mapping = {
     "ds_internal": CustomModelProvider,
