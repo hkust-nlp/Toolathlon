@@ -486,6 +486,7 @@ google-auth==2.40.3 \
     #   google-api-python-client
     #   google-auth-httplib2
     #   google-auth-oauthlib
+    #   mcpbench-dev
 google-auth-httplib2==0.2.0 \
     --hash=sha256:38aa7badf48f974f1eb9861794e9c0cb2a0511a4ec0679b1f886d108f5640e05 \
     --hash=sha256:b65a0a2123300dd71281a7bf6e64d65a0759287df52729bdd1ae2e47dc311a3d
@@ -570,6 +571,7 @@ httpx==0.27.0 \
     # via
     #   arxiv-mcp-server
     #   mcp
+    #   mcp-ocr
     #   mcp-server-fetch
     #   mcpbench-dev
     #   openai
@@ -833,6 +835,7 @@ mcp==1.9.0 \
     #   arxiv-mcp-server
     #   cli-mcp-server
     #   excel-mcp-server
+    #   mcp-ocr
     #   mcp-scholarly
     #   mcp-server-fetch
     #   mcp-server-git
@@ -843,6 +846,10 @@ mcp==1.9.0 \
     #   office-word-mcp-server
     #   openai-agents
     #   pymupdf4llm-mcp
+mcp-ocr==0.1.2 \
+    --hash=sha256:4ce7e10e7a1fbbf2178a834dd977c72e76528830da7a310ce509bf73ee138918 \
+    --hash=sha256:c3a34c40f7df0fa2fd1b183082e28d69021f31ae17cfc68b64d724b27a876b15
+    # via mcpbench-dev
 mcp-scholarly==0.1.0 \
     --hash=sha256:cf7a65988e5a8d9386c4ae589fc684b83cda86d0f8ee7ca991a6ba7039299424 \
     --hash=sha256:cffcc65cee6c473972dd947459350e52264d09d4613dbf386ac5de4f765e7190
@@ -974,7 +981,9 @@ numpy==2.2.6 \
     # via
     #   contourpy
     #   matplotlib
+    #   mcp-ocr
     #   mcpbench-dev
+    #   opencv-python
     #   pandas
     #   yfinance
 oauthlib==3.2.2 \
@@ -1003,6 +1012,15 @@ openai-agents==0.0.15 \
     --hash=sha256:0985a128473d548f240af0958b9ca74e048f330b71c138d54aa81908a43a8934 \
     --hash=sha256:dc653ab716c6f60970313f34f3c6fc2dd0a663be0194cb6e5f06bff5caba4d96
     # via mcpbench-dev
+opencv-python==4.11.0.86 \
+    --hash=sha256:03d60ccae62304860d232272e4a4fda93c39d595780cb40b161b310244b736a4 \
+    --hash=sha256:085ad9b77c18853ea66283e98affefe2de8cc4c1f43eda4c100cf9b2721142ec \
+    --hash=sha256:1b92ae2c8852208817e6776ba1ea0d6b1e0a1b5431e971a2a0ddd2a8cc398202 \
+    --hash=sha256:432f67c223f1dc2824f5e73cdfcd9db0efc8710647d4e813012195dc9122a52a \
+    --hash=sha256:6b02611523803495003bd87362db3e1d2a0454a6a63025dc6658a9830570aa0d \
+    --hash=sha256:810549cb2a4aedaa84ad9a1c92fbfdfc14090e2749cedf2c1589ad8359aa169b \
+    --hash=sha256:9d05ef13d23fe97f575153558653e2d6e87103995d54e6a35db3f282fe1f9c66
+    # via mcp-ocr
 openpyxl==3.1.5 \
     --hash=sha256:5282c12b107bffeef825f4617dc029afaf41d0ea60823bbb665ef3079dc79de2 \
     --hash=sha256:cf0e3cf56142039133628b5acffe8ef0c12bc902d2aadd3e0fe5878dc08d1050
@@ -1020,6 +1038,7 @@ packaging==25.0 \
     # via
     #   matplotlib
     #   mcpbench-dev
+    #   pytesseract
     #   sphinx
 pandas==2.2.3 \
     --hash=sha256:062309c1b9ea12a50e8ce661145c6aab431b1e99530d3cd60640e255778bd43a \
@@ -1086,7 +1105,9 @@ pillow==11.2.1 \
     --hash=sha256:fe15238d3798788d00716637b3d4e7bb6bde18b26e5d08335a96e88564a36b6b
     # via
     #   matplotlib
+    #   mcp-ocr
     #   mcpbench-dev
+    #   pytesseract
     #   python-pptx
 platformdirs==4.3.8 \
     --hash=sha256:3d512d96e16bcb959a814c9f348431070822a6496326a4be0911c40b5a74c2bc \
@@ -1301,6 +1322,10 @@ pysocks==1.7.1 \
     #   mcpbench-dev
     #   requests
     #   urllib3
+pytesseract==0.3.13 \
+    --hash=sha256:4bf5f880c99406f52a3cfc2633e42d9dc67615e69d8a509d74867d3baddb5db9 \
+    --hash=sha256:7a99c6c2ac598360693d83a416e36e0b33a67638bb9d77fdcac094a3589d4b34
+    # via mcp-ocr
 python-dateutil==2.9.0.post0 \
     --hash=sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3 \
     --hash=sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427
