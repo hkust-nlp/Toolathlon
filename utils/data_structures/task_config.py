@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Union
 from pathlib import Path
+from datetime import datetime
 
 from agents import agent_span
 from psutil import users
@@ -29,9 +30,15 @@ class SystemPrompts:
             user_sp = None
         return cls(agent=agent_sp, user=user_sp)
 
-    def apply(self, agent_workspace: str, task_str: str):
+    def apply(self, agent_workspace: str, 
+              task_str: str,
+              time: str,
+              single_turn_mode: bool=False):
         if self.agent is not None:
             self.agent = self.agent.replace("!!<<<<||||workspace_dir||||>>>>!!", agent_workspace)
+            self.agent = self.agent.replace("!!<<<<||||time||||>>>>!!", time)
+            if single_turn_mode: ### FIXME: hardcoded now, should be dynamic
+                self.agent+="\n请独立完成给定的任务，不要再向用户确认信息或获取额外的用户反馈，你应当独自处理遇到的一切情况，用户不会再给你提供任何信息。"
         if self.user is not None:
             self.user = self.user.replace("!!<<<<||||task_description||||>>>>!!", task_str)
         return self
@@ -114,6 +121,7 @@ class TaskConfig:
     max_steps_under_single_turn_mode: int = None
     single_turn_mode: bool = False
     meta: Dict = field(default_factory=dict)
+    launch_time: str = None
 
     agent_short_name: str = None
     global_task_config: Dict = None
@@ -176,7 +184,10 @@ class TaskConfig:
         if self.global_task_config is not None and "max_steps_under_single_turn_mode" in self.global_task_config:
             self.max_steps_under_single_turn_mode = self.global_task_config['max_steps_under_single_turn_mode']
         
-        self.system_prompts.apply(self.agent_workspace, self.task_str)
+        self.system_prompts.apply(self.agent_workspace, 
+                                  self.task_str, 
+                                  self.launch_time,
+                                  self.single_turn_mode)
         
     
     # 使用 Path 对象的属性方法
@@ -225,6 +236,8 @@ class TaskConfig:
             initialization=Initialization.build(task_dir),
             evaluation=Evaluation.build(task_dir),
             single_turn_mode=single_turn_mode,
+            # 以下日期请包含年月日，时间，和星期
+            launch_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S %A")
         )
     
     def to_dict(self) -> dict:
@@ -237,6 +250,7 @@ class TaskConfig:
             'task_str': self.task_str,
             'log_file': self.log_file,
             'agent_workspace': self.agent_workspace,
+            'launch_time': self.launch_time,
             'max_turns': self.max_turns,
             'max_steps_under_single_turn_mode': self.max_steps_under_single_turn_mode,
             'single_turn_mode': self.single_turn_mode,

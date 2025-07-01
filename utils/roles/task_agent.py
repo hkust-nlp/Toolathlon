@@ -34,7 +34,7 @@ import asyncio
 from prompt_toolkit import PromptSession
 from prompt_toolkit.patch_stdout import patch_stdout
 
-
+from utils.aux_tools.basic import tool_sleep, tool_done
 
 class TaskStatus(Enum):
     SUCCESS = "success"
@@ -270,7 +270,8 @@ class TaskAgent:
         """设置并连接MCP服务器"""
         self.mcp_manager = MCPServerManager(
             agent_workspace=self.task_config.agent_workspace,
-            config_dir=self.mcp_config.server_config_path
+            config_dir=self.mcp_config.server_config_path,
+            debug=self.debug
         )
         await self.mcp_manager.connect_servers(self.task_config.needed_mcp_servers)
     
@@ -283,7 +284,7 @@ class TaskAgent:
             instructions=self.task_config.system_prompts.agent,
             model=self.agent_model_provider.get_model(self.agent_config.model.real_name),
             mcp_servers=[*self.mcp_manager.get_all_connected_servers()],
-            tools=[],
+            tools=[tool_sleep, tool_done], # FIXME: hardcoded now, should be dynamic
             hooks=self.agent_hooks,
             model_settings=ModelSettings(
                 temperature=self.agent_config.generation.temperature,
@@ -295,9 +296,9 @@ class TaskAgent:
         )
         
         # 获取所有可用工具
-        mcp_tools = await self.agent.get_all_tools()
-        self._debug_print(f">>可用工具列表 (x{len(mcp_tools)})")
-        for tool in mcp_tools:
+        available_tools = await self.agent.get_all_tools()
+        self._debug_print(f">>可用工具列表 (x{len(available_tools)})")
+        for tool in available_tools:
             self._debug_print(f"[{tool.name}]", tool.description)
             self.all_tools.append({
                 "type": "function",
