@@ -12,3 +12,7 @@
     - 在task config中添加 "needed_local_tools": ["ai_webpage_summary"] 即可
     - 可用工具 "ai_webpage_summary"，"sleep"，"done"
 
+## 2025.7.2 17:30
+- 根据cursor的system prompt设计第一版general prompt
+    - 相关文件 `utils/system_prompts/general_v0.txt`
+
