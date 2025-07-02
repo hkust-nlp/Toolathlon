@@ -1,4 +1,4 @@
 {
-    "needed_mcp_servers": ["filesystem"],
+    "needed_mcp_servers": ["canvas"],
     "meta": {}
 }
