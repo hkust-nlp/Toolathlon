@@ -109,6 +109,7 @@ class TaskConfig:
     task_dir: str # 相对于 tasks的路径
     id: str = None
     needed_mcp_servers: List[str] = None
+    needed_local_tools: List[str] = None
     task_root: str = None
     task_str: str = None
     system_prompts: SystemPrompts = None
@@ -227,6 +228,7 @@ class TaskConfig:
         return cls(
             task_dir=task_dir,
             needed_mcp_servers=task_config_dict['needed_mcp_servers'],
+            needed_local_tools=task_config_dict['needed_local_tools'],
             max_turns=task_config_dict.get("max_turns"),
             meta=task_config_dict.get('meta', {}),
             agent_short_name = agent_short_name,
@@ -246,6 +248,7 @@ class TaskConfig:
             'task_dir': self.task_dir,
             'id': self.id,
             'needed_mcp_servers': self.needed_mcp_servers,
+            'needed_local_tools': self.needed_local_tools,
             'task_root': self.task_root,
             'task_str': self.task_str,
             'log_file': self.log_file,
