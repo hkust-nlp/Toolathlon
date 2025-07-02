@@ -7,14 +7,8 @@ from agents import (
 )
 from openai import AsyncOpenAI
 from openai.types.responses import ResponseOutputMessage
-import httpx
 from configs.global_configs import global_configs
 from addict import Dict
-
-# TODO: 实现一个带等待重试机制的继承OpenAIChatCompletionsModel的类
-# 我需要多两个参数，一个是重试次数，一个是每次重试的等待时间
-# 然后新的类的get_response参数是以上述重试参数调用父类的同名函数，并打印提示信息
-# 如果最后还是报错，那就raise 相应的报错内容，as if 是父类的get_response报错
 
 class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
     def __init__(self, model: str, openai_client: AsyncOpenAI, 

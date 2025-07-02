@@ -1,4 +1,5 @@
 {
-    "needed_mcp_servers": ["canvas"],
+    "needed_mcp_servers": ["github"],
+    "needed_local_tools": ["ai_webpage_summary"],
     "meta": {}
 }

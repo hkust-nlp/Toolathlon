@@ -35,6 +35,13 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.patch_stdout import patch_stdout
 
 from utils.aux_tools.basic import tool_sleep, tool_done
+from utils.aux_tools.ai_webpage_summary import tool_ai_webpage_summary
+
+local_tool_mappings = {
+    "ai_webpage_summary": tool_ai_webpage_summary,
+    "sleep": tool_sleep,
+    "done": tool_done,
+}
 
 class TaskStatus(Enum):
     SUCCESS = "success"
@@ -285,7 +292,7 @@ class TaskAgent:
             model=self.agent_model_provider.get_model(self.agent_config.model.real_name, 
                                                       debug = self.debug),
             mcp_servers=[*self.mcp_manager.get_all_connected_servers()],
-            tools=[tool_sleep, tool_done], # FIXME: hardcoded now, should be dynamic
+            tools=[local_tool_mappings[tool_name] for tool_name in self.task_config.needed_local_tools] if self.task_config.needed_local_tools is not None else [],
             hooks=self.agent_hooks,
             model_settings=ModelSettings(
                 temperature=self.agent_config.generation.temperature,
