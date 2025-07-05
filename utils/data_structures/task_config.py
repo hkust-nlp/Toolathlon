@@ -99,7 +99,7 @@ class StopConditions:
         if "tool_names" in stop_conditions:
             tool_names = stop_conditions["tool_names"]
         else:
-            tool_names = ['claim_done']
+            tool_names = ['local-claim_done']
         return cls(user_phrases=user_phrases, tool_names=tool_names)
 
 @dataclass

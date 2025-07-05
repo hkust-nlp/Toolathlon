@@ -6,18 +6,22 @@ import datetime
 import traceback
 from enum import Enum
 import pickle
+from pathlib import Path
 
 from agents import (
     Agent,
     RunConfig,
     Usage,
-    Runner,
+    # Runner,
     ModelSettings,
     ToolCallItem,
-    MessageOutputItem,
-    ToolCallOutputItem,
-    ModelProvider
+    # MessageOutputItem,
+    # ToolCallOutputItem,
+    ModelProvider,
+    ItemHelpers
 )
+
+from utils.roles.context_managed_runner import ContextManagedRunner
 
 from utils.mcp.tool_servers import MCPServerManager
 from utils.api_model.model_provider import calculate_cost, get_context_window
@@ -36,11 +40,15 @@ from prompt_toolkit.patch_stdout import patch_stdout
 
 from utils.aux_tools.basic import tool_sleep, tool_done
 from utils.aux_tools.ai_webpage_summary import tool_ai_webpage_summary
+from utils.aux_tools.context_management_tools import context_management_tools
+from utils.aux_tools.history_tools import history_tools
 
 local_tool_mappings = {
     "ai_webpage_summary": tool_ai_webpage_summary,
     "sleep": tool_sleep,
-    "done": tool_done,
+    "claim_done": tool_done,
+    "manage_context": context_management_tools,
+    "history": history_tools,
 }
 
 class TaskStatus(Enum):
@@ -90,7 +98,10 @@ class TaskAgent:
         self.mcp_manager: Optional[MCPServerManager] = None
         self.user_simulator: Optional[User] = None
         self.all_tools: List[Dict] = []
-        self.logs: List[Dict] = []
+        # self.logs: List[Dict] = []
+        self.session_id: Optional[str] = None
+        self.history_dir: Optional[str] = None
+        self.initial_run_time: Optional[str] = None
         self.logs_to_record: List[Dict] = []
         self.usage = Usage()
         self.task_status = TaskStatus.FAILED
@@ -117,6 +128,9 @@ class TaskAgent:
         self.checkpoint_interval = 1  # 每隔多少轮保存一次检查点
 
         self.single_turn_mode = single_turn_mode
+
+        self.shared_context = {}
+
     
 
 
@@ -147,7 +161,6 @@ class TaskAgent:
             return
             
         checkpoint_data = {
-            # 保存核心状态
             'logs': self.logs.copy(),
             'logs_to_record': self.logs_to_record.copy(),
             'all_tools': self.all_tools.copy(),
@@ -157,14 +170,14 @@ class TaskAgent:
                 'output_tokens': self.usage.output_tokens,
                 'requests': self.usage.requests
             },
-            # 保存用户模拟器状态
             'user_simulator_state': self.user_simulator.get_state() if hasattr(self.user_simulator, 'get_state') else {
                 'conversation_history': self.user_simulator.conversation_history if self.user_simulator else []
             },
-            # 保存时间戳
+            'session_id': self.session_id,
+            'history_dir': self.history_dir,
+            'initial_run_time': getattr(self, 'initial_run_time', 'unknown'),
             'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            # 版本信息，用于兼容性检查
-            'version': '1.0'
+            'version': '2.0'
         }
         
         try:
@@ -173,7 +186,7 @@ class TaskAgent:
             self._debug_print(f"Checkpoint saved at turn {self.stats['interaction_turns']}")
         except Exception as e:
             self._debug_print(f"Failed to save checkpoint: {e}")
-    
+
     async def _load_checkpoint(self) -> bool:
         """从检查点恢复执行状态"""
         if not self.allow_resume:
@@ -188,11 +201,22 @@ class TaskAgent:
             with open(checkpoint_path, 'rb') as f:
                 checkpoint_data = pickle.load(f)
             
+            # 检查版本兼容性
+            version = checkpoint_data.get('version', '1.0')
+            if version == '1.0':
+                self._debug_print("Old checkpoint version detected, cannot resume")
+                return False
+            
             # 恢复状态
             self.logs = checkpoint_data['logs']
             self.logs_to_record = checkpoint_data['logs_to_record']
             self.all_tools = checkpoint_data['all_tools']
             self.stats = checkpoint_data['stats']
+            
+            # 恢复会话信息
+            self.session_id = checkpoint_data.get('session_id')
+            self.history_dir = checkpoint_data.get('history_dir')
+            self.initial_run_time = checkpoint_data.get('initial_run_time', 'unknown')
             
             # 恢复Usage对象
             usage_data = checkpoint_data['usage']
@@ -205,11 +229,11 @@ class TaskAgent:
                 if hasattr(self.user_simulator, 'set_state'):
                     self.user_simulator.set_state(checkpoint_data['user_simulator_state'])
                 else:
-                    # 简单恢复对话历史
                     self.user_simulator.conversation_history = checkpoint_data['user_simulator_state'].get('conversation_history', [])
             
             self._debug_print(f"Checkpoint loaded from {checkpoint_data['timestamp']}")
             self._debug_print(f"Resuming from turn {self.stats['interaction_turns']}")
+            self._debug_print(f"Session ID: {self.session_id}")
             return True
             
         except Exception as e:
@@ -226,6 +250,7 @@ class TaskAgent:
             except Exception as e:
                 self._debug_print(f"Failed to remove checkpoint: {e}")
     
+
     async def initialize_workspace(self, show_traceback=False) -> bool:
         """初始化工作空间"""
         self._debug_print(f"Starting to initialize workspace for {self.task_config.id} ...")
@@ -272,6 +297,7 @@ class TaskAgent:
 
         self._debug_print(f"Successfully initialize workspace for {self.task_config.id}!")
         return True
+
     
     async def setup_mcp_servers(self) -> None:
         """设置并连接MCP服务器"""
@@ -286,13 +312,22 @@ class TaskAgent:
         """初始化Agent"""
         self._debug_print(">>初始化agent loop")
         
+        local_tools = []
+        if self.task_config.needed_local_tools is not None:
+            for tool_name in self.task_config.needed_local_tools:
+                tool_or_toolsets = local_tool_mappings[tool_name]
+                if isinstance(tool_or_toolsets, list):
+                    local_tools.extend(tool_or_toolsets)
+                else:
+                    local_tools.append(tool_or_toolsets)
+
         self.agent = Agent(
             name="Assistant",
             instructions=self.task_config.system_prompts.agent,
             model=self.agent_model_provider.get_model(self.agent_config.model.real_name, 
                                                       debug = self.debug),
             mcp_servers=[*self.mcp_manager.get_all_connected_servers()],
-            tools=[local_tool_mappings[tool_name] for tool_name in self.task_config.needed_local_tools] if self.task_config.needed_local_tools is not None else [],
+            tools=local_tools,
             hooks=self.agent_hooks,
             model_settings=ModelSettings(
                 temperature=self.agent_config.generation.temperature,
@@ -328,94 +363,88 @@ class TaskAgent:
             user_config=user_runtime_config
         )
         self.user_simulator.initialize_conversation()
-    
+
     async def process_agent_response(self, result) -> List[Dict]:
-        """处理Agent的响应并格式化日志，返回工具调用列表"""
-        tool_calls_in_response = []  # 新增：记录这次响应中的所有工具调用
-        item_index = 0
+        """处理Agent的响应，返回工具调用列表（简化版本）"""
+        tool_calls_in_response = []  # 记录这次响应中的所有工具调用
         
-        while item_index < len(result.new_items):
-            current_item = result.new_items[item_index]
-            
-            if isinstance(current_item, MessageOutputItem):
-                if item_index == len(result.new_items) - 1:
-                    # 最后一条消息，为assistant的最终回复
-                    self.logs_to_record.append({
-                        "role": "assistant",
-                        "content": current_item.to_input_item()['content'][0]['text']
-                    })
-                    item_index += 1
-                else:
-                    # 不是最后一条消息，必然调用工具
-                    tool_calls = []
-                    for i in range(item_index + 1, len(result.new_items)):
-                        if not isinstance(result.new_items[i], ToolCallItem):
-                            break
-                        tool_item = result.new_items[i].to_input_item()
-                        tool_call = {
-                            "id": tool_item['call_id'],
-                            "type": "function",
-                            "function": {
-                                "name": tool_item["name"],
-                                "arguments": tool_item["arguments"]
-                            }
-                        }
-                        tool_calls.append(tool_call)
-                        tool_calls_in_response.append(tool_call)  # 记录工具调用
-                        
-                    self.logs_to_record.append({
-                        "role": "assistant",
-                        "content": current_item.to_input_item()['content'][0]['text'],
-                        "tool_calls": tool_calls
-                    })
-                    item_index += (1 + len(tool_calls))
-                    
-            elif isinstance(current_item, ToolCallItem):
-                # 不带content的tool_call调用
-                tool_calls = []
-                for i in range(item_index, len(result.new_items)):
-                    if not isinstance(result.new_items[i], ToolCallItem):
-                        break
-                    tool_item = result.new_items[i].to_input_item()
-                    tool_call = {
-                        "id": tool_item['call_id'],
-                        "type": "function",
-                        "function": {
-                            "name": tool_item["name"],
-                            "arguments": tool_item["arguments"]
-                        }
+        # 只需要提取工具调用信息用于终止条件检查
+        for item in result.new_items:
+            if isinstance(item, ToolCallItem):
+                tool_item = item.to_input_item()
+                tool_call = {
+                    "id": tool_item['call_id'],
+                    "type": "function",
+                    "function": {
+                        "name": tool_item["name"],
+                        "arguments": tool_item["arguments"]
                     }
-                    tool_calls.append(tool_call)
-                    tool_calls_in_response.append(tool_call)  # 记录工具调用
-                    
-                self.logs_to_record.append({
-                    "role": "assistant",
-                    "content": None,
-                    "tool_calls": tool_calls
-                })
-                item_index += len(tool_calls)
-                
-            elif isinstance(current_item, ToolCallOutputItem):
-                # tool执行结果
-                tool_output = current_item.to_input_item()
-                self.logs_to_record.append({
-                    "role": "tool",
-                    "content": tool_output["output"],
-                    "tool_call_id": tool_output["call_id"]
-                })
-                item_index += 1
+                }
+                tool_calls_in_response.append(tool_call)
         
         # 更新工具调用统计
         self.stats["tool_calls"] += len(tool_calls_in_response)
         
+        # 简化的日志记录（只记录关键信息）
+        if result.final_output:
+            self.logs_to_record.append({
+                "role": "assistant",
+                "content": result.final_output,
+                "tool_calls_count": len(tool_calls_in_response)
+            })
+        
         return tool_calls_in_response
-    
+
     async def run_interaction_loop(self) -> None:
         """运行交互循环"""
+        # 使用固定的 session_id
+        self.session_id = f"task_{self.task_config.id}_session"
+        self.history_dir = os.path.join(self.task_config.task_root, "conversation_history")
+        
+        # 初始化对话历史
+        self.logs = []  # 保留这个，用于传给 Runner
+        
+        # 初始化共享的 context（重要！）
+        self.shared_context = {
+            "_session_id": self.session_id,
+            "_history_dir": self.history_dir,
+            "_context_meta": {
+                "session_id": self.session_id,
+                "history_dir": self.history_dir,
+                "started_at": datetime.datetime.now().isoformat(),
+                "current_turn": 0,
+                "total_turns_ever": 0,
+                "turns_in_current_sequence": 0,
+                "mini_turns_in_current_sequence": 0,
+                "boundary_in_current_sequence": [],
+                "truncated_turns": 0,
+                "truncation_history": []
+            },
+            "_context_limit": get_context_window(self.agent_config.model.short_name)
+        }
+
         # 如果是恢复模式，尝试加载检查点
         resumed = False
         if self.allow_resume:
             resumed = await self._load_checkpoint()
+        
+        # 处理历史文件
+        history_file = os.path.join(self.history_dir, f"{self.session_id}_history.jsonl")
+        
+        if resumed:
+            # 恢复模式：从历史文件重建 logs
+            self.logs = self._rebuild_logs_from_history(history_file)
+            self._debug_print(f"Resuming session {self.session_id} with {len(self.logs)} messages")
+        else:
+            # 非恢复模式
+            self.initial_run_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            
+            # 如果存在旧的历史文件，删除它
+            if os.path.exists(history_file):
+                self._debug_print(f"Removing old history file for session {self.session_id}")
+                os.remove(history_file)
+            
+            self.logs = []
         
         if self.single_turn_mode:
             real_max_turns = 1
@@ -433,7 +462,21 @@ class TaskAgent:
                     user_query = await self.user_simulator.interact()
                     self._debug_print(f"user: {user_query}")
                 
+                # 添加到历史
                 self.logs.append({"role": "user", "content": user_query})
+
+                # 在这里单独处理用户轮
+                current_turn_in_seq = self.shared_context["_context_meta"]["turns_in_current_sequence"]
+                mini_turns_in_current_sequence = self.shared_context["_context_meta"]["mini_turns_in_current_sequence"]
+                self.shared_context["_context_meta"]["boundary_in_current_sequence"].append((mini_turns_in_current_sequence, 
+                                                                                             mini_turns_in_current_sequence+1))
+                
+                self.shared_context["_context_meta"]["turns_in_current_sequence"] = current_turn_in_seq + 1
+                self.shared_context["_context_meta"]["mini_turns_in_current_sequence"] += 1
+                self.shared_context["_context_meta"]["total_turns_ever"] += 1
+                self.shared_context["_context_meta"]["current_turn"] += 1
+
+                # 添加到记录
                 self.logs_to_record.append({"role": "user", "content": user_query})
                 
                 # 增加交互轮次计数
@@ -444,22 +487,28 @@ class TaskAgent:
                     self._debug_print("Termination condition met by user input")
                     break
                 
-                # Agent 响应
-                result = await Runner.run(
+                # Agent 响应 - 传入完整历史
+                result = await ContextManagedRunner.run(
                     starting_agent=self.agent,
-                    input=self.logs,
+                    input=self.logs,  # 传入完整历史
+                    context=self.shared_context,  # 使用共享的 context！
                     run_config=RunConfig(model_provider=self.agent_model_provider),
                     hooks=self.run_hooks,
                     max_turns=self.agent_config.tool.max_inner_turns if not self.single_turn_mode else self.task_config.max_steps_under_single_turn_mode,
+                    history_dir=self.history_dir,
+                    session_id=self.session_id,
                 )
                 
                 # 更新统计信息
                 for raw_response in result.raw_responses:
                     self.usage.add(raw_response.usage)
                     self.stats["agent_llm_requests"] += 1
+
+                # 这里是多部执行后，已经合并原始输入和新生成的内容的input
+                self.logs = self.build_new_logs(result.input,result.new_items)
                 
-                # self._debug_print(f"assistant: {result.final_output}")
-                self.logs.extend([item.to_input_item() for item in result.new_items])
+                # 添加新的响应到历史
+                # self.logs.extend([item.to_input_item() for item in result.new_items])
                 
                 self.user_simulator.receive_message(result.final_output)
                 
@@ -493,7 +542,12 @@ class TaskAgent:
         if self.stats["interaction_turns"] >= self.task_config.max_turns:
             self._debug_print(f"Maximum turns ({self.task_config.max_turns}) reached")
             self.task_status = TaskStatus.MAX_TURNS_REACHED
-    
+
+    def build_new_logs(self, input, generated_items):
+        input_items = ItemHelpers.input_to_new_input_list(input)
+        input_items.extend([generated_item.to_input_item() for generated_item in generated_items])
+        return input_items
+
     def get_cost_summary(self) -> Tuple[Dict, Dict]:
         """获取成本摘要"""
         # 添加空值检查，防止 user_simulator 为 None
@@ -527,28 +581,46 @@ class TaskAgent:
         res_log_file = self.task_config.log_file
         
         if not os.path.exists(os.path.dirname(res_log_file)):
-            # in case the folder is not built in initialization stage
             os.makedirs(os.path.dirname(res_log_file))
+        
+        # 从 ContextManagedRunner 获取完整的格式化历史
+        if self.session_id and self.history_dir:
+            complete_messages = ContextManagedRunner.get_formatted_history(
+                self.history_dir, 
+                self.session_id
+            )
+            session_stats = ContextManagedRunner.get_session_stats(
+                self.history_dir,
+                self.session_id
+            )
+        else:
+            # 降级到使用 logs_to_record
+            complete_messages = self.logs_to_record
+            session_stats = {}
 
         with open(res_log_file, "w", encoding='utf-8') as f:
             result = {
                 'config': self.task_config.to_dict(),
                 'request_id': str(uuid.uuid4()),
-                'date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                'initial_run_time': getattr(self, 'initial_run_time', 'unknown'),
+                'completion_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 'tool_calls': {
                     'tools': self.all_tools,
                     'tool_choice': self.agent_config.tool.tool_choice,
                 },
                 "status": self.task_status.value,
-                'messages': self.logs_to_record,
-                'key_stats': self.stats,
+                'messages': complete_messages,
+                'key_stats': {**self.stats, **session_stats},
                 'agent_cost': self.agent_cost,
                 'user_cost': self.user_cost,
-                'resumed': self.allow_resume,  # 标记是否使用了恢复功能
+                'resumed': self.allow_resume,
+                'session_id': self.session_id,
+                'history_file': str(Path(self.history_dir) / f"{self.session_id}_history.jsonl") if self.session_id else None
             }
             
             json_output = json.dumps(result, ensure_ascii=False, cls=CustomJSONEncoder)
             f.write(json_output)
+
     
     async def cleanup(self) -> None:
         """清理资源"""
