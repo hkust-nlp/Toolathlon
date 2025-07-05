@@ -20,3 +20,7 @@
 - 更新canvas mcp server 版本
 - 添加canvas token， 对应使用谷歌账号 kewincpt93@gmail.com 直接授权登录
 
+## 2025.7.2 17:00
+- 添加上下文管理工具，已初步验证
+- 添加历史记录搜索工具，还未验证，仍需debug
+
