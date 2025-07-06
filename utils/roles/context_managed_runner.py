@@ -532,60 +532,158 @@ class ContextManagedRunner(Runner):
             return []
         
         formatted_messages = []
-        current_turn_messages = []
         
+        # 按轮次和步骤顺序读取所有记录
+        records = []
         with open(history_file, 'r', encoding='utf-8') as f:
             for line in f:
                 try:
                     record = json.loads(line)
+                    records.append(record)
+                except json.JSONDecodeError:
+                    continue
+        
+        # 按轮次和步骤排序
+        records.sort(key=lambda x: (x.get("turn", 0), x.get("in_turn_steps", 0)))
+        
+        # 处理每个轮次的记录
+        current_turn = -1
+        current_turn_records = []
+        
+        for record in records:
+            # 跳过初始输入记录
+            if record.get("type") == "initial_input":
+                continue
+                
+            turn = record.get("turn", 0)
+            
+            # 如果轮次变化，处理上一轮次的记录
+            if turn != current_turn and current_turn_records:
+                formatted_messages.extend(cls._process_turn_records(current_turn_records))
+                current_turn_records = []
+            
+            current_turn = turn
+            current_turn_records.append(record)
+        
+        # 处理最后一轮次的记录
+        if current_turn_records:
+            formatted_messages.extend(cls._process_turn_records(current_turn_records))
+        
+        return formatted_messages
+    
+    @classmethod
+    def _process_turn_records(cls, records: List[Dict]) -> List[Dict]:
+        """处理单个轮次的记录，返回格式化的消息列表"""
+        formatted_messages = []
+        item_index = 0
+        
+        while item_index < len(records):
+            current_record = records[item_index]
+            
+            if current_record.get("item_type") == "message_output_item":
+                raw_content = current_record.get("raw_content", {})
+                role = "unknown"
+                content = ""
+                
+                if isinstance(raw_content, dict):
+                    role = raw_content.get("role", "unknown")
+                    # 提取文本内容
+                    content_parts = []
+                    for content_item in raw_content.get("content", []):
+                        if isinstance(content_item, dict) and content_item.get("type") == "output_text":
+                            content_parts.append(content_item.get("text", ""))
+                    content = " ".join(content_parts)
+                
+                if role == "system" and "上下文管理" in content:
+                    # 跳过上下文管理的系统消息
+                    item_index += 1
+                    continue
+                
+                # 检查是否是最后一条消息（没有后续的工具调用）
+                if item_index == len(records) - 1:
+                    # 最后一条消息，为assistant的最终回复
+                    formatted_messages.append({
+                        "role": role,
+                        "content": content
+                    })
+                    item_index += 1
+                else:
+                    # 不是最后一条消息，检查是否有工具调用
+                    tool_calls = []
+                    next_index = item_index + 1
                     
-                    # 跳过初始输入记录
-                    if record.get("type") == "initial_input":
-                        continue
+                    # 收集后续的工具调用
+                    while next_index < len(records) and records[next_index].get("item_type") == "tool_call_item":
+                        tool_record = records[next_index]
+                        raw_content = tool_record.get("raw_content", {})
+                        tool_call = {
+                            "id": raw_content.get("call_id", "unknown") if isinstance(raw_content, dict) else "unknown",
+                            "type": "function",
+                            "function": {
+                                "name": raw_content.get("name", "unknown") if isinstance(raw_content, dict) else "unknown",
+                                "arguments": raw_content.get("arguments", "{}") if isinstance(raw_content, dict) else "{}"
+                            }
+                        }
+                        tool_calls.append(tool_call)
+                        next_index += 1
                     
-                    # 根据不同类型构建消息
-                    if record.get("item_type") == "message_output_item":
-                        role = record.get("role", "unknown")
-                        content = record.get("content", "")
-                        
-                        if role == "system" and "上下文管理" in content:
-                            # 跳过上下文管理的系统消息
-                            continue
-                        
-                        if role == "assistant":
-                            # 检查是否有工具调用
-                            if current_turn_messages:
-                                # 如果有待处理的工具调用，添加到消息中
-                                formatted_messages[-1]["tool_calls"] = current_turn_messages
-                                current_turn_messages = []
-                        
+                    if tool_calls:
+                        # 有工具调用的assistant消息
+                        formatted_messages.append({
+                            "role": role,
+                            "content": content,
+                            "tool_calls": tool_calls
+                        })
+                        item_index = next_index
+                    else:
+                        # 没有工具调用的普通消息
                         formatted_messages.append({
                             "role": role,
                             "content": content
                         })
-                    
-                    elif record.get("item_type") == "tool_call_item":
-                        # 收集工具调用
-                        tool_call = {
-                            "id": record.get("call_id", "unknown"),
-                            "type": "function",
-                            "function": {
-                                "name": record.get("tool_name", "unknown"),
-                                "arguments": record.get("arguments", "{}")
-                            }
-                        }
-                        current_turn_messages.append(tool_call)
-                    
-                    elif record.get("item_type") == "tool_call_output_item":
-                        # 工具输出
-                        formatted_messages.append({
-                            "role": "tool",
-                            "content": record.get("output", ""),
-                            "tool_call_id": record.get("call_id", "unknown")
-                        })
+                        item_index += 1
                         
-                except json.JSONDecodeError:
-                    continue
+            elif current_record.get("item_type") == "tool_call_item":
+                # 不带content的tool_call调用
+                tool_calls = []
+                next_index = item_index
+                
+                # 收集连续的工具调用
+                while next_index < len(records) and records[next_index].get("item_type") == "tool_call_item":
+                    tool_record = records[next_index]
+                    raw_content = tool_record.get("raw_content", {})
+                    tool_call = {
+                        "id": raw_content.get("call_id", "unknown") if isinstance(raw_content, dict) else "unknown",
+                        "type": "function",
+                        "function": {
+                            "name": raw_content.get("name", "unknown") if isinstance(raw_content, dict) else "unknown",
+                            "arguments": raw_content.get("arguments", "{}") if isinstance(raw_content, dict) else "{}"
+                        }
+                    }
+                    tool_calls.append(tool_call)
+                    next_index += 1
+                
+                # 创建没有content的assistant消息
+                formatted_messages.append({
+                    "role": "assistant",
+                    "content": None,
+                    "tool_calls": tool_calls
+                })
+                item_index = next_index
+                
+            elif current_record.get("item_type") == "tool_call_output_item":
+                # tool执行结果
+                raw_content = current_record.get("raw_content", {})
+                formatted_messages.append({
+                    "role": "tool",
+                    "content": raw_content.get("output", "") if isinstance(raw_content, dict) else "",
+                    "tool_call_id": raw_content.get("call_id", "unknown") if isinstance(raw_content, dict) else "unknown"
+                })
+                item_index += 1
+                
+            else:
+                # 其他类型的记录，跳过
+                item_index += 1
         
         return formatted_messages
 
@@ -610,8 +708,11 @@ class ContextManagedRunner(Runner):
                     record = json.loads(line)
                     stats["total_messages"] += 1
                     
-                    if record.get("item_type") == "message_output_item" and record.get("role") == "assistant":
-                        stats["total_turns"] += 1
+                    if record.get("item_type") == "message_output_item":
+                        # 从 raw_content 中提取角色
+                        raw_content = record.get("raw_content", {})
+                        if isinstance(raw_content, dict) and raw_content.get("role") == "assistant":
+                            stats["total_turns"] += 1
                     elif record.get("item_type") == "tool_call_item":
                         stats["tool_calls"] += 1
                         
