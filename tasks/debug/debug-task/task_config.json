@@ -1,5 +1,5 @@
 {
-    "needed_mcp_servers": ["amap"],
+    "needed_mcp_servers": ["google_sheet"],
     "needed_local_tools": ["ai_webpage_summary","sleep","claim_done","manage_context","history"],
     "meta": {}
 }

@@ -22,16 +22,25 @@
 
 ## 2025.7.5 17:00
 - 添加上下文管理工具，已初步验证
+    - 相关文件 `utils/roles/context_managed_runner.py`, `utils/roles/task_agent.py`, `utils/aux_tools/context_management_tools.py`
 - 添加历史记录搜索工具，还未验证，仍需debug
 
 ## 2025.7.6 17:00
 - 添加历史记录搜索工具，已初步验证
+    - 相关文件 `utils/roles/context_managed_runner.py`, `utils/roles/task_agent.py`, `utils/aux_tools/history_manager.py`, `utils/aux_tools/history_tools.py`
 
 ## 2025.7.6 17:20
 - 修改log保存逻辑
+    - 相关文件 `utils/roles/task_agent.py`
 
 ## 2025.7.6 17:30
 - 修改log保存逻辑
+    - 相关文件 `utils/roles/task_agent.py`
 
 ## 2025.7.7 3:00
 - 恢复高德地图mcp
+    - 相关文件 `configs/mcp_servers/amap.yaml`
+
+## 2025.7.7 3:45
+- 添加google sheet mcp server
+    - 相关文件 `configs/google_sheets_service_credentials.json` `configs/mcp_servers/google_sheet.yaml`

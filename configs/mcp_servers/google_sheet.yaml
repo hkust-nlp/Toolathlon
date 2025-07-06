@@ -1,0 +1,13 @@
+# 谷歌表格
+# https://github.com/xing5/mcp-google-sheets
+type: stdio
+name: google_sheet
+params:
+  command: uvx
+  args:
+    - "mcp-google-sheets@latest"
+  env:
+    SERVICE_ACCOUNT_PATH: "configs/google_sheets_service_credentials.json"
+    DRIVE_FOLDER_ID: "${token.google_sheets_folder_id}"
+client_session_timeout_seconds: 10
+cache_tools_list: true
