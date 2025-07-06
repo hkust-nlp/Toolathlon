@@ -580,7 +580,24 @@ class ContextManagedRunner(Runner):
         while item_index < len(records):
             current_record = records[item_index]
             
-            if current_record.get("item_type") == "message_output_item":
+            if current_record.get("type") == "user_input":
+                # 用户输入
+                content = current_record.get("content", "")
+                if isinstance(content, list):
+                    # 如果是列表格式，提取文本内容
+                    content_parts = []
+                    for item in content:
+                        if isinstance(item, dict) and item.get("type") == "text":
+                            content_parts.append(item.get("text", ""))
+                    content = " ".join(content_parts)
+                
+                formatted_messages.append({
+                    "role": "user",
+                    "content": content
+                })
+                item_index += 1
+                
+            elif current_record.get("item_type") == "message_output_item":
                 raw_content = current_record.get("raw_content", {})
                 role = "unknown"
                 content = ""
