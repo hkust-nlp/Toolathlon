@@ -3,5 +3,5 @@
 type: sse
 name: amap
 params:
-  url: "https://mcp.api-inference.modelscope.net/650d58e318d944/sse"
+  url: "https://mcp.amap.com/sse?key=${token.amap_key}"
 cache_tools_list: true
