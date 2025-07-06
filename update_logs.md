@@ -44,3 +44,4 @@
 ## 2025.7.7 3:45
 - 添加google sheet mcp server
     - 相关文件 `configs/google_sheets_service_credentials.json` `configs/mcp_servers/google_sheet.yaml`
+    - *有点小问题，尝试创建spreadsheet时报403权限错误
