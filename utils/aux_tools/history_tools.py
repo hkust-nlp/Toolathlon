@@ -26,10 +26,13 @@ async def on_search_history_invoke(context: RunContextWrapper, params_str: str) 
     history_dir = ctx.get("_history_dir", "conversation_histories")
     manager = HistoryManager(history_dir, session_id)
     
-    # 如果提供了search_id，从缓存获取之前的搜索
+    # 如果提供了search_id，从缓存获取之前的搜索策略
     if search_id and search_id in search_sessions:
         cached_search = search_sessions[search_id]
         keywords = cached_search["keywords"]
+        # 使用缓存的每页展示数，确保搜索策略一致
+        per_page = cached_search.get("per_page", per_page)
+        # 不更新缓存，让搜索重新执行以获取最新的结果
     else:
         # 新搜索，生成search_id
         import uuid
@@ -45,11 +48,13 @@ async def on_search_history_invoke(context: RunContextWrapper, params_str: str) 
     skip = (page - 1) * per_page
     matches, total_matches = manager.search_by_keywords(keywords, per_page, skip)
     
-    # 缓存搜索会话
+    # 缓存搜索会话（每次搜索都更新，确保数据最新）
     search_sessions[search_id] = {
         "keywords": keywords,
+        "per_page": per_page,  # 缓存每页展示数
         "total_matches": total_matches,
-        "created_at": json.dumps(datetime.now().isoformat())
+        "created_at": json.dumps(datetime.now().isoformat()),
+        "last_updated": datetime.now().isoformat()
     }
     
     # 清理过期的搜索会话（保留最近10个）
@@ -61,10 +66,23 @@ async def on_search_history_invoke(context: RunContextWrapper, params_str: str) 
     # 格式化结果
     results = []
     for match in matches:
+        # 从 raw_content 中提取角色信息
+        role = "unknown"
+        if match.get("item_type") == "message_output_item":
+            raw_content = match.get("raw_content", {})
+            if isinstance(raw_content, dict):
+                role = raw_content.get("role", "unknown")
+        elif match.get("item_type") in ["initial_input", "user_input"]:
+            role = "user"
+        elif match.get("item_type") == "tool_call_item":
+            role = "assistant"
+        elif match.get("item_type") == "tool_call_output_item":
+            role = "tool"
+        
         results.append({
             "turn": match.get("turn", -1),
             "timestamp": match.get("timestamp", "unknown"),
-            "role": match.get("role", "unknown"), 
+            "role": role,
             "preview": match.get("match_context", ""),
             "item_type": match.get("item_type", match.get("type", "unknown"))
         })
@@ -79,7 +97,13 @@ async def on_search_history_invoke(context: RunContextWrapper, params_str: str) 
         "current_page": page,
         "per_page": per_page,
         "has_more": page < total_pages,
-        "results": results
+        "results": results,
+        "search_info": {
+            "is_cached_search": search_id in search_sessions,
+            "last_updated": search_sessions[search_id]["last_updated"] if search_id in search_sessions else None,
+            "cached_per_page": search_sessions[search_id].get("per_page") if search_id in search_sessions else None,
+            "note": "搜索结果会动态更新，页数可能因新内容而变化。使用search_id时，关键词和每页展示数保持一致。"
+        }
     }
 
 async def on_view_history_turn_invoke(context: RunContextWrapper, params_str: str) -> Any:
@@ -96,8 +120,9 @@ async def on_view_history_turn_invoke(context: RunContextWrapper, params_str: st
         }
     
     # 获取历史管理器
-    session_id = context.get("_session_id", "unknown")
-    history_dir = context.get("_history_dir", "conversation_histories")
+    ctx = context.context if hasattr(context, 'context') else {}
+    session_id = ctx.get("_session_id", "unknown")
+    history_dir = ctx.get("_history_dir", "conversation_histories")
     manager = HistoryManager(history_dir, session_id)
     
     # 获取轮次详情
@@ -124,14 +149,32 @@ async def on_view_history_turn_invoke(context: RunContextWrapper, params_str: st
             formatted["content"] = record.get("content", "")
         elif record.get("item_type") == "message_output_item":
             formatted["type"] = "消息"
-            formatted["role"] = record.get("role", "unknown")
-            formatted["content"] = record.get("content", "")
+            raw_content = record.get("raw_content", {})
+            if isinstance(raw_content, dict):
+                formatted["role"] = raw_content.get("role", "unknown")
+                # 提取文本内容
+                content_parts = []
+                for content_item in raw_content.get("content", []):
+                    if isinstance(content_item, dict) and content_item.get("type") == "output_text":
+                        content_parts.append(content_item.get("text", ""))
+                formatted["content"] = " ".join(content_parts)
+            else:
+                formatted["role"] = "unknown"
+                formatted["content"] = ""
         elif record.get("item_type") == "tool_call_item":
             formatted["type"] = "工具调用"
-            formatted["tool_name"] = record.get("tool_name", "unknown")
+            raw_content = record.get("raw_content", {})
+            if isinstance(raw_content, dict):
+                formatted["tool_name"] = raw_content.get("name", "unknown")
+            else:
+                formatted["tool_name"] = "unknown"
         elif record.get("item_type") == "tool_call_output_item":
             formatted["type"] = "工具输出"
-            formatted["output"] = record.get("output", "")
+            raw_content = record.get("raw_content", {})
+            if isinstance(raw_content, dict):
+                formatted["output"] = raw_content.get("output", "")
+            else:
+                formatted["output"] = ""
         
         formatted_records.append(formatted)
     
@@ -174,8 +217,9 @@ async def on_browse_history_invoke(context: RunContextWrapper, params_str: str) 
     direction = params.get("direction", "forward")
     
     # 获取历史管理器
-    session_id = context.get("_session_id", "unknown")
-    history_dir = context.get("_history_dir", "conversation_histories")
+    ctx = context.context if hasattr(context, 'context') else {}
+    session_id = ctx.get("_session_id", "unknown")
+    history_dir = ctx.get("_history_dir", "conversation_histories")
     manager = HistoryManager(history_dir, session_id)
     
     # 加载历史并按轮次分组
@@ -227,14 +271,31 @@ async def on_browse_history_invoke(context: RunContextWrapper, params_str: str) 
         
         for record in turn_records:
             if record.get("item_type") == "message_output_item":
+                raw_content = record.get("raw_content", {})
+                role = "unknown"
+                content = ""
+                if isinstance(raw_content, dict):
+                    role = raw_content.get("role", "unknown")
+                    # 提取文本内容
+                    content_parts = []
+                    for content_item in raw_content.get("content", []):
+                        if isinstance(content_item, dict) and content_item.get("type") == "output_text":
+                            content_parts.append(content_item.get("text", ""))
+                    content = " ".join(content_parts)
+                
                 turn_summary["messages"].append({
-                    "role": record.get("role", "unknown"),
-                    "content": record.get("content", "")[:200] + "..." if len(record.get("content", "")) > 200 else record.get("content", "")
+                    "role": role,
+                    "content": content[:200] + "..." if len(content) > 200 else content
                 })
             elif record.get("item_type") == "tool_call_item":
+                raw_content = record.get("raw_content", {})
+                tool_name = "unknown"
+                if isinstance(raw_content, dict):
+                    tool_name = raw_content.get("name", "unknown")
+                
                 turn_summary["messages"].append({
                     "type": "tool_call",
-                    "tool": record.get("tool_name", "unknown")
+                    "tool": tool_name
                 })
         
         results.append(turn_summary)

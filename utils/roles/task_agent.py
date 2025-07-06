@@ -461,7 +461,7 @@ class TaskAgent:
                 else:
                     user_query = await self.user_simulator.interact()
                     self._debug_print(f"user: {user_query}")
-                
+
                 # 添加到历史
                 self.logs.append({"role": "user", "content": user_query})
 
@@ -475,6 +475,15 @@ class TaskAgent:
                 self.shared_context["_context_meta"]["mini_turns_in_current_sequence"] += 1
                 self.shared_context["_context_meta"]["total_turns_ever"] += 1
                 self.shared_context["_context_meta"]["current_turn"] += 1
+
+                # 保存用户输入到历史
+                current_turn = self.shared_context["_context_meta"]["current_turn"]
+                ContextManagedRunner._save_user_input_to_history(
+                    session_id=self.session_id,
+                    user_input=user_query,
+                    history_dir=self.history_dir,
+                    turn_number=current_turn
+                )
 
                 # 添加到记录
                 self.logs_to_record.append({"role": "user", "content": user_query})
@@ -586,7 +595,7 @@ class TaskAgent:
         # 从 ContextManagedRunner 获取完整的格式化历史
         if self.session_id and self.history_dir:
             complete_messages = ContextManagedRunner.get_formatted_history(
-                self.history_dir, 
+                self.history_dir,
                 self.session_id
             )
             session_stats = ContextManagedRunner.get_session_stats(

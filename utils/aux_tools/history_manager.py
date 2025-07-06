@@ -48,14 +48,14 @@ class HistoryManager:
         keywords_lower = [k.lower() for k in keywords]
         
         for record in history:
-            # 搜索内容字段
-            content = record.get('content', '')
-            if isinstance(content, str):
-                content_lower = content.lower()
+            # 从 raw_content 中提取搜索内容
+            search_content = self._extract_search_content(record)
+            if search_content:
+                search_content_lower = search_content.lower()
                 # 检查所有关键词是否都出现
-                if all(keyword in content_lower for keyword in keywords_lower):
+                if all(keyword in search_content_lower for keyword in keywords_lower):
                     # 添加匹配上下文
-                    match_context = self._extract_match_context(content, keywords)
+                    match_context = self._extract_match_context(search_content, keywords)
                     record['match_context'] = match_context
                     matches.append(record)
         
@@ -69,6 +69,65 @@ class HistoryManager:
         
         return matches, total_matches
     
+    def _extract_search_content(self, record: Dict[str, Any]) -> str:
+        """从记录中提取搜索内容"""
+        item_type = record.get('item_type', record.get('type', ''))
+        
+        if item_type == 'message_output_item':
+            # 从 raw_content 中提取消息内容
+            raw_content = record.get('raw_content', {})
+            if isinstance(raw_content, dict):
+                # 提取所有文本内容
+                content_parts = []
+                for content_item in raw_content.get('content', []):
+                    if isinstance(content_item, dict) and content_item.get('type') == 'output_text':
+                        content_parts.append(content_item.get('text', ''))
+                return ' '.join(content_parts)
+        
+        elif item_type in ['tool_call_item', 'tool_call_output_item']:
+            # 工具调用和输出，提取工具名称和参数
+            raw_content = record.get('raw_content', {})
+            if isinstance(raw_content, dict):
+                tool_name = raw_content.get('name', '')
+                arguments = raw_content.get('arguments', '')
+                return f"{tool_name} {arguments}"
+        
+        elif item_type in ['initial_input', 'user_input']:
+            # 用户输入
+            content = record.get('content', '')
+            if isinstance(content, str):
+                return content
+            elif isinstance(content, list):
+                # 如果是列表，提取所有文本内容
+                content_parts = []
+                for item in content:
+                    if isinstance(item, dict):
+                        content_parts.append(item.get('content', ''))
+                return ' '.join(content_parts)
+        
+        return ""
+
+    def _extract_role_from_record(self, record: Dict[str, Any]) -> str:
+        """从记录中提取角色信息"""
+        item_type = record.get('item_type', record.get('type', ''))
+        
+        if item_type == 'message_output_item':
+            # 从 raw_content 中提取角色
+            raw_content = record.get('raw_content', {})
+            if isinstance(raw_content, dict):
+                return raw_content.get('role', 'unknown')
+        
+        elif item_type in ['initial_input', 'user_input']:
+            return 'user'
+        
+        elif item_type == 'tool_call_item':
+            return 'assistant'
+        
+        elif item_type == 'tool_call_output_item':
+            return 'tool'
+        
+        return 'unknown'
+
     def _extract_match_context(self, content: str, keywords: List[str], context_length: int = 50) -> str:
         """提取关键词周围的上下文"""
         content_lower = content.lower()
@@ -153,8 +212,8 @@ class HistoryManager:
             if 'turn' in record:
                 turns.add(record['turn'])
             
-            # 角色
-            role = record.get('role', 'unknown')
+            # 角色 - 从 raw_content 中提取
+            role = self._extract_role_from_record(record)
             roles[role] = roles.get(role, 0) + 1
             
             # 类型

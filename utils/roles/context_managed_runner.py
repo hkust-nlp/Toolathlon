@@ -61,7 +61,8 @@ class ContextManagedRunner(Runner):
         wrapped_context = cls._init_context_metadata(context, session_id, history_dir)
         
         # 记录初始输入到历史
-        cls._save_initial_input_to_history(session_id, input, history_dir)
+        # 不用记录,会在user那里处理
+        # cls._save_initial_input_to_history(session_id, input, history_dir)
         
         # 调用父类的 run 方法
         result = await super().run(
@@ -141,7 +142,7 @@ class ContextManagedRunner(Runner):
 
     @classmethod
     async def _run_single_turn(cls, **kwargs):
-        print('----IN-----')
+        # print('----IN-----')
         """重写单轮执行，添加历史保存和截断检查"""
         
         # 获取 context_wrapper
@@ -202,8 +203,8 @@ class ContextManagedRunner(Runner):
 
         meta["boundary_in_current_sequence"].append((meta["mini_turns_in_current_sequence"], 
                                                      meta["mini_turns_in_current_sequence"]+len(result.new_step_items)))
-        print("len(meta['boundary_in_current_sequence'])", len(meta["boundary_in_current_sequence"]))
-        print("meta['turns_in_current_sequence']", meta["turns_in_current_sequence"])
+        # print("len(meta['boundary_in_current_sequence'])", len(meta["boundary_in_current_sequence"]))
+        # print("meta['turns_in_current_sequence']", meta["turns_in_current_sequence"])
         
         assert len(meta["boundary_in_current_sequence"]) == meta["turns_in_current_sequence"], (
             f"boundary_in_current_sequence 长度与 turns_in_current_sequence 不一致: {len(meta['boundary_in_current_sequence'])} != {meta['turns_in_current_sequence']}, 其中boundary_in_current_sequence: {meta['boundary_in_current_sequence']}"
@@ -221,19 +222,20 @@ class ContextManagedRunner(Runner):
 
         # 保存新增的项目到历史
         session_id = ctx.get("_session_id")
-        if session_id and len(generated_items) > items_before:
-            new_items = generated_items[items_before:]
-            cls._save_items_to_history(
-                session_id=session_id,
-                turn_number=meta.get("current_turn", 0),
-                items=new_items,
-                agent_name=agent.name if agent else "unknown",
-                history_dir=history_dir
-            )
+        # print("session_id", session_id, "len(generated_items)", len(generated_items), "items_before", items_before)
+        # if session_id and len(generated_items) > items_before:
+            # new_items = generated_items[items_before:]
+        cls._save_items_to_history(
+            session_id=session_id,
+            turn_number=meta.get("current_turn", 0),
+            items=result.new_step_items,
+            agent_name=agent.name if agent else "unknown",
+            history_dir=history_dir
+        )
         
         # 检查待处理的截断请求
         pending_truncate = ctx.get("_pending_truncate")
-        print("pending_truncate", pending_truncate)
+        # print("pending_truncate", pending_truncate)
 
         # 获取全序列 items, 类型为list[TResponseInputItem]
         all_seq_items = ItemHelpers.input_to_new_input_list(original_input)
@@ -265,8 +267,8 @@ class ContextManagedRunner(Runner):
         # # 更新统计信息
         # cls._update_context_stats(context_wrapper, generated_items)
         
-        print("result.next_step", result.next_step)
-        print('----OUT-----')
+        # print("result.next_step", result.next_step)
+        # print('----OUT-----')
         
         return result
     
@@ -449,67 +451,66 @@ class ContextManagedRunner(Runner):
     ):
         """保存项目到历史文件"""
         history_path = history_dir / f"{session_id}_history.jsonl"
-        
+        # print("进入_save_items_to_history")
         with open(history_path, 'a', encoding='utf-8') as f:
-            for item in items:
+            for step_idx, item in enumerate(items):
+                # print("保存item")
                 record = {
-                    "index": -1,  # 将在读取时分配
+                    "in_turn_steps": step_idx,  # 在当前轮次中的步骤顺序
                     "turn": turn_number,
                     "timestamp": datetime.now().isoformat(),
                     "agent": agent_name,
                     "item_type": item.type,
+                    "raw_content": item.raw_item.model_dump() if hasattr(item.raw_item, 'model_dump') else item.raw_item
                 }
-                
-                # 根据不同类型保存内容
-                if isinstance(item, MessageOutputItem):
-                    record["role"] = item.raw_item.role
-                    record["content"] = ItemHelpers.text_message_output(item)
-                    record["raw_content"] = item.raw_item.model_dump()
-                elif isinstance(item, ToolCallItem):
-                    record["tool_name"] = getattr(item.raw_item, 'name', 'unknown')
-                    record["raw_content"] = item.raw_item.model_dump()
-                elif isinstance(item, ToolCallOutputItem):
-                    record["output"] = str(item.output)
-                    record["raw_content"] = item.raw_item
                 
                 f.write(json.dumps(record, ensure_ascii=False) + '\n')
     
     @classmethod
-    def _save_initial_input_to_history(cls, session_id: str, input: Union[str, List[TResponseInputItem]], history_dir: Path):
+    def _save_initial_input_to_history(cls, 
+                                       session_id: str, 
+                                       input: Union[str, List[TResponseInputItem]], 
+                                       history_dir: Path,
+                                       turn_number: int = 0):
         """保存初始输入到历史"""
         history_path = history_dir / f"{session_id}_history.jsonl"
+
+        # 检查是否已经有初始输入记录
+        if history_path.exists():
+            with open(history_path, 'r', encoding='utf-8') as f:
+                for line in f:
+                    try:
+                        record = json.loads(line)
+                        if record.get("type") == "initial_input":
+                            return  # 已经存在，不重复写入
+                    except json.JSONDecodeError:
+                        continue
+
+        with open(history_path, 'a', encoding='utf-8') as f:
+            record = {
+                "in_turn_steps": 0,  # 初始输入总是第一步
+                "turn": turn_number,
+                "timestamp": datetime.now().isoformat(),
+                "type": "initial_input",
+                "content": input if isinstance(input, str) else [item.model_dump() for item in input]
+            }
+            f.write(json.dumps(record, ensure_ascii=False) + '\n')
+
+
+    @classmethod
+    def _save_user_input_to_history(cls, session_id: str, user_input: Union[str, TResponseInputItem], history_dir: Path, turn_number: int):
+        """保存用户输入到历史"""
+        history_path = Path(history_dir) / f"{session_id}_history.jsonl"
         
         with open(history_path, 'a', encoding='utf-8') as f:
             record = {
-                "index": 0,
-                "turn": 0,
+                "in_turn_steps": 0,  # 用户输入在当前轮次中是第一步
+                "turn": turn_number,
                 "timestamp": datetime.now().isoformat(),
-                "type": "initial_input",
-                "content": input if isinstance(input, str) else json.dumps(input)
+                "type": "user_input",
+                "content": user_input if isinstance(user_input, str) else [item.model_dump() for item in user_input]
             }
             f.write(json.dumps(record, ensure_ascii=False) + '\n')
-    
-    # @classmethod
-    # def _update_context_stats(cls, context_wrapper: RunContextWrapper, items: List[RunItem]):
-    #     """更新上下文统计信息"""
-    #     ctx = context_wrapper.context if hasattr(context_wrapper, 'context') else {}
-    #     meta = ctx.get("_context_meta", {})
-        
-    #     # turns_in_current_sequence 应该在 _run_single_turn 中更新，而不是在这里重新计算
-    #     # 这里只需要在截断后重新计算
-    #     if ctx.get("_context_truncated", False):
-    #         # 截断后重新计算当前序列中的轮数
-    #         assistant_count = 0
-    #         for item in items:
-    #             # 检查是否是 Message 类型且角色为 assistant
-    #             if isinstance(item, dict) and item.get("type") == "message" and item.get("role") == "assistant":
-    #                 assistant_count += 1
-    #             # 也检查 ResponseOutputMessageParam 类型
-    #             elif hasattr(item, 'role') and hasattr(item, 'type') and item.type == "message" and item.role == 'assistant':
-    #                 assistant_count += 1
-            
-    #         meta["turns_in_current_sequence"] = assistant_count
-    #         ctx["_context_truncated"] = False  # 重置标记
     
     @classmethod
     def _generate_session_id(cls) -> str:

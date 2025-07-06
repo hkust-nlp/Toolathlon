@@ -170,8 +170,8 @@ async def on_manage_context_invoke(context: RunContextWrapper, params_str: str) 
     }
     
     return {
-        "status": "scheduled",
-        "message": "已安排在本轮结束后执行截断操作。",
+        "status": "scheduled", # 虽然返回的时候还没截断,但下次回复会基于截断后的上下文,所以就直接说已完成了
+        "message": "已完成截断操作。",
         "details": {
             "method": method,
             "value": value,
@@ -180,7 +180,7 @@ async def on_manage_context_invoke(context: RunContextWrapper, params_str: str) 
             "will_delete": current_turns - keep_turns,
             "preserve_system_messages": preserve_system
         },
-        "note": "截断将在当前回复完成后执行，下一轮对话将基于截断后的上下文。"
+        # "note": "截断将在本轮完成后执行，下一轮回复将基于截断后的上下文。"
     }
 
 tool_manage_context = FunctionTool(
