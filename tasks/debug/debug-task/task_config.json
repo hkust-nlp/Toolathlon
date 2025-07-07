@@ -1,5 +1,5 @@
 {
-    "needed_mcp_servers": ["canvas"],
+    "needed_mcp_servers": ["pdf-tools","code_runner"],
     "needed_local_tools": ["ai_webpage_summary","sleep","claim_done","manage_context","history"],
     "meta": {}
 }
