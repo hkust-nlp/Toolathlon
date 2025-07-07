@@ -50,3 +50,6 @@
 - 支持任务override token_key_session
     - 相关文件 `tasks/debug/debug-task/token_key_session.py` 在这里填入和 `configs/token_key_session.py` 同名的变量可以覆盖后者的设置
     - TODO: gmail/google calendar现在依赖于.gmail-mcp 和 .calendar-mcp， 想想办法
+
+## 2025.7.7 11:50
+- 修复任务override token_key_session 路径不存在的bug

@@ -196,14 +196,15 @@ class TaskConfig:
         if self.local_token_key_session is None:
             # 构造模块路径
             token_key_session_path = str(Path("tasks")/ self.task_dir / "token_key_session.py")
-    
-            # 使用 importlib.util 来从文件路径导入模块
-            spec = importlib.util.spec_from_file_location("token_key_session", token_key_session_path)
-            token_key_session_module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(token_key_session_module)
-            
-            # 获取 all_token_key_session 变量
-            self.local_token_key_session = token_key_session_module.all_token_key_session
+
+            if Path(token_key_session_path).exists():
+                # 使用 importlib.util 来从文件路径导入模块
+                spec = importlib.util.spec_from_file_location("token_key_session", token_key_session_path)
+                token_key_session_module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(token_key_session_module)
+                
+                # 获取 all_token_key_session 变量
+                self.local_token_key_session = token_key_session_module.all_token_key_session
 
             
         
