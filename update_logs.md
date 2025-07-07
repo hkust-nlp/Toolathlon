@@ -45,3 +45,8 @@
 - 添加google sheet mcp server
     - 相关文件 `configs/google_sheets_service_credentials.json` `configs/mcp_servers/google_sheet.yaml`
     - *有点小问题，尝试创建spreadsheet时报403权限错误
+
+## 2025.7.7 11:10
+- 支持任务override token_key_session
+    - 相关文件 `tasks/debug/debug-task/token_key_session.py` 在这里填入和 `configs/token_key_session.py` 同名的变量可以覆盖后者的设置
+    - TODO: gmail/google calendar现在依赖于.gmail-mcp 和 .calendar-mcp， 想想办法

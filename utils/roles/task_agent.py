@@ -299,12 +299,13 @@ class TaskAgent:
         return True
 
     
-    async def setup_mcp_servers(self) -> None:
+    async def setup_mcp_servers(self, local_token_key_session: Dict) -> None:
         """设置并连接MCP服务器"""
         self.mcp_manager = MCPServerManager(
             agent_workspace=self.task_config.agent_workspace,
             config_dir=self.mcp_config.server_config_path,
-            debug=self.debug
+            debug=self.debug,
+            local_token_key_session=local_token_key_session
         )
         await self.mcp_manager.connect_servers(self.task_config.needed_mcp_servers)
     
@@ -648,7 +649,7 @@ class TaskAgent:
                 return TaskStatus.FAILED
             
             # 设置MCP服务器
-            await self.setup_mcp_servers()
+            await self.setup_mcp_servers(self.task_config.local_token_key_session)
             
             # 设置Agent
             await self.setup_agent()

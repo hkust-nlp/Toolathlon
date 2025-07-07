@@ -22,7 +22,8 @@ class MCPServerManager:
     def __init__(self, 
                  agent_workspace: str, 
                  config_dir: str = "configs/mcp_servers",
-                 debug: bool = False):
+                 debug: bool = False,
+                 local_token_key_session: Dict = None):
         """
         初始化 MCP 服务器管理器
         
@@ -35,6 +36,7 @@ class MCPServerManager:
         self.servers: Dict[str, Union[MCPServerStdio, MCPServerSse]] = {}
         self.connected_servers: Dict[str, Union[MCPServerStdio, MCPServerSse]] = {}
         self.debug = debug
+        self.local_token_key_session = local_token_key_session
         self._lock = asyncio.Lock()
         # 保存每个服务器的任务，确保在同一个任务中管理生命周期
         self._server_tasks: Dict[str, asyncio.Task] = {}
@@ -110,6 +112,14 @@ class MCPServerManager:
         for key, value in all_token_key_session.items():
             if isinstance(value, (str, int, float, bool)):  # 只处理基本类型
                 template_vars[f'token.{key}'] = str(value)
+        
+        # 用local_token_key_session 覆盖 all_token_key_session
+        # 并加上提示信息
+        if self.local_token_key_session is not None:
+            for key, value in self.local_token_key_session.items():
+                if isinstance(value, (str, int, float, bool)):  # 只处理基本类型
+                    template_vars[f'token.{key}'] = str(value)
+                    # print(f"  - 已覆盖 token.{key} = {value}")
         
         return template_vars
 
