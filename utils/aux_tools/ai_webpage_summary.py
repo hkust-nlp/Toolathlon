@@ -289,7 +289,7 @@ async def on_ai_webpage_summary_tool_invoke(context: RunContextWrapper, params_s
         return f"Error: 处理过程中出现未知错误: {e}"
 
 tool_ai_webpage_summary = FunctionTool(
-    name='ai_webpage_summary',
+    name='local-ai_webpage_summary',
     description='use this tool to get a summary of a webpage, powered by GPT-4.1-nano',
     params_json_schema={
         "type": "object",

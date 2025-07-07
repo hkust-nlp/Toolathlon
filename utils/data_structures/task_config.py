@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+import importlib.util
 from typing import List, Dict, Optional, Union
 from pathlib import Path
 from datetime import datetime
@@ -99,7 +100,7 @@ class StopConditions:
         if "tool_names" in stop_conditions:
             tool_names = stop_conditions["tool_names"]
         else:
-            tool_names = ['claim_done']
+            tool_names = ['local-claim_done']
         return cls(user_phrases=user_phrases, tool_names=tool_names)
 
 @dataclass
@@ -126,6 +127,8 @@ class TaskConfig:
 
     agent_short_name: str = None
     global_task_config: Dict = None
+
+    local_token_key_session: Dict = None
     
     def __post_init__(self):
         """在初始化后自动设置默认值"""
@@ -189,6 +192,20 @@ class TaskConfig:
                                   self.task_str, 
                                   self.launch_time,
                                   self.single_turn_mode)
+
+        if self.local_token_key_session is None:
+            # 构造模块路径
+            token_key_session_path = str(Path("tasks")/ self.task_dir / "token_key_session.py")
+    
+            # 使用 importlib.util 来从文件路径导入模块
+            spec = importlib.util.spec_from_file_location("token_key_session", token_key_session_path)
+            token_key_session_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(token_key_session_module)
+            
+            # 获取 all_token_key_session 变量
+            self.local_token_key_session = token_key_session_module.all_token_key_session
+
+            
         
     
     # 使用 Path 对象的属性方法
@@ -273,7 +290,8 @@ class TaskConfig:
                 'groundtruth_workspace': self.evaluation.groundtruth_workspace,
                 'evaluation_command': self.evaluation.evaluation_command
             },
-            'meta': self.meta
+            'meta': self.meta,
+            'local_token_key_session': self.local_token_key_session
         }
 
     def ensure_directories(self):

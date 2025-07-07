@@ -20,3 +20,33 @@
 - 更新canvas mcp server 版本
 - 添加canvas token， 对应使用谷歌账号 kewincpt93@gmail.com 直接授权登录
 
+## 2025.7.5 17:00
+- 添加上下文管理工具，已初步验证
+    - 相关文件 `utils/roles/context_managed_runner.py`, `utils/roles/task_agent.py`, `utils/aux_tools/context_management_tools.py`
+- 添加历史记录搜索工具，还未验证，仍需debug
+
+## 2025.7.6 17:00
+- 添加历史记录搜索工具，已初步验证
+    - 相关文件 `utils/roles/context_managed_runner.py`, `utils/roles/task_agent.py`, `utils/aux_tools/history_manager.py`, `utils/aux_tools/history_tools.py`
+
+## 2025.7.6 17:20
+- 修改log保存逻辑
+    - 相关文件 `utils/roles/task_agent.py`
+
+## 2025.7.6 17:30
+- 修改log保存逻辑
+    - 相关文件 `utils/roles/task_agent.py`
+
+## 2025.7.7 3:00
+- 恢复高德地图mcp
+    - 相关文件 `configs/mcp_servers/amap.yaml`
+
+## 2025.7.7 3:45
+- 添加google sheet mcp server
+    - 相关文件 `configs/google_sheets_service_credentials.json` `configs/mcp_servers/google_sheet.yaml`
+    - *有点小问题，尝试创建spreadsheet时报403权限错误
+
+## 2025.7.7 11:10
+- 支持任务override token_key_session
+    - 相关文件 `tasks/debug/debug-task/token_key_session.py` 在这里填入和 `configs/token_key_session.py` 同名的变量可以覆盖后者的设置
+    - TODO: gmail/google calendar现在依赖于.gmail-mcp 和 .calendar-mcp， 想想办法
