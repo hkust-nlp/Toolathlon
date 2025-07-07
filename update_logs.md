@@ -53,3 +53,7 @@
 
 ## 2025.7.7 11:50
 - 修复任务override token_key_session 路径不存在的bug
+
+## 2025.7.7 17:00
+- 添加mcp pdf tools
+    - 相关文件： `install_records/pdf_tools.md`, `configs/mcp_servers/pdf_tools.yaml`

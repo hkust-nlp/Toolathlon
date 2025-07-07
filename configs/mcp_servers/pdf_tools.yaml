@@ -1,0 +1,13 @@
+# pdf工具
+# https://github.com/hanweg/mcp-pdf-tools
+type: stdio
+name: pdf-tools
+params:
+  command: uv
+  args:
+    - "--directory"
+    - "${local_servers_paths}/mcp-pdf-tools"
+    - "run"
+    - "pdf-tools"
+client_session_timeout_seconds: 10
+cache_tools_list: true
