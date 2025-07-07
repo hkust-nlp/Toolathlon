@@ -451,6 +451,9 @@ class ContextManagedRunner(Runner):
     ):
         """保存项目到历史文件"""
         history_path = history_dir / f"{session_id}_history.jsonl"
+        # 保证目录存在
+        history_path.parent.mkdir(parents=True, exist_ok=True)
+        
         # print("进入_save_items_to_history")
         with open(history_path, 'a', encoding='utf-8') as f:
             for step_idx, item in enumerate(items):
@@ -474,6 +477,8 @@ class ContextManagedRunner(Runner):
                                        turn_number: int = 0):
         """保存初始输入到历史"""
         history_path = history_dir / f"{session_id}_history.jsonl"
+        # 保证目录存在
+        history_path.parent.mkdir(parents=True, exist_ok=True)
 
         # 检查是否已经有初始输入记录
         if history_path.exists():
@@ -501,7 +506,9 @@ class ContextManagedRunner(Runner):
     def _save_user_input_to_history(cls, session_id: str, user_input: Union[str, TResponseInputItem], history_dir: Path, turn_number: int):
         """保存用户输入到历史"""
         history_path = Path(history_dir) / f"{session_id}_history.jsonl"
-        
+        # 保证目录存在
+        history_path.parent.mkdir(parents=True, exist_ok=True)
+
         with open(history_path, 'a', encoding='utf-8') as f:
             record = {
                 "in_turn_steps": 0,  # 用户输入在当前轮次中是第一步
