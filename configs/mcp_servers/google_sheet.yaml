@@ -7,8 +7,8 @@ params:
   args:
     - "mcp-google-sheets@latest"
   env:
-    CREDENTIALS_PATH: "${token.credentials_path}"
-    TOKEN_PATH: "${token.token_path}"
+    CREDENTIALS_PATH: "${token.google_oauth2_credentials_path}"
+    TOKEN_PATH: "${token.google_oauth2_token_path}"
     DRIVE_FOLDER_ID: "${token.google_sheets_folder_id}"
 client_session_timeout_seconds: 10
 cache_tools_list: true
