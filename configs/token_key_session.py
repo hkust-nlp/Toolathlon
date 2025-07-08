@@ -19,5 +19,7 @@ all_token_key_session = Dict(
     wandb_api_key = "b3abe195bd69c07bdc47469d3956ac8d0c008714",
     tessdata_prefix = os.environ["TESSDATA_PREFIX"],
     amap_key="f789815a157fe45439c674c4a10e615b",
-    google_sheets_folder_id = "1LYqmSCIlY0NmHtFJwF3Mh1RTb81RWHvU"
+    google_sheets_folder_id = "1LYqmSCIlY0NmHtFJwF3Mh1RTb81RWHvU",
+    google_oauth2_credentials_path = "configs/credentials.json",
+    google_oauth2_token_path = "configs/credentials.json" # I just put them all together in the same file
 )
