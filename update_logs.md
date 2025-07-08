@@ -61,3 +61,6 @@
 ## 2025.7.8 11:00
 - 修改google sheet mcp server认证方式为OAuth 2.0， 所有功能均正常
     - 相关文件： `configs/mcp_servers/google_sheet.yaml`
+
+## 2025.7.8 14:00
+- 修改安装问题，改用uv sync

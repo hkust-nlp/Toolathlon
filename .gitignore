@@ -1,8 +1,8 @@
 **/__pycache__/
 .venv
 .python-version
-pyproject.toml
-uv.lock
+# pyproject.toml
+# uv.lock
 
 local_tools
 local_servers
