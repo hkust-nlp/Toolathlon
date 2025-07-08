@@ -2,7 +2,7 @@ In this file we guide you how to install all needed servers for this project.
 
 1. install basic dependencies
     ```
-    uv add -r requirements.txt
+    uv sync
     ```
     This will install all dependencies of this project, as well as some mcp servers built on third party python packages
 
