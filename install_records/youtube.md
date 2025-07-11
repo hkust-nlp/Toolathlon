@@ -8,8 +8,10 @@ https://github.com/ZubeidHendricks/youtube-mcp-server
 cd local_servers
 git clone https://github.com/ZubeidHendricks/youtube-mcp-server
 cd youtube-mcp-server
-git checkout ec766e3aec35f40e55c3f8983123e56758e5c82c
+git checkout 387a617bd83454894873ffd79530e3a35d5227a8
 npm install
 npm run build
 npm link
 ```
+
+*Note: 该工具的字幕获取功能现在有问题

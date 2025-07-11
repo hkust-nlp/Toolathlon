@@ -4,8 +4,6 @@ from typing import List, Dict, Optional, Union
 from pathlib import Path
 from datetime import datetime
 
-from agents import agent_span
-from psutil import users
 from utils.general.helper import path_to_module, read_json
 import os
 
