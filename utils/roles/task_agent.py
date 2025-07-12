@@ -42,6 +42,7 @@ from utils.aux_tools.basic import tool_sleep, tool_done
 from utils.aux_tools.ai_webpage_summary import tool_ai_webpage_summary
 from utils.aux_tools.context_management_tools import context_management_tools
 from utils.aux_tools.history_tools import history_tools
+from utils.aux_tools.python_interpretor import tool_python_execute
 
 local_tool_mappings = {
     "ai_webpage_summary": tool_ai_webpage_summary,
@@ -49,6 +50,7 @@ local_tool_mappings = {
     "claim_done": tool_done,
     "manage_context": context_management_tools,
     "history": history_tools,
+    'python_execute': tool_python_execute,
 }
 
 class TaskStatus(Enum):
@@ -407,6 +409,8 @@ class TaskAgent:
         
         # 初始化共享的 context（重要！）
         self.shared_context = {
+            "_agent_workspace": self.task_config.agent_workspace,
+
             "_session_id": self.session_id,
             "_history_dir": self.history_dir,
             "_context_meta": {

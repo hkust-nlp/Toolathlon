@@ -1,5 +1,5 @@
 {
-    "needed_mcp_servers": ["youtube"],
-    "needed_local_tools": [],
+    "needed_mcp_servers": ["filesystem", "terminal"],
+    "needed_local_tools": ["python_execute"],
     "meta": {}
 }
