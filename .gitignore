@@ -26,3 +26,5 @@ manual/
 # scripts/debug_manual.sh
 # scripts/debug_eval_config.json
 # scripts/update_trajectories.sh
+tmp/
+.tmp/

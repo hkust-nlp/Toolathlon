@@ -25,14 +25,6 @@ class TaskEvaluator:
         task_config = TaskConfig.from_dict(dump_line['config'])
         task_status = dump_line['status']
 
-        # 首先检查任务是否成功完成
-        if task_status != TaskStatus.SUCCESS.value:
-            return {
-                "pass": False, 
-                "failure": "task_not_successfully_executed",
-                "details": f"Task status: {task_status}"
-            }
-
         # 准备评估所需的信息
         res_log_file = task_config.log_file
         agent_workspace = task_config.agent_workspace
@@ -49,45 +41,19 @@ class TaskEvaluator:
                 return {
                     "pass": False, 
                     "failure": output,
-                    # "details": err
                 }
-            # except Exception as e:
-            #     return {
-            #         "pass": False, 
-            #         "failure": "fail_to_pass_log_check",
-            #         "details": str(e)
-            #     }
-            
-        # # 评估本地状态
-        # if eval_local_state_command is not None:
-        #     try:
-        #         args = f"--agent_workspace {agent_workspace} --groundtruth_workspace {groundtruth_workspace}"
-        #         command = f"{eval_local_state_command} {args}"
-        #         await run_command(command)
-        #     except Exception as e:
-        #         return {
-        #             "pass": False, 
-        #             "failure": "fail_to_pass_local_state_check",
-        #             "details": str(e)
-        #         }
-    
-        # # 评估远程状态
-        # if eval_remote_state_command is not None:
-        #     try:
-        #         args = f"--agent_workspace {agent_workspace} --groundtruth_workspace {groundtruth_workspace} --res_log_file {res_log_file}"
-        #         command = f"{eval_remote_state_command} {args}"
-        #         await run_command(command)
-        #     except Exception as e:
-        #         return {
-        #             "pass": False, 
-        #             "failure": "fail_to_pass_remote_state_check",
-        #             "details": str(e)
-        #         }
 
-        return {
-            "pass": True,
-            "details": "All evaluation checks passed"
-        }
+        if task_status != TaskStatus.SUCCESS.value:
+            return {
+                "pass": True, 
+                # 原因是模型可能前面已经做对，但花了一些时间在检查，导致超过轮数限制了
+                "details": f"Task status: {task_status}, but all evaluation checks passed, so we consider it passed"
+            }
+        else:
+            return {
+                "pass": True,
+                "details": "All evaluation checks passed, and task status is success"
+            }
     
     @staticmethod
     async def evaluate_from_log_file(log_file_path: str, allow_resume: bool = False) -> Dict[str, Any]:

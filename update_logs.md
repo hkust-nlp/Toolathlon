@@ -68,5 +68,5 @@
 - 修改安装问题，改用uv sync
 
 ## 2025.7.12 18:00
-- 移除了code_runner，改用一个新写的，更安全的python执行工具
+- 移除了code_runner server (因为没法指定工作路径，感觉有点笨)，改用一个新写的python执行工具.
     - 可用工具 "python_execute"
