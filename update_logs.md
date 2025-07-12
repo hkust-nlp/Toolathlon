@@ -11,7 +11,7 @@
     - 相关文件  `utils/aux_tools/ai_webpage_summary.py`
 - 添加本地工具到task_config中
     - 在task config中添加 "needed_local_tools": ["ai_webpage_summary"] 即可
-    - 可用工具 "ai_webpage_summary"，"sleep"，"done"
+    - 可用工具 "ai_webpage_summary"，"sleep"，"claim_done"
 
 ## 2025.7.2 14:00
 - 更新canvas mcp server相关说明，见 `install_records/canvas.md`
@@ -23,11 +23,13 @@
 ## 2025.7.5 17:00
 - 添加上下文管理工具，已初步验证
     - 相关文件 `utils/roles/context_managed_runner.py`, `utils/roles/task_agent.py`, `utils/aux_tools/context_management_tools.py`
+    - 可用工具 “manage_context”
 - 添加历史记录搜索工具，还未验证，仍需debug
 
 ## 2025.7.6 17:00
 - 添加历史记录搜索工具，已初步验证
     - 相关文件 `utils/roles/context_managed_runner.py`, `utils/roles/task_agent.py`, `utils/aux_tools/history_manager.py`, `utils/aux_tools/history_tools.py`
+    - 可用工具 “history”
 
 ## 2025.7.6 17:20
 - 修改log保存逻辑
@@ -64,3 +66,7 @@
 
 ## 2025.7.8 14:00
 - 修改安装问题，改用uv sync
+
+## 2025.7.12 18:00
+- 移除了code_runner，改用一个新写的，更安全的python执行工具
+    - 可用工具 "python_execute"
