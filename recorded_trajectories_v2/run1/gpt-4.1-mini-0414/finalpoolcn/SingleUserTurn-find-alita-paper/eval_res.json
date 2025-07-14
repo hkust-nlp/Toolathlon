@@ -1,4 +1,4 @@
 {
   "pass": false,
-  "failure": "Unable to find the answer in assistant messages.\n"
+  "failure": "Unable to find a valid downloaded pdf!\n"
 }
