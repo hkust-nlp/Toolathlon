@@ -39,7 +39,7 @@ class SystemPrompts:
             self.agent = self.agent.replace("!!<<<<||||workspace_dir_rela||||>>>>!!", os.path.relpath(agent_workspace))
             self.agent = self.agent.replace("!!<<<<||||time||||>>>>!!", time)
             if single_turn_mode: ### FIXME: hardcoded now, should be dynamic
-                self.agent+="\n请独立完成给定的任务，不要再向用户确认信息或获取额外的用户反馈，你应当独自处理遇到的一切情况，用户不会再给你提供任何信息。"
+                self.agent+="\nPlease complete the given task independently. Do not seek confirmation or additional feedback from the user. You should handle all situations on your own, as the user will not provide any further information."
         if self.user is not None:
             self.user = self.user.replace("!!<<<<||||task_description||||>>>>!!", task_str)
         return self
