@@ -603,5 +603,9 @@ def get_module_path(replace_last: str = None) -> str:
     
     return module_path
 
+def normalize_str(xstring):
+    # remove punctuation and whitespace and lowercase
+    return re.sub(r'[^\w\s]', '', xstring).lower().strip()
+
 if __name__=="__main__":
     pass

@@ -1,6 +1,0 @@
-{
-    "needed_mcp_servers": ["arxiv_local", "filesystem"],
-    "needed_local_tools": ["ai_webpage_summary"],
-    "max_turns": 10,
-    "meta": {}
-} 
