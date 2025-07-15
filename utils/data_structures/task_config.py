@@ -14,9 +14,13 @@ class SystemPrompts:
     user: Union[str, Dict]
     
     @classmethod
-    def build(cls, task_dir: str):
-        agent_sp_path = Path("tasks")/task_dir/"docs"/"agent_system_prompt.md"
-        user_sp_path = Path("tasks")/task_dir/"docs"/"user_system_prompt.md"
+    def build(cls, task_dir: str, en_mode: bool=False):
+        if en_mode:
+            agent_sp_path = Path("tasks")/task_dir/"docs"/"agent_system_prompt_en.md"
+            user_sp_path = Path("tasks")/task_dir/"docs"/"user_system_prompt_en.md"
+        else:
+            agent_sp_path = Path("tasks")/task_dir/"docs"/"agent_system_prompt.md"
+            user_sp_path = Path("tasks")/task_dir/"docs"/"user_system_prompt.md"
         if agent_sp_path.exists():
             with open(agent_sp_path, 'r', encoding='utf-8') as f:
                 agent_sp = f.read()
@@ -32,14 +36,19 @@ class SystemPrompts:
     def apply(self, agent_workspace: str, 
               task_str: str,
               time: str,
-              single_turn_mode: bool=False):
+              single_turn_mode: bool=False,
+              en_mode: bool=False):
+
         if self.agent is not None:
             self.agent = self.agent.replace("!!<<<<||||current_working_dir||||>>>>!!", os.getcwd())
             self.agent = self.agent.replace("!!<<<<||||workspace_dir||||>>>>!!", os.path.abspath(agent_workspace))
             self.agent = self.agent.replace("!!<<<<||||workspace_dir_rela||||>>>>!!", os.path.relpath(agent_workspace))
             self.agent = self.agent.replace("!!<<<<||||time||||>>>>!!", time)
-            if single_turn_mode: ### FIXME: hardcoded now, should be dynamic
-                self.agent+="\n请独立完成给定的任务，不要再向用户确认信息或获取额外的用户反馈，你应当独自处理遇到的一切情况，用户不会再给你提供任何信息。"
+            if single_turn_mode:
+                if en_mode:
+                    self.agent+="\nPlease complete the given task independently. Do not seek confirmation or additional feedback from the user. You should handle all situations on your own, as the user will not provide any further information."
+                else:
+                    self.agent+="\n请独立完成给定的任务。不要寻求用户的确认或额外的反馈。你应该自己处理所有情况，因为用户不会提供任何进一步的信息。"
         if self.user is not None:
             self.user = self.user.replace("!!<<<<||||task_description||||>>>>!!", task_str)
         return self
@@ -51,9 +60,17 @@ class Initialization:
     process_command: str
 
     @classmethod
-    def build(cls, task_dir: str):
+    def build(cls, task_dir: str, en_mode: bool=False):
         workspace_path = Path("tasks")/task_dir/"initial_workspace"
         process_command_path = Path("tasks")/task_dir/"preprocess"/"main.py"
+
+        # if en_mode and these paths exists, overwrite them
+        if en_mode:
+            if (Path("tasks")/task_dir/"initial_workspace_en").exists():
+                workspace_path = Path("tasks")/task_dir/"initial_workspace_en"
+            if (Path("tasks")/task_dir/"preprocess"/"main_en.py").exists():
+                process_command_path = Path("tasks")/task_dir/"preprocess"/"main_en.py"
+
         if process_command_path.exists():
             process_command = f"uv run -m {path_to_module(process_command_path)}"
         else:
@@ -70,9 +87,17 @@ class Evaluation:
     groundtruth_workspace: str
     evaluation_command: str
     @classmethod
-    def build(cls, task_dir: str):
+    def build(cls, task_dir: str, en_mode: bool=False):
         groundtruth_workspace_path = Path("tasks")/task_dir/"groundtruth_workspace"
         evaluation_command_path = Path("tasks")/task_dir/"evaluation"/"main.py"
+
+        # if en_mode and these paths exists, overwrite them
+        if en_mode:
+            if (Path("tasks")/task_dir/"groundtruth_workspace_en").exists():
+                groundtruth_workspace_path = Path("tasks")/task_dir/"groundtruth_workspace_en"
+            if (Path("tasks")/task_dir/"evaluation"/"main_en.py").exists():
+                evaluation_command_path = Path("tasks")/task_dir/"evaluation"/"main_en.py"
+
         if evaluation_command_path.exists():
             evaluation_command = f"uv run -m {path_to_module(evaluation_command_path)}"
         else:
@@ -122,6 +147,7 @@ class TaskConfig:
     max_turns: int = None
     max_steps_under_single_turn_mode: int = None
     single_turn_mode: bool = False
+    en_mode: bool = False
     meta: Dict = field(default_factory=dict)
     launch_time: str = None
 
@@ -141,16 +167,21 @@ class TaskConfig:
         if self.id is None:
             self.id = '-'.join(Path(self.task_dir).parts)
 
+        prefix = ''
+        if self.en_mode:
+            prefix = 'English-'
         if self.single_turn_mode:
-            # 给task_root的最后一级加一个single_user_turn前缀， 如 xx/yy变为xx/SingleUserTurn-yy
-            task_root_parts = Path(self.task_root).parts
-            if len(task_root_parts) >= 1:
-                # 获取最后一级目录名并添加前缀
-                last_part = task_root_parts[-1]
-                new_last_part = f"SingleUserTurn-{last_part}"
-                # 重新构建路径
-                new_parts = list(task_root_parts[:-1]) + [new_last_part]
-                self.task_root = str(Path(*new_parts))
+            prefix += 'SingleUserTurn-'
+
+        # 给task_root的最后一级加一个single_user_turn前缀， 如 xx/yy变为xx/SingleUserTurn-yy
+        task_root_parts = Path(self.task_root).parts
+        if len(task_root_parts) >= 1:
+            # 获取最后一级目录名并添加前缀
+            last_part = task_root_parts[-1]
+            new_last_part = f"{prefix}{last_part}"
+            # 重新构建路径
+            new_parts = list(task_root_parts[:-1]) + [new_last_part]
+            self.task_root = str(Path(*new_parts))
         
         # 使用 Path 对象处理路径
         task_root_path = Path(self.task_root)
@@ -159,7 +190,10 @@ class TaskConfig:
         self.task_root = str(task_root_path)
 
         if self.task_str is None:
-            task_str_path = Path("tasks")/self.task_dir/"docs"/"task.md"
+            if self.en_mode:
+                task_str_path = Path("tasks")/self.task_dir/"docs"/"task_en.md"
+            else:
+                task_str_path = Path("tasks")/self.task_dir/"docs"/"task.md"
             with open(task_str_path, 'r', encoding='utf-8') as f:
                 self.task_str = f.read()
 
@@ -191,7 +225,8 @@ class TaskConfig:
         self.system_prompts.apply(self.agent_workspace, 
                                   self.task_str, 
                                   self.launch_time,
-                                  self.single_turn_mode)
+                                  self.single_turn_mode,
+                                  self.en_mode)
 
         if self.local_token_key_session is None:
             # 构造模块路径
@@ -240,7 +275,8 @@ class TaskConfig:
                   task_dir: str, 
                   agent_short_name: str = None,
                   global_task_config: dict = None,
-                  single_turn_mode: bool = False) -> 'TaskConfig':
+                  single_turn_mode: bool = False,
+                  en_mode: bool = False) -> 'TaskConfig':
         """从字典创建TaskConfig实例"""
         task_config_dict = read_json(Path("tasks")/task_dir/"task_config.json")
         return cls(
@@ -252,10 +288,11 @@ class TaskConfig:
             agent_short_name = agent_short_name,
             global_task_config=global_task_config,
             stop=StopConditions.build(task_config_dict.get('stop')),
-            system_prompts=SystemPrompts.build(task_dir),
-            initialization=Initialization.build(task_dir),
-            evaluation=Evaluation.build(task_dir),
+            system_prompts=SystemPrompts.build(task_dir, en_mode),
+            initialization=Initialization.build(task_dir, en_mode),
+            evaluation=Evaluation.build(task_dir, en_mode),
             single_turn_mode=single_turn_mode,
+            en_mode=en_mode,
             # 以下日期请包含年月日，时间，和星期
             launch_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S %A")
         )
@@ -275,6 +312,7 @@ class TaskConfig:
             'max_turns': self.max_turns,
             'max_steps_under_single_turn_mode': self.max_steps_under_single_turn_mode,
             'single_turn_mode': self.single_turn_mode,
+            'en_mode': self.en_mode,
             'system_prompts': {
                 'agent': self.system_prompts.agent,
                 'user': self.system_prompts.user
