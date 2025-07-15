@@ -73,3 +73,6 @@
 
 ## 2025.7.15 11:00
 - 增加了英文模式，在原任务下添加带_en后缀各种脚本和文件夹即可识别，demo.py增加参数 --en_mode
+
+## 2025.7.15 14:00
+- 修正terminal服务器的使用方法, 请先 `uv tool install cli-mcp-server`
