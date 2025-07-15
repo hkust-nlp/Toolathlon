@@ -12,6 +12,8 @@ params:
     # - "--no-sandbox"    # 可能带来安全风险，如果您的机器支持沙盒，请删除此选项
     - "--browser"
     - "chromium"        # 请使用 chromium，其他浏览器可能需要 sudo 安装
+    - "--user-agent"
+    - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
   # env:
   #   HTTPS_PROXY: "${config.proxy}"
   #   HTTP_PROXY: "${config.proxy}"
