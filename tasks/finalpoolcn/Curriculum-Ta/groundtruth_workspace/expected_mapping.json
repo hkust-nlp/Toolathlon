@@ -1,8 +1,9 @@
 {
-    "total_students": 20,
-    "total_files": 20,
-    "c_files_count": 11,
-    "rust_files_count": 9,
+    "total_students": 100,
+    "total_files": 100,
+    "c_files_count": 41,
+    "rust_files_count": 39,
+    "python_files_count": 20,
     "expected_students": {
         "张三": {
             "student_id": "2021302001",
@@ -163,6 +164,646 @@
             "expected_renamed": "罗二十二-软件学院-2021302020-OS-HW3.c",
             "file_type": "c",
             "target_folder": "C语言作业"
+        },
+        "吕洋": {
+            "student_id": "2021302021",
+            "college": "计算机科学技术学院",
+            "original_file": "吕洋_计算机系统基础_第assignment_3次作业.rs",
+            "expected_renamed": "吕洋-计算机科学技术学院-2021302021-OS-HW3.rs",
+            "file_type": "rust",
+            "target_folder": "Rust作业"
+        },
+        "李凤": {
+            "student_id": "2021302022",
+            "college": "计算机科学技术学院",
+            "original_file": "李凤-操作系统-第3次作业.c",
+            "expected_renamed": "李凤-计算机科学技术学院-2021302022-OS-HW3.c",
+            "file_type": "c",
+            "target_folder": "C语言作业"
+        },
+        "谢秀": {
+            "student_id": "2021302023",
+            "college": "计算机科学技术学院",
+            "original_file": "谢秀-OS-hw3.rs",
+            "expected_renamed": "谢秀-计算机科学技术学院-2021302023-OS-HW3.rs",
+            "file_type": "rust",
+            "target_folder": "Rust作业"
+        },
+        "高勇": {
+            "student_id": "2021302024",
+            "college": "计算机科学技术学院",
+            "original_file": "高勇-操作系统-第第三次次作业.py",
+            "expected_renamed": "高勇-计算机科学技术学院-2021302024-OS-HW3.py",
+            "file_type": "python",
+            "target_folder": "Python作业"
+        },
+        "姜军": {
+            "student_id": "2021302025",
+            "college": "计算机科学技术学院",
+            "original_file": "姜军_计算机系统基础_3.py",
+            "expected_renamed": "姜军-计算机科学技术学院-2021302025-OS-HW3.py",
+            "file_type": "python",
+            "target_folder": "Python作业"
+        },
+        "田凤": {
+            "student_id": "2021302026",
+            "college": "计算机科学技术学院",
+            "original_file": "田凤-操作系统-hw第3次.rs",
+            "expected_renamed": "田凤-计算机科学技术学院-2021302026-OS-HW3.rs",
+            "file_type": "rust",
+            "target_folder": "Rust作业"
+        },
+        "袁磊": {
+            "student_id": "2021302027",
+            "college": "计算机科学技术学院",
+            "original_file": "袁磊_操作系统_第三次.rs",
+            "expected_renamed": "袁磊-计算机科学技术学院-2021302027-OS-HW3.rs",
+            "file_type": "rust",
+            "target_folder": "Rust作业"
+        },
+        "余萍": {
+            "student_id": "2021302028",
+            "college": "计算机科学技术学院",
+            "original_file": "余萍_OS_hw3.rs",
+            "expected_renamed": "余萍-计算机科学技术学院-2021302028-OS-HW3.rs",
+            "file_type": "rust",
+            "target_folder": "Rust作业"
+        },
+        "王敏": {
+            "student_id": "2021302029",
+            "college": "计算机科学技术学院",
+            "original_file": "王敏-计算机系统基础-assignment_hw3.c",
+            "expected_renamed": "王敏-计算机科学技术学院-2021302029-OS-HW3.c",
+            "file_type": "c",
+            "target_folder": "C语言作业"
+        },
+        "吴明": {
+            "student_id": "2021302030",
+            "college": "计算机科学技术学院",
+            "original_file": "吴明_计算机系统基础_hw3rd.rs",
+            "expected_renamed": "吴明-计算机科学技术学院-2021302030-OS-HW3.rs",
+            "file_type": "rust",
+            "target_folder": "Rust作业"
+        },
+        "高晶": {
+            "student_id": "2021302031",
+            "college": "计算机科学技术学院",
+            "original_file": "高晶_操作系统_assignment_3.rs",
+            "expected_renamed": "高晶-计算机科学技术学院-2021302031-OS-HW3.rs",
+            "file_type": "rust",
+            "target_folder": "Rust作业"
+        },
+        "苏敏": {
+            "student_id": "2021302032",
+            "college": "计算机科学技术学院",
+            "original_file": "苏敏-OS-第3rd次作业.py",
+            "expected_renamed": "苏敏-计算机科学技术学院-2021302032-OS-HW3.py",
+            "file_type": "python",
+            "target_folder": "Python作业"
+        },
+        "于涛": {
+            "student_id": "2021302033",
+            "college": "计算机科学技术学院",
+            "original_file": "于涛-计算机系统基础-assignment_3.py",
+            "expected_renamed": "于涛-计算机科学技术学院-2021302033-OS-HW3.py",
+            "file_type": "python",
+            "target_folder": "Python作业"
+        },
+        "丁婷": {
+            "student_id": "2021302034",
+            "college": "计算机科学技术学院",
+            "original_file": "丁婷_操作系统_第3次实验.py",
+            "expected_renamed": "丁婷-计算机科学技术学院-2021302034-OS-HW3.py",
+            "file_type": "python",
+            "target_folder": "Python作业"
+        },
+        "杜欢": {
+            "student_id": "2021302035",
+            "college": "计算机科学技术学院",
+            "original_file": "杜欢_计算机系统基础_第第3次次作业.py",
+            "expected_renamed": "杜欢-计算机科学技术学院-2021302035-OS-HW3.py",
+            "file_type": "python",
+            "target_folder": "Python作业"
+        },
+        "邓超": {
+            "student_id": "2021302036",
+            "college": "计算机科学技术学院",
+            "original_file": "邓超-OS-assignment_第3次.c",
+            "expected_renamed": "邓超-计算机科学技术学院-2021302036-OS-HW3.c",
+            "file_type": "c",
+            "target_folder": "C语言作业"
+        },
+        "冯健": {
+            "student_id": "2021302037",
+            "college": "计算机科学技术学院",
+            "original_file": "冯健_操作系统_第3次.rs",
+            "expected_renamed": "冯健-计算机科学技术学院-2021302037-OS-HW3.rs",
+            "file_type": "rust",
+            "target_folder": "Rust作业"
+        },
+        "谢伟": {
+            "student_id": "2021302038",
+            "college": "计算机科学技术学院",
+            "original_file": "谢伟_OS_第assignment3次实验.py",
+            "expected_renamed": "谢伟-计算机科学技术学院-2021302038-OS-HW3.py",
+            "file_type": "python",
+            "target_folder": "Python作业"
+        },
+        "范杰": {
+            "student_id": "2021302039",
+            "college": "计算机科学技术学院",
+            "original_file": "范杰-操作系统-assignment_第3次.c",
+            "expected_renamed": "范杰-计算机科学技术学院-2021302039-OS-HW3.c",
+            "file_type": "c",
+            "target_folder": "C语言作业"
+        },
+        "杜萍": {
+            "student_id": "2021302040",
+            "college": "计算机科学技术学院",
+            "original_file": "杜萍-计算机系统基础-3.c",
+            "expected_renamed": "杜萍-计算机科学技术学院-2021302040-OS-HW3.c",
+            "file_type": "c",
+            "target_folder": "C语言作业"
+        },
+        "刘平": {
+            "student_id": "2021302041",
+            "college": "软件学院",
+            "original_file": "刘平-计算机系统基础-第第3次次作业.c",
+            "expected_renamed": "刘平-软件学院-2021302041-OS-HW3.c",
+            "file_type": "c",
+            "target_folder": "C语言作业"
+        },
+        "马明": {
+            "student_id": "2021302042",
+            "college": "软件学院",
+            "original_file": "马明-OS-assignment_assignment3.rs",
+            "expected_renamed": "马明-软件学院-2021302042-OS-HW3.rs",
+            "file_type": "rust",
+            "target_folder": "Rust作业"
+        },
+        "范峰": {
+            "student_id": "2021302043",
+            "college": "软件学院",
+            "original_file": "范峰_计算机系统基础_assignment_第三次.rs",
+            "expected_renamed": "范峰-软件学院-2021302043-OS-HW3.rs",
+            "file_type": "rust",
+            "target_folder": "Rust作业"
+        },
+        "周磊": {
+            "student_id": "2021302044",
+            "college": "软件学院",
+            "original_file": "周磊-操作系统-hwassignment_3.c",
+            "expected_renamed": "周磊-软件学院-2021302044-OS-HW3.c",
+            "file_type": "c",
+            "target_folder": "C语言作业"
+        },
+        "曹军": {
+            "student_id": "2021302045",
+            "college": "软件学院",
+            "original_file": "曹军-OS-第3次作业.rs",
+            "expected_renamed": "曹军-软件学院-2021302045-OS-HW3.rs",
+            "file_type": "rust",
+            "target_folder": "Rust作业"
+        },
+        "杨辉": {
+            "student_id": "2021302046",
+            "college": "软件学院",
+            "original_file": "杨辉_操作系统_hw第3次.c",
+            "expected_renamed": "杨辉-软件学院-2021302046-OS-HW3.c",
+            "file_type": "c",
+            "target_folder": "C语言作业"
+        },
+        "苏霞": {
+            "student_id": "2021302047",
+            "college": "软件学院",
+            "original_file": "苏霞_OS_第第三次次作业.rs",
+            "expected_renamed": "苏霞-软件学院-2021302047-OS-HW3.rs",
+            "file_type": "rust",
+            "target_folder": "Rust作业"
+        },
+        "王龙": {
+            "student_id": "2021302048",
+            "college": "软件学院",
+            "original_file": "王龙-操作系统-assignment_3rd.py",
+            "expected_renamed": "王龙-软件学院-2021302048-OS-HW3.py",
+            "file_type": "python",
+            "target_folder": "Python作业"
+        },
+        "曾欢": {
+            "student_id": "2021302049",
+            "college": "软件学院",
+            "original_file": "曾欢-计算机系统基础-project_assignment_3.py",
+            "expected_renamed": "曾欢-软件学院-2021302049-OS-HW3.py",
+            "file_type": "python",
+            "target_folder": "Python作业"
+        },
+        "徐燕": {
+            "student_id": "2021302050",
+            "college": "软件学院",
+            "original_file": "徐燕_OS_assignment_第3次.py",
+            "expected_renamed": "徐燕-软件学院-2021302050-OS-HW3.py",
+            "file_type": "python",
+            "target_folder": "Python作业"
+        },
+        "吴雷": {
+            "student_id": "2021302051",
+            "college": "软件学院",
+            "original_file": "吴雷_OS_第3rd次作业.c",
+            "expected_renamed": "吴雷-软件学院-2021302051-OS-HW3.c",
+            "file_type": "c",
+            "target_folder": "C语言作业"
+        },
+        "黄琳": {
+            "student_id": "2021302052",
+            "college": "软件学院",
+            "original_file": "黄琳-操作系统-assignment_assignment3.py",
+            "expected_renamed": "黄琳-软件学院-2021302052-OS-HW3.py",
+            "file_type": "python",
+            "target_folder": "Python作业"
+        },
+        "叶鹏": {
+            "student_id": "2021302053",
+            "college": "软件学院",
+            "original_file": "叶鹏-操作系统-assignment_3rd.rs",
+            "expected_renamed": "叶鹏-软件学院-2021302053-OS-HW3.rs",
+            "file_type": "rust",
+            "target_folder": "Rust作业"
+        },
+        "董涛": {
+            "student_id": "2021302054",
+            "college": "软件学院",
+            "original_file": "董涛_操作系统_assignment_第3次.c",
+            "expected_renamed": "董涛-软件学院-2021302054-OS-HW3.c",
+            "file_type": "c",
+            "target_folder": "C语言作业"
+        },
+        "丁强": {
+            "student_id": "2021302055",
+            "college": "软件学院",
+            "original_file": "丁强-操作系统-hw3rd.rs",
+            "expected_renamed": "丁强-软件学院-2021302055-OS-HW3.rs",
+            "file_type": "rust",
+            "target_folder": "Rust作业"
+        },
+        "王慧": {
+            "student_id": "2021302056",
+            "college": "软件学院",
+            "original_file": "王慧_操作系统_project_3rd.py",
+            "expected_renamed": "王慧-软件学院-2021302056-OS-HW3.py",
+            "file_type": "python",
+            "target_folder": "Python作业"
+        },
+        "高晨": {
+            "student_id": "2021302057",
+            "college": "软件学院",
+            "original_file": "高晨-计算机系统基础-hwhw3.rs",
+            "expected_renamed": "高晨-软件学院-2021302057-OS-HW3.rs",
+            "file_type": "rust",
+            "target_folder": "Rust作业"
+        },
+        "黄磊": {
+            "student_id": "2021302058",
+            "college": "软件学院",
+            "original_file": "黄磊-操作系统-assignment_assignment_3.rs",
+            "expected_renamed": "黄磊-软件学院-2021302058-OS-HW3.rs",
+            "file_type": "rust",
+            "target_folder": "Rust作业"
+        },
+        "高军": {
+            "student_id": "2021302059",
+            "college": "软件学院",
+            "original_file": "高军-OS-hw3.c",
+            "expected_renamed": "高军-软件学院-2021302059-OS-HW3.c",
+            "file_type": "c",
+            "target_folder": "C语言作业"
+        },
+        "曹平": {
+            "student_id": "2021302060",
+            "college": "软件学院",
+            "original_file": "曹平_OS_hwhw3.c",
+            "expected_renamed": "曹平-软件学院-2021302060-OS-HW3.c",
+            "file_type": "c",
+            "target_folder": "C语言作业"
+        },
+        "曾琳": {
+            "student_id": "2021302061",
+            "college": "网络安全学院",
+            "original_file": "曾琳-计算机系统基础-第三次.rs",
+            "expected_renamed": "曾琳-网络安全学院-2021302061-OS-HW3.rs",
+            "file_type": "rust",
+            "target_folder": "Rust作业"
+        },
+        "韩杰": {
+            "student_id": "2021302062",
+            "college": "网络安全学院",
+            "original_file": "韩杰_计算机系统基础_3rd.rs",
+            "expected_renamed": "韩杰-网络安全学院-2021302062-OS-HW3.rs",
+            "file_type": "rust",
+            "target_folder": "Rust作业"
+        },
+        "韩辉": {
+            "student_id": "2021302063",
+            "college": "网络安全学院",
+            "original_file": "韩辉_OS_第3次.c",
+            "expected_renamed": "韩辉-网络安全学院-2021302063-OS-HW3.c",
+            "file_type": "c",
+            "target_folder": "C语言作业"
+        },
+        "何慧": {
+            "student_id": "2021302064",
+            "college": "网络安全学院",
+            "original_file": "何慧_操作系统_hw第3次.c",
+            "expected_renamed": "何慧-网络安全学院-2021302064-OS-HW3.c",
+            "file_type": "c",
+            "target_folder": "C语言作业"
+        },
+        "谢飞": {
+            "student_id": "2021302065",
+            "college": "网络安全学院",
+            "original_file": "谢飞_操作系统_assignment_3.rs",
+            "expected_renamed": "谢飞-网络安全学院-2021302065-OS-HW3.rs",
+            "file_type": "rust",
+            "target_folder": "Rust作业"
+        },
+        "田婷": {
+            "student_id": "2021302066",
+            "college": "网络安全学院",
+            "original_file": "田婷-计算机系统基础-3rd.py",
+            "expected_renamed": "田婷-网络安全学院-2021302066-OS-HW3.py",
+            "file_type": "python",
+            "target_folder": "Python作业"
+        },
+        "陈波": {
+            "student_id": "2021302067",
+            "college": "网络安全学院",
+            "original_file": "陈波_操作系统_assignment_第3次.c",
+            "expected_renamed": "陈波-网络安全学院-2021302067-OS-HW3.c",
+            "file_type": "c",
+            "target_folder": "C语言作业"
+        },
+        "吕杰": {
+            "student_id": "2021302068",
+            "college": "网络安全学院",
+            "original_file": "吕杰_OS_3.c",
+            "expected_renamed": "吕杰-网络安全学院-2021302068-OS-HW3.c",
+            "file_type": "c",
+            "target_folder": "C语言作业"
+        },
+        "袁龙": {
+            "student_id": "2021302069",
+            "college": "网络安全学院",
+            "original_file": "袁龙-计算机系统基础-hw3.rs",
+            "expected_renamed": "袁龙-网络安全学院-2021302069-OS-HW3.rs",
+            "file_type": "rust",
+            "target_folder": "Rust作业"
+        },
+        "梁杰": {
+            "student_id": "2021302070",
+            "college": "网络安全学院",
+            "original_file": "梁杰-操作系统-第assignment3次作业.c",
+            "expected_renamed": "梁杰-网络安全学院-2021302070-OS-HW3.c",
+            "file_type": "c",
+            "target_folder": "C语言作业"
+        },
+        "曾燕": {
+            "student_id": "2021302071",
+            "college": "网络安全学院",
+            "original_file": "曾燕-操作系统-hwassignment3.c",
+            "expected_renamed": "曾燕-网络安全学院-2021302071-OS-HW3.c",
+            "file_type": "c",
+            "target_folder": "C语言作业"
+        },
+        "谢琳": {
+            "student_id": "2021302072",
+            "college": "网络安全学院",
+            "original_file": "谢琳_OS_assignment_第三次.rs",
+            "expected_renamed": "谢琳-网络安全学院-2021302072-OS-HW3.rs",
+            "file_type": "rust",
+            "target_folder": "Rust作业"
+        },
+        "杜雷": {
+            "student_id": "2021302073",
+            "college": "网络安全学院",
+            "original_file": "杜雷_操作系统_3.rs",
+            "expected_renamed": "杜雷-网络安全学院-2021302073-OS-HW3.rs",
+            "file_type": "rust",
+            "target_folder": "Rust作业"
+        },
+        "高颖": {
+            "student_id": "2021302074",
+            "college": "网络安全学院",
+            "original_file": "高颖-操作系统-第hw3次作业.c",
+            "expected_renamed": "高颖-网络安全学院-2021302074-OS-HW3.c",
+            "file_type": "c",
+            "target_folder": "C语言作业"
+        },
+        "方晨": {
+            "student_id": "2021302075",
+            "college": "网络安全学院",
+            "original_file": "方晨_操作系统_project_3rd.py",
+            "expected_renamed": "方晨-网络安全学院-2021302075-OS-HW3.py",
+            "file_type": "python",
+            "target_folder": "Python作业"
+        },
+        "江丽": {
+            "student_id": "2021302076",
+            "college": "网络安全学院",
+            "original_file": "江丽_操作系统_assignment_第三次.c",
+            "expected_renamed": "江丽-网络安全学院-2021302076-OS-HW3.c",
+            "file_type": "c",
+            "target_folder": "C语言作业"
+        },
+        "高静": {
+            "student_id": "2021302077",
+            "college": "网络安全学院",
+            "original_file": "高静-操作系统-第assignment_3次作业.c",
+            "expected_renamed": "高静-网络安全学院-2021302077-OS-HW3.c",
+            "file_type": "c",
+            "target_folder": "C语言作业"
+        },
+        "方红": {
+            "student_id": "2021302078",
+            "college": "网络安全学院",
+            "original_file": "方红_计算机系统基础_hw3rd.c",
+            "expected_renamed": "方红-网络安全学院-2021302078-OS-HW3.c",
+            "file_type": "c",
+            "target_folder": "C语言作业"
+        },
+        "谢强": {
+            "student_id": "2021302079",
+            "college": "网络安全学院",
+            "original_file": "谢强_操作系统_第hw3次作业.rs",
+            "expected_renamed": "谢强-网络安全学院-2021302079-OS-HW3.rs",
+            "file_type": "rust",
+            "target_folder": "Rust作业"
+        },
+        "何宁": {
+            "student_id": "2021302080",
+            "college": "网络安全学院",
+            "original_file": "何宁-OS-第hw3次作业.c",
+            "expected_renamed": "何宁-网络安全学院-2021302080-OS-HW3.c",
+            "file_type": "c",
+            "target_folder": "C语言作业"
+        },
+        "丁华": {
+            "student_id": "2021302081",
+            "college": "网络安全学院",
+            "original_file": "丁华-计算机系统基础-第三次.rs",
+            "expected_renamed": "丁华-网络安全学院-2021302081-OS-HW3.rs",
+            "file_type": "rust",
+            "target_folder": "Rust作业"
+        },
+        "何婷": {
+            "student_id": "2021302082",
+            "college": "网络安全学院",
+            "original_file": "何婷_计算机系统基础_assignment_第3次.c",
+            "expected_renamed": "何婷-网络安全学院-2021302082-OS-HW3.c",
+            "file_type": "c",
+            "target_folder": "C语言作业"
+        },
+        "蔡红": {
+            "student_id": "2021302083",
+            "college": "网络安全学院",
+            "original_file": "蔡红-OS-3rd.c",
+            "expected_renamed": "蔡红-网络安全学院-2021302083-OS-HW3.c",
+            "file_type": "c",
+            "target_folder": "C语言作业"
+        },
+        "魏莉": {
+            "student_id": "2021302084",
+            "college": "网络安全学院",
+            "original_file": "魏莉-OS-第assignment3次作业.c",
+            "expected_renamed": "魏莉-网络安全学院-2021302084-OS-HW3.c",
+            "file_type": "c",
+            "target_folder": "C语言作业"
+        },
+        "马霞": {
+            "student_id": "2021302085",
+            "college": "网络安全学院",
+            "original_file": "马霞_OS_hwhw3.py",
+            "expected_renamed": "马霞-网络安全学院-2021302085-OS-HW3.py",
+            "file_type": "python",
+            "target_folder": "Python作业"
+        },
+        "孙秀": {
+            "student_id": "2021302086",
+            "college": "网络安全学院",
+            "original_file": "孙秀_OS_第3rd次作业.rs",
+            "expected_renamed": "孙秀-网络安全学院-2021302086-OS-HW3.rs",
+            "file_type": "rust",
+            "target_folder": "Rust作业"
+        },
+        "姜雷": {
+            "student_id": "2021302087",
+            "college": "网络安全学院",
+            "original_file": "姜雷-OS-3.rs",
+            "expected_renamed": "姜雷-网络安全学院-2021302087-OS-HW3.rs",
+            "file_type": "rust",
+            "target_folder": "Rust作业"
+        },
+        "袁霞": {
+            "student_id": "2021302088",
+            "college": "网络安全学院",
+            "original_file": "袁霞_操作系统_assignment_3.c",
+            "expected_renamed": "袁霞-网络安全学院-2021302088-OS-HW3.c",
+            "file_type": "c",
+            "target_folder": "C语言作业"
+        },
+        "姜健": {
+            "student_id": "2021302089",
+            "college": "网络安全学院",
+            "original_file": "姜健_OS_assignment_第3次.py",
+            "expected_renamed": "姜健-网络安全学院-2021302089-OS-HW3.py",
+            "file_type": "python",
+            "target_folder": "Python作业"
+        },
+        "萧健": {
+            "student_id": "2021302090",
+            "college": "网络安全学院",
+            "original_file": "萧健_计算机系统基础_assignment_assignment_3.py",
+            "expected_renamed": "萧健-网络安全学院-2021302090-OS-HW3.py",
+            "file_type": "python",
+            "target_folder": "Python作业"
+        },
+        "许鹏": {
+            "student_id": "2021302091",
+            "college": "网络安全学院",
+            "original_file": "许鹏_OS_assignment3.c",
+            "expected_renamed": "许鹏-网络安全学院-2021302091-OS-HW3.c",
+            "file_type": "c",
+            "target_folder": "C语言作业"
+        },
+        "彭玲": {
+            "student_id": "2021302092",
+            "college": "网络安全学院",
+            "original_file": "彭玲_计算机系统基础_project_第3次.py",
+            "expected_renamed": "彭玲-网络安全学院-2021302092-OS-HW3.py",
+            "file_type": "python",
+            "target_folder": "Python作业"
+        },
+        "吴宇": {
+            "student_id": "2021302093",
+            "college": "网络安全学院",
+            "original_file": "吴宇_计算机系统基础_第assignment_3次作业.c",
+            "expected_renamed": "吴宇-网络安全学院-2021302093-OS-HW3.c",
+            "file_type": "c",
+            "target_folder": "C语言作业"
+        },
+        "赵洋": {
+            "student_id": "2021302094",
+            "college": "网络安全学院",
+            "original_file": "赵洋-计算机系统基础-第第三次次作业.rs",
+            "expected_renamed": "赵洋-网络安全学院-2021302094-OS-HW3.rs",
+            "file_type": "rust",
+            "target_folder": "Rust作业"
+        },
+        "马琳": {
+            "student_id": "2021302095",
+            "college": "网络安全学院",
+            "original_file": "马琳-操作系统-assignment_3.rs",
+            "expected_renamed": "马琳-网络安全学院-2021302095-OS-HW3.rs",
+            "file_type": "rust",
+            "target_folder": "Rust作业"
+        },
+        "朱颖": {
+            "student_id": "2021302096",
+            "college": "网络安全学院",
+            "original_file": "朱颖-操作系统-第assignment3次作业.rs",
+            "expected_renamed": "朱颖-网络安全学院-2021302096-OS-HW3.rs",
+            "file_type": "rust",
+            "target_folder": "Rust作业"
+        },
+        "萧波": {
+            "student_id": "2021302097",
+            "college": "网络安全学院",
+            "original_file": "萧波-操作系统-assignment_hw3.c",
+            "expected_renamed": "萧波-网络安全学院-2021302097-OS-HW3.c",
+            "file_type": "c",
+            "target_folder": "C语言作业"
+        },
+        "陈燕": {
+            "student_id": "2021302098",
+            "college": "网络安全学院",
+            "original_file": "陈燕-操作系统-hw3rd.py",
+            "expected_renamed": "陈燕-网络安全学院-2021302098-OS-HW3.py",
+            "file_type": "python",
+            "target_folder": "Python作业"
+        },
+        "曹波": {
+            "student_id": "2021302099",
+            "college": "网络安全学院",
+            "original_file": "曹波-计算机系统基础-第3次作业.py",
+            "expected_renamed": "曹波-网络安全学院-2021302099-OS-HW3.py",
+            "file_type": "python",
+            "target_folder": "Python作业"
+        },
+        "曾欣": {
+            "student_id": "2021302100",
+            "college": "网络安全学院",
+            "original_file": "曾欣_OS_assignment_第三次.rs",
+            "expected_renamed": "曾欣-网络安全学院-2021302100-OS-HW3.rs",
+            "file_type": "rust",
+            "target_folder": "Rust作业"
         }
     }
-} 
+}

@@ -17,7 +17,9 @@
 # --task_dir finalpoolcn/oshw \
 # --debug \
 
+# eval_claude-4-sonnet.json
+# eval_gpt-4.1-mini.json
 uv run demo.py \
 --eval_config scripts/model_wise/eval_gpt-4.1-mini.json \
---task_dir finalpoolcn/Dietary-Health \
+--task_dir finalpoolcn/Curriculum-Ta \
 --debug \

@@ -7,7 +7,7 @@ import json
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../.."))
 sys.path.insert(0, project_root)
 
-from tasks.gyy710.oshw_001.evaluation.check_local import check_local
+from .check_local import check_local
 
 
 def main():
