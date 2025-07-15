@@ -1,0 +1,5 @@
+{
+    "needed_mcp_servers": ["arxiv_local", "filesystem", "scholarly"],
+    "needed_local_tools": [],
+    "meta": {}
+} 
