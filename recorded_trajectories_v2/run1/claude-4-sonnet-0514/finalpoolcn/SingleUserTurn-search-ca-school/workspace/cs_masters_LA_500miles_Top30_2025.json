@@ -1,0 +1,50 @@
+[
+    {
+        "university": "University of Southern California",
+        "city": "Los Angeles, CA",
+        "usnews_cs_ranking": 21,
+        "car_drive_miles": 12
+    },
+    {
+        "university": "University of California - Los Angeles",
+        "city": "Los Angeles, CA",
+        "usnews_cs_ranking": 18,
+        "car_drive_miles": 15
+    },
+    {
+        "university": "University of California - Irvine",
+        "city": "Irvine, CA",
+        "usnews_cs_ranking": 25,
+        "car_drive_miles": 45
+    },
+    {
+        "university": "University of California - Riverside",
+        "city": "Riverside, CA",
+        "usnews_cs_ranking": 28,
+        "car_drive_miles": 60
+    },
+    {
+        "university": "University of California - San Diego",
+        "city": "San Diego, CA",
+        "usnews_cs_ranking": 3,
+        "car_drive_miles": 120
+    },
+    {
+        "university": "University of California - Santa Barbara",
+        "city": "Santa Barbara, CA",
+        "usnews_cs_ranking": 28,
+        "car_drive_miles": 200
+    },
+    {
+        "university": "Stanford University",
+        "city": "Stanford, CA",
+        "usnews_cs_ranking": 11,
+        "car_drive_miles": 350
+    },
+    {
+        "university": "University of California - Berkeley",
+        "city": "Berkeley, CA",
+        "usnews_cs_ranking": 8,
+        "car_drive_miles": 380
+    }
+]

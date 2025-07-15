@@ -1,0 +1,80 @@
+[
+    {
+        "university":"University of Southern California",
+        "city":"Los Angeles, CA",
+        "usnews_cs_ranking":20,
+        "car_drive_miles":0
+    },
+    {
+        "university":"California Institute of Technology",
+        "city":"Pasadena, CA",
+        "usnews_cs_ranking":11,
+        "car_drive_miles":14
+    },
+    {
+        "university":"University of California--Los Angeles",
+        "city":"Los Angeles, CA", 
+        "usnews_cs_ranking":13,
+        "car_drive_miles":14
+    },
+    {
+        "university":"University of California--Irvine",
+        "city":"Irvine, CA",
+        "usnews_cs_ranking":30,
+        "car_drive_miles":43
+    },
+    {
+        "university":"University of California--Santa Barbara",
+        "city":"Santa Barbara, CA",
+        "usnews_cs_ranking":25,
+        "car_drive_miles":108
+    },
+    {
+        "university":"University of California--San Diego",
+        "city":"San Diego, CA",
+        "usnews_cs_ranking":7,
+        "car_drive_miles":113
+    },
+    {
+        "university":"University of Nevada--Las Vegas",
+        "city":"Las Vegas, NV",
+        "usnews_cs_ranking":28,
+        "car_drive_miles":274
+    },
+    {
+        "university":"University of California--Santa Cruz",
+        "city":"Santa Cruz, CA",
+        "usnews_cs_ranking":29,
+        "car_drive_miles":347
+    },
+    {
+        "university":"Stanford University",
+        "city":"Stanford, CA",
+        "usnews_cs_ranking":1,
+        "car_drive_miles":362
+    },
+    {
+        "university":"University of California--Berkeley",
+        "city":"Berkeley, CA",
+        "usnews_cs_ranking":1,
+        "car_drive_miles":376
+    },
+    {
+        "university":"Arizona State University",
+        "city":"Tempe, AZ",
+        "usnews_cs_ranking":24,
+        "car_drive_miles":384
+    },
+    {
+        "university":"University of California--Davis",
+        "city":"Davis, CA",
+        "usnews_cs_ranking":26,
+        "car_drive_miles":400
+    },
+    {
+        "university":"University of Arizona",
+        "city":"Tucson, AZ",
+        "usnews_cs_ranking":27,
+        "car_drive_miles":488
+    }
+]

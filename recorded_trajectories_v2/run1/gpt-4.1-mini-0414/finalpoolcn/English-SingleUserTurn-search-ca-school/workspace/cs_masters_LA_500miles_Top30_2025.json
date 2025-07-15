@@ -1,0 +1,38 @@
+[
+  {
+    "university": "University of Southern California",
+    "city": "Los Angeles, CA",
+    "usnews_cs_ranking": 14,
+    "car_drive_miles": 0
+  },
+  {
+    "university": "California Institute of Technology",
+    "city": "Pasadena, CA",
+    "usnews_cs_ranking": 9,
+    "car_drive_miles": 14
+  },
+  {
+    "university": "University of California, Los Angeles",
+    "city": "Los Angeles, CA",
+    "usnews_cs_ranking": 13,
+    "car_drive_miles": 14
+  },
+  {
+    "university": "University of California, Irvine",
+    "city": "Irvine, CA",
+    "usnews_cs_ranking": 24,
+    "car_drive_miles": 43
+  },
+  {
+    "university": "San Diego State University",
+    "city": "San Diego, CA",
+    "usnews_cs_ranking": 40,
+    "car_drive_miles": 113
+  },
+  {
+    "university": "University of Nevada, Las Vegas",
+    "city": "Las Vegas, NV",
+    "usnews_cs_ranking": 50,
+    "car_drive_miles": 271
+  }
+]

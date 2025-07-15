@@ -1,0 +1,32 @@
+[
+  {
+    "university": "University of Southern California",
+    "city": "Los Angeles",
+    "usnews_cs_ranking": 18,
+    "car_drive_miles": 0
+  },
+  {
+    "university": "University of California, Los Angeles",
+    "city": "Los Angeles",
+    "usnews_cs_ranking": 20,
+    "car_drive_miles": 14
+  },
+  {
+    "university": "California Institute of Technology",
+    "city": "Pasadena",
+    "usnews_cs_ranking": 13,
+    "car_drive_miles": 14
+  },
+  {
+    "university": "University of California, Berkeley",
+    "city": "Berkeley",
+    "usnews_cs_ranking": 1,
+    "car_drive_miles": 362
+  },
+  {
+    "university": "Stanford University",
+    "city": "Stanford",
+    "usnews_cs_ranking": 2,
+    "car_drive_miles": 362
+  }
+]
