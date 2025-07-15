@@ -12,7 +12,14 @@
 # --multi_turn_mode \
 # --manual
 
+# uv run demo.py \
+# --eval_config scripts/debug_eval_config.json \
+# --task_dir finalpoolcn/oshw \
+# --debug \
+
+# eval_claude-4-sonnet.json
+# eval_gpt-4.1-mini.json
 uv run demo.py \
 --eval_config scripts/debug_eval_config.json \
---task_dir debug/debug-task \
+--task_dir finalpoolcn/alita_001 \
 --debug \
