@@ -12,7 +12,12 @@
 # --multi_turn_mode \
 # --manual
 
+# uv run demo.py \
+# --eval_config scripts/debug_eval_config.json \
+# --task_dir finalpoolcn/oshw \
+# --debug \
+
 uv run demo.py \
---eval_config scripts/debug_eval_config.json \
---task_dir finalpoolcn/alita_001 \
+--eval_config scripts/model_wise/eval_gpt-4.1-mini.json \
+--task_dir finalpoolcn/Dietary-Health \
 --debug \
