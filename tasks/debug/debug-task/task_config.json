@@ -1,5 +1,5 @@
 {
-    "needed_mcp_servers": ["filesystem", "terminal","playwright","googlesearch"],
+    "needed_mcp_servers": ["pdf-reader"],
     "needed_local_tools": ["python_execute"],
     "meta": {}
 }

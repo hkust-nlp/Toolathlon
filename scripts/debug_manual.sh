@@ -14,5 +14,5 @@
 
 uv run demo.py \
 --eval_config scripts/debug_eval_config.json \
---task_dir finalpoolcn/alita_001 \
+--task_dir debug/debug-task \
 --debug \

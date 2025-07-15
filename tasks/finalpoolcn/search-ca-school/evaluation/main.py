@@ -35,11 +35,19 @@ UNIVERSITY_ABBREVIATIONS = {
     # UCSB
     "ucsb": "university of california santa barbara",
     "ucsantabarbara": "university of california santa barbara",
+
+    # UCSC
+    "ucsc": "university of california santa cruz",
+    "ucscsantacruz": "university of california santa cruz",
+
+    # ASU
+    "asu": "arizona state university",
+    "arizonastateuniversity": "arizona state university",
 }
 
     
 async def main(args):
-    needed_info_file = os.path.join(args.agent_workspace, "cs_masters_LA_500miles_Top30_2025.json")
+    needed_info_file = os.path.join(args.agent_workspace, "AI_univ_LA_500miles_Top30_2024.json")
 
     if not os.path.exists(needed_info_file):
         print(f"File {needed_info_file} does not exist")
@@ -47,7 +55,7 @@ async def main(args):
     
     needed_info = read_json(needed_info_file)
     
-    groundtruth_file = os.path.join(args.groundtruth_workspace, "cs_masters_LA_500miles_Top30_2025.json")
+    groundtruth_file = os.path.join(args.groundtruth_workspace, "AI_univ_LA_500miles_Top30_2024.json")
 
     groundtruth_info = read_json(groundtruth_file)
 
@@ -57,14 +65,14 @@ async def main(args):
     
     for given_school, gt_school in zip(needed_info, groundtruth_info):
         # check by the follows:
-        # usnews_cs_ranking shoule be exact the same
+        # cs_ranking_rank shoule be exact the same
         # car_drive_miles can have 10% error, rounded to integer; or <=2 miles absolute error
         # if the given_school['city'] endswith 'city', please remove the 'city' suffix, and then compare by normalize_str
         # finally compare the university name by normalize_str
         # should also take into consider the abbreviation of the university name
 
-        if given_school['usnews_cs_ranking'] != gt_school['usnews_cs_ranking']:
-            print(f"The usnews_cs_ranking of {given_school['university']} is not the same")
+        if given_school['cs_ranking_rank'] != gt_school['cs_ranking_rank']:
+            print(f"The cs_ranking_rank of {given_school['university']} is not the same")
             return False
         
         toolerance_distance = max(gt_school['car_drive_miles'] * 0.1, 2)
@@ -80,6 +88,8 @@ async def main(args):
             print(f"The given city is {given_city}, the groundtruth city is {gt_school['city']}")
             return False
         
+        given_school['university'] = given_school['university'].replace("Univ.","University").replace("univ.","university")
+
         if normalize_str(given_school['university']) != normalize_str(gt_school['university']):
             if normalize_str(given_school['university']) in UNIVERSITY_ABBREVIATIONS:
                 if normalize_str(UNIVERSITY_ABBREVIATIONS[normalize_str(given_school['university'])]) != normalize_str(gt_school['university']):
