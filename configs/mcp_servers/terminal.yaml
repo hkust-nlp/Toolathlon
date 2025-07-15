@@ -3,9 +3,8 @@
 type: stdio
 name: terminal
 params:
-  command: uv
+  command: uvx
   args:
-    - "run"
     - "cli-mcp-server"
   env:
     # you can add needed commands
