@@ -81,6 +81,7 @@ dependencies = [
     "packaging==25.0",
     "pandas==2.2.3",
     "pillow==11.2.1",
+    "pipedream>=0.3.1",
     "playwright==1.52.0",
     "prompt-toolkit==3.0.51",
     "propcache==0.3.1",

@@ -79,3 +79,6 @@
 
 ## 2025.7.15 15:00
 - 添加user_agent到playwright，为python executor添加超时限制
+
+## 2025.7.17 17:00
+- 移除pdf_tools，其功能实现有bug，用处也不是很大，可以被直接写python脚本覆盖
