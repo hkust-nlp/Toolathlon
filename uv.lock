@@ -1508,6 +1508,7 @@ dependencies = [
     { name = "packaging" },
     { name = "pandas" },
     { name = "pillow" },
+    { name = "pipedream" },
     { name = "playwright" },
     { name = "prompt-toolkit" },
     { name = "propcache" },
@@ -1647,6 +1648,7 @@ requires-dist = [
     { name = "packaging", specifier = "==25.0" },
     { name = "pandas", specifier = "==2.2.3" },
     { name = "pillow", specifier = "==11.2.1" },
+    { name = "pipedream", specifier = ">=0.3.1" },
     { name = "playwright", specifier = "==1.52.0" },
     { name = "prompt-toolkit", specifier = "==3.0.51" },
     { name = "propcache", specifier = "==0.3.1" },
@@ -2074,6 +2076,21 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/b3/92/1ca0c3f09233bd7decf8f7105a1c4e3162fb9142128c74adad0fb361b7eb/pillow-11.2.1-cp313-cp313t-win32.whl", hash = "sha256:e0b55f27f584ed623221cfe995c912c61606be8513bfa0e07d2c674b4516d9dd", size = 2335774, upload-time = "2025-04-12T17:49:04.889Z" },
     { url = "https://files.pythonhosted.org/packages/a5/ac/77525347cb43b83ae905ffe257bbe2cc6fd23acb9796639a1f56aa59d191/pillow-11.2.1-cp313-cp313t-win_amd64.whl", hash = "sha256:36d6b82164c39ce5482f649b437382c0fb2395eabc1e2b1702a6deb8ad647d6e", size = 2681895, upload-time = "2025-04-12T17:49:06.635Z" },
     { url = "https://files.pythonhosted.org/packages/67/32/32dc030cfa91ca0fc52baebbba2e009bb001122a1daa8b6a79ad830b38d3/pillow-11.2.1-cp313-cp313t-win_arm64.whl", hash = "sha256:225c832a13326e34f212d2072982bb1adb210e0cc0b153e688743018c94a2681", size = 2417234, upload-time = "2025-04-12T17:49:08.399Z" },
+]
+
+[[package]]
+name = "pipedream"
+version = "0.3.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "httpx" },
+    { name = "pydantic" },
+    { name = "pydantic-core" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/5c/5e/016ac36b0f521bf3a6f62b7f62fb3b120ad5253f8a327c624b0fee7a8594/pipedream-0.3.1.tar.gz", hash = "sha256:8294b759172a25a5931fbad56b4a2415876264b334c1353a1e737085d8373189", size = 53128, upload-time = "2025-07-10T19:58:34.716Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/67/70/dc82da8112947864a10a56f43d729db95c661e5d4b8c8680539a9a25db98/pipedream-0.3.1-py3-none-any.whl", hash = "sha256:089dc4ddebad3abed67266b444e08f5c4140d35c228d01f90ccc2a223bb41539", size = 113186, upload-time = "2025-07-10T19:58:33.105Z" },
 ]
 
 [[package]]

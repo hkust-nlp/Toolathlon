@@ -28,3 +28,11 @@ manual/
 # scripts/update_trajectories.sh
 tmp/
 .tmp/
+
+# 所有.pdf文件
+*.pdf
+
+# 所有文件 pd_xxx.yaml
+pd_*.yaml
+
+
