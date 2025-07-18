@@ -21,7 +21,7 @@ def main():
     
     # 检查本地文件管理结果 (主要检查)
     try:
-        local_pass, local_msg = check_local(args.agent_workspace, args.groundtruth_workspace)
+        local_pass, local_msg = check_local(args.agent_workspace, args.groundtruth_workspace, en_mode=False)
         if not local_pass:
             print("local check failed: ", local_msg)
             exit(1)

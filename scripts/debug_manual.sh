@@ -20,6 +20,6 @@
 # eval_claude-4-sonnet.json
 # eval_gpt-4.1-mini.json
 uv run demo.py \
---eval_config scripts/model_wise/eval_gpt-4.1-mini.json \
---task_dir finalpoolcn/Curriculum-Ta \
+--eval_config scripts/debug_eval_config.json \
+--task_dir finalpoolcn/alita_001 \
 --debug \

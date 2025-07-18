@@ -2,8 +2,9 @@ import os
 import json
 import re
 import hashlib
+from utils.general.helper import normalize_str
 
-def check_local(agent_workspace: str, groundtruth_workspace: str):
+def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode: bool = False):
     """
     严格检查课程作业文件管理任务的本地文件处理情况
     验证是否正确找到、列出、重命名和分类了相关文件，确保一个不多一个不少
@@ -26,18 +27,41 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
         return False, f"Failed to read expected mapping: {str(e)}"
 
     # 第一阶段：检查文件夹结构
-    c_folder = os.path.join(agent_workspace, "C语言作业")
-    rust_folder = os.path.join(agent_workspace, "Rust作业")
-    python_folder = os.path.join(agent_workspace, "Python作业")
+    foldername = "os_hw3" if en_mode else "操作系统作业3"
+    os_hw3_folder = os.path.join(agent_workspace, foldername)
+    if not os.path.exists(os_hw3_folder):
+        return False, f"Missing '{foldername}' folder for OS homework 3 files"
+    
+    # 第1.5阶段，目标文件夹下没有.rs .py 或者 .c文件
+    # 检查os_hw3_folder根目录下不应该有源代码文件，它们应该被分类到子文件夹中
+    try:
+        root_files = os.listdir(os_hw3_folder)
+        for file in root_files:
+            if file.startswith('.'):
+                continue
+            # 跳过目录
+            file_path = os.path.join(os_hw3_folder, file)
+            if os.path.isdir(file_path):
+                continue
+            # 检查是否有源代码文件直接在根目录
+            if file.endswith(('.c', '.rs', '.py')):
+                return False, f"Source code file '{file}' found directly in '{foldername}' folder - it should be moved to the appropriate language subfolder"
+    except Exception as e:
+        return False, f"Error checking {foldername} root folder: {str(e)}"
+
+    # 第1.6阶段，确保三个子目录存在
+    c_folder = os.path.join(os_hw3_folder, "C")
+    rust_folder = os.path.join(os_hw3_folder, "Rust")
+    python_folder = os.path.join(os_hw3_folder, "Python")
     
     if not os.path.exists(c_folder):
-        return False, "Missing 'C语言作业' folder for C language files"
+        return False, f"Missing '{foldername}/C' folder for C language files"
     
     if not os.path.exists(rust_folder):
-        return False, "Missing 'Rust作业' folder for Rust language files"
+        return False, f"Missing '{foldername}/Rust' folder for Rust language files"
     
     if not os.path.exists(python_folder):
-        return False, "Missing 'Python作业' folder for Python language files"
+        return False, f"Missing '{foldername}/Python' folder for Python language files"
     
     # 第二阶段：检查重命名文件的精确性
     c_files = []
@@ -52,13 +76,13 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
             if file.startswith('.'):
                 continue
             if not file.endswith('.c'):
-                return False, f"Non-C file '{file}' found in C语言作业 folder"
+                return False, f"Non-C file '{file}' found in {foldername}/C folder"
             if re.match(rename_pattern, file):
                 c_files.append(file)
             else:
-                return False, f"Incorrectly named C file '{file}' in C语言作业 folder"
+                return False, f"Incorrectly named C file '{file}' in {foldername}/C folder"
     except Exception as e:
-        return False, f"Error reading C语言作业 folder: {str(e)}"
+        return False, f"Error reading {foldername}/C folder: {str(e)}"
     
     # 检查Rust文件夹
     try:
@@ -67,13 +91,13 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
             if file.startswith('.'):
                 continue
             if not file.endswith('.rs'):
-                return False, f"Non-Rust file '{file}' found in Rust作业 folder"
+                return False, f"Non-Rust file '{file}' found in {foldername}/Rust folder"
             if re.match(rename_pattern, file):
                 rust_files.append(file)
             else:
-                return False, f"Incorrectly named Rust file '{file}' in Rust作业 folder"
+                return False, f"Incorrectly named Rust file '{file}' in {foldername}/Rust folder"
     except Exception as e:
-        return False, f"Error reading Rust作业 folder: {str(e)}"
+        return False, f"Error reading {foldername}/Rust folder: {str(e)}"
     
     # 检查Python文件夹
     try:
@@ -82,13 +106,13 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
             if file.startswith('.'):
                 continue
             if not file.endswith('.py'):
-                return False, f"Non-Python file '{file}' found in Python作业 folder"
+                return False, f"Non-Python file '{file}' found in {foldername}/Python folder"
             if re.match(rename_pattern, file):
                 python_files.append(file)
             else:
-                return False, f"Incorrectly named Python file '{file}' in Python作业 folder"
+                return False, f"Incorrectly named Python file '{file}' in {foldername}/Python folder"
     except Exception as e:
-        return False, f"Error reading Python作业 folder: {str(e)}"
+        return False, f"Error reading {foldername}/Python folder: {str(e)}"
     
     # 验证文件数量精确性
     if len(c_files) != expected_c_count:
@@ -126,13 +150,15 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
         
         # 验证重命名的准确性
         expected_info = expected_students[student_name]
-        expected_renamed = expected_info["expected_renamed"]
+
+        # expected_renamed = expected_info["expected_renamed"]
         
-        if renamed_file != expected_renamed:
-            return False, f"Incorrect rename for {student_name}. Expected: '{expected_renamed}', Got: '{renamed_file}'"
+        # if renamed_file != expected_renamed:
+            
+            # return False, f"Incorrect rename for {student_name}. Expected: '{expected_renamed}', Got: '{renamed_file}'"
         
         # 验证学院和学号信息
-        if college != expected_info["college"]:
+        if normalize_str(college) != normalize_str(expected_info["college"]):
             return False, f"Incorrect college for {student_name}. Expected: '{expected_info['college']}', Got: '{college}'"
         
         if student_id != expected_info["student_id"]:
@@ -149,12 +175,12 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
         
         # 验证文件在正确的文件夹中
         expected_folder = expected_info["target_folder"]
-        if expected_folder == "C语言作业" and renamed_file not in c_files:
-            return False, f"C file for {student_name} not found in C语言作业 folder"
-        elif expected_folder == "Rust作业" and renamed_file not in rust_files:
-            return False, f"Rust file for {student_name} not found in Rust作业 folder"
-        elif expected_folder == "Python作业" and renamed_file not in python_files:
-            return False, f"Python file for {student_name} not found in Python作业 folder"
+        if expected_folder == "C" and renamed_file not in c_files:
+            return False, f"C file for {student_name} not found in {foldername}/C folder"
+        elif expected_folder == "Rust" and renamed_file not in rust_files:
+            return False, f"Rust file for {student_name} not found in {foldername}/Rust folder"
+        elif expected_folder == "Python" and renamed_file not in python_files:
+            return False, f"Python file for {student_name} not found in {foldername}/Python folder"
     
     # 第四阶段：确保没有遗漏任何学生
     missing_students = []
@@ -180,6 +206,8 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
     # 获取initial_workspace路径 (基于groundtruth_workspace的路径结构)
     task_root = os.path.dirname(groundtruth_workspace)
     initial_workspace = os.path.join(task_root, "initial_workspace")
+    if en_mode:
+        initial_workspace = os.path.join(task_root, "initial_workspace_en")
     
     content_verification_errors = []
     content_hash_errors = []

@@ -1,5 +1,5 @@
 {
-    "needed_mcp_servers": ["terminal","excel"],
-    "needed_local_tools": ["claim_done"],
+    "needed_mcp_servers": ["terminal","excel","filesystem"],
+    "needed_local_tools": ["claim_done","python_execute"],
     "meta": {}
 } 

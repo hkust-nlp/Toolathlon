@@ -1,3 +1,69 @@
+## 2025.7.18 11:00
+- 添加自定义 pdf_tools_mcp server, 移除原有的pdf相关server
+
+## 2025.7.17 17:00
+- 移除pdf_tools，其功能实现有bug，用处也不是很大，可以被直接写python脚本覆盖
+
+## 2025.7.15 15:00
+- 添加user_agent到playwright，为python executor添加超时限制
+
+## 2025.7.15 14:00
+- 修正terminal服务器的使用方法, 请先 `uv tool install cli-mcp-server`
+
+## 2025.7.15 11:00
+- 增加了英文模式，在原任务下添加带_en后缀各种脚本和文件夹即可识别，demo.py增加参数 --en_mode
+
+## 2025.7.12 18:00
+- 移除了code_runner server (因为没法指定工作路径，感觉有点笨)，改用一个新写的python执行工具.
+    - 可用工具 "python_execute"
+
+## 2025.7.8 14:00
+- 修改安装问题，改用uv sync
+
+## 2025.7.8 11:00
+- 修改google sheet mcp server认证方式为OAuth 2.0， 所有功能均正常
+    - 相关文件： `configs/mcp_servers/google_sheet.yaml`
+
+## 2025.7.7 17:00
+- 添加mcp pdf tools
+    - 相关文件： `install_records/pdf_tools.md`, `configs/mcp_servers/pdf_tools.yaml`
+
+## 2025.7.7 11:50
+- 修复任务override token_key_session 路径不存在的bug
+
+## 2025.7.7 11:10
+- 支持任务override token_key_session
+    - 相关文件 `tasks/debug/debug-task/token_key_session.py` 在这里填入和 `configs/token_key_session.py` 同名的变量可以覆盖后者的设置
+    - TODO: gmail/google calendar现在依赖于.gmail-mcp 和 .calendar-mcp， 想想办法
+
+## 2025.7.7 3:45
+- 添加google sheet mcp server
+    - 相关文件 `configs/google_sheets_service_credentials.json` `configs/mcp_servers/google_sheet.yaml`
+    - *有点小问题，尝试创建spreadsheet时报403权限错误
+
+## 2025.7.7 3:00
+- 恢复高德地图mcp
+    - 相关文件 `configs/mcp_servers/amap.yaml`
+
+## 2025.7.6 17:30
+- 修改log保存逻辑
+    - 相关文件 `utils/roles/task_agent.py`
+
+## 2025.7.6 17:20
+- 修改log保存逻辑
+    - 相关文件 `utils/roles/task_agent.py`
+
+## 2025.7.6 17:00
+- 添加历史记录搜索工具，已初步验证
+    - 相关文件 `utils/roles/context_managed_runner.py`, `utils/roles/task_agent.py`, `utils/aux_tools/history_manager.py`, `utils/aux_tools/history_tools.py`
+    - 可用工具 "history"
+
+## 2025.7.5 17:00
+- 添加上下文管理工具，已初步验证
+    - 相关文件 `utils/roles/context_managed_runner.py`, `utils/roles/task_agent.py`, `utils/aux_tools/context_management_tools.py`
+    - 可用工具 "manage_context"
+- 添加历史记录搜索工具，还未验证，仍需debug
+
 ## 2025.7.2 18:30
 - 修改gemini模型名称，以及添加各模型上下文限制
     - 相关文件 `utils/api_model/model_provider.py`
@@ -19,57 +85,3 @@
 ## 2025.7.2 12:00
 - 更新canvas mcp server 版本
 - 添加canvas token， 对应使用谷歌账号 kewincpt93@gmail.com 直接授权登录
-
-## 2025.7.5 17:00
-- 添加上下文管理工具，已初步验证
-    - 相关文件 `utils/roles/context_managed_runner.py`, `utils/roles/task_agent.py`, `utils/aux_tools/context_management_tools.py`
-    - 可用工具 “manage_context”
-- 添加历史记录搜索工具，还未验证，仍需debug
-
-## 2025.7.6 17:00
-- 添加历史记录搜索工具，已初步验证
-    - 相关文件 `utils/roles/context_managed_runner.py`, `utils/roles/task_agent.py`, `utils/aux_tools/history_manager.py`, `utils/aux_tools/history_tools.py`
-    - 可用工具 “history”
-
-## 2025.7.6 17:20
-- 修改log保存逻辑
-    - 相关文件 `utils/roles/task_agent.py`
-
-## 2025.7.6 17:30
-- 修改log保存逻辑
-    - 相关文件 `utils/roles/task_agent.py`
-
-## 2025.7.7 3:00
-- 恢复高德地图mcp
-    - 相关文件 `configs/mcp_servers/amap.yaml`
-
-## 2025.7.7 3:45
-- 添加google sheet mcp server
-    - 相关文件 `configs/google_sheets_service_credentials.json` `configs/mcp_servers/google_sheet.yaml`
-    - *有点小问题，尝试创建spreadsheet时报403权限错误
-
-## 2025.7.7 11:10
-- 支持任务override token_key_session
-    - 相关文件 `tasks/debug/debug-task/token_key_session.py` 在这里填入和 `configs/token_key_session.py` 同名的变量可以覆盖后者的设置
-    - TODO: gmail/google calendar现在依赖于.gmail-mcp 和 .calendar-mcp， 想想办法
-
-## 2025.7.7 11:50
-- 修复任务override token_key_session 路径不存在的bug
-
-## 2025.7.7 17:00
-- 添加mcp pdf tools
-    - 相关文件： `install_records/pdf_tools.md`, `configs/mcp_servers/pdf_tools.yaml`
-
-## 2025.7.8 11:00
-- 修改google sheet mcp server认证方式为OAuth 2.0， 所有功能均正常
-    - 相关文件： `configs/mcp_servers/google_sheet.yaml`
-
-## 2025.7.8 14:00
-- 修改安装问题，改用uv sync
-
-## 2025.7.12 18:00
-- 移除了code_runner server (因为没法指定工作路径，感觉有点笨)，改用一个新写的python执行工具.
-    - 可用工具 "python_execute"
-
-## 2025.7.15 11:00
-- 增加了英文模式，在原任务下添加带_en后缀各种脚本和文件夹即可识别，demo.py增加参数 --en_mode

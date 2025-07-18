@@ -33,6 +33,8 @@ In this file we guide you how to install all needed servers for this project.
     uv tool install office-powerpoint-mcp-server
     uv tool install office-word-mcp-server
     uv tool install git+https://github.com/wandb/wandb-mcp-server
+    uv tool install cli-mcp-server
+    uv tool install pdf-tools-mcp@latest
     ```
 
 4. build from source
@@ -46,8 +48,6 @@ In this file we guide you how to install all needed servers for this project.
     `mcp-scholarly`: see `install_records/scholarly_search.md`
 
     `arxiv-latex`: see `install_records/arxiv_latex.md`
-
-    `pdf-tools`: see `install_records/pdf_tools.md`
 
 5. other preparation
 
