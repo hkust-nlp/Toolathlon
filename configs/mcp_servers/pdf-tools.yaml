@@ -1,0 +1,12 @@
+# pdf-tools
+# https://github.com/lockon-n/pdf-tools-mcp
+type: stdio
+name: pdf-tools
+params:
+  command: uvx
+  args:
+    - "pdf-tools-mcp"
+    - "--workspace_path"
+    - "${agent_workspace}"
+client_session_timeout_seconds: 120
+cache_tools_list: true

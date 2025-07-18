@@ -34,6 +34,7 @@ In this file we guide you how to install all needed servers for this project.
     uv tool install office-word-mcp-server
     uv tool install git+https://github.com/wandb/wandb-mcp-server
     uv tool install cli-mcp-server
+    uv tool install pdf-tools-mcp@latest
     ```
 
 4. build from source
