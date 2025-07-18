@@ -17,7 +17,7 @@
     "@modelcontextprotocol/server-sequential-thinking": "^0.6.2",
     "@negokaz/excel-mcp-server": "^0.10.3",
     "@notionhq/notion-mcp-server": "^1.8.1",
-    "@playwright/mcp": "^0.0.28",
+    "@playwright/mcp": "^0.0.30",
     "@sinco-lab/mcp-youtube-transcript": "^0.0.8",
     "@sylphlab/pdf-reader-mcp": "^0.3.23",
     "@sylphlab/tools-pdf": "^0.7.1",

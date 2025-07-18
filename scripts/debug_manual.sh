@@ -13,13 +13,19 @@
 # --manual
 
 # uv run demo.py \
+# --eval_config scripts/model_wise/eval_gpt-4.1-mini.json \
+# --task_dir jl/set-conf-cr-ddl \
+# --debug \
+
+# uv run demo.py \
 # --eval_config scripts/debug_eval_config.json \
 # --task_dir finalpoolcn/oshw \
 # --debug \
 
 # eval_claude-4-sonnet.json
 # eval_gpt-4.1-mini.json
+
 uv run demo.py \
---eval_config scripts/debug_eval_config.json \
---task_dir finalpoolcn/alita_001 \
+--eval_config scripts/model_wise/eval_claude-4-sonnet.json \
+--task_dir finalpoolcn/University-Course-Selection \
 --debug \
