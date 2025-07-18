@@ -82,3 +82,6 @@
 
 ## 2025.7.17 17:00
 - 移除pdf_tools，其功能实现有bug，用处也不是很大，可以被直接写python脚本覆盖
+
+## 2025.7.18 11:00
+- 添加自定义 pdf_tools_mcp server, 移除原有的pdf相关server
