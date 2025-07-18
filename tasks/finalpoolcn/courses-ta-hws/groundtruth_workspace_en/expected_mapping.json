@@ -1,0 +1,809 @@
+{
+  "total_students": 100,
+  "total_files": 100,
+  "c_files_count": 33,
+  "rust_files_count": 35,
+  "python_files_count": 32,
+  "expected_students": {
+    "David Miller": {
+      "student_id": "2021302003",
+      "college": "Computer Science",
+      "original_file": "David Miller_OperatingSystems_HW3.py",
+      "expected_renamed": "David Miller-Computer Science-2021302003-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "Robert Martinez": {
+      "student_id": "2021302009",
+      "college": "Computer Science",
+      "original_file": "Robert Martinez-OS-Homework3.rs",
+      "expected_renamed": "Robert Martinez-Computer Science-2021302009-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Matthew Lee": {
+      "student_id": "2021302013",
+      "college": "Computer Science",
+      "original_file": "Matthew Lee-OperatingSystems-HW3.rs",
+      "expected_renamed": "Matthew Lee-Computer Science-2021302013-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Samuel King": {
+      "student_id": "2021302018",
+      "college": "Software Engineering",
+      "original_file": "Samuel King_OperatingSystems_HW3.py",
+      "expected_renamed": "Samuel King-Software Engineering-2021302018-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "Ryan Scott": {
+      "student_id": "2021302020",
+      "college": "Software Engineering",
+      "original_file": "Ryan Scott_OperatingSystems_Assignment3.rs",
+      "expected_renamed": "Ryan Scott-Software Engineering-2021302020-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Helen Edwards": {
+      "student_id": "2021302035",
+      "college": "Computer Science",
+      "original_file": "Helen Edwards_OperatingSystems_HW3-VirtualMemory.py",
+      "expected_renamed": "Helen Edwards-Computer Science-2021302035-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "Mark Cook": {
+      "student_id": "2021302042",
+      "college": "Software Engineering",
+      "original_file": "Mark Cook-OS-Homework3.py",
+      "expected_renamed": "Mark Cook-Software Engineering-2021302042-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "Frank Morgan": {
+      "student_id": "2021302043",
+      "college": "Software Engineering",
+      "original_file": "Frank Morgan-OperatingSystems-Lab3.rs",
+      "expected_renamed": "Frank Morgan-Software Engineering-2021302043-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Larry Ward": {
+      "student_id": "2021302051",
+      "college": "Software Engineering",
+      "original_file": "Larry Ward_OperatingSystems_HW3.rs",
+      "expected_renamed": "Larry Ward-Software Engineering-2021302051-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Louis Brooks": {
+      "student_id": "2021302058",
+      "college": "Software Engineering",
+      "original_file": "Louis Brooks_OS_Lab3-Threading.c",
+      "expected_renamed": "Louis Brooks-Software Engineering-2021302058-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Phillip Sanders": {
+      "student_id": "2021302060",
+      "college": "Software Engineering",
+      "original_file": "Phillip Sanders_OS_Lab3.py",
+      "expected_renamed": "Phillip Sanders-Software Engineering-2021302060-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "Jeffrey Powell": {
+      "student_id": "2021302070",
+      "college": "Cyber Security",
+      "original_file": "Jeffrey Powell-OperatingSystems-Lab3.py",
+      "expected_renamed": "Jeffrey Powell-Cyber Security-2021302070-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "Nina Bryant": {
+      "student_id": "2021302080",
+      "college": "Cyber Security",
+      "original_file": "Nina Bryant-OS-Project3.rs",
+      "expected_renamed": "Nina Bryant-Cyber Security-2021302080-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Howard Alexander": {
+      "student_id": "2021302081",
+      "college": "Cyber Security",
+      "original_file": "Howard Alexander-OperatingSystems-HW3-ProcessManagement.rs",
+      "expected_renamed": "Howard Alexander-Cyber Security-2021302081-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Yvonne Wells": {
+      "student_id": "2021302098",
+      "college": "Cyber Security",
+      "original_file": "Yvonne Wells_OperatingSystems_HW3.py",
+      "expected_renamed": "Yvonne Wells-Cyber Security-2021302098-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "Michael Johnson": {
+      "student_id": "2021302001",
+      "college": "Computer Science",
+      "original_file": "Michael Johnson-OS-Homework3-Threading.rs",
+      "expected_renamed": "Michael Johnson-Computer Science-2021302001-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "James Brown": {
+      "student_id": "2021302002",
+      "college": "Software Engineering",
+      "original_file": "James Brown-OperatingSystems-HW3.py",
+      "expected_renamed": "James Brown-Software Engineering-2021302002-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "William Davis": {
+      "student_id": "2021302004",
+      "college": "Software Engineering",
+      "original_file": "William Davis_OS_Assignment3.rs",
+      "expected_renamed": "William Davis-Software Engineering-2021302004-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Kevin Wilson": {
+      "student_id": "2021302005",
+      "college": "Computer Science",
+      "original_file": "Kevin Wilson_OperatingSystems_HW3.rs",
+      "expected_renamed": "Kevin Wilson-Computer Science-2021302005-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Thomas Anderson": {
+      "student_id": "2021302006",
+      "college": "Software Engineering",
+      "original_file": "Thomas Anderson_OperatingSystems_HW3.c",
+      "expected_renamed": "Thomas Anderson-Software Engineering-2021302006-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Andrew Taylor": {
+      "student_id": "2021302007",
+      "college": "Computer Science",
+      "original_file": "Andrew Taylor-OperatingSystems-Lab3.c",
+      "expected_renamed": "Andrew Taylor-Computer Science-2021302007-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Daniel Thompson": {
+      "student_id": "2021302008",
+      "college": "Software Engineering",
+      "original_file": "Daniel Thompson-OperatingSystems-HW3.c",
+      "expected_renamed": "Daniel Thompson-Software Engineering-2021302008-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "John Garcia": {
+      "student_id": "2021302010",
+      "college": "Software Engineering",
+      "original_file": "John Garcia_OS_Assignment3.c",
+      "expected_renamed": "John Garcia-Software Engineering-2021302010-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Christopher Rodriguez": {
+      "student_id": "2021302011",
+      "college": "Computer Science",
+      "original_file": "Christopher Rodriguez_OS_Lab3.py",
+      "expected_renamed": "Christopher Rodriguez-Computer Science-2021302011-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "Steven Lewis": {
+      "student_id": "2021302012",
+      "college": "Software Engineering",
+      "original_file": "Steven Lewis_OperatingSystems_HW3-Threading.py",
+      "expected_renamed": "Steven Lewis-Software Engineering-2021302012-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "Anthony Walker": {
+      "student_id": "2021302014",
+      "college": "Software Engineering",
+      "original_file": "Anthony Walker_OperatingSystems_HW3.py",
+      "expected_renamed": "Anthony Walker-Software Engineering-2021302014-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "Alexander Hall": {
+      "student_id": "2021302015",
+      "college": "Computer Science",
+      "original_file": "Alexander Hall_OperatingSystems_Assignment3.rs",
+      "expected_renamed": "Alexander Hall-Computer Science-2021302015-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Nicholas Allen": {
+      "student_id": "2021302016",
+      "college": "Software Engineering",
+      "original_file": "Nicholas Allen-OS-Homework3.py",
+      "expected_renamed": "Nicholas Allen-Software Engineering-2021302016-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "Benjamin Young": {
+      "student_id": "2021302017",
+      "college": "Computer Science",
+      "original_file": "Benjamin Young-OS-Assignment3.py",
+      "expected_renamed": "Benjamin Young-Computer Science-2021302017-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "Joshua Wright": {
+      "student_id": "2021302019",
+      "college": "Computer Science",
+      "original_file": "Joshua Wright_OS_Lab3-DeadlockDetection.rs",
+      "expected_renamed": "Joshua Wright-Computer Science-2021302019-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Eric Green": {
+      "student_id": "2021302021",
+      "college": "Computer Science",
+      "original_file": "Eric Green-OS-Assignment3.c",
+      "expected_renamed": "Eric Green-Computer Science-2021302021-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Sophia Adams": {
+      "student_id": "2021302022",
+      "college": "Computer Science",
+      "original_file": "Sophia Adams_OperatingSystems_Assignment3.c",
+      "expected_renamed": "Sophia Adams-Computer Science-2021302022-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Grace Baker": {
+      "student_id": "2021302023",
+      "college": "Computer Science",
+      "original_file": "Grace Baker-OS-Project3-VirtualMemory.rs",
+      "expected_renamed": "Grace Baker-Computer Science-2021302023-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Nathan Gonzalez": {
+      "student_id": "2021302024",
+      "college": "Computer Science",
+      "original_file": "Nathan Gonzalez-OS-Assignment3.rs",
+      "expected_renamed": "Nathan Gonzalez-Computer Science-2021302024-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Jason Nelson": {
+      "student_id": "2021302025",
+      "college": "Computer Science",
+      "original_file": "Jason Nelson_OS_Project3.rs",
+      "expected_renamed": "Jason Nelson-Computer Science-2021302025-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Emily Carter": {
+      "student_id": "2021302026",
+      "college": "Computer Science",
+      "original_file": "Emily Carter_OS_Lab3.rs",
+      "expected_renamed": "Emily Carter-Computer Science-2021302026-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Lucas Mitchell": {
+      "student_id": "2021302027",
+      "college": "Computer Science",
+      "original_file": "Lucas Mitchell_OS_Assignment3.rs",
+      "expected_renamed": "Lucas Mitchell-Computer Science-2021302027-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Michelle Perez": {
+      "student_id": "2021302028",
+      "college": "Computer Science",
+      "original_file": "Michelle Perez-OperatingSystems-Lab3.rs",
+      "expected_renamed": "Michelle Perez-Computer Science-2021302028-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Jennifer Roberts": {
+      "student_id": "2021302029",
+      "college": "Computer Science",
+      "original_file": "Jennifer Roberts-OperatingSystems-HW3.rs",
+      "expected_renamed": "Jennifer Roberts-Computer Science-2021302029-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Alex Turner": {
+      "student_id": "2021302030",
+      "college": "Computer Science",
+      "original_file": "Alex Turner_OS_Project3.c",
+      "expected_renamed": "Alex Turner-Computer Science-2021302030-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Crystal Phillips": {
+      "student_id": "2021302031",
+      "college": "Computer Science",
+      "original_file": "Crystal Phillips-OS-Homework3.c",
+      "expected_renamed": "Crystal Phillips-Computer Science-2021302031-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Emma Campbell": {
+      "student_id": "2021302032",
+      "college": "Computer Science",
+      "original_file": "Emma Campbell-OperatingSystems-Lab3.rs",
+      "expected_renamed": "Emma Campbell-Computer Science-2021302032-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Tony Parker": {
+      "student_id": "2021302033",
+      "college": "Computer Science",
+      "original_file": "Tony Parker_OperatingSystems_Assignment3.py",
+      "expected_renamed": "Tony Parker-Computer Science-2021302033-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "Tina Evans": {
+      "student_id": "2021302034",
+      "college": "Computer Science",
+      "original_file": "Tina Evans_OS_Assignment3.c",
+      "expected_renamed": "Tina Evans-Computer Science-2021302034-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Charlie Collins": {
+      "student_id": "2021302036",
+      "college": "Computer Science",
+      "original_file": "Charlie Collins-OperatingSystems-HW3.c",
+      "expected_renamed": "Charlie Collins-Computer Science-2021302036-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Jack Stewart": {
+      "student_id": "2021302037",
+      "college": "Computer Science",
+      "original_file": "Jack Stewart-OS-Project3.rs",
+      "expected_renamed": "Jack Stewart-Computer Science-2021302037-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Victor Sanchez": {
+      "student_id": "2021302038",
+      "college": "Computer Science",
+      "original_file": "Victor Sanchez_OS_Lab3.py",
+      "expected_renamed": "Victor Sanchez-Computer Science-2021302038-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "Jacob Morris": {
+      "student_id": "2021302039",
+      "college": "Computer Science",
+      "original_file": "Jacob Morris_OS_Lab3-MemoryManagement.rs",
+      "expected_renamed": "Jacob Morris-Computer Science-2021302039-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Penny Rogers": {
+      "student_id": "2021302040",
+      "college": "Computer Science",
+      "original_file": "Penny Rogers_OperatingSystems_HW3.rs",
+      "expected_renamed": "Penny Rogers-Computer Science-2021302040-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Peter Reed": {
+      "student_id": "2021302041",
+      "college": "Software Engineering",
+      "original_file": "Peter Reed_OperatingSystems_Assignment3.c",
+      "expected_renamed": "Peter Reed-Software Engineering-2021302041-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Leo Bell": {
+      "student_id": "2021302044",
+      "college": "Software Engineering",
+      "original_file": "Leo Bell-OS-Homework3.c",
+      "expected_renamed": "Leo Bell-Software Engineering-2021302044-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Jerry Murphy": {
+      "student_id": "2021302045",
+      "college": "Software Engineering",
+      "original_file": "Jerry Murphy-OS-Project3-Scheduling.py",
+      "expected_renamed": "Jerry Murphy-Software Engineering-2021302045-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "Henry Bailey": {
+      "student_id": "2021302046",
+      "college": "Software Engineering",
+      "original_file": "Henry Bailey-OS-Assignment3.py",
+      "expected_renamed": "Henry Bailey-Software Engineering-2021302046-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "Celia Rivera": {
+      "student_id": "2021302047",
+      "college": "Software Engineering",
+      "original_file": "Celia Rivera_OperatingSystems_HW3.rs",
+      "expected_renamed": "Celia Rivera-Software Engineering-2021302047-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Leonard Cooper": {
+      "student_id": "2021302048",
+      "college": "Software Engineering",
+      "original_file": "Leonard Cooper-OS-Project3.py",
+      "expected_renamed": "Leonard Cooper-Software Engineering-2021302048-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "Hannah Richardson": {
+      "student_id": "2021302049",
+      "college": "Software Engineering",
+      "original_file": "Hannah Richardson-OS-Homework3.c",
+      "expected_renamed": "Hannah Richardson-Software Engineering-2021302049-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Yvonne Cox": {
+      "student_id": "2021302050",
+      "college": "Software Engineering",
+      "original_file": "Yvonne Cox-OperatingSystems-HW3-Scheduling.rs",
+      "expected_renamed": "Yvonne Cox-Software Engineering-2021302050-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Linda Torres": {
+      "student_id": "2021302052",
+      "college": "Software Engineering",
+      "original_file": "Linda Torres_OS_Assignment3.c",
+      "expected_renamed": "Linda Torres-Software Engineering-2021302052-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Paul Peterson": {
+      "student_id": "2021302053",
+      "college": "Software Engineering",
+      "original_file": "Paul Peterson-OS-Project3-VirtualMemory.c",
+      "expected_renamed": "Paul Peterson-Software Engineering-2021302053-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Theodore Gray": {
+      "student_id": "2021302054",
+      "college": "Software Engineering",
+      "original_file": "Theodore Gray_OperatingSystems_Assignment3.py",
+      "expected_renamed": "Theodore Gray-Software Engineering-2021302054-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "Quinn Ramirez": {
+      "student_id": "2021302055",
+      "college": "Software Engineering",
+      "original_file": "Quinn Ramirez_OS_Assignment3-FileSystem.rs",
+      "expected_renamed": "Quinn Ramirez-Software Engineering-2021302055-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Helen James": {
+      "student_id": "2021302056",
+      "college": "Software Engineering",
+      "original_file": "Helen James-OS-Project3.py",
+      "expected_renamed": "Helen James-Software Engineering-2021302056-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "Cassie Watson": {
+      "student_id": "2021302057",
+      "college": "Software Engineering",
+      "original_file": "Cassie Watson_OS_Lab3.c",
+      "expected_renamed": "Cassie Watson-Software Engineering-2021302057-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Julian Kelly": {
+      "student_id": "2021302059",
+      "college": "Software Engineering",
+      "original_file": "Julian Kelly_OS_Lab3.c",
+      "expected_renamed": "Julian Kelly-Software Engineering-2021302059-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Lillian Price": {
+      "student_id": "2021302061",
+      "college": "Cyber Security",
+      "original_file": "Lillian Price-OperatingSystems-Lab3.c",
+      "expected_renamed": "Lillian Price-Cyber Security-2021302061-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Jake Bennett": {
+      "student_id": "2021302062",
+      "college": "Cyber Security",
+      "original_file": "Jake Bennett-OperatingSystems-Lab3.c",
+      "expected_renamed": "Jake Bennett-Cyber Security-2021302062-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Hugh Wood": {
+      "student_id": "2021302063",
+      "college": "Cyber Security",
+      "original_file": "Hugh Wood-OS-Homework3.c",
+      "expected_renamed": "Hugh Wood-Cyber Security-2021302063-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Hazel Barnes": {
+      "student_id": "2021302064",
+      "college": "Cyber Security",
+      "original_file": "Hazel Barnes-OperatingSystems-Lab3.py",
+      "expected_renamed": "Hazel Barnes-Cyber Security-2021302064-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "Felix Ross": {
+      "student_id": "2021302065",
+      "college": "Cyber Security",
+      "original_file": "Felix Ross-OS-Homework3.rs",
+      "expected_renamed": "Felix Ross-Cyber Security-2021302065-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Tiffany Henderson": {
+      "student_id": "2021302066",
+      "college": "Cyber Security",
+      "original_file": "Tiffany Henderson_OS_Project3.py",
+      "expected_renamed": "Tiffany Henderson-Cyber Security-2021302066-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "Bobby Coleman": {
+      "student_id": "2021302067",
+      "college": "Cyber Security",
+      "original_file": "Bobby Coleman_OS_Project3-Threading.c",
+      "expected_renamed": "Bobby Coleman-Cyber Security-2021302067-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Jesse Jenkins": {
+      "student_id": "2021302068",
+      "college": "Cyber Security",
+      "original_file": "Jesse Jenkins-OperatingSystems-Lab3.py",
+      "expected_renamed": "Jesse Jenkins-Cyber Security-2021302068-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "Logan Perry": {
+      "student_id": "2021302069",
+      "college": "Cyber Security",
+      "original_file": "Logan Perry-OperatingSystems-HW3.rs",
+      "expected_renamed": "Logan Perry-Cyber Security-2021302069-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Yvette Long": {
+      "student_id": "2021302071",
+      "college": "Cyber Security",
+      "original_file": "Yvette Long-OperatingSystems-HW3.rs",
+      "expected_renamed": "Yvette Long-Cyber Security-2021302071-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Lynn Patterson": {
+      "student_id": "2021302072",
+      "college": "Cyber Security",
+      "original_file": "Lynn Patterson-OS-Homework3.py",
+      "expected_renamed": "Lynn Patterson-Cyber Security-2021302072-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "Ray Hughes": {
+      "student_id": "2021302073",
+      "college": "Cyber Security",
+      "original_file": "Ray Hughes-OS-Homework3.py",
+      "expected_renamed": "Ray Hughes-Cyber Security-2021302073-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "Ying Flores": {
+      "student_id": "2021302074",
+      "college": "Cyber Security",
+      "original_file": "Ying Flores-OperatingSystems-Lab3.c",
+      "expected_renamed": "Ying Flores-Cyber Security-2021302074-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Catherine Washington": {
+      "student_id": "2021302075",
+      "college": "Cyber Security",
+      "original_file": "Catherine Washington_OS_Assignment3-Scheduling.c",
+      "expected_renamed": "Catherine Washington-Cyber Security-2021302075-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Lily Butler": {
+      "student_id": "2021302076",
+      "college": "Cyber Security",
+      "original_file": "Lily Butler-OperatingSystems-HW3.rs",
+      "expected_renamed": "Lily Butler-Cyber Security-2021302076-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Jenna Simmons": {
+      "student_id": "2021302077",
+      "college": "Cyber Security",
+      "original_file": "Jenna Simmons-OS-Assignment3.c",
+      "expected_renamed": "Jenna Simmons-Cyber Security-2021302077-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Ruby Foster": {
+      "student_id": "2021302078",
+      "college": "Cyber Security",
+      "original_file": "Ruby Foster_OperatingSystems_Assignment3.c",
+      "expected_renamed": "Ruby Foster-Cyber Security-2021302078-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Quincy Gonzales": {
+      "student_id": "2021302079",
+      "college": "Cyber Security",
+      "original_file": "Quincy Gonzales-OS-Homework3.rs",
+      "expected_renamed": "Quincy Gonzales-Cyber Security-2021302079-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Theresa Russell": {
+      "student_id": "2021302082",
+      "college": "Cyber Security",
+      "original_file": "Theresa Russell-OS-Homework3-ProcessManagement.c",
+      "expected_renamed": "Theresa Russell-Cyber Security-2021302082-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Rose Griffin": {
+      "student_id": "2021302083",
+      "college": "Cyber Security",
+      "original_file": "Rose Griffin_OS_Project3-MemoryManagement.rs",
+      "expected_renamed": "Rose Griffin-Cyber Security-2021302083-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Lila Diaz": {
+      "student_id": "2021302084",
+      "college": "Cyber Security",
+      "original_file": "Lila Diaz-OperatingSystems-HW3.py",
+      "expected_renamed": "Lila Diaz-Cyber Security-2021302084-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "Serena Hayes": {
+      "student_id": "2021302085",
+      "college": "Cyber Security",
+      "original_file": "Serena Hayes-OS-Assignment3.rs",
+      "expected_renamed": "Serena Hayes-Cyber Security-2021302085-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Susan Myers": {
+      "student_id": "2021302086",
+      "college": "Cyber Security",
+      "original_file": "Susan Myers-OS-Assignment3.py",
+      "expected_renamed": "Susan Myers-Cyber Security-2021302086-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "Riley Ford": {
+      "student_id": "2021302087",
+      "college": "Cyber Security",
+      "original_file": "Riley Ford-OperatingSystems-Lab3.py",
+      "expected_renamed": "Riley Ford-Cyber Security-2021302087-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "Sarah Hamilton": {
+      "student_id": "2021302088",
+      "college": "Cyber Security",
+      "original_file": "Sarah Hamilton-OS-Homework3.py",
+      "expected_renamed": "Sarah Hamilton-Cyber Security-2021302088-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "Kenny Graham": {
+      "student_id": "2021302089",
+      "college": "Cyber Security",
+      "original_file": "Kenny Graham-OS-Project3.c",
+      "expected_renamed": "Kenny Graham-Cyber Security-2021302089-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Keith Sullivan": {
+      "student_id": "2021302090",
+      "college": "Cyber Security",
+      "original_file": "Keith Sullivan_OS_Project3.c",
+      "expected_renamed": "Keith Sullivan-Cyber Security-2021302090-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Patrick Wallace": {
+      "student_id": "2021302091",
+      "college": "Cyber Security",
+      "original_file": "Patrick Wallace_OS_Project3.c",
+      "expected_renamed": "Patrick Wallace-Cyber Security-2021302091-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Lena Woods": {
+      "student_id": "2021302092",
+      "college": "Cyber Security",
+      "original_file": "Lena Woods_OperatingSystems_Assignment3.py",
+      "expected_renamed": "Lena Woods-Cyber Security-2021302092-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "Ulysses Cole": {
+      "student_id": "2021302093",
+      "college": "Cyber Security",
+      "original_file": "Ulysses Cole_OS_Project3.c",
+      "expected_renamed": "Ulysses Cole-Cyber Security-2021302093-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Yolanda West": {
+      "student_id": "2021302094",
+      "college": "Cyber Security",
+      "original_file": "Yolanda West_OS_Assignment3.c",
+      "expected_renamed": "Yolanda West-Cyber Security-2021302094-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Marlene Jordan": {
+      "student_id": "2021302095",
+      "college": "Cyber Security",
+      "original_file": "Marlene Jordan-OS-Project3-MemoryManagement.rs",
+      "expected_renamed": "Marlene Jordan-Cyber Security-2021302095-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Yvette Stone": {
+      "student_id": "2021302096",
+      "college": "Cyber Security",
+      "original_file": "Yvette Stone-OperatingSystems-Lab3.py",
+      "expected_renamed": "Yvette Stone-Cyber Security-2021302096-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    },
+    "Bob Freeman": {
+      "student_id": "2021302097",
+      "college": "Cyber Security",
+      "original_file": "Bob Freeman-OperatingSystems-Lab3.c",
+      "expected_renamed": "Bob Freeman-Cyber Security-2021302097-OS-HW3.c",
+      "file_type": "c",
+      "target_folder": "C"
+    },
+    "Boris Webb": {
+      "student_id": "2021302099",
+      "college": "Cyber Security",
+      "original_file": "Boris Webb-OS-Homework3.rs",
+      "expected_renamed": "Boris Webb-Cyber Security-2021302099-OS-HW3.rs",
+      "file_type": "rust",
+      "target_folder": "Rust"
+    },
+    "Cindy Tucker": {
+      "student_id": "2021302100",
+      "college": "Cyber Security",
+      "original_file": "Cindy Tucker-OS-Assignment3.py",
+      "expected_renamed": "Cindy Tucker-Cyber Security-2021302100-OS-HW3.py",
+      "file_type": "python",
+      "target_folder": "Python"
+    }
+  }
+}
