@@ -1,0 +1,5 @@
+{
+    "needed_mcp_servers": ["filesystem","pdf-reader"],
+    "needed_local_tools": ["python_execute","manage_context","history"],
+    "meta": {}
+} 
