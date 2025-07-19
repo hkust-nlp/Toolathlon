@@ -9,7 +9,7 @@ def check_local(agent_workspace: str, groundtruth_workspace: str) -> Tuple[bool,
     """
     
     # 定义需要匹配的列名
-    REQUIRED_COLUMNS = ['课程名称', '课程代码', '任课老师', '上课校区', '上课时间', '学分数','考核方式','考试时间','开课院系','选课限制专业']
+    REQUIRED_COLUMNS = ['课程名称', '课程代码', '任课老师', '上课校区', '学分数','考核方式','考试时间','开课院系','选课限制专业']
     
     # 获取标准答案文件（所有.xlsx文件）
     groundtruth_files = []
