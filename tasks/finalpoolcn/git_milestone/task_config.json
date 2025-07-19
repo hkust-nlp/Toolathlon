@@ -1,0 +1,6 @@
+{
+    "needed_mcp_servers": ["filesystem", "terminal", "googlesearch"],
+    "needed_local_tools": [],
+    "meta": {
+    }
+} 

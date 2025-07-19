@@ -1,5 +1,5 @@
 {
-    "needed_mcp_servers": ["filesystem","pdf-reader"],
+    "needed_mcp_servers": ["filesystem","pdf-tools","terminal","excel"],
     "needed_local_tools": ["python_execute","manage_context","history"],
     "meta": {}
 } 
