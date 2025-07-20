@@ -1,3 +1,8 @@
+## 2025.7.21 4:30
+- 添加网页搜索工具 web_search，支持在任务中进行网页搜索
+    - 相关文件 `utils/aux_tools/web_search.py`, `utils/roles/task_agent.py`
+    - 可用工具 "web_search"
+
 ## 2025.7.18 11:00
 - 添加自定义 pdf_tools_mcp server, 移除原有的pdf相关server
 

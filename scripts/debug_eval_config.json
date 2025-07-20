@@ -9,7 +9,7 @@
     },
     "agent":{
         "model":{
-            "short_name": "claude-4-sonnet-0514",
+            "short_name": "gpt-4.1-mini-0414",
             "provider": "aihubmix"
         },
         "generation":{
