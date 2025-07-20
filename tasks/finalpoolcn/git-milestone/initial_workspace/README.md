@@ -1,1 +1,0 @@
-# Canvas Course Templates

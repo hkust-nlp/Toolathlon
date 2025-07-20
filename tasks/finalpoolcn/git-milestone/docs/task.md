@@ -14,13 +14,14 @@
         "key_1": "xxxx"
     }
 }
+
 对于每个repo，请收集以下信息（在 json 文件中使用下面的key）:
 - repo_name（仓库名称）
-- owner（所有者）
-- star_count（星标数）
-- fork_count（分叉数）
-- creation_date（创建时间）
+- owner（所有者用户名）
+- star_count（星标数，整数值）
+- fork_count（分叉数，整数值）
+- creation_time（创建时间, ISO 8601 格式，带 Z 后缀，精确到秒）
 - description（描述）
 - language（主要编程语言）
-- repo_url
+- repo_url （仓库链接）
 
