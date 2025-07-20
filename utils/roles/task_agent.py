@@ -43,6 +43,7 @@ from utils.aux_tools.ai_webpage_summary import tool_ai_webpage_summary
 from utils.aux_tools.context_management_tools import context_management_tools
 from utils.aux_tools.history_tools import history_tools
 from utils.aux_tools.python_interpretor import tool_python_execute
+from utils.aux_tools.web_search import tool_web_search
 
 local_tool_mappings = {
     "ai_webpage_summary": tool_ai_webpage_summary,
@@ -51,6 +52,7 @@ local_tool_mappings = {
     "manage_context": context_management_tools,
     "history": history_tools,
     'python_execute': tool_python_execute,
+    "web_search": tool_web_search,
 }
 
 class TaskStatus(Enum):

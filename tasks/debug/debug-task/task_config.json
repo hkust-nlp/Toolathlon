@@ -1,5 +1,5 @@
 {
-    "needed_mcp_servers": ["pdf-tools","terminal"],
-    "needed_local_tools": [],
+    "needed_mcp_servers": ["fetch"],
+    "needed_local_tools": ["web_search"],
     "meta": {}
 }
