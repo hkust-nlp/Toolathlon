@@ -11,7 +11,7 @@ from argparse import ArgumentParser
 
 # Add utils to path
 sys.path.append(os.path.dirname(__file__))
-from utils.github_fetcher import fetch_and_save_github_data
+from ..utils.github_fetcher import fetch_and_save_github_data
 
 
 def main():

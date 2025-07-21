@@ -14,16 +14,16 @@ task_dir=finalpoolcn/git-milestone
 # --debug
 # # --multi_turn_mode
 
-uv run demo.py \
---eval_config scripts/model_wise/eval_claude-4-sonnet.json \
---task_dir $task_dir \
---debug \
---en_mode
-# --multi_turn_mode
-
 # uv run demo.py \
-# --eval_config scripts/model_wise/eval_gpt-4.1-mini.json \
+# --eval_config scripts/model_wise/eval_claude-4-sonnet.json \
 # --task_dir $task_dir \
 # --debug \
 # --en_mode
+# --multi_turn_mode
+
+uv run demo.py \
+--eval_config scripts/model_wise/eval_gpt-4.1-mini.json \
+--task_dir $task_dir \
+--debug \
+--en_mode
 # # --multi_turn_mode

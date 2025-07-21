@@ -17,7 +17,7 @@ from utils.general.helper import normalize_str
 
 # Add task utils to path for GitHub fetcher
 sys.path.append(os.path.dirname(__file__))
-from utils.github_fetcher import fetch_and_save_github_data
+from ..utils.github_fetcher import fetch_and_save_github_data
 
 class GitHubRepoEvaluator:
     def __init__(self, agent_file_path: str, before_task_file_path: str = None, after_task_file_path: str = None):
@@ -27,7 +27,7 @@ class GitHubRepoEvaluator:
         self.expected_repo_ids = [1, 1000, 1000000, 1000000000]
         self.required_fields = [
             'repo_name', 'owner', 'star_count', 'fork_count', 
-            'creation_date', 'description', 'language', 'repo_url'
+            'creation_time', 'description', 'language', 'repo_url'
         ]
         
         # Load before and after task data
@@ -36,45 +36,6 @@ class GitHubRepoEvaluator:
         
         if before_task_file_path:
             self.before_task_data = self.load_groundtruth_data(before_task_file_path, "before_task")
-        
-        if after_task_file_path:
-            self.after_task_data = self.load_groundtruth_data(after_task_file_path, "after_task")
-        
-        # If no dynamic data available, use fallback
-        if not self.before_task_data and not self.after_task_data:
-            # Fallback to hardcoded data if no groundtruth files
-            self.before_task_data = {
-                "1": {
-                    "repo_name": "grit",
-                    "owner": "mojombo",
-                    "star_count": 1900,
-                    "fork_count": 500,
-                    "creation_date": "2007-10-29T14:37:16Z",
-                    "description": "**Grit is no longer maintained. Check out libgit2/rugged.** Grit gives you object oriented read/write access to Git repositories via Ruby.",
-                    "language": "Ruby",
-                    "repo_url": "https://github.com/mojombo/grit"
-                },
-                "1000000": {
-                    "repo_name": "nexus.vim",
-                    "owner": "vim-scripts",
-                    "star_count": 0,
-                    "fork_count": 0,
-                    "creation_date": "2010-10-18T18:52:14Z",
-                    "description": "Syntax highlighting for Nexus file format",
-                    "language": "VimL",
-                    "repo_url": "https://github.com/vim-scripts/nexus.vim"
-                },
-                "1000000000": {
-                    "repo_name": "shit",
-                    "owner": "Red-Killer",
-                    "star_count": 3600,
-                    "fork_count": 260,
-                    "creation_date": "2025-06-11T05:50:39Z",
-                    "description": None,
-                    "language": None,
-                    "repo_url": "https://github.com/Red-Killer/shit"
-                }
-            }
             self.after_task_data = self.before_task_data.copy()
     
     def load_groundtruth_data(self, file_path: str, data_type: str) -> Dict[str, Any]:
@@ -108,7 +69,6 @@ class GitHubRepoEvaluator:
         if not self.after_task_file_path:
             print("⚠️  No after_task file path specified, skipping generation")
             return True
-            
         print("📊 Generating after_task.json with current GitHub stats...")
         try:
             # Fetch current GitHub data
@@ -119,10 +79,10 @@ class GitHubRepoEvaluator:
                 self.after_task_data = self.load_groundtruth_data(self.after_task_file_path, "after_task")
                 return True
             else:
-                print("❌ Failed to fetch current GitHub data for after_task.json")
+                print("❌ Failed to fetch current GitHub data for after_task.json. Use copied before_task.json as backup!")
                 return False
         except Exception as e:
-            print(f"❌ Error generating after_task.json: {e}")
+            print(f"❌ Error generating after_task.json: {e}. Use copied before_task.json as backup!")
             return False
     
     def check_file_format(self, data: Dict[str, Any]) -> bool:
@@ -287,7 +247,7 @@ class GitHubRepoEvaluator:
                     elif valid_urls:
                         print(f"✅ Repo {repo_id}: Field '{field}' matches (URL normalized)")
                 
-                # Standard exact match for other fields (creation_date)
+                # Standard exact match for other fields (creation_time)
                 else:
                     if actual_value != reference_value:
                         print(f"❌ Repo {repo_id}: Field '{field}' mismatch")
@@ -392,10 +352,6 @@ def main():
     
     # Construct file paths
     agent_file_path = os.path.join(args.agent_workspace, "github_info.json")
-    before_task_file_path = None
-    after_task_file_path = None
-    
-    # load
     before_task_file_path = os.path.join(args.groundtruth_workspace, "before_task.json")
     after_task_file_path = os.path.join(args.groundtruth_workspace, "after_task.json")
     
@@ -409,21 +365,9 @@ def main():
         print(f"⚠️  Warning: Before task file not found: {before_task_file_path}")
         before_task_file_path = None
     
-    if after_task_file_path and not os.path.exists(after_task_file_path):
-        print(f"⚠️  Warning: After task file not found: {after_task_file_path}")
-        after_task_file_path = None
-    
-    if not before_task_file_path and not after_task_file_path:
-        print("⚠️  No before/after task files found. Will use fallback hardcoded data")
-    
     # Run evaluation
     evaluator = GitHubRepoEvaluator(agent_file_path, before_task_file_path, after_task_file_path)
     success = evaluator.run_evaluation()
-    
-    # # Log results if specified
-    # if args.res_log_file:
-    #     with open(args.res_log_file, 'w') as f:
-    #         f.write("PASSED" if success else "FAILED")
     
     # Exit with appropriate code
     sys.exit(0 if success else 1)
