@@ -1,6 +1,6 @@
 {
-    "needed_mcp_servers": ["filesystem", "terminal", "googlesearch"],
-    "needed_local_tools": [],
+    "needed_mcp_servers": ["filesystem", "terminal" ],
+    "needed_local_tools": ["claim_done", "python_execute","web_search"],
     "meta": {
     }
 } 
