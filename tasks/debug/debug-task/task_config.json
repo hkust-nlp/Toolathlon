@@ -1,5 +1,5 @@
 {
-    "needed_mcp_servers": ["fetch"],
-    "needed_local_tools": ["web_search"],
+    "needed_mcp_servers": ["excel","filesystem"],
+    "needed_local_tools": [],
     "meta": {}
 }

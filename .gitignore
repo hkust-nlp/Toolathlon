@@ -23,8 +23,8 @@ initial_states/manual
 groundtruth/manual
 # 忽略所有名为 manual 的文件夹
 manual/
-# scripts/debug_manual.sh
-# scripts/debug_eval_config.json
+scripts/debug_manual.sh
+scripts/debug_eval_config.json
 # scripts/update_trajectories.sh
 tmp/
 .tmp/
@@ -34,5 +34,7 @@ tmp/
 
 # 所有文件 pd_xxx.yaml
 pd_*.yaml
+
+tasks/debug/debug-task
 
 
