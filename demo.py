@@ -29,8 +29,8 @@ async def main():
                        help="Whether to enable manual input")
     parser.add_argument("--multi_turn_mode", action="store_true", 
                        help="Whether to enable multi turn mode")
-    parser.add_argument("--en_mode", action="store_true", 
-                       help="Whether to enable english mode")
+    parser.add_argument("--cn_mode", action="store_true", 
+                       help="Whether to enable chinese mode")
     args = parser.parse_args()
     
     # 设置代理（如果需要）
@@ -49,7 +49,7 @@ async def main():
                                    agent_config.model.short_name, 
                                    eval_config_dict['global_task_config'],
                                    not args.multi_turn_mode,
-                                   args.en_mode)
+                                   args.cn_mode)
 
     # 运行任务
     print("=== Starting Task Execution ===")

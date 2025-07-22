@@ -35,6 +35,7 @@ In this file we guide you how to install all needed servers for this project.
     uv tool install git+https://github.com/wandb/wandb-mcp-server
     uv tool install cli-mcp-server
     uv tool install pdf-tools-mcp@latest
+    uv tool install git+https://github.com/jkawamoto/mcp-youtube-transcript
     ```
 
 4. build from source
