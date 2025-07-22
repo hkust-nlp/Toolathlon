@@ -1,4 +1,5 @@
 import asyncio
+import re
 from agents import (
     ModelProvider, 
     OpenAIChatCompletionsModel, 
@@ -9,6 +10,13 @@ from openai import AsyncOpenAI
 from openai.types.responses import ResponseOutputMessage
 from configs.global_configs import global_configs
 from addict import Dict
+
+class ContextTooLongError(Exception):
+    """上下文过长异常"""
+    def __init__(self, message, token_count=None, max_tokens=None):
+        super().__init__(message)
+        self.token_count = token_count
+        self.max_tokens = max_tokens
 
 class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
     def __init__(self, model: str, openai_client: AsyncOpenAI, 
@@ -31,10 +39,38 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                             print("assistant: ", item.content[0].text)
                 return model_response
             except Exception as e:
+                error_str = str(e)
+                
+                # 检测上下文超长错误 - 直接抛出，不重试
+                if ("prompt is too long" in error_str and 
+                    "tokens >" in error_str and 
+                    "maximum" in error_str):
+                    
+                    # 提取token信息
+                    match = re.search(r'(\d+) tokens > (\d+) maximum', error_str)
+                    if match:
+                        current_tokens, max_tokens = int(match.group(1)), int(match.group(2))
+                    else:
+                        current_tokens, max_tokens = None, None
+                    
+                    if self.debug:
+                        print(f"Context too long detected: {current_tokens} tokens > {max_tokens} maximum")
+                    
+                    raise ContextTooLongError(
+                        f"Context too long: current tokens in prompt = {current_tokens} > maximum tokens ={max_tokens}",
+                        token_count=current_tokens,
+                        max_tokens=max_tokens
+                    )
+                
+                # 其他错误：继续重试逻辑
                 if self.debug:
                     print(f"Error in get_response: {e}, retry {i+1}/{self.retry_times}, waiting {self.retry_delay} seconds...")
+                
+                # 如果是最后一次重试，则抛出原异常
+                if i == self.retry_times - 1:
+                    raise Exception(f"Failed to get response after {self.retry_times} retries, error: {e}")
+                
                 await asyncio.sleep(self.retry_delay)
-        raise Exception(f"Failed to get response after {self.retry_times} retries, error: {e}")
 
 class CustomModelProvider(ModelProvider):
     def get_model(self, model_name: str | None, debug: bool = True) -> Model:

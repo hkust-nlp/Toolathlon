@@ -242,7 +242,55 @@ class HistoryManager:
             "date_range": date_range,
             "file_size_bytes": self.history_file.stat().st_size if self.history_file.exists() else 0
         }
-    
+
+    # 在 history_manager.py 中添加或更新此方法
+    def _extract_searchable_content(self, record: Dict) -> str:
+        """从记录中提取可搜索的内容"""
+        content_parts = []
+        
+        # 处理不同类型的记录
+        if record.get("type") == "initial_input":
+            content_parts.append(record.get("content", ""))
+        
+        elif record.get("item_type") == "message_output_item":
+            raw_content = record.get("raw_content", {})
+            if isinstance(raw_content, dict):
+                # 提取角色
+                role = raw_content.get("role", "")
+                if role:
+                    content_parts.append(f"[{role}]")
+                
+                # 提取文本内容
+                for content_item in raw_content.get("content", []):
+                    if isinstance(content_item, dict) and content_item.get("type") == "output_text":
+                        content_parts.append(content_item.get("text", ""))
+        
+        elif record.get("item_type") == "tool_call_item":
+            raw_content = record.get("raw_content", {})
+            if isinstance(raw_content, dict):
+                tool_name = raw_content.get("name", "")
+                if tool_name:
+                    content_parts.append(f"[Tool: {tool_name}]")
+                
+                # 包括工具参数
+                args = raw_content.get("arguments", {})
+                if args:
+                    content_parts.append(json.dumps(args, ensure_ascii=False))
+        
+        elif record.get("item_type") == "tool_call_output_item":
+            raw_content = record.get("raw_content", {})
+            if isinstance(raw_content, dict):
+                output = raw_content.get("output", "")
+                if output:
+                    content_parts.append(str(output))
+        
+        elif record.get("item_type") == "user_input":
+            content = record.get("content", "")
+            if content:
+                content_parts.append(content)
+        
+        return " ".join(content_parts)
+
     def _calculate_duration(self, start_time: str, end_time: str) -> str:
         """计算时间差"""
         try:

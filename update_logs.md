@@ -1,3 +1,27 @@
+## 2025.7.22 23:59
+- 添加YouTube字幕MCP服务器支持
+    - 修复原有youtube服务器字幕功能问题
+    - 相关文件 `configs/mcp_servers/youtube_transcript.yaml`
+- 升级Excel MCP服务器版本至0.1.4
+    - 相关文件 `pyproject.toml`
+- 增强上下文过长错误处理机制
+    - 在模型提供器中添加ContextTooLongError异常类，用于检测和处理上下文超长错误
+    - 上下文超长时自动清空上下文并提供最近十轮历史上下文重新开始
+    - 相关文件 `utils/api_model/model_provider.py`, `utils/roles/context_managed_runner.py`
+- 大幅扩展和增强历史记录工具功能
+    - 添加正则表达式搜索支持 (`search_history` 工具新增 `use_regex` 参数)
+    - 添加轮内搜索功能 (`search_in_turn` 新工具)
+    - 增强查看历史轮次功能，支持内容截断 (`view_history_turn` 工具新增 `truncate` 参数)
+    - 优化浏览历史功能，支持内容截断 (`browse_history` 工具新增 `truncate` 参数)
+    - 改进搜索结果上下文显示和匹配高亮
+    - 相关文件 `utils/aux_tools/history_manager.py`, `utils/aux_tools/history_tools.py`
+- 更新调试任务配置
+    - 修改所需MCP服务器为excel和filesystem
+    - 相关文件 `tasks/debug/debug-task/task_config.json`
+- 更新.gitignore规则
+    - 重新启用debug脚本忽略规则
+    - 添加debug任务文件夹忽略规则
+
 ## 2025.7.21 4:30
 - 添加网页搜索工具 web_search，支持在任务中进行网页搜索
     - 相关文件 `utils/aux_tools/web_search.py`, `utils/roles/task_agent.py`
