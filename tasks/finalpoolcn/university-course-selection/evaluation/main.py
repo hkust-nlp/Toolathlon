@@ -4,8 +4,6 @@ import argparse
 import json
 
 from .check_local import check_local
-from .check_remote import check_remote
-
 
 def main():
     """主函数，支持命令行调用"""
@@ -16,7 +14,6 @@ def main():
     
     args = parser.parse_args()
     
-    # 检查本地文件生成 (主要检查)
     try:
         local_pass, local_msg = check_local(args.agent_workspace, args.groundtruth_workspace)
         if not local_pass:
@@ -24,16 +21,6 @@ def main():
             exit(1)
     except Exception as e:
         print("local check error: ", e)
-        exit(1)
-    
-    # 检查远程状态 (可选检查)
-    try:
-        remote_pass, remote_msg = check_remote(args.agent_workspace, args.groundtruth_workspace)
-        if not remote_pass:
-            print("remote check failed: ", remote_msg)
-            exit(1)
-    except Exception as e:
-        print("remote check error: ", e)
         exit(1)
     
     print("Pass all tests!")

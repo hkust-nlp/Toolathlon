@@ -1,0 +1,4 @@
+{
+  "pass": false,
+  "failure": "local check failed:  文件数量不匹配 - Groundtruth: 4 个文件，Agent: 3 个文件\n"
+}
