@@ -11,6 +11,7 @@ from agents.items import (
     ToolCallItem, ToolCallOutputItem, ItemHelpers
 )
 from openai.types.responses import ResponseOutputMessage, ResponseOutputText
+from utils.api_model.model_provider import ContextTooLongError
 
 class ContextManagedRunner(Runner):
     """支持上下文管理和历史记录的 Runner"""
@@ -198,7 +199,20 @@ class ContextManagedRunner(Runner):
 
 
         # 调用父类方法执行实际的单轮
-        result = await super()._run_single_turn(**kwargs)
+        try:
+            result = await super()._run_single_turn(**kwargs)
+        except ContextTooLongError as e:
+            # 标记需要强制重置上下文，并记录已执行的步数
+            ctx["_force_reset_context"] = {
+                "reason": str(e),
+                "token_count": getattr(e, 'token_count', None),
+                "max_tokens": getattr(e, 'max_tokens', None),
+                "timestamp": datetime.now().isoformat(),
+                "executed_mini_turns": meta.get("mini_turns_in_current_sequence", 0),  # 已执行的mini turns
+                "executed_turns": meta.get("turns_in_current_sequence", 0)  # 已执行的turns
+            }
+            # 重新抛出，让上层处理
+            raise
 
 
         meta["boundary_in_current_sequence"].append((meta["mini_turns_in_current_sequence"], 
@@ -710,6 +724,129 @@ class ContextManagedRunner(Runner):
                 item_index += 1
         
         return formatted_messages
+
+    @classmethod
+    def get_recent_turns_summary(cls, history_dir: Union[str, Path], session_id: str, num_turns: int = 5) -> str:
+        """获取最近N轮交互的简化摘要，用于上下文重置时的临时记忆
+        
+        Args:
+            history_dir: 历史文件目录
+            session_id: 会话ID
+            num_turns: 要获取的轮次数量
+            
+        Returns:
+            格式化的历史摘要字符串
+        """
+        history_file = Path(history_dir) / f"{session_id}_history.jsonl"
+        
+        if not history_file.exists():
+            return "No history"
+        
+        # 读取并按轮次整理记录
+        records = []
+        with open(history_file, 'r', encoding='utf-8') as f:
+            for line in f:
+                try:
+                    record = json.loads(line)
+                    records.append(record)
+                except json.JSONDecodeError:
+                    continue
+        
+        # 按轮次和步骤排序
+        records.sort(key=lambda x: (x.get("turn", 0), x.get("in_turn_steps", 0)))
+        
+        # 按轮次分组
+        turns_data = {}
+        for record in records:
+            turn_num = record.get("turn", 0)
+            if turn_num not in turns_data:
+                turns_data[turn_num] = []
+            turns_data[turn_num].append(record)
+        
+        # 获取最近的轮次
+        recent_turn_nums = sorted(turns_data.keys())[-num_turns:] if len(turns_data) > num_turns else sorted(turns_data.keys())
+        
+        if not recent_turn_nums:
+            return "No recent turns"
+        
+        summary_lines = []
+        summary_lines.append(f"=== Overview of recent {len(recent_turn_nums)} turns of interaction history ===")
+        
+        for turn_num in recent_turn_nums:
+            turn_records = turns_data[turn_num]
+            summary_lines.append(f"\nTurn#{turn_num}:")
+            
+            for record in turn_records:
+                if record.get("type") == "user_input":
+                    # 用户输入
+                    content = record.get("content", "")
+                    if isinstance(content, list):
+                        # 处理列表格式的内容
+                        content_parts = []
+                        for item in content:
+                            if isinstance(item, dict) and item.get("type") == "text":
+                                content_parts.append(item.get("text", ""))
+                        content = " ".join(content_parts)
+                    
+                    formatted_content = cls._format_content_with_truncation(content)
+                    summary_lines.append(f"  user: {formatted_content}")
+                    
+                elif record.get("item_type") == "message_output_item":
+                    # Agent响应
+                    raw_content = record.get("raw_content", {})
+                    role = raw_content.get("role", "unknown")
+                    
+                    if role == "assistant":
+                        # 提取文本内容
+                        content_parts = []
+                        for content_item in raw_content.get("content", []):
+                            if isinstance(content_item, dict) and content_item.get("type") == "output_text":
+                                content_parts.append(content_item.get("text", ""))
+                        content = " ".join(content_parts)
+                        
+                        if content.strip():  # 只有非空内容才显示
+                            formatted_content = cls._format_content_with_truncation(content)
+                            summary_lines.append(f"  assistant: {formatted_content}")
+                
+                elif record.get("item_type") == "tool_call_item":
+                    # 工具调用
+                    raw_content = record.get("raw_content", {})
+                    tool_name = raw_content.get("name", "unknown") if isinstance(raw_content, dict) else "unknown"
+                    summary_lines.append(f"  [Tool Call: {tool_name}]")
+                    
+                elif record.get("item_type") == "tool_call_output_item":
+                    # 工具执行结果
+                    raw_content = record.get("raw_content", {})
+                    output = raw_content.get("output", "") if isinstance(raw_content, dict) else ""
+                    if output.strip():
+                        formatted_output = cls._format_content_with_truncation(output)
+                        summary_lines.append(f"  [Tool Result: {formatted_output}]")
+        
+        summary_lines.append("\nNote: This is a simplified overview. Please use the history record search tool to view the complete content and search infomation in it.")
+        return "\n".join(summary_lines)
+    
+    @classmethod
+    def _format_content_with_truncation(cls, content: str, max_length: int = 500) -> str:
+        """格式化内容，超过限制时进行截断
+        
+        Args:
+            content: 原始内容
+            max_length: 最大长度限制
+            
+        Returns:
+            格式化后的内容字符串
+        """
+        if not content:
+            return "[空内容]"
+        
+        content = content.strip()
+        if len(content) <= max_length:
+            return content
+        
+        # 截断逻辑：前250字符 + ... + 后250字符
+        half_length = (max_length - 5) // 2  # 减去 " ... " 的5个字符
+        truncated = content[:half_length] + " ... " + content[-half_length:]
+        return f"{truncated} (实际长度: {len(content)}字符)"
 
     @classmethod
     def get_session_stats(cls, history_dir: Union[str, Path], session_id: str) -> Dict[str, Any]:

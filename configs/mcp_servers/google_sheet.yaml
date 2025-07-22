@@ -10,5 +10,5 @@ params:
     CREDENTIALS_PATH: "${token.google_oauth2_credentials_path}"
     TOKEN_PATH: "${token.google_oauth2_token_path}"
     DRIVE_FOLDER_ID: "${token.google_sheets_folder_id}"
-client_session_timeout_seconds: 10
+client_session_timeout_seconds: 60
 cache_tools_list: true

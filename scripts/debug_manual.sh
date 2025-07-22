@@ -21,6 +21,8 @@
 # eval_gpt-4.1-mini.json
 
 uv run demo.py \
---eval_config scripts/model_wise/eval_claude-4-sonnet.json \
---task_dir finalpoolcn/hk-top-conf \
---debug \
+--eval_config scripts/debug_eval_config.json \
+--task_dir debug/debug-task \
+--debug
+# --multi_turn_mode \
+# --manual

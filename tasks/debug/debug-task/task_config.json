@@ -1,5 +1,5 @@
 {
-    "needed_mcp_servers": ["fetch"],
-    "needed_local_tools": ["web_search"],
+    "needed_mcp_servers": ["filesystem","google_sheet"],
+    "needed_local_tools": ["claim_done","manage_context","history","python_execute"],
     "meta": {}
 }
