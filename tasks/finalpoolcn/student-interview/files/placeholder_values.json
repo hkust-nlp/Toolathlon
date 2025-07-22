@@ -1,0 +1,11 @@
+{
+  "professor_name": "李教授",
+  "university": "HKUST",
+  "department": "计算机科学与工程系",
+  "office": "Room 3501, Academic Building",
+  "email": "professor.li@ust.hk",
+  "phone": "+852-2358-1234",
+  "research_area": "机器学习与人工智能",
+  "meeting_duration": "45分钟",
+  "interview_location": "教授办公室"
+} 

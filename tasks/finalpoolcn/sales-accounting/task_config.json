@@ -1,0 +1,10 @@
+{
+    "needed_mcp_servers": ["memory","excel","filesystem"],
+    "needed_local_tools": [],
+    "meta": {
+        "task_type": "accounting",
+        "input_files": ["Account_Book.xlsx", "memory.json"],
+        "output_file": "Account_Book.xlsx",
+        "description": "根据memory.json中的交易记录完善Excel账本，直接在Account_Book.xlsx中修改"
+    }
+}
