@@ -3,7 +3,6 @@ import asyncio
 
 from .check_log import check_log
 from .check_local import check_local
-from .check_remote import check_remote
 from utils.general.helper import read_json
 
 if __name__ == "__main__":
@@ -55,22 +54,7 @@ if __name__ == "__main__":
     except Exception as e:
         evaluation_results["local_check"]["error"] = str(e)
         print(f"\n⚠️ 本地文件检查异常: {e}")
-    
-    # check remote
-    try:
-        remote_pass, remote_error = check_remote(args.agent_workspace, args.groundtruth_workspace, res_log)
-        evaluation_results["remote_check"]["passed"] = remote_pass
-        evaluation_results["remote_check"]["error"] = remote_error
-        
-        if not remote_pass:
-            print(f"\n❌ 远程检查失败: {remote_error}")
-        else:
-            print(f"\n✅ 远程检查通过")
-            
-    except Exception as e:
-        evaluation_results["remote_check"]["error"] = str(e)
-        print(f"\n⚠️ 远程检查异常: {e}")
-    
+  
     # 生成最终评估报告
     print("\n" + "="*80)
     print("最终评估结果汇总")

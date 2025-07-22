@@ -3,7 +3,6 @@ import asyncio
 
 from .check_log import check_log
 from .check_local import check_local
-from .check_remote import check_remote
 from utils.general.helper import read_json  
 
 if __name__=="__main__":
