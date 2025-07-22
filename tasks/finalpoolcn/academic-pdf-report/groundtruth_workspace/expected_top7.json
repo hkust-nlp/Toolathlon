@@ -1,0 +1,46 @@
+{
+    "papers": [
+        {
+            "title": "Strategy Coopetition Explains the Emergence and Transience of In-Context Learning",
+            "first_author": "Aaditya K Singh",
+            "affiliation": "University College London",
+            "personal_website": "https://aadityasingh.github.io/"
+        },
+        {
+            "title": "Model Immunization from a Condition Number Perspective",
+            "first_author": "Amber Yijia Zheng",
+            "affiliation": "Purdue University",
+            "personal_website": "https://www.amberyzheng.com/"
+        },
+        {
+            "title": "Flowing Datasets with Wasserstein over Wasserstein Gradient Flows",
+            "first_author": "Clément Bonet",
+            "affiliation": "Ecole Nationale de la Statistique et de l'Administration Economique",
+            "personal_website": "https://clbonet.github.io/"
+        },
+        {
+            "title": "Learning with Expected Signatures: Theory and Applications",
+            "first_author": "Lorenzo Lucchese",
+            "affiliation": "GSA Capital",
+            "personal_website": "https://www.lorenzolucchese.com/about"
+        },
+        {
+            "title": "AutoML-Agent: A Multi-Agent LLM Framework for Full-Pipeline AutoML",
+            "first_author": "Patara Trirat",
+            "affiliation": "DeepAuto.ai",
+            "personal_website": "https://itouchz.github.io/"
+        },
+        {
+            "title": "Learning Smooth and Expressive Interatomic Potentials for Physical Property Prediction",
+            "first_author": "Xiang Fu",
+            "affiliation": "Meta",
+            "personal_website": "https://xiangfu.co/"
+        },
+        {
+            "title": "Multi-agent Architecture Search via Agentic Supernet",
+            "first_author": "Guibin Zhang",
+            "affiliation": "Tongji University",
+            "personal_website": "https://www.guibinz.top/"
+        }
+    ]
+}
