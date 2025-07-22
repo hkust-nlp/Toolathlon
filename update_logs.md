@@ -1,3 +1,9 @@
+## 2025.7.23 0:02
+- 修改语言模式参数命名
+    - 将 `--en_mode` 参数改为 `--cn_mode`，默认为英文模式，启用参数后为中文模式
+    - 对应的文件后缀从 `_en` 改为 `_cn`
+    - 相关文件 `demo.py`, `utils/data_structures/task_config.py`
+
 ## 2025.7.22 23:59
 - 添加YouTube字幕MCP服务器支持
     - 修复原有youtube服务器字幕功能问题

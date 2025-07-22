@@ -14,10 +14,10 @@ class SystemPrompts:
     user: Union[str, Dict]
     
     @classmethod
-    def build(cls, task_dir: str, en_mode: bool=False):
-        if en_mode:
-            agent_sp_path = Path("tasks")/task_dir/"docs"/"agent_system_prompt_en.md"
-            user_sp_path = Path("tasks")/task_dir/"docs"/"user_system_prompt_en.md"
+    def build(cls, task_dir: str, cn_mode: bool=False):
+        if cn_mode:
+            agent_sp_path = Path("tasks")/task_dir/"docs"/"agent_system_prompt_cn.md"
+            user_sp_path = Path("tasks")/task_dir/"docs"/"user_system_prompt_cn.md"
         else:
             agent_sp_path = Path("tasks")/task_dir/"docs"/"agent_system_prompt.md"
             user_sp_path = Path("tasks")/task_dir/"docs"/"user_system_prompt.md"
@@ -37,7 +37,7 @@ class SystemPrompts:
               task_str: str,
               time: str,
               single_turn_mode: bool=False,
-              en_mode: bool=False):
+              cn_mode: bool=False):
 
         if self.agent is not None:
             self.agent = self.agent.replace("!!<<<<||||current_working_dir||||>>>>!!", os.getcwd())
@@ -45,7 +45,7 @@ class SystemPrompts:
             self.agent = self.agent.replace("!!<<<<||||workspace_dir_rela||||>>>>!!", os.path.relpath(agent_workspace))
             self.agent = self.agent.replace("!!<<<<||||time||||>>>>!!", time)
             if single_turn_mode:
-                if en_mode:
+                if cn_mode:
                     self.agent+="\nPlease complete the given task independently. Do not seek confirmation or additional feedback from the user. You should handle all situations on your own, as the user will not provide any further information."
                 else:
                     self.agent+="\n请独立完成给定的任务。不要寻求用户的确认或额外的反馈。你应该自己处理所有情况，因为用户不会提供任何进一步的信息。"
@@ -60,16 +60,16 @@ class Initialization:
     process_command: str
 
     @classmethod
-    def build(cls, task_dir: str, en_mode: bool=False):
+    def build(cls, task_dir: str, cn_mode: bool=False):
         workspace_path = Path("tasks")/task_dir/"initial_workspace"
         process_command_path = Path("tasks")/task_dir/"preprocess"/"main.py"
 
-        # if en_mode and these paths exists, overwrite them
-        if en_mode:
-            if (Path("tasks")/task_dir/"initial_workspace_en").exists():
-                workspace_path = Path("tasks")/task_dir/"initial_workspace_en"
-            if (Path("tasks")/task_dir/"preprocess"/"main_en.py").exists():
-                process_command_path = Path("tasks")/task_dir/"preprocess"/"main_en.py"
+        # if cn_mode and these paths exists, overwrite them
+        if cn_mode:
+            if (Path("tasks")/task_dir/"initial_workspace_cn").exists():
+                workspace_path = Path("tasks")/task_dir/"initial_workspace_cn"
+            if (Path("tasks")/task_dir/"preprocess"/"main_cn.py").exists():
+                process_command_path = Path("tasks")/task_dir/"preprocess"/"main_cn.py"
 
         if process_command_path.exists():
             process_command = f"uv run -m {path_to_module(process_command_path)}"
@@ -87,16 +87,16 @@ class Evaluation:
     groundtruth_workspace: str
     evaluation_command: str
     @classmethod
-    def build(cls, task_dir: str, en_mode: bool=False):
+    def build(cls, task_dir: str, cn_mode: bool=False):
         groundtruth_workspace_path = Path("tasks")/task_dir/"groundtruth_workspace"
         evaluation_command_path = Path("tasks")/task_dir/"evaluation"/"main.py"
 
-        # if en_mode and these paths exists, overwrite them
-        if en_mode:
-            if (Path("tasks")/task_dir/"groundtruth_workspace_en").exists():
-                groundtruth_workspace_path = Path("tasks")/task_dir/"groundtruth_workspace_en"
-            if (Path("tasks")/task_dir/"evaluation"/"main_en.py").exists():
-                evaluation_command_path = Path("tasks")/task_dir/"evaluation"/"main_en.py"
+        # if cn_mode and these paths exists, overwrite them
+        if cn_mode:
+            if (Path("tasks")/task_dir/"groundtruth_workspace_cn").exists():
+                groundtruth_workspace_path = Path("tasks")/task_dir/"groundtruth_workspace_cn"
+            if (Path("tasks")/task_dir/"evaluation"/"main_cn.py").exists():
+                evaluation_command_path = Path("tasks")/task_dir/"evaluation"/"main_cn.py"
 
         if evaluation_command_path.exists():
             evaluation_command = f"uv run -m {path_to_module(evaluation_command_path)}"
@@ -147,7 +147,7 @@ class TaskConfig:
     max_turns: int = None
     max_steps_under_single_turn_mode: int = None
     single_turn_mode: bool = False
-    en_mode: bool = False
+    cn_mode: bool = False
     meta: Dict = field(default_factory=dict)
     launch_time: str = None
 
@@ -168,8 +168,8 @@ class TaskConfig:
             self.id = '-'.join(Path(self.task_dir).parts)
 
         prefix = ''
-        if self.en_mode:
-            prefix = 'English-'
+        if self.cn_mode:
+            prefix = 'Chinese-'
         if self.single_turn_mode:
             prefix += 'SingleUserTurn-'
 
@@ -190,8 +190,8 @@ class TaskConfig:
         self.task_root = str(task_root_path)
 
         if self.task_str is None:
-            if self.en_mode:
-                task_str_path = Path("tasks")/self.task_dir/"docs"/"task_en.md"
+            if self.cn_mode:
+                task_str_path = Path("tasks")/self.task_dir/"docs"/"task_cn.md"
             else:
                 task_str_path = Path("tasks")/self.task_dir/"docs"/"task.md"
             with open(task_str_path, 'r', encoding='utf-8') as f:
@@ -226,7 +226,7 @@ class TaskConfig:
                                   self.task_str, 
                                   self.launch_time,
                                   self.single_turn_mode,
-                                  self.en_mode)
+                                  self.cn_mode)
 
         if self.local_token_key_session is None:
             # 构造模块路径
@@ -276,7 +276,7 @@ class TaskConfig:
                   agent_short_name: str = None,
                   global_task_config: dict = None,
                   single_turn_mode: bool = False,
-                  en_mode: bool = False) -> 'TaskConfig':
+                  cn_mode: bool = False) -> 'TaskConfig':
         """从字典创建TaskConfig实例"""
         task_config_dict = read_json(Path("tasks")/task_dir/"task_config.json")
         return cls(
@@ -288,11 +288,11 @@ class TaskConfig:
             agent_short_name = agent_short_name,
             global_task_config=global_task_config,
             stop=StopConditions.build(task_config_dict.get('stop')),
-            system_prompts=SystemPrompts.build(task_dir, en_mode),
-            initialization=Initialization.build(task_dir, en_mode),
-            evaluation=Evaluation.build(task_dir, en_mode),
+            system_prompts=SystemPrompts.build(task_dir, cn_mode),
+            initialization=Initialization.build(task_dir, cn_mode),
+            evaluation=Evaluation.build(task_dir, cn_mode),
             single_turn_mode=single_turn_mode,
-            en_mode=en_mode,
+            cn_mode=cn_mode,
             # 以下日期请包含年月日，时间，和星期
             launch_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S %A")
         )
@@ -312,7 +312,7 @@ class TaskConfig:
             'max_turns': self.max_turns,
             'max_steps_under_single_turn_mode': self.max_steps_under_single_turn_mode,
             'single_turn_mode': self.single_turn_mode,
-            'en_mode': self.en_mode,
+            'cn_mode': self.cn_mode,
             'system_prompts': {
                 'agent': self.system_prompts.agent,
                 'user': self.system_prompts.user
