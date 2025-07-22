@@ -22,6 +22,7 @@ from agents import (
 )
 
 from utils.roles.context_managed_runner import ContextManagedRunner
+from utils.api_model.model_provider import ContextTooLongError
 
 from utils.mcp.tool_servers import MCPServerManager
 from utils.api_model.model_provider import calculate_cost, get_context_window
@@ -135,6 +136,10 @@ class TaskAgent:
 
         self.shared_context = {}
 
+        # 保存第一轮用户输入，用于上下文重置
+        self.first_user_input = None
+        self.cumulative_inner_steps = 0  # 累积的inner steps计数
+
     
 
 
@@ -146,6 +151,62 @@ class TaskAgent:
     def _debug_print(self, *args):
         if self.debug:
             print(*args)
+
+    def _extract_first_user_input(self) -> str:
+        """提取第一轮用户输入"""
+        if self.first_user_input:
+            return self.first_user_input
+        
+        # 如果没有保存，从logs中提取第一条用户消息
+        for log in self.logs:
+            if log.get("role") == "user":
+                return log.get("content", "")
+        
+        # 如果都没有，返回任务字符串作为后备
+        return self.task_config.task_str
+
+    def _reset_context_and_history(self) -> None:
+        """重置上下文和历史记录"""
+        self._debug_print("Resetting context and history due to context too long error")
+        
+        # 重置shared_context，保留基本信息
+        session_id = self.shared_context.get("_session_id")
+        history_dir = self.shared_context.get("_history_dir")
+        agent_workspace = self.shared_context.get("_agent_workspace")
+        context_limit = self.shared_context.get("_context_limit")
+        
+        self.shared_context = {
+            "_agent_workspace": agent_workspace,
+            "_session_id": session_id,
+            "_history_dir": history_dir,
+            "_context_meta": {
+                "session_id": session_id,
+                "history_dir": history_dir,
+                "started_at": datetime.datetime.now().isoformat(),
+                "current_turn": 0,
+                "total_turns_ever": 0,
+                "turns_in_current_sequence": 0,
+                "mini_turns_in_current_sequence": 0,
+                "boundary_in_current_sequence": [],
+                "truncated_turns": 0,
+                "truncation_history": [],
+                "context_reset": True,  # 标记上下文已重置
+                "reset_timestamp": datetime.datetime.now().isoformat()
+            },
+            "_context_limit": context_limit
+        }
+        
+        # 清空logs
+        self.logs = []
+        
+        # 记录重置事件到历史文件
+        if session_id and history_dir:
+            ContextManagedRunner._save_user_input_to_history(
+                session_id=session_id,
+                user_input="[SYSTEM] Context reset due to length exceeded",
+                history_dir=history_dir,
+                turn_number=0
+            )
 
     def _default_termination_checker(self, content: str, recent_tools: List[Dict], check_target: str = "user") -> bool:
         """默认的终止条件检查器"""
@@ -460,6 +521,9 @@ class TaskAgent:
 
         while self.stats["interaction_turns"] < real_max_turns:
             try:
+                # 每轮对话开始时重置累积的inner steps计数
+                self.cumulative_inner_steps = 0
+                
                 # 获取用户输入
                 if self.single_turn_mode:
                     user_query = self.task_config.task_str
@@ -468,6 +532,10 @@ class TaskAgent:
                 else:
                     user_query = await self.user_simulator.interact()
                     self._debug_print(f"user: {user_query}")
+
+                # 保存第一轮用户输入
+                if self.first_user_input is None:
+                    self.first_user_input = user_query
 
                 # 添加到历史
                 self.logs.append({"role": "user", "content": user_query})
@@ -503,17 +571,126 @@ class TaskAgent:
                     self._debug_print("Termination condition met by user input")
                     break
                 
-                # Agent 响应 - 传入完整历史
-                result = await ContextManagedRunner.run(
-                    starting_agent=self.agent,
-                    input=self.logs,  # 传入完整历史
-                    context=self.shared_context,  # 使用共享的 context！
-                    run_config=RunConfig(model_provider=self.agent_model_provider),
-                    hooks=self.run_hooks,
-                    max_turns=self.agent_config.tool.max_inner_turns if not self.single_turn_mode else self.task_config.max_steps_under_single_turn_mode,
-                    history_dir=self.history_dir,
-                    session_id=self.session_id,
-                )
+                # Agent 响应 - 用while循环处理可能的上下文重置
+                max_inner_steps = self.agent_config.tool.max_inner_turns if not self.single_turn_mode else self.task_config.max_steps_under_single_turn_mode
+                result = None
+                
+                while self.cumulative_inner_steps < max_inner_steps:
+                    remaining_steps = max_inner_steps - self.cumulative_inner_steps
+                    
+                    try:
+                        result = await ContextManagedRunner.run(
+                            starting_agent=self.agent,
+                            input=self.logs,  # 传入完整历史
+                            context=self.shared_context,  # 使用共享的 context！
+                            run_config=RunConfig(model_provider=self.agent_model_provider),
+                            hooks=self.run_hooks,
+                            max_turns=remaining_steps,  # 使用剩余的步数限制
+                            history_dir=self.history_dir,
+                            session_id=self.session_id,
+                        )
+                        
+                        # 统计这次运行使用的步数
+                        steps_used = len(result.new_items) if result.new_items else 1
+                        self.cumulative_inner_steps += steps_used
+                        self._debug_print(f"Used {steps_used} inner steps, total: {self.cumulative_inner_steps}/{max_inner_steps}")
+                        
+                        # 成功完成，跳出循环
+                        break
+                        
+                    except ContextTooLongError as e:
+                        self._debug_print(f"Context too long detected: {e}")
+                        
+                        # 从shared_context中获取已执行的步数信息
+                        executed_steps = 0
+                        if self.shared_context and "_force_reset_context" in self.shared_context:
+                            reset_info = self.shared_context["_force_reset_context"]
+                            executed_steps = reset_info.get("executed_turns", 1)  # 使用已执行的turns数
+                        
+                        # 如果没有获取到执行步数，默认认为至少执行了1步
+                        if executed_steps == 0:
+                            executed_steps = 1
+                        
+                        self.cumulative_inner_steps += executed_steps
+                        self._debug_print(f"Context reset after {executed_steps} executed steps, total: {self.cumulative_inner_steps}/{max_inner_steps}")
+                        
+                        # 检查是否还有剩余步数
+                        if self.cumulative_inner_steps >= max_inner_steps:
+                            self._debug_print("No more inner steps available for context reset")
+                            raise RuntimeError(
+                                f"Context too long and no remaining inner steps to handle reset. "
+                                f"Used {self.cumulative_inner_steps}/{max_inner_steps} steps. "
+                                f"Original error: {e}"
+                            )
+                        
+                        # 保存第一轮用户输入
+                        first_user_input = self._extract_first_user_input()
+                        
+                        # 如果剩余步数很少，截断用户输入以节省token
+                        remaining_after_reset = max_inner_steps - self.cumulative_inner_steps
+                        if remaining_after_reset <= 3:  # 剩余步数很少时截断输入
+                            max_input_length = 1000
+                            if len(first_user_input) > max_input_length:
+                                first_user_input = first_user_input[:max_input_length] + "...[输入已截断]"
+                                self._debug_print(f"Truncated user input to {max_input_length} characters due to limited remaining steps")
+                        
+                        # 重置上下文和历史
+                        self._reset_context_and_history()
+                        
+                        # 获取最近10轮交互的历史摘要
+                        history_summary = ContextManagedRunner.get_recent_turns_summary(
+                            self.history_dir, 
+                            self.session_id, 
+                            num_turns=10
+                        )
+                        
+                        # 重构输入，集成历史摘要
+                        is_chinese = hasattr(self.task_config, 'language') and self.task_config.language == 'zh'
+                        if is_chinese:
+                            reset_message = (
+                                "[上下文已清空] 先前交互的上下文长度超过模型的可接受长度，已强制清空上下文。"
+                                "以下是任务的原始需求和最近的交互历史概览。"
+                                "请继续执行任务，必要时可使用历史记录搜索工具查看完整详情。"
+                            )
+                        else:
+                            reset_message = (
+                                "[Context reset] The context length of the previous interaction exceeds "
+                                "the acceptable length of the model, and the context has been forcibly cleared. "
+                                "Below are the original task requirements and a summary of recent interactions. "
+                                "Please continue with the task, and use history search "
+                                "tools if you need complete details."
+                            )
+                        
+                        new_user_query = f"{first_user_input}\n\n{reset_message}\n\n{history_summary}"
+                        
+                        # 重新开始对话
+                        self.logs = [{"role": "user", "content": new_user_query}]
+                        
+                        # 更新上下文元数据
+                        self.shared_context["_context_meta"]["turns_in_current_sequence"] = 1
+                        self.shared_context["_context_meta"]["mini_turns_in_current_sequence"] = 1
+                        self.shared_context["_context_meta"]["boundary_in_current_sequence"] = [(0, 1)]
+                        self.shared_context["_context_meta"]["total_turns_ever"] = 1
+                        self.shared_context["_context_meta"]["current_turn"] = 1
+                        
+                        # 保存重置后的用户输入到历史
+                        ContextManagedRunner._save_user_input_to_history(
+                            session_id=self.session_id,
+                            user_input=new_user_query,
+                            history_dir=self.history_dir,
+                            turn_number=1
+                        )
+                        
+                        # 继续while循环，尝试下一次运行
+                        continue
+                
+                # 检查是否成功得到结果
+                if result is None:
+                    raise RuntimeError(f"Failed to get agent response within {max_inner_steps} inner steps")
+                
+                # 如果累积步数超过限制，记录警告但继续执行
+                if self.cumulative_inner_steps >= max_inner_steps:
+                    self._debug_print(f"Warning: Reached maximum inner steps limit ({max_inner_steps})")
                 
                 # 更新统计信息
                 for raw_response in result.raw_responses:
