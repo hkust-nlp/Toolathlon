@@ -788,8 +788,9 @@ class ContextManagedRunner(Runner):
                                 content_parts.append(item.get("text", ""))
                         content = " ".join(content_parts)
                     
-                    formatted_content = cls._format_content_with_truncation(content)
-                    summary_lines.append(f"  user: {formatted_content}")
+                    formatted_content = cls._format_multiline_content(content, max_length=500)
+                    summary_lines.append(f"  User:")
+                    summary_lines.append(f"    {formatted_content}")
                     
                 elif record.get("item_type") == "message_output_item":
                     # Agent响应
@@ -805,26 +806,101 @@ class ContextManagedRunner(Runner):
                         content = " ".join(content_parts)
                         
                         if content.strip():  # 只有非空内容才显示
-                            formatted_content = cls._format_content_with_truncation(content)
-                            summary_lines.append(f"  assistant: {formatted_content}")
+                            formatted_content = cls._format_multiline_content(content, max_length=500)
+                            summary_lines.append(f"  Assistant:")
+                            summary_lines.append(f"    {formatted_content}")
                 
                 elif record.get("item_type") == "tool_call_item":
                     # 工具调用
                     raw_content = record.get("raw_content", {})
-                    tool_name = raw_content.get("name", "unknown") if isinstance(raw_content, dict) else "unknown"
-                    summary_lines.append(f"  [Tool Call: {tool_name}]")
+                    if isinstance(raw_content, dict):
+                        tool_name = raw_content.get("name", "unknown")
+                        call_id = raw_content.get("call_id", "unknown")
+                        arguments = raw_content.get("arguments", "{}")
+                        
+                        # 格式化参数（处理多行内容）
+                        formatted_args = cls._format_multiline_content(arguments, max_length=300)
+                        summary_lines.append(f"  Tool Call: {tool_name}")
+                        summary_lines.append(f"    ID: {call_id}")
+                        summary_lines.append(f"    Args: {formatted_args}")
+                    else:
+                        summary_lines.append(f"  Tool Call: unknown")
                     
                 elif record.get("item_type") == "tool_call_output_item":
                     # 工具执行结果
                     raw_content = record.get("raw_content", {})
-                    output = raw_content.get("output", "") if isinstance(raw_content, dict) else ""
-                    if output.strip():
-                        formatted_output = cls._format_content_with_truncation(output)
-                        summary_lines.append(f"  [Tool Result: {formatted_output}]")
+                    if isinstance(raw_content, dict):
+                        call_id = raw_content.get("call_id", "unknown")
+                        output = raw_content.get("output", "")
+                        if output.strip():
+                            formatted_output = cls._format_multiline_content(output, max_length=400)
+                            summary_lines.append(f"  Tool Result (ID: {call_id}):")
+                            summary_lines.append(f"    {formatted_output}")
+                    else:
+                        summary_lines.append(f"  Tool Result: unknown")
         
         summary_lines.append("\nNote: This is a simplified overview. Please use the history record search tool to view the complete content and search infomation in it.")
         return "\n".join(summary_lines)
     
+    @classmethod
+    def _format_multiline_content(cls, content: str, max_length: int = 500) -> str:
+        """格式化多行内容，处理换行符和长度限制
+        
+        Args:
+            content: 原始内容
+            max_length: 最大长度限制
+            
+        Returns:
+            格式化后的内容字符串
+        """
+        if not content:
+            return "[No content]"
+        
+        content = content.strip()
+        
+        # 如果内容不长，直接返回（保持原有的换行）
+        if len(content) <= max_length:
+            # 将换行符替换为换行加缩进，保持格式
+            lines = content.split('\n')
+            if len(lines) <= 1:
+                return content
+            else:
+                # 多行内容，每行添加适当缩进
+                formatted_lines = [lines[0]]  # 第一行不需要额外缩进
+                for line in lines[1:]:
+                    formatted_lines.append(f"    {line}")
+                return '\n'.join(formatted_lines)
+        
+        # 内容过长，需要截断
+        # 先尝试按行截断
+        lines = content.split('\n')
+        if len(lines) > 1:
+            # 多行内容，逐行累积直到超过限制
+            accumulated = []
+            current_length = 0
+            
+            for line in lines:
+                if current_length + len(line) + 1 <= max_length - 20:  # 留出省略号和提示的空间
+                    accumulated.append(line)
+                    current_length += len(line) + 1  # +1 for newline
+                else:
+                    break
+            
+            if accumulated:
+                result_lines = [accumulated[0]]
+                for line in accumulated[1:]:
+                    result_lines.append(f"    {line}")
+                
+                if len(accumulated) < len(lines):
+                    result_lines.append(f"    ... (truncated, total {len(lines)} lines, {len(content)} chars)")
+                
+                return '\n'.join(result_lines)
+        
+        # 单行内容或多行截断失败，使用原有的截断逻辑
+        half_length = (max_length - 20) // 2  # 留出省略号和提示的空间
+        truncated = content[:half_length] + " ... " + content[-half_length:]
+        return f"{truncated}\n    (truncated from {len(content)} chars)"
+
     @classmethod
     def _format_content_with_truncation(cls, content: str, max_length: int = 500) -> str:
         """格式化内容，超过限制时进行截断
@@ -837,7 +913,7 @@ class ContextManagedRunner(Runner):
             格式化后的内容字符串
         """
         if not content:
-            return "[空内容]"
+            return "[No content]"
         
         content = content.strip()
         if len(content) <= max_length:
@@ -846,7 +922,7 @@ class ContextManagedRunner(Runner):
         # 截断逻辑：前250字符 + ... + 后250字符
         half_length = (max_length - 5) // 2  # 减去 " ... " 的5个字符
         truncated = content[:half_length] + " ... " + content[-half_length:]
-        return f"{truncated} (实际长度: {len(content)}字符)"
+        return f"(actual length: {len(content)} chars, truncated to {max_length} chars) {truncated} "
 
     @classmethod
     def get_session_stats(cls, history_dir: Union[str, Path], session_id: str) -> Dict[str, Any]:
