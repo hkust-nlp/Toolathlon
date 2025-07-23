@@ -2,6 +2,7 @@
   "dependencies": {
     "@41px/mcp-xmind": "^1.1.1",
     "@adenot/mcp-google-search": "^0.2.0",
+    "@agent-infra/mcp-server-browser": "^1.2.14",
     "@antv/mcp-server-chart": "^0.4.1",
     "@cgize/mcp-think-tool": "^1.0.1",
     "@cocal/google-calendar-mcp": "^1.3.0",

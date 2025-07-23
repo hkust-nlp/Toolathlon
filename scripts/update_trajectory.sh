@@ -1,6 +1,6 @@
 # 和scripts/debug_manual.sh基本一致，区别在于这里用到的scripts/model_wise下的配置文件会输出到 recorded_trajectories_v2, 随后会被上传
 
-task_dir=finalpoolcn/hk-top-conf
+task_dir=finalpool/hk-top-conf
 
 uv run demo.py \
 --eval_config scripts/model_wise/eval_claude-4-sonnet.json \
@@ -14,11 +14,11 @@ uv run demo.py \
 # --debug
 # # --multi_turn_mode
 
-uv run demo.py \
---eval_config scripts/model_wise/eval_claude-4-sonnet.json \
---task_dir $task_dir \
---debug \
---en_mode
+# uv run demo.py \
+# --eval_config scripts/model_wise/eval_claude-4-sonnet.json \
+# --task_dir $task_dir \
+# --debug \
+# --cn_mode
 # --multi_turn_mode
 
 # uv run demo.py \
