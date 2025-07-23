@@ -529,6 +529,12 @@ async def specifical_inialize_for_mcp(task_config):
             os.makedirs(cache_dir)
         assert os.path.exists(cache_dir)
         print("[xmind] xmind cache dir has been established")
+    if "playwright" in task_config.needed_mcp_servers:
+        cache_dir = os.path.join(task_config.agent_workspace,".playwright_output")
+        if not os.path.exists(cache_dir):
+            os.makedirs(cache_dir)
+        assert os.path.exists(cache_dir)
+        print("[playwright] playwright file output dir has been established")
 
 def build_user_client(user_config: UserConfig) -> AsyncOpenAIClientWithRetry:
     """构建用户客户端"""

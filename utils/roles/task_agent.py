@@ -564,7 +564,8 @@ class TaskAgent:
                 self.shared_context["_context_meta"]["turns_in_current_sequence"] = current_turn_in_seq + 1
                 self.shared_context["_context_meta"]["mini_turns_in_current_sequence"] += 1
                 self.shared_context["_context_meta"]["total_turns_ever"] += 1
-                self.shared_context["_context_meta"]["current_turn"] += 1
+                # self.shared_context["_context_meta"]["current_turn"] += 1
+                # 上面不再加1，因为是从0编号
 
                 # 保存用户输入到历史
                 current_turn = self.shared_context["_context_meta"]["current_turn"]
@@ -676,7 +677,7 @@ class TaskAgent:
                                 "tools if you need complete details."
                             )
                         
-                        new_user_query = f"{first_user_input}\n\n{reset_message}\n\n{history_summary}"
+                        new_user_query = f"{reset_message}\n\n=== Original User Task ===\n{first_user_input}\n\n{history_summary}"
                         
                         # 重新开始对话
                         self.logs = [{"role": "user", "content": new_user_query}]
@@ -688,8 +689,9 @@ class TaskAgent:
                         self.shared_context["_context_meta"]["mini_turns_in_current_sequence"] = 1
                         self.shared_context["_context_meta"]["boundary_in_current_sequence"] = [(0, 1)]
                         
-                        # 由于是新的序列开始，需要增加轮数计数
-                        self.shared_context["_context_meta"]["current_turn"] += 1
+                        # # 由于是新的序列开始，需要增加轮数计数
+                        # 这里不用再加
+                        # self.shared_context["_context_meta"]["current_turn"] += 1
                         self.shared_context["_context_meta"]["total_turns_ever"] += 1
                         
                         # 保存重置后的用户输入到历史
