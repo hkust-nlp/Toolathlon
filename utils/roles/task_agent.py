@@ -166,15 +166,39 @@ class TaskAgent:
         return self.task_config.task_str
 
     def _reset_context_and_history(self) -> None:
-        """重置上下文和历史记录"""
+        """重置上下文和历史记录，但保留轮数累积信息和截断历史"""
         self._debug_print("Resetting context and history due to context too long error")
         
-        # 重置shared_context，保留基本信息
+        # 保存当前的重要信息
         session_id = self.shared_context.get("_session_id")
         history_dir = self.shared_context.get("_history_dir")
         agent_workspace = self.shared_context.get("_agent_workspace")
         context_limit = self.shared_context.get("_context_limit")
         
+        # 保存当前的累积信息
+        meta = self.shared_context.get("_context_meta", {})
+        current_turn = meta.get("current_turn", 0)
+        total_turns_ever = meta.get("total_turns_ever", 0)
+        truncated_turns = meta.get("truncated_turns", 0)
+        truncation_history = meta.get("truncation_history", [])
+        started_at = meta.get("started_at", datetime.datetime.now().isoformat())
+        
+        # 计算这次截断的信息
+        turns_in_current_sequence = meta.get("turns_in_current_sequence", 0)
+        new_truncated_turns = truncated_turns + turns_in_current_sequence
+        
+        # 更新截断历史
+        new_truncation_history = truncation_history.copy()
+        new_truncation_history.append({
+            "at_turn": current_turn,
+            "method": "force_reset_context",
+            "value": "all_current_sequence",
+            "deleted_turns": turns_in_current_sequence,
+            "timestamp": datetime.datetime.now().isoformat(),
+            "reason": "Context too long error"
+        })
+        
+        # 重置shared_context，但保留累积信息
         self.shared_context = {
             "_agent_workspace": agent_workspace,
             "_session_id": session_id,
@@ -182,14 +206,14 @@ class TaskAgent:
             "_context_meta": {
                 "session_id": session_id,
                 "history_dir": history_dir,
-                "started_at": datetime.datetime.now().isoformat(),
-                "current_turn": 0,
-                "total_turns_ever": 0,
-                "turns_in_current_sequence": 0,
-                "mini_turns_in_current_sequence": 0,
-                "boundary_in_current_sequence": [],
-                "truncated_turns": 0,
-                "truncation_history": [],
+                "started_at": started_at,  # 保留原始开始时间
+                "current_turn": current_turn,  # 保留当前轮数
+                "total_turns_ever": total_turns_ever,  # 保留总轮数
+                "turns_in_current_sequence": 0,  # 重置当前序列轮数
+                "mini_turns_in_current_sequence": 0,  # 重置mini轮数
+                "boundary_in_current_sequence": [],  # 重置边界信息
+                "truncated_turns": new_truncated_turns,  # 更新截断轮数
+                "truncation_history": new_truncation_history,  # 更新截断历史
                 "context_reset": True,  # 标记上下文已重置
                 "reset_timestamp": datetime.datetime.now().isoformat()
             },
@@ -198,15 +222,6 @@ class TaskAgent:
         
         # 清空logs
         self.logs = []
-        
-        # 记录重置事件到历史文件
-        if session_id and history_dir:
-            ContextManagedRunner._save_user_input_to_history(
-                session_id=session_id,
-                user_input="[SYSTEM] Context reset due to length exceeded",
-                history_dir=history_dir,
-                turn_number=0
-            )
 
     def _default_termination_checker(self, content: str, recent_tools: List[Dict], check_target: str = "user") -> bool:
         """默认的终止条件检查器"""
@@ -626,13 +641,13 @@ class TaskAgent:
                         # 保存第一轮用户输入
                         first_user_input = self._extract_first_user_input()
                         
-                        # 如果剩余步数很少，截断用户输入以节省token
-                        remaining_after_reset = max_inner_steps - self.cumulative_inner_steps
-                        if remaining_after_reset <= 3:  # 剩余步数很少时截断输入
-                            max_input_length = 1000
-                            if len(first_user_input) > max_input_length:
-                                first_user_input = first_user_input[:max_input_length] + "...[输入已截断]"
-                                self._debug_print(f"Truncated user input to {max_input_length} characters due to limited remaining steps")
+                        # # 如果剩余步数很少，截断用户输入以节省token
+                        # remaining_after_reset = max_inner_steps - self.cumulative_inner_steps
+                        # if remaining_after_reset <= 3:  # 剩余步数很少时截断输入
+                        #     max_input_length = 1000
+                        #     if len(first_user_input) > max_input_length:
+                        #         first_user_input = first_user_input[:max_input_length] + "...[输入已截断]"
+                        #         self._debug_print(f"Truncated user input to {max_input_length} characters due to limited remaining steps")
                         
                         # 重置上下文和历史
                         self._reset_context_and_history()
@@ -666,19 +681,24 @@ class TaskAgent:
                         # 重新开始对话
                         self.logs = [{"role": "user", "content": new_user_query}]
                         
-                        # 更新上下文元数据
+                        # 更新上下文元数据 - 只重置当前序列相关的属性
+                        # 注意：current_turn 和 total_turns_ever 在 _reset_context_and_history 中已经保留
+                        # 这里只需要设置新序列的开始状态
                         self.shared_context["_context_meta"]["turns_in_current_sequence"] = 1
                         self.shared_context["_context_meta"]["mini_turns_in_current_sequence"] = 1
                         self.shared_context["_context_meta"]["boundary_in_current_sequence"] = [(0, 1)]
-                        self.shared_context["_context_meta"]["total_turns_ever"] = 1
-                        self.shared_context["_context_meta"]["current_turn"] = 1
+                        
+                        # 由于是新的序列开始，需要增加轮数计数
+                        self.shared_context["_context_meta"]["current_turn"] += 1
+                        self.shared_context["_context_meta"]["total_turns_ever"] += 1
                         
                         # 保存重置后的用户输入到历史
+                        current_reset_turn = self.shared_context["_context_meta"]["current_turn"]
                         ContextManagedRunner._save_user_input_to_history(
                             session_id=self.session_id,
                             user_input=new_user_query,
                             history_dir=self.history_dir,
-                            turn_number=1
+                            turn_number=current_reset_turn
                         )
                         
                         # 继续while循环，尝试下一次运行

@@ -1,5 +1,0 @@
-{
-    "needed_mcp_servers": ["excel","filesystem"],
-    "needed_local_tools": [],
-    "meta": {}
-}
