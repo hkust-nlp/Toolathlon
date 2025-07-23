@@ -677,7 +677,7 @@ class TaskAgent:
                                 "tools if you need complete details."
                             )
                         
-                        new_user_query = f"{reset_message}\n\n{first_user_input}\n\n{history_summary}"
+                        new_user_query = f"{reset_message}\n\n=== Original User Task ===\n{first_user_input}\n\n{history_summary}"
                         
                         # 重新开始对话
                         self.logs = [{"role": "user", "content": new_user_query}]
