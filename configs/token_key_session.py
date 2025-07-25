@@ -14,8 +14,11 @@ all_token_key_session = Dict(
     huggingface_token = "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",
     linkedin_email = "mcptest0606@gmail.com",
     linkedin_password = "MCPtest0606!!",
-    canvas_api_token = "7~V7h4JX2rRftvrZFYUCQDKEmDvFCUxkCKa3vLZxCueF7mLeVQNhaR8FmZ3EJW6kkk",
-    canvas_domain = "canvas.instructure.com",
+    # canvas_api_token = "7~V7h4JX2rRftvrZFYUCQDKEmDvFCUxkCKa3vLZxCueF7mLeVQNhaR8FmZ3EJW6kkk",
+    # canvas_domain = "canvas.instructure.com",
+    canvas_api_token = "canvas-docker",
+    canvas_domain = "localhost:20001",
+
     wandb_api_key = "b3abe195bd69c07bdc47469d3956ac8d0c008714",
     tessdata_prefix = os.environ["TESSDATA_PREFIX"],
     amap_key="f789815a157fe45439c674c4a10e615b",
