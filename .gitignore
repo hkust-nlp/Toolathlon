@@ -13,7 +13,7 @@ sample_files
 debug.py
 debug.js
 legacy/
-configs/global_configs.py
+# configs/global_configs.py
 
 dumps
 ./logs
