@@ -10,5 +10,6 @@ params:
   env:
     CANVAS_API_TOKEN: "${token.canvas_api_token}"
     CANVAS_DOMAIN: "${token.canvas_domain}"
+    NODE_EXTRA_CA_CERTS: "utils/deployment/cert.pem"
 client_session_timeout_seconds: 10
 cache_tools_list: true

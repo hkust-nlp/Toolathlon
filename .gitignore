@@ -37,4 +37,6 @@ pd_*.yaml
 
 tasks/debug/debug-task
 
-
+*.pem
+*.log
+*.pid
