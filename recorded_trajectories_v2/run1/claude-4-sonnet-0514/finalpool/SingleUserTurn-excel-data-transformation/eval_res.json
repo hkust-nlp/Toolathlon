@@ -1,4 +1,4 @@
 {
   "pass": false,
-  "failure": "local check failed:  An unexpected error occurred during validation: ['Accumulated Growth (%)']\n"
+  "failure": "['Air Conditioners', 'Household Refrigerators', 'Household Washing Machines']\nlocal check failed:  Missing appliance types in 'Appliance types' column: ['Household Refrigerator', 'Air Conditioner']\n"
 }
