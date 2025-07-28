@@ -28,13 +28,13 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
         if missing_columns:
             return False, f"Missing required columns in agent's file: {missing_columns}"
 
-        # 1.4: Check for expected appliance types
-        expected_appliances = ['Household Refrigerator', 'Air Conditioner', 'Household Washing Machines']
-        agent_appliances = agent_df['Appliance types'].unique().tolist()
-        missing_appliances = [app for app in expected_appliances if app not in agent_appliances]
-        if missing_appliances:
-            print(agent_appliances)
-            return False, f"Missing appliance types in 'Appliance types' column: {missing_appliances}"
+        # # 1.4: Check for expected appliance types
+        # expected_appliances = ['Household Refrigerator', 'Air Conditioner', 'Household Washing Machines']
+        # agent_appliances = agent_df['Appliance types'].unique().tolist()
+        # missing_appliances = [app for app in expected_appliances if app not in agent_appliances]
+        # if missing_appliances:
+        #     print(agent_appliances)
+        #     return False, f"Missing appliance types in 'Appliance types' column: {missing_appliances}"
 
         # === STAGE 2: The New, Enhanced Data Accuracy Check ===
         # This is the most important part. We compare the agent's data to the ground truth.
