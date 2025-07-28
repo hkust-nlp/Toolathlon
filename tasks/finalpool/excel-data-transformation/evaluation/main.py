@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 import asyncio
 
 from .check_log_en import check_log
-from .check_local_en import check_local
+from .check_local_enhanced import check_local
 from utils.general.helper import read_json  
 
 if __name__=="__main__":
