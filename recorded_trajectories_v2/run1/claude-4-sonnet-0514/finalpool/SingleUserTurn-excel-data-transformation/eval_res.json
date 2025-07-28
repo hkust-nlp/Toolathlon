@@ -1,0 +1,4 @@
+{
+  "pass": false,
+  "failure": "['Air Conditioners', 'Household Refrigerators', 'Household Washing Machines']\nlocal check failed:  Missing appliance types in 'Appliance types' column: ['Household Refrigerator', 'Air Conditioner']\n"
+}
