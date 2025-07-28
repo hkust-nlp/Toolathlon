@@ -1,4 +1,4 @@
 {
   "pass": false,
-  "failure": "--- Starting Data Accuracy Verification ---\nlocal check failed:  Data values do not match the ground truth.\nVerification failed with details:\nDataFrame are different\n\nDataFrame shape mismatch\n[left]:  (225, 6)\n[right]: (198, 6)\n"
+  "failure": "local check failed:  Missing required columns in agent's file: ['Time', 'Appliance types', 'Current Period Sales(Ten Thousand Units)', 'Accumulated Sales (Ten Thousand Units)', 'Year-on-Year Growth (%)', 'Accumulated Growth (%)']\n"
 }
