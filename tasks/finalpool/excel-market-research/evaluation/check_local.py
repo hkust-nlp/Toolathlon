@@ -1,6 +1,39 @@
 import os
 import traceback
+import xlwings as xw
 import numpy as np
+
+
+# --- The Automation Step ---
+def calculate_and_save_workbook(file_path):
+    """
+    Opens an Excel file, triggers calculation, and saves it.
+    This populates the formula values for other libraries to read.
+    """
+    print("Starting Excel automation with xlwings...")
+    
+    # Run Excel in the background (visible=False) and prevent alerts
+    app = xw.App(visible=False, add_book=False)
+    app.display_alerts = False
+    
+    try:
+        # Open the workbook
+        wb_xw = app.books.open(file_path)
+        print(f"Opened '{file_path}' in Excel.")
+        
+        # The formulas calculate automatically on open.
+        # To be extra sure, you can force a recalculation:
+        # wb_xw.api.Calculate() 
+        
+        # Save the workbook. This writes the formula results to the file.
+        wb_xw.save()
+        print("Workbook saved with calculated values.")
+        
+        # Close the workbook and the Excel application
+        wb_xw.close()
+    finally:
+        app.quit()
+        print("Excel application closed.")
 
 def check_local(agent_workspace: str, groundtruth_workspace: str):
     # 检查agent生成的增长率文件
@@ -20,7 +53,7 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
         from openpyxl import load_workbook
         
         # 加载groundtruth文件，获取正确的增长率数据
-        wb_gt = load_workbook(groundtruth_file)
+        wb_gt = load_workbook(groundtruth_file, data_only=True)
         ws_gt = wb_gt.active
 
         # 查找'Year'和'Growth Rate'列（忽略大小写）
@@ -50,6 +83,7 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
             return False, "groundtruth not consists of growth rate data"
 
         # 加载agent增长率文件
+        calculate_and_save_workbook(agent_growth_file)
         wb_agent = load_workbook(agent_growth_file, data_only=True)
         ws_agent = wb_agent.active
 
