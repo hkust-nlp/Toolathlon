@@ -26,7 +26,7 @@ def check_log(res_log: dict):
     missing_items = [key for key, found in needed_contents.items() if not found]
     
     if missing_items:
-        error_msg = f"日志中缺少以下关键信息: {', '.join(missing_items)}"
+        error_msg = f"lack of critical info in log: {', '.join(missing_items)}"
         return False, error_msg
     
     return True, None 
