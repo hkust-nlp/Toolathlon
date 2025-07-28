@@ -51,18 +51,7 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
             return False, "groundtruth not consists of growth rate data"
 
         # 加载agent增长率文件
-        import formulas
-        wb_agent = load_workbook(agent_growth_file, data_only=False)
-
-        print("Compiling formulas into a model...")
-        model = formulas.ExcelModel().loads(wb_agent).finish()
-
-        print("Calculating values from model...")
-        results = model.calculate()
-
-        for (sheet_name, cell_address), calculated_value in results.items():
-            wb_agent[sheet_name][cell_address] = calculated_value
-
+        wb_agent = load_workbook(agent_growth_file, data_only=True)
         ws_agent = wb_agent.active
 
         # 检查文件是否有数据
@@ -108,8 +97,6 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
 
         return True, None
 
-    except ImportError:
-        return False, "lack of openpyxl package, please install it with 'pip install openpyxl'"
     except Exception as e:
         traceback.print_exc()
         sheet = wb_agent.active
