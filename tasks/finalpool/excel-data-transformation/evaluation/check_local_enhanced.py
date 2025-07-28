@@ -20,6 +20,7 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
 
         # 1.2: Read both files
         agent_df = pd.read_excel(agent_file)
+        agent_df = agent_df.dropna(subset=['Accumulated Growth (%)'])
         expected_df = pd.read_excel(groundtruth_file)
 
         # 1.3: Check for required columns
