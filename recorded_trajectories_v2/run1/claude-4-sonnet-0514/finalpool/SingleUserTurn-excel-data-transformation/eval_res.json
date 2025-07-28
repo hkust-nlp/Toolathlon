@@ -1,4 +1,4 @@
 {
-  "pass": true,
-  "details": "All evaluation checks passed, and task status is success"
+  "pass": false,
+  "failure": "local check failed:  Missing appliance types in 'Appliance types' column: ['Household Refrigerator', 'Air Conditioner']\n"
 }

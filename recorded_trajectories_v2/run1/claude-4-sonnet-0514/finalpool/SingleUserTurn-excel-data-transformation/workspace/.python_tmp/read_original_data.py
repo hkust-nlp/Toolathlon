@@ -1,10 +1,14 @@
 import pandas as pd
+import os
 
+# Read the Household_Appliances.xlsx file
 file_path = "/ssddata/mcpbench/zhaojian/mcpbench_dev/recorded_trajectories_v2/run1/claude-4-sonnet-0514/finalpool/SingleUserTurn-excel-data-transformation/workspace/Household_Appliances.xlsx"
-
-# Read with header=0 (default)
 df = pd.read_excel(file_path)
-print("Shape:", df.shape)
-print("Columns:", list(df.columns))
-print("\nSample data:")
-print(df.iloc[:3, :6])  # First 3 rows, first 6 columns
+
+print("Original data structure:")
+print(df.head())
+print("\nColumn names:")
+print(df.columns.tolist())
+print("\nData shape:", df.shape)
+print("\nData types:")
+print(df.dtypes)
