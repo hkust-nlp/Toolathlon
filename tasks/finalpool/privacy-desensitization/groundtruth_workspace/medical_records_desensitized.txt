@@ -1,0 +1,22 @@
+Medical Records Archive
+
+Patient: Emily Rodriguez
+SSN: ***
+Phone: ***
+Email: ***
+Insurance ID: INS987654321
+
+Medical History:
+2024-11-15 - Cold symptoms, fever 101.3°F
+2024-11-20 - Follow-up, fever resolved
+2024-12-01 - Blood work completed
+
+Emergency Contact: Carlos Rodriguez ***)
+
+Patient: David Kim
+SSN: ***
+Phone: ***
+Email: ***
+
+Doctor Notes: Patient is allergic to penicillin, special attention needed for medication safety.
+Hospital System IP: *** 

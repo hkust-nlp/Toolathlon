@@ -1,0 +1,45 @@
+{
+  "school_name": "北京大学附属中学",
+  "academic_year": "2024-2025",
+  "students": [
+    {
+      "student_id": "2024001",
+      "name": "张小华",
+      "id_card": "***",
+      "phone": "***",
+      "email": "***",
+      "parent_phone": "***",
+      "parent_email": "***",
+      "class": "高三(1)班",
+      "home_address": "北京市东城区王府井大街50号"
+    },
+    {
+      "student_id": "2024002",
+      "name": "李明亮", 
+      "id_card": "***",
+      "phone": "***",
+      "email": "***",
+      "parent_phone": "***",
+      "parent_email": "***",
+      "class": "高三(2)班",
+      "home_address": "南京市鼓楼区中山路100号"
+    },
+    {
+      "student_id": "2024003",
+      "name": "王小丽",
+      "id_card": "***", 
+      "phone": "***",
+      "email": "***",
+      "parent_phone": "***",
+      "parent_email": "***",
+      "class": "高三(1)班",
+      "home_address": "深圳市福田区华强北路200号"
+    }
+  ],
+  "school_info": {
+    "principal_phone": "***8",
+    "admin_email": "***",
+    "system_ip": "***",
+    "backup_server": "***"
+  }
+} 

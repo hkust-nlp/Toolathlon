@@ -1,0 +1,49 @@
+{
+  "orders": [
+    {
+      "order_id": "ORD***1",
+      "customer_name": "Ashley Davis",
+      "customer_ssn": "***",
+      "phone": "***",
+      "email": "***",
+      "shipping_address": "123 Main Street, New York, NY 10001",
+      "payment_method": "Credit Card",
+      "card_number": "***",
+      "order_total": 299.99,
+      "items": ["Phone Case", "USB Cable"],
+      "delivery_phone": "***"
+    },
+    {
+      "order_id": "ORD***2",
+      "customer_name": "Daniel Wilson",
+      "customer_ssn": "***",
+      "phone": "***",
+      "email": "***",
+      "shipping_address": "456 Broadway Ave, Los Angeles, CA 90210",
+      "payment_method": "Debit Card",
+      "card_number": "***",
+      "order_total": 189.50,
+      "items": ["Backpack", "Notebook"],
+      "delivery_phone": "***"
+    },
+    {
+      "order_id": "ORD***3",
+      "customer_name": "Sophia Garcia",
+      "customer_ssn": "***",
+      "phone": "***",
+      "email": "***",
+      "shipping_address": "789 Michigan Ave, Chicago, IL 60611",
+      "payment_method": "Credit Card",
+      "card_number": "***",
+      "order_total": 459.00,
+      "items": ["Headphones", "Charger", "Screen Protector"],
+      "delivery_phone": "***"
+    }
+  ],
+  "store_info": {
+    "customer_service": "1-***",
+    "support_email": "***",
+    "server_ip": "***",
+    "payment_gateway": "***"
+  }
+} 

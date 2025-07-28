@@ -1,0 +1,53 @@
+[
+  {
+    "university": "Massachusetts Institute of Technology (MIT)",
+    "city": "Cambridge",
+    "ranking": 1,
+    "toefl_required": true,
+    "toefl_min_score": 100,
+    "ielts_accepted": true,
+    "ielts_min_score": 7,
+    "application_fee": 90
+  },
+  {
+    "university": "Stanford University",
+    "city": "Stanford",
+    "ranking": 2,
+    "toefl_required": true,
+    "toefl_min_score": 90,
+    "ielts_accepted": true,
+    "ielts_min_score": 7,
+    "application_fee": 125
+  },
+  {
+    "university": "Carnegie Mellon University",
+    "city": "Pittsburgh",
+    "ranking": 3,
+    "toefl_required": true,
+    "toefl_min_score": 100,
+    "ielts_accepted": true,
+    "ielts_min_score": 7.5,
+    "application_fee": 100
+  },
+  {
+    "university": "Harvard University",
+    "city": "Cambridge",
+    "ranking": 7,
+    "toefl_required": true,
+    "toefl_min_score": 80,
+    "ielts_accepted": true,
+    "ielts_min_score": 6.5,
+    "application_fee": 105
+  },
+  {
+    "university": "University of California, Berkeley (UCB)",
+    "city": "Berkeley",
+    "ranking": 8,
+    "toefl_required": true,
+    "toefl_min_score": 90,
+    "ielts_accepted": true,
+    "ielts_min_score": 7,
+    "application_fee": 155
+  }
+
+]

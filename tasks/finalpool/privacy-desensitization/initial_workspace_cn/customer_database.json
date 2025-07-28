@@ -1,0 +1,39 @@
+{
+  "customers": [
+    {
+      "id": "C001",
+      "name": "胡晓东",
+      "id_card": "11010519850423001X",
+      "phone": "13712345678",
+      "email": "huxiaodong@qq.com",
+      "credit_card": "4111111111111111",
+      "address": "北京市朝阳区建国路88号",
+      "registration_ip": "203.208.60.15"
+    },
+    {
+      "id": "C002", 
+      "name": "周美丽",
+      "id_card": "440301199012151234",
+      "phone": "15988776655",
+      "email": "zhoumeili@163.com",
+      "credit_card": "5555555555554444",
+      "address": "深圳市福田区华强北路100号",
+      "registration_ip": "10.0.0.100"
+    },
+    {
+      "id": "C003",
+      "name": "马强",
+      "id_card": "310104198707151234",
+      "phone": "18812345678",
+      "email": "maqiang@gmail.com", 
+      "credit_card": "3782822463100054",
+      "address": "上海市徐汇区淮海中路200号",
+      "registration_ip": "172.16.0.50"
+    }
+  ],
+  "system_info": {
+    "database_server": "192.168.1.200",
+    "backup_server": "10.10.10.100",
+    "admin_contact": "admin@company.com"
+  }
+} 

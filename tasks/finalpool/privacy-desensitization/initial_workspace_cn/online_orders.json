@@ -1,0 +1,49 @@
+{
+  "orders": [
+    {
+      "order_id": "ORD20241201001",
+      "customer_name": "赵小雪",
+      "customer_id": "110108199203123456",
+      "phone": "13712345678",
+      "email": "zhaoxiaoxue@qq.com",
+      "shipping_address": "北京市海淀区中关村大街100号",
+      "payment_method": "信用卡",
+      "card_number": "4111111111111111",
+      "order_total": 299.99,
+      "items": ["手机壳", "数据线"],
+      "delivery_phone": "15812345678"
+    },
+    {
+      "order_id": "ORD20241201002",
+      "customer_name": "李强",
+      "customer_id": "320106198705234567",
+      "phone": "15987654321", 
+      "email": "liqiang@163.com",
+      "shipping_address": "南京市玄武区珠江路200号",
+      "payment_method": "借记卡",
+      "card_number": "6222021234567890",
+      "order_total": 189.50,
+      "items": ["书包", "笔记本"],
+      "delivery_phone": "18612345678"
+    },
+    {
+      "order_id": "ORD20241201003",
+      "customer_name": "王美华",
+      "customer_id": "440301199001156789",
+      "phone": "18699887766",
+      "email": "wangmeihua@sina.com",
+      "shipping_address": "深圳市福田区华强北路300号",
+      "payment_method": "信用卡",
+      "card_number": "5555555555554444", 
+      "order_total": 459.00,
+      "items": ["耳机", "充电器", "保护膜"],
+      "delivery_phone": "13988776655"
+    }
+  ],
+  "store_info": {
+    "customer_service": "400-888-9999",
+    "support_email": "support@onlinestore.com",
+    "server_ip": "192.168.250.100",
+    "payment_gateway": "10.0.150.50"
+  }
+} 

@@ -1,0 +1,9 @@
+{
+    "needed_mcp_servers": ["filesystem", "playwright"],
+    "needed_local_tools": ["claim_done","web_search"],
+    "meta": {
+        "task_type": "language_requirements_research",
+        "target_universities": "QS2025 CS Top 10 US universities",
+        "output_format": "JSON array with language requirements"
+    }
+}

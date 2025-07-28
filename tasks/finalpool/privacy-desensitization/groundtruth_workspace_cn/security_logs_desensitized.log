@@ -1,0 +1,10 @@
+2024-12-01 09:00:15 [SECURITY] Badge scan: Employee ID E001, Name: 张小伟, Card: ******-12-01 09:05:22 [ACCESS] Door opened by user ***, IP: ***
+2024-12-01 09:10:33 [ALARM] Unauthorized access attempt at Building A, Phone alert sent to ***
+2024-12-01 09:15:44 [LOGIN] VPN connection from user ***, source IP: ***
+2024-12-01 09:20:55 [VISITOR] Guest registration: 李明, ID: ***, Host: 王经理 (***)
+2024-12-01 09:25:06 [CAMERA] Motion detected at Camera-05, IP: 192.168.***-12-01 09:30:17 [ACCESS] Keycard used: Card ***111111, User: 陈丽华, Time: 09:30
+2024-12-01 09:35:28 [FIREWALL] Blocked suspicious traffic from ***
+2024-12-01 09:40:39 [BADGE] Employee 孙建国 (***) entered Server Room
+2024-12-01 09:45:50 [ALERT] Failed password attempt for user: ***
+2024-12-01 09:50:01 [SYSTEM] Backup server *** connection established
+2024-12-01 09:55:12 [VISITOR] Visitor 王小丽 departed, ID verified: *** 

@@ -1,0 +1,13 @@
+{
+    "needed_mcp_servers": [
+        "filesystem", 
+        "playwright",
+        "gmail",
+        "terminal"
+    ],
+    "needed_local_tools": ["web_search","python_execute"],
+    "meta": {
+        "description": "Collect high-citation scholars (>10k citations) who cited my papers with verification using multiple search tools, and send results to my gmail",
+        "workflow": "Read profile → Scholarly search → Verify citation count > 10k → Send results"
+    }
+}

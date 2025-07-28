@@ -1,0 +1,47 @@
+{
+  "club_name": "星级健身俱乐部",
+  "membership_data": [
+    {
+      "member_id": "VIP001",
+      "name": "赵大明",
+      "id_card": "110108198503123456",
+      "phone": "13712345678",
+      "email": "zhaodaming@qq.com",
+      "membership_type": "VIP年卡",
+      "join_date": "2024-01-15",
+      "credit_card": "4111111111111111",
+      "emergency_contact": "赵小华",
+      "emergency_phone": "15812345678"
+    },
+    {
+      "member_id": "VIP002", 
+      "name": "李美玲",
+      "id_card": "320106199012156789",
+      "phone": "18612345678",
+      "email": "limeiling@163.com",
+      "membership_type": "白金会员",
+      "join_date": "2024-03-20",
+      "credit_card": "5555555555554444",
+      "emergency_contact": "李大华",
+      "emergency_phone": "13988776655"
+    },
+    {
+      "member_id": "REG001",
+      "name": "王小强",
+      "id_card": "440301199203234567",
+      "phone": "15987654321",
+      "email": "wangxiaoqiang@sina.com",
+      "membership_type": "普通会员",
+      "join_date": "2024-06-10",
+      "credit_card": "6222021234567890",
+      "emergency_contact": "王大强",
+      "emergency_phone": "18699887766"
+    }
+  ],
+  "club_info": {
+    "manager_phone": "010-88888888",
+    "club_email": "info@starfitness.com",
+    "system_ip": "192.168.150.10",
+    "payment_gateway": "10.0.100.50"
+  }
+} 

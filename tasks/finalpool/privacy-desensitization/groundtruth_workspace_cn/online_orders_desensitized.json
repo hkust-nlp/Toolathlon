@@ -1,0 +1,49 @@
+{
+  "orders": [
+    {
+      "order_id": "ORD***1",
+      "customer_name": "赵小雪",
+      "customer_id": "***",
+      "phone": "***",
+      "email": "***",
+      "shipping_address": "北京市海淀区中关村大街100号",
+      "payment_method": "信用卡",
+      "card_number": "***111111",
+      "order_total": 299.99,
+      "items": ["手机壳", "数据线"],
+      "delivery_phone": "***"
+    },
+    {
+      "order_id": "ORD***2",
+      "customer_name": "李强",
+      "customer_id": "***",
+      "phone": "***", 
+      "email": "***",
+      "shipping_address": "南京市玄武区珠江路200号",
+      "payment_method": "借记卡",
+      "card_number": "***567890",
+      "order_total": 189.50,
+      "items": ["书包", "笔记本"],
+      "delivery_phone": "***"
+    },
+    {
+      "order_id": "ORD***3",
+      "customer_name": "王美华",
+      "customer_id": "***",
+      "phone": "***",
+      "email": "***",
+      "shipping_address": "深圳市福田区华强北路300号",
+      "payment_method": "信用卡",
+      "card_number": "***554444", 
+      "order_total": 459.00,
+      "items": ["耳机", "充电器", "保护膜"],
+      "delivery_phone": "***"
+    }
+  ],
+  "store_info": {
+    "customer_service": "***",
+    "support_email": "***",
+    "server_ip": "***",
+    "payment_gateway": "***"
+  }
+} 

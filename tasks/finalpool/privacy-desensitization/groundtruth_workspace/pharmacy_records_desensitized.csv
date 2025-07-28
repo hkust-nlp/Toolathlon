@@ -1,0 +1,8 @@
+Prescription_ID,Patient_Name,SSN,Phone,Doctor,Medication,Quantity,Price,Payment_Method
+RX001,Emily Johnson,***,***,Dr. Smith,Amoxicillin,2 bottles,$45.60,Insurance Card ***123456
+RX002,Michael Davis,***,***,Dr. Wilson,Cold Medicine,3 boxes,$28.50,Cash
+RX003,Sarah Brown,***,***,Dr. Martinez,Vitamin C,1 bottle,$15.80,Credit Card ***
+RX004,Robert Garcia,***,***,Dr. Thompson,Blood Pressure Med,1 box,$89.20,Insurance
+RX005,Jennifer Wilson,***,***,Dr. Davis,Stomach Medicine,2 boxes,$56.40,Debit Card
+Customer Service,1-800-PHARMACY,,,,,,
+Emergency Contact,***,,,,,,

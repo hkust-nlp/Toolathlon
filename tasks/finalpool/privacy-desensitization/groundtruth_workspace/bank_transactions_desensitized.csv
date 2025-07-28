@@ -1,0 +1,8 @@
+Transaction_Date,Account_Number,Cardholder_Name,Amount,Merchant,Notes
+2024-12-01,***111111,John Smith,$1580.00,New York Electronics,Purchase electronics
+2024-12-02,***554444,Lisa Johnson,$2300.50,LA Restaurant,Business dining
+2024-12-03,***567890,Mike Wilson,$450.00,Chicago Supermarket,Groceries
+2024-12-04,***100054,Sarah Davis,$12000.00,Denver Auto Shop,Vehicle repair
+2024-12-05,***881881,Tom Brown,$280.00,Boston Bookstore,Book purchase
+Customer Service,1-***,,,,,
+Emergency Contact,***,,,,,

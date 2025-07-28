@@ -1,0 +1,1 @@
+我的名字是junxian he，是HKUST的一名老师，我想要寻求合作伙伴，需要收集引用过我文章的学者（学者的引用量需大于3k）的个人信息，请尽可能多的帮我收集符合要求的学者信息，返回高引用学者信息的格式参考return_format.json文件，如果没有找到任何引用量大于1k的学者，返回格式参考without_citation.json。最后，请将json结果保存到`high_citation_scholars_results.json`文件中。

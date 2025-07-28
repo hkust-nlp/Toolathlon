@@ -1,0 +1,47 @@
+{
+  "club_name": "Elite Fitness Center",
+  "membership_data": [
+    {
+      "member_id": "VIP001",
+      "name": "Robert Thompson",
+      "ssn": "***",
+      "phone": "***",
+      "email": "***",
+      "membership_type": "VIP Annual",
+      "join_date": "2024-01-15",
+      "credit_card": "***",
+      "emergency_contact": "Sarah Thompson",
+      "emergency_phone": "***"
+    },
+    {
+      "member_id": "VIP002",
+      "name": "Maria Rodriguez",
+      "ssn": "***",
+      "phone": "***",
+      "email": "***",
+      "membership_type": "Platinum Member",
+      "join_date": "2024-03-20",
+      "credit_card": "***",
+      "emergency_contact": "Carlos Rodriguez",
+      "emergency_phone": "***"
+    },
+    {
+      "member_id": "REG001",
+      "name": "James Wilson",
+      "ssn": "***",
+      "phone": "***",
+      "email": "***",
+      "membership_type": "Regular Member",
+      "join_date": "2024-06-10",
+      "credit_card": "***",
+      "emergency_contact": "Lisa Wilson",
+      "emergency_phone": "***"
+    }
+  ],
+  "club_info": {
+    "manager_phone": "***",
+    "club_email": "***",
+    "system_ip": "***",
+    "payment_gateway": "***"
+  }
+} 

@@ -1,0 +1,47 @@
+{
+  "club_name": "星级健身俱乐部",
+  "membership_data": [
+    {
+      "member_id": "VIP001",
+      "name": "赵大明",
+      "id_card": "***",
+      "phone": "***",
+      "email": "***",
+      "membership_type": "VIP年卡",
+      "join_date": "2024-01-15",
+      "credit_card": "***111111",
+      "emergency_contact": "赵小华",
+      "emergency_phone": "***"
+    },
+    {
+      "member_id": "VIP002", 
+      "name": "李美玲",
+      "id_card": "***",
+      "phone": "***",
+      "email": "***",
+      "membership_type": "白金会员",
+      "join_date": "2024-03-20",
+      "credit_card": "***554444",
+      "emergency_contact": "李大华",
+      "emergency_phone": "***"
+    },
+    {
+      "member_id": "REG001",
+      "name": "王小强",
+      "id_card": "***",
+      "phone": "***",
+      "email": "***",
+      "membership_type": "普通会员",
+      "join_date": "2024-06-10",
+      "credit_card": "***567890",
+      "emergency_contact": "王大强",
+      "emergency_phone": "***"
+    }
+  ],
+  "club_info": {
+    "manager_phone": "***8",
+    "club_email": "***",
+    "system_ip": "***",
+    "payment_gateway": "***"
+  }
+} 
