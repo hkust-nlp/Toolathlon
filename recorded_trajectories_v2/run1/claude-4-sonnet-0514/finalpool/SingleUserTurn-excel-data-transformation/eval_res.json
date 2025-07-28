@@ -1,4 +1,4 @@
 {
   "pass": false,
-  "failure": "local check failed:  Missing required columns in agent's file: ['Time', 'Appliance types', 'Current Period Sales(Ten Thousand Units)', 'Accumulated Sales (Ten Thousand Units)', 'Year-on-Year Growth (%)', 'Accumulated Growth (%)']\n"
+  "failure": "local check failed:  An unexpected error occurred during validation: ['Accumulated Growth (%)']\n"
 }

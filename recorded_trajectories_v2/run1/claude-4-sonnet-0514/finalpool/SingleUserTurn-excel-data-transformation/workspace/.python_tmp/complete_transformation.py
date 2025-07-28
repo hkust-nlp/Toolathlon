@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 
+# Recreate the transformation and save (since variables were lost)
 file_path = '/ssddata/mcpbench/zhaojian/mcpbench_dev/recorded_trajectories_v2/run1/claude-4-sonnet-0514/finalpool/SingleUserTurn-excel-data-transformation/workspace/Household_Appliances.xlsx'
 df_raw = pd.read_excel(file_path, header=None)
 
@@ -74,12 +75,22 @@ df_transformed = pd.DataFrame(transformed_data)
 # Sort by time and appliance type for better organization
 df_transformed = df_transformed.sort_values(['Time', 'Appliance_Type', 'Metric']).reset_index(drop=True)
 
-print("Transformation completed!")
-print(f"Original data shape: {df_raw.shape}")
-print(f"Transformed data shape: {df_transformed.shape}")
-print("\nFirst 20 rows of transformed data:")
-print(df_transformed.head(20))
+# Save the transformed data to Excel
+output_path = '/ssddata/mcpbench/zhaojian/mcpbench_dev/recorded_trajectories_v2/run1/claude-4-sonnet-0514/finalpool/SingleUserTurn-excel-data-transformation/workspace/Processed.xlsx'
 
-print(f"\nUnique appliance types: {df_transformed['Appliance_Type'].unique()}")
-print(f"Unique metrics: {df_transformed['Metric'].unique()}")
+# Convert datetime to a more readable format
+df_transformed['Time'] = pd.to_datetime(df_transformed['Time']).dt.strftime('%Y-%m-%d')
+
+# Save to Excel
+df_transformed.to_excel(output_path, index=False)
+
+print(f"Processed data saved to: {output_path}")
+print("\nFinal data summary:")
+print(f"Total records: {len(df_transformed)}")
 print(f"Date range: {df_transformed['Time'].min()} to {df_transformed['Time'].max()}")
+print(f"Appliance types: {len(df_transformed['Appliance_Type'].unique())}")
+print(f"Metrics per appliance: {len(df_transformed['Metric'].unique())}")
+
+# Show a sample of the final data
+print("\nSample of final transformed data:")
+print(df_transformed.head(15))
