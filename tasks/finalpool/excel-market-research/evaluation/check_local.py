@@ -20,7 +20,7 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
         from openpyxl import load_workbook
         
         # 加载groundtruth文件，获取正确的增长率数据
-        wb_gt = load_workbook(groundtruth_file, data_only=True)
+        wb_gt = load_workbook(groundtruth_file)
         ws_gt = wb_gt.active
 
         # 查找'Year'和'Growth Rate'列（忽略大小写）
