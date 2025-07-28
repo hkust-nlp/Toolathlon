@@ -100,7 +100,10 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
         return False, "lack of openpyxl package, please install it with 'pip install openpyxl'"
     except Exception as e:
         traceback.print_exc()
-        print(wb_agent)
+        sheet = wb_agent.active
+        print(f"--- Content of Sheet: {sheet.title} ---")
+        for row in sheet.iter_rows(values_only=True):
+            print(row)
         return False, f"fail to check growth rate: {str(e)}"
 
 def parse_growth_rate(cell):
