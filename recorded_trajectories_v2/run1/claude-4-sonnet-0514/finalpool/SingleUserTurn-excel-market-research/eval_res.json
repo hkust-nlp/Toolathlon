@@ -1,4 +1,4 @@
 {
   "pass": false,
-  "failure": "local check failed:  groundtruth文件中未找到'Year'或'Growth Rate'列\n"
+  "failure": "local check failed:  not enough data in agent growth rate file\n"
 }
