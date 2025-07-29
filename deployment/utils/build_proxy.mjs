@@ -14,9 +14,10 @@ const PROXY_PORT = process.argv[2] || 4443;
 const TARGET_PORT = process.argv[3] || 3000;
 const TARGET_HOST = process.argv[4] || 'localhost';
 const TARGET_PROTOCOL = process.argv[5] || 'http';
+const CERT_DIR = process.argv[6] || __dirname; // 新增：证书保存目录
 
 // Use absolute paths
-const DEPLOYMENT_DIR = path.resolve(__dirname);
+const DEPLOYMENT_DIR = path.resolve(CERT_DIR);
 const CERT_FILE = path.join(DEPLOYMENT_DIR, 'cert.pem');
 const KEY_FILE = path.join(DEPLOYMENT_DIR, 'key.pem');
 
@@ -24,14 +25,21 @@ console.log(`[${new Date().toISOString()}] Starting HTTPS proxy service
 Configuration:
 - Proxy port (HTTPS): ${PROXY_PORT}
 - Target service: ${TARGET_PROTOCOL}://${TARGET_HOST}:${TARGET_PORT}
+- Certificate directory: ${DEPLOYMENT_DIR}
 `);
 
 // Check if certificates exist
 if (!fs.existsSync(CERT_FILE) || !fs.existsSync(KEY_FILE)) {
   console.log('Generating self-signed certificate...');
   try {
+    // 确保证书目录存在
+    if (!fs.existsSync(DEPLOYMENT_DIR)) {
+      fs.mkdirSync(DEPLOYMENT_DIR, { recursive: true });
+      console.log(`Created certificate directory: ${DEPLOYMENT_DIR}`);
+    }
+    
     execSync(`openssl req -new -x509 -days 365 -nodes -out "${CERT_FILE}" -keyout "${KEY_FILE}" -subj "/CN=localhost"`);
-    console.log('Certificate generated successfully');
+    console.log(`Certificate generated successfully at: ${DEPLOYMENT_DIR}`);
   } catch (error) {
     console.error('Failed to generate certificate:', error.message);
     process.exit(1);

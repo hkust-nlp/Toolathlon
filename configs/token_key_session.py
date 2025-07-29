@@ -24,5 +24,13 @@ all_token_key_session = Dict(
     amap_key="f789815a157fe45439c674c4a10e615b",
     google_sheets_folder_id = "1LYqmSCIlY0NmHtFJwF3Mh1RTb81RWHvU",
     google_oauth2_credentials_path = "configs/credentials.json",
-    google_oauth2_token_path = "configs/credentials.json" # I just put them all together in the same file
+    google_oauth2_token_path = "configs/credentials.json", # I just put them all together in the same file
+
+    notion_integration_key="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",
+
+    woocommerce_api_key = "PLEASE_RESET_IN_TASK_SPECIFIC_DIR",
+    woocommerce_api_secret = "PLEASE_RESET_IN_TASK_SPECIFIC_DIR",
+    woocommerce_site_url = "PLEASE_RESET_IN_TASK_SPECIFIC_DIR",
+
+    kubeconfig_path = "PLEASE_RESET_IN_TASK_SPECIFIC_DIR",
 )

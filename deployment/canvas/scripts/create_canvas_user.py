@@ -33,7 +33,7 @@ CANVAS_DIR = "/opt/canvas/canvas-lms"
 
 def get_next_sis_id():
     """获取下一个可用的 SIS ID"""
-    check_script = '''
+    check_script = r'''
 # 查找最大的 MCP 开头的 SIS ID
 max_id = Pseudonym.where("sis_user_id LIKE 'MCP%'").pluck(:sis_user_id).map { |id| 
   id.match(/MCP(\d+)/) ? $1.to_i : 0 
@@ -42,10 +42,10 @@ max_id = Pseudonym.where("sis_user_id LIKE 'MCP%'").pluck(:sis_user_id).map { |i
 puts "MAX_SIS_ID:#{max_id}"
 '''
     
-    with open('/tmp/check_sis_id.rb', 'w') as f:
+    with open('./deployment/canvas/tmp/check_sis_id.rb', 'w') as f:
         f.write(check_script)
     
-    subprocess.run(['podman', 'cp', '/tmp/check_sis_id.rb', f'{CONTAINER_NAME}:/tmp/'])
+    subprocess.run(['podman', 'cp', './deployment/canvas/tmp/check_sis_id.rb', f'{CONTAINER_NAME}:/tmp/'])
     
     cmd = f"cd {CANVAS_DIR} && GEM_HOME=/opt/canvas/.gems {BUNDLE_PATH} exec rails runner /tmp/check_sis_id.rb"
     result = subprocess.run(
@@ -66,22 +66,22 @@ def generate_unique_users(count=200, start_id=1):
     users = []
     used_emails = set()
     
-    # 使用时间戳确保唯一性
-    timestamp = int(time.time())
-    
     for i in range(count):
         first_name = random.choice(FIRST_NAMES)
         last_name = random.choice(LAST_NAMES)
         full_name = f"{first_name} {last_name}"
         
-        # 生成唯一邮箱 - 添加时间戳
-        base_email = f"{first_name.lower()}.{last_name.lower()}.{timestamp}"
+        # 生成唯一邮箱 - 使用数字后缀
+        base_email = f"{first_name.lower()}.{last_name.lower()}"
         email = f"{base_email}@mcp.edu"
         
-        counter = 1
+        # 如果邮箱已存在，添加数字后缀
+        counter = 0
         while email in used_emails:
             counter += 1
-            email = f"{base_email}.{counter}@mcp.edu"
+            if counter > 99:
+                raise ValueError(f"无法为 {first_name} {last_name} 生成唯一邮箱，已尝试99个后缀")
+            email = f"{base_email}.{counter:02d}@mcp.edu"
         
         used_emails.add(email)
         
@@ -188,14 +188,15 @@ end
 def execute_batch(users, batch_num):
     """执行单个批次的用户创建"""
     script = create_batch_script(users, batch_num)
-    script_path = f'/tmp/create_batch_{batch_num}.rb'
+    script_path = f'./deployment/canvas/tmp/create_batch_{batch_num}.rb'
+    script_path_in_container = f'/tmp/create_batch_{batch_num}.rb'
     
     with open(script_path, 'w') as f:
         f.write(script)
     
-    subprocess.run(['podman', 'cp', script_path, f'{CONTAINER_NAME}:{script_path}'])
+    subprocess.run(['podman', 'cp', script_path, f'{CONTAINER_NAME}:{script_path_in_container}'])
     
-    cmd = f"cd {CANVAS_DIR} && GEM_HOME=/opt/canvas/.gems {BUNDLE_PATH} exec rails runner {script_path}"
+    cmd = f"cd {CANVAS_DIR} && GEM_HOME=/opt/canvas/.gems {BUNDLE_PATH} exec rails runner {script_path_in_container}"
     result = subprocess.run(
         ['podman', 'exec', CONTAINER_NAME, 'bash', '-c', cmd],
         capture_output=True,
@@ -214,7 +215,7 @@ def execute_batch(users, batch_num):
         try:
             batch_results = json.loads(json_str)
         except json.JSONDecodeError as e:
-            print(f"JSON 解析错误: {e}")
+            print(f"JSON parsing error: {e}")
     
     # 提取错误
     if "JSON_ERRORS_START" in output and "JSON_ERRORS_END" in output:
@@ -228,7 +229,7 @@ def execute_batch(users, batch_num):
     
     # 如果没有找到 JSON 结果，显示原始输出用于调试
     if not batch_results and not batch_errors:
-        print(f"\n批次 {batch_num} 的原始输出:")
+        print(f"\nRaw output for batch {batch_num}:")
         print(output[:1000])
         if len(output) > 1000:
             print("...")
@@ -239,16 +240,16 @@ def execute_batch(users, batch_num):
 
 def create_users(total_count=200, batch_size=10):
     """主函数：创建用户"""
-    print(f"\n获取起始 SIS ID...")
+    print(f"\nGetting starting SIS ID...")
     start_sis_id = get_next_sis_id()
-    print(f"将从 MCP{start_sis_id:06d} 开始")
+    print(f"Will start from MCP{start_sis_id:06d}")
     
     users = generate_unique_users(total_count, start_sis_id)
     all_results = []
     all_errors = []
     
-    print(f"\n开始批量创建 {total_count} 个用户...")
-    print(f"批次大小: {batch_size}")
+    print(f"\nStarting batch creation of {total_count} users...")
+    print(f"Batch size: {batch_size}")
     
     start_time = time.time()
     
@@ -256,18 +257,18 @@ def create_users(total_count=200, batch_size=10):
         batch = users[i:i + batch_size]
         batch_num = i // batch_size + 1
         
-        print(f"\n处理批次 {batch_num} (用户 {i+1}-{min(i+batch_size, total_count)})...")
+        print(f"\nProcessing batch {batch_num} (users {i+1}-{min(i+batch_size, total_count)})...")
         
         batch_results, batch_errors = execute_batch(batch, batch_num)
         
         all_results.extend(batch_results)
         all_errors.extend(batch_errors)
         
-        print(f"✅ 批次 {batch_num} 完成: {len(batch_results)} 成功, {len(batch_errors)} 失败")
+        print(f"✅ Batch {batch_num} completed: {len(batch_results)} success, {len(batch_errors)} failed")
         
         # 显示错误详情
         if batch_errors:
-            print("错误详情:")
+            print("Error details:")
             for err in batch_errors[:3]:  # 只显示前3个错误
                 print(f"  - {err['email']}: {err['error']}")
         
@@ -276,10 +277,10 @@ def create_users(total_count=200, batch_size=10):
     
     end_time = time.time()
     
-    print(f"\n=== 创建完成 ===")
-    print(f"成功: {len(all_results)} 个用户")
-    print(f"失败: {len(all_errors)} 个用户") 
-    print(f"用时: {end_time - start_time:.1f} 秒")
+    print(f"\n=== Creation completed ===")
+    print(f"Success: {len(all_results)} users")
+    print(f"Failed: {len(all_errors)} users") 
+    print(f"Time taken: {end_time - start_time:.1f} seconds")
     
     return all_results, all_errors
 
@@ -289,7 +290,7 @@ def save_results(results, errors):
     
     # 保存成功的用户
     if results:
-        filename = "./configs/canvas/canvas_users.json"
+        filename = "./deployment/canvas/configs/canvas_users.json"
         os.makedirs(os.path.dirname(filename), exist_ok=True)
         with open(filename, 'w', encoding='utf-8') as f:
             json.dump({
@@ -300,7 +301,7 @@ def save_results(results, errors):
             }, f, indent=2, ensure_ascii=False)
         
         # 保存简化的 token 列表
-        tokens_file = f"./configs/canvas/canvas_tokens.txt"
+        tokens_file = f"./deployment/canvas/configs/canvas_tokens.txt"
         with open(tokens_file, 'w') as f:
             f.write("# Canvas User Tokens\n")
             f.write(f"# Generated: {timestamp}\n")
@@ -309,65 +310,72 @@ def save_results(results, errors):
                 f.write(f"{user['email']}: {user['token']}\n")
         
         #保存一个简单的txt文件记录更新时间
-        with open(f"./configs/canvas/canvas_users_update_time.txt", 'w') as f:
+        with open(f"./deployment/canvas/configs/canvas_users_update_time.txt", 'w') as f:
             f.write(f"{timestamp}")
 
-        print(f"\n✅ 结果已保存:")
-        print(f"   - 用户数据: {filename}")
-        print(f"   - Token 列表: {tokens_file}")
+        print(f"\n✅ Results saved:")
+        print(f"   - User data: {filename}")
+        print(f"   - Token list: {tokens_file}")
         
         # 显示示例
-        print("\n示例用户:")
+        print("\nSample users:")
         for user in results[:3]:
             print(f"  {user['name']} ({user['email']})")
             print(f"  Token: {user['token'][:40]}...")
     
     # 保存错误日志
     if errors:
-        error_file = f"./configs/canvas/canvas_errors_{timestamp}.json"
+        error_file = f"./deployment/canvas/configs/canvas_errors_{timestamp}.json"
         os.makedirs(os.path.dirname(error_file), exist_ok=True)
         with open(error_file, 'w') as f:
             json.dump(errors, f, indent=2)
-        print(f"\n❌ 错误日志: {error_file}")
+        print(f"\n❌ Error log: {error_file}")
 
 def main():
+    TOTAL = 200
+
     """主函数"""
-    print("=== Canvas 批量用户创建工具 v2 ===")
+    print("=== Canvas Batch User Creation Tool v2 ===")
     
     # 先测试创建一个用户
-    print("\n测试创建单个用户...")
+    print("\nTesting single user creation...")
     test_results, test_errors = create_users(1, 1)
     
     if test_results:
-        print("✅ 测试成功！")
+        print("✅ Test successful!")
         
         # 询问是否继续
-        total = input("\n要创建多少个用户? (默认200): ")
-        total = int(total) if total else 200
+        # total = input("\nHow many users to create? (default 200): ")
+        # total = int(total) if total else 200
+        total = TOTAL
         
         if total > 1:
-            batch = input("每批创建多少个? (默认10): ")
-            batch = int(batch) if batch else 10
+            # batch = input("How many per batch? (default 10): ")
+            # batch = int(batch) if batch else 10
+            batch = TOTAL
             
-            confirm = input(f"\n将创建 {total} 个用户，每批 {batch} 个。继续? (y/n): ")
+            # confirm = input(f"\nWill create {total} users, {batch} per batch. Continue? (y/n): ")
+            confirm = 'y'
             if confirm.lower() == 'y':
                 results, errors = create_users(total, batch)
                 save_results(results, errors)
             else:
-                print("已取消")
+                print("Cancelled")
         else:
             save_results(test_results, test_errors)
     else:
-        print("❌ 测试失败！")
+        print("❌ Test failed!")
         if test_errors:
-            print("\n错误详情:")
+            print("\nError details:")
             for err in test_errors:
                 print(f"Email: {err['email']}")
-                print(f"错误: {err['error']}")
+                print(f"Error: {err['error']}")
                 if 'backtrace' in err:
-                    print("调用栈:")
+                    print("Backtrace:")
                     for line in err['backtrace']:
                         print(f"  {line}")
 
 if __name__ == "__main__":
+    # ./deployment/canvas/tmp create this dir in advance
+    os.makedirs('./deployment/canvas/tmp', exist_ok=True)
     main()

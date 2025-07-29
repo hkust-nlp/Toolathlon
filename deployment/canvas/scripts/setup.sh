@@ -1,8 +1,7 @@
 #!/bin/bash
 
-# Get project root directory (script is in scripts/launch_servers/, so need to go up two levels)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+PROJECT_ROOT="$(pwd)"
 
 # Configure ports
 http_port=10001
@@ -14,7 +13,11 @@ operation=${1:-start}
 case $operation in
   "start")
     echo "Starting Canvas service..."
-    
+
+    echo "Stopping any existing Canvas services..."
+    $0 stop
+    sleep 2
+
     # Start Canvas Docker container
     echo "Starting Canvas Docker container (port: $http_port)..."
     podman run --name canvas-docker -p ${http_port}:3000 -d lbjay/canvas-docker
@@ -35,13 +38,12 @@ case $operation in
     echo "Starting HTTPS proxy (port: $https_port)..."
     cd "$PROJECT_ROOT"
     
-    # Ensure log directory exists
-    mkdir -p utils/deployment
+    mkdir -p deployment/canvas/logs
     
     # Start in background using nohup
-    nohup node utils/deployment/build_proxy.mjs ${https_port} ${http_port} localhost http foreground > utils/deployment/proxy.log 2>&1 &
+    nohup node deployment/utils/build_proxy.mjs ${https_port} ${http_port} localhost http deployment/canvas/logs > deployment/canvas/logs/proxy.log 2>&1 &
     PROXY_PID=$!
-    echo $PROXY_PID > utils/deployment/proxy.pid
+    echo $PROXY_PID > deployment/canvas/logs/proxy.pid
     
     # Wait for proxy to start
     sleep 2
@@ -60,6 +62,9 @@ case $operation in
       podman rm canvas-docker 2>/dev/null || true
       exit 1
     fi
+
+    echo "Start creating users ..."
+    uv run deployment/canvas/scripts/create_canvas_user.py
     ;;
     
   "stop")
@@ -68,15 +73,15 @@ case $operation in
     # Stop HTTPS proxy
     echo "Stopping HTTPS proxy..."
     cd "$PROJECT_ROOT"
-    if [ -f utils/deployment/proxy.pid ]; then
-      PROXY_PID=$(cat utils/deployment/proxy.pid)
+    if [ -f deployment/canvas/logs/proxy.pid ]; then
+      PROXY_PID=$(cat deployment/canvas/logs/proxy.pid)
       if kill -0 $PROXY_PID 2>/dev/null; then
         kill $PROXY_PID
         echo "HTTPS proxy stopped (PID: $PROXY_PID)"
       else
         echo "HTTPS proxy process does not exist"
       fi
-      rm -f utils/deployment/proxy.pid
+      rm -f deployment/canvas/logs/proxy.pid
     else
       echo "Proxy PID file not found"
     fi
@@ -87,6 +92,10 @@ case $operation in
     podman rm canvas-docker 2>/dev/null || true
     
     echo "Canvas service has been stopped"
+
+    echo "Deleting tmp and configs..."
+    rm -rf deployment/canvas/tmp
+    rm -rf deployment/canvas/configs
     ;;
     
   "status")
@@ -103,15 +112,15 @@ case $operation in
     # Check proxy status
     echo "HTTPS proxy status:"
     cd "$PROJECT_ROOT"
-    if [ -f utils/deployment/proxy.pid ]; then
-      PROXY_PID=$(cat utils/deployment/proxy.pid)
+    if [ -f deployment/canvas/logs/proxy.pid ]; then
+      PROXY_PID=$(cat deployment/canvas/logs/proxy.pid)
       if kill -0 $PROXY_PID 2>/dev/null; then
         echo "  ✓ Running (PID: $PROXY_PID)"
         echo "  Proxy port: $https_port"
         echo "  Target service: http://localhost:$http_port"
       else
         echo "  ✗ Not running (PID file exists but process does not exist)"
-        rm -f utils/deployment/proxy.pid
+        rm -f deployment/canvas/logs/proxy.pid
       fi
     else
       echo "  ✗ Not running"
@@ -128,17 +137,20 @@ case $operation in
   "logs")
     echo "Showing proxy service logs:"
     cd "$PROJECT_ROOT"
-    if [ -f utils/deployment/proxy.log ]; then
-      tail -f utils/deployment/proxy.log
+    if [ -f deployment/canvas/logs/proxy.log ]; then
+      tail -f deployment/canvas/logs/proxy.log
     else
-      echo "Log file does not exist: $PROJECT_ROOT/utils/deployment/proxy.log"
+      echo "Log file does not exist: $PROJECT_ROOT/deployment/canvas/logs/proxy.log"
     fi
     ;;
     
   "debug")
     echo "Debug mode: running proxy service in foreground..."
     cd "$PROJECT_ROOT"
-    node utils/deployment/build_proxy.mjs ${https_port} ${http_port} localhost http foreground
+
+    mkdir -p deployment/canvas/logs
+
+    node deployment/utils/build_proxy.mjs ${https_port} ${http_port} localhost http deployment/canvas/logs
     ;;
     
   *)
@@ -152,3 +164,4 @@ case $operation in
     exit 1
     ;;
 esac
+
