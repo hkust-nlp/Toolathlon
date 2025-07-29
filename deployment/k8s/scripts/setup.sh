@@ -3,9 +3,9 @@
 # 设置变量
 k8sconfig_path_dir=deployment/k8s/configs
 cluster_prefix="cluster"
-cluster_count=2
-batch_size=1  # 每批创建3个集群
-batch_delay=1  # 批次之间等待30秒
+cluster_count=10
+batch_size=3  # 每批创建3个集群
+batch_delay=5  # 批次之间等待30秒
 
 # 颜色输出
 RED='\033[0;31m'
@@ -33,57 +33,57 @@ log_batch() {
 
 # 显示使用说明
 show_usage() {
-    echo "用法: $0 [start|stop]"
+    echo "Usage: $0 [start|stop]"
     echo ""
-    echo "参数:"
-    echo "  start  - 创建并启动 Kind 集群 (默认行为)"
-    echo "  stop   - 停止并清理所有 Kind 集群和配置文件"
+    echo "Parameters:"
+    echo "  start  - Create and start Kind clusters (default behavior)"
+    echo "  stop   - Stop and clean up all Kind clusters and configuration files"
     echo ""
-    echo "示例:"
-    echo "  $0 start    # 创建集群"
-    echo "  $0 stop     # 清理集群"
-    echo "  $0          # 默认执行 start 操作"
+    echo "Examples:"
+    echo "  $0 start    # Create clusters"
+    echo "  $0 stop     # Clean up clusters"
+    echo "  $0          # Default behavior is to start clusters"
 }
 
 # 清理函数
 cleanup_existing_clusters() {
-    log_info "开始清理现有集群..."
+    log_info "Start cleaning up existing clusters..."
     
     # 获取所有 kind 集群
     existing_clusters=$(kind get clusters 2>/dev/null)
     
     if [ -n "$existing_clusters" ]; then
-        log_info "发现以下集群："
+        log_info "Found the following clusters:"
         echo "$existing_clusters"
         
         # 删除每个集群
         while IFS= read -r cluster; do
-            log_info "删除集群: $cluster"
+            log_info "Delete cluster: $cluster"
             kind delete cluster --name "$cluster"
         done <<< "$existing_clusters"
         
-        log_info "所有集群已删除"
+        log_info "All clusters have been deleted"
     else
-        log_info "没有发现现有集群"
+        log_info "No existing clusters found"
     fi
 }
 
 # 清理配置文件
 cleanup_config_files() {
-    log_info "清理配置文件目录: $k8sconfig_path_dir"
+    log_info "Clean up configuration file directory: $k8sconfig_path_dir"
     
     if [ -d "$k8sconfig_path_dir" ]; then
         rm -rf "$k8sconfig_path_dir"/*
-        log_info "配置文件已清理"
+        log_info "Configuration files have been cleaned up"
     else
-        log_warning "配置目录不存在，创建目录: $k8sconfig_path_dir"
+        log_warning "Configuration directory does not exist, create directory: $k8sconfig_path_dir"
         mkdir -p "$k8sconfig_path_dir"
     fi
 }
 
 # 停止操作
 stop_operation() {
-    log_info "========== 开始停止操作 =========="
+    log_info "========== Start stopping operation =========="
     
     # 1. 清理现有集群
     cleanup_existing_clusters
@@ -91,7 +91,7 @@ stop_operation() {
     # 2. 清理配置文件
     cleanup_config_files
     
-    log_info "========== 停止操作完成 =========="
+    log_info "========== Stopping operation completed =========="
 }
 
 # 创建集群
@@ -99,14 +99,14 @@ create_cluster() {
     local cluster_name=$1
     local config_path=$2
     
-    log_info "创建集群: $cluster_name"
+    log_info "Create cluster: $cluster_name"
     
     # 使用 podman 作为 provider 创建集群
     if KIND_EXPERIMENTAL_PROVIDER=podman kind create cluster --name "$cluster_name" --kubeconfig "$config_path"; then
-        log_info "集群 $cluster_name 创建成功"
+        log_info "Cluster $cluster_name created successfully"
         return 0
     else
-        log_error "集群 $cluster_name 创建失败"
+        log_error "Cluster $cluster_name creation failed"
         return 1
     fi
 }
@@ -116,36 +116,36 @@ verify_cluster() {
     local cluster_name=$1
     local config_path=$2
     
-    log_info "验证集群: $cluster_name"
+    log_info "Verify cluster: $cluster_name"
     
     # 检查配置文件是否存在
     if [ ! -f "$config_path" ]; then
-        log_error "配置文件不存在: $config_path"
+        log_error "Configuration file does not exist: $config_path"
         return 1
     fi
     
     # 获取集群信息
     if kubectl --kubeconfig="$config_path" cluster-info &>/dev/null; then
-        log_info "集群 $cluster_name 运行正常"
+        log_info "Cluster $cluster_name is running normally"
         
         # 获取节点信息
         nodes=$(kubectl --kubeconfig="$config_path" get nodes -o wide 2>/dev/null)
         if [ $? -eq 0 ]; then
-            echo "节点信息:"
+            echo "Node information:"
             echo "$nodes"
         fi
         
         # 检查所有 pod 是否就绪
         kubectl --kubeconfig="$config_path" wait --for=condition=Ready pods --all -n kube-system --timeout=60s &>/dev/null
         if [ $? -eq 0 ]; then
-            log_info "所有系统 Pod 已就绪"
+            log_info "All system pods are ready"
         else
-            log_warning "部分系统 Pod 未就绪"
+            log_warning "Some system pods are not ready"
         fi
         
         return 0
     else
-        log_error "无法连接到集群 $cluster_name"
+        log_error "Cannot connect to cluster $cluster_name"
         return 1
     fi
 }
@@ -154,12 +154,12 @@ verify_cluster() {
 show_inotify_status() {
     local current_instances=$(ls /proc/*/fd/* 2>/dev/null | xargs -I {} readlink {} 2>/dev/null | grep -c inotify || echo "0")
     local max_instances=$(cat /proc/sys/fs/inotify/max_user_instances 2>/dev/null || echo "unknown")
-    log_info "Inotify 实例使用情况: $current_instances / $max_instances"
+    log_info "Inotify instance usage: $current_instances / $max_instances"
 }
 
 # 启动操作
 start_operation() {
-    log_info "========== 开始 Kind 集群部署 =========="
+    log_info "========== Start Kind cluster deployment =========="
     
     # 1. 清理现有集群
     cleanup_existing_clusters
@@ -173,7 +173,7 @@ start_operation() {
     # 4. 计算批次数量
     total_batches=$(( (cluster_count + batch_size - 1) / batch_size ))
     
-    log_info "将创建 $cluster_count 个集群，分为 $total_batches 批，每批 $batch_size 个"
+    log_info "Will create $cluster_count clusters, divided into $total_batches batches, each batch has $batch_size clusters"
     
     success_count=0
     failed_count=0
@@ -188,7 +188,7 @@ start_operation() {
             batch_end=$cluster_count
         fi
         
-        log_batch "========== 开始第 $((batch + 1))/$total_batches 批 (集群 $batch_start-$batch_end) =========="
+        log_batch "========== Start batch $((batch + 1))/$total_batches (cluster $batch_start-$batch_end) =========="
         
         # 创建这一批的集群
         for i in $(seq $batch_start $batch_end); do
@@ -196,7 +196,7 @@ start_operation() {
             configpath="$k8sconfig_path_dir/$clustername-config.yaml"
             
             echo ""
-            log_info "========== 处理集群 $i/$cluster_count =========="
+            log_info "========== Processing cluster $i/$cluster_count =========="
             
             # 创建集群
             if create_cluster "$clustername" "$configpath"; then
@@ -206,7 +206,7 @@ start_operation() {
                     ((success_count++))
                 else
                     ((failed_count++))
-                    log_error "集群 $clustername 验证失败"
+                    log_error "Cluster $clustername verification failed"
                 fi
             else
                 ((failed_count++))
@@ -214,43 +214,43 @@ start_operation() {
             
             # 每个集群之间短暂等待
             if [ $i -lt $batch_end ]; then
-                log_info "等待 5 秒后创建下一个集群..."
+                log_info "Wait 5 seconds before creating the next cluster..."
                 sleep 5
             fi
         done
         
         # 批次完成后的处理
-        log_batch "第 $((batch + 1))/$total_batches 批完成"
+        log_batch "Batch $((batch + 1))/$total_batches completed"
         show_inotify_status
         
         # 如果不是最后一批，等待较长时间让资源释放
         if [ $batch -lt $((total_batches - 1)) ]; then
-            log_batch "等待 $batch_delay 秒让系统资源释放..."
+            log_batch "Wait $batch_delay seconds for system resources to be released..."
             for i in $(seq $batch_delay -1 1); do
-                echo -ne "\r${BLUE}[BATCH]${NC} 等待中: $i 秒  "
+                echo -ne "\r${BLUE}[BATCH]${NC} Waiting: $i seconds  "
                 sleep 1
             done
             echo ""
             
             # 可选：在批次之间显示当前集群状态
-            log_info "当前活跃的集群:"
+            log_info "Current active clusters:"
             kind get clusters
         fi
     done
     
     # 6. 总结
     echo ""
-    log_info "========== 部署完成 =========="
-    log_info "成功创建并验证的集群: $success_count"
-    log_error "失败的集群: $failed_count"
+    log_info "========== Deployment completed =========="
+    log_info "Successfully created and verified clusters: $success_count"
+    log_error "Failed clusters: $failed_count"
     
     # 列出所有集群
-    log_info "当前所有 Kind 集群:"
+    log_info "All Kind clusters:"
     kind get clusters
     
     # 列出所有配置文件
-    log_info "生成的配置文件:"
-    ls -la "$k8sconfig_path_dir"/*.yaml 2>/dev/null || log_warning "没有找到配置文件"
+    log_info "Generated configuration files:"
+    ls -la "$k8sconfig_path_dir"/*.yaml 2>/dev/null || log_warning "No configuration files found"
     
     # 最终 inotify 状态
     show_inotify_status
@@ -268,7 +268,7 @@ main() {
             stop_operation
             ;;
         *)
-            log_error "无效的操作: $operation"
+            log_error "Invalid operation: $operation"
             show_usage
             exit 1
             ;;
@@ -287,8 +287,8 @@ check_dependencies() {
     done
     
     if [ ${#missing[@]} -gt 0 ]; then
-        log_error "缺少必要的命令: ${missing[*]}"
-        log_info "请先安装这些工具"
+        log_error "Missing required commands: ${missing[*]}"
+        log_info "Please install these tools first"
         exit 1
     fi
 }

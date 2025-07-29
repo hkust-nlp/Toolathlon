@@ -12,7 +12,6 @@
     - 账户信息保存在 `deployment/woocommerce/configs/multisite-api-keys.json` 中
 - 完成k8s集群部署脚本
     - 一键运行 `deployment/k8s/scripts/setup.sh` 即可
-        - TODO: 现在只创建2个，需要IT提升inotify limits之后才能创建更多
         - TODO: 创建和任务对应的k8sconfigfile
     - 完成部署后，config会保存在deployment/k8s/configs
 - 添加woocommerce mcp
