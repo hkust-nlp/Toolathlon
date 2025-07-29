@@ -54,6 +54,8 @@ def compare_affiliations(actual_aff, expected_aff):
         "technology": "tech",
         "university college london": "ucl",
         "ecole nationale de la statistique et de l'administration economique": "ensae",
+        "national university of singapore": 'nus',
+        'imperial college london': 'icl'
     }
     for long, short in replacements.items():
         norm_actual = norm_actual.replace(long, short)
