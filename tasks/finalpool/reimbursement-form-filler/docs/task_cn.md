@@ -1,0 +1,1 @@
+我是科技公司研发部门的会计，我需要你帮我整理部门的通勤费用报销单。报销数据来源是在'bills/'文件夹里的最近三个月打车账单PDF。请你遍历所有PDF，从每一份账单中提取出'账单周期'（例如'2024年6月'）和'总金额'。然后创建一个名为'department_expenses.xlsx'的Excel文件. 报销单的Excel文件要求严格参考工作区内的Bill_Format.xlsx，同时数据处理要求请参考requirement.txt.

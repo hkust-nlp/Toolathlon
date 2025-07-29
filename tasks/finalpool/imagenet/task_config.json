@@ -1,0 +1,5 @@
+{
+    "needed_mcp_servers": ["filesystem", "pdf-tools"],
+    "needed_local_tools": ["claim_done"],
+    "meta": {}
+}
