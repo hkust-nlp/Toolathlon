@@ -1,0 +1,11 @@
+# 时间服务器 - 获取当前时间
+type: stdio
+name: time
+params:
+  command: uv
+  args:
+    - "run"
+    - "-m"
+    - "mcp_server_time"
+    - "--local-timezone=Asia/Hong_Kong"
+cache_tools_list: true

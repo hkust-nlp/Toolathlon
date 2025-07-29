@@ -12,6 +12,7 @@ sample_files
 ./storage/
 debug.py
 debug.js
+debug.sh
 legacy/
 configs/global_configs.py
 

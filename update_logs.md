@@ -1,3 +1,32 @@
+## 2025.7.29 15:30
+- 完成canvas服务部署脚本
+    - 一键运行 `bash deployment/canvas/scripts/setup.sh start` 即可
+    - 会在http://localhost:10001 https://localhost:20001监听
+    - 自动生成200个账户，可之后构建自动化脚本使用这些账户进行课程设置等操作构建初始状态
+    - 账户信息保存在 `deployment/canvas/configs/canvas_users.json` 中
+- 完成woocommerce服务部署脚本
+    - 一键运行 `deployment/woocommerce/scripts/setup.sh` 即可
+    - 会在http://localhost:10002监听
+    - 完全停止请使用 `podman pod stop woo-pod && podman pod rm -f woo-pod"
+    - 会自动生成20个子站点，形成20个相互隔离的店铺方便操作，，可之后构建自动化脚本使用这些账户进行店铺设置等操作构建初始状态
+    - 账户信息保存在 `deployment/woocommerce/configs/multisite-api-keys.json` 中
+- 完成k8s集群部署脚本
+    - 一键运行 `deployment/k8s/scripts/setup.sh` 即可
+        - TODO: 现在只创建2个，需要IT提升inotify limits之后才能创建更多
+        - TODO: 创建和任务对应的k8sconfigfile
+    - 完成部署后，config会保存在deployment/k8s/configs
+- 添加woocommerce mcp
+    - 相关文件 `configs/mcp_servers/woocommerce.yaml`
+    - 由于每个任务操作的店铺不同，需要在任务下overwrite所需的api， 如`tasks/debug/debug-task/token_key_session.py`
+- 添加k8s mcp
+    - 相关文件 `configs/mcp_servers/k8s.yaml`
+    - 由于每个任务操作的集群不同，需要在任务下overwrite所需的k8sconfig， 如`tasks/debug/debug-task/token_key_session.py`
+
+
+## 2025.7.27 23:59
+- 添加notion服务器
+    - 相关文件 configs/mcp_servers/notion.yaml
+
 ## 2025.7.25 18:40
 - 添加canvas为自行部署，测试进行中
     

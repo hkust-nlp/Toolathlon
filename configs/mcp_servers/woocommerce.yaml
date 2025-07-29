@@ -1,0 +1,14 @@
+# WooCommerce MCP Server
+type: stdio
+name: woocommerce
+params:
+  command: npx
+  args:
+    - "-y"
+    - "@lockon0927/woocommerce-mcp"
+  env:
+    WORDPRESS_SITE_URL: "${token.woocommerce_site_url}"
+    WOOCOMMERCE_CONSUMER_KEY: "${token.woocommerce_api_key}"
+    WOOCOMMERCE_CONSUMER_SECRET: "${token.woocommerce_api_secret}"
+client_session_timeout_seconds: 10
+cache_tools_list: true
