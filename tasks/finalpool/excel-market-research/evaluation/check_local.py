@@ -1,5 +1,7 @@
 import os
+import traceback
 import numpy as np
+
 
 def check_local(agent_workspace: str, groundtruth_workspace: str):
     # 检查agent生成的增长率文件
@@ -9,10 +11,10 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
     groundtruth_file = os.path.abspath(os.path.join(groundtruth_workspace, "Market_Data_gt.xlsx"))
     
     if not os.path.exists(agent_growth_file):
-        return False, "growth_rate.xlsx文件不存在"
+        return False, "growth_rate.xlsx not exists"
     
     if not os.path.exists(groundtruth_file):
-        return False, "groundtruth文件Market_Data_gt.xlsx不存在"
+        return False, "groundtruth Market_Data_gt.xlsx not exist"
     
     try:
         # 使用openpyxl检查Excel内容
@@ -33,7 +35,7 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
                 growth_col_gt = col
 
         if year_col_gt is None or growth_col_gt is None:
-            return False, "groundtruth文件中未找到'Year'或'Growth Rate'列"
+            return False, "groundtruth not consists of 'Year' or 'Growth Rate' columns"
 
         # 提取年份和增长率
         correct_growth = {}
@@ -46,7 +48,7 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
             correct_growth[year] = rate
 
         if not correct_growth:
-            return False, "groundtruth文件中未找到增长率数据"
+            return False, "groundtruth not consists of growth rate data"
 
         # 加载agent增长率文件
         wb_agent = load_workbook(agent_growth_file, data_only=True)
@@ -54,7 +56,7 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
 
         # 检查文件是否有数据
         if ws_agent.max_row < 2:
-            return False, "增长率文件数据行数不足，应该包含数据"
+            return False, "not enough data in agent growth rate file"
 
         # 查找'Year'和'Growth Rate'列
         year_col_agent = None
@@ -67,7 +69,7 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
                 growth_col_agent = col
 
         if year_col_agent is None or growth_col_agent is None:
-            return False, "agent文件中未找到'Year'或'Growth Rate'列"
+            return False, "agent result not consists of 'Year' or 'Growth Rate' columns"
 
         # 提取年份和增长率
         agent_growth = {}
@@ -80,7 +82,7 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
             agent_growth[year] = rate
 
         if not agent_growth:
-            return False, "agent文件中未找到增长率数据"
+            return False, "agent results not consists of growth rate data"
 
         # 比较
         tolerance = 0.005
@@ -91,14 +93,17 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
 
         required_matches = max(1, int(len(correct_growth)))
         if matched < required_matches:
-            return False, f"增长率计算结果不准确。正确答案有{len(correct_growth)}个数据点，匹配了{matched}个，需要至少{required_matches}个匹配。"
+            return False, f"not accurate enough, matched {matched} out of {len(correct_growth)} required {required_matches}"
 
         return True, None
 
-    except ImportError:
-        return False, "缺少openpyxl库，无法验证Excel文件内容"
     except Exception as e:
-        return False, f"检查增长率文件时出错: {str(e)}"
+        traceback.print_exc()
+        sheet = wb_agent.active
+        print(f"--- Content of Sheet: {sheet.title} ---")
+        for row in sheet.iter_rows(values_only=True):
+            print(row)
+        return False, f"fail to check growth rate: {str(e)}"
 
 def parse_growth_rate(cell):
     if cell is None:

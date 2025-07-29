@@ -1,0 +1,4 @@
+{
+  "pass": false,
+  "failure": "local check failed:  not enough data in agent growth rate file\n"
+}
