@@ -9,7 +9,7 @@
     },
     "agent":{
         "model":{
-            "short_name": "claude-4-sonnet-0514",
+            "short_name": "gemini-2.5-flash",
             "provider": "aihubmix"
         },
         "generation":{
