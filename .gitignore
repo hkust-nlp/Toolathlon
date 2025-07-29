@@ -41,3 +41,10 @@ tasks/debug/debug-task
 *.pem
 *.log
 *.pid
+
+# Deployment directory rules
+# Keep deployment/utils/ entirely
+# For other deployment subdirectories, only keep scripts/ folders
+deployment/*/
+!deployment/utils/
+!deployment/*/scripts/
