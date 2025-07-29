@@ -3,7 +3,7 @@
 task_dir=finalpool/excel-market-research
 
 uv run demo.py \
---eval_config scripts/model_wise/eval_claude-4-sonnet.json \
+--eval_config scripts/model_wise/eval_gpt-4.1-mini.json \
 --task_dir $task_dir \
 --debug
 # # --multi_turn_mode
