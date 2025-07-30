@@ -1,11 +1,4 @@
 
-#### link
-// modelscope
-https://modelscope.cn/mcp/servers/@microsoft/playwright-mcp
-
-// github
-https://github.com/microsoft/playwright-mcp
-
 #### Configuration
 ##### modelscope sse
 pass
@@ -13,13 +6,13 @@ pass
 ##### local stdio
 1. install
     ```
-    npm install @playwright/mcp@latest
+    npm install @lockon0927/playwright-mcp-with-chunk@0.1.1
     ```
     you can skip this as we have already installed via `npm install`
 
 2. install playwright & chromium, this will install the corresponding chromium for the playwright used in the mcp
     ```
-    cd node_modules/@playwright/mcp
+    cd @lockon0927/playwright-mcp-with-chunk
     npx playwright install chromium
     ```
 
