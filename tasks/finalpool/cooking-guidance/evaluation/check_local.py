@@ -13,7 +13,7 @@ def parse_ingredients_csv(csv_file_path):
     with open(csv_file_path, 'r', encoding='utf-8') as file:
         reader = csv.DictReader(file)
         for row in reader:
-            ingredient_name = row['Ingredient name'].strip()
+            ingredient_name = row['Ingredient Name'].strip()
             quantity = row['Quantity'].strip()
             current_ingredients[ingredient_name] = quantity
     
