@@ -1,12 +1,12 @@
 # 使用 Playwright 提供浏览器自动化功能
 # https://github.com/microsoft/playwright-mcp
 type: stdio
-name: playwright
+name: playwright_with_chunk
 params:
   command: npx
   args:
     - "-y"
-    - "@playwright/mcp@latest"
+    - "@lockon0927/playwright-mcp-with-chunk"
     - "--headless"      # 无界面模式
     - "--isolated"      # 每次初始化新会话，不保存缓存
     # - "--no-sandbox"    # 可能带来安全风险，如果您的机器支持沙盒，请删除此选项
@@ -16,6 +16,10 @@ params:
     - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     - "--output-dir"
     - "${agent_workspace}/.playwright_output"
+    - "--image-responses"
+    - "omit"
+    - "--span-size"
+    - "5000"
   # env:
   #   HTTPS_PROXY: "${config.proxy}"
   #   HTTP_PROXY: "${config.proxy}"

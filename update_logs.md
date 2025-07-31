@@ -1,3 +1,19 @@
+## 2025.7.30 16:30
+- 删除原playwright.yaml配置文件，移至legacy_servers目录
+    - 删除 `configs/mcp_servers/playwright.yaml`
+    - 新增 `configs/legacy_servers/playwright.yaml`
+    - 新增 `configs/mcp_servers/playwright_with_chunk.yaml` 配置文件，支持分块处理
+- 删除ui_tars_browser.yaml配置文件
+    - 删除 `configs/mcp_servers/ui_tars_browser.yaml`
+- 更新调试配置文件
+    - 相关文件 `debug.json`
+- 更新依赖包
+    - 相关文件 `package.json`, `package-lock.json`
+- 更新评估调试配置
+    - 相关文件 `scripts/debug_eval_config.json`
+- 更新模型提供器和辅助工具
+    - 相关文件 `utils/api_model/model_provider.py`, `utils/general/helper.py`
+
 ## 2025.7.29 15:30
 - 完成canvas服务部署脚本
     - 一键运行 `bash deployment/canvas/scripts/setup.sh start` 即可
