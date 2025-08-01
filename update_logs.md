@@ -5,6 +5,8 @@
     - 更新 `configs/token_key_session.py`，添加Google Cloud相关配置项
         - 添加gcp_project_id、gcp_service_account_path等配置
         - 支持Google Cloud Storage、BigQuery、Logging、Compute Engine等服务
+    - 我们使用任务特定的allow_xx来进行任务之间的隔离
+        - 见 `tasks/debug/debug-task/token_key_session.py`， 会覆盖原有的空全局allow_xx
 - 更新任务配置结构
     - 相关文件 `utils/data_structures/task_config.py`
 
