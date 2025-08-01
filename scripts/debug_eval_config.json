@@ -20,7 +20,7 @@
         "tool":{
             "tool_choice": "auto",
             "parallel_tool_calls":true,
-            "max_inner_turns": 20
+            "max_inner_turns": 2000
         }
     },
     "user":{

@@ -33,4 +33,12 @@ all_token_key_session = Dict(
     woocommerce_site_url = "PLEASE_RESET_IN_TASK_SPECIFIC_DIR",
 
     kubeconfig_path = "PLEASE_RESET_IN_TASK_SPECIFIC_DIR",
+
+    gcp_project_id = "mcp-bench0606",
+    gcp_service_account_path = "configs/mcp-bench0606-2b68b5487343.json",
+    google_cloud_allowed_buckets = "",
+    google_cloud_allowed_bigquery_datasets = "",
+    google_cloud_allowed_log_buckets = "",
+    google_cloud_allowed_instances = "",
+
 )
