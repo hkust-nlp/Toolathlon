@@ -1,8 +1,0 @@
-# 高德地图位置服务
-# https://modelscope.cn/mcp/servers/@amap/amap-maps
-type: sse
-name: pd-googlesheets
-params:
-  url: "http://localhost:3010/123/google_sheets"
-client_session_timeout_seconds: 60
-cache_tools_list: true

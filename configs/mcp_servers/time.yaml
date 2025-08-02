@@ -2,8 +2,9 @@
 type: stdio
 name: time
 params:
-  command: python
+  command: uv
   args:
+    - "run"
     - "-m"
     - "mcp_server_time"
     - "--local-timezone=Asia/Hong_Kong"

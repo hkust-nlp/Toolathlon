@@ -14,12 +14,31 @@ all_token_key_session = Dict(
     huggingface_token = "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",
     linkedin_email = "mcptest0606@gmail.com",
     linkedin_password = "MCPtest0606!!",
-    canvas_api_token = "7~V7h4JX2rRftvrZFYUCQDKEmDvFCUxkCKa3vLZxCueF7mLeVQNhaR8FmZ3EJW6kkk",
-    canvas_domain = "canvas.instructure.com",
+    # canvas_api_token = "7~V7h4JX2rRftvrZFYUCQDKEmDvFCUxkCKa3vLZxCueF7mLeVQNhaR8FmZ3EJW6kkk",
+    # canvas_domain = "canvas.instructure.com",
+    canvas_api_token = "canvas-docker",
+    canvas_domain = "localhost:20001",
+
     wandb_api_key = "b3abe195bd69c07bdc47469d3956ac8d0c008714",
     tessdata_prefix = os.environ["TESSDATA_PREFIX"],
     amap_key="f789815a157fe45439c674c4a10e615b",
     google_sheets_folder_id = "1LYqmSCIlY0NmHtFJwF3Mh1RTb81RWHvU",
     google_oauth2_credentials_path = "configs/credentials.json",
-    google_oauth2_token_path = "configs/credentials.json" # I just put them all together in the same file
+    google_oauth2_token_path = "configs/credentials.json", # I just put them all together in the same file
+
+    notion_integration_key="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",
+
+    woocommerce_api_key = "PLEASE_RESET_IN_TASK_SPECIFIC_DIR",
+    woocommerce_api_secret = "PLEASE_RESET_IN_TASK_SPECIFIC_DIR",
+    woocommerce_site_url = "PLEASE_RESET_IN_TASK_SPECIFIC_DIR",
+
+    kubeconfig_path = "PLEASE_RESET_IN_TASK_SPECIFIC_DIR",
+
+    gcp_project_id = "mcp-bench0606",
+    gcp_service_account_path = "configs/mcp-bench0606-2b68b5487343.json",
+    google_cloud_allowed_buckets = "",
+    google_cloud_allowed_bigquery_datasets = "",
+    google_cloud_allowed_log_buckets = "",
+    google_cloud_allowed_instances = "",
+
 )

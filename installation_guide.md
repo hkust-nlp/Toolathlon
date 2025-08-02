@@ -23,7 +23,7 @@ In this file we guide you how to install all needed servers for this project.
 
     Some mcp servers are launched via `uvx`, so we install them in advance to avoid installing them every time
 
-    Note: They will be by default installed under ~/.local/share/uv/tool
+    Note: They will be by default installed under ~/.local/share/uv/tools
     
     You can also assign another install dir via `UV_TOOL_DIR` envoronment var
 

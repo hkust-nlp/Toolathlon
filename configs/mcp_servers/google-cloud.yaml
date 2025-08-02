@@ -1,0 +1,21 @@
+# https://mcp.pipedream.com/app/google_cloud
+type: stdio
+name: google-cloud
+params:
+  command: uvx
+  args:
+    - "google-cloud-mcp"
+    - "--project-id"
+    - "${token.gcp_project_id}"
+    - "--service-account-path"
+    - "${token.gcp_service_account_path}"
+    - "--allowed-buckets"
+    - "${token.google_cloud_allowed_buckets}"
+    - "--allowed-datasets"
+    - "${token.google_cloud_allowed_bigquery_datasets}"
+    - "--allowed-log-buckets"
+    - "${token.google_cloud_allowed_log_buckets}"
+    - "--allowed-instances"
+    - "${token.google_cloud_allowed_instances}"
+client_session_timeout_seconds: 10
+cache_tools_list: true

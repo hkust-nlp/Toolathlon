@@ -1,35 +1,15 @@
-[
-    {
-        "role": "user",
-        "content": "nice, can y ou truncate the context to keep only the last teo tuns?"
-    },
-    {
-        "arguments": "{\"action\":\"truncate\",\"method\":\"keep_recent_turns\",\"value\":2}",
-        "call_id": "call_VkmMuuVW7fiG0Dg3y8y6rLGL",
-        "name": "local-manage_context",
+{
+    "in_turn_steps": 1,
+    "turn": 5,
+    "timestamp": "2025-08-01T10:24:04.309950",
+    "agent": "Assistant",
+    "item_type": "tool_call_item",
+    "raw_content": {
+        "arguments": "{\"key\":\"Enter\"}",
+        "call_id": "functions.ui_tars_browser-browser_press_key:3",
+        "name": "ui_tars_browser-browser_press_key",
         "type": "function_call",
-        "id": "__fake_id__"
-    },
-    {
-        "call_id": "call_VkmMuuVW7fiG0Dg3y8y6rLGL",
-        "output": "{'status': 'scheduled', 'message': '\u5df2\u5b89\u6392\u5728\u672c\u8f6e\u7ed3\u675f\u540e\u6267\u884c\u622a\u65ad\u64cd\u4f5c\u3002', 'details': {'method': 'keep_recent_turns', 'value': 2, 'current_turns': 8, 'will_keep': 2, 'will_delete': 6, 'preserve_system_messages': True}, 'note': '\u622a\u65ad\u5c06\u5728\u5f53\u524d\u56de\u590d\u5b8c\u6210\u540e\u6267\u884c\uff0c\u4e0b\u4e00\u8f6e\u5bf9\u8bdd\u5c06\u57fa\u4e8e\u622a\u65ad\u540e\u7684\u4e0a\u4e0b\u6587\u3002'}",
-        "type": "function_call_output"
-    },
-    {
         "id": "__fake_id__",
-        "content": [
-            {
-                "annotations": [],
-                "text": "I have scheduled the context truncation to keep only the last two turns. The truncation will take effect after this response. If you have any further requests, feel free to ask!",
-                "type": "output_text"
-            }
-        ],
-        "role": "assistant",
-        "status": "completed",
-        "type": "message"
-    },
-    {
-        "role": "user",
-        "content": "ok bye"
+        "status": null
     }
-]
+}
