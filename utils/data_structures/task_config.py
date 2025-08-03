@@ -45,7 +45,7 @@ class SystemPrompts:
             self.agent = self.agent.replace("!!<<<<||||workspace_dir_rela||||>>>>!!", os.path.relpath(agent_workspace))
             self.agent = self.agent.replace("!!<<<<||||time||||>>>>!!", time)
             if single_turn_mode:
-                if cn_mode:
+                if not cn_mode:
                     self.agent+="\nPlease complete the given task independently. Do not seek confirmation or additional feedback from the user. You should handle all situations on your own, as the user will not provide any further information."
                 else:
                     self.agent+="\n请独立完成给定的任务。不要寻求用户的确认或额外的反馈。你应该自己处理所有情况，因为用户不会提供任何进一步的信息。"

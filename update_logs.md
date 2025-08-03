@@ -1,3 +1,62 @@
+## 2025.8.1 16:30
+- 添加Google Cloud MCP服务器支持
+    - 新增 `configs/mcp_servers/google-cloud.yaml` 配置文件
+    - 新增 `configs/mcp-bench0606-2b68b5487343.json` Google Cloud服务账户凭证文件
+    - 更新 `configs/token_key_session.py`，添加Google Cloud相关配置项
+        - 添加gcp_project_id、gcp_service_account_path等配置
+        - 支持Google Cloud Storage、BigQuery、Logging、Compute Engine等服务
+    - 我们使用任务特定的allow_xx来进行任务之间的隔离
+        - 见 `tasks/debug/debug-task/token_key_session.py`， 会覆盖原有的空全局allow_xx
+- 更新任务配置结构
+    - 相关文件 `utils/data_structures/task_config.py`
+
+## 2025.7.30 16:30
+- 删除原playwright.yaml配置文件，移至legacy_servers目录
+    - 删除 `configs/mcp_servers/playwright.yaml`
+    - 新增 `configs/legacy_servers/playwright.yaml`
+    - 新增 `configs/mcp_servers/playwright_with_chunk.yaml` 配置文件，支持分块处理
+- 删除ui_tars_browser.yaml配置文件
+    - 删除 `configs/mcp_servers/ui_tars_browser.yaml`
+- 更新调试配置文件
+    - 相关文件 `debug.json`
+- 更新依赖包
+    - 相关文件 `package.json`, `package-lock.json`
+- 更新评估调试配置
+    - 相关文件 `scripts/debug_eval_config.json`
+- 更新模型提供器和辅助工具
+    - 相关文件 `utils/api_model/model_provider.py`, `utils/general/helper.py`
+
+## 2025.7.29 15:30
+- 完成canvas服务部署脚本
+    - 一键运行 `bash deployment/canvas/scripts/setup.sh start` 即可
+    - 会在http://localhost:10001 https://localhost:20001监听
+    - 自动生成200个账户，可之后构建自动化脚本使用这些账户进行课程设置等操作构建初始状态
+    - 账户信息保存在 `deployment/canvas/configs/canvas_users.json` 中
+- 完成woocommerce服务部署脚本
+    - 一键运行 `deployment/woocommerce/scripts/setup.sh` 即可
+    - 会在http://localhost:10002监听
+    - 完全停止请使用 `podman pod stop woo-pod && podman pod rm -f woo-pod"
+    - 会自动生成20个子站点，形成20个相互隔离的店铺方便操作，，可之后构建自动化脚本使用这些账户进行店铺设置等操作构建初始状态
+    - 账户信息保存在 `deployment/woocommerce/configs/multisite-api-keys.json` 中
+- 完成k8s集群部署脚本
+    - 一键运行 `deployment/k8s/scripts/setup.sh` 即可
+        - TODO: 创建和任务对应的k8sconfigfile
+    - 完成部署后，config会保存在deployment/k8s/configs
+- 添加woocommerce mcp
+    - 相关文件 `configs/mcp_servers/woocommerce.yaml`
+    - 由于每个任务操作的店铺不同，需要在任务下overwrite所需的api， 如`tasks/debug/debug-task/token_key_session.py`
+- 添加k8s mcp
+    - 相关文件 `configs/mcp_servers/k8s.yaml`
+    - 由于每个任务操作的集群不同，需要在任务下overwrite所需的k8sconfig， 如`tasks/debug/debug-task/token_key_session.py`
+
+
+## 2025.7.27 23:59
+- 添加notion服务器
+    - 相关文件 configs/mcp_servers/notion.yaml
+
+## 2025.7.25 18:40
+- 添加canvas为自行部署，测试进行中
+    
 ## 2025.7.23 13:40
 - 优化上下文管理和历史记录显示功能
     - 改进历史记录概览的格式化显示，支持多行内容和更好的截断处理
