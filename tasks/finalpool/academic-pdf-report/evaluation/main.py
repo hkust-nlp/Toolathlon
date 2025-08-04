@@ -8,7 +8,7 @@ import json
 import pandas as pd
 from pathlib import Path
 from urllib.parse import urlparse
-from utils import compare_names, compare_titles, check_affiliation_requirements
+from .task_utils import compare_names, compare_titles, check_affiliation_requirements
 
 def compare_websites(actual_url, expected_url):
     """
