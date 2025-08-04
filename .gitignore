@@ -45,6 +45,8 @@ tasks/debug/debug-task
 # Deployment directory rules
 # Keep deployment/utils/ entirely
 # For other deployment subdirectories, only keep scripts/ folders
-deployment/*/
+deployment/*/*
 !deployment/utils/
+!deployment/utils/**
 !deployment/*/scripts/
+!deployment/*/scripts/**

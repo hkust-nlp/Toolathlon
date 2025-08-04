@@ -1,3 +1,13 @@
+## 2025.8.4 21:30
+- 完成poste邮件服务部署脚本
+    - 一键运行 `bash deployment/poste/scripts/setup.sh` 即可
+    - 会在http://localhost:10005监听
+    - 自动创建100个邮箱账户，方便进行邮件相关的测试和操作
+    - 账户信息保存在 `deployment/poste/configs/created_accounts.json` 中
+- 更新deployment目录的.gitignore规则
+    - 改进忽略规则，只保留scripts文件夹和utils文件夹
+    - 便于新建deployment子目录时自动包含scripts文件夹
+
 ## 2025.8.1 16:30
 - 添加Google Cloud MCP服务器支持
     - 新增 `configs/mcp_servers/google-cloud.yaml` 配置文件
