@@ -1,0 +1,4 @@
+{
+  "pass": false,
+  "failure": "\n================================================================================\nCOOKING-GUIDANCE TASK EVALUATION REPORT\n================================================================================\n\n❌ 本地文件检查失败: Evaluation failed: The 'shopping.csv' file was not found.\n"
+}
