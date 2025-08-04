@@ -106,7 +106,7 @@ def check_filled_excel(excel_path, expected_data):
     try:
         df = pd.read_excel(excel_path)
         
-        required_columns = ["Title", "First Author", "Affiliation", "Personal_website"]
+        required_columns = ["Title", "First Author", "Affiliation", "Personal Website"]
         missing_columns = [col for col in required_columns if col not in df.columns]
         if missing_columns:
             print(f"✗ Excel文件缺少必要的列: {', '.join(missing_columns)}")
@@ -155,16 +155,16 @@ def check_filled_excel(excel_path, expected_data):
                         print(f"  ✓ 单位匹配: {row['Affiliation']}")
 
                     # 检查个人网站 (鲁棒比较)
-                    if pd.isna(row["Personal_website"]) or not str(row["Personal_website"]).strip():
+                    if pd.isna(row["Personal Website"]) or not str(row["Personal Website"]).strip():
                         print(f"  ✗ 个人网站未填充")
                         is_row_perfect = False
-                    elif not compare_websites(row["Personal_website"], paper["personal_website"]):
+                    elif not compare_websites(row["Personal Website"], paper["Personal Website"]):
                         print(f"  ✗ 个人网站不匹配")
-                        print(f"    期望: {paper['personal_website']}")
-                        print(f"    实际: {row['Personal_website']}")
+                        print(f"    期望: {paper['Personal Website']}")
+                        print(f"    实际: {row['Personal Website']}")
                         is_row_perfect = False
                     else:
-                        print(f"  ✓ 个人网站匹配: {row['Personal_website']}")
+                        print(f"  ✓ 个人网站匹配: {row['Personal Website']}")
                     
                     if is_row_perfect:
                         filled_count += 1
