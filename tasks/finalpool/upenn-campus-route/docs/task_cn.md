@@ -1,0 +1,1 @@
+我现在在University of Pennsylvania（UPenn）的 Bookstore，我想步行参观校园的景点，前几天我看到了recommendation.md(文件位于工作区中)中对于宾大校园著名景点的介绍，非常心动，请你帮我规划最短的步行路线，并输出参观顺序，我要参观recommendation.md中描述的全部景点。请将最终的路线规划结果保存到"upenn_route_plan.json"文件中，格式参考工作区中的format.json.

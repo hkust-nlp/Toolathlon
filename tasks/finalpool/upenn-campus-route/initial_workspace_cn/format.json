@@ -1,0 +1,44 @@
+[
+    {
+        "destinations": [
+            {
+                "order": 1,
+                "name": "地点名称",
+                "description": "地点描述",
+                "location": "具体地址或坐标"
+            }
+        ],
+        "route_plan": [
+            {
+                "from": "起点",
+                "to": "终点", 
+                "distance": "步行距离",
+                "estimated_time": "预计步行时间",
+                "directions": "具体路线指引"
+            }
+        ],
+        "total_distance": "总步行距离",
+        "total_time": "总预计时间"
+    },
+    {
+        "destinations": [
+            {
+                "order": 2,
+                "name": "地点名称",
+                "description": "地点描述",
+                "location": "具体地址或坐标"
+            }
+        ],
+        "route_plan": [
+            {
+                "from": "起点",
+                "to": "终点", 
+                "distance": "步行距离",
+                "estimated_time": "预计步行时间",
+                "directions": "具体路线指引"
+            }
+        ],
+        "total_distance": "总步行距离",
+        "total_time": "总预计时间"
+    }
+]

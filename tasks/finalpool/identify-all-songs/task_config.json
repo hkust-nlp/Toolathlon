@@ -1,0 +1,7 @@
+{
+    "needed_mcp_servers": [
+        "filesystem", 
+        "youtube-transcript"
+    ],
+    "needed_local_tools": ["web_search","claim_done"]
+}
