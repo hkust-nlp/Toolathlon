@@ -1,0 +1,6 @@
+My friend and I have planned a trip to qufu(曲阜). We will depart on the evening of next Thursday (trains departing after 5 PM) and leave on Sunday afternoon (trains departing between 2 PM and 6 PM). I am in 北京 and will depart from and return to Beijing Nan station(北京南站). She is in Shanghai(上海) and will depart from and return to Shanghai Hongqiao(上海虹桥). Can you help us find round-trip tickets for each of us? We need direct high-speed trains (高铁) or EMU trains (动车). We must arrive at the same station in qufu(曲阜), and we must also depart from the same station in qufu(曲阜). However, the arrival station and the departure station do not have to be the same. Another requirement is that the difference in our arrival times should not exceed 30 minutes, and similarly, the difference in our departure times on the day we leave should not exceed 30 minutes. Can you tell me which trains we should take for our round trip? Please ignore ticket availability for now and just return any one possible combination in the format specified in format.json. If you cannot find a suitable combination for any given day, return null for that day:
+{
+"thursday": null,
+"sunday": null
+}
+Finally, please write the returned JSON content into a file named 'train-ticket-plan.json'. Please use the official English translation for each railway station.

@@ -1,0 +1,34 @@
+{
+    "thursday":{
+        "bj2qf": {
+            "train number": "xxx",
+            "departure station": "xxx",
+            "arrival station": "xxx",
+            "departure time": "xx:xx",
+            "arrival time": "xx:xx"
+        },
+        "sh2qf": {
+            "train number": "xxx",
+            "departure station": "xxx",
+            "arrival station": "xxx",
+            "departure time": "xx:xx",
+            "arrival time": "xx:xx"
+        }
+    },
+    "sunday":{
+        "qf2bj": {
+            "train number": "xxx",
+            "departure station": "xxx",
+            "arrival station": "xxx",
+            "departure time": "xx:xx",
+            "arrival time": "xx:xx"
+        },
+        "qf2sh": {
+            "train number": "xxx",
+            "departure station": "xxx",
+            "arrival station": "xxx",
+            "departure time": "xx:xx",
+            "arrival time": "xx:xx"
+        }
+    }
+}
