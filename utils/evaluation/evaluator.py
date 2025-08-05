@@ -34,7 +34,7 @@ class TaskEvaluator:
         # 评估所有内容
         if eval_command is not None:
             # try:
-            args = f"--res_log_file {res_log_file} --agent_workspace {agent_workspace} --groundtruth_workspace {groundtruth_workspace}"
+            args = f"--res_log_file {res_log_file} --agent_workspace {agent_workspace} --groundtruth_workspace {groundtruth_workspace} --launch_time {task_config.launch_time}"
             command = f"{eval_command} {args}"
             output, _, returncode = await run_command(command)
             if returncode != 0:
