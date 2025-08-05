@@ -49,7 +49,6 @@ podman run -d \
   -e "DISABLE_P0F=TRUE" \
   -e "HTTPS_FORCE=0" \
   -e "HTTPS=OFF" \
-  -e "TLS_FORCE=0" \
   -v ${DATA_DIR}:/data:Z \
   --hostname mcp.com \
   analogic/poste.io:2.5.5

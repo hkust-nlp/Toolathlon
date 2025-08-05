@@ -12,7 +12,7 @@
     "@jinzcdev/leetcode-mcp-server": "^1.1.0",
     "@lockon0927/playwright-mcp-with-chunk": "^0.1.1",
     "@lockon0927/woocommerce-mcp": "^1.0.1",
-    "@modelcontextprotocol/server-filesystem": "^2025.3.28",
+    "@modelcontextprotocol/server-filesystem": "^2025.7.29",
     "@modelcontextprotocol/server-github": "^2025.4.8",
     "@modelcontextprotocol/server-google-maps": "^0.6.2",
     "@modelcontextprotocol/server-memory": "^2025.4.25",
