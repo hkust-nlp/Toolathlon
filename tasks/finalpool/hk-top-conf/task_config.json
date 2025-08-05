@@ -1,5 +1,5 @@
 {
-    "needed_mcp_servers": ["filesystem","terminal","playwright"],
+    "needed_mcp_servers": ["filesystem","terminal","playwright_with_chunk"],
     "needed_local_tools": ["claim_done","manage_context","history","python_execute","web_search"],
     "meta": {}
 }

@@ -14,7 +14,7 @@ debug.py
 debug.js
 debug.sh
 legacy/
-# configs/global_configs.py
+configs/global_configs.py
 
 dumps
 ./logs

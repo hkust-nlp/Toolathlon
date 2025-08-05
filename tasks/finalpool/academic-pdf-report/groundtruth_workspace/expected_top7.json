@@ -3,44 +3,109 @@
         {
             "title": "Strategy Coopetition Explains the Emergence and Transience of In-Context Learning",
             "first_author": "Aaditya K Singh",
-            "affiliation": "University College London",
-            "personal_website": "https://scholar.google.com/citations?user=9OPKqmMAAAAJ&hl=en"
+            "affiliation":{
+                "should_contain": [
+                    "Gatsby Computational Neuroscience Unit",
+                    "University College London"
+                ],
+                "should_not_contain": [
+                    "Anthropic AI",
+                    "work completed while at the Gatsby Unit",
+                    "University of Oxford",
+                    "Google DeepMind"
+                ]
+            },
+            "personal_website": "scholar.google.com/citations?user=9OPKqmMAAAAJ"
         },
         {
             "title": "Model Immunization from a Condition Number Perspective",
             "first_author": "Amber Yijia Zheng",
-            "affiliation": "Purdue University",
-            "personal_website": "https://scholar.google.com/citations?user=SZQIVG0AAAAJ&hl&hl=en"
+            "affiliation":{
+                "should_contain": [
+                    "Department of Computer Science",
+                    "Purdue University"
+                ],
+                "should_not_contain": [
+                    
+                ]
+            },
+            "personal_website": "scholar.google.com/citations?user=SZQIVG0AAAAJ"
         },
         {
             "title": "Flowing Datasets with Wasserstein over Wasserstein Gradient Flows",
             "first_author": "Clément Bonet",
-            "affiliation": "Ecole Nationale de la Statistique et de l'Administration Economique",
-            "personal_website": "https://scholar.google.com/citations?user=wjCPk5kAAAAJ&hl=fr"
+            "affiliation":{
+                "should_contain": [
+                    "ENSAE",
+                    "CREST",
+                    "IP Paris"
+                ],
+                "should_not_contain": [
+                    "Paris-Saclay",
+                    "Laboratoire de"
+                ]
+            },
+            "personal_website": "scholar.google.com/citations?user=wjCPk5kAAAAJ"
         },
         {
             "title": "Learning with Expected Signatures: Theory and Applications",
             "first_author": "Lorenzo Lucchese",
-            "affiliation": "GSA Capital, Imperial College London",
-            "personal_website": "https://scholar.google.com/citations?user=-dZCdJoAAAAJ&hl=it"
+            "affiliation":{
+                "should_contain": [
+                    "Department of Mathematics",
+                    "Imperial College London",
+                    "London",
+                    "United Kingdom"
+                ],
+                "should_not_contain": [
+                    
+                ]
+            },
+            "personal_website": "scholar.google.com/citations?user=-dZCdJoAAAAJ"
         },
         {
             "title": "AutoML-Agent: A Multi-Agent LLM Framework for Full-Pipeline AutoML",
             "first_author": "Patara Trirat",
-            "affiliation": "DeepAuto.ai",
-            "personal_website": "https://scholar.google.com/citations?user=fDZjV8EAAAAJ&hl=en"
+            "affiliation":{
+                "should_contain": [
+                    "DeepAuto.ai"
+                ],
+                "should_not_contain": [
+                    "KAIST",
+                    "Seoul",
+                    "South Korea"
+                ]
+            },
+            "personal_website": "scholar.google.com/citations?user=fDZjV8EAAAAJ"
         },
         {
             "title": "Learning Smooth and Expressive Interatomic Potentials for Physical Property Prediction",
             "first_author": "Xiang Fu",
-            "affiliation": "Meta",
-            "personal_website": "https://scholar.google.com/citations?user=Cb-ZgHEAAAAJ&hl=en&oi=ao"
+            "affiliation":{
+                "should_contain": [
+                    "Fundamental AI Research (FAIR) at Meta"
+                ],
+                "should_not_contain": [
+                    
+                ]
+            },
+            "personal_website": "scholar.google.com/citations?user=Cb-ZgHEAAAAJ"
         },
         {
             "title": "Multi-agent Architecture Search via Agentic Supernet",
             "first_author": "Guibin Zhang",
-            "affiliation": "National University of Singapore, Tongji University",
-            "personal_website": "https://scholar.google.com/citations?user=ApmxNvwAAAAJ"
+            "affiliation":{
+                "should_contain": [
+                    "National University of Singapore",
+                    "Tongji University"
+                ],
+                "should_not_contain": [
+                    "Nanyang Technological University",
+                    "Shanghai AI Laboratory",
+                    "University of Science and Technology of China"
+                ]
+            },
+            "personal_website": "scholar.google.com/citations?user=ApmxNvwAAAAJ"
         }
     ]
 }

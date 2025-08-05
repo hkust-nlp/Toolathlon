@@ -1,6 +1,6 @@
 {
     "needed_mcp_servers": ["memory","excel","filesystem"],
-    "needed_local_tools": [],
+    "needed_local_tools": ["claim_done"],
     "meta": {
         "task_type": "accounting",
         "input_files": ["Account_Book.xlsx", "memory.json"],

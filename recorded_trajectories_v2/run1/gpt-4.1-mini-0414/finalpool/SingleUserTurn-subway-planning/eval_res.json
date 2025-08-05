@@ -1,0 +1,4 @@
+{
+  "pass": false,
+  "failure": "main.py started\nimport finished\nargs started\n['/ssddata/mcpbench/zhaojian/mcpbench_dev/tasks/finalpool/subway-planning/evaluation/main.py', '--res_log_file', 'recorded_trajectories_v2/run1/gpt-4.1-mini-0414/finalpool/SingleUserTurn-subway-planning/log.json', '--agent_workspace', 'recorded_trajectories_v2/run1/gpt-4.1-mini-0414/finalpool/SingleUserTurn-subway-planning/workspace', '--groundtruth_workspace', 'tasks/finalpool/subway-planning/groundtruth_workspace']\nagent_workspace:  recorded_trajectories_v2/run1/gpt-4.1-mini-0414/finalpool/SingleUserTurn-subway-planning/workspace\n开始测试local\nlocal check error:  [Errno 2] No such file or directory: 'recorded_trajectories_v2/run1/gpt-4.1-mini-0414/finalpool/SingleUserTurn-subway-planning/workspace/routine.txt'\n"
+}

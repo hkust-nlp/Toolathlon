@@ -1,5 +1,5 @@
 {
     "needed_mcp_servers": ["gmail","google_calendar"],
-    "needed_local_tools": ["ai_webpage_summary"],
+    "needed_local_tools": ["claim_done"],
     "meta": {}
 }

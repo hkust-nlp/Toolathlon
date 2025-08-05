@@ -1,5 +1,5 @@
 {
-    "needed_mcp_servers": ["filesystem",  "google_map", "googlesearch", "playwright"], 
-    "needed_local_tools": ["claim_done"],
+    "needed_mcp_servers": ["filesystem",  "google_map", "playwright_with_chunk"], 
+    "needed_local_tools": ["claim_done","web_search"],
     "meta": {}
 }
