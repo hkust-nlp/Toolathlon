@@ -28,6 +28,7 @@ if __name__ == "__main__":
                        help="Path to groundtruth workspace directory")
     parser.add_argument("--numerical_tolerance", type=float, default=1e-6,
                        help="Numerical tolerance for improved evaluation (default: 1e-6)")
+    parser.add_argument("--res_log_file", required=False)
     args = parser.parse_args()
 
     # Only perform local file validation (no log checking)
