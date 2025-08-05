@@ -362,7 +362,7 @@ class TaskAgent:
 
             # 执行预处理命令（如果有）
             if self.task_config.initialization.process_command is not None:
-                args = f"--agent_workspace {self.task_config.agent_workspace}"
+                args = f"--agent_workspace {self.task_config.agent_workspace} --launch_time {self.task_config.launch_time}"
                 command = f"{self.task_config.initialization.process_command} {args}"
                 await run_command(command, show_output=True)
                 
