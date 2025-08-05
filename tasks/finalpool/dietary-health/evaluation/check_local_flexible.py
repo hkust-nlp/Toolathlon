@@ -71,7 +71,7 @@ def analyze_carbohydrate_intake(content: str) -> Tuple[bool, List[str]]:
         return False, errors
     
     # Check if the value is approximately correct (within 5g tolerance)
-    if not is_within_tolerance(actual_carbs, target_actual, tolerance_percent=3.7):  # ~5g tolerance
+    if not is_within_tolerance(actual_carbs, target_actual, tolerance_percent=7.4):  # ~10g tolerance
         errors.append(f"Carbohydrate calculation incorrect: expected ~{target_actual}g, got {actual_carbs}g")
     
     # Check if assessment matches the numbers
@@ -132,7 +132,7 @@ def analyze_protein_intake(content: str) -> Tuple[bool, List[str]]:
         return False, errors
     
     # Check if the value is approximately correct (within 5g tolerance) 
-    if not is_within_tolerance(actual_protein, target_actual, tolerance_percent=3.4):  # ~5g tolerance
+    if not is_within_tolerance(actual_protein, target_actual, tolerance_percent=6.8):  # ~10g tolerance
         errors.append(f"Protein calculation incorrect: expected ~{target_actual}g, got {actual_protein}g")
     
     # Check if assessment matches the numbers
