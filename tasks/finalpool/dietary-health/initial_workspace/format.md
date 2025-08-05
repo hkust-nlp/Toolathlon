@@ -17,10 +17,6 @@ Please follow this EXACT format for your nutritional analysis. The evaluation sy
 - **Meets expectations** - when actual intake is within the target range  
 - **Excessive intake** - when actual intake exceeds the target range
 
-## Expected Values (65kg male, fat loss initial phase):
-- **Carbohydrates**: 162.5g-195g (2.5-3g/kg body weight)
-- **Protein**: 97.5g (1.5g/kg body weight)
-
 ## Format Examples:
 
 **Example 1:**
