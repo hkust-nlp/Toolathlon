@@ -1,0 +1,6 @@
+{
+    "id": "weihao_travelexchange_001",
+    "needed_mcp_servers": ["playwright_with_chunk", "terminal", "filesystem"],
+    "needed_local_tools": ["claim_done", "web_search"],
+    "meta": {}
+} 
