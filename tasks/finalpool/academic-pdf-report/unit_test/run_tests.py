@@ -8,7 +8,15 @@ import subprocess
 from pathlib import Path
 import pandas as pd
 import json
+# Add evaluation directory to Python path for importing task_utils
+base_dir = Path(__file__).parent
+evaluation_dir = base_dir.parent / "evaluation"
+sys.path.insert(0, str(evaluation_dir))
 
+try:
+    from task_utils import normalize_affiliation
+except ImportError as e:
+    print(f"Warning: Could not import task_utils: {e}")
 # Color codes for output
 class Colors:
     GREEN = '\033[92m'
@@ -154,7 +162,6 @@ def analyze_expected_vs_actual(expected_file, excel_path, base_dir):
                 
                 # Normalize for checking
                 sys.path.insert(0, str(base_dir.parent / "evaluation"))
-                from utils import normalize_affiliation
                 normalized_actual = normalize_affiliation(actual_affiliation)
                 
                 # Check should_contain
