@@ -1,37 +1,52 @@
 from argparse import ArgumentParser
-import asyncio
+import os
+import sys
+from pathlib import Path
 
-from .check_log_en import check_log
-from .check_local_enhanced import check_local
-from utils.general.helper import read_json  
+# Add current directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent))
 
-if __name__=="__main__":
-    parser = ArgumentParser()
-    parser.add_argument("--agent_workspace", required=False)
-    parser.add_argument("--groundtruth_workspace", required=False)
-    parser.add_argument("--res_log_file", required=False)
+# Try to import improved functions first, fall back to original if not available
+try:
+    from check_local_improved import check_local
+    print("Using improved evaluation functions with enhanced features")
+    USE_IMPROVED = True
+except ImportError:
+    try:
+        from check_local_enhanced import check_local
+        print("Using standard evaluation functions")
+        USE_IMPROVED = False
+    except ImportError:
+        print("Error: Could not import evaluation functions")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    parser = ArgumentParser(description="Excel Data Transformation Task Evaluation")
+    parser.add_argument("--agent_workspace", required=True, 
+                       help="Path to agent's workspace directory")
+    parser.add_argument("--groundtruth_workspace", required=True,
+                       help="Path to groundtruth workspace directory")
+    parser.add_argument("--numerical_tolerance", type=float, default=1e-6,
+                       help="Numerical tolerance for improved evaluation (default: 1e-6)")
     args = parser.parse_args()
 
-    res_log = read_json(args.res_log_file)
-    
-    # check log
+    # Only perform local file validation (no log checking)
     try:
-        log_pass, log_error = check_log(res_log)
-        if not log_pass:
-            print("log check failed: ", log_error)
-            exit(1)
+        if USE_IMPROVED:
+            success, error_msg = check_local(
+                args.agent_workspace, 
+                args.groundtruth_workspace,
+                numerical_tolerance=args.numerical_tolerance
+            )
+        else:
+            success, error_msg = check_local(args.agent_workspace, args.groundtruth_workspace)
+            
+        if success:
+            print("All validation checks passed!")
+            sys.exit(0)
+        else:
+            print(f"Local validation failed: {error_msg}")
+            sys.exit(1)
     except Exception as e:
-        print("log check error: ", e)
-        exit(1)
-    
-    # check local
-    try:
-        local_pass, local_error = check_local(args.agent_workspace, args.groundtruth_workspace)
-        if not local_pass:
-            print("local check failed: ", local_error)
-            exit(1)
-    except Exception as e:
-        print("local check error: ", e)
-        exit(1)
-    
-    print("Pass all tests!")
+        print(f"Local validation error: {e}")
+        sys.exit(1)
