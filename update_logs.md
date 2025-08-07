@@ -11,11 +11,11 @@
     - 新增用户数据文件 `configs/users_data.csv`, `configs/users_data.json`, `configs/sers_data.csv`
     - 移动google_search配置到legacy目录 `configs/legacy_servers/google_search.yaml`
 - 修正woocommerce服务端口号从10002到10003
-- 更新安装指南，指定各uv tool安装版本
-    - 相关文件 `installation_guide.md`
 - 添加账户信息说明文档 `accounts.md`
 
 ## 2025.8.7 14：30
+- 更新安装指南，指定各uv tool安装版本
+    - 相关文件 `installation_guide.md`
 
 ## 2025.8.4 21:30
 - 完成poste邮件服务部署脚本
