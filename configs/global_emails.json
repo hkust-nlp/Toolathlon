@@ -1,0 +1,13 @@
+{
+    "email": "kindtree001@mcp.com",
+    "password": "pass001",
+    "name": "Kindtree001",
+    "username": "kindtree001",
+    "is_admin": false,
+    "imap_server": "localhost",
+    "imap_port": 1143,
+    "smtp_server": "localhost",
+    "smtp_port": 1587,
+    "use_ssl": false,
+    "use_starttls": false
+}

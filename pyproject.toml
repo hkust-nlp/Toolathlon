@@ -56,6 +56,7 @@ dependencies = [
     "httpx-sse==0.4.0",
     "idna==3.10",
     "imagesize==1.4.1",
+    "imapclient>=3.0.1",
     "jinja2==3.1.6",
     "jiter==0.9.0",
     "jsonlines==4.0.0",

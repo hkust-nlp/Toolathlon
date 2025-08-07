@@ -1,3 +1,9 @@
+## 2025.8.7 14：30
+- 完成邮件MCP
+    - 相关文件 `configs/mcp_servers/emails.yaml`
+- 更新安装指南，指定各uv tool安装版本
+    - 相关文件 `installation_guide.md`
+
 ## 2025.8.4 21:30
 - 完成poste邮件服务部署脚本
     - 一键运行 `bash deployment/poste/scripts/setup.sh` 即可
@@ -44,7 +50,7 @@
     - 账户信息保存在 `deployment/canvas/configs/canvas_users.json` 中
 - 完成woocommerce服务部署脚本
     - 一键运行 `deployment/woocommerce/scripts/setup.sh` 即可
-    - 会在http://localhost:10002监听
+    - 会在http://localhost:10003监听
     - 完全停止请使用 `podman pod stop woo-pod && podman pod rm -f woo-pod"
     - 会自动生成20个子站点，形成20个相互隔离的店铺方便操作，，可之后构建自动化脚本使用这些账户进行店铺设置等操作构建初始状态
     - 账户信息保存在 `deployment/woocommerce/configs/multisite-api-keys.json` 中

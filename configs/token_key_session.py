@@ -41,4 +41,5 @@ all_token_key_session = Dict(
     google_cloud_allowed_log_buckets = "",
     google_cloud_allowed_instances = "",
 
+    emails_config_file = "/homes/junlong/junlong/projects/mcpbench_dev_infra/configs/global_emails.json",
 )
