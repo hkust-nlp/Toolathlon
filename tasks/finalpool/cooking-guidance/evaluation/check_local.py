@@ -374,6 +374,9 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, res_log: Optio
                 print(f"  • Raw recipe ingredients found: {len(required_ingredients)}")
                 cleaned_required = clean_required_ingredients(required_ingredients)
                 print(f"  • Valid ingredients after cleaning: {len(cleaned_required)}")
+                print(f"  • Cleaned Required Ingredients:")
+                for ingredient, quantity in cleaned_required.items():
+                    print(f"    • {ingredient}: {quantity}")
                 
                 # Normalize pantry ingredients for better matching
                 normalized_pantry = {}
