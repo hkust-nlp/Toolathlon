@@ -6,7 +6,7 @@ PROJECT_ROOT="$(pwd)"
 # Configure ports
 http_port=10001
 https_port=20001
-
+USERS_COUNT=100
 # Check operation parameter
 operation=${1:-start}
 
@@ -64,7 +64,7 @@ case $operation in
     fi
 
     echo "Start creating users ..."
-    uv run deployment/canvas/scripts/create_canvas_user.py
+    uv run deployment/canvas/scripts/create_canvas_user.py --count $USERS_COUNT --skip-test --batch-size 100
     ;;
     
   "stop")
