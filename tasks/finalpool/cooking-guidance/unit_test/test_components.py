@@ -42,7 +42,13 @@ try:
         parse_shopping_list_csv,
         extract_dish_names_from_cuisine_json,
         get_recipe_ingredients,
-        check_local
+        check_local,
+        normalize_ingredient_name,
+        is_valid_ingredient,
+        clean_required_ingredients,
+        extract_numeric_quantity,
+        get_quantity_unit,
+        is_sufficient_quantity
     )
     EVALUATION_AVAILABLE = True
 except ImportError as e:
@@ -64,19 +70,19 @@ class TestCsvParsing(unittest.TestCase):
         shutil.rmtree(self.temp_dir)
     
     @unittest.skipUnless(EVALUATION_AVAILABLE, "Evaluation functions not available")
-    def test_parse_ingredients_csv_valid(self):
-        """Test parsing valid ingredients CSV"""
+    def test_parse_ingredients_csv_valid_fixed(self):
+        """Test parsing valid ingredients CSV with the bug fix"""
         csv_file = self.temp_path / "ingredients.csv"
         with open(csv_file, 'w', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
             writer.writerow(['Category', 'Ingredient Name', 'Quantity'])
-            writer.writerow(['Vegetables', 'Potatoes', '4'])
-            writer.writerow(['Meat', 'Pork', '200g'])
+            writer.writerow(['蔬菜', '土豆', '4'])
+            writer.writerow(['肉类', '猪肉', '200g'])
         
         result = parse_ingredients_csv(str(csv_file))
-        # Note: The function has a bug - it doesn't populate current_ingredients
-        # This test documents the current behavior
-        self.assertEqual(result, {})
+        # Now the function should work correctly with Chinese names
+        expected = {'土豆': '4', '猪肉': '200g'}
+        self.assertEqual(result, expected)
     
     @unittest.skipUnless(EVALUATION_AVAILABLE, "Evaluation functions not available")
     def test_parse_ingredients_csv_missing_file(self):
@@ -199,6 +205,140 @@ class TestJsonParsing(unittest.TestCase):
         
         result = extract_dish_names_from_cuisine_json(str(self.temp_path))
         self.assertEqual(result, [])
+
+
+class TestIngredientNormalization(unittest.TestCase):
+    """Test ingredient normalization and cleaning functions"""
+    
+    @unittest.skipUnless(EVALUATION_AVAILABLE, "Evaluation functions not available")
+    def test_normalize_ingredient_name(self):
+        """Test ingredient name normalization"""
+        # Test synonym mapping
+        self.assertEqual(normalize_ingredient_name("大蒜"), "蒜")
+        self.assertEqual(normalize_ingredient_name("蒜头"), "蒜")
+        self.assertEqual(normalize_ingredient_name("大葱"), "葱")
+        self.assertEqual(normalize_ingredient_name("青椒"), "辣椒")
+        self.assertEqual(normalize_ingredient_name("猪肉片"), "猪肉")
+        self.assertEqual(normalize_ingredient_name("马铃薯"), "土豆")
+        
+        # Test parenthetical removal
+        self.assertEqual(normalize_ingredient_name("蒜苗（韭黄）"), "蒜苗")
+        self.assertEqual(normalize_ingredient_name("猪肉(切片)"), "猪肉")
+        
+        # Test unchanged items
+        self.assertEqual(normalize_ingredient_name("生抽"), "生抽")
+        self.assertEqual(normalize_ingredient_name("盐"), "盐")
+    
+    @unittest.skipUnless(EVALUATION_AVAILABLE, "Evaluation functions not available")
+    def test_is_valid_ingredient(self):
+        """Test ingredient validity checking"""
+        # Valid ingredients
+        self.assertTrue(is_valid_ingredient("猪肉"))
+        self.assertTrue(is_valid_ingredient("生抽"))
+        self.assertTrue(is_valid_ingredient("蒜苗"))
+        
+        # Invalid parsing artifacts
+        self.assertFalse(is_valid_ingredient("青茄子的数量 = 份数"))
+        self.assertFalse(is_valid_ingredient("面粉 = 青茄子数量"))
+        self.assertFalse(is_valid_ingredient("西红柿 ="))
+        self.assertFalse(is_valid_ingredient("淀粉 = 面粉 /"))
+        self.assertFalse(is_valid_ingredient("葱花（一根,约"))
+        
+        # Edge cases
+        self.assertFalse(is_valid_ingredient(""))
+        self.assertFalse(is_valid_ingredient(None))
+        self.assertFalse(is_valid_ingredient("123"))
+        self.assertFalse(is_valid_ingredient("（）"))
+    
+    @unittest.skipUnless(EVALUATION_AVAILABLE, "Evaluation functions not available")
+    def test_clean_required_ingredients(self):
+        """Test cleaning of recipe ingredient data"""
+        dirty_ingredients = {
+            "猪肉": "200g",
+            "大蒜": "3瓣",
+            "蒜": "2瓣",  # Should merge with 大蒜
+            "青茄子的数量 = 份数": "1",  # Should be filtered out
+            "面粉 = 青茄子数量": "适量",  # Should be filtered out
+            "生抽": "适量",
+            "盐": "少许",
+            "葱花（一根,约": "1根"  # Should be filtered out
+        }
+        
+        cleaned = clean_required_ingredients(dirty_ingredients)
+        
+        # Should have merged duplicates and filtered invalid entries
+        expected_keys = {"猪肉", "蒜", "生抽", "盐"}
+        self.assertEqual(set(cleaned.keys()), expected_keys)
+        self.assertIn("蒜", cleaned)  # 大蒜 should be normalized to 蒜
+        self.assertNotIn("青茄子的数量 = 份数", cleaned)
+        self.assertNotIn("面粉 = 青茄子数量", cleaned)
+
+
+class TestQuantityHandling(unittest.TestCase):
+    """Test quantity parsing and comparison functions"""
+    
+    @unittest.skipUnless(EVALUATION_AVAILABLE, "Evaluation functions not available")
+    def test_extract_numeric_quantity(self):
+        """Test numeric quantity extraction"""
+        # Test numeric patterns
+        self.assertEqual(extract_numeric_quantity("4个"), 4.0)
+        self.assertEqual(extract_numeric_quantity("2根"), 2.0)
+        self.assertEqual(extract_numeric_quantity("500g"), 500.0)
+        self.assertEqual(extract_numeric_quantity("30ml"), 30.0)
+        self.assertEqual(extract_numeric_quantity("1.5斤"), 1.5)
+        
+        # Test plain numbers
+        self.assertEqual(extract_numeric_quantity("4"), 4.0)
+        self.assertEqual(extract_numeric_quantity("2.5"), 2.5)
+        
+        # Test qualitative quantities
+        self.assertEqual(extract_numeric_quantity("适量"), 1.0)
+        self.assertEqual(extract_numeric_quantity("少许"), 1.0)
+        self.assertEqual(extract_numeric_quantity("一些"), 1.0)
+        
+        # Test edge cases
+        self.assertEqual(extract_numeric_quantity(""), 0)
+        self.assertEqual(extract_numeric_quantity(None), 0)
+        self.assertEqual(extract_numeric_quantity("无法解析"), 0)
+    
+    @unittest.skipUnless(EVALUATION_AVAILABLE, "Evaluation functions not available")
+    def test_get_quantity_unit(self):
+        """Test unit extraction"""
+        self.assertEqual(get_quantity_unit("4个"), "个")
+        self.assertEqual(get_quantity_unit("500g"), "g")
+        self.assertEqual(get_quantity_unit("30ml"), "ml")
+        self.assertEqual(get_quantity_unit("2根"), "根")
+        
+        # Test no unit cases
+        self.assertEqual(get_quantity_unit("适量"), "")
+        self.assertEqual(get_quantity_unit("4"), "")
+        self.assertEqual(get_quantity_unit(""), "")
+    
+    @unittest.skipUnless(EVALUATION_AVAILABLE, "Evaluation functions not available")
+    def test_is_sufficient_quantity(self):
+        """Test quantity sufficiency comparison"""
+        # Test sufficient cases
+        self.assertTrue(is_sufficient_quantity("4个", "3个"))    # Have more
+        self.assertTrue(is_sufficient_quantity("4个", "4个"))    # Exact match
+        self.assertTrue(is_sufficient_quantity("500g", "400g"))  # Sufficient weight
+        
+        # Test insufficient cases  
+        self.assertFalse(is_sufficient_quantity("2个", "4个"))   # Not enough
+        self.assertFalse(is_sufficient_quantity("300g", "500g")) # Not enough weight
+        
+        # Test different units (should be insufficient for safety)
+        self.assertFalse(is_sufficient_quantity("4个", "500g"))  # Different units
+        
+        # Test qualitative requirements (should be satisfied if we have any)
+        self.assertTrue(is_sufficient_quantity("2个", "适量"))   # Have some for "appropriate amount"
+        self.assertTrue(is_sufficient_quantity("100g", "少许"))  # Have some for "a little"
+        
+        # Test no available quantity
+        self.assertFalse(is_sufficient_quantity("0", "4个"))     # Have nothing
+        
+        # Test edge cases
+        self.assertFalse(is_sufficient_quantity("", "4个"))      # Empty available
+        self.assertTrue(is_sufficient_quantity("4个", ""))       # Empty required (nothing needed)
 
 
 class TestRecipeRetrieval(unittest.TestCase):
@@ -443,6 +583,8 @@ def run_unit_tests():
     # Add test classes
     suite.addTests(loader.loadTestsFromTestCase(TestCsvParsing))
     suite.addTests(loader.loadTestsFromTestCase(TestJsonParsing))
+    suite.addTests(loader.loadTestsFromTestCase(TestIngredientNormalization))
+    suite.addTests(loader.loadTestsFromTestCase(TestQuantityHandling))
     suite.addTests(loader.loadTestsFromTestCase(TestRecipeRetrieval))
     suite.addTests(loader.loadTestsFromTestCase(TestMainEvaluation))
     

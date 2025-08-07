@@ -2,9 +2,172 @@ import os
 import csv
 import json
 import re
+import traceback
 from typing import Optional
 from utils.mcp.tool_servers import MCPServerManager, call_tool_with_retry
 import asyncio
+
+def extract_numeric_quantity(quantity_str):
+    """Extract numeric value from quantity string."""
+    if not quantity_str:
+        return 0
+    
+    # Remove spaces and convert to string
+    qty_str = str(quantity_str).strip()
+    
+    # Try to extract numbers from the string
+    import re
+    
+    # Common patterns for quantities
+    patterns = [
+        r'(\d+\.?\d*)\s*个',     # 4个
+        r'(\d+\.?\d*)\s*根',     # 2根 
+        r'(\d+\.?\d*)\s*片',     # 3片
+        r'(\d+\.?\d*)\s*块',     # 1块
+        r'(\d+\.?\d*)\s*颗',     # 5颗
+        r'(\d+\.?\d*)\s*瓣',     # 3瓣
+        r'(\d+\.?\d*)\s*g',      # 500g
+        r'(\d+\.?\d*)\s*ml',     # 30ml
+        r'(\d+\.?\d*)\s*斤',     # 1斤
+        r'(\d+\.?\d*)\s*两',     # 2两
+        r'^(\d+\.?\d*)',         # Just number at start
+    ]
+    
+    for pattern in patterns:
+        match = re.search(pattern, qty_str)
+        if match:
+            return float(match.group(1))
+    
+    # If no pattern matches, return 1 for qualitative quantities like "适量", "少许"
+    if qty_str in ['适量', '少许', '一些', '几个', '若干']:
+        return 1
+    
+    return 0
+
+def get_quantity_unit(quantity_str):
+    """Extract unit from quantity string."""
+    if not quantity_str:
+        return ""
+    
+    qty_str = str(quantity_str).strip()
+    
+    # Common units
+    units = ['个', '根', '片', '块', '颗', '瓣', 'g', 'ml', '斤', '两']
+    
+    for unit in units:
+        if unit in qty_str:
+            return unit
+    
+    return ""
+
+def is_sufficient_quantity(available_qty, required_qty):
+    """Check if available quantity is sufficient for required quantity."""
+    try:
+        # Handle empty required quantity - if nothing is required, we have enough
+        if not required_qty or str(required_qty).strip() == "":
+            return True
+            
+        # Handle empty available quantity - if we have nothing, it's not enough
+        if not available_qty or str(available_qty).strip() == "":
+            return False
+            
+        avail_num = extract_numeric_quantity(available_qty)
+        req_num = extract_numeric_quantity(required_qty)
+        avail_unit = get_quantity_unit(available_qty)
+        req_unit = get_quantity_unit(required_qty)
+        
+        # If units are different, we can't easily compare
+        # For safety, assume we need not to buy if units don't match
+        if avail_unit != req_unit and avail_unit != "" and req_unit != "":
+            return True
+        
+        # If required is qualitative (适量), assume what we have is enough
+        if req_num == 1 and required_qty.strip() in ['适量', '少许', '一些']:
+            return avail_num > 0
+        
+        # Numeric comparison
+        return avail_num >= req_num
+        
+    except Exception:
+        # If parsing fails, assume insufficient
+        return False
+
+def normalize_ingredient_name(ingredient_name):
+    """Normalize ingredient names to handle synonyms and variations."""
+    if not ingredient_name:
+        return ""
+    
+    # Remove parenthetical descriptions
+    clean_name = re.sub(r'[\(（].*?[\)）]', '', ingredient_name).strip()
+    
+    # Common ingredient mappings for Chinese cooking
+    ingredient_mappings = {
+        '大蒜': '蒜',
+        '蒜头': '蒜', 
+        '蒜瓣': '蒜',
+        '大葱': '葱',
+        '韭菜': '葱',
+        '青椒': '辣椒',
+        '青辣椒': '辣椒',
+        '红椒': '辣椒',
+        '猪肉片': '猪肉',
+        '猪肉丝': '猪肉',
+        '猪肉末': '猪肉',
+        '瘦猪肉': '猪肉',
+        '纯瘦肉': '猪肉',
+        '猪五花肉': '猪肉',
+        '五花肉': '猪肉',
+        '马铃薯': '土豆',
+        '洋芋': '土豆',
+        '茄子': '茄子',
+        '青茄子': '茄子',
+        '紫茄子': '茄子',
+        '番茄': '西红柿',
+        '洋葱头': '洋葱',
+        '圆葱': '洋葱'
+    }
+    
+    # Apply mappings
+    normalized = ingredient_mappings.get(clean_name, clean_name)
+    return normalized
+
+def is_valid_ingredient(ingredient_name):
+    """Check if ingredient name is valid (not a parsing artifact)."""
+    if not ingredient_name or not isinstance(ingredient_name, str):
+        return False
+    
+    # Filter out parsing artifacts and malformed entries
+    invalid_patterns = [
+        r'.*=.*',  # Contains equals sign (parsing artifact)
+        r'.*份数.*',  # Contains "份数" (serving size artifact)
+        r'.*数量.*',  # Contains "数量" (quantity artifact)
+        r'^[\d\s]*$',  # Only numbers and spaces
+        r'.*约$',  # Ends with "约" (approximately)
+        r'^[，。、；：（）\(\)\s]*$',  # Only punctuation and spaces
+    ]
+    
+    for pattern in invalid_patterns:
+        if re.match(pattern, ingredient_name.strip()):
+            return False
+    
+    return True
+
+def clean_required_ingredients(required_ingredients):
+    """Clean and normalize required ingredients from recipe data."""
+    cleaned = {}
+    
+    for ingredient_name, quantity in required_ingredients.items():
+        if not is_valid_ingredient(ingredient_name):
+            print(f"  ⚠️ Filtered out invalid ingredient: '{ingredient_name}'")
+            continue
+            
+        normalized_name = normalize_ingredient_name(ingredient_name)
+        if normalized_name and normalized_name not in cleaned:
+            cleaned[normalized_name] = quantity
+        elif normalized_name in cleaned:
+            print(f"  🔄 Merged duplicate ingredient: '{ingredient_name}' -> '{normalized_name}'")
+    
+    return cleaned
 
 def parse_ingredients_csv(csv_file_path):
     """Parses the ingredients CSV file."""
@@ -15,8 +178,10 @@ def parse_ingredients_csv(csv_file_path):
             reader = csv.DictReader(file)
             for row in reader:
                 # Use .get() for safer access in case a cell is empty
-                ingredient_name = row['Ingredient Name']
-                quantity = row['Quantity']
+                ingredient_name = row.get('Ingredient Name', '').strip()
+                quantity = row.get('Quantity', '').strip()
+                if ingredient_name:  # Only add if name is not empty
+                    current_ingredients[ingredient_name] = quantity
     except Exception as e:
         print(f"❌ Error parsing ingredients CSV '{csv_file_path}': {e}")
     return current_ingredients
@@ -106,10 +271,11 @@ async def get_recipe_ingredients(dish_names):
                             ingredient_name = ingredient.get('name', '').strip()
                             text_quantity = ingredient.get('text_quantity', '').strip()
                             
-                            if ingredient_name:
-                                clean_name = re.sub(r'[\(（].*?[\)）]', '', ingredient_name).strip()
-                                if clean_name:
-                                    all_required_ingredients[clean_name] = text_quantity
+                            if ingredient_name and is_valid_ingredient(ingredient_name):
+                                # Normalize the ingredient name
+                                normalized_name = normalize_ingredient_name(ingredient_name)
+                                if normalized_name:
+                                    all_required_ingredients[normalized_name] = text_quantity
                         
                         print(f"  ✅ Successfully retrieved recipe for '{dish_name}'")
                         success = True
@@ -203,18 +369,52 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, res_log: Optio
             
             # 6. Analyze ingredient usage and shopping list accuracy
             if found_recipes:
+                # Clean and normalize required ingredients from recipes
+                print(f"\n🧹 Cleaning recipe ingredients...")
+                print(f"  • Raw recipe ingredients found: {len(required_ingredients)}")
+                cleaned_required = clean_required_ingredients(required_ingredients)
+                print(f"  • Valid ingredients after cleaning: {len(cleaned_required)}")
+                
+                # Normalize pantry ingredients for better matching
+                normalized_pantry = {}
+                for pantry_ing, pantry_qty in current_ingredients.items():
+                    normalized = normalize_ingredient_name(pantry_ing)
+                    if normalized:
+                        normalized_pantry[normalized] = pantry_qty
+                
                 missing_ingredients = {}
                 used_from_pantry = set()
+                insufficient_ingredients = {}  # Track ingredients that are available but insufficient
 
-                for req_ing, req_qty in required_ingredients.items():
+                for req_ing, req_qty in cleaned_required.items():
                     is_available = False
-                    for own_ing in current_ingredients:
-                        # Use simple substring matching for flexibility
-                        if req_ing in own_ing or own_ing in req_ing:
-                            used_from_pantry.add(own_ing)
+                    is_sufficient = False
+                    matched_pantry_ingredient = None
+                    
+                    for pantry_ing, pantry_qty in normalized_pantry.items():
+                        # Use improved matching with normalized names
+                        if (req_ing in pantry_ing or pantry_ing in req_ing or 
+                            req_ing == pantry_ing):
+                            
+                            matched_pantry_ingredient = pantry_ing
                             is_available = True
+                            
+                            # Check if quantity is sufficient
+                            if is_sufficient_quantity(pantry_qty, req_qty):
+                                used_from_pantry.add(pantry_ing)
+                                is_sufficient = True
+                                print(f"  ✅ Sufficient: {req_ing} (need: {req_qty}, have: {pantry_qty})")
+                            else:
+                                insufficient_ingredients[req_ing] = {
+                                    'required': req_qty,
+                                    'available': pantry_qty,
+                                    'pantry_name': pantry_ing
+                                }
+                                print(f"  ⚠️ Insufficient: {req_ing} (need: {req_qty}, have: {pantry_qty})")
                             break
-                    if not is_available:
+                    
+                    # If not available at all, or insufficient, add to missing ingredients
+                    if not is_available or not is_sufficient:
                         missing_ingredients[req_ing] = req_qty
 
                 # 7. Check ingredient usage rate
@@ -223,6 +423,13 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, res_log: Optio
                 print(f"  • Total ingredients in pantry: {len(current_ingredients)}")
                 print(f"  • Pantry ingredients used in recipes: {len(used_from_pantry)}")
                 print(f"  • Ingredient Usage Rate: {usage_rate:.1f}%")
+                
+                # Report quantity analysis
+                if insufficient_ingredients:
+                    print(f"\n⚠️ Insufficient Quantity Analysis:")
+                    print(f"  • Ingredients with insufficient quantities: {len(insufficient_ingredients)}")
+                    for ing, details in insufficient_ingredients.items():
+                        print(f"    • {ing}: need {details['required']}, have {details['available']}")
 
                 if usage_rate < 80.0:
                     return False, f"Evaluation failed: Ingredient usage rate is too low ({usage_rate:.1f}%). Must be >= 80%."
@@ -236,16 +443,48 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, res_log: Optio
                          return False, "Evaluation failed: No ingredients were missing, but the shopping list is not empty."
                 else:
                     print(f"  • Missing ingredients identified: {len(missing_ingredients)}")
+                    
+                    # Normalize shopping list ingredients for better matching
+                    normalized_shopping = {}
+                    for shop_ing, shop_qty in shopping_list.items():
+                        normalized = normalize_ingredient_name(shop_ing)
+                        if normalized:
+                            normalized_shopping[normalized] = shop_qty
+                    
                     matched_in_shopping_list = 0
+                    missing_details = []
+                    matched_details = []
+                    
                     for missing_ing in missing_ingredients:
-                        for shopping_ing in shopping_list:
-                            if missing_ing in shopping_ing or shopping_ing in missing_ing:
+                        matched = False
+                        for shopping_ing in normalized_shopping:
+                            # Improved matching logic
+                            if (missing_ing in shopping_ing or shopping_ing in missing_ing or 
+                                missing_ing == shopping_ing):
                                 matched_in_shopping_list += 1
+                                matched_details.append(f"{missing_ing} -> {shopping_ing}")
+                                matched = True
                                 break
+                        if not matched:
+                            missing_details.append(missing_ing)
                     
                     coverage_rate = (matched_in_shopping_list / len(missing_ingredients)) * 100
                     print(f"  • Items covered by shopping list: {matched_in_shopping_list}")
                     print(f"  • Shopping List Coverage Rate: {coverage_rate:.1f}%")
+                    
+                    if len(matched_details) > 0:
+                        print(f"  • Successfully matched ingredients:")
+                        for detail in matched_details[:5]:  # Show first 5 matches
+                            print(f"    ✅ {detail}")
+                        if len(matched_details) > 5:
+                            print(f"    ... and {len(matched_details) - 5} more")
+                    
+                    if len(missing_details) > 0:
+                        print(f"  • Unmatched missing ingredients:")
+                        for detail in missing_details[:5]:  # Show first 5 misses
+                            print(f"    ❌ {detail}")
+                        if len(missing_details) > 5:
+                            print(f"    ... and {len(missing_details) - 5} more")
                     
                     if coverage_rate < 90.0:
                         print(f"expected missing ingredients: {list(missing_ingredients.keys())}")
@@ -259,5 +498,6 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, res_log: Optio
         return True, None
 
     except Exception as e:
+        traceback.print_exc()
         print(f"\n❌ An unexpected error occurred during evaluation: {e}")
         return False, f"An unexpected error occurred: {str(e)}"
