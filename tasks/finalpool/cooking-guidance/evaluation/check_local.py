@@ -12,13 +12,27 @@ def extract_numeric_quantity(quantity_str):
     if not quantity_str:
         return 0
     
-    # Remove spaces and convert to string
+    # Convert to string and clean
     qty_str = str(quantity_str).strip()
     
-    # Try to extract numbers from the string
-    import re
+    # Print raw data for debugging
+    if len(qty_str) > 20:  # Only print complex strings
+        print(f"    🔍 Raw quantity string: '{qty_str}'")
     
-    # Common patterns for quantities
+    # Clean up the string - remove everything after ( and before the number
+    # Handle patterns like "- 土豆 240g（越细越长更好）"
+    # Split by '(' and take the first part
+    clean_str = qty_str.split('（')[0].split('(')[0]
+    
+    # Remove common prefixes like "- 土豆", "- 大蒜" etc.
+    if '-' in clean_str:
+        parts = clean_str.split('-')
+        if len(parts) > 1:
+            clean_str = parts[-1].strip()  # Take the last part after final dash
+    
+    print(f"    🧹 Cleaned string: '{clean_str}'")
+    
+    # Common patterns for quantities  
     patterns = [
         r'(\d+\.?\d*)\s*个',     # 4个
         r'(\d+\.?\d*)\s*根',     # 2根 
@@ -28,20 +42,25 @@ def extract_numeric_quantity(quantity_str):
         r'(\d+\.?\d*)\s*瓣',     # 3瓣
         r'(\d+\.?\d*)\s*g',      # 500g
         r'(\d+\.?\d*)\s*ml',     # 30ml
+        r'(\d+\.?\d*)\s*毫升',   # 30毫升
         r'(\d+\.?\d*)\s*斤',     # 1斤
         r'(\d+\.?\d*)\s*两',     # 2两
-        r'^(\d+\.?\d*)',         # Just number at start
+        r'(\d+\.?\d*)',          # Just number
     ]
     
     for pattern in patterns:
-        match = re.search(pattern, qty_str)
+        match = re.search(pattern, clean_str)
         if match:
-            return float(match.group(1))
+            result = float(match.group(1))
+            print(f"    ✅ Extracted: {result}")
+            return result
     
     # If no pattern matches, return 1 for qualitative quantities like "适量", "少许"
-    if qty_str in ['适量', '少许', '一些', '几个', '若干']:
-        return 1
+    if any(qual in clean_str for qual in ['适量', '少许', '一些', '几个', '若干']):
+        print(f"    📝 Qualitative quantity: 1.0")
+        return 1.0
     
+    print(f"    ❌ Could not parse: '{clean_str}' -> 0")
     return 0
 
 def get_quantity_unit(quantity_str):
@@ -51,14 +70,45 @@ def get_quantity_unit(quantity_str):
     
     qty_str = str(quantity_str).strip()
     
-    # Common units
-    units = ['个', '根', '片', '块', '颗', '瓣', 'g', 'ml', '斤', '两']
+    # Clean the string first (same as in extract_numeric_quantity)
+    clean_str = qty_str.split('（')[0].split('(')[0]
+    if '-' in clean_str:
+        parts = clean_str.split('-')
+        if len(parts) > 1:
+            clean_str = parts[-1].strip()
     
-    for unit in units:
-        if unit in qty_str:
-            return unit
+    # Common units with normalization
+    unit_patterns = [
+        ('个', ['个']),
+        ('根', ['根']),
+        ('片', ['片']),
+        ('块', ['块']),
+        ('颗', ['颗']),
+        ('瓣', ['瓣']),
+        ('g', ['g', 'G', 'gram', 'grams']),
+        ('ml', ['ml', 'ML', 'mL', '毫升', '毫升', 'milliliter']),
+        ('斤', ['斤']),
+        ('两', ['两'])
+    ]
+    
+    for normalized_unit, variants in unit_patterns:
+        for variant in variants:
+            if variant in clean_str:
+                return normalized_unit
     
     return ""
+
+def normalize_unit(unit):
+    """Normalize units to standard forms."""
+    unit_mapping = {
+        '毫升': 'ml',
+        'ML': 'ml',
+        'mL': 'ml',
+        'G': 'g',
+        'gram': 'g',
+        'grams': 'g'
+    }
+    return unit_mapping.get(unit, unit)
 
 def is_sufficient_quantity(available_qty, required_qty):
     """Check if available quantity is sufficient for required quantity."""
@@ -73,22 +123,43 @@ def is_sufficient_quantity(available_qty, required_qty):
             
         avail_num = extract_numeric_quantity(available_qty)
         req_num = extract_numeric_quantity(required_qty)
-        avail_unit = get_quantity_unit(available_qty)
-        req_unit = get_quantity_unit(required_qty)
+        avail_unit = normalize_unit(get_quantity_unit(available_qty))
+        req_unit = normalize_unit(get_quantity_unit(required_qty))
         
-        # If units are different, we can't easily compare
-        # For safety, assume we need not to buy if units don't match
+        print(f"    📊 Comparison: {avail_num}{avail_unit} vs {req_num}{req_unit}")
+        
+        # If both quantities are 0, can't compare meaningfully
+        if avail_num == 0 or req_num == 0:
+            # If required is qualitative and we have something, it's sufficient
+            if req_num == 1.0 and any(qual in str(required_qty) for qual in ['适量', '少许', '一些']):
+                return avail_num > 0
+            return False
+        
+        # If units are different, use heuristics
         if avail_unit != req_unit and avail_unit != "" and req_unit != "":
+            print(f"    ⚠️ Different units ({avail_unit} vs {req_unit})")
+            
+            # Special case: if we have weight but need count, or vice versa
+            # For cooking ingredients, assume we need to buy if units don't match
+            # unless it's a case where we clearly have enough (like having kg when needing g)
+            if (avail_unit == 'g' and req_unit in ['个', '根', '片', '块', '瓣']) or \
+               (avail_unit in ['个', '根', '片', '块', '瓣'] and req_unit == 'g'):
+                return False  # Different measurement types, need to buy
+            
+            # For similar units, do basic conversion or assume sufficient
             return True
         
         # If required is qualitative (适量), assume what we have is enough
-        if req_num == 1 and required_qty.strip() in ['适量', '少许', '一些']:
+        if req_num == 1.0 and any(qual in str(required_qty) for qual in ['适量', '少许', '一些']):
             return avail_num > 0
         
         # Numeric comparison
-        return avail_num >= req_num
+        is_sufficient = avail_num >= req_num
+        print(f"    {'✅' if is_sufficient else '❌'} {avail_num} >= {req_num} = {is_sufficient}")
+        return is_sufficient
         
-    except Exception:
+    except Exception as e:
+        print(f"    🚨 Exception in quantity comparison: {e}")
         # If parsing fails, assume insufficient
         return False
 
@@ -379,11 +450,26 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, res_log: Optio
                     print(f"    • {ingredient}: {quantity}")
                 
                 # Normalize pantry ingredients for better matching
+                # Aggregate quantities when multiple pantry items map to same normalized name
                 normalized_pantry = {}
+                pantry_mapping = {}  # Track which pantry items contributed to each normalized ingredient
+                
                 for pantry_ing, pantry_qty in current_ingredients.items():
                     normalized = normalize_ingredient_name(pantry_ing)
                     if normalized:
-                        normalized_pantry[normalized] = pantry_qty
+                        if normalized not in normalized_pantry:
+                            normalized_pantry[normalized] = []
+                            pantry_mapping[normalized] = []
+                        
+                        normalized_pantry[normalized].append(pantry_qty)
+                        pantry_mapping[normalized].append(pantry_ing)
+                
+                print(f"\n📊 Normalized Pantry Aggregation:")
+                for norm_ing, qtys in normalized_pantry.items():
+                    contributing_items = pantry_mapping[norm_ing]
+                    print(f"  • {norm_ing}: {qtys} (from: {contributing_items})")
+                    # For now, just take the first quantity - we'll improve aggregation later
+                    normalized_pantry[norm_ing] = qtys[0] if qtys else "0"
                 
                 missing_ingredients = {}
                 used_from_pantry = set()

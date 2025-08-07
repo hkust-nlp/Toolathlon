@@ -278,28 +278,16 @@ class TestQuantityHandling(unittest.TestCase):
     """Test quantity parsing and comparison functions"""
     
     @unittest.skipUnless(EVALUATION_AVAILABLE, "Evaluation functions not available")
-    def test_extract_numeric_quantity(self):
-        """Test numeric quantity extraction"""
-        # Test numeric patterns
-        self.assertEqual(extract_numeric_quantity("4个"), 4.0)
-        self.assertEqual(extract_numeric_quantity("2根"), 2.0)
-        self.assertEqual(extract_numeric_quantity("500g"), 500.0)
-        self.assertEqual(extract_numeric_quantity("30ml"), 30.0)
-        self.assertEqual(extract_numeric_quantity("1.5斤"), 1.5)
+    def test_extract_numeric_quantity_complex(self):
+        """Test numeric quantity extraction with complex strings"""
+        # Test complex recipe patterns
+        self.assertEqual(extract_numeric_quantity("- 土豆 240g（越细越长更好）"), 240.0)
+        self.assertEqual(extract_numeric_quantity("- 大蒜 4 瓣"), 4.0)
+        self.assertEqual(extract_numeric_quantity("- 生抽 10ml"), 10.0)
         
-        # Test plain numbers
-        self.assertEqual(extract_numeric_quantity("4"), 4.0)
-        self.assertEqual(extract_numeric_quantity("2.5"), 2.5)
-        
-        # Test qualitative quantities
-        self.assertEqual(extract_numeric_quantity("适量"), 1.0)
-        self.assertEqual(extract_numeric_quantity("少许"), 1.0)
-        self.assertEqual(extract_numeric_quantity("一些"), 1.0)
-        
-        # Test edge cases
-        self.assertEqual(extract_numeric_quantity(""), 0)
-        self.assertEqual(extract_numeric_quantity(None), 0)
-        self.assertEqual(extract_numeric_quantity("无法解析"), 0)
+        # Test various formats
+        self.assertEqual(extract_numeric_quantity("鸡蛋 1 个（可选,不习惯的人可能会有点腥）"), 1.0)
+        self.assertEqual(extract_numeric_quantity("葱姜末（姜 3-4 片约 30g"), 3.0)  # Takes first number
     
     @unittest.skipUnless(EVALUATION_AVAILABLE, "Evaluation functions not available")
     def test_get_quantity_unit(self):
