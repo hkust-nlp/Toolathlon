@@ -248,6 +248,8 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, res_log: Optio
                     print(f"  • Shopping List Coverage Rate: {coverage_rate:.1f}%")
                     
                     if coverage_rate < 90.0:
+                        print(f"expected missing ingredients: {list(missing_ingredients.keys())}")
+                        print(f"actual shopping list ingredients: {list(shopping_list.keys())}")
                         return False, f"Evaluation failed: Shopping list coverage is too low ({coverage_rate:.1f}%). Must be >= 90%."
                     print(f"✅ Coverage rate check passed: {coverage_rate:.1f}% (>= 90%)")
 
