@@ -11,32 +11,23 @@ CONTAINER_NAME="poste"
 CONFIG_DIR="$(dirname "$0")/../configs"
 ACCOUNTS_FILE="$CONFIG_DIR/created_accounts.json"
 
-# Default number of users to create
+# Default number of users to create (will be overridden by JSON file)
 DEFAULT_USER_COUNT=100
-
-# Adjectives and nouns for realistic usernames
-ADJECTIVES=("happy" "clever" "bright" "swift" "calm" "bold" "gentle" "brave" "wise" "kind" 
-           "quick" "smart" "cool" "warm" "fresh" "clean" "clear" "sharp" "smooth" "strong"
-           "light" "dark" "fast" "slow" "big" "small" "young" "old" "new" "good"
-           "blue" "red" "green" "yellow" "orange" "purple" "pink" "brown" "gray" "black")
-
-NOUNS=("cat" "dog" "bird" "fish" "lion" "tiger" "bear" "wolf" "fox" "deer"
-       "tree" "flower" "star" "moon" "sun" "cloud" "rain" "snow" "wind" "fire"
-       "book" "pen" "car" "bike" "boat" "plane" "train" "house" "door" "window"
-       "apple" "orange" "banana" "grape" "cherry" "berry" "cake" "bread" "milk" "tea")
 
 # Function to show usage
 show_usage() {
     echo "Usage: $0 [number_of_users]"
-    echo "  number_of_users: Number of regular users to create (default: $DEFAULT_USER_COUNT)"
+    echo "  number_of_users: Number of users to create from configs/users_data.json (default: all available)"
     echo ""
     echo "Environment variables:"
     echo "  DEBUG=1   # Show detailed error messages"
     echo ""
     echo "Example:"
-    echo "  $0 50         # Create 1 admin + 50 users"
+    echo "  $0 50         # Create 1 admin + first 50 users from JSON"
     echo "  DEBUG=1 $0 10 # Create 10 users with debug output"
-    echo "  $0            # Create 1 admin + $DEFAULT_USER_COUNT users (default)"
+    echo "  $0            # Create 1 admin + all users from JSON file"
+    echo ""
+    echo "Note: Users are loaded from configs/users_data.json"
     exit 1
 }
 
@@ -54,29 +45,34 @@ draw_progress_bar() {
     printf "] %d/%d (%d%%)" "$current" "$total" "$percentage"
 }
 
-# Function to generate random username
-generate_username() {
-    local id=$1
-    local adj_count=${#ADJECTIVES[@]}
-    local noun_count=${#NOUNS[@]}
+# Function to load user data from JSON
+load_users_from_json() {
+    local users_file="configs/users_data.json"
     
-    local adj_index=$((RANDOM % adj_count))
-    local noun_index=$((RANDOM % noun_count))
+    if [ ! -f "$users_file" ]; then
+        echo "❌ Error: $users_file not found"
+        exit 1
+    fi
     
-    local adjective=${ADJECTIVES[$adj_index]}
-    local noun=${NOUNS[$noun_index]}
-    local formatted_id=$(printf "%03d" $id)
-    
-    echo "${adjective}${noun}${formatted_id}"
+    # Extract users data from JSON file
+    jq -r '.users[] | "\(.id)|\(.first_name)|\(.last_name)|\(.full_name)|\(.email)|\(.password)"' "$users_file"
 }
 
 # Parse command line arguments
-USER_COUNT=$DEFAULT_USER_COUNT
+# Get total users from JSON file
+TOTAL_JSON_USERS=$(jq '.users | length' configs/users_data.json 2>/dev/null || echo "0")
+
+if [ "$TOTAL_JSON_USERS" -eq 0 ]; then
+    echo "❌ Error: No users found in configs/users_data.json"
+    exit 1
+fi
+
+USER_COUNT=$TOTAL_JSON_USERS
 if [ $# -eq 1 ]; then
-    if [[ "$1" =~ ^[0-9]+$ ]] && [ "$1" -gt 0 ]; then
+    if [[ "$1" =~ ^[0-9]+$ ]] && [ "$1" -gt 0 ] && [ "$1" -le "$TOTAL_JSON_USERS" ]; then
         USER_COUNT=$1
     else
-        echo "Error: Invalid number of users. Must be a positive integer."
+        echo "Error: Invalid number of users. Must be between 1 and $TOTAL_JSON_USERS."
         show_usage
     fi
 elif [ $# -gt 1 ]; then
@@ -151,37 +147,48 @@ fi
 echo ""
 
 # Create regular users
-echo "👥 Creating $USER_COUNT regular users..."
+echo "👥 Creating $USER_COUNT regular users from JSON data..."
 SUCCESS_COUNT=0
 FAILED_COUNT=0
 
 # Array to store user data for JSON
 declare -a USER_DATA=()
 
-for i in $(seq 1 $USER_COUNT); do
-    USERNAME=$(generate_username $i)
-    USER_EMAIL="${USERNAME}@$DOMAIN"
-    USER_PASSWORD="pass$(printf "%03d" $i)"
-    USER_NAME="$(echo ${USERNAME:0:1} | tr '[:lower:]' '[:upper:]')${USERNAME:1}"  # Capitalize first letter
+# Create temporary file to store user data from JSON
+TEMP_USERS=$(mktemp)
+load_users_from_json > "$TEMP_USERS"
+
+# Process users
+counter=0
+while IFS='|' read -r id first_name last_name full_name email password; do
+    counter=$((counter + 1))
+    
+    # Only create the requested number of users
+    if [ $counter -gt $USER_COUNT ]; then
+        break
+    fi
     
     # Show progress bar
-    draw_progress_bar $i $USER_COUNT
+    draw_progress_bar $counter $USER_COUNT
     
     # Create user with error handling
-    CREATE_RESULT=$(podman exec --user=8 $CONTAINER_NAME php /opt/admin/bin/console email:create "$USER_EMAIL" "$USER_PASSWORD" "$USER_NAME" 2>&1)
+    CREATE_RESULT=$(podman exec --user=8 $CONTAINER_NAME php /opt/admin/bin/console email:create "$email" "$password" "$full_name" 2>&1)
     if [ $? -eq 0 ]; then
         ((SUCCESS_COUNT++))
         # Store user data for JSON
-        USER_DATA+=("{\"email\":\"$USER_EMAIL\",\"password\":\"$USER_PASSWORD\",\"name\":\"$USER_NAME\",\"username\":\"$USERNAME\",\"is_admin\":false}")
+        USER_DATA+=("{\"email\":\"$email\",\"password\":\"$password\",\"name\":\"$full_name\",\"first_name\":\"$first_name\",\"last_name\":\"$last_name\",\"is_admin\":false}")
     else
         ((FAILED_COUNT++))
         # If in debug mode, show the error
         if [ "${DEBUG:-}" = "1" ]; then
             echo ""
-            echo "❌ Failed to create $USER_EMAIL: $CREATE_RESULT"
+            echo "❌ Failed to create $email: $CREATE_RESULT"
         fi
     fi
-done
+done < "$TEMP_USERS"
+
+# Clean up temp file
+rm -f "$TEMP_USERS"
 
 # Complete progress bar
 draw_progress_bar $USER_COUNT $USER_COUNT
@@ -222,10 +229,13 @@ echo "   Password: $ADMIN_PASSWORD"
 echo "   URL: http://localhost:10005"
 
 echo ""
-echo "👤 Regular user login format:"
-echo "   Email: [adjective][noun][001-$(printf "%03d" $USER_COUNT)]@$DOMAIN"
-echo "   Password: pass001, pass002, ..., pass$(printf "%03d" $USER_COUNT)"
-echo "   Example: ${USER_DATA[0]}" 2>/dev/null | jq -r '.email + " / " + .password' 2>/dev/null || echo "   Check $ACCOUNTS_FILE for details"
+echo "👤 Regular user login details:"
+echo "   Users loaded from: configs/users_data.json"
+echo "   Total users available: $TOTAL_JSON_USERS"
+echo "   Users created: $SUCCESS_COUNT"
+if [ ${#USER_DATA[@]} -gt 0 ]; then
+    echo "   First user example: $(echo "${USER_DATA[0]}" | jq -r '.email + " / " + .password' 2>/dev/null || echo "Check $ACCOUNTS_FILE for details")"
+fi
 
 echo ""
 echo "📄 Account details saved in: $ACCOUNTS_FILE"

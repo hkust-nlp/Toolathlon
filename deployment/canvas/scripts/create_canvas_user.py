@@ -2,30 +2,18 @@
 # 这是给canvas生成账户的脚本
 # 可以自定义你需要在canvas容器里建立多少个用户
 # 生成完用户可以拿到姓名，邮箱，token， 密码（现在是统一的），sis_user_id，pseudonym_id
+#
+# 使用方法:
+# python create_canvas_user.py                     # 创建所有用户
+# python create_canvas_user.py -n 50               # 创建前50个用户
+# python create_canvas_user.py -n 100 --batch-size 20  # 创建前100个用户，每批20个
+# python create_canvas_user.py --skip-test         # 跳过测试直接创建所有用户
 import json
-import random
 import subprocess
 import os
 import time
+import argparse
 from datetime import datetime
-
-# 英文名字库
-FIRST_NAMES = [
-    'James', 'John', 'Robert', 'Michael', 'William', 'David', 'Richard', 'Joseph', 'Thomas', 'Charles',
-    'Christopher', 'Daniel', 'Matthew', 'Anthony', 'Donald', 'Mark', 'Paul', 'Steven', 'Andrew', 'Kenneth',
-    'Joshua', 'Kevin', 'Brian', 'George', 'Edward', 'Ronald', 'Timothy', 'Jason', 'Jeffrey', 'Ryan',
-    'Jacob', 'Gary', 'Nicholas', 'Eric', 'Jonathan', 'Stephen', 'Larry', 'Justin', 'Scott', 'Brandon',
-    'Mary', 'Patricia', 'Jennifer', 'Linda', 'Elizabeth', 'Barbara', 'Susan', 'Jessica', 'Sarah', 'Karen',
-    'Nancy', 'Lisa', 'Betty', 'Margaret', 'Sandra', 'Ashley', 'Kimberly', 'Emily', 'Donna', 'Michelle',
-    'Dorothy', 'Carol', 'Amanda', 'Melissa', 'Deborah', 'Stephanie', 'Rebecca', 'Sharon', 'Laura', 'Cynthia'
-]
-
-LAST_NAMES = [
-    'Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez',
-    'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin',
-    'Lee', 'Perez', 'Thompson', 'White', 'Harris', 'Sanchez', 'Clark', 'Ramirez', 'Lewis', 'Robinson',
-    'Walker', 'Young', 'Allen', 'King', 'Wright', 'Scott', 'Torres', 'Nguyen', 'Hill', 'Flores'
-]
 
 CONTAINER_NAME = "canvas-docker"
 BUNDLE_PATH = "/opt/canvas/.gems/bin/bundle"
@@ -61,39 +49,33 @@ puts "MAX_SIS_ID:#{max_id}"
     except:
         return 1
 
-def generate_unique_users(count=200, start_id=1):
-    """生成唯一的用户数据"""
-    users = []
-    used_emails = set()
-    
-    for i in range(count):
-        first_name = random.choice(FIRST_NAMES)
-        last_name = random.choice(LAST_NAMES)
-        full_name = f"{first_name} {last_name}"
+def load_users_from_json():
+    """从configs/users_data.json读取用户数据"""
+    try:
+        with open('configs/users_data.json', 'r', encoding='utf-8') as f:
+            data = json.load(f)
         
-        # 生成唯一邮箱 - 使用数字后缀
-        base_email = f"{first_name.lower()}.{last_name.lower()}"
-        email = f"{base_email}@mcp.edu"
+        users = []
+        for user in data['users']:
+            users.append({
+                'name': user['full_name'],
+                'short_name': user['first_name'],
+                'email': user['email'],
+                'password': user['password'],
+                'sis_user_id': f"MCP{user['id']:06d}"
+            })
         
-        # 如果邮箱已存在，添加数字后缀
-        counter = 0
-        while email in used_emails:
-            counter += 1
-            if counter > 99:
-                raise ValueError(f"无法为 {first_name} {last_name} 生成唯一邮箱，已尝试99个后缀")
-            email = f"{base_email}.{counter:02d}@mcp.edu"
-        
-        used_emails.add(email)
-        
-        users.append({
-            'name': full_name,
-            'short_name': first_name,
-            'email': email,
-            'password': 'Password123!',
-            'sis_user_id': f"MCP{start_id + i:06d}"
-        })
-    
-    return users
+        print(f"Loaded {len(users)} users from configs/users_data.json")
+        return users
+    except FileNotFoundError:
+        print("Error: configs/users_data.json not found")
+        return []
+    except json.JSONDecodeError as e:
+        print(f"Error parsing JSON: {e}")
+        return []
+    except KeyError as e:
+        print(f"Error: Missing key {e} in JSON data")
+        return []
 
 def create_batch_script(users, batch_num):
     """创建批量创建用户的 Ruby 脚本"""
@@ -238,26 +220,33 @@ def execute_batch(users, batch_num):
     
     return batch_results, batch_errors
 
-def create_users(total_count=200, batch_size=10):
+def create_users(total_count=None, batch_size=10):
     """主函数：创建用户"""
-    print(f"\nGetting starting SIS ID...")
-    start_sis_id = get_next_sis_id()
-    print(f"Will start from MCP{start_sis_id:06d}")
+    print(f"\nLoading users from JSON...")
+    users = load_users_from_json()
     
-    users = generate_unique_users(total_count, start_sis_id)
+    if not users:
+        print("No users loaded. Exiting.")
+        return [], []
+    
+    if total_count is None:
+        total_count = len(users)
+    else:
+        users = users[:total_count]
+    
     all_results = []
     all_errors = []
     
-    print(f"\nStarting batch creation of {total_count} users...")
+    print(f"\nStarting batch creation of {len(users)} users...")
     print(f"Batch size: {batch_size}")
     
     start_time = time.time()
     
-    for i in range(0, total_count, batch_size):
+    for i in range(0, len(users), batch_size):
         batch = users[i:i + batch_size]
         batch_num = i // batch_size + 1
         
-        print(f"\nProcessing batch {batch_num} (users {i+1}-{min(i+batch_size, total_count)})...")
+        print(f"\nProcessing batch {batch_num} (users {i+1}-{min(i+batch_size, len(users))})...")
         
         batch_results, batch_errors = execute_batch(batch, batch_num)
         
@@ -272,7 +261,7 @@ def create_users(total_count=200, batch_size=10):
             for err in batch_errors[:3]:  # 只显示前3个错误
                 print(f"  - {err['email']}: {err['error']}")
         
-        if i + batch_size < total_count:
+        if i + batch_size < len(users):
             time.sleep(0.5)
     
     end_time = time.time()
@@ -310,10 +299,10 @@ def save_results(results, errors):
                 f.write(f"{user['email']}: {user['token']}\n")
         
         #保存一个简单的txt文件记录更新时间
-        with open(f"./deployment/canvas/configs/canvas_users_update_time.txt", 'w') as f:
+        with open("./deployment/canvas/configs/canvas_users_update_time.txt", 'w') as f:
             f.write(f"{timestamp}")
 
-        print(f"\n✅ Results saved:")
+        print("\n✅ Results saved:")
         print(f"   - User data: {filename}")
         print(f"   - Token list: {tokens_file}")
         
@@ -332,48 +321,75 @@ def save_results(results, errors):
         print(f"\n❌ Error log: {error_file}")
 
 def main():
-    TOTAL = 200
-
     """主函数"""
+    # 设置命令行参数
+    parser = argparse.ArgumentParser(description='Canvas用户批量创建工具')
+    parser.add_argument('-n', '--count', type=int, default=None, 
+                        help='指定创建前N个用户（默认创建所有用户）')
+    parser.add_argument('--batch-size', type=int, default=10,
+                        help='批处理大小（默认10个用户一批）')
+    parser.add_argument('--skip-test', action='store_true',
+                        help='跳过测试直接创建所有用户')
+    
+    args = parser.parse_args()
+    
     print("=== Canvas Batch User Creation Tool v2 ===")
     
-    # 先测试创建一个用户
-    print("\nTesting single user creation...")
-    test_results, test_errors = create_users(1, 1)
+    # 获取用户总数和实际要创建的数量
+    users = load_users_from_json()
+    if not users:
+        print("No users loaded. Exiting.")
+        return
     
-    if test_results:
+    total_available = len(users)
+    target_count = args.count if args.count is not None else total_available
+    target_count = min(target_count, total_available)  # 确保不超过可用数量
+    
+    print("\n用户信息:")
+    print(f"  可用用户总数: {total_available}")
+    print(f"  计划创建数量: {target_count}")
+    print(f"  批处理大小: {args.batch_size}")
+    
+    if not args.skip_test:
+        # 先测试创建一个用户
+        print("\nTesting single user creation...")
+        test_results, test_errors = create_users(1, 1)
+        
+        if not test_results:
+            print("❌ Test failed!")
+            if test_errors:
+                print("\nError details:")
+                for err in test_errors:
+                    print(f"Email: {err['email']}")
+                    print(f"Error: {err['error']}")
+                    if 'backtrace' in err:
+                        print("Backtrace:")
+                        for line in err['backtrace']:
+                            print(f"  {line}")
+            return
+        
         print("✅ Test successful!")
         
-        # 询问是否继续
-        # total = input("\nHow many users to create? (default 200): ")
-        # total = int(total) if total else 200
-        total = TOTAL
-        
-        if total > 1:
-            # batch = input("How many per batch? (default 10): ")
-            # batch = int(batch) if batch else 10
-            batch = TOTAL
-            
-            # confirm = input(f"\nWill create {total} users, {batch} per batch. Continue? (y/n): ")
-            confirm = 'y'
-            if confirm.lower() == 'y':
-                results, errors = create_users(total, batch)
-                save_results(results, errors)
-            else:
-                print("Cancelled")
-        else:
+        # 如果只要创建1个用户，直接保存测试结果
+        if target_count == 1:
             save_results(test_results, test_errors)
+            return
+        
+        # 调整目标数量（减去已测试的1个）
+        target_count -= 1
+        print(f"\n继续创建剩余 {target_count} 个用户...")
+    
+    # 创建用户
+    if target_count > 0:
+        results, errors = create_users(target_count, args.batch_size)
+        
+        # 如果有测试结果，合并到最终结果中
+        if not args.skip_test and 'test_results' in locals():
+            results = test_results + results
+            
+        save_results(results, errors)
     else:
-        print("❌ Test failed!")
-        if test_errors:
-            print("\nError details:")
-            for err in test_errors:
-                print(f"Email: {err['email']}")
-                print(f"Error: {err['error']}")
-                if 'backtrace' in err:
-                    print("Backtrace:")
-                    for line in err['backtrace']:
-                        print(f"  {line}")
+        print("没有用户需要创建")
 
 if __name__ == "__main__":
     # ./deployment/canvas/tmp create this dir in advance
