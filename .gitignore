@@ -13,6 +13,8 @@ sample_files
 debug.py
 debug.js
 debug.sh
+debug.json
+debug.jsonl
 legacy/
 configs/global_configs.py
 

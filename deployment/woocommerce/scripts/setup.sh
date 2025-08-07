@@ -3,19 +3,66 @@
 
 ### launch the pod, enable multisite, and create 20 sub sites for task use
 
+# Function to show usage
+show_usage() {
+    echo "How to use: $0 [command]"
+    echo ""
+    echo "Command:"
+    echo "  start    Start WooCommerce service (default)"
+    echo "  stop     Stop WooCommerce service"
+    echo "  restart  Restart WooCommerce service"
+    echo ""
+    echo "Example:"
+    echo "  $0              # Start service"
+    echo "  $0 start        # Start service"
+    echo "  $0 stop         # Stop service"
+    echo "  $0 restart      # Restart service"
+}
+
+# Function to stop services
+stop_services() {
+    echo "Stopping WooCommerce service..."
+    podman pod stop woo-pod 2>/dev/null
+    podman pod rm -f woo-pod 2>/dev/null
+    echo "✓ WooCommerce service stopped"
+}
+
+# Parse command line arguments
+COMMAND=${1:-start}
+
+case $COMMAND in
+    "stop")
+        stop_services
+        exit 0
+        ;;
+    "start"|"restart")
+        # Stop first to ensure clean state
+        stop_services
+        echo "Starting WooCommerce service..."
+        ;;
+    "help"|"-h"|"--help")
+        show_usage
+        exit 0
+        ;;
+    *)
+        echo "Error: Unknown command '$COMMAND'"
+        echo ""
+        show_usage
+        exit 1
+        ;;
+esac
+
 # Configuration variables
-PORT=10002
+PORT=10003
 WP_URL="http://localhost:$PORT"
 WP_TITLE="My WooCommerce Store"
 WP_ADMIN_USER="mcpwoocommerce"
 WP_ADMIN_PASS="mcpwoocommerce"
 WP_ADMIN_EMAIL="woocommerce@mcp.com"
+# this account is not activated in poste, we just use it as a admin
 PRESET_NUM_SITES=20
 
-# 1. Clean up and create new deployment
-echo "Cleaning up old containers..."
-podman pod rm -f woo-pod 2>/dev/null
-
+# 1. Create new deployment
 echo "Creating new pod..."
 podman pod create --name woo-pod -p ${PORT}:80
 
@@ -175,10 +222,11 @@ fi
 # 12. Print service management hints
 echo ""
 echo "========================================="
-echo "Service Management Commands:"
-echo "  Stop service: podman pod stop woo-pod"
-echo "  Start service: podman pod start woo-pod"
-echo "  Remove completely: podman pod rm -f woo-pod"
+echo "Available Commands:"
+echo "  Stop Service: $0 stop"
+echo "  Start Service: $0 start"
+echo "  Restart Service: $0 restart"
+echo "  Show Help: $0 help"
 echo "========================================="
 
 echo "Starting to convert to multisite..."
@@ -230,10 +278,36 @@ echo "========================================="
 echo "Multisite configuration verified"
 echo "========================================="
 
-echo "Staring to to create multisite stores, we create $PRESET_NUM_SITES stores ..."
+# Function to load user data from JSON
+load_users_from_json() {
+    local users_file="configs/users_data.json"
+    
+    if [ ! -f "$users_file" ]; then
+        echo "❌ Error: $users_file not found"
+        exit 1
+    fi
+    
+    # Extract users data from JSON file
+    jq -r '.users[] | "\(.id)|\(.first_name)|\(.last_name)|\(.full_name)|\(.email)|\(.password)"' "$users_file"
+}
 
+echo "Staring to create multisite stores using user data from configs/users_data.json..."
+
+# Get total users from JSON file
+TOTAL_JSON_USERS=$(jq '.users | length' configs/users_data.json 2>/dev/null || echo "0")
+
+if [ "$TOTAL_JSON_USERS" -eq 0 ]; then
+    echo "❌ Error: No users found in configs/users_data.json"
+    exit 1
+fi
+
+# Use preset number of sites, but limit to available users
 NUM_SITES=$PRESET_NUM_SITES
-PORT=10002
+if [ "$NUM_SITES" -gt "$TOTAL_JSON_USERS" ]; then
+    NUM_SITES=$TOTAL_JSON_USERS
+    echo "Limiting to $NUM_SITES sites (based on available user data)"
+fi
+
 BASE_URL="http://localhost:$PORT"
 OUTPUT_FILE="deployment/woocommerce/configs/multisite-api-keys.json"
 
@@ -268,16 +342,21 @@ mkdir -p deployment/woocommerce/configs
 echo "[" > "$OUTPUT_FILE"
 
 # 创建子站点并生成API密钥
-CURRENT_SITE_NUM=1
+echo "Creating $NUM_SITES WooCommerce subsites using real user data..."
+
+# Create temporary file to store user data from JSON
+TEMP_USERS=$(mktemp)
+load_users_from_json | head -n $NUM_SITES > "$TEMP_USERS"
+
 CREATED_COUNT=0
 
-while [ $CREATED_COUNT -lt $NUM_SITES ]; do
-    SITE_SLUG="store$CURRENT_SITE_NUM"
-    SITE_TITLE="Store $CURRENT_SITE_NUM"
-    SITE_EMAIL="admin@store$CURRENT_SITE_NUM.com"
+while IFS='|' read -r user_id first_name last_name full_name email password; do
+    SITE_SLUG="store$user_id"
+    SITE_TITLE="$first_name $last_name's Store"  # Use first name for store title
+    SITE_EMAIL="$email"  # Use real email from JSON
     SITE_URL="$BASE_URL/$SITE_SLUG/"
     
-    echo "Creating site: $SITE_SLUG"
+    echo "Creating site: $SITE_SLUG ($SITE_TITLE)"
     
     # 创建子站点
     SITE_RESULT=$(podman exec woo-wp wp site create \
@@ -330,10 +409,12 @@ echo json_encode(array(
             
             cat >> "$OUTPUT_FILE" << EOF
   {
-    "site_id": $CURRENT_SITE_NUM,
+    "user_id": $user_id,
     "site_slug": "$SITE_SLUG",
     "site_title": "$SITE_TITLE",
     "site_url": "$SITE_URL",
+    "owner_name": "$full_name",
+    "owner_email": "$SITE_EMAIL",
     "api_base_url": "${SITE_URL}wp-json/wc/v3/",
     "consumer_key": "$CONSUMER_KEY",
     "consumer_secret": "$CONSUMER_SECRET",
@@ -347,12 +428,14 @@ EOF
             echo "  ✗ Failed to generate API keys"
         fi
     else
-        echo "  ⚠ Site already exists, trying next number..."
+        echo "  ⚠ Site creation failed or already exists: $SITE_RESULT"
     fi
     
-    CURRENT_SITE_NUM=$((CURRENT_SITE_NUM + 1))
     echo ""
-done
+done < "$TEMP_USERS"
+
+# Clean up temp file
+rm -f "$TEMP_USERS"
 
 # 结束JSON数组
 echo "" >> "$OUTPUT_FILE"
@@ -361,25 +444,33 @@ echo "]" >> "$OUTPUT_FILE"
 echo "========================================="
 echo "Batch creation completed!"
 echo "========================================="
-echo "Created $NUM_SITES subsites with WooCommerce API keys"
+echo "Created $CREATED_COUNT subsites with WooCommerce API keys using real user data"
 echo "Configuration saved to: $OUTPUT_FILE"
 echo ""
-echo "Site URLs:"
-for i in $(seq 1 $NUM_SITES); do
-    echo "  Store $i: $BASE_URL/store$i/"
-done
+echo "Sample Store URLs:"
+# Show first few stores created
+count=0
+while IFS='|' read -r user_id first_name last_name full_name email password && [ $count -lt 5 ]; do
+    if [ $count -lt $CREATED_COUNT ]; then
+        echo "  $first_name's Store: $BASE_URL/store$user_id/"
+    fi
+    count=$((count + 1))
+done < <(load_users_from_json | head -n $NUM_SITES)
 echo ""
 echo "API Configuration:"
 cat "$OUTPUT_FILE" | python -m json.tool 2>/dev/null || cat "$OUTPUT_FILE"
 echo ""
 echo "========================================="
 echo "Usage Examples:"
-echo "# Test Store 1 API:"
+echo "# Test first store API (if available):"
 if [ -f "$OUTPUT_FILE" ]; then
     FIRST_KEY=$(cat "$OUTPUT_FILE" | python -c "import json,sys;data=json.load(sys.stdin);print(data[0]['consumer_key'] if data else '')" 2>/dev/null)
     FIRST_SECRET=$(cat "$OUTPUT_FILE" | python -c "import json,sys;data=json.load(sys.stdin);print(data[0]['consumer_secret'] if data else '')" 2>/dev/null)
-    if [ -n "$FIRST_KEY" ] && [ -n "$FIRST_SECRET" ]; then
-        echo "curl -u \"$FIRST_KEY:$FIRST_SECRET\" \"$BASE_URL/store1/wp-json/wc/v3/products\""
+    FIRST_SLUG=$(cat "$OUTPUT_FILE" | python -c "import json,sys;data=json.load(sys.stdin);print(data[0]['site_slug'] if data else '')" 2>/dev/null)
+    FIRST_TITLE=$(cat "$OUTPUT_FILE" | python -c "import json,sys;data=json.load(sys.stdin);print(data[0]['site_title'] if data else '')" 2>/dev/null)
+    if [ -n "$FIRST_KEY" ] && [ -n "$FIRST_SECRET" ] && [ -n "$FIRST_SLUG" ]; then
+        echo "# Test $FIRST_TITLE API:"
+        echo "curl -u \"$FIRST_KEY:$FIRST_SECRET\" \"$BASE_URL/$FIRST_SLUG/wp-json/wc/v3/products\""
     fi
 fi
 echo "========================================="
@@ -387,8 +478,9 @@ echo "========================================="
 # 12. Print service management hints
 echo ""
 echo "========================================="
-echo "[Print Again] Service Management Commands:"
-echo "  Stop service: podman pod stop woo-pod"
-echo "  Start service: podman pod start woo-pod"
-echo "  Remove completely: podman pod rm -f woo-pod"
+echo "Available Commands:"
+echo "  Stop Service: $0 stop"
+echo "  Start Service: $0 start"
+echo "  Restart Service: $0 restart"
+echo "  Show Help: $0 help"
 echo "========================================="

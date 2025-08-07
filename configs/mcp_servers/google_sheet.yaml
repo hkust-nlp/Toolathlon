@@ -5,7 +5,7 @@ name: google_sheet
 params:
   command: uvx
   args:
-    - "mcp-google-sheets@latest"
+    - "mcp-google-sheets"
   env:
     CREDENTIALS_PATH: "${token.google_oauth2_credentials_path}"
     TOKEN_PATH: "${token.google_oauth2_token_path}"
