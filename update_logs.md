@@ -1,3 +1,7 @@
+## 2025.8.9 23:50
+- 添加canvas admin账户信息
+    - 相关文件 `deployment/canvas/README.md`
+
 ## 2025.8.7 16:25
 - 清理调试文件
     - 删除 `debug.json` 文件
