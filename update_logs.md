@@ -1,3 +1,19 @@
+## 2025.8.11 03:30
+- 更新账户信息和服务配置
+    - 添加Snowflake账户信息到 `accounts.md`
+    - 完善本地账户说明，包含poste、canvas、woocommerce管理员账户信息
+    - 更新pdf-tools配置，添加临时文件目录配置 `configs/mcp_servers/pdf-tools.yaml`
+    - 添加Snowflake配置到 `configs/token_key_session.py`
+    - 更新用户数据文件 `configs/users_data.json`
+    - 新增Snowflake MCP服务器配置 `configs/mcp_servers/snowflake.yaml`
+    - 添加csv格式用户数据文件 `configs/users_data.csv`
+    - 新增端口监控工具 `utils/general/port_monitor.py`
+    - 优化Canvas用户创建脚本和Woocommerce部署脚本
+
+## 2025.8.9 23:50
+- 添加canvas admin账户信息
+    - 相关文件 `deployment/canvas/README.md`
+
 ## 2025.8.7 16:25
 - 清理调试文件
     - 删除 `debug.json` 文件

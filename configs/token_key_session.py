@@ -46,5 +46,16 @@ all_token_key_session = Dict(
     google_cloud_allowed_log_buckets = "null",
     google_cloud_allowed_instances = "null",
 
+    # poste emails
     emails_config_file = "PLEASE_RESET_IN_TASK_SPECIFIC_DIR",
+
+    # snowflake
+
+    snowflake_account = "VBJIVCN-OI09931",
+    snowflake_warehouse = "COMPUTE_WH",
+    snowflake_role = "ACCOUNTADMIN",
+    snowflake_user = "MCPTEST0606",
+    snowflake_password = "MCPtest0606!!!",
+    snowflake_database = "SNOWFLAKE",
+    snowflake_schema = "<none selected>",
 )

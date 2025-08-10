@@ -34,7 +34,7 @@ In this file we guide you how to install all needed servers for this project.
     uv tool install office-word-mcp-server@1.1.9
     uv tool install git+https://github.com/wandb/wandb-mcp-server@e1b6274a58a8dc56a47c5aaefb9d03282133f507
     uv tool install cli-mcp-server@0.2.5
-    uv tool install pdf-tools-mcp@0.1.3
+    uv tool install pdf-tools-mcp@0.1.4
     uv tool install git+https://github.com/jkawamoto/mcp-youtube-transcript@28081729905a48bef533d864efbd867a2bfd14cd
     uv tool install mcp-google-sheets@0.4.1
     uv tool install google-cloud-mcp@1.0.0
@@ -52,6 +52,8 @@ In this file we guide you how to install all needed servers for this project.
     `mcp-scholarly`: see `install_records/scholarly_search.md`
 
     `arxiv-latex`: see `install_records/arxiv_latex.md`
+
+    `snowflake`: see `install_records/snowflake.md`
 
 5. other preparation
 

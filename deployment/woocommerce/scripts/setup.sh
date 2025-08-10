@@ -5,18 +5,23 @@
 
 # Function to show usage
 show_usage() {
-    echo "How to use: $0 [command]"
+    echo "How to use: $0 [command] [start_user] [count]"
     echo ""
     echo "Command:"
     echo "  start    Start WooCommerce service (default)"
     echo "  stop     Stop WooCommerce service"
     echo "  restart  Restart WooCommerce service"
     echo ""
+    echo "Optional parameters for start/restart:"
+    echo "  start_user  Starting user index (1-based, default: 1)"
+    echo "  count       Number of users to create sites for (default: 20)"
+    echo ""
     echo "Example:"
-    echo "  $0              # Start service"
-    echo "  $0 start        # Start service"
-    echo "  $0 stop         # Stop service"
-    echo "  $0 restart      # Restart service"
+    echo "  $0                    # Start service with users 1-20"
+    echo "  $0 start              # Start service with users 1-20"
+    echo "  $0 start 81 20        # Start service with users 81-100"
+    echo "  $0 stop               # Stop service"
+    echo "  $0 restart 50 10      # Restart service with users 50-59"
 }
 
 # Function to stop services
@@ -29,6 +34,8 @@ stop_services() {
 
 # Parse command line arguments
 COMMAND=${1:-start}
+START_USER=${2:-1}
+USER_COUNT=${3:-20}
 
 case $COMMAND in
     "stop")
@@ -39,6 +46,7 @@ case $COMMAND in
         # Stop first to ensure clean state
         stop_services
         echo "Starting WooCommerce service..."
+        echo "Will create sites for users $START_USER to $((START_USER + USER_COUNT - 1))"
         ;;
     "help"|"-h"|"--help")
         show_usage
@@ -167,8 +175,8 @@ podman exec woo-wp bash -c 'echo "SetEnvIf Authorization (.+) HTTPS=on" >> /var/
 echo "Generating WooCommerce REST API keys..."
 API_CREDS=$(podman exec woo-wp wp eval '
 $user_id = 1;
-$consumer_key = "ck_" . wc_rand_hash();
-$consumer_secret = "cs_" . wc_rand_hash();
+$consumer_key = "ck_woocommerce_token_admin";
+$consumer_secret = "cs_woocommerce_token_admin";
 
 global $wpdb;
 $wpdb->insert(
@@ -281,14 +289,20 @@ echo "========================================="
 # Function to load user data from JSON
 load_users_from_json() {
     local users_file="configs/users_data.json"
+    local start_index=${1:-1}  # Default start from user 1
+    local count=${2:-20}       # Default count 20
     
     if [ ! -f "$users_file" ]; then
         echo "❌ Error: $users_file not found"
         exit 1
     fi
     
-    # Extract users data from JSON file
-    jq -r '.users[] | "\(.id)|\(.first_name)|\(.last_name)|\(.full_name)|\(.email)|\(.password)"' "$users_file"
+    # Extract users data from JSON file, starting from specified index
+    # Note: jq array indexing is 0-based, so we subtract 1 from start_index
+    local jq_start=$((start_index - 1))
+    local jq_end=$((jq_start + count - 1))
+    
+    jq -r ".users[${jq_start}:${jq_end}] | .[] | \"\(.id)|\(.first_name)|\(.last_name)|\(.full_name)|\(.email)|\(.password)|\(.woocommerce_consumer_key)|\(.woocommerce_consumer_secret)\"" "$users_file"
 }
 
 echo "Staring to create multisite stores using user data from configs/users_data.json..."
@@ -301,12 +315,20 @@ if [ "$TOTAL_JSON_USERS" -eq 0 ]; then
     exit 1
 fi
 
-# Use preset number of sites, but limit to available users
-NUM_SITES=$PRESET_NUM_SITES
-if [ "$NUM_SITES" -gt "$TOTAL_JSON_USERS" ]; then
-    NUM_SITES=$TOTAL_JSON_USERS
-    echo "Limiting to $NUM_SITES sites (based on available user data)"
+# Validate start user and count
+if [ "$START_USER" -lt 1 ] || [ "$START_USER" -gt "$TOTAL_JSON_USERS" ]; then
+    echo "❌ Error: Start user $START_USER is out of range (1-$TOTAL_JSON_USERS)"
+    exit 1
 fi
+
+if [ "$((START_USER + USER_COUNT - 1))" -gt "$TOTAL_JSON_USERS" ]; then
+    echo "⚠ Warning: Requested range exceeds available users, adjusting count"
+    USER_COUNT=$((TOTAL_JSON_USERS - START_USER + 1))
+fi
+
+# Use specified user range
+NUM_SITES=$USER_COUNT
+echo "Creating $NUM_SITES sites using users $START_USER to $((START_USER + NUM_SITES - 1))"
 
 BASE_URL="http://localhost:$PORT"
 OUTPUT_FILE="deployment/woocommerce/configs/multisite-api-keys.json"
@@ -346,11 +368,11 @@ echo "Creating $NUM_SITES WooCommerce subsites using real user data..."
 
 # Create temporary file to store user data from JSON
 TEMP_USERS=$(mktemp)
-load_users_from_json | head -n $NUM_SITES > "$TEMP_USERS"
+load_users_from_json "$START_USER" "$USER_COUNT" > "$TEMP_USERS"
 
 CREATED_COUNT=0
 
-while IFS='|' read -r user_id first_name last_name full_name email password; do
+while IFS='|' read -r user_id first_name last_name full_name email password consumer_key consumer_secret; do
     SITE_SLUG="store$user_id"
     SITE_TITLE="$first_name $last_name's Store"  # Use first name for store title
     SITE_EMAIL="$email"  # Use real email from JSON
@@ -369,15 +391,21 @@ while IFS='|' read -r user_id first_name last_name full_name email password; do
     if echo "$SITE_RESULT" | grep -q "Success"; then
         echo "  ✓ Site created successfully"
         
-        # 生成API密钥
-        echo "  Generating API keys..."
-        API_CREDS=$(podman exec woo-wp wp eval '
+        # 使用预设的API密钥而不是随机生成
+        echo "  Using predefined API keys..."
+        
+        # 直接使用从JSON读取的预设API密钥
+        CONSUMER_KEY="$consumer_key"
+        CONSUMER_SECRET="$consumer_secret"
+        
+        # 将API密钥插入到数据库中
+        API_INSERT_RESULT=$(podman exec woo-wp wp eval '
 $user_id = 1;
-$consumer_key = "ck_" . wc_rand_hash();
-$consumer_secret = "cs_" . wc_rand_hash();
+$consumer_key = "'"$CONSUMER_KEY"'";
+$consumer_secret = "'"$CONSUMER_SECRET"'";
 
 global $wpdb;
-$wpdb->insert(
+$result = $wpdb->insert(
     $wpdb->prefix . "woocommerce_api_keys",
     array(
         "user_id" => $user_id,
@@ -389,18 +417,15 @@ $wpdb->insert(
     )
 );
 
-echo json_encode(array(
-    "consumer_key" => $consumer_key,
-    "consumer_secret" => $consumer_secret
-));
+if($result === false) {
+    echo "ERROR";
+} else {
+    echo "SUCCESS";
+}
 ' --url="$SITE_URL" --allow-root --path=/var/www/html 2>/dev/null)
         
-        if [ $? -eq 0 ] && [ -n "$API_CREDS" ]; then
-            echo "  ✓ API keys generated"
-            
-            # 解析API凭据
-            CONSUMER_KEY=$(echo "$API_CREDS" | python -c "import json,sys;print(json.load(sys.stdin)['consumer_key'])" 2>/dev/null)
-            CONSUMER_SECRET=$(echo "$API_CREDS" | python -c "import json,sys;print(json.load(sys.stdin)['consumer_secret'])" 2>/dev/null)
+        if [ "$API_INSERT_RESULT" = "SUCCESS" ]; then
+            echo "  ✓ API keys configured"
             
             # 添加到JSON文件
             if [ $CREATED_COUNT -gt 0 ]; then
@@ -425,7 +450,7 @@ EOF
             CREATED_COUNT=$((CREATED_COUNT + 1))
             echo "  ✓ Added to configuration file"
         else
-            echo "  ✗ Failed to generate API keys"
+            echo "  ✗ Failed to configure API keys"
         fi
     else
         echo "  ⚠ Site creation failed or already exists: $SITE_RESULT"
@@ -445,17 +470,18 @@ echo "========================================="
 echo "Batch creation completed!"
 echo "========================================="
 echo "Created $CREATED_COUNT subsites with WooCommerce API keys using real user data"
+echo "User range: $START_USER to $((START_USER + CREATED_COUNT - 1))"
 echo "Configuration saved to: $OUTPUT_FILE"
 echo ""
 echo "Sample Store URLs:"
 # Show first few stores created
 count=0
-while IFS='|' read -r user_id first_name last_name full_name email password && [ $count -lt 5 ]; do
+while IFS='|' read -r user_id first_name last_name full_name email password consumer_key consumer_secret && [ $count -lt 5 ]; do
     if [ $count -lt $CREATED_COUNT ]; then
         echo "  $first_name's Store: $BASE_URL/store$user_id/"
     fi
     count=$((count + 1))
-done < <(load_users_from_json | head -n $NUM_SITES)
+done < "$TEMP_USERS"
 echo ""
 echo "API Configuration:"
 cat "$OUTPUT_FILE" | python -m json.tool 2>/dev/null || cat "$OUTPUT_FILE"

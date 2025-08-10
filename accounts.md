@@ -27,9 +27,10 @@ Notion
 login via google
 
 Snowflake
-TBD
+mcptest0606
+MCPtest0606!!!
 
-// Two auxliary accounts 👇
+// Two auxliary google accounts 👇
 username mcpllm.bench@gmail.com
 password T1wQS843xeGrnkn
 app password ikby ivzj sfwn bydu
@@ -42,5 +43,20 @@ app password xjxw qdjs bgln njgb //
 
 本地账号
 - 500个固定邮箱 configs/users_data.json
-可用于poste邮件服务(默认前100个), canvas服务（默认前100个），woocommerce服务(默认前20个)
-TODO: 之后可能还要加几个field判断是不是每个邮箱都需要给每个服务注册上，现在的逻辑是每个服务注册前N个
+可用于poste邮件服务(默认前100个), canvas服务（默认前100个），woocommerce服务(默认第81-100个)
+
+- poste 服务 管理员
+email: mcpposte_admin@mcp.com
+password: mcpposte
+
+- canvas 服务 管理员
+email: canvas@example.edu
+password: canvas-docker
+token: canvas-docker
+
+- woocommerce 服务 管理员
+email: woocommerce@mcp.com
+username: mcpwoocommerce
+password: mcpwoocommerce
+consumer_key: ck_woocommerce_token_admin
+consumer_secret: cs_woocommerce_token_admin
