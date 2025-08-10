@@ -62,6 +62,7 @@ def load_users_from_json():
                 'short_name': user['first_name'],
                 'email': user['email'],
                 'password': user['password'],
+                'canvas_token': user.get('canvas_token', ''),
                 'sis_user_id': f"MCP{user['id']:06d}"
             })
         
@@ -122,17 +123,28 @@ users_data.each_with_index do |user_data, index|
       
       pseudonym.save!
       
-      # 创建 API token
-      token = user.access_tokens.create!(
-        purpose: "Auto Generated API Token"
-      )
+      # 创建 API token - 使用预设token或生成新token
+      if user_data['canvas_token'] && !user_data['canvas_token'].empty?
+        # 使用预设的token
+        token = user.access_tokens.create!(
+          purpose: "Predefined API Token",
+          token: user_data['canvas_token']
+        )
+        token_value = user_data['canvas_token']
+      else
+        # 生成新的token
+        token = user.access_tokens.create!(
+          purpose: "Auto Generated API Token"
+        )
+        token_value = token.full_token
+      end
       
       results << {
         'id' => user.id,
         'name' => user_data['name'],
         'email' => user_data['email'],
         'password' => user_data['password'],
-        'token' => token.full_token,
+        'token' => token_value,
         'sis_user_id' => pseudonym.sis_user_id,
         'pseudonym_id' => pseudonym.id
       }
