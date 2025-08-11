@@ -219,6 +219,27 @@ API_MAPPINGS = {
         concurrency=32,
         context_window=1000000
     ),
+    'gpt-5': Dict(
+        api_model={"ds_internal": "",
+                   "aihubmix": "gpt-5"},
+        price=[1.25/1000, 10/1000.0],
+        concurrency=32,
+        context_window=1000000
+    ),
+    'gpt-5-mini': Dict(
+        api_model={"ds_internal": "",
+                   "aihubmix": "gpt-5-mini"},
+        price=[0.25/1000,2/1000.0],
+        concurrency=32,
+        context_window=1000000
+    ),
+    'gpt-5-nano': Dict(
+        api_model={"ds_internal": "",
+                   "aihubmix": "gpt-5-nano"},
+        price=[0.05/1000, 0.4/1000],
+        concurrency=32,
+        context_window=1000000
+    ),
     'o4-mini': Dict(
         api_model={"ds_internal": "azure-o4-mini-2025-04-16",
                    "aihubmix": "o4-mini"},
@@ -258,6 +279,13 @@ API_MAPPINGS = {
         api_model={"ds_internal": "oai-api-claude-opus-4-20250514",
                    "aihubmix": "claude-opus-4-20250514"},
         price=[0.015, 0.075],
+        concurrency=32,
+        context_window=200000
+    ),
+    'claude-4.1-opus-0805': Dict(
+        api_model={"ds_internal": "",
+                   "aihubmix": "claude-opus-4-1-20250805"},
+        price=[16.5/1000, 82.5/1000],
         concurrency=32,
         context_window=200000
     ),
@@ -303,6 +331,14 @@ API_MAPPINGS = {
         concurrency=32,
         context_window=128000
     ),
+    "qwen-3-coder-plus": Dict(
+        api_model={"ds_internal": None,
+                   "aihubmix": "qwen3-coder-plus-2025-07-22"},
+        price=[0.54/1000, 1.08/1000],
+        concurrency=32,
+        context_window=128000
+    ),
+    
 }
 
 set_tracing_disabled(disabled=True)
