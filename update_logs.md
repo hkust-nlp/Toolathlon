@@ -1,3 +1,9 @@
+## 2025.8.11 17:50
+- 更新支持模型
+    - gpt4.1不再支持，改用gpt-5, 追加了相应修改
+    - claude4 opus ->claude4.1 opus
+    - 见 `utils/api_model/model_provider.py`
+
 ## 2025.8.11 03:30
 - 更新账户信息和服务配置
     - 添加Snowflake账户信息到 `accounts.md`

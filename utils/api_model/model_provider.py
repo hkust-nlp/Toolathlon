@@ -5,11 +5,15 @@ from agents import (
     OpenAIChatCompletionsModel, 
     Model, 
     set_tracing_disabled,
+    _debug
 )
 from openai import AsyncOpenAI
 from openai.types.responses import ResponseOutputMessage
 from configs.global_configs import global_configs
 from addict import Dict
+
+from agents.models.openai_chatcompletions import *
+from agents.model_settings import ModelSettings
 
 class ContextTooLongError(Exception):
     """上下文过长异常"""
@@ -27,6 +31,132 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
         self.retry_times = retry_times
         self.retry_delay = retry_delay
         self.debug = debug
+
+    async def _fetch_response(
+        self,
+        system_instructions: str | None,
+        input: str | list[TResponseInputItem],
+        model_settings: ModelSettings,
+        tools: list[Tool],
+        output_schema: AgentOutputSchemaBase | None,
+        handoffs: list[Handoff],
+        span: Span[GenerationSpanData],
+        tracing: ModelTracing,
+        stream: bool = False,
+    ) -> ChatCompletion | tuple[Response, AsyncStream[ChatCompletionChunk]]:
+        converted_messages = Converter.items_to_messages(input)
+
+        if system_instructions:
+            converted_messages.insert(
+                0,
+                {
+                    "content": system_instructions,
+                    "role": "system",
+                },
+            )
+        if tracing.include_data():
+            span.span_data.input = converted_messages
+
+        parallel_tool_calls = (
+            True
+            if model_settings.parallel_tool_calls and tools and len(tools) > 0
+            else False
+            if model_settings.parallel_tool_calls is False
+            else NOT_GIVEN
+        )
+        tool_choice = Converter.convert_tool_choice(model_settings.tool_choice)
+        response_format = Converter.convert_response_format(output_schema)
+
+        converted_tools = [Converter.tool_to_openai(tool) for tool in tools] if tools else []
+
+        for handoff in handoffs:
+            converted_tools.append(Converter.convert_handoff_tool(handoff))
+
+        if _debug.DONT_LOG_MODEL_DATA:
+            logger.debug("Calling LLM")
+        else:
+            logger.debug(
+                f"{json.dumps(converted_messages, indent=2)}\n"
+                f"Tools:\n{json.dumps(converted_tools, indent=2)}\n"
+                f"Stream: {stream}\n"
+                f"Tool choice: {tool_choice}\n"
+                f"Response format: {response_format}\n"
+            )
+
+        reasoning_effort = model_settings.reasoning.effort if model_settings.reasoning else None
+        store = ChatCmplHelpers.get_store_param(self._get_client(), model_settings)
+
+        stream_options = ChatCmplHelpers.get_stream_options_param(
+            self._get_client(), model_settings, stream=stream
+        )
+
+        # an ugly but work way to hack this
+        if 'gpt-5' in self.model:
+            ret = await self._get_client().chat.completions.create(
+                model=self.model,
+                messages=converted_messages,
+                tools=converted_tools or NOT_GIVEN,
+                temperature=self._non_null_or_not_given(model_settings.temperature),
+                top_p=self._non_null_or_not_given(model_settings.top_p),
+                frequency_penalty=self._non_null_or_not_given(model_settings.frequency_penalty),
+                presence_penalty=self._non_null_or_not_given(model_settings.presence_penalty),
+                # max_tokens=self._non_null_or_not_given(model_settings.max_tokens),
+                max_completion_tokens=self._non_null_or_not_given(model_settings.max_tokens),
+                tool_choice=tool_choice,
+                response_format=response_format,
+                parallel_tool_calls=parallel_tool_calls,
+                stream=stream,
+                stream_options=self._non_null_or_not_given(stream_options),
+                store=self._non_null_or_not_given(store),
+                reasoning_effort=self._non_null_or_not_given(reasoning_effort),
+                extra_headers={ **HEADERS, **(model_settings.extra_headers or {}) },
+                extra_query=model_settings.extra_query,
+                extra_body=model_settings.extra_body,
+                metadata=self._non_null_or_not_given(model_settings.metadata),
+            )
+        else:
+            ret = await self._get_client().chat.completions.create(
+                model=self.model,
+                messages=converted_messages,
+                tools=converted_tools or NOT_GIVEN,
+                temperature=self._non_null_or_not_given(model_settings.temperature),
+                top_p=self._non_null_or_not_given(model_settings.top_p),
+                frequency_penalty=self._non_null_or_not_given(model_settings.frequency_penalty),
+                presence_penalty=self._non_null_or_not_given(model_settings.presence_penalty),
+                max_tokens=self._non_null_or_not_given(model_settings.max_tokens),
+                # max_completion_tokens=self._non_null_or_not_given(model_settings.max_tokens),
+                tool_choice=tool_choice,
+                response_format=response_format,
+                parallel_tool_calls=parallel_tool_calls,
+                stream=stream,
+                stream_options=self._non_null_or_not_given(stream_options),
+                store=self._non_null_or_not_given(store),
+                reasoning_effort=self._non_null_or_not_given(reasoning_effort),
+                extra_headers={ **HEADERS, **(model_settings.extra_headers or {}) },
+                extra_query=model_settings.extra_query,
+                extra_body=model_settings.extra_body,
+                metadata=self._non_null_or_not_given(model_settings.metadata),
+            )
+
+        if isinstance(ret, ChatCompletion):
+            return ret
+
+        response = Response(
+            id=FAKE_RESPONSES_ID,
+            created_at=time.time(),
+            model=self.model,
+            object="response",
+            output=[],
+            tool_choice=cast(Literal["auto", "required", "none"], tool_choice)
+            if tool_choice != NOT_GIVEN
+            else "auto",
+            top_p=model_settings.top_p,
+            temperature=model_settings.temperature,
+            tools=[],
+            parallel_tool_calls=parallel_tool_calls or False,
+            reasoning=model_settings.reasoning,
+        )
+        return response, ret
 
     async def get_response(self, *args, **kwargs):
         for i in range(self.retry_times):
@@ -198,27 +328,27 @@ API_MAPPINGS = {
         concurrency=32,
         context_window=128000
     ),
-    'gpt-4.1-0414': Dict(
-        api_model={"ds_internal": "azure-gpt-4.1-2025-04-14",
-                   "aihubmix": "gpt-4.1"},
-        price=[0.002, 0.008],
-        concurrency=32,
-        context_window=1000000
-    ),
-    'gpt-4.1-mini-0414': Dict(
-        api_model={"ds_internal": "azure-gpt-4.1-mini-2025-04-14",
-                   "aihubmix": "gpt-4.1-mini"},
-        price=[0.0004, 0.0016],
-        concurrency=32,
-        context_window=1000000
-    ),
-    'gpt-4.1-nano-0414': Dict(
-        api_model={"ds_internal": "azure-gpt-4.1-nano-2025-04-14",
-                   "aihubmix": "gpt-4.1-nano"},
-        price=[0.0001, 0.0004],
-        concurrency=32,
-        context_window=1000000
-    ),
+    # 'gpt-4.1-0414': Dict(
+    #     api_model={"ds_internal": "azure-gpt-4.1-2025-04-14",
+    #                "aihubmix": "gpt-4.1"},
+    #     price=[0.002, 0.008],
+    #     concurrency=32,
+    #     context_window=1000000
+    # ),
+    # 'gpt-4.1-mini-0414': Dict(
+    #     api_model={"ds_internal": "azure-gpt-4.1-mini-2025-04-14",
+    #                "aihubmix": "gpt-4.1-mini"},
+    #     price=[0.0004, 0.0016],
+    #     concurrency=32,
+    #     context_window=1000000
+    # ),
+    # 'gpt-4.1-nano-0414': Dict(
+    #     api_model={"ds_internal": "azure-gpt-4.1-nano-2025-04-14",
+    #                "aihubmix": "gpt-4.1-nano"},
+    #     price=[0.0001, 0.0004],
+    #     concurrency=32,
+    #     context_window=1000000
+    # ),
     'gpt-5': Dict(
         api_model={"ds_internal": "",
                    "aihubmix": "gpt-5"},
@@ -261,13 +391,13 @@ API_MAPPINGS = {
         concurrency=32,
         context_window=200000
     ),
-    'claude-3.7-sonnet': Dict(
-        api_model={"ds_internal": "cloudsway-claude-3-7-sonnet-20250219",
-                   "aihubmix": "claude-3-7-sonnet-20250219"},
-        price=[0.003, 0.015],
-        concurrency=32,
-        context_window=200000
-    ),
+    # 'claude-3.7-sonnet': Dict(
+    #     api_model={"ds_internal": "cloudsway-claude-3-7-sonnet-20250219",
+    #                "aihubmix": "claude-3-7-sonnet-20250219"},
+    #     price=[0.003, 0.015],
+    #     concurrency=32,
+    #     context_window=200000
+    # ),
     'claude-4-sonnet-0514': Dict(
         api_model={"ds_internal": "oai-api-claude-sonnet-4-20250514",
                    "aihubmix": "claude-sonnet-4-20250514"},
@@ -275,13 +405,13 @@ API_MAPPINGS = {
         concurrency=32,
         context_window=200000
     ),
-    'claude-4-opus-0514': Dict(
-        api_model={"ds_internal": "oai-api-claude-opus-4-20250514",
-                   "aihubmix": "claude-opus-4-20250514"},
-        price=[0.015, 0.075],
-        concurrency=32,
-        context_window=200000
-    ),
+    # 'claude-4-opus-0514': Dict(
+    #     api_model={"ds_internal": "oai-api-claude-opus-4-20250514",
+    #                "aihubmix": "claude-opus-4-20250514"},
+    #     price=[0.015, 0.075],
+    #     concurrency=32,
+    #     context_window=200000
+    # ),
     'claude-4.1-opus-0805': Dict(
         api_model={"ds_internal": "",
                    "aihubmix": "claude-opus-4-1-20250805"},
