@@ -1,3 +1,16 @@
+### 2025.8.11 21:00
+- 新增了两个 MCP 服务器的安装命令:
+  - `mcp-snowflake-server`: 用于 Snowflake 数据库连接
+  - `mcp-scholarly`: 用于学术搜索功能  
+- 简化了安装流程，将这两个服务器从源码构建改为直接通过 uv tool 安装
+- 更新了 TODOs 列表，移除了已完成的配置项
+
+## 2025.8.11 17:50
+- 更新支持模型
+    - gpt4.1不再支持，改用gpt-5, 追加了相应修改
+    - claude4 opus ->claude4.1 opus
+    - 见 `utils/api_model/model_provider.py`
+
 ## 2025.8.11 03:30
 - 更新账户信息和服务配置
     - 添加Snowflake账户信息到 `accounts.md`

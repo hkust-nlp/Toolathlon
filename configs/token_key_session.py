@@ -57,5 +57,6 @@ all_token_key_session = Dict(
     snowflake_user = "MCPTEST0606",
     snowflake_password = "MCPtest0606!!!",
     snowflake_database = "SNOWFLAKE",
-    snowflake_schema = "<none selected>",
+    snowflake_schema = "PUBLIC",
+    snowflake_op_allowed_databases = "PLEASE_RESET_IN_TASK_SPECIFIC_DIR",
 )
