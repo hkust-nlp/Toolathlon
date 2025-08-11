@@ -3,7 +3,7 @@
 type: stdio
 name: arxiv-latex
 params:
-  command: uv
+  command: uvx
   args:
     - "--directory"
     - "${local_servers_paths}/arxiv-latex-mcp"

@@ -68,13 +68,4 @@ In this file we guide you how to install all needed servers for this project.
     TODO: guide for community researchers who want to use our benchmark.
 
     TODOs: google cloud application，wandb, notion, github, snowflake, linkedin
-
-## 更新记录
-
-### 2025.8.11 21:00
-- 新增了两个 MCP 服务器的安装命令:
-  - `mcp-snowflake-server`: 用于 Snowflake 数据库连接
-  - `mcp-scholarly`: 用于学术搜索功能  
-- 简化了安装流程，将这两个服务器从源码构建改为直接通过 uv tool 安装
-- 更新了 TODOs 列表，移除了已完成的配置项
     
