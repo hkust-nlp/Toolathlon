@@ -32,11 +32,11 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, res_log: dict)
         content = f.read()
     
     # Check for expected carbohydrate content
-    carb_pattern = r"Carbohydrates.*?Meets expectations.*?Expected:\s*162\.5g-195g.*?Actual:\s*170\.5g"
+    carb_pattern = r"Carbohydrates.*?Below expectations.*?Expected:\s*162\.5g-195g.*?Actual:\s*135\.5g"
     carb_match = re.search(carb_pattern, content, re.IGNORECASE | re.DOTALL)
     
     # Check for expected protein content
-    protein_pattern = r"Protein.*?Excessive intake.*?Expected:\s*97\.5g.*?Actual:\s*127\.5g"
+    protein_pattern = r"Protein.*?Excessive intake.*?Expected:\s*97\.5g.*?Actual:\s*146\.9g"
     protein_match = re.search(protein_pattern, content, re.IGNORECASE | re.DOTALL)
     
     if carb_match and protein_match:

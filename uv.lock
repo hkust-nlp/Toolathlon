@@ -1165,6 +1165,15 @@ wheels = [
 ]
 
 [[package]]
+name = "imapclient"
+version = "3.0.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/b6/63/0eea51c9c263c18021cdc5866def55c98393f3bd74bbb8e3053e36f0f81a/IMAPClient-3.0.1.zip", hash = "sha256:78e6d62fbfbbe233e1f0e0e993160fd665eb1fd35973acddc61c15719b22bc02", size = 244222, upload-time = "2023-12-02T08:24:15.344Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/de/8a/d1364c1c6d8f53ea390e8f1c6da220a4f9ee478ac8a473ae0669a2fb6f51/IMAPClient-3.0.1-py2.py3-none-any.whl", hash = "sha256:d77d77caa4123e0233b5cf2b9c54a078522e63270b88d3f48653a28637fd8828", size = 182490, upload-time = "2023-12-02T08:24:11.854Z" },
+]
+
+[[package]]
 name = "jinja2"
 version = "3.1.6"
 source = { registry = "https://pypi.org/simple" }
@@ -1634,6 +1643,7 @@ dependencies = [
     { name = "httpx-sse" },
     { name = "idna" },
     { name = "imagesize" },
+    { name = "imapclient" },
     { name = "jinja2" },
     { name = "jiter" },
     { name = "jsonlines" },
@@ -1780,6 +1790,7 @@ requires-dist = [
     { name = "httpx-sse", specifier = "==0.4.0" },
     { name = "idna", specifier = "==3.10" },
     { name = "imagesize", specifier = "==1.4.1" },
+    { name = "imapclient", specifier = ">=3.0.1" },
     { name = "jinja2", specifier = "==3.1.6" },
     { name = "jiter", specifier = "==0.9.0" },
     { name = "jsonlines", specifier = "==4.0.0" },

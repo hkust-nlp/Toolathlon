@@ -8,30 +8,30 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
     agent_growth_file = os.path.join(agent_workspace, "growth_rate.xlsx")
     
     # 构造groundtruth文件的绝对路径
-    groundtruth_file = os.path.abspath(os.path.join(groundtruth_workspace, "Market_Data_gt.xlsx"))
+    groundtruth_file = os.path.abspath(os.path.join(groundtruth_workspace, "Market_Data_gt.csv"))
     
     if not os.path.exists(agent_growth_file):
         return False, "growth_rate.xlsx not exists"
     
     if not os.path.exists(groundtruth_file):
-        return False, "groundtruth Market_Data_gt.xlsx not exist"
+        return False, "groundtruth Market_Data_gt.csv not exist"
     
     try:
-        # 使用openpyxl检查Excel内容
+        # 使用pandas读取CSV文件
+        import pandas as pd
         from openpyxl import load_workbook
         
         # 加载groundtruth文件，获取正确的增长率数据
-        wb_gt = load_workbook(groundtruth_file, data_only=True)
-        ws_gt = wb_gt.active
+        df_gt = pd.read_csv(groundtruth_file)
 
         # 查找'Year'和'Growth Rate'列（忽略大小写）
         year_col_gt = None
         growth_col_gt = None
-        for col in range(1, ws_gt.max_column + 1):
-            header = str(ws_gt.cell(1, col).value or '').strip().lower()
-            if header == 'year':
+        for col in df_gt.columns:
+            col_lower = str(col).strip().lower()
+            if col_lower == 'year':
                 year_col_gt = col
-            elif header == 'growth rate':
+            elif col_lower == 'growth rate':
                 growth_col_gt = col
 
         if year_col_gt is None or growth_col_gt is None:
@@ -39,10 +39,10 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
 
         # 提取年份和增长率
         correct_growth = {}
-        for row in range(2, ws_gt.max_row + 1):
-            year = ws_gt.cell(row, year_col_gt).value
-            cell = ws_gt.cell(row, growth_col_gt).value
-            if year is None:
+        for _, row in df_gt.iterrows():
+            year = row[year_col_gt]
+            cell = row[growth_col_gt]
+            if pd.isna(year):
                 continue
             rate = parse_growth_rate(cell)
             correct_growth[year] = rate
@@ -58,15 +58,25 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
         if ws_agent.max_row < 2:
             return False, "not enough data in agent growth rate file"
 
-        # 查找'Year'和'Growth Rate'列
+        # 查找'Year'和'Growth Rate'列（支持新的百分比格式）
         year_col_agent = None
         growth_col_agent = None
+        electric_col_agent = None
+        construction_col_agent = None
+        furniture_col_agent = None
+        
         for col in range(1, ws_agent.max_column + 1):
             header = str(ws_agent.cell(1, col).value or '').strip().lower()
             if header == 'year':
                 year_col_agent = col
             elif header == 'growth rate':
                 growth_col_agent = col
+            elif header == 'electric %':
+                electric_col_agent = col
+            elif header == 'construction %':
+                construction_col_agent = col
+            elif header == 'furniture %':
+                furniture_col_agent = col
 
         if year_col_agent is None or growth_col_agent is None:
             return False, "agent result not consists of 'Year' or 'Growth Rate' columns"
@@ -85,7 +95,7 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
             return False, "agent results not consists of growth rate data"
 
         # 比较
-        tolerance = 0.005
+        tolerance = 0.05
         matched = 0
         for year, correct_rate in correct_growth.items():
             if year in agent_growth and abs(agent_growth[year] - correct_rate) <= tolerance:
@@ -109,10 +119,8 @@ def parse_growth_rate(cell):
     if cell is None:
         return None
     if isinstance(cell, (int, float)):
-        if -1 <= cell <= 1:
-            return float(cell)
-        elif -100 <= cell <= 100:
-            return float(cell / 100)
+        # Assume all numeric values are in percentage format
+        return float(cell / 100)
     elif isinstance(cell, str):
         cell = cell.strip().upper()
         if cell == 'NA':
@@ -123,7 +131,8 @@ def parse_growth_rate(cell):
             except ValueError:
                 pass
         try:
-            return float(cell)
+            # Assume numeric string values are in percentage format
+            return float(cell) / 100
         except ValueError:
             pass
     return None

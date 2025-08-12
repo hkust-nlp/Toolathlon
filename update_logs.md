@@ -1,3 +1,32 @@
+## 2025.8.7 16:25
+- 清理调试文件
+    - 删除 `debug.json` 文件
+    - 更新 `.gitignore`，添加 `debug.json` 和 `debug.jsonl` 忽略规则
+
+## 2025.8.7 16:21
+- 完成邮件MCP配置全局共享
+    - 添加全局邮件配置文件 `configs/global_emails.json`
+    - 添加邮件MCP服务配置 `configs/mcp_servers/emails.yaml`
+    - 更新token配置，支持邮件服务 `configs/token_key_session.py`
+    - 新增用户数据文件 `configs/users_data.csv`, `configs/users_data.json`, `configs/sers_data.csv`
+    - 移动google_search配置到legacy目录 `configs/legacy_servers/google_search.yaml`
+- 修正woocommerce服务端口号从10002到10003
+- 添加账户信息说明文档 `accounts.md`
+
+## 2025.8.7 14：30
+- 更新安装指南，指定各uv tool安装版本
+    - 相关文件 `installation_guide.md`
+
+## 2025.8.4 21:30
+- 完成poste邮件服务部署脚本
+    - 一键运行 `bash deployment/poste/scripts/setup.sh` 即可
+    - 会在http://localhost:10005监听
+    - 自动创建100个邮箱账户，方便进行邮件相关的测试和操作
+    - 账户信息保存在 `deployment/poste/configs/created_accounts.json` 中
+- 更新deployment目录的.gitignore规则
+    - 改进忽略规则，只保留scripts文件夹和utils文件夹
+    - 便于新建deployment子目录时自动包含scripts文件夹
+
 ## 2025.8.1 16:30
 - 添加Google Cloud MCP服务器支持
     - 新增 `configs/mcp_servers/google-cloud.yaml` 配置文件
@@ -34,7 +63,7 @@
     - 账户信息保存在 `deployment/canvas/configs/canvas_users.json` 中
 - 完成woocommerce服务部署脚本
     - 一键运行 `deployment/woocommerce/scripts/setup.sh` 即可
-    - 会在http://localhost:10002监听
+    - 会在http://localhost:10003监听
     - 完全停止请使用 `podman pod stop woo-pod && podman pod rm -f woo-pod"
     - 会自动生成20个子站点，形成20个相互隔离的店铺方便操作，，可之后构建自动化脚本使用这些账户进行店铺设置等操作构建初始状态
     - 账户信息保存在 `deployment/woocommerce/configs/multisite-api-keys.json` 中
