@@ -1,0 +1,20 @@
+{
+    "day1": [
+      {
+        "name": "null",
+        "address": "null",
+        "opening_hours": "null",
+        "distance_to_next": "×× km",
+        "time_spent_to_next": "×× min"
+      }
+    ],
+    "day2": [
+      {
+        "name": "null",
+        "address": "null",
+        "opening_hours": "null",
+        "distance_to_next": "×× km",
+        "time_spent_to_next": "×× min"
+      }
+    ]
+  }

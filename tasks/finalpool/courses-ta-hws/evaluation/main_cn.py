@@ -16,7 +16,7 @@ def main():
     parser.add_argument('--res_log_file', required=False, help='Path to result log file')
     parser.add_argument('--agent_workspace', required=True, help='Path to agent workspace')
     parser.add_argument('--groundtruth_workspace', required=True, help='Path to groundtruth workspace')
-    
+    parser.add_argument("--launch_time", required=False, help="Launch time")
     args = parser.parse_args()
     
     # 检查本地文件管理结果 (主要检查)

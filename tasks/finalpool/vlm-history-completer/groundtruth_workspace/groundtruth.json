@@ -1,0 +1,107 @@
+[
+  {
+    "Model": "OpenAI CLIP",
+    "Architecture": "Dual-Encoder",
+    "Sources": "https://openai.com/blog/clip/"
+  },
+  {
+    "Model": "DALL-E",
+    "Architecture": "Transformer-based",
+    "Sources": "https://openai.com/blog/dall-e/"
+  },
+  {
+    "Model": "GLIDE",
+    "Architecture": "Diffusion-based",
+    "Sources": "https://github.com/openai/glide-text2im"
+  },
+  {
+    "Model": "DALL-E2",
+    "Architecture": "Diffusion-based",
+    "Sources": "https://openai.com/dall-e-2/"
+  },
+  {
+    "Model": "Imagen",
+    "Architecture": "Diffusion-based",
+    "Sources": "https://imagen.research.google"
+  },
+  {
+    "Model": "Parti",
+    "Architecture": "Transformer-based",
+    "Sources": "https://parti.research.google"
+  },
+  {
+    "Model": "Make-a-Scene",
+    "Architecture": "Hybrid",
+    "Sources": "https://github.com/CasualGANPapers/Make-A-Scene"
+  },
+  {
+    "Model": "StableDiffusion 1",
+    "Architecture": "Diffusion-based",
+    "Sources": "https://stability.ai/news/stable-diffusion-public-release"
+  },
+  {
+    "Model": "LAION CLIP",
+    "Architecture": "Dual-Encoder",
+    "Sources": "https://laion.ai/blog/large-openclip/"
+  },
+  {
+    "Model": "StableDiffusion 1.5",
+    "Architecture": "Diffusion-based",
+    "Sources": "https://github.com/Kameronski/stable-diffusion-1.5"
+  },
+  {
+    "Model": "AltCLIP",
+    "Architecture": "Dual-Encoder",
+    "Sources": "https://github.com/FlagAI-Open/FlagAI"
+  },
+  {
+    "Model": "GPT-4",
+    "Architecture": "Transformer-based",
+    "Sources": "https://openai.com/gpt-4"
+  },
+  {
+    "Model": "SigLIP",
+    "Architecture": "Dual-Encoder",
+    "Sources": "https://github.com/google-research/big_vision"
+  },
+  {
+    "Model": "EVA-CLIP",
+    "Architecture": "Dual-Encoder",
+    "Sources": "https://github.com/baaivision/EVA/tree/master/EVA-CLIP"
+  },
+  {
+    "Model": "PaLM-2",
+    "Architecture": "Transformer-based",
+    "Sources": "https://blog.google/technology/ai/google-palm-2-ai-large-language-model/"
+  },
+  {
+    "Model": "Claude-2",
+    "Architecture": "Transformer-based",
+    "Sources": "https://www.anthropic.com/news/claude-2"
+  },
+  {
+    "Model": "AltDiffusion",
+    "Architecture": "Diffusion-based",
+    "Sources": "https://github.com/superhero-7/AltDiffusion"
+  },
+  {
+    "Model": "StableDiffusion 2",
+    "Architecture": "Diffusion-based",
+    "Sources": "https://stability.ai/news/stable-diffusion-v2-release"
+  },
+  {
+    "Model": "Imagen 2",
+    "Architecture": "Diffusion-based",
+    "Sources": "unavailable"
+  },
+  {
+    "Model": "DeepFloyd",
+    "Architecture": "Diffusion-based",
+    "Sources": "https://github.com/deep-floyd"
+  },
+  {
+    "Model": "Parti 2",
+    "Architecture": "unavailable",
+    "Sources": "unavailable"
+  }
+]

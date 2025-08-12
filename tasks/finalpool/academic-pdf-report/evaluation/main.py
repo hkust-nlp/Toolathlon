@@ -178,6 +178,7 @@ if __name__ == "__main__":
     parser.add_argument("--agent_workspace", default=None, help="Path to the agent's workspace directory.")
     parser.add_argument("--groundtruth_workspace", default=None, help="Path to the ground truth workspace directory.")
     parser.add_argument("--res_log_file", default=None, help="Path to the results log file.")
+    parser.add_argument("--launch_time", required=False, help="Launch time")
     args = parser.parse_args()
     
     if main(args):

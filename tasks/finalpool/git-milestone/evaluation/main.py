@@ -348,6 +348,7 @@ def main():
     parser.add_argument("--agent_workspace", required=True, help="Agent工作空间路径")
     parser.add_argument("--groundtruth_workspace", required=False, help="Ground truth工作空间路径")
     parser.add_argument("--res_log_file", required=False, help="结果日志文件路径")
+    parser.add_argument("--launch_time", required=False, help="Launch time")
     args = parser.parse_args()
     
     # Construct file paths

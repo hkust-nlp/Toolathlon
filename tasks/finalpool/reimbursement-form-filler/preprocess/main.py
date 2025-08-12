@@ -65,6 +65,7 @@ def setup_workspace(agent_workspace: str):
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--agent_workspace", required=True, help="Agent workspace directory")
+    parser.add_argument("--launch_time", required=False, help="Launch time")
     args = parser.parse_args()
     
     setup_workspace(args.agent_workspace)

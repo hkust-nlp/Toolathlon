@@ -1,0 +1,16 @@
+{
+    "thursday":{
+        "bj2qf": {
+            "train number": "xxx",
+            "departure station": "xxx",
+            "arrival station": "xxx",
+            "departure time": "xx:xx",
+            "arrival time": "xx:xx"
+        },
+        "sh2qf": "xxx"
+    },
+    "sunday":{
+        "qf2bj": "xxx",
+        "qf2sh": "xxx"
+    }
+}
