@@ -221,7 +221,7 @@ def check_key_shareholder_details(target_file, ticker="NVDA", sheet_name="Key Sh
 if __name__ == "__main__":
     parser = ArgumentParser(description="Validate NVDA holdings data in Excel file.")
     parser.add_argument("--agent_workspace", required=True, help="Path to the agent workspace")
-    parser.add_argument("--launch_time", nargs='*', required=False, help="Launch time (can contain spaces)")
+    parser.add_argument("--launch_time", required=False, help="Launch time")
     args = parser.parse_args()
     
     workspace_path = Path(args.agent_workspace)

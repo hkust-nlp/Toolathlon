@@ -141,7 +141,7 @@ async def main():
         help="Directory to download the repository to (default: temporary directory)"
     )
     parser.add_argument("--res_log_file", required=False)
-    parser.add_argument("--launch_time", nargs='*', required=False, help="Launch time (can contain spaces)")
+    parser.add_argument("--launch_time", required=False, help="Launch time")
     args = parser.parse_args()
 
     hf_token = all_token_key_session.huggingface_token

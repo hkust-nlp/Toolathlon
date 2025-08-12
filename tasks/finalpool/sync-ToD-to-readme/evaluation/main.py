@@ -195,7 +195,7 @@ def main():
     parser.add_argument("submission_path", help="提交的README.md文件路径")
     parser.add_argument("groundtruth_path", help="标准答案README.md文件路径")
     parser.add_argument("--verbose", "-v", action="store_true", help="显示详细信息")
-    parser.add_argument("--launch_time", nargs='*', required=False, help="Launch time (can contain spaces)")
+    parser.add_argument("--launch_time", required=False, help="Launch time")
     args = parser.parse_args()
     
     success, feedback = evaluate_readme_todos(args.submission_path, args.groundtruth_path)

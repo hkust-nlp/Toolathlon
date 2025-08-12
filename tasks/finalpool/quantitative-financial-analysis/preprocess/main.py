@@ -295,7 +295,7 @@ def verify_cleanup():
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("--launch_time", nargs='*', required=False, help="Launch time (can contain spaces)")
+    parser.add_argument("--launch_time", required=False, help="Launch time")
     args = parser.parse_args()
     
     print("Google Sheets预处理工具")

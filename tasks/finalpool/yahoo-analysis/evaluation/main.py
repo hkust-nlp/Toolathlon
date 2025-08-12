@@ -262,7 +262,7 @@ def parse_data_range(md: str):
 def main():
     parser = ArgumentParser()
     parser.add_argument("--agent_workspace", required=True)
-    parser.add_argument("--launch_time", nargs='*', required=False, help="Launch time (can contain spaces)")
+    parser.add_argument("--launch_time", required=False, help="Launch time")
     args = parser.parse_args()
     print(f"Using agent workspace: {args.agent_workspace}")
     ws = Path(args.agent_workspace)

@@ -21,7 +21,7 @@ def main():
                        help="Agent workspace path")
     parser.add_argument("--github_token", required=False,
                        help="GitHub personal access token (optional, overrides config token)")
-    parser.add_argument("--launch_time", nargs='*', required=False, help="Launch time (can contain spaces)")
+    parser.add_argument("--launch_time", required=False, help="Launch time")
     args = parser.parse_args()
     
     # Determine the task directory and groundtruth_workspace path
