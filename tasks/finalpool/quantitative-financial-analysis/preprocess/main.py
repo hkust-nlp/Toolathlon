@@ -3,7 +3,7 @@
 Google Sheets预处理脚本
 用于检测并删除已存在的2025_Q2_Market_Data Google Sheet文件
 """
-
+from argparse import ArgumentParser
 import gspread
 import os
 import sys
@@ -294,6 +294,10 @@ def verify_cleanup():
         return False
 
 if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument("--launch_time", nargs='*', required=False, help="Launch time (can contain spaces)")
+    args = parser.parse_args()
+    
     print("Google Sheets预处理工具")
     print("用途：清理已存在的2025_Q2_Market_Data文件")
     print(f"目标文件夹ID: {TARGET_FOLDER_ID}")

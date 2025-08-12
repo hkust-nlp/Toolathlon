@@ -5,6 +5,7 @@ from configs.token_key_session import all_token_key_session
 if __name__=="__main__":
     parser = ArgumentParser()
     parser.add_argument("--agent_workspace", required=True)
+    parser.add_argument("--launch_time", nargs='*', required=False, help="Launch time (can contain spaces)")
     args = parser.parse_args()
 
     hf_token = all_token_key_session.huggingface_token

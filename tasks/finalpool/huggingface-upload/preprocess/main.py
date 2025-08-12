@@ -43,6 +43,7 @@ def remote_cleanup(hf_token: str):
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--agent_workspace", required=True)
+    parser.add_argument("--launch_time", nargs='*', required=False, help="Launch time (can contain spaces)")
     args = parser.parse_args()
 
     import shutil
