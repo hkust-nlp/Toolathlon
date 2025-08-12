@@ -1,0 +1,5 @@
+{
+    "needed_mcp_servers": ["scholarly","playwright","filesystem","fetch","google_search"],
+    "needed_local_tools": ["ai_webpage_summary","sleep","claim_done","manage_context","history"],
+    "meta": {}
+}

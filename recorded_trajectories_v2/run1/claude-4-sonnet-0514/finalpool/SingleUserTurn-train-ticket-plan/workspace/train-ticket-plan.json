@@ -1,0 +1,40 @@
+{
+  "thursday": {
+    "beijing_friend": {
+      "train_number": "G385",
+      "departure_station": "北京南",
+      "departure_time": "18:44",
+      "arrival_station": "曲阜东",
+      "arrival_time": "21:26",
+      "duration": "02:42"
+    },
+    "shanghai_friend": {
+      "train_number": "G162",
+      "departure_station": "上海虹桥",
+      "departure_time": "17:46",
+      "arrival_station": "曲阜东",
+      "arrival_time": "21:31",
+      "duration": "03:45"
+    },
+    "arrival_time_difference_minutes": 5
+  },
+  "sunday": {
+    "beijing_friend": {
+      "train_number": "G128",
+      "departure_station": "曲阜东",
+      "departure_time": "15:03",
+      "arrival_station": "北京南",
+      "arrival_time": "17:22",
+      "duration": "02:19"
+    },
+    "shanghai_friend": {
+      "train_number": "G1227",
+      "departure_station": "曲阜东",
+      "departure_time": "15:01",
+      "arrival_station": "上海虹桥",
+      "arrival_time": "18:48",
+      "duration": "03:47"
+    },
+    "departure_time_difference_minutes": 2
+  }
+}

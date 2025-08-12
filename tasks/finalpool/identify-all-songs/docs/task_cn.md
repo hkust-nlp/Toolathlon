@@ -1,1 +1,1 @@
-请帮我搜索标题为《Top hits 2024 playlist ~ Trending music 2024 ~ Best songs 2024 updated weekly (Playlist Hits)》的YouTube网站视频，通过歌词识别每首歌的歌曲名称，并写入到`songs.md`文件
+请帮我搜索标题为《Top hits 2024 playlist ~ Trending music 2024 ~ Best songs 2024 updated weekly (Playlist Hits)》的YouTube网站视频，通过歌词识别每首歌的歌曲名称，并写入到`songs.md`文件，格式请参考工作区中的`format.md`

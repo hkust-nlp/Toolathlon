@@ -1,0 +1,86 @@
+[
+    {
+        "destinations": [
+            {
+                "order": 1,
+                "name": "Benjamin Franklin Statue & College Hall",
+                "description": "The iconic statue of Benjamin Franklin, one of the Founding Fathers and founder of UPenn, stands in front of College Hall, the oldest building on campus. This Victorian Gothic building represents the heart of the campus and the educational legacy Franklin established.",
+                "location": "College Hall, University of Pennsylvania, Philadelphia, PA 19104"
+            }
+        ],
+        "route_plan": [
+            {
+                "from": "UPenn Bookstore (3601 Walnut St)",
+                "to": "Benjamin Franklin Statue & College Hall",
+                "distance": "0.2 mi (339m)",
+                "estimated_time": "5 minutes",
+                "directions": "Head east on Sansom St toward S 36th St, turn right onto S 36th St, take the stairs and follow campus pathways to reach the statue in front of College Hall"
+            }
+        ],
+        "total_distance": "0.2 mi",
+        "total_time": "5 minutes"
+    },
+    {
+        "destinations": [
+            {
+                "order": 2,
+                "name": "Fisher Fine Arts Library",
+                "description": "A stunning Victorian Gothic building designed by renowned architect Frank Furness. Even non-art majors will appreciate its historical grandeur, massive reading room, and intricate staircases that provide excellent photo opportunities.",
+                "location": "220 S 34th St, Philadelphia, PA 19104"
+            }
+        ],
+        "route_plan": [
+            {
+                "from": "Benjamin Franklin Statue & College Hall",
+                "to": "Fisher Fine Arts Library",
+                "distance": "0.1 mi (158m)",
+                "estimated_time": "2 minutes",
+                "directions": "Head north from the statue area, take the stairs toward S 34th St, then turn right onto S 34th St. The library will be on your right."
+            }
+        ],
+        "total_distance": "0.1 mi",
+        "total_time": "2 minutes"
+    },
+    {
+        "destinations": [
+            {
+                "order": 3,
+                "name": "ENIAC Exhibit (School of Engineering)",
+                "description": "Visit the birthplace of the modern computer! The Penn School of Engineering displays original ENIAC panels commemorating the world's first general-purpose electronic computer, built here during WWII. This 30-ton 'giant brain' revolutionized computing and represents Penn's pivotal role in technological history.",
+                "location": "220 S 33rd St, Philadelphia, PA 19104"
+            }
+        ],
+        "route_plan": [
+            {
+                "from": "Fisher Fine Arts Library",
+                "to": "ENIAC Exhibit (School of Engineering)",
+                "distance": "486 ft (148m)",
+                "estimated_time": "2 minutes",
+                "directions": "Head north on S 34th St, cross the road, then turn left onto Smith Walk. The School of Engineering building will be on your left."
+            }
+        ],
+        "total_distance": "486 ft",
+        "total_time": "2 minutes"
+    },
+    {
+        "destinations": [
+            {
+                "order": 4,
+                "name": "Penn Museum",
+                "description": "The Museum of Archaeology and Anthropology houses over one million artifacts from major civilizations worldwide. Highlights include a monumental Egyptian Sphinx (one of the largest outside Egypt), ancient Roman mosaics, Chinese bas-reliefs, and Mesopotamian treasures. The building itself is architectural art, blending Italian Renaissance and Victorian Gothic styles.",
+                "location": "3260 South St, Philadelphia, PA 19104"
+            }
+        ],
+        "route_plan": [
+            {
+                "from": "ENIAC Exhibit (School of Engineering)",
+                "to": "Penn Museum",
+                "distance": "0.2 mi (345m)",
+                "estimated_time": "5 minutes",
+                "directions": "Head southeast from the engineering building, turn right onto S 33rd St, then turn left onto South St. Turn right into the museum entrance area, and the museum will be on your left."
+            }
+        ],
+        "total_distance": "0.2 mi",
+        "total_time": "5 minutes"
+    }
+]

@@ -1,0 +1,44 @@
+[
+    {
+        "destinations": [
+            {
+                "order": 1,
+                "name": "Location Name",
+                "description": "Location Description",
+                "location": "Specific address or coordinates"
+            }
+        ],
+        "route_plan": [
+            {
+                "from": "Starting Point",
+                "to": "Destination",
+                "distance": "Walking distance",
+                "estimated_time": "Estimated walking time",
+                "directions": "Specific route guidance"
+            }
+        ],
+        "total_distance": "Total walking distance",
+        "total_time": "Total estimated time"
+    },
+    {
+        "destinations": [
+            {
+                "order": 2,
+                "name": "Location Name",
+                "description": "Location Description",
+                "location": "Specific address or coordinates"
+            }
+        ],
+        "route_plan": [
+            {
+                "from": "Starting Point",
+                "to": "Destination",
+                "distance": "Walking distance",
+                "estimated_time": "Estimated walking time",
+                "directions": "Specific route guidance"
+            }
+        ],
+        "total_distance": "Total walking distance",
+        "total_time": "Total estimated time"
+    }
+]

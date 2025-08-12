@@ -1,0 +1,4 @@
+{
+  "pass": false,
+  "failure": "content check failed:  The following ground truth songs were not found in agent's output: ['atmyworst', 'hymnfortheweekend', 'cupid', 'imamess', 'inferno', 'prayerinc']\n"
+}

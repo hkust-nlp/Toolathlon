@@ -1,0 +1,4 @@
+{
+  "pass": false,
+  "failure": "缺少必需字段: destinations\nJSON结构检查失败\n测试没通过...\n"
+}

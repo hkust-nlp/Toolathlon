@@ -1,0 +1,7 @@
+Eiffel Tower
+Louvre Museum
+Arc de Triomphe
+Notre Dame Cathedral
+Musée d'Orsay
+Panthéon
+Musée de l'Orangerie
