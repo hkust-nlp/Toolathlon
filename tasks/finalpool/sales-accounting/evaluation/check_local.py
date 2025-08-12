@@ -27,8 +27,8 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
         ref_rows = ws_ref.max_row
         
         # 检查是否添加了上周的数据（应该有126行，包括表头）
-        if agent_rows < ref_rows:
-            return False, f"账本记录数不足，当前{agent_rows}行，应该有{ref_rows}行"
+        if agent_rows != ref_rows:
+            return False, f"账本记录数不对，当前{agent_rows}行，应该有{ref_rows}行"
         
         # 检查是否包含上周的关键交易
         key_transactions = [
