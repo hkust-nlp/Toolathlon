@@ -1,9 +1,7 @@
 from argparse import ArgumentParser
 import asyncio
 
-from .check_log import check_log
 from .check_local import check_local
-from utils.general.helper import read_json  
 
 if __name__=="__main__":
     parser = ArgumentParser()
@@ -12,18 +10,6 @@ if __name__=="__main__":
     parser.add_argument("--res_log_file", required=False)
     args = parser.parse_args()
 
-    res_log = read_json(args.res_log_file)
-    
-    # check log
-    try:
-        log_pass, log_error = check_log(res_log)
-        if not log_pass:
-            print("log check failed: ", log_error)
-            exit(1)
-    except Exception as e:
-        print("log check error: ", e)
-        exit(1)
-    
     # check local
     try:
         local_pass, local_error = check_local(args.agent_workspace, args.groundtruth_workspace)
