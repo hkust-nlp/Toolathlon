@@ -29,6 +29,7 @@ if __name__ == "__main__":
     parser.add_argument("--numerical_tolerance", type=float, default=1e-6,
                        help="Numerical tolerance for improved evaluation (default: 1e-6)")
     parser.add_argument("--res_log_file", required=False)
+    parser.add_argument("--launch_time", nargs='*', required=False, help="Launch time (can contain spaces)")
     args = parser.parse_args()
 
     # Only perform local file validation (no log checking)

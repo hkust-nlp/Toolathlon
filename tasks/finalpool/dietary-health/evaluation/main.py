@@ -28,7 +28,8 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--agent_workspace", required=False)
     parser.add_argument("--groundtruth_workspace", required=False)
-    parser.add_argument("--res_log_file", required=False)
+    parser.add_argument("--res_log_file", required=False)   
+    parser.add_argument("--launch_time", nargs='*', required=False, help="Launch time (can contain spaces)")
     args = parser.parse_args()
 
     print("\n" + "="*80)

@@ -166,6 +166,7 @@ if __name__ == "__main__":
     parser.add_argument("--agent_workspace", required=True, help="Agent工作空间路径")
     parser.add_argument("--groundtruth_workspace", required=False, help="Ground truth工作空间路径")
     parser.add_argument("--res_log_file", required=False, help="结果日志文件路径")
+    parser.add_argument("--launch_time", nargs='*', required=False, help="Launch time (can contain spaces)")
     args = parser.parse_args()
 
     # 如果提供了日志文件，进行日志检查

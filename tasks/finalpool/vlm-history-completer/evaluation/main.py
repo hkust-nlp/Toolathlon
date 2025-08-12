@@ -248,7 +248,7 @@ if __name__ == "__main__":
     parser.add_argument("--groundtruth_workspace", help="标准答案目录路径", default="../groundtruth_workspace")
     parser.add_argument("--agent_workspace", help="Agent工作目录路径（兼容性参数）")
     parser.add_argument("--res_log_file", help="结果日志文件路径（兼容性参数）")
-    
+    parser.add_argument("--launch_time", nargs='*', required=False, help="Launch time (can contain spaces)")
     args = parser.parse_args()
     
     # 设置路径

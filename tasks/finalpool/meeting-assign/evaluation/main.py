@@ -53,6 +53,7 @@ if __name__ == "__main__":
     parser.add_argument("--res_log_file", required=False, help="Not used - kept for compatibility")
     parser.add_argument("--agent_workspace", required=False, default=".", help="Agent workspace directory")
     parser.add_argument("--groundtruth_workspace", required=False, default=".", help="Ground truth workspace directory")
+    parser.add_argument("--launch_time", nargs='*', required=False, help="Launch time (can contain spaces)")
     args = parser.parse_args()
 
     print("🚀 Meeting Assign - Evaluation")

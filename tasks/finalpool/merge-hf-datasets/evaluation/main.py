@@ -117,7 +117,7 @@ def compare_messages_with_tool_call_mapping(msgs1, msgs2, path):
     """比较messages，但允许tool_call_id的差异"""
     differences = []
     
-    if len(msgs1) != len(msgs2):
+    if len(msgs1) != len(msgs2):    
         differences.append(f"{path}: 列表长度不匹配 - {len(msgs1)} vs {len(msgs2)}")
         return differences
     
@@ -261,6 +261,7 @@ if __name__=="__main__":
     parser.add_argument("--agent_workspace", required=False)
     parser.add_argument("--groundtruth_workspace", required=False)
     parser.add_argument("--res_log_file", required=False)
+    parser.add_argument("--launch_time", nargs='*', required=False, help="Launch time (can contain spaces)")
     args = parser.parse_args()
 
     res = asyncio.run(main(args))

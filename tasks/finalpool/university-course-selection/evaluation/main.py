@@ -11,7 +11,7 @@ def main():
     parser.add_argument('--res_log_file', required=False, help='Path to result log file')
     parser.add_argument('--agent_workspace', required=True, help='Path to agent workspace')
     parser.add_argument('--groundtruth_workspace', required=True, help='Path to groundtruth workspace')
-    
+    parser.add_argument("--launch_time", nargs='*', required=False, help="Launch time (can contain spaces)")
     args = parser.parse_args()
     
     try:

@@ -34,7 +34,7 @@ def main():
                        help="Numerical tolerance for improved evaluation (default: 1e-6)")
     parser.add_argument("--verbose", action='store_true',
                        help="Enable verbose output")
-    
+    parser.add_argument("--launch_time", nargs='*', required=False, help="Launch time (can contain spaces)")
     args = parser.parse_args()
 
     print("=== Excel Data Transformation Evaluation ===")
