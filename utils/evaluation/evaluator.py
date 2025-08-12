@@ -32,12 +32,18 @@ class TaskEvaluator:
         eval_command = task_config.evaluation.evaluation_command
         launch_time = task_config.launch_time
 
+        print(f"launch time in eval is {launch_time}")
+
         # 评估所有内容
         if eval_command is not None:
             # try:
-            args = f"--res_log_file {res_log_file} --agent_workspace {agent_workspace} --groundtruth_workspace {groundtruth_workspace} --launch_time {launch_time}"
+            args = f"--res_log_file {res_log_file} --agent_workspace {agent_workspace} --groundtruth_workspace {groundtruth_workspace} --launch_time \"{launch_time}\""
             command = f"{eval_command} {args}"
-            output, _, returncode = await run_command(command)
+            output, error, returncode = await run_command(command)
+            print("== Evaluation STDOUT ==")
+            print(output)
+            print("== Evaluation STDERR ==")
+            print(error)
             if returncode != 0:
                 return {
                     "pass": False, 

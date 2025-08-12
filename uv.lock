@@ -296,6 +296,20 @@ wheels = [
 ]
 
 [[package]]
+name = "canvasapi"
+version = "3.3.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "arrow" },
+    { name = "pytz" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/23/70/b093af2577d62b63b9353aea62ec08f9ddf5cbc03b8413698674f89a4781/canvasapi-3.3.0.tar.gz", hash = "sha256:86f2e930acc87c9a360575b969687f107ab4e1f3c0ee4556df30d1757eaf5ef0", size = 153855, upload-time = "2024-08-27T06:54:05.723Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c7/ce/8fe55eebefc34b06e1656176f3fc569fea367980013421e203d81082376b/canvasapi-3.3.0-py3-none-any.whl", hash = "sha256:d7b85a9abf149ed7729002d9bfe2c30bbfcdcf14517f10234b7bdd630a1a8217", size = 113748, upload-time = "2024-08-27T06:54:04.216Z" },
+]
+
+[[package]]
 name = "certifi"
 version = "2025.4.26"
 source = { registry = "https://pypi.org/simple" }
@@ -1524,6 +1538,7 @@ dependencies = [
     { name = "babel" },
     { name = "beautifulsoup4" },
     { name = "bibtexparser" },
+    { name = "canvasapi" },
     { name = "certifi" },
     { name = "charset-normalizer" },
     { name = "cli-mcp-server" },
@@ -1671,6 +1686,7 @@ requires-dist = [
     { name = "babel", specifier = "==2.17.0" },
     { name = "beautifulsoup4", specifier = "==4.13.4" },
     { name = "bibtexparser", specifier = "==1.4.3" },
+    { name = "canvasapi", specifier = ">=3.3.0" },
     { name = "certifi", specifier = "==2025.4.26" },
     { name = "charset-normalizer", specifier = "==3.4.1" },
     { name = "cli-mcp-server", specifier = ">=0.2.4" },

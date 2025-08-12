@@ -171,6 +171,21 @@ podman exec woo-wp bash -c 'chmod 644 /var/www/html/.htaccess 2>/dev/null || tou
 echo "Configuring HTTP authentication support..."
 podman exec woo-wp bash -c 'echo "SetEnvIf Authorization (.+) HTTPS=on" >> /var/www/html/.htaccess'
 
+# 8.7 Add WooCommerce product sales display hooks to functions.php
+echo "Adding WooCommerce sales display hooks..."
+podman exec woo-wp bash -c 'cat >> /var/www/html/wp-content/themes/twentytwentyfive/functions.php << "EOF"
+
+// 在shop页面显示总销量
+add_action( '\''woocommerce_after_shop_loop_item_title'\'', '\''wc_product_sold_count'\'', 5 );
+// 在产品详情页面显示总销量
+add_action( '\''woocommerce_single_product_summary'\'', '\''wc_product_sold_count'\'', 11 );
+function wc_product_sold_count() {
+    global $product;
+    $units_sold = get_post_meta( $product->id, '\''total_sales'\'', true );
+    echo '\''<p>'\'' . sprintf( __( '\''Total Sales: %s'\'', '\''woocommerce'\'' ), $units_sold ) . '\''</p>'\'';
+}
+EOF'
+
 # 9. Generate REST API keys
 echo "Generating WooCommerce REST API keys..."
 API_CREDS=$(podman exec woo-wp wp eval '

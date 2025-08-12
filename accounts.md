@@ -54,6 +54,25 @@ email: canvas@example.edu
 password: canvas-docker
 token: canvas-docker
 
+追加三个管理员
+    to yz
+  📧 Email: mcpcanvasadmin1@mcp.com
+  🔑 Password: mcpcanvasadminpass1
+  🎫 Token: mcpcanvasadmintoken1
+  👤 Role: admin
+    
+    to xc
+  📧 Email: mcpcanvasadmin2@mcp.com
+  🔑 Password: mcpcanvasadminpass2
+  🎫 Token: mcpcanvasadmintoken2
+  👤 Role: admin
+
+    to hz
+  📧 Email: mcpcanvasadmin3@mcp.com
+  🔑 Password: mcpcanvasadminpass3
+  🎫 Token: mcpcanvasadmintoken3
+  👤 Role: admin
+
 - woocommerce 服务 管理员
 email: woocommerce@mcp.com
 username: mcpwoocommerce

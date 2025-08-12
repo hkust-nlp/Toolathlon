@@ -362,9 +362,15 @@ class TaskAgent:
 
             # 执行预处理命令（如果有）
             if self.task_config.initialization.process_command is not None:
-                args = f"--agent_workspace {self.task_config.agent_workspace} --launch_time {self.task_config.launch_time}"
+                args = f"--agent_workspace {self.task_config.agent_workspace} --launch_time \"{self.task_config.launch_time}\""
                 command = f"{self.task_config.initialization.process_command} {args}"
-                await run_command(command, show_output=True)
+                output, error, returncode = await run_command(command)
+                self._debug_print("== PreProcess STDOUT ==")
+                self._debug_print(output)
+                self._debug_print("== PreProcess STDERR ==")
+                self._debug_print(error)
+                if returncode != 0:
+                    raise RuntimeError(f"PreProcess command failed! returncode: {returncode}")
                 
             # MCP服务器特定的初始化操作
             await specifical_inialize_for_mcp(self.task_config)
