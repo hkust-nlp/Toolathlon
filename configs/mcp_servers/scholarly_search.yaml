@@ -5,11 +5,8 @@
 type: stdio
 name: scholarly
 params:
-  command: uv
+  command: uvx
   args:
-    - "--directory"
-    - "${local_servers_paths}/mcp-scholarly/"
-    - "run"
     - "mcp-scholarly"
   # env:
   #   HTTPS_PROXY: "${config.proxy}"

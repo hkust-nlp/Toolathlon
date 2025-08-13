@@ -8,5 +8,7 @@ params:
     - "pdf-tools-mcp"
     - "--workspace_path"
     - "${agent_workspace}"
+    - "--tempfile_dir"
+    - "${agent_workspace}/.pdf_tools_tempfiles"
 client_session_timeout_seconds: 120
 cache_tools_list: true

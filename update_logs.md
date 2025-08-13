@@ -1,3 +1,35 @@
+### 2025.8.12 18:15
+- 修改模拟用户为gpt-5
+
+### 2025.8.11 21:00
+- 新增了两个 MCP 服务器的安装命令:
+  - `mcp-snowflake-server`: 用于 Snowflake 数据库连接
+  - `mcp-scholarly`: 用于学术搜索功能  
+- 简化了安装流程，将这两个服务器从源码构建改为直接通过 uv tool 安装
+- 更新了 TODOs 列表，移除了已完成的配置项
+
+## 2025.8.11 17:50
+- 更新支持模型
+    - gpt4.1不再支持，改用gpt-5, 追加了相应修改
+    - claude4 opus ->claude4.1 opus
+    - 见 `utils/api_model/model_provider.py`
+
+## 2025.8.11 03:30
+- 更新账户信息和服务配置
+    - 添加Snowflake账户信息到 `accounts.md`
+    - 完善本地账户说明，包含poste、canvas、woocommerce管理员账户信息
+    - 更新pdf-tools配置，添加临时文件目录配置 `configs/mcp_servers/pdf-tools.yaml`
+    - 添加Snowflake配置到 `configs/token_key_session.py`
+    - 更新用户数据文件 `configs/users_data.json`
+    - 新增Snowflake MCP服务器配置 `configs/mcp_servers/snowflake.yaml`
+    - 添加csv格式用户数据文件 `configs/users_data.csv`
+    - 新增端口监控工具 `utils/general/port_monitor.py`
+    - 优化Canvas用户创建脚本和Woocommerce部署脚本
+
+## 2025.8.9 23:50
+- 添加canvas admin账户信息
+    - 相关文件 `deployment/canvas/README.md`
+
 ## 2025.8.7 16:25
 - 清理调试文件
     - 删除 `debug.json` 文件

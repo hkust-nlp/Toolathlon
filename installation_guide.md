@@ -34,11 +34,13 @@ In this file we guide you how to install all needed servers for this project.
     uv tool install office-word-mcp-server@1.1.9
     uv tool install git+https://github.com/wandb/wandb-mcp-server@e1b6274a58a8dc56a47c5aaefb9d03282133f507
     uv tool install cli-mcp-server@0.2.5
-    uv tool install pdf-tools-mcp@0.1.3
+    uv tool install pdf-tools-mcp@0.1.4
     uv tool install git+https://github.com/jkawamoto/mcp-youtube-transcript@28081729905a48bef533d864efbd867a2bfd14cd
     uv tool install mcp-google-sheets@0.4.1
     uv tool install google-cloud-mcp@1.0.0
     uv tool install emails-mcp@0.1.0
+    uv tool install git+https://github.com/lockon-n/mcp-snowflake-server@75c03ca0b3cee2da831e2bc1b3b7a150e4c2999a
+    uv tool install git+https://github.com/lockon-n/mcp-scholarly@82a6ca268ae0d2e10664be396e1a0ea7aba23229
     ```
 
 4. build from source
@@ -48,8 +50,6 @@ In this file we guide you how to install all needed servers for this project.
     `yahoo-finance-mcp`: see `install_records/yahoo_finance.md`
 
     `youtube-mcp-server`: see `install_records/youtube.md`
-
-    `mcp-scholarly`: see `install_records/scholarly_search.md`
 
     `arxiv-latex`: see `install_records/arxiv_latex.md`
 
@@ -67,5 +67,5 @@ In this file we guide you how to install all needed servers for this project.
 
     TODO: guide for community researchers who want to use our benchmark.
 
-    TODOs: google cloud application, leetcode session, firecrawl token, edgeone token ...
+    TODOs: google cloud application，wandb, notion, github, snowflake, linkedin
     
