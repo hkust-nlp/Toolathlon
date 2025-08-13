@@ -61,6 +61,7 @@ def entries_match(entry1, entry2):
     keys2 = set(entry2.keys())
     
     if keys1 != keys2:
+        print(f"Keys mismatch: {keys1} != {keys2}")
         return False
     
     # 检查所有字段的值是否完全匹配
@@ -68,12 +69,14 @@ def entries_match(entry1, entry2):
         if 'url' in field.lower():
             # URL字段直接比较，不进行标准化
             if entry1[field].strip() != entry2[field].strip():
+                print(f"URL mismatch: {entry1[field].strip()} != {entry2[field].strip()}")
                 return False
         else:
             # 对其他字段进行标准化比较
             val1 = normalize_field_value(entry1[field], field)
             val2 = normalize_field_value(entry2[field], field)
             if val1 != val2:
+                print(f"Value mismatch: {val1} != {val2}")
                 return False
     
     return True
