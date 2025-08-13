@@ -1,0 +1,127 @@
+\section{Detailed computation process for tooling trade-offs}
+\label{app:learning-effort}
+
+For each method measured in \S\ref{sub:trade-off}, we describe the detailed processes in estimating their computation cost and performance improvement. 
+For open-source models, we estimate cost $C = 6ND$, where $N$ is the number of tokens and $D$ is the parameter size (\autoref{fig:overall-cost}, left). Because the parameter size $D$ of closed-source GPT is unknown, we only measure the number of extra tokens $N$ per example (\autoref{fig:overall-cost}, right). 
+
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\textwidth]{./figures/compute-cost.pdf}
+\vspace{-6mm}
+\caption{Computation cost of different approaches using open-source (left) and closed-source (right) models, and their performance gain on experimented datasets. We use different colors to represent tasks and different shapes to represent methods.}
+% \vspace{-2mm}
+\label{fig:overall-cost}
+\end{figure}
+
+% \textbf{\begin{table}[ht]
+% \small
+% \begin{center}
+%     \begin{tabular}{lllll}
+%     \toprule
+%     \multicolumn{1}{c}{\textbf{Work}} & \multicolumn{1}{c}{\textbf{Baseline}} & \multicolumn{1}{c}{\textbf{Tool-Use LM}} & \multicolumn{1}{c}{\textbf{Compute}} & \multicolumn{1}{c}{\textbf{Type}} \\
+%     \midrule
+%     {API-Bank} & {Alpaca} & {Lynx} & {3-epoch train} & {tool-use, train \& test} \\
+%     {ToolAlpaca} & {Vicuna} & {ToolAlpaca} & {3-epoch train} & {tool-use, train \& test} \\
+%     {Toolformer} & {GPT-J} & {Toolformer} & {25$k$ examples train} & {tool-use, train \& test} \\
+%     {LATM} & {CoT} & {LATM} & {train, verify, test} & {tool-make, train \& test} \\
+%     {CRAFT} & {PoT} & {CRAFT} & {train, verify, test} & {tool-make, train \& test} \\
+%     % \midrule
+%     {Chameleon} & {CoT/PoT} & {Chameleon} & {few-shot, verify} & {tool-use, test} \\
+%     {CREATOR} & {PoT} & {CREATOR} & {abstract, decide, rectify} & {tool-make, test} \\
+%     {TroVE} & {Primitive} & {TroVE} & {3-way generation} & {tool-make, test} \\
+%     \bottomrule
+%     \end{tabular}
+% \end{center}
+% \caption{Details for measuring computation cost and task performance.}
+% \label{tab:est-compute-cost}
+% \end{table}}
+
+
+\subsection{Methods using known-sized models}
+
+For methods using models whose parameter sizes are known, we estimate the computation cost by the FLOPs during any additional modules such as training and inference with additional context. In general, the computation cost is majorly affected by (1) the number of tokens processed, and (2) the parameter size of models.
+
+
+
+\noindent \textbf{API-Bank \citep{li-etal-2023-api}} \quad
+This work trains the Lynx model that uses tools to solve problems in the proposed API-Bank dataset. The Lynx model is initialized by Alpaca 7B parameters, and trained on the API-Bank training set with 3 epochs. Therefore, we adopt the Alpaca 7B as the baseline and Lynx as the tool-using model, where the 3-epoch training is the additional computation cost introduced to enable tool use.
+We calculate the total number of tokens involved in the training process, including the example i/o and additional instructions. 
+Because the baseline and proposed method use the same prompt at inference time, no additional computation is required.
+Regarding task performance, we adopt the total correctness across all evaluation systems, as reported in Table 3. We report the difference between the fine-tuned Lynx-7B and the zero-shot Alpaca-7B.
+
+
+\noindent \textbf{ToolAlpaca \citep{tang2023toolalpaca}} \quad
+This work proposes the ToolAlpaca dataset and trains Vicuna models to use tools. The baseline models are Vicuna-7B and Vicuna-13B models. The trained tool-using models are called ToolAlpaca-7B and ToolAlpaca-13B models. All ToolAlpaca models are trained on the training split for 3 epochs, so we estimate the cost during this training process for 7B and 13B models, respectively.
+We adopt the `overall' results reported in Table 3, on examples with both simulated tools and real-world APIs, and report their average results. We measure the performance gain by the difference between the ToolAlpaca-7/13B and Vicuna-7/13B. 
+
+
+\noindent \textbf{Toolformer \citep{schick2023toolformer}} \quad
+This work integrates five tools --- question answering system, calculator, Wikipedia search, machine translation system, and calendar --- respectively for five tasks transformed from a subset of CCNet \citep{wenzek2020ccnet}.
+Starting with GPT-J models \citep{wang2021gpt-j} as the no-tool baseline, they train on 25$k$ model-synthesized examples for each tool and obtain the Toolformer models, causing a total of 1$M$ FLOPs for each task. At inference time, they add special instruction and in-context examples to prompt tool using, resulting in extra compute.
+Because each task contains multiple datasets, we report the average results to represent the general task performance.
+
+
+
+
+% ######################
+\subsection{Models with unknown size}
+
+While many of the works use GPT-3.5 or GPT-4 models that do not release their parameter size, we estimate the cost by using the number of tokens processed in extra modules.
+
+\noindent \textbf{Chameleon \citep{lu2023chameleon}} \quad 
+This work proposes to take a tool-augmented approach to improve on two existing datasets --- ScienceQA and TabMWP. Because all experiments use ChatGPT and GPT-4 models, whose parameter sizes are unknown, we only examine results with (the better) GPT-4 model to fairly compare with other methods using GPT-4. 
+Specifically for the ScienceQA dataset, we adopt the Chain-of-Thought (CoT) baseline reported in the paper, and report task accuracy as in the \textsc{All} column in Table 3. We calculate the difference in number of tokens between the proposed Chameleon methods against the CoT baseline.
+For the TabMWP dataset, we adopt the Program-of-Thought (PoT) baseline and similarly calculate the token number difference using the provided results.\footnote{\url{https://github.com/lupantech/chameleon-llm}} We adopt numbers in the \textsc{All} column in Table 4 as the TabMWP accuracy. 
+
+
+\noindent \textbf{LATM \citep{cai2023large}} \quad
+This work proposes to use LMs to make tools for individual tasks in BigBench. Compared to the chain-of-thought (CoT) baseline, the proposed LATM method integrates training, validation, and inference stages to make tools and solve questions. We estimate the compute cost by the additional number of tokens used for LATM than for CoT.
+We measure each method by averaging its accuracy across all six selected tasks.
+
+\noindent \textbf{CRAFT \citep{yuan2023craft}} \quad
+This work uses LMs to make tools for math, table, and image reasoning tasks. We calculate the number of tokens used during training and inference, using its released code and data.\footnote{\url{https://github.com/lifan-yuan/CRAFT}}
+CRAFT similarly implements CoT as the baseline, and proposes further training, verification, and finally testing in the CRAFT method. 
+We report its task accuracy on the representative datasets from each task --- MATH, TabMWP, and GQA --- to enable fairer comparison with other works having overlapping datasets.
+
+
+\noindent \textbf{CREATOR \citep{qian2023creator}} \quad
+As a prior work for CRAFT, CREATOR similarly tests on MATH and table tasks, but designs its methods differently. In addition to CoT, this work implements a stronger program-oriented baseline called Program-of-Thought (PoT). We also adopt PoT as the main baseline without tool making or using. The CREATOR method operates at test time, with multiple steps through tool making, solution generation, verification, rectification, etc. We calculate the difference in number of tokens between the CREATOR approach and the baseline PoT setting.
+We adopt the task accuracy reported in Table 2 (MATH) and Table 3 (TabMWP) from the original paper.
+
+\noindent \textbf{TroVE \citep{wang2024trove}} \quad
+TroVE also induces tools without training supervision. This work adopts the primitive baseline, a presumably stronger version of PoT yet without much textual explanation. The main implementation change in TroVE is the three-mode generation and multi-candidate sampling. We calculate the additional tokens used in TroVE compared to the primitive baseline.
+The dataset reports task accuracy, solution complexity, and toolbox size, we only adopt the task accuracy to fairly compare with other works.
+
+
+% \begin{figure}[ht]
+% \centering
+% % \vspace{-1mm}
+% \includegraphics[width=\textwidth]{./figures/inference-cost.pdf}
+% \vspace{-6mm}
+% \caption{Performance gain versus inference-time computation cost.}
+% \vspace{-3mm}
+% \label{fig:inference-cost}
+% \end{figure}
+
+
+% \begin{table}[ht]
+% \small
+% \begin{center}
+% \resizebox{0.92\linewidth}{!}{
+%     \begin{tabular}{ll}
+%     \toprule
+%     \multicolumn{1}{c}{\textbf{Missing aspects}} & \multicolumn{1}{c}{\textbf{Potential metrics}} \\
+%     \midrule
+%     {Efficiency of tool integration} & {computation overhead} \\
+%     {Quality of tools} & {runtime and memory usage of tools} \\
+%     {Reliability of unstable tools} & {success rate of tools} \\
+%     {Reproducible testing} & {execution correctness w.r.t. canonical trajectory} \\
+%     {Safe usage} & {visibility, data integrity, and other meta-data about tools} \\
+%     \bottomrule
+%     \end{tabular}
+%     }
+% \end{center}
+% \caption{Missing evaluation aspects and potential metrics.}
+% \label{tab:missing-eval}
+% \end{table}

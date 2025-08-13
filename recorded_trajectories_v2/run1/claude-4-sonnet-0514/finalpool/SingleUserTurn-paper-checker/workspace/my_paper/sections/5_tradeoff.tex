@@ -1,0 +1,95 @@
+\section{Trade-offs in tool usage}
+\label{sub:trade-off}
+
+Leveraging tools often brings better performance, however, should we always use tools? More concretely, is the performance gain from using tools worthy of the computation cost spent for LMs to learn to use tools, or the inference cost at test time?
+Existing works mainly focus on task accuracy, but a more nuanced picture emerges when we take other factors into account.
+We empirically study the performance gain and learning cost of various methods on their experimented datasets in \autoref{tab:api-benchmarks}, using which we discover more efficient (i.e., achieve greater gains with less compute) methods and tasks that benefit more from tools.
+
+\begin{table}[ht]
+\vspace{-3mm}
+\small
+\begin{center}
+\resizebox{0.92\linewidth}{!}{
+    \begin{tabular}{llcrcrr}
+    \toprule
+    \multicolumn{1}{c}{\multirow{2}{*}{\textbf{Type}}} & \multirow{2}{*}{\textbf{Method}} & \multicolumn{1}{c}{\multirow{2}{*}{\textbf{Task}}} & \multicolumn{1}{c}{\multirow{2}{*}{\textbf{$\Delta$ Perf.}}} & \multirow{2}{*}{\textbf{\# Params (B)}} & \multicolumn{2}{c}{\textbf{\# Tokens (M)}} \\
+    {} & {} & {} & {} & {} & {train} & {test} \\
+    \midrule
+    \multirowcell{9}{tool\\use} & \multirow{5}{*}{ToolFormer} & \color{blue} {cloze} & {+ 14.7} & {6.7} & {642.1} & {269.0} \\
+    {} & {} & \color{ao} {math} & {+ 30.4} & {6.7} & {3864.2} & {421.0} \\
+    {} & {} & \color{chromeyellow} {QA} & {+ 5.8} & {6.7} & {1101.2} & {189.0} \\
+    {} & {} & \color{red} {multilingual} & \colorbox{red!27}{- 0.2}  & {6.7} & {606.0} & {274.0} \\
+    {} & {} & \color{ballblue} {temporal} & {+ 13.0} & {6.7} & {508.8} & {202.0} \\
+    \cmidrule{2-7}
+    {} & {API-Bank} & {API} & {+ 24.4} & {7} & \textbf{190414.6} & {0.0} \\
+    \cmidrule{2-7}
+    {} & {ToolAlpaca} & {API} & {+ 45.2} & {7} & \textbf{241889.3} & {0.0} \\
+    \cmidrule{2-7}
+    {} & \multirow{2}{*}{Chameleon} & {science} & {+ 2.6} & {-} & {0.0} & {88.3} \\
+    {} & {} & \color{darklavender} {table} & {+ 1.9} & {-} & {0.0} & {325.9} \\
+    \midrule
+    \midrule
+    \multirowcell{7}{tool\\making} & {LATM} & {BigBench} & {+ 29.1} & {-} & {28.5} & {4720.0} \\
+    \cmidrule{2-7}
+    {} & \multirow{2}{*}{CREATOR} & \color{ao} {math} & {+ 4.5} & {-} & {0.0} & {5113.6} \\
+    {} & {} & \color{darklavender} {table} & \colorbox{chromeyellow!20}{+ 0.0} & {-} & {0.0} & \textbf{6827.6} \\
+    \cmidrule{2-7}
+    {} & \multirow{2}{*}{CRAFT} & \color{ao} {math} & {+ 13.2} & {-} & {4126.6} & {4098.5} \\
+    {} & {} & \color{darklavender} {table} & {+ 17.2} & {-} & {2750.6} & {5018.2} \\
+    \cmidrule{2-7}
+    {} & \multirow{2}{*}{TroVE} & \color{ao} {math} & {+ 21.0} & {-} & {0.0} & {1825.2} \\
+    {} & {} & \color{darklavender} {table} & {+ 12.0} & {-} & {0.0} & {1358.8} \\
+    \bottomrule
+    \end{tabular}
+    }
+\end{center}
+\vspace{-2mm}
+\caption{Computation cost (number of tokens in $M$ and parameters in $B$) of tooling methods and their performance gain on experimented datasets. To fairly compare costs on datasets with different sizes, we report the average number of tokens spent on a testing example.}
+\vspace{-3mm}
+\label{tab:compute-cost}
+\end{table}
+
+
+
+For each work and each dataset they experimented with,\footnote{ We did not measure some works due to insufficient resources.} we evaluate the performance gain after LM learned or made tools to solve tasks, compared to the baseline LM with no prior exposure to tool-related information.
+We also quantify the computation cost of their tooling approaches during the token-consuming training and inference processes. For works using models with known sizes, we report both (i) the number of tokens in input prompts and outputs, and (ii) the parameters in experimented models to achieve corresponding performance improvements. For methods using the size-unknown GPT-4 model, which are also comparable w.r.t. to model size since they use the same GPT-4 model, we only report the number of tokens processed.
+We elaborate more on computation details in \S\ref{app:learning-effort}.
+
+
+
+
+
+\noindent \textbf{What tasks benefit the most from tools?} \quad
+In general, tasks that cover multiple domains experience the highest increase, such as the ToolAlpaca benchmark in tool-using and the BigBench dataset in tool-making scenarios. Nonetheless, substantial gains may be expected
+\begin{wrapfigure}[12]{r}{0.33\textwidth}
+\vspace{-3mm}
+\includegraphics[width=0.31\textwidth]{./figures/toolformer-cost.pdf}
+\vspace{-3mm}
+\caption{Compute \& performance gain with ToolFormer.}
+\vspace{-2mm}
+\label{fig:toolformer-cost}
+\end{wrapfigure}
+on API benchmarks (i.e., API-Bank and ToolAlpaca), because all examples are synthesized use cases for designated tools (\S\ref{sub:app-spec}), no-tool baselines are deprived of necessary components (i.e., tools) to solve the task, therefore achieving much lower accuracy.
+
+
+On existing benchmarks, the ToolFormer method is the most efficient on MATH problems, showing the highest $30.4$ increase with little computation ($0.17$ MB). While other tasks improve less, multilingual tasks even degrade by $-0.2$ points, despite using a similar amount of compute. This variance across tasks aligns with expectations: using a \texttt{calculator} tool greatly improves the arithmetic ability of probabilistic LMs, which are not naturally suitable for symbolic calculations; however, LMs are originally built to solve language tasks such as machine translation (MT), so assigning the MT task to another (usually smaller) LM may not bring substantial improvements.
+
+
+\begin{wrapfigure}[14]{r}{0.33\textwidth}
+\vspace{-2mm}
+\includegraphics[width=0.32\textwidth]{./figures/tool-make-cost.pdf}
+\vspace{-3mm}
+\caption{Comparing different tool-making methods.}
+\vspace{-1mm}
+\label{fig:tool-make-cost}
+\end{wrapfigure}
+\noindent \textbf{What methods are efficient in tool-making?} \quad
+While it is hard to conduct fair comparisons for many works experimenting on different datasets, in tool-making scenarios (\autoref{fig:tool-make-cost}), the three methods (Creator, CRAFT, \textsc{TroVE}) experiment on the same MATH and TabMWP datasets, thus enabling fair comparisons in both cost and performance dimensions.
+\textsc{TroVE} appears to be the most efficient method in general, costing only $1.2$--$1.4$K tokens while improving the performance by $12.0$--$21.0$ points in accuracy. 
+In contrast, CREATOR and CRAFT are less efficient, costing $3.8$--$6.0$ times of compute, yet achieve only minimal ($0.0$--$4.5$\%) or comparable ($4.1$--$5.0$\%) accuracy increases.
+
+
+\noindent \textbf{Training-time vs inference-time cost} \quad
+Training-time and inference-time costs may not be equally important to many practitioners, since inference may be run many times but training often only needs to be done once.\footnote{Another measure of the inference process is latency, which also heavily depends on implementation or hardware choices. We do not report latency since these methods are implemented differently.} If we only consider inference-time cost in \autoref{tab:compute-cost}, the efficiency ranking of tooling methods changes. On one hand, tool-making method rankings roughly remain the same, except that CRAFT requires less compute than CREATOR on both tasks after getting rid of the training cost.
+On the other hand, however, the ranking among tool-using methods drastically changes: ToolFormer requires more compute than API-Bank and ToolAlpaca when considering only inference-time cost. We conjecture this is mainly due to differences in baseline setups: ToolFormer adds in-context examples than the CoT baseline, API-Bank and ToolAlpaca use the same prompt for baseline and fine-tuned LMs with varied abilities to utilize tools presented in the prompt.
+In general, if the user has sufficient budgets for training but higher demands on inference-time efficiency, the training approaches proposed by API-Bank and ToolAlpaca could be more suitable.

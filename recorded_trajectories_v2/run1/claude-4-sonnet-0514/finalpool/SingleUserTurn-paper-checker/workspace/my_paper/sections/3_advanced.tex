@@ -1,0 +1,105 @@
+\section{Advanced tool-use methods}
+\label{sec:methods}
+
+Given this understanding of the basic tooling paradigm and the scenarios in which tools are useful, we now discuss more advanced approaches for tools.
+Concretely, we study multi-tool selection and usage (\S\ref{sub:tool-select}), complex tooling under programmatic contexts (\S\ref{sub:tools-and-programs}), and creation of tools when they are not available a-priori (\S\ref{sub:make-tool}). 
+
+
+% #########################
+\subsection{Complex tool selection and usage}
+\label{sub:tool-select}
+
+Depending on the number of tools available, the system may include an implicit or explicit tool selection module.
+If tools are already \textit{designated} for the task \citep{lazaridou2022internetaugmented,thoppilan2022lamda}, then no tool selection is needed.
+If \textit{a small number} (e.g., 5--10) of tools are available, metadata and use cases of these tools can be provided as input contexts along with the user query \citep{schick2023toolformer,paranjape2023art}, and LMs can directly select tools from contexts via a standard generation process.
+If the toolbox size \textit{further grows} (e.g., to hundreds), fitting all tools into model inputs is not feasible. Thus an extra retrieval step is often incorporated: a retriever model short-lists the most relevant tools and feeds their metadata to the solution-generation LM. Specifically, \citet{zhou2023docprompting,qin2023toolllm} train retriever models that map NL intents to tool documentation.
+\citet{yuan2023craft} ask LMs to write hypothetical descriptions and use the SimCSE retriever \citep{} to find similar tools. More easily, one can directly use off-the-shelf embeddings \citep{SFRAIResearch2024,openai-emb} or training-free sparse retrievers \citep{robertson2009probabilistic}.
+
+
+% \noindent \textbf{Complex, multi-tool usage} \quad
+For complex queries that require multiple tools to solve, the common approach so far is to break down the task and tackle each step sequentially \citep{paranjape2023art} by selecting and using tools with intermediate contexts.
+However, this sequential multi-turn paradigm may not be reflective of more complex or realistic usage of the involved tools. For example, a user may prefer \textit{nested} function calls \texttt{check\_weather(get\_local\_time(`Pittsburgh'))} to allow information hiding or encapsulation \citep{rogers2001encapsulation}, \textit{parallel} calls to reduce round trips with the API \citep{eleti2023function}, or \textit{iterative} calls \texttt{buy\_ticket(event)} in a loop until it returns \texttt{True} to indicate a successful transaction. 
+
+
+% ################################
+\subsection{Tools in programmatic contexts}
+\label{sub:tools-and-programs}
+
+Unlike text-based tasks where tools are auxiliary modules to extend LM abilities, on programmatic tasks, where code LMs can solve the problem by generating programs, tools can be seen as compositions of basic functions.
+In this part, we discuss tools in programmatic tasks for domain-specific (\S\ref{}) and general-purpose problems (\S\ref{}).
+
+
+\noindent \textbf{Focus on varied tools} \quad
+Depending on the tasks of interest, existing works focus on different types of tools under programmatic contexts. With the increasing complexity of these tools and presumably a decreasing familiarity of LMs about them, there are works that adopt (i) \textcolor{candypink}{\textit{built-in functions}} of a programming language (PL) to augment LMs in symbolic reasoning, (ii) \textcolor{ao!80}{\textit{external libraries}} in pre-designed packages to tackle complex open-domain coding queries \citep{wang2023execution}, and (iii) \textcolor{blue(ncs)}{\textit{utility functions}} unseen at training time to solve specific tasks.
+
+\begin{figure}[ht]
+\centering
+\vspace{-1mm}
+    \includegraphics[width=\textwidth]{./figures/codelm-tools.pdf}
+\vspace{-6mm}
+\caption{Relative to what is considered as the base LM or base actions, tools can refer to built-in functions, external libraries, or task-specific utility functions (from left to right).}
+\vspace{-1mm}
+\label{fig:codelm-tools}
+\end{figure}
+
+
+
+% ############
+\subsubsection{Domain-specific semantic parsing}
+\label{sub:domain-spec}
+
+NL-to-code generation systems have been studied for many years on special-domain tasks such as querying databases \citep{zelle1996learning,zettlemoyer2012learning} or knowledge graphs \citep{berant2013semantic}. Code produced by these systems is often domain-specific logical forms (DSL) manually designed by experts, such as lambda expressions \citep{liang2013lambda} or SQL queries \citep{yu2018spider}, and more recently, the QDMR grammar \citep{wolfson2020break} as an extension to SQL.
+In addition to knowledge-oriented tasks, many agentic tasks adopt DSL to operate in corresponding environments, such as \texttt{click} or \texttt{type} in web navigation \citep{zheran2018reinforcement,webshop2022yao,zhou2024webarena}, \texttt{placeItem} and \texttt{killMob} in the embodied Minecraft world \citep{wang2023voyager}, or \texttt{set\_joint\_target} for robot dogs \citep{yu2023language}.
+Because DSLs are often specific enough to the target problems, most works directly use these \textcolor{candypink}{built-in actions}.
+Yet still, for complex task queries, solution programs written in basic DSL actions alone can be hard to interpret or cumbersome to use, e.g., it is hard to tell that the lambda expression \texttt{(fold xs ($\lambda$ (n x) (+ 1 n)) 0)} is to calculate the length of \texttt{xs}.
+
+
+
+
+% ############
+\subsubsection{General-purpose code generation}
+\label{sub:general-codegen}
+Recent code generation systems have expanded from using DSL to more general-purpose PLs such as Python or Java \citep{yin-neubig-2017-syntactic,chen2021evaluating}. These languages enable more programming flexibility and readily apply to versatile scenarios. 
+As we have introduced using \textcolor{candypink}{built-in actions} as tools in \S\ref{sub:app-spec}, we discuss more on two other
+common categories of tools for code LMs, namely \textcolor{ao!90}{\textit{external libraries}} and task-specific \textcolor{blue(ncs)}{\textit{utility functions}}.
+
+
+\noindent \textbf{External libraries} \quad
+From the usage of PLs, built-in functions are internal to whichever environment, whereas third-party libraries lie externally and need to be imported to tackle specific contexts, such as \autoref{} (middle). Aligning with this conception, \citet{zhang2023toolcoder} use Python libraries such as \texttt{matplotlib} to plot figures and \texttt{pandas} to manage data.
+
+
+\noindent \textbf{Utility functions} \quad
+For more task-specific applications,
+expert-crafted utility functions, usually unseen at training time, are incorporated as tools. E.g., in \autoref{fig:codelm-tools} (right), the highlighted \texttt{locate\_objects} function is designed by human experts \citep{gupta2022visual,suris2023vipergpt} to load neural models and perform post-processing to obtain the detected box region. In a similar spirit, \citet{cheng2023binding} use GPT as a tool to query world facts external to the tabular contents, \citet{cao2023api} further design macro operation APIs to support advanced tabular operations.
+However, because human tool curation requires expertise and effort, some works explore using LMs to automatically create tools instead.
+
+
+
+% ################################
+
+\begin{wrapfigure}[8]{r}{0.40\textwidth}
+\vspace{-6mm}
+\includegraphics[width=0.39\textwidth]{./figures/make-tool.pdf}
+\vspace{-2mm}
+\caption{LM makes tools when no tools readily apply to the task.}
+% \vspace{-1mm}
+\label{fig:make-tool}
+\end{wrapfigure}
+
+\subsection{Tool creation and reuse}
+\label{sub:make-tool}
+
+
+While one can readily use tools for tasks equipped with pre-designed tools, for tasks that do not have readily-applicable, human-created tools, some works explore using LMs to make tools and use them.
+
+\noindent \textbf{Domain-specific library abstraction} \quad
+Works that use DSLs often compose frequently-used-together actions as shortcut tools. For example, \citet{ellis2023dreamcoder} learn function abstractions such as \texttt{length} and \texttt{count\_to} from lambda primitives (e.g., \texttt{$0$}, \texttt{+}) for the list processing task. 
+\citet{pmlr-v139-wong21a,bowers2023top} similarly build functions bottom-up from a large corpus of DSL programs. More recently, \citet{grand2023lilo} use LLMs to abstract libraries with auto-documentation. 
+Further for agentic tasks, \citet{zheran2018reinforcement} learn common workflows to guide web navigation, such as composing the basic $\{$\texttt{click}, \texttt{like}$\}$ actions to form a higher-level login action \texttt{click(like(`login'))}.
+
+\noindent \textbf{General-purpose tool making} \quad
+Nonetheless, on general-purpose PLs, running the DSL-oriented methods above may expand their search space and limit their scalability. Instead, recent works often leverage LMs' procedural knowledge to alleviate the search issue. 
+To start, \citet{wang2023voyager} designs an automatic learning curriculum in Minecraft to make and use Java program tools.
+LATM \citep{} use LMs to build, verify, and use Python tools on BigBench \citep{srivastava2023beyond} tasks, where however, all examples require the same single tool hence have limited difficulty.
+CREATOR \citep{qian2023creator} extend tool-making to harder tasks such as math and table world problems, and improves task success by creating tools yet repetitively for individual examples, thus CRAFT \citep{yuan2023craft} add heuristic-based training to craft less repetitive tools.
+Towards more efficient pipelines, ReGAL \citep{stengeleskin2024regal} learns from refactoring a smaller number of programs, while TroVE \citep{wang2024trove} purely relies on inference-time execution signal and induces reusable tools on-the-fly.

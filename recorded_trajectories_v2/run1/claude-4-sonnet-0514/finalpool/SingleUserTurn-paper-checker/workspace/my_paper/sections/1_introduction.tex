@@ -1,0 +1,109 @@
+\section{Introduction}
+\label{sec:intro}
+
+Language Models (LMs) have become increasingly effective in solving text-generation tasks, by taking in natural language (NL) instructions from users and outputting NL responses, such as answering the ``What is the capital of the US?'' with ``Washington D.C.''. However, LMs often struggle to perform tasks that require complex skills (e.g., math or complex reasoning), and are fundamentally unable to solve other tasks that require access to information not included in their training data (e.g., the current weather or date).
+
+\begin{wrapfigure}[13]{r}{0.42\textwidth}
+\vspace{-4mm}    
+\includegraphics[width=0.39\textwidth]{./figures/definition.pdf}
+\vspace{-2mm}
+\caption{Illustration of tools extending and facilitating LM task-solving.}
+\label{fig:def}
+\end{wrapfigure}
+
+To solve this problem, researchers and practitioners are turning to LMs enhanced with \emph{tools}, which help \textit{facilitate} the task-solving process of LMs, or \textit{extend} LMs with new abilities that the LM does not possess otherwise \citep{qin2023tool,mialon2023augmented}.
+For example, a \texttt{calculator} tool may be used to facilitate mathematical calculations, or a \texttt{get\_time()} tool could be used to obtain the current time, which is not available purely through the LM's parameters. 
+Inspired by the tools used by humans \citep{shumaker2011animal}, some works introduce application-specific \texttt{software} as tools, such as using a \texttt{search engine} to obtain knowledge \citep{lazaridou2022internetaugmented,komeili-etal-2022-internet}, using a \texttt{translator} to process unknown languages \citep{schick2023toolformer}, or using a \texttt{SQL engine} to query databases \citep{hao2023toolkengpt,zhuang2023toolqa}.
+With the development of numerous application programming interfaces (APIs) on the web, many works collect \texttt{API}s as tools to access world data in real-time \citep{balog2016deepcoder,xu2023tool,qin2023toolllm} via multiple modalities \citep{tang2023toolalpaca}, even performing professional activities such as financial analysis \citep{li-etal-2023-api} and digital marketing \citep{huang2024metatool}.
+Instead of using black-box APIs with unseen implementations, other works use locally-crafted \texttt{function}s to query over structured tables \citep{wang2024executable,cao2023api} or images \citep{suris2023vipergpt}, where the function tools can be created by human \citep{gupta2022visual} or model experts \citep{wang2023voyager,cai2023large,wang2024trove}.
+
+% issue, motivation; our diff from existing surveys
+However, despite this broad and burgeoning area of tool use in LMs, existing surveys only cover certain tool categories such as software \citep{mialon2023augmented} or APIs \citep{qin2023tool}. 
+In this paper, we (1) provide a unified view of tool use across a broad range of scenarios, (2) empirically analyze the cost efficiency of tooling methods, to give practical guidance on when and how one should use tools, and (3) offer concrete suggestions for evaluations.
+
+We start with proposing \textit{a unified definition} of tools and explain \textit{why tools help task-solving} (\S\ref{sec:background}).
+We first introduce the \emph{basic tool-use paradigm} (\S\ref{sec:basic-paradigm}) and study a variety of tool-using scenarios by enumerating \textit{which tools exist} and \textit{to which tasks they apply} (\S\ref{sec:scenarios}). 
+Next, we study advanced approaches for \textit{complex tool usage} and even \textit{make new tools} if they are unavailable for the task (\S\ref{sec:methods}). 
+We then summarize existing testbeds and evaluation metrics across LM tooling works, and highlight several missing aspects with concrete metric suggestions (\S\ref{sec:good-tool}).
+Lastly, grounding on our empirical analysis about \textit{when tools are effective}, we identify the most efficient tooling approaches and the tasks that benefit most from tools (\S\ref{sub:trade-off}). 
+
+
+
+% ##################
+\section{Background}
+\label{sec:background}
+
+\subsection{What are tools?}
+% how existing works define tools
+Because LMs are products of the digital world, tools employed by LMs are often computer \textbf{programs} that are executable in corresponding environments, e.g., Python programs are executable in Python environments. 
+Referring back to human-used tools, \citet{shumaker2011animal} defines animal tool use as \textit{``the external employment of an unattached or manipulable attached environmental object to alter more efficiently the form, position, or condition of another object.''}
+% two properties of tools
+Similar to this definition of physical tools, LM-used program tools should also be \textbf{external} to the employer (i.e., the LM) and are part of the environment. 
+In the meantime, instead of arbitrary program snippets, a tool is a \textbf{function} (e.g., \texttt{plus\_one}), meaning that it can be applied to other objects (e.g., data) and yield an output (e.g. \texttt{plus\_one}$(1) \rightarrow 2$).
+
+Existing definitions of LM-used tools touch on some of these aspects. 
+\citet{qin2023tool} make an intuitive appeal to the similarity to human tool use, but do not define what entails a tool.
+\citet{mialon2023augmented} define \textit{a tool} as \textit{``an external module that is typically called using a rule or a special token and whose output is included in the augmented LM's context.''}
+We argue for a somewhat more broad definition than this, which encompasses a wide variety of more recent works on tool usage:
+
+\begin{definition}
+  \label{def:tools-lm}
+  An LM-used tool is a function interface to a computer program that runs \textit{externally} to the LM, where the LM generates the function calls and input arguments in order to use the tool.\footnote{Under our definition, tool functions can be implemented by any means, including symbolic computation or neural networks --- the functions only require a programmatic interface.}
+\end{definition} 
+
+
+\subsection{Why are tools helpful?}
+Tools can help task-solving in different ways, depending on the functionality of individual tools. We summarize their functions into three major categories: perception, action, and computation. A tool may belong to one or more of these three categories.
+
+\noindent \textbf{Perception} \quad
+Perception tools provide or collect information from the environment. An example is using a \texttt{get\_time()} API to obtain the current time, which is not included in the LM's parametric knowledge learned from training.
+
+\noindent \textbf{Action} \quad
+Action tools can exert actions on the environment and change its state. For example, \texttt{turn\_left()} can shift the direction of an embodied agent, or executing \texttt{make\_post(website, post)} can change the content on a \texttt{website}.
+
+\noindent \textbf{Computation} \quad
+Computation tools do not necessarily perceive or modify the external environment, but use programs to tackle complex computational tasks. For example, a \texttt{calculator} is a computation tool for mathematical calculation.
+Note that the computation also includes more general acts of computing beyond numerical calculation. Therefore, a \texttt{translator} is also a computation tool that can be used to translate between languages.
+
+Note that many tools can fall into multiple categories.
+For instance, a \texttt{search engine} is a tool that can perform both computation and perception.
+As computation, it measures document similarity and selects relevant ones, but it also perceives the environment (i.e., the web) and fetches data (i.e., returned documents) from it.
+In a similar spirit, \textsc{SQL} queries can be used as computation tools (e.g., \texttt{SELECT SQRT(16) / 10 AS result}), perception tools for viewing data (e.g., \texttt{SELECT name FROM data}), action tools to modify data (e.g., \texttt{INSERT INTO data VALUES name}), or all of the above (e.g., \texttt{INSERT INTO counts (grp\_id, grp\_cnt) SELECT grp\_id, COUNT(*) FROM data GROUP BY grp\_id}).
+
+\subsection{Tools and ``Agents''} 
+There has recently been a burgeoning of work on LM-powered agents \citep{xi2023rise,sumers2024cognitive}.
+\citet{russell2010artificial} define agents as \textit{``anything that can be viewed as perceiving its environment through sensors and acting upon that environment through actuators.''}
+According to this definition, agents are programs that use perception tools to perceive the situated environment, or action tools to interact with the environment.
+Models that only use computation tools and do not interact with their environments through perception or action tools arguably do not fall under the category of ``agents'' according to this definition.
+
+
+
+% ###################################
+\section{The basic tool use paradigm}
+\label{sec:basic-paradigm}
+% figure start
+\begin{wrapfigure}[16]{r}{0.42\textwidth}
+\vspace{-5mm}
+\includegraphics[width=0.40\textwidth]{./figures/call-api.pdf}
+\vspace{-2mm}
+\caption{The basic tool use paradigm. LM calls \raisebox{0.3mm}{\colorbox{violet!13}{\texttt{check\_weather}}} tool by generating text tokens. This call triggers the server to execute the call and return the output \raisebox{0.3mm}{\colorbox{yellow!33}{sunny}}, using which the LM replaces the API call tokens in the response to the user.}
+\label{fig:call-api}
+\end{wrapfigure}
+% figure end
+
+First, in this section, we show an illustrative example of a basic tool-use paradigm introduced by Toolformer \citep{schick2023toolformer}, which many tool-related works adopt (\autoref{fig:call-api}). Assuming an LM communicates with users mainly in natural language, upon receiving a user query such as ``How is the weather today?'', the LM then proceeds to generate either text or tool calls. In the example, starts with generating a few tokens of text ``It is ...''. When the LM needs to seek external tools to complete the task, e.g., get real-time weather information, it generates tokens of the tool name and corresponding input arguments enclosed with \texttt{(}parentheses\texttt{)} to construct a complete tool calling expression. 
+This completed expression will trigger a shift from text-generation mode to tool-execution mode. The server hosting the tool will execute the expression and return the execution result to the LM. 
+
+Taking the example in \autoref{fig:call-api}, the LM sends the \texttt{check\_weather()} call to the weather server and receives the output ``sunny''. The returned result replaces the tool call in the LM-generated tokens (e.g., from ``It is \texttt{check\_weather()}'' to ``It is sunny''), which is used for subsequent steps of generation.
+Accordingly, the LM shifts back to the text generation mode and continues to finish the response by generating new text tokens, e.g., adding `today.', and finally returning the response to the user.
+
+In order for LMs to use this basic paradigm of using tools, current works mainly leverage inference-time prompting and training-time learning methods.
+
+\noindent \textbf{Inference-time prompting} \quad
+Leveraging the ability of LMs to learn in-context \citep{}, many works provide tool information through a prompt and expect LMs to acquire abilities to use these tools from input contexts.
+This is achieved by providing instructions about the task, example pairs of queries and solutions that use tools \citep{gupta2022visual,lu2023chameleon,paranjape2023art,shen2023hugginggpt,yang2023mmreact}, and/or documentation of the tools' functionality \citep{hsieh2023tool}.
+
+
+\noindent \textbf{Learning by training} \quad
+Beyond learning tools from test-time contexts, LMs can learn from examples that use these tools during training.
+LMs can simply be trained to generate tool-using solutions, where the examples can be manually annotated by humans \citep{li-etal-2023-api}, synthesized by larger teacher LMs \citep{tang2023toolalpaca,qin2023toolllm,huang2024metatool}, or bootstrapped by the test-time LM itself \citep{schick2023toolformer}.
