@@ -26,6 +26,7 @@ if __name__=="__main__":
     
     # check local
     try:
+        print("Evaluation start")
         local_pass, local_error = check_local(args.agent_workspace, args.groundtruth_workspace)
         if not local_pass:
             print("local check failed: ", local_error)

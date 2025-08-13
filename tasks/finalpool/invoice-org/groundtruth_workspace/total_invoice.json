@@ -1,0 +1,76 @@
+{
+  "calculation_details": {
+    "exchange_rates_used": {
+      "2025-06-29": {"USD_to_CNY": 7.1721},
+      "2024-11-29": {"USD_to_CNY": 7.2407},
+      "2025-03-15": {"USD_to_CNY": 7.2371},
+      "2024-09-13": {"SGD_to_CNY": 5.4633}
+    },
+    "invoice_conversions": [
+      {
+        "filename": "Invoice-66F9945C-385121.pdf",
+        "vendor": "Excalidraw s.r.o.",
+        "original_amount": 7.00,
+        "original_currency": "USD",
+        "date": "2025-06-29",
+        "exchange_rate": 7.1721,
+        "amount_in_cny": 50.2047
+      },
+      {
+        "filename": "flight_invoice.pdf",
+        "vendor": "UO航空公司",
+        "original_amount": 646.00,
+        "original_currency": "CNY",
+        "date": "",
+        "exchange_rate": 1.0,
+        "amount_in_cny": 646.00
+      },
+      {
+        "filename": "flight_invoice1.pdf",
+        "vendor": "海南航空(HU)",
+        "original_amount": 652.00,
+        "original_currency": "CNY",
+        "date": "2024-12-28",
+        "exchange_rate": 1.0,
+        "amount_in_cny": 652.00
+      },
+      {
+        "filename": "flight_invoice3.pdf",
+        "vendor": "酷航(TR)",
+        "original_amount": 1201.00,
+        "original_currency": "CNY",
+        "date": "2024-03-01",
+        "exchange_rate": 1.0,
+        "amount_in_cny": 1201.00
+      },
+      {
+        "filename": "invoice_240913093236943397.pdf",
+        "vendor": "Nido.SG",
+        "original_amount": 30.08,
+        "original_currency": "SGD",
+        "date": "2024-09-13",
+        "exchange_rate": 5.4633,
+        "amount_in_cny": 164.336064
+      },
+      {
+        "filename": "invoice_3478885.pdf",
+        "vendor": "Digital Science UK Limited (Overleaf)",
+        "original_amount": 21.00,
+        "original_currency": "USD",
+        "date": "2024-11-29",
+        "exchange_rate": 7.2407,
+        "amount_in_cny": 152.0547
+      },
+      {
+        "filename": "tmpojlmr2l4_receipt.pdf",
+        "vendor": "International Conference on Learning Representations",
+        "original_amount": 425.00,
+        "original_currency": "USD",
+        "date": "2025-03-15",
+        "exchange_rate": 7.2371,
+        "amount_in_cny": 3075.7675
+      }
+    ]
+  },
+  "total": 5941.362964
+}
