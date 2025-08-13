@@ -1,0 +1,3 @@
+- Historical end-of-quarter NVDA stock prices, outstanding shares, and market cap for each quarter from 2023 Q1 to 2024 Q4(Sheet 1)
+- Summary of major holders: insiders held percentage, institutions held percentage, and number of institutions(Sheet 2)
+- Details on the top 10 institutional shareholders: shareholder name, shares held, holding value, holding ratio(Sheet 3)

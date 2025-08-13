@@ -1,0 +1,1 @@
+请你帮我分析 NVIDIA (NVDA) 的所有权和市场趋势。当前工作区中提供了一个名为“results_template.xlsx”的 Excel 模板. 请你完善这份表格中所需的数据。具体的数据要求可以参考data.txt，格式的要求请参考tips.txt. 完成后，**将文件重命名为“results.xlsx”**
