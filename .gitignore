@@ -52,3 +52,5 @@ deployment/*/*
 !deployment/utils/**
 !deployment/*/scripts/
 !deployment/*/scripts/**
+
+wandb
