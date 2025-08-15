@@ -5,7 +5,7 @@
 
 ## 重要信息
 - 表格地址：https://docs.google.com/spreadsheets/d/1gc6yse74XCwBx028HV_cvdxwXkmXejVjkO-Mz2uwE0k/edit?gid=528700476#gid=528700476
-- 目标文件夹：https://drive.google.com/drive/u/0/folders/1LYqmSCIlY0NmHtFJwF3Mh1RTb81RWHvU?ths=true
+- 目标文件夹：https://drive.google.com/drive/u/3/folders/1buGDXqHfaehm-zMPHjuyEePVURkOQfhB?ths=true
 - 需要填写：架构描述和相关链接
 
 ## 填写要求

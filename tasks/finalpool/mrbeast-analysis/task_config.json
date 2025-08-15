@@ -1,0 +1,5 @@
+{
+    "needed_mcp_servers": ["youtube","filesystem","excel","youtube-transcript"],
+    "needed_local_tools": ["claim_done"],
+    "meta": {}
+}

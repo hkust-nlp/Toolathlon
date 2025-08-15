@@ -1,5 +1,5 @@
 {
     "needed_mcp_servers": ["filesystem", "terminal", "googlesearch", "google_map"],
-    "meta": {},
-    "needed_local_tools": []
+    "needed_local_tools": ["claim_done","web_search"],
+    "meta": {}
 }

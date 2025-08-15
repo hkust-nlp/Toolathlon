@@ -1,0 +1,16 @@
+{
+    "data_source": "DeepScaleR",
+    "prompt": [{
+        "role": "user",
+        "content": "question"
+    }],
+    "ability": "math",
+    "reward_model": {
+        "style": "rule",
+        "ground_truth": "answer"
+    },
+    "extra_info": {
+        "index": "idx",
+        "solution": "solution"
+    }
+}

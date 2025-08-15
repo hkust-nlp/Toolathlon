@@ -1,15 +1,6 @@
-Please help me organize and complete the **Vision Language Model (VLM) History** materials inside a Google Sheet.
-
-Here is the link to the current table:  
-https://docs.google.com/spreadsheets/d/1gc6yse74XCwBx028HV_cvdxwXkmXejVjkO-Mz2uwE0k/edit?gid=528700476#gid=528700476   
-
-The sheet is missing two columns: **“Architecture”** and **“Sources”**.
-
-1. Copy this sheet into the target workspace folder:  
-   https://drive.google.com/drive/u/0/folders/1LYqmSCIlY0NmHtFJwF3Mh1RTb81RWHvU?ths=true 
-
-2. For each model in the copied sheet, populate the new columns as follows:
-   - **Architecture**: Provide a concise technical description of the model’s architecture.  
-     Refer to `Architecture.txt` in the workspace for the required format and terminology.
-   - **Sources**: Follow the rules defined in `Order.txt` inside the same workspace.
-   - If the information is not publicly available, enter **“unavailable”**.
+Please help me organize and complete the development history of Vision Language Models (VLMs) in a Google Sheet.
+The spreadsheet at this link, https://docs.google.com/spreadsheets/d/1gc6yse74XCwBx028HV_cvdxwXkmXejVjkO-Mz2uwE0k/edit?gid=528700476#gid=528700476, contains a history of VLMs, but it is missing the "Architecture" and "Sources" columns.
+I need you to copy this spreadsheet to the target work folder: https://drive.google.com/drive/u/3/folders/1buGDXqHfaehm-zMPHjuyEePVURkOQfhB?ths=true, name the new file `VLM-History`, research the models listed, and then populate the following columns in the newly created sheet:
+- **Architecture column:** Fill in a description of each model's technical architecture. You can refer to the `Architecture.txt` file in the workspace for the specific types of descriptions required.
+- **Sources column:** The requirements for filling this column are outlined in the `Order.txt` file in the workspace.
+- If any information is not publicly available, please enter "unavailable".

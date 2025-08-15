@@ -204,9 +204,9 @@ overall_score = (正确架构数 + 正确Sources数) / (匹配模型数 × 2)
   1. 从URL中提取
 
   当前任务中的文件夹：
-  TARGET_FOLDER_ID = "1LYqmSCIlY0NmHtFJwF3Mh1RTb81RWHvU"
+  TARGET_FOLDER_ID = "1buGDXqHfaehm-zMPHjuyEePVURkOQfhB"
   TARGET_FOLDER_URL =
-  "https://drive.google.com/drive/u/0/folders/1LYqmSCIlY0NmHtFJwF3Mh1RTb81RWHvU?ths=true"
+  "https://drive.google.com/drive/u/3/folders/1buGDXqHfaehm-zMPHjuyEePVURkOQfhB?ths=true"
 
   URL解析规则：
   https://drive.google.com/drive/u/0/folders/[FOLDER_ID]?参数

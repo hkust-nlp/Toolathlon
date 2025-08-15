@@ -1,0 +1,5 @@
+{
+    "needed_mcp_servers": ["googlesearch", "yahoo-finance", "playwright"],
+    "needed_local_tools": [],
+    "meta": {}
+}

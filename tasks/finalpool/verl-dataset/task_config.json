@@ -1,0 +1,5 @@
+{
+    "needed_mcp_servers": ["huggingface", "filesystem"],
+    "needed_local_tools": ["python_execute", "web_search"],
+    "meta": {}
+}

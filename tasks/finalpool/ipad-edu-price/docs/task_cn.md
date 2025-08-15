@@ -1,0 +1,1 @@
+你是一个苹果教育优惠分析助手，现在我是一个香港的大学生。我想买一台iPad Pro和Apple Pencil Pro，并且现在是7月2日，请问我在中国香港、中国大陆、新加坡和美国哪里去买iPad最便宜，只考虑苹果官方的在各地的教育优惠政策和教育优惠返校季的配件赠送计划，不需要考虑其他的优惠政策。你只需要考虑最终iPad Pro和Apple Pencil的价格即可。请严格按照以下格式返回分析结果：price_comparison_\boxed_1{$cheapest_region}_total_\boxed_2{$cheapest_total_price}

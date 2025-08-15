@@ -1,5 +1,0 @@
-{
-    "needed_mcp_servers": ["filesystem", "excel", "pdf-reader", "pdf-tools"],
-    "needed_local_tools": ["ai_webpage_summary"],
-    "meta": {}
-}

@@ -1,0 +1,11 @@
+{
+    "email": "mcptest0606@gmail.com",
+    "password": "MCPtest0606!!", 
+    "name": "NLP Course Assistant",
+    "imap_server": "imap.gmail.com",
+    "imap_port": 1143,
+    "smtp_server": "smtp.gmail.com",
+    "smtp_port": 1587,
+    "use_ssl": false,
+    "use_starttls": false
+}

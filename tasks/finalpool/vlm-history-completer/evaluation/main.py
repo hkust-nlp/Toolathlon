@@ -12,22 +12,69 @@ from pathlib import Path
 from difflib import SequenceMatcher
 import gspread
 from googleapiclient.discovery import build
-from google.oauth2.service_account import Credentials
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
 
 # 添加项目根目录到Python路径
 sys.path.append(str(Path(__file__).parent.parent.parent.parent))
 import configs.token_key_session as configs
 
 # 固定的Google Drive文件夹ID
-TARGET_FOLDER_ID = "1LYqmSCIlY0NmHtFJwF3Mh1RTb81RWHvU"
-TARGET_FOLDER_URL = "https://drive.google.com/drive/u/0/folders/1LYqmSCIlY0NmHtFJwF3Mh1RTb81RWHvU?ths=true"
+TARGET_FOLDER_ID = "1buGDXqHfaehm-zMPHjuyEePVURkOQfhB"
+TARGET_FOLDER_URL = "https://drive.google.com/drive/u/3/folders/1buGDXqHfaehm-zMPHjuyEePVURkOQfhB?ths=true"
 
 # Google API设置
+GOOGLE_CREDENTIALS_PATH = 'configs/google_credentials.json'
 SCOPES = [
-    'https://www.googleapis.com/auth/spreadsheets.readonly',
-    'https://www.googleapis.com/auth/drive.readonly'
+    'https://www.googleapis.com/auth/spreadsheets',
+    'https://www.googleapis.com/auth/drive'
 ]
-SERVICE_ACCOUNT_FILE = str(Path(__file__).parent.parent.parent.parent / "configs" / "google_sheets_service_credentials.json")
+
+
+def authenticate_google_services():
+    """认证Google服务 - 使用OAuth2用户凭证"""
+    try:
+        print("正在认证Google服务...")
+        
+        # 读取OAuth2凭证文件
+        with open(GOOGLE_CREDENTIALS_PATH, 'r') as f:
+            creds_data = json.load(f)
+        
+        # 创建OAuth2凭证对象
+        credentials = Credentials(
+            token=creds_data.get('token'),
+            refresh_token=creds_data.get('refresh_token'),
+            token_uri=creds_data.get('token_uri'),
+            client_id=creds_data.get('client_id'),
+            client_secret=creds_data.get('client_secret'),
+            scopes=creds_data.get('scopes', SCOPES)
+        )
+        
+        # 如果token过期，自动刷新
+        if credentials.expired and credentials.refresh_token:
+            credentials.refresh(Request())
+            
+            # 更新保存的token
+            creds_data['token'] = credentials.token
+            with open(GOOGLE_CREDENTIALS_PATH, 'w') as f:
+                json.dump(creds_data, f, indent=2)
+            print("✓ Token已刷新并保存")
+        
+        # 初始化gspread客户端
+        gc = gspread.authorize(credentials)
+        
+        # 初始化Google Drive API客户端
+        drive_service = build('drive', 'v3', credentials=credentials)
+        
+        print("✓ Google服务认证成功")
+        return gc, drive_service
+        
+    except FileNotFoundError:
+        raise Exception(f"错误：找不到凭证文件 '{GOOGLE_CREDENTIALS_PATH}'")
+    except json.JSONDecodeError:
+        raise Exception(f"错误：凭证文件格式错误 '{GOOGLE_CREDENTIALS_PATH}'")
+    except Exception as e:
+        raise Exception(f"Google服务认证失败: {e}")
 
 
 def similar(a: str, b: str) -> float:
@@ -40,31 +87,45 @@ def normalize_text(text: str) -> str:
     return text.strip().lower() if text else ""
 
 
-def find_spreadsheet_in_folder() -> str:
+def find_spreadsheet_in_folder(spreadsheet_name: str = "VLM-History") -> str:
     """
-    在目标文件夹中查找Spreadsheet文件
-    返回找到的第一个表格的ID
+    在目标文件夹中查找指定名称的Spreadsheet文件
+    返回找到的表格的ID
     """
-    print(f"🔍 在文件夹中查找Spreadsheet文件...")
+    print(f"🔍 在文件夹中查找名为 '{spreadsheet_name}' 的Spreadsheet文件...")
     
     try:
-        # 设置凭据
-        credentials = Credentials.from_service_account_file(
-            SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-        service = build('drive', 'v3', credentials=credentials)
+        # 认证Google服务
+        gc, drive_service = authenticate_google_services()
         
-        # 查询文件夹中的Spreadsheet文件
-        query = f"'{TARGET_FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false"
-        results = service.files().list(
+        # 查询文件夹中指定名称的Spreadsheet文件
+        query = f"'{TARGET_FOLDER_ID}' in parents and name='{spreadsheet_name}' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false"
+        results = drive_service.files().list(
             q=query,
             fields="files(id, name, mimeType)"
         ).execute()
         
         files = results.get('files', [])
         if not files:
-            raise Exception("文件夹中没有找到Google Spreadsheet文件")
+            # 如果没找到指定名称的文件，尝试查找任何spreadsheet文件
+            print(f"⚠️  未找到名为 '{spreadsheet_name}' 的表格，尝试查找文件夹中的任何Spreadsheet文件...")
+            fallback_query = f"'{TARGET_FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false"
+            fallback_results = drive_service.files().list(
+                q=fallback_query,
+                fields="files(id, name, mimeType)"
+            ).execute()
+            
+            fallback_files = fallback_results.get('files', [])
+            if not fallback_files:
+                raise Exception(f"文件夹中没有找到任何Google Spreadsheet文件")
+            
+            # 返回第一个找到的表格
+            spreadsheet = fallback_files[0]
+            spreadsheet_id = spreadsheet['id']
+            print(f"✅ 找到表格: {spreadsheet['name']} (ID: {spreadsheet_id})")
+            return spreadsheet_id
         
-        # 返回第一个找到的表格ID
+        # 返回指定名称的表格ID
         spreadsheet = files[0]
         spreadsheet_id = spreadsheet['id']
         print(f"✅ 找到表格: {spreadsheet['name']} (ID: {spreadsheet_id})")
@@ -72,7 +133,7 @@ def find_spreadsheet_in_folder() -> str:
         
     except Exception as e:
         print(f"⚠️  自动查找表格失败: {str(e)}")
-        print(f"💡 请手动提供表格ID，或确保文件夹 {TARGET_FOLDER_URL} 中包含可访问的Google Spreadsheet")
+        print(f"💡 请手动提供表格ID，或确保文件夹 {TARGET_FOLDER_URL} 中包含名为 '{spreadsheet_name}' 的Google Spreadsheet")
         raise
 
 
@@ -83,8 +144,8 @@ def read_google_sheet_as_json(spreadsheet_id: str) -> list:
     print(f"📊 正在读取表格: {spreadsheet_id}")
     
     try:
-        # 使用gspread连接
-        gc = gspread.service_account(filename=SERVICE_ACCOUNT_FILE)
+        # 认证Google服务并使用gspread连接
+        gc, drive_service = authenticate_google_services()
         spreadsheet = gc.open_by_key(spreadsheet_id)
         
         # 获取第一个工作表

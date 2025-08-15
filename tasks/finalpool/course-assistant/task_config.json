@@ -1,0 +1,4 @@
+{
+    "needed_mcp_servers": ["excel","gmail","filesystem"],
+    "meta": {}
+}

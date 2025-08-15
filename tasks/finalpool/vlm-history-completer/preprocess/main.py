@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Google Sheets预处理脚本
-用于检测并删除已存在的2025_Q2_Market_Data Google Sheet文件
+VLM History Completer 预处理脚本
+用于检测并删除已存在的VLM-History Google Sheet文件
 """
 from argparse import ArgumentParser
 import gspread
@@ -24,8 +24,8 @@ SCOPES = [
     'https://www.googleapis.com/auth/drive'
 ]
 
-TARGET_SPREADSHEET_NAME = "2025_Q2_Market_Data"
-TARGET_FOLDER_ID = "1SdLxzEvy4jfLIAnj0UII_UquNzz-535R"  # 指定的Google Drive文件夹ID
+TARGET_SPREADSHEET_NAME = "VLM-History"
+TARGET_FOLDER_ID = "1buGDXqHfaehm-zMPHjuyEePVURkOQfhB"  # 指定的Google Drive文件夹ID
 
 def get_current_user_email(drive_service):
     """获取当前认证用户的邮箱地址"""
@@ -199,7 +199,7 @@ def verify_folder_exists(drive_service, folder_id):
 def cleanup_existing_spreadsheets(target_name=TARGET_SPREADSHEET_NAME, target_folder=TARGET_FOLDER_ID):
     """主要的清理函数"""
     print("=" * 60)
-    print("开始Google Sheets预处理 - 清理已存在的文件")
+    print("开始VLM History预处理 - 清理已存在的文件")
     if target_folder:
         print(f"清理范围：文件夹ID {target_folder}")
     print("=" * 60)
@@ -298,8 +298,8 @@ if __name__ == "__main__":
     parser.add_argument("--launch_time", required=False, help="Launch time")
     args = parser.parse_args()
     
-    print("Google Sheets预处理工具")
-    print("用途：清理已存在的2025_Q2_Market_Data文件")
+    print("VLM History 预处理工具")
+    print("用途：清理已存在的VLM-History文件")
     print(f"目标文件夹ID: {TARGET_FOLDER_ID}")
     
     try:

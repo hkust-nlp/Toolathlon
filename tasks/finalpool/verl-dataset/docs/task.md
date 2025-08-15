@@ -1,0 +1,1 @@
+I'm trying to use the Verl framework to replicate DeepSeek-R1's "aha moment" on a language model I've trained. To do this, I need help downloading the most downloaded DeepScaleR dataset from Hugging Face and converting it to parquet format for my subsequent use. I'll name it verl_deepscaler.parquet.

@@ -16,6 +16,7 @@ import configs.token_key_session as configs
 
 GOOGLE_CREDENTIALS_PATH = 'configs/google_credentials.json'
 NOTION_TOKEN = configs.all_token_key_session.notion_integration_key  # 从配置中获取Notion token
+TARGET_FOLDER_ID = "1SdLxzEvy4jfLIAnj0UII_UquNzz-535R"  # 指定的Google Drive文件夹ID，与preprocess保持一致
 SCOPES = [
     'https://www.googleapis.com/auth/spreadsheets',
     'https://www.googleapis.com/auth/drive'
@@ -165,6 +166,41 @@ def get_notion_page_blocks(page_id, token):
         return response.json()
     except requests.exceptions.RequestException as e:
         raise Exception(f"获取Notion页面块失败: {e}")
+
+def find_spreadsheet_in_folder(drive_service, spreadsheet_name, folder_id):
+    """在指定文件夹中查找Google Sheets文件"""
+    try:
+        print(f"正在在文件夹 {folder_id} 中搜索名为 '{spreadsheet_name}' 的Google Sheets文件...")
+        
+        # 构建查询条件
+        query_parts = [
+            f"name='{spreadsheet_name}'",
+            "mimeType='application/vnd.google-apps.spreadsheet'",
+            "trashed=false"
+        ]
+        
+        # 添加文件夹限制
+        if folder_id:
+            query_parts.append(f"'{folder_id}' in parents")
+        
+        query = " and ".join(query_parts)
+        print(f"Drive API查询条件: {query}")
+        
+        results = drive_service.files().list(q=query, fields="files(id, name, webViewLink, parents)").execute()
+        files = results.get('files', [])
+        
+        if not files:
+            print(f"在指定文件夹中未找到名为 '{spreadsheet_name}' 的文件")
+            return None
+        
+        # 返回第一个匹配的文件
+        file = files[0]
+        print(f"✓ 找到spreadsheet: {file['name']} (ID: {file['id']})")
+        return file['id']
+        
+    except Exception as e:
+        print(f"搜索文件时出错: {e}")
+        return None
 
 def check_highlight_formatting(worksheet, df):
     """检查缺失数据的单元格是否被高亮显示"""
@@ -501,11 +537,13 @@ def extract_spreadsheet_info_from_url(sheets_url):
     
     return spreadsheet_id, worksheet_name
 
-def read_google_sheets_content(spreadsheet_id, worksheet_name):
-    """读取Google Sheets内容并返回详细信息用于验证"""
+def read_google_sheets_content(spreadsheet_id, worksheet_name, folder_id=None):
+    """读取Google Sheets内容并返回详细信息用于验证，支持文件夹约束"""
     try:
         print(f"正在连接Google Sheets: {spreadsheet_id}")
         print(f"正在读取worksheet: {worksheet_name}")
+        if folder_id:
+            print(f"约束文件夹: {folder_id}")
         
         # 读取OAuth2凭证文件
         with open(GOOGLE_CREDENTIALS_PATH, 'r') as f:
@@ -531,8 +569,19 @@ def read_google_sheets_content(spreadsheet_id, worksheet_name):
                 json.dump(creds_data, f, indent=2)
             print("✓ Token已刷新并保存")
         
-        # 初始化gspread客户端
+        # 初始化gspread客户端和Google Drive API服务
         gc = gspread.authorize(credentials)
+        from googleapiclient.discovery import build
+        drive_service = build('drive', 'v3', credentials=credentials)
+        
+        # 如果指定了文件夹且spreadsheet_id看起来像一个名称而非ID，使用文件夹搜索
+        if folder_id and not spreadsheet_id.startswith('1'):  # Google Sheets ID通常以1开头
+            print("使用文件夹约束搜索spreadsheet...")
+            actual_spreadsheet_id = find_spreadsheet_in_folder(drive_service, spreadsheet_id, folder_id)
+            if actual_spreadsheet_id:
+                spreadsheet_id = actual_spreadsheet_id
+            else:
+                raise Exception(f"在指定文件夹 {folder_id} 中未找到名为 '{spreadsheet_id}' 的spreadsheet")
         
         # 尝试通过ID打开spreadsheet
         try:
@@ -540,8 +589,17 @@ def read_google_sheets_content(spreadsheet_id, worksheet_name):
             print(f"✓ 成功通过ID打开spreadsheet: {spreadsheet.title}")
         except:
             # 如果通过ID失败，尝试通过名称打开
-            spreadsheet = gc.open(spreadsheet_id)
-            print(f"✓ 成功通过名称打开spreadsheet: {spreadsheet.title}")
+            if folder_id:
+                # 如果有文件夹约束，先在文件夹中搜索
+                actual_spreadsheet_id = find_spreadsheet_in_folder(drive_service, spreadsheet_id, folder_id)
+                if actual_spreadsheet_id:
+                    spreadsheet = gc.open_by_key(actual_spreadsheet_id)
+                    print(f"✓ 成功通过文件夹搜索打开spreadsheet: {spreadsheet.title}")
+                else:
+                    raise Exception(f"在指定文件夹中未找到spreadsheet: {spreadsheet_id}")
+            else:
+                spreadsheet = gc.open(spreadsheet_id)
+                print(f"✓ 成功通过名称打开spreadsheet: {spreadsheet.title}")
         
         # 验证spreadsheet标题
         expected_title = "2025_Q2_Market_Data"
@@ -642,7 +700,7 @@ def check_content(agent_workspace: str, Tickers, start_date, end_date, notion_pa
             # 提取链接并读取数据
             sheets_url = extract_google_sheets_link_from_notion(notion_page_id, notion_token)
             spreadsheet_id, worksheet_name = extract_spreadsheet_info_from_url(sheets_url)
-            worksheet_data = read_google_sheets_content(spreadsheet_id, worksheet_name)
+            worksheet_data = read_google_sheets_content(spreadsheet_id, worksheet_name, TARGET_FOLDER_ID)
             
             # 检查高亮格式
             highlight_valid, highlight_msg = check_highlight_formatting(worksheet_data['worksheet_obj'], worksheet_data['dataframe'])
@@ -657,7 +715,7 @@ def check_content(agent_workspace: str, Tickers, start_date, end_date, notion_pa
             print("使用默认Google Sheets配置...")
             spreadsheet_id = "2025_Q2_Market_Data"
             worksheet_name = "May-Jun_2025"  # 使用普通hyphen作为默认
-            worksheet_data = read_google_sheets_content(spreadsheet_id, worksheet_name)
+            worksheet_data = read_google_sheets_content(spreadsheet_id, worksheet_name, TARGET_FOLDER_ID)
             agent_df = worksheet_data['dataframe']
             
     except Exception as e:
