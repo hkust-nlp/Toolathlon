@@ -1,3 +1,7 @@
+### 2025.8.15 23:00
+- 修改ytb mcp server安装方式及mcp配置方式
+    - 可能需要删掉原来local_servers/youtube-mcp-server然后重装一下
+
 ### 2025.8.12 18:15
 - 修改模拟用户为gpt-5
 
