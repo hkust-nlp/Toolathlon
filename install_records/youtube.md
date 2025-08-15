@@ -11,7 +11,6 @@ cd youtube-mcp-server
 git checkout 387a617bd83454894873ffd79530e3a35d5227a8
 npm install
 npm run build
-npm link
 ```
 
 *Note: 该工具的字幕获取功能现在有问题
