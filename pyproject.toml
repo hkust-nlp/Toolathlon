@@ -143,6 +143,7 @@ dependencies = [
     "tzdata==2025.2",
     "urllib3==2.4.0",
     "uvicorn==0.34.2",
+    "wandb>=0.21.1",
     "wcwidth==0.2.13",
     "websocket-client==1.8.0",
     "wheel==0.45.1",
