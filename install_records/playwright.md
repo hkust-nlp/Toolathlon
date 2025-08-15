@@ -12,7 +12,7 @@ pass
 
 2. install playwright & chromium, this will install the corresponding chromium for the playwright used in the mcp
     ```
-    cd @lockon0927/playwright-mcp-with-chunk
+    cd node_modules/@lockon0927/playwright-mcp-with-chunk
     npx playwright install chromium
     ```
 

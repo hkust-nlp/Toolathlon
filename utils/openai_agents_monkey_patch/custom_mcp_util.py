@@ -1,6 +1,7 @@
 # monkeypatch
 from __future__ import annotations
 from agents.mcp.util import *
+from agents import _debug
 
 
 @classmethod
@@ -32,5 +33,63 @@ def my_to_function_tool(
         strict_json_schema=is_strict,
     )
 
+@classmethod
+async def my_invoke_mcp_tool(
+    cls, server: "MCPServer", tool: "MCPTool", context: RunContextWrapper[Any], input_json: str
+) -> str:
+    """Invoke an MCP tool and return the result as a string."""
+    try:
+        json_data: dict[str, Any] = json.loads(input_json) if input_json else {}
+    except Exception as e:
+        if _debug.DONT_LOG_TOOL_DATA:
+            logger.debug(f"Invalid JSON input for tool {tool.name}")
+        else:
+            logger.debug(f"Invalid JSON input for tool {tool.name}: {input_json}")
+        raise ModelBehaviorError(
+            f"Invalid JSON input for tool {tool.name}: {input_json}"
+        ) from e
+
+    if _debug.DONT_LOG_TOOL_DATA:
+        logger.debug(f"Invoking MCP tool {tool.name}")
+    else:
+        logger.debug(f"Invoking MCP tool {tool.name} with input {input_json}")
+
+    try:
+        result = await server.call_tool(tool.name, json_data)
+    except Exception as e:
+        logger.error(f"Error invoking MCP tool {tool.name}: {e}")
+        raise AgentsException(f"Error invoking MCP tool {tool.name}: {e}") from e
+
+    if _debug.DONT_LOG_TOOL_DATA:
+        logger.debug(f"MCP tool {tool.name} completed.")
+    else:
+        logger.debug(f"MCP tool {tool.name} returned {result}")
+
+    # The MCP tool result is a list of content items, whereas OpenAI tool outputs are a single
+    # string. We'll try to convert.
+    if len(result.content) == 1:
+        tool_output = result.content[0].model_dump_json()
+    elif len(result.content) > 1:
+        tool_output = json.dumps([item.model_dump() for item in result.content])
+    else:
+        # logger.error(f"Errored MCP tool result: {result}")
+        tool_output = "[]" # 返回为空是一个合理的值
+
+    current_span = get_current_span()
+    if current_span:
+        if isinstance(current_span.span_data, FunctionSpanData):
+            current_span.span_data.output = tool_output
+            current_span.span_data.mcp_data = {
+                "server": server.name,
+            }
+        else:
+            logger.warning(
+                f"Current span is not a FunctionSpanData, skipping tool output: {current_span}"
+            )
+
+    return tool_output
+
 # 替换方法
+MCPUtil.invoke_mcp_tool = my_invoke_mcp_tool
+# 必须先替换上面那个
 MCPUtil.to_function_tool = my_to_function_tool

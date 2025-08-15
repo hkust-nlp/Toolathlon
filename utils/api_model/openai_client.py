@@ -255,6 +255,9 @@ class AsyncOpenAIClientWithRetry:
                 if tool_choice is not None:
                     request_params["tool_choice"] = tool_choice
 
+                if "gpt-5" in actual_model:
+                    request_params['max_completion_tokens'] = request_params.pop('max_tokens')
+
                 response = await self.client.chat.completions.create(**request_params)
 
                 # 处理响应
@@ -388,6 +391,10 @@ class AsyncOpenAIClientWithRetry:
             if tool_choice is not None:
                 request_params["tool_choice"] = tool_choice
             
+            if "gpt-5" in actual_model:
+                if 'max_tokens' in request_params:
+                    request_params['max_completion_tokens'] = request_params.pop('max_tokens')
+
             stream = await self.client.chat.completions.create(**request_params)
             
             current_tool_call = None

@@ -220,5 +220,155 @@ tool_manage_context = FunctionTool(
     on_invoke_tool=on_manage_context_invoke
 )
 
+async def on_smart_context_truncate_invoke(context: RunContextWrapper, params_str: str) -> Any:
+    """智能上下文截取，通过指定区间来精确控制保留内容"""
+    try:
+        params = json.loads(params_str)
+        ranges = params.get("ranges", [])
+        preserve_system = params.get("preserve_system", True)
+        
+        ctx = context.context if hasattr(context, 'context') else {}
+        meta = ctx.get("_context_meta", {})
+        current_turns = meta.get("turns_in_current_sequence", 0)
+        
+        # 参数验证
+        if not isinstance(ranges, list):
+            return {
+                "status": "error",
+                "message": "ranges参数必须是一个二维列表"
+            }
+        
+        if not ranges:
+            return {
+                "status": "error", 
+                "message": "ranges不能为空，必须指定至少一个保留区间"
+            }
+        
+        # 验证每个区间格式
+        validated_ranges = []
+        for i, range_item in enumerate(ranges):
+            if not isinstance(range_item, list) or len(range_item) != 2:
+                return {
+                    "status": "error",
+                    "message": f"ranges[{i}]必须是包含两个元素的列表[start, end]"
+                }
+            
+            start, end = range_item
+            if not isinstance(start, int) or not isinstance(end, int):
+                return {
+                    "status": "error",
+                    "message": f"ranges[{i}]中的start和end必须是整数"
+                }
+            
+            if start < 0 or end < 0:
+                return {
+                    "status": "error",
+                    "message": f"ranges[{i}]中的索引不能为负数"
+                }
+            
+            if start > end:
+                return {
+                    "status": "error",
+                    "message": f"ranges[{i}]中start({start})不能大于end({end})"
+                }
+            
+            if end >= current_turns:
+                return {
+                    "status": "error",
+                    "message": f"ranges[{i}]中end({end})超出了当前轮数范围(0-{current_turns-1})"
+                }
+            
+            validated_ranges.append((start, end))
+        
+        # 检查区间重叠
+        validated_ranges.sort()
+        for i in range(1, len(validated_ranges)):
+            if validated_ranges[i][0] <= validated_ranges[i-1][1]:
+                return {
+                    "status": "error",
+                    "message": f"区间重叠：[{validated_ranges[i-1][0]}, {validated_ranges[i-1][1]}]与[{validated_ranges[i][0]}, {validated_ranges[i][1]}]"
+                }
+        
+        # 计算保留的轮数
+        keep_turns = sum(end - start + 1 for start, end in validated_ranges)
+        delete_turns = current_turns - keep_turns
+        
+        if delete_turns <= 0:
+            return {
+                "status": "no_action",
+                "message": f"指定的区间已涵盖所有轮次，无需截断。",
+                "current_turns": current_turns,
+                "keep_turns": keep_turns
+            }
+        
+        # 设置智能截断标记
+        ctx["_pending_truncate"] = {
+            "method": "smart_ranges",
+            "ranges": validated_ranges,
+            "preserve_system": preserve_system,
+            "requested_at_turn": meta.get("current_turn", 0),
+            "expected_keep_turns": keep_turns,
+            "expected_delete_turns": delete_turns
+        }
+        
+        return {
+            "status": "scheduled",
+            "message": "已完成智能截断操作。",
+            "details": {
+                "method": "smart_ranges",
+                "ranges": validated_ranges,
+                "current_turns": current_turns,
+                "will_keep": keep_turns,
+                "will_delete": delete_turns,
+                "preserve_system_messages": preserve_system
+            }
+        }
+        
+    except json.JSONDecodeError:
+        return {
+            "status": "error",
+            "message": "参数格式错误，无法解析JSON"
+        }
+    except Exception as e:
+        import traceback
+        return {
+            "status": "error",
+            "message": f"执行智能截断时发生错误: {str(e)}",
+            "traceback": traceback.format_exc()
+        }
+
+tool_smart_context_truncate = FunctionTool(
+    name='local-smart_context_truncate',
+    description='''智能上下文截取工具，通过指定区间精确控制保留内容。
+接受二维列表[[start1,end1],[start2,end2],...,[startN,endN]]，每个子列表代表一个要保留的闭区间（两端都保留）。
+索引从0开始，区间不能重叠，必须按顺序排列。''',
+    params_json_schema={
+        "type": "object",
+        "properties": {
+            "ranges": {
+                "type": "array",
+                "description": "要保留的区间列表，格式：[[start1,end1],[start2,end2],...]，索引从0开始",
+                "items": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "items": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                "minItems": 1
+            },
+            "preserve_system": {
+                "type": "boolean",
+                "description": "是否保留系统消息",
+                "default": True
+            }
+        },
+        "required": ["ranges"]
+    },
+    on_invoke_tool=on_smart_context_truncate_invoke
+)
+
 # 导出工具列表
-context_management_tools = [tool_check_context, tool_manage_context]
+context_management_tools = [tool_check_context, tool_manage_context, tool_smart_context_truncate]

@@ -5,8 +5,6 @@ cd ./local_servers
 git clone https://github.com/Alex2Yang97/yahoo-finance-mcp.git
 cd yahoo-finance-mcp
 git checkout 88ee02382764a91639a402694541360874511653
-uv venv
-source .venv/bin/activate
-uv pip install -e .
-cd ..
+uv sync
+cd ../..
 ```

@@ -1,0 +1,50 @@
+# snowflake
+# https://github.com/isaacwasserman/mcp-snowflake-server
+type: stdio
+name: snowflake
+params:
+  command: uvx
+  args:
+    - "mcp_snowflake_server"
+    - "--account"
+    - "${token.snowflake_account}"
+    - "--warehouse"
+    - "${token.snowflake_warehouse}"
+    - "--user"
+    - "${token.snowflake_user}"
+    - "--password"
+    - "${token.snowflake_password}"
+    - "--role"
+    - "${token.snowflake_role}"
+    - "--database"
+    - "${token.snowflake_database}"
+    - "--schema"
+    - "${token.snowflake_schema}"
+    - "--allowed_databases"
+    - "${token.snowflake_op_allowed_databases}"
+    - "--allow_write"
+    - "--exclude-json-results"
+client_session_timeout_seconds: 120
+cache_tools_list: true
+
+
+# "mcpServers": {
+#   "snowflake_pip": {
+#     "command": "uvx",
+#     "args": [
+#       "mcp_snowflake_server",
+#       "--account", "your_account",
+#       "--warehouse", "your_warehouse",
+#       "--user", "your_user",
+#       "--password", "your_password",
+#       "--role", "your_role",
+#       "--database", "your_database",
+#       "--schema", "your_schema"
+#       // Optionally: "--private_key_path", "your_private_key_absolute_path"
+#       // Optionally: "--allow_write"
+#       // Optionally: "--log_dir", "/absolute/path/to/logs"
+#       // Optionally: "--log_level", "DEBUG"/"INFO"/"WARNING"/"ERROR"/"CRITICAL"
+#       // Optionally: "--exclude_tools", "{tool_name}", ["{other_tool_name}"]
+#     ]
+#   }
+# }
