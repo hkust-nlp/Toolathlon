@@ -1,83 +1,103 @@
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import time
+from email.utils import formataddr
+import argparse
 import json
 import sys
 from pathlib import Path
-from datetime import datetime, timedelta
 import re
-import time
-from argparse import ArgumentParser, RawTextHelpFormatter
-from utils.mcp.tool_servers import MCPServerManager, call_tool_with_retry, ToolCallError
+from datetime import datetime, timedelta
 
+# from configs.personal_info import personal_info
 
-class MCPEmailSender:
-    """使用MCP服务器发送邮件的类"""
-    
-    def __init__(self, verbose=True):
+class EmailSendError(Exception):
+    """邮件发送错误"""
+    pass
+
+class LocalEmailSender:
+    def __init__(self, sender_email, password, smtp_server='localhost', smtp_port=1587, use_ssl=False, use_starttls=False, use_auth=True, verbose=True):
         """
-        初始化MCP邮件发送器
+        初始化本地邮件发送器
+        :param sender_email: 发件人邮箱地址
+        :param password: 邮箱密码
+        :param smtp_server: SMTP服务器地址
+        :param smtp_port: SMTP服务器端口
+        :param use_ssl: 是否使用SSL
+        :param use_starttls: 是否使用STARTTLS
+        :param use_auth: 是否使用认证
         :param verbose: 是否打印详细信息
         """
+        self.sender_email = sender_email
+        self.password = password
+        self.smtp_server = smtp_server
+        self.smtp_port = smtp_port
+        self.use_ssl = use_ssl
+        self.use_starttls = use_starttls
+        self.use_auth = use_auth
         self.verbose = verbose
-        self.server_manager = MCPServerManager()
     
     def _log(self, message, force=False):
         """打印日志信息"""
         if self.verbose or force:
             print(message)
     
-    async def send_email(self, to_email, subject, content, content_type='plain'):
+    def send_email(self, receiver_email, sender_name, subject, content, content_type='plain'):
         """
-        使用MCP服务器发送邮件
-        :param to_email: 收件人邮箱
+        发送邮件
+        :param receiver_email: 收件人邮箱
+        :param sender_name: 发件人显示名称
         :param subject: 邮件标题
         :param content: 邮件内容
         :param content_type: 内容类型 'plain' 或 'html'
         """
         try:
-            # 准备邮件参数
-            email_params = {
-                'to': to_email,
-                'subject': subject,
-                'body': content if content_type == 'plain' else '',
-                'html_body': content if content_type == 'html' else ''
-            }
+            # 创建邮件对象
+            msg = MIMEMultipart()
             
-            # 移除空的html_body参数
-            if not email_params['html_body']:
-                del email_params['html_body']
+            # 设置发件人（包含自定义名称）
+            msg['From'] = formataddr((sender_name, self.sender_email))
+            msg['To'] = receiver_email
+            msg['Subject'] = subject
             
-            self._log(f"正在发送邮件...")
-            self._log(f"   收件人：{to_email}")
-            self._log(f"   主题：{subject}")
-            self._log(f"   内容类型：{content_type}")
+            # 添加邮件正文
+            msg.attach(MIMEText(content, content_type, 'utf-8'))
             
-            # 使用MCP服务器发送邮件
-            result = await call_tool_with_retry(
-                server_name='emails',
-                tool_name='send_email',
-                arguments=email_params,
-                max_retries=3,
-                server_manager=self.server_manager
-            )
+            # 连接邮件服务器
+            if self.use_ssl:
+                server = smtplib.SMTP_SSL(self.smtp_server, self.smtp_port)
+            else:
+                server = smtplib.SMTP(self.smtp_server, self.smtp_port)
+                if self.use_starttls:
+                    server.starttls()  # 启用TLS加密
+            
+            # 只在需要认证时进行登录
+            if self.use_auth:
+                server.login(self.sender_email, self.password)
+            
+            # 发送邮件
+            server.send_message(msg)
+            server.quit()
             
             self._log("✅ 邮件发送成功！")
+            self._log(f"   发件人：{sender_name}")
+            self._log(f"   收件人：{receiver_email}")
+            self._log(f"   主题：{subject}")
             self._log("-" * 50)
+            
             return True
             
-        except ToolCallError as e:
-            error_msg = f"MCP邮件发送失败 - 主题: {subject}, 错误: {str(e)}"
-            self._log(f"❌ {error_msg}", force=True)
-            self._log("-" * 50)
-            return False
         except Exception as e:
-            error_msg = f"邮件发送异常 - 主题: {subject}, 错误: {str(e)}"
+            error_msg = f"邮件发送失败 - 发件人: {sender_name}, 主题: {subject}, 错误: {str(e)}"
             self._log(f"❌ {error_msg}", force=True)
             self._log("-" * 50)
             return False
     
-    async def send_batch_emails(self, to_email, email_list, delay=1):
+    def send_batch_emails(self, receiver_email, email_list, delay=1):
         """
         批量发送邮件
-        :param to_email: 收件人邮箱
+        :param receiver_email: 收件人邮箱
         :param email_list: 邮件列表，每个元素是一个字典
         :param delay: 每封邮件之间的延迟（秒）
         :return: (success_count, fail_count, failed_emails)
@@ -101,8 +121,9 @@ class MCPEmailSender:
                 else:
                     content_type = 'plain'
             
-            success = await self.send_email(
-                to_email=to_email,
+            success = self.send_email(
+                receiver_email=receiver_email,
+                sender_name=email_data['sender_name'],
                 subject=email_data['subject'],
                 content=email_data['content'],
                 content_type=content_type
@@ -127,7 +148,6 @@ class MCPEmailSender:
         
         return success_count, fail_count, failed_emails
 
-
 def format_email_with_personal_info(email_data, 
                                     placeholder_values, 
                                     today,
@@ -136,8 +156,6 @@ def format_email_with_personal_info(email_data,
     使用personal_info中的键值对格式化邮件数据
     占位符格式: <<<<||||key||||>>>>
     :param email_data: 原始邮件数据字典
-    :param placeholder_values: 占位符值字典
-    :param today: 今天的日期
     :param verbose: 是否打印详细信息
     :return: 格式化后的邮件数据字典
     """
@@ -159,11 +177,17 @@ def format_email_with_personal_info(email_data,
                     formatted_value = value
                     for match in matches:
                         placeholder = f'<<<<||||{match}||||>>>>'
+                        # print(f"DEBUG: 匹配到占位符: {match}")
                         if match in placeholder_values:
                             replacement = str(placeholder_values[match])
                             formatted_value = formatted_value.replace(placeholder, replacement)
+                            # _log(f"替换占位符: {placeholder} -> {replacement}")
                         # 如果是日期或者年份
                         elif match == 'year' or match.startswith('today+') or match.startswith('today-'):
+                            # print(f"DEBUG: 进入日期处理分支，match={match}")
+                            # 我会传入今天的日期，以ISO格式，例如2025-06-30
+                            # 请你把year替换为今天+30天后的年份
+                            # 对于日期，请把today+X替换为对应的日期
                             try:
                                 if match == 'year':
                                     # 计算今天+30天后的年份
@@ -186,12 +210,13 @@ def format_email_with_personal_info(email_data,
                                     replacement = placeholder  # 保持原样
                                 
                                 formatted_value = formatted_value.replace(placeholder, replacement)
+                                # _log(f"替换占位符: {placeholder} -> {replacement}")
                             except (ValueError, TypeError) as e:
                                 _log(f"⚠️  日期处理错误: {e}", force=True)
                                 # 如果日期处理失败，保持原占位符
                                 pass
                         else:
-                            _log(f"⚠️  未找到placeholder_values中的键: {match}", force=True)
+                            _log(f"⚠️  未找到personal_info中的键: {match}", force=True)
                     
                     formatted_email[key] = formatted_value
                     
@@ -205,7 +230,6 @@ def format_email_with_personal_info(email_data,
     except Exception as e:
         _log(f"⚠️  格式化邮件数据时出错: {e}", force=True)
         return email_data
-
 
 def load_emails_from_jsonl(file_path, placeholder_file_path, verbose=True):
     """
@@ -228,9 +252,10 @@ def load_emails_from_jsonl(file_path, placeholder_file_path, verbose=True):
     today = datetime.now().strftime('%Y-%m-%d')
     
     # 保存today时间到文件，用于后续eval
-    # 相对于当前文件的位置：../groundtruth_workspace/today.txt
+    # 相对于send_email.py文件的位置：../groundtruth_workspace/today.txt
     script_dir = Path(__file__).parent.parent
     today_file_path = script_dir / 'groundtruth_workspace' / 'today.txt'
+    # today_file_path.parent.mkdir(parents=True, exist_ok=True)
     with open(today_file_path, 'w', encoding='utf-8') as f:
         f.write(today)
     _log(f"✅ 已保存today时间到: {today_file_path}")
@@ -256,7 +281,7 @@ def load_emails_from_jsonl(file_path, placeholder_file_path, verbose=True):
                     if 'content_type' not in email_data:
                         email_data['content_type'] = 'auto'
                     
-                    # 使用placeholder_values格式化邮件数据
+                    # 使用personal_info格式化邮件数据
                     formatted_email = format_email_with_personal_info(email_data, placeholder_values, today, verbose=verbose)
                     emails.append(formatted_email)
                     
@@ -274,20 +299,35 @@ def load_emails_from_jsonl(file_path, placeholder_file_path, verbose=True):
         print(f"❌ 读取文件时出错: {e}")
         sys.exit(1)
 
-
 def create_parser():
     """创建命令行参数解析器"""
-    parser = ArgumentParser(
-        description='MCP邮件批量发送工具',
-        formatter_class=RawTextHelpFormatter,
+    parser = argparse.ArgumentParser(
+        description='本地邮件批量发送工具',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog='''
 示例:
-  python mcp_send_email.py --receiver target@example.com --jsonl emails.jsonl --placeholder placeholder.json
+  python gmail_sender.py --sender your@gmail.com --password "your_app_password" --receiver target@example.com --jsonl emails.jsonl
 
 JSONL文件格式示例:
   {"sender_name": "张三", "subject": "测试邮件", "content": "这是邮件内容"}
   {"sender_name": "李四", "subject": "HTML邮件", "content": "<h1>HTML标题</h1><p>内容</p>", "content_type": "html"}
+  
+占位符格式:
+  使用 <<<<||||key||||>>>> 作为占位符，其中key是personal_info中的键名
+  例如: "Hello <<<<||||name||||>>>>, your email is <<<<||||email||||>>>>"
         '''
+    )
+    
+    parser.add_argument(
+        '--sender', '-s',
+        required=True,
+        help='发件人邮箱地址'
+    )
+    
+    parser.add_argument(
+        '--password', '-p',
+        required=True,
+        help='邮箱密码'
     )
     
     parser.add_argument(
@@ -305,7 +345,7 @@ JSONL文件格式示例:
     parser.add_argument(
         '--placeholder', '-pl',
         required=True,
-        help='包含占位符的JSON文件路径'
+        help='包含占位符的JSONL文件路径'
     )
     
     parser.add_argument(
@@ -335,8 +375,7 @@ JSONL文件格式示例:
     
     return parser
 
-
-async def main():
+def main():
     # 解析命令行参数
     parser = create_parser()
     args = parser.parse_args()
@@ -347,8 +386,9 @@ async def main():
     # 打印配置信息
     if verbose:
         print("=" * 60)
-        print("MCP邮件批量发送工具")
+        print("本地邮件批量发送工具")
         print("=" * 60)
+        print(f"发件人邮箱: {args.sender}")
         print(f"收件人邮箱: {args.receiver}")
         print(f"邮件数据文件: {args.jsonl}")
         print(f"占位符文件: {args.placeholder}")
@@ -361,6 +401,7 @@ async def main():
         print("正在加载邮件数据...")
     
     emails = load_emails_from_jsonl(args.jsonl, args.placeholder, verbose=verbose)
+
 
     if not emails:
         print("❌ 没有有效的邮件数据")
@@ -396,9 +437,9 @@ async def main():
     if verbose:
         print("\n开始发送邮件...\n")
     
-    sender = MCPEmailSender(verbose=verbose)
-    success_count, fail_count, failed_emails = await sender.send_batch_emails(
-        to_email=args.receiver,
+    sender = LocalEmailSender(args.sender, args.password, use_auth=False, verbose=verbose)
+    success_count, fail_count, failed_emails = sender.send_batch_emails(
+        receiver_email=args.receiver,
         email_list=emails,
         delay=args.delay
     )
@@ -421,13 +462,13 @@ async def main():
             print(f"  - 第 {failed['index']} 封: {failed['sender_name']} - {failed['subject']}")
         
         # 抛出异常使程序返回非0状态码
-        raise Exception(f"{fail_count} 封邮件发送失败")
-
+        raise EmailSendError(f"{fail_count} 封邮件发送失败")
 
 if __name__ == "__main__":
-    import asyncio
     try:
-        asyncio.run(main())
+        main()
+    except EmailSendError:
+        sys.exit(1)
     except KeyboardInterrupt:
         print("\n\n程序被用户中断")
         sys.exit(1)
