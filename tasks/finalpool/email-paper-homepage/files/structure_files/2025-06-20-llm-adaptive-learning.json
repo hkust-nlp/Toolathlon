@@ -1,0 +1,14 @@
+[
+  {"name": "README.md", "content": "# Adaptive Learning Strategies for Large Language Models in Dynamic Environments\n\nCode repository for the paper."},
+  {"name": "requirements.txt", "content": "torch>=1.9.0\ntransformers>=4.20.0\nnumpy>=1.21.0\ngymnasium>=0.28.0"},
+  {"name": "src/model.py", "content": "# Adaptive learning model implementation"},
+  {"name": "src/train.py", "content": "# Adaptive training script"},
+  {"name": "src/adaptive.py", "content": "# Adaptive learning algorithms"},
+  {"name": "src/utils.py", "content": "# Utility functions for adaptive learning"},
+  {"name": "data/README.md", "content": "# Dynamic environment datasets"},
+  {"name": "experiments/adaptive_config.yaml", "content": "# Adaptive learning configuration"},
+  {"name": "results/README.md", "content": "# Performance analysis results"},
+  {"name": "notebooks/environment_analysis.ipynb", "content": "{}"},
+  {"name": "tests/test_adaptive.py", "content": "# Unit tests for adaptive learning"},
+  {"name": ".gitignore", "content": "__pycache__/\n*.pyc\n.DS_Store\nsimulations/"}
+]

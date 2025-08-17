@@ -1,0 +1,14 @@
+[
+  {"name": "README.md", "content": "# Optimizing Large Language Models for Contextual Reasoning in Multi-Task Environments\n\nCode repository for the paper."},
+  {"name": "requirements.txt", "content": "torch>=1.9.0\ntransformers>=4.20.0\nnumpy>=1.21.0\nmulti-task-lib>=2.0.0"},
+  {"name": "src/model.py", "content": "# Optimized contextual reasoning model"},
+  {"name": "src/train.py", "content": "# Multi-task training script"},
+  {"name": "src/reasoning.py", "content": "# Contextual reasoning optimization"},
+  {"name": "src/utils.py", "content": "# Utility functions for multi-task optimization"},
+  {"name": "data/README.md", "content": "# Multi-task environment data"},
+  {"name": "experiments/multitask_config.yaml", "content": "# Multi-task optimization configuration"},
+  {"name": "results/README.md", "content": "# Optimization results directory"},
+  {"name": "notebooks/contextual_analysis.ipynb", "content": "{}"},
+  {"name": "tests/test_reasoning.py", "content": "# Unit tests for reasoning optimization"},
+  {"name": ".gitignore", "content": "__pycache__/\n*.pyc\n.DS_Store\ncheckpoints/"}
+]

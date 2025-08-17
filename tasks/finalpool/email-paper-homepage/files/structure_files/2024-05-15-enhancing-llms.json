@@ -1,0 +1,13 @@
+[
+  {"name": "README.md", "content": "# Enhancing Large Language Models with Advanced Fine-Tuning Techniques\n\nCode repository for the paper."},
+  {"name": "requirements.txt", "content": "torch>=1.10.0\ntransformers>=4.21.0\nnumpy>=1.21.0\nscikit-learn>=1.0.0"},
+  {"name": "src/model.py", "content": "# Advanced fine-tuning model implementation"},
+  {"name": "src/train.py", "content": "# Training script with fine-tuning techniques"},
+  {"name": "src/utils.py", "content": "# Utility functions for fine-tuning"},
+  {"name": "data/README.md", "content": "# Data directory for GLUE and SuperGLUE datasets"},
+  {"name": "experiments/config.yaml", "content": "# Experiment configuration files"},
+  {"name": "results/README.md", "content": "# Results directory"},
+  {"name": "notebooks/analysis.ipynb", "content": "{}"},
+  {"name": "tests/test_model.py", "content": "# Unit tests"},
+  {"name": ".gitignore", "content": "__pycache__/\n*.pyc\n.DS_Store\ncheckpoints/"}
+]

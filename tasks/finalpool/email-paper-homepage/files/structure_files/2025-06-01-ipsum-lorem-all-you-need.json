@@ -1,0 +1,14 @@
+[
+  {"name": "README.md", "content": "# Ipsum Lorem is All You Need\n\nCode repository for the paper."},
+  {"name": "requirements.txt", "content": "torch>=1.9.0\ntransformers>=4.20.0\nnumpy>=1.21.0"},
+  {"name": "src/model.py", "content": "# Simplified Ipsum Lorem model implementation"},
+  {"name": "src/train.py", "content": "# Training script for Ipsum Lorem architecture"},
+  {"name": "src/utils.py", "content": "# Utility functions for simplified architecture"},
+  {"name": "data/README.md", "content": "# Data directory"},
+  {"name": "experiments/ipsum_config.yaml", "content": "# Ipsum Lorem model configuration"},
+  {"name": "results/README.md", "content": "# Performance results and comparisons"},
+  {"name": "notebooks/comparison.ipynb", "content": "{}"},
+  {"name": "benchmarks/benchmark.py", "content": "# Benchmark comparison scripts"},
+  {"name": "tests/test_model.py", "content": "# Unit tests for Ipsum Lorem model"},
+  {"name": ".gitignore", "content": "__pycache__/\n*.pyc\n.DS_Store"}
+]

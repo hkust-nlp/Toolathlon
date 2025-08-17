@@ -1,0 +1,13 @@
+{
+  "conference_short": "COML",
+  "conference_full": "Conference on Machine Learning",
+  "conference_domain": "coml",
+  "workshop_short": "LCFM",
+  "workshop_domain": "longcontextfm",
+  "name": "Dr. John Smith",
+  "email": "john.smith@university.edu",
+  "paper_title": "Ipsum Lorem is all you need",
+  "paper_url": "https://openreview.net/forum?id=example123",
+  "workshop_paper_title": "Ipsum Lorem is all you need for a workshop",
+  "workshop_paper_url": "https://openreview.net/forum?id=example123wpsk"
+} 
