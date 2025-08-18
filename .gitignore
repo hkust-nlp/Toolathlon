@@ -19,6 +19,7 @@ legacy/
 configs/global_configs.py
 
 ruige
+ruige*
 dumps
 ./logs
 eval_results

@@ -3,7 +3,7 @@
 # 设置变量
 k8sconfig_path_dir=deployment/k8s/configs
 cluster_name="cluster241"
-resource_yaml="deployment/k8s/source_files/241.yaml"
+resource_yaml="tasks/ruige/k8s-safety-audit/preprocess/config.yaml"
 
 # 颜色输出
 RED='\033[0;31m'
@@ -17,20 +17,6 @@ log_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
 log_batch() { echo -e "${BLUE}[BATCH]${NC} $1"; }
-
-# 显示使用说明
-show_usage() {
-  echo "Usage: $0 [start|stop]"
-  echo ""
-  echo "Parameters:"
-  echo "  start - Create and start Kind cluster (default behavior)"
-  echo "  stop  - Stop and clean up the Kind cluster and configuration files"
-  echo ""
-  echo "Examples:"
-  echo "  $0 start   # Create cluster"
-  echo "  $0 stop    # Clean up cluster"
-  echo "  $0         # Default behavior is to start cluster"
-}
 
 # 清理函数（仅针对指定集群）
 cleanup_existing_cluster() {
@@ -56,14 +42,6 @@ cleanup_config_files() {
     log_info "No configuration file found for ${cluster_name}"
   fi
   mkdir -p "$k8sconfig_path_dir"
-}
-
-# 停止操作
-stop_operation() {
-  log_info "========== Start stopping operation =========="
-  cleanup_existing_cluster
-  cleanup_config_files
-  log_info "========== Stopping operation completed =========="
 }
 
 # 创建集群
