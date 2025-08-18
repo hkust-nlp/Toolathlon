@@ -5,7 +5,7 @@ WEB_PORT=10005      # Web 界面端口
 SMTP_PORT=2525     # SMTP 端口
 IMAP_PORT=1143     # IMAP 端口
 SUBMISSION_PORT=1587 # SMTP 提交端口
-NUM_USERS=100
+NUM_USERS=503
 
 # 数据存储目录 - 转换为绝对路径
 DATA_DIR="$(pwd)/deployment/poste/data"

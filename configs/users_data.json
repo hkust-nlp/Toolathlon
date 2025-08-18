@@ -5502,6 +5502,39 @@
             "canvas_token": "canvas_token_helen1983#7k",
             "woocommerce_consumer_key": "ck_woocommerce_token_helen1983#7k",
             "woocommerce_consumer_secret": "cs_woocommerce_token_helen1983#7k"
+        },
+        {
+            "id": 501,
+            "first_name": "MCP Canvas",
+            "last_name": "Admin 1",
+            "full_name": "MCP Canvas Admin 1",
+            "email": "mcpcanvasadmin1@mcp.com",
+            "password": "mcpcanvasadminpass1",
+            "canvas_token": "mcpcanvasadmintoken1",
+            "woocommerce_consumer_key": "ck_woocommerce_token_mcpcanvasadminpass1",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_mcpcanvasadminpass1"
+        },
+        {
+            "id": 502,
+            "first_name": "MCP Canvas",
+            "last_name": "Admin 2",
+            "full_name": "MCP Canvas Admin 2",
+            "email": "mcpcanvasadmin2@mcp.com",
+            "password": "mcpcanvasadminpass2",
+            "canvas_token": "mcpcanvasadmintoken2",
+            "woocommerce_consumer_key": "ck_woocommerce_token_mcpcanvasadminpass2",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_mcpcanvasadminpass2"
+        },
+        {
+            "id": 503,
+            "first_name": "MCP Canvas",
+            "last_name": "Admin 3",
+            "full_name": "MCP Canvas Admin 3",
+            "email": "mcpcanvasadmin3@mcp.com",
+            "password": "mcpcanvasadminpass3",
+            "canvas_token": "mcpcanvasadmintoken3",
+            "woocommerce_consumer_key": "ck_woocommerce_token_mcpcanvasadminpass3",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_mcpcanvasadminpass3"
         }
     ]
 }
