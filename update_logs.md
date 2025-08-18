@@ -1,3 +1,9 @@
+### 2025.8.19 3:20
+- 修改terminal mcp server
+    - 添加代理控制，修>>bug以及输出长度控制
+    - 需重新安装
+    - 相关文件 `configs/mcp_servers/terminal.yaml`
+
 ### 2025.8.19 2:20
 - 修改yahoo finance mcp server
     - 新增按天搜索价格信息
