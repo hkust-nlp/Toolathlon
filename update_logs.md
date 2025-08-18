@@ -1,3 +1,7 @@
+### 2025.8.18 23:45
+- 修改ytb mcp server安装方式
+    - fork出新的到个人账户，然后进行源码修改
+
 ### 2025.8.15 23:00
 - 修改ytb mcp server安装方式及mcp配置方式
     - 可能需要删掉原来local_servers/youtube-mcp-server然后重装一下

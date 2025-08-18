@@ -12,7 +12,7 @@ CONFIG_DIR="$(dirname "$0")/../configs"
 ACCOUNTS_FILE="$CONFIG_DIR/created_accounts.json"
 
 # Default number of users to create (will be overridden by JSON file)
-DEFAULT_USER_COUNT=100
+DEFAULT_USER_COUNT=503
 
 # Function to show usage
 show_usage() {
