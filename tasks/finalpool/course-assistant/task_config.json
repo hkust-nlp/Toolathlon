@@ -1,4 +1,5 @@
 {
-    "needed_mcp_servers": ["excel","gmail","filesystem"],
+    "needed_mcp_servers": ["excel","emails","filesystem","terminal"],
+    "needed_local_tools": ["claim_done","python_execute"],
     "meta": {}
 }
