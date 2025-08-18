@@ -1,5 +1,6 @@
 {
     "needed_mcp_servers": ["terminal", "git"],
+    "needed_local_tools": ["claim_done", "python_execute"],
     "meta": {
     }
 } 

@@ -1,0 +1,33 @@
+{
+  "dataset_source": "agentica-org/DeepScaleR-Preview-Dataset",
+  "expected_rows": 40315,
+  "tolerance": 10,
+  "required_columns": [
+    "data_source",
+    "prompt",
+    "ability",
+    "reward_model",
+    "extra_info"
+  ],
+  "expected_values": {
+    "data_source": "DeepScaleR",
+    "ability": "math"
+  },
+  "content_validation": {
+    "check_mathematical_content": true,
+    "required_fields": {
+      "prompt": [
+        "role",
+        "content"
+      ],
+      "reward_model": [
+        "style",
+        "ground_truth"
+      ],
+      "extra_info": [
+        "index",
+        "solution"
+      ]
+    }
+  }
+}

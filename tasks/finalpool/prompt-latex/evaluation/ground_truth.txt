@@ -1,0 +1,17 @@
+\begin{tcolorbox}[
+colback=lightProxYellow!10,
+colframe=lightProxYellow,
+left=2mm, right=2mm,title=\textcolor{black}{\textbf{Simple Prompt}}]
+\begin{small}
+\texttt{Question:\textbackslash n\{input\}\textbackslash nAnswer:\textbackslash nLet's think step by step.\textbackslash n}
+\end{small}
+\end{tcolorbox}
+
+\begin{tcolorbox}[
+colback=lightProxYellow!10,
+colframe=lightProxYellow,
+left=2mm, right=2mm,title=\textcolor{black}{\textbf{Complex Prompt}}]
+\begin{small}
+\texttt{<|im\_start|>system\textbackslash nYou are a helpful assistant.<|im\_end|>\textbackslash n<|im\_start|>user\textbackslash n\{input\}\textbackslash nPlease reason step by step, and put your final answer within \textbackslash\textbackslash boxed\{\}.\textbackslash n<|im\_end|>\textbackslash n<|im\_start|>assistant\textbackslash n}
+\end{small}
+\end{tcolorbox}

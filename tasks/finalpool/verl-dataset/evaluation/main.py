@@ -14,7 +14,7 @@ if __name__=="__main__":
     parser.add_argument("--res_log_file", required=False)
     args = parser.parse_args()
 
-    res_log = read_json(args.res_log_file)
+    # res_log = read_json(args.res_log_file)
     
     
     # check local

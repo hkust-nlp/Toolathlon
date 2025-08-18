@@ -1,0 +1,5 @@
+{
+    "needed_mcp_servers": ["filesystem", "arxiv_local", "arxiv-latex", "terminal"],
+    "needed_local_tools": ["claim_done", "python_execute"],
+    "meta": {}
+}

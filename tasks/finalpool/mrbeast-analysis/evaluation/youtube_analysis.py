@@ -19,7 +19,7 @@ youtube_channel_analysis_{channel_id}_{date}_english.xlsx
 包含三个工作表：Video_details, Statistics, Content_Classification
 """
 import os
-os.environ["TESSDATA_PREFIX"] = "/ssddata/xiaochen/workspace/mcpbench_dev/mcp_server"
+# os.environ["TESSDATA_PREFIX"] = "/ssddata/xiaochen/workspace/mcpbench_dev/mcp_server"
 import asyncio
 import json
 import pandas as pd
@@ -260,16 +260,14 @@ async def analyze_channel_videos():
     流程说明：
     1. 获取频道视频列表
     2. 按时间范围筛选视频
-    3. 获取每个视频的详细信息和字幕
+    3. 获取每个视频的详细信息
     4. 计算统计数据
-    5. 进行内容分类
-    6. 导出Excel报告
+    5. 导出Excel报告
     
     输出：
-    - Excel文件包含三个工作表：
-      * Video_details: 原始视频数据
-      * Statistics: 统计分析结果  
-      * Content_Classification: 内容分类统计
+    - Excel文件包含两个工作表：
+      * Detail_Lists: 原始视频数据
+      * Statics: 统计分析结果  
     """
     # 目标频道ID (MrBeast)
     channel_id = "UCX6OQ3DkcsbYNE6H8uQQuVA"
@@ -292,28 +290,22 @@ async def analyze_channel_videos():
         # print(f"正在获取视频详情 {i+1}/{len(videos)}: {video['snippet']['title'][:50]}...")
         
         try:
-            # 并行获取视频详情和字幕（提高效率）
+            # 获取视频详情（不需要字幕）
             details = await get_video_details(video_id)
-            transcript = await get_video_transcript(video_id)
             
             # print(f"Video details=============: {details}")
             if details and isinstance(details, dict):
                 # 解析视频时长
                 duration_seconds = parse_duration(details.get('contentDetails', {}).get('duration', ''))
-                statistics = details.get('statistics', {})
                 
-                # 构建视频信息字典
+                # 构建视频信息字典 - 只包含需要的字段
                 video_info = {
                     'video_id': video_id,
                     'title': video['snippet']['title'],
-                    'description': video['snippet']['description'],
-                    'transcript': transcript,  # 字幕文本
+                    # 'description': video['snippet']['description'],
                     'published_at(ISO 8601 format)': video['snippet']['publishedAt'],
                     'duration_seconds': duration_seconds,
                     'duration_formatted(xx:xx:xx)': str(timedelta(seconds=duration_seconds)),
-                    'view_count': int(statistics.get('viewCount', 0)),
-                    'like_count': int(statistics.get('likeCount', 0)),
-                    'comment_count': int(statistics.get('commentCount', 0))
                 }
                 
                 video_details.append(video_info)
@@ -324,14 +316,10 @@ async def analyze_channel_videos():
             video_info = {
                 'video_id': video_id,
                 'title': video['snippet']['title'],
-                'description': video['snippet']['description'][:500],
-                'transcript': "Error fetching transcript",
-                'published_at': video['snippet']['publishedAt'],
+                # 'description': video['snippet']['description'][:500],
+                'published_at(ISO 8601 format)': video['snippet']['publishedAt'],
                 'duration_seconds': 0,
-                'duration_formatted': '0:00:00',
-                'view_count': 0,
-                'like_count': 0,
-                'comment_count': 0
+                'duration_formatted(xx:xx:xx)': '0:00:00',
             }
             video_details.append(video_info)
     
@@ -356,13 +344,13 @@ async def analyze_channel_videos():
     
     # === Excel报告生成 ===
     
-    # 生成带时间戳的文件名
-    excel_filename = f"youtube_channel_analysis_{channel_id}_{datetime.now().strftime('%Y%m%d')}_english.xlsx"
+    # 生成固定文件名 result.xlsx
+    excel_filename = "result.xlsx"
     
     with pd.ExcelWriter(excel_filename, engine='openpyxl') as writer:
         
-        # 工作表1: 原始视频数据
-        df.to_excel(writer, sheet_name='Video_details', index=False)
+        # 工作表1: 原始视频数据 - 使用正确的工作表名称
+        df.to_excel(writer, sheet_name='Detail_Lists', index=False)
         
         # 工作表2: 统计分析
         stats_data = []
@@ -370,14 +358,14 @@ async def analyze_channel_videos():
         # 分析1: 最常发布的星期几
         weekday_counts = df['weekday'].value_counts()
         most_common_weekday = weekday_counts.index[0]
-        stats_data.append(['Most_common_publish_weekday', most_common_weekday, f"{weekday_counts[most_common_weekday]} times"])
+        stats_data.append(['Most_common_publish_weekday', most_common_weekday])
         
         # 分析2: 平均时长（排除短视频 ≤ 60秒）
         regular_videos = df[df['duration_seconds'] > 60]  # 过滤出常规视频
         if len(regular_videos) > 0:
             avg_duration_seconds = regular_videos['duration_seconds'].mean()
             avg_duration_formatted = str(timedelta(seconds=int(avg_duration_seconds)))
-            stats_data.append(['Average_duration_excluding_shorts(HH:MM:SS)', avg_duration_formatted, f"{len(regular_videos)} regular videos"])
+            stats_data.append(['Average_duration_excluding_shorts(HH:MM:SS)', avg_duration_formatted])
         
         # 分析3: 发布间隔计算
         df_sorted = df.sort_values('published_date')
@@ -389,97 +377,25 @@ async def analyze_channel_videos():
         
         if intervals:
             avg_interval = sum(intervals) / len(intervals)
-            stats_data.append(['Average_publish_interval(days)', f"{avg_interval:.1f}", f"Based on {len(intervals)} intervals"])
+            stats_data.append(['Average_publish_interval(days)', f"{avg_interval:.1f}"])
         
-        # 分析4: 各星期发布频率统计
-        for day, count in weekday_counts.items():
-            stats_data.append([f'{day}_publish_frequency', count, f"{count/len(df)*100:.1f}%"])
-        
-        # 保存统计分析表
-        stats_df = pd.DataFrame(stats_data, columns=['Statistic_Item', 'Value', 'Notes'])
-        stats_df.to_excel(writer, sheet_name='Statistics', index=False)
-        
-        # 工作表3: 内容分类（使用固定数量分配）
-        def classify_video_content(video_index, duration_seconds):
-            """
-            根据视频索引和时长进行固定分类
-            
-            Args:
-                video_index (int): 视频在列表中的索引
-                duration_seconds (int): 视频时长（秒）
-                
-            Returns:
-                list: 包含单个分类的列表
-                
-            分类规则：
-            - 时长 ≤ 60秒 → Short
-            - 其他视频按索引轮询分配到9个固定类别
-            """
-            # 短视频特殊处理
-            if duration_seconds <= 60:
-                return ['Short']
-            
-            # 9个固定分类类别
-            categories = [
-                'Charity',           # 公益
-                'Invited_Challenge', # 邀请挑战
-                'Personal_Challenge',# 个人挑战
-                'Showcase',          # 展示
-                'Collaboration',     # 合作
-                'Tutorial',          # 教程
-                'Entertainment',     # 娱乐
-                'Daily_Life',        # 日常
-                'Others'             # 其他
-            ]
-            
-            # 使用取模运算轮询分配类别
-            category_index = video_index % len(categories)
-            return [categories[category_index]]
-        
-        # 应用分类函数到每个视频
-        df['content_categories'] = df.apply(
-            lambda row: classify_video_content(
-                df.index[df['video_id'] == row['video_id']].tolist()[0], 
-                row['duration_seconds']
-            ), 
-            axis=1
-        )
-        
-        # 创建固定数量的分类统计（符合用户要求：1,2,3,4,5,6,7,8,9 + Short）
-        fixed_category_counts = {
-            'Charity': 1,
-            'Invited_Challenge': 2,
-            'Personal_Challenge': 3,
-            'Showcase': 4,
-            'Collaboration': 5,
-            'Tutorial': 6,
-            'Entertainment': 7,
-            'Daily_Life': 8,
-            'Others': 9,
-            'Short': len(df[df['duration_seconds'] <= 60])  # 实际短视频数量
-        }
-        
-        # 生成分类统计表
+        # 分析4: 各星期发布频率统计 - 计算比例而不是计数
         total_videos = len(df)
-        category_df = pd.DataFrame([
-            {
-                'Category': cat, 
-                'Video_Count': count, 
-                'Percentage': f"{count/total_videos*100:.1f}%"
-            }
-            for cat, count in fixed_category_counts.items() if count > 0
-        ])
+        for day, count in weekday_counts.items():
+            frequency_ratio = count / total_videos
+            stats_data.append([f'{day}_publish_frequency', f"{frequency_ratio:.3f}"])
         
-        # 按视频数量降序排序
-        category_df = category_df.sort_values('Video_Count', ascending=False)
-        category_df.to_excel(writer, sheet_name='Content_Classification', index=False)
+        # 保存统计分析表 - 使用正确的工作表名称和列结构
+        stats_df = pd.DataFrame(stats_data, columns=['Statistic_Item', 'Value'])
+        stats_df.to_excel(writer, sheet_name='Statics', index=False)
     
     # === 分析完成，输出结果摘要 ===
     
     print(f"\nAnalysis completed! Results saved to: {excel_filename}")
     print(f"Total videos analyzed: {len(df)}")
     print(f"Most common publish weekday: {most_common_weekday}")
-    print(f"Average duration (excluding shorts): {avg_duration_formatted}")
+    if len(regular_videos) > 0:
+        print(f"Average duration (excluding shorts): {avg_duration_formatted}")
     if intervals:
         print(f"Average publish interval: {avg_interval:.1f} days")
 
