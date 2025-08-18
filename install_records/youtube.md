@@ -6,9 +6,9 @@ https://github.com/ZubeidHendricks/youtube-mcp-server
 
 ```
 cd local_servers
-git clone https://github.com/ZubeidHendricks/youtube-mcp-server
+git clone https://github.com/lockon-n/youtube-mcp-server
 cd youtube-mcp-server
-git checkout 387a617bd83454894873ffd79530e3a35d5227a8
+git checkout b202e00e9014bf74b9f5188b623cad16f13c01c4
 npm install
 npm run build
 ```
