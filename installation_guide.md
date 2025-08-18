@@ -33,7 +33,7 @@ In this file we guide you how to install all needed servers for this project.
     uv tool install office-powerpoint-mcp-server@2.0.6
     uv tool install office-word-mcp-server@1.1.9
     uv tool install git+https://github.com/wandb/wandb-mcp-server@e1b6274a58a8dc56a47c5aaefb9d03282133f507
-    uv tool install cli-mcp-server@0.2.5
+    uv tool install git+https://github.com/lockon-n/cli-mcp-server@da1dcb5166597c9fbf90ede5fb1f0cd22a71a3b7
     uv tool install pdf-tools-mcp@0.1.4
     uv tool install git+https://github.com/jkawamoto/mcp-youtube-transcript@28081729905a48bef533d864efbd867a2bfd14cd
     uv tool install mcp-google-sheets@0.4.1
