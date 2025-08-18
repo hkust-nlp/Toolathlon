@@ -1,10 +1,9 @@
 {
-    "needed_mcp_servers": ["excel_small","filesystem","terminal"],
+    "needed_mcp_servers": ["excel","filesystem","terminal"],
     "needed_local_tools": ["claim_done","python_execute"],
     "meta": {
         "task_type": "data_transformation",
         "input_files": ["Household_Appliances.xlsx"],
-        "output_file": "Processed.xlsx",
-        "description": "将海量二维家电销量数据转换为一维格式"
+        "output_file": "Processed.xlsx"
     }
 } 

@@ -1,4 +1,4 @@
 {
-    "needed_mcp_servers": ["google_sheet", "google_search", "arxiv_local", "huggingface"],
+    "needed_mcp_servers": ["google_sheet", "arxiv_local", "huggingface"],
     "needed_local_tools": ["claim_done", "web_search"]
 } 

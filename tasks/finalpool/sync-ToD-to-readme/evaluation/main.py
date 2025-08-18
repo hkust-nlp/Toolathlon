@@ -75,9 +75,37 @@ def normalize_todo_content(content: str) -> str:
     """标准化 TODO 内容，移除多余空格和标点符号差异"""
     return re.sub(r'\s+', ' ', content.strip())
 
+def verify_todo_ordering(todos: List[Tuple[str, int, str]]) -> Tuple[bool, str]:
+    """验证TODO项目是否按正确顺序排列：文件路径字典序，同文件内行号递增"""
+    if not todos:
+        return True, "空列表，顺序验证通过"
+    
+    errors = []
+    
+    for i in range(len(todos) - 1):
+        curr_file, curr_line, _ = todos[i]
+        next_file, next_line, _ = todos[i + 1]
+        
+        # 文件路径字典序检查
+        if curr_file > next_file:
+            errors.append(f"文件路径顺序错误: '{curr_file}' 应该在 '{next_file}' 之后")
+        # 同文件内行号递增检查    
+        elif curr_file == next_file and curr_line >= next_line:
+            errors.append(f"同文件内行号顺序错误: {curr_file}:{curr_line} 应该在 {next_file}:{next_line} 之后")
+    
+    if errors:
+        return False, "\n".join(errors)
+    return True, "顺序验证通过"
+
 def compare_todos(submission_todos: List[Tuple[str, int, str]], 
                  groundtruth_todos: List[Tuple[str, int, str]]) -> Tuple[float, dict]:
     """比较提交的 TODO 项目和标准答案"""
+    
+    # 首先验证提交的TODO项目顺序
+    submission_order_valid, submission_order_msg = verify_todo_ordering(submission_todos)
+    
+    # 验证标准答案的TODO项目顺序（用于调试）
+    gt_order_valid, gt_order_msg = verify_todo_ordering(groundtruth_todos)
     
     # 创建标准答案的集合（用于快速查找）
     gt_set = set()
@@ -107,8 +135,8 @@ def compare_todos(submission_todos: List[Tuple[str, int, str]],
     recall = correct_count / total_gt if total_gt > 0 else 0
     f1_score = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
     
-    # 完全匹配（所有 TODO 都正确且没有多余的）
-    exact_match = (submission_set == gt_set)
+    # 完全匹配（所有 TODO 都正确且没有多余的且顺序正确）
+    exact_match = (submission_set == gt_set) and submission_order_valid
     
     # 丢失的 TODO 项目
     missing_todos = gt_set - submission_set
@@ -124,7 +152,11 @@ def compare_todos(submission_todos: List[Tuple[str, int, str]],
         'total_gt': total_gt,
         'total_submission': total_submission,
         'missing_todos': missing_todos,
-        'extra_todos': extra_todos
+        'extra_todos': extra_todos,
+        'order_valid': submission_order_valid,
+        'order_message': submission_order_msg,
+        'gt_order_valid': gt_order_valid,
+        'gt_order_message': gt_order_msg
     }
     
     return f1_score, metrics
@@ -152,11 +184,12 @@ def evaluate_readme_todos(submission_path: str, groundtruth_path: str) -> Tuple[
     # 比较 TODO 项目
     f1_score, metrics = compare_todos(submission_todos, groundtruth_todos)
     
-    # 评估标准：F1分数 >= 0.9 且精确率 >= 0.9 且召回率 >= 0.9
+    # 评估标准：F1分数 >= 0.9 且精确率 >= 0.9 且召回率 >= 0.9 且顺序正确
     # (更高的标准，因为这是测试TODO列表的精确更新)
     success = (metrics['f1_score'] >= 0.9 and 
                metrics['precision'] >= 0.9 and 
-               metrics['recall'] >= 0.9)
+               metrics['recall'] >= 0.9 and
+               metrics['order_valid'])
     
     # 构建详细的反馈信息
     feedback = []
@@ -167,6 +200,13 @@ def evaluate_readme_todos(submission_path: str, groundtruth_path: str) -> Tuple[
     feedback.append(f"正确项目数: {metrics['correct_count']}/{metrics['total_gt']}")
     feedback.append(f"提交项目数: {metrics['total_submission']}")
     feedback.append(f"完全匹配: {metrics['exact_match']}")
+    feedback.append(f"顺序验证: {metrics['order_valid']}")
+    
+    if not metrics['order_valid']:
+        feedback.append(f"顺序错误详情: {metrics['order_message']}")
+    
+    if not metrics['gt_order_valid']:
+        feedback.append(f"\u26a0️  标准答案顺序验证失败: {metrics['gt_order_message']}")
     
     if metrics['missing_todos']:
         feedback.append(f"\n❌ 丢失的 TODO 项目 ({len(metrics['missing_todos'])} 个):")
@@ -186,7 +226,7 @@ def evaluate_readme_todos(submission_path: str, groundtruth_path: str) -> Tuple[
         feedback.append(f"\n✅ 评估通过: agent成功更新了README.md中的TODO列表")
     else:
         feedback.append(f"\n❌ 评估失败: README.md中的TODO列表更新不够准确")
-        feedback.append(f"   需要: F1≥0.9, 精确率≥0.9, 召回率≥0.9")
+        feedback.append(f"   需要: F1≥0.9, 精确率≥0.9, 召回率≥0.9, 顺序正确")
     
     return success, "\n".join(feedback)
 
