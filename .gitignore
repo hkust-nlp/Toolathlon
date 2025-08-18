@@ -32,8 +32,6 @@ scripts/debug_eval_config.json
 tmp/
 .tmp/
 
-# 所有.pdf文件
-*.pdf
 
 # 所有文件 pd_xxx.yaml
 pd_*.yaml
