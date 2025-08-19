@@ -1,0 +1,22 @@
+{
+    "starbucks": {
+        "recommended_store_name": "",
+        "address": ""
+    },
+    "transportation_rote": {
+        "from": "",
+        "to": "",
+        "line_name": "",
+        "duration": "",
+        "cost": ""
+    },
+    "kamakura_station": {
+        "recommended_exit_name": ""
+    },
+    "walking_route": {
+        "from": "",
+        "to": "Kamakura Museum of History and Culture",
+        "duration": "",
+        "distance": ""
+    }
+}
