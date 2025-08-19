@@ -1,6 +1,6 @@
 {
-    "needed_mcp_servers": ["excel", "filesystem","terminal"],
-    "needed_local_tools": ["claim_done"],
+    "needed_mcp_servers": ["excel","filesystem","terminal"],
+    "needed_local_tools": ["claim_done", "python_execute"],
     "meta": {
         "task_type": "market_research",
         "input_files": ["Market_Data.xlsx"],
