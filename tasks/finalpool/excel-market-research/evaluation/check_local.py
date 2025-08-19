@@ -24,31 +24,59 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
         # 加载groundtruth文件，获取正确的增长率数据
         df_gt = pd.read_csv(groundtruth_file)
 
-        # 查找'Year'和'Growth Rate'列（忽略大小写）
+        # 直接使用实际的列名进行匹配
+        print(f"Ground truth columns: {df_gt.columns.tolist()}")
+        
         year_col_gt = None
+        electric_col_gt = None
+        construction_col_gt = None
+        furniture_col_gt = None
         growth_col_gt = None
+        
         for col in df_gt.columns:
-            col_lower = str(col).strip().lower()
-            if col_lower == 'year':
+            if col == 'Year':
                 year_col_gt = col
-            elif col_lower == 'growth rate':
+            elif col == 'Electric %':
+                electric_col_gt = col
+            elif col == 'Construction %':
+                construction_col_gt = col
+            elif col == 'Furniture %':
+                furniture_col_gt = col
+            elif col == 'Growth Rate %':
                 growth_col_gt = col
 
-        if year_col_gt is None or growth_col_gt is None:
-            return False, "groundtruth not consists of 'Year' or 'Growth Rate' columns"
+        if year_col_gt is None:
+            return False, "groundtruth does not contain 'Year' column"
+        if electric_col_gt is None:
+            return False, "groundtruth does not contain 'Electric %' column"
+        if construction_col_gt is None:
+            return False, "groundtruth does not contain 'Construction %' column"
+        if furniture_col_gt is None:
+            return False, "groundtruth does not contain 'Furniture %' column"
+        if growth_col_gt is None:
+            return False, "groundtruth does not contain 'Growth Rate' column"
 
-        # 提取年份和增长率
-        correct_growth = {}
+        # 提取所有数据
+        correct_data = {}
         for _, row in df_gt.iterrows():
             year = row[year_col_gt]
-            cell = row[growth_col_gt]
             if pd.isna(year):
                 continue
-            rate = parse_growth_rate(cell)
-            correct_growth[year] = rate
+            
+            electric_rate = parse_growth_rate(row[electric_col_gt])
+            construction_rate = parse_growth_rate(row[construction_col_gt])
+            furniture_rate = parse_growth_rate(row[furniture_col_gt])
+            growth_rate = parse_growth_rate(row[growth_col_gt])
+            
+            correct_data[year] = {
+                'electric': electric_rate,
+                'construction': construction_rate,
+                'furniture': furniture_rate,
+                'growth_rate': growth_rate
+            }
 
-        if not correct_growth:
-            return False, "groundtruth not consists of growth rate data"
+        if not correct_data:
+            return False, "groundtruth does not contain valid data"
 
         # 加载agent增长率文件
         wb_agent = load_workbook(agent_growth_file, data_only=True)
@@ -58,7 +86,14 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
         if ws_agent.max_row < 2:
             return False, "not enough data in agent growth rate file"
 
-        # 查找'Year'和'Growth Rate'列（支持新的百分比格式）
+        # 直接使用实际的列名进行匹配
+        agent_headers = []
+        for col in range(1, ws_agent.max_column + 1):
+            header = str(ws_agent.cell(1, col).value or '').strip()
+            agent_headers.append(header)
+        
+        print(f"Agent headers: {agent_headers}")
+        
         year_col_agent = None
         growth_col_agent = None
         electric_col_agent = None
@@ -66,44 +101,85 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
         furniture_col_agent = None
         
         for col in range(1, ws_agent.max_column + 1):
-            header = str(ws_agent.cell(1, col).value or '').strip().lower()
-            if header == 'year':
+            header = str(ws_agent.cell(1, col).value or '').strip()
+            if header == 'Year':
                 year_col_agent = col
-            elif header == 'growth rate':
+            elif header == 'Growth Rate %':
                 growth_col_agent = col
-            elif header == 'electric %':
+            elif header == 'Electric %':
                 electric_col_agent = col
-            elif header == 'construction %':
+            elif header == 'Construction %':
                 construction_col_agent = col
-            elif header == 'furniture %':
+            elif header == 'Furniture %':
                 furniture_col_agent = col
 
-        if year_col_agent is None or growth_col_agent is None:
-            return False, "agent result not consists of 'Year' or 'Growth Rate' columns"
+        if year_col_agent is None:
+            return False, "agent result does not contain 'Year' column"
+        if growth_col_agent is None:
+            return False, "agent result does not contain 'Growth Rate' column"
+        if electric_col_agent is None:
+            return False, "agent result does not contain 'Electric %' column"
+        if construction_col_agent is None:
+            return False, "agent result does not contain 'Construction %' column"
+        if furniture_col_agent is None:
+            return False, "agent result does not contain 'Furniture %' column"
 
-        # 提取年份和增长率
-        agent_growth = {}
+        # 提取所有数据
+        agent_data = {}
         for row in range(2, ws_agent.max_row + 1):
             year = ws_agent.cell(row, year_col_agent).value
-            cell = ws_agent.cell(row, growth_col_agent).value
             if year is None:
                 continue
-            rate = parse_growth_rate(cell)
-            agent_growth[year] = rate
+            
+            electric_rate = parse_growth_rate(ws_agent.cell(row, electric_col_agent).value)
+            construction_rate = parse_growth_rate(ws_agent.cell(row, construction_col_agent).value)
+            furniture_rate = parse_growth_rate(ws_agent.cell(row, furniture_col_agent).value)
+            growth_rate = parse_growth_rate(ws_agent.cell(row, growth_col_agent).value)
+            
+            agent_data[year] = {
+                'electric': electric_rate,
+                'construction': construction_rate,
+                'furniture': furniture_rate,
+                'growth_rate': growth_rate
+            }
 
-        if not agent_growth:
-            return False, "agent results not consists of growth rate data"
+        if not agent_data:
+            return False, "agent results do not contain valid data"
 
-        # 比较
-        tolerance = 0.05
-        matched = 0
-        for year, correct_rate in correct_growth.items():
-            if year in agent_growth and abs(agent_growth[year] - correct_rate) <= tolerance:
-                matched += 1
+        # 比较所有列的数据
+        tolerance = 0.1 
+        total_comparisons = 0
+        successful_matches = 0
+        
+        for year in correct_data.keys():
+            if year not in agent_data:
+                continue
+                
+            correct_year_data = correct_data[year]
+            agent_year_data = agent_data[year]
+            
+            # 比较每个列的数据
+            columns_to_check = ['electric', 'construction', 'furniture', 'growth_rate']
+            for column in columns_to_check:
+                total_comparisons += 1
+                correct_value = correct_year_data[column]
+                agent_value = agent_year_data[column]
+                
+                # 检查两个值都不为None
+                if correct_value is not None and agent_value is not None:
+                    if abs(correct_value - agent_value) <= tolerance:
+                        successful_matches += 1
+                elif correct_value is None and agent_value is None:
+                    successful_matches += 1
 
-        required_matches = max(1, int(len(correct_growth)))
-        if matched < required_matches:
-            return False, f"not accurate enough, matched {matched} out of {len(correct_growth)} required {required_matches}"
+        # 要求100%的数据点匹配
+        required_match_rate = 1.0
+        if total_comparisons == 0:
+            return False, "no data points to compare"
+        
+        match_rate = successful_matches / total_comparisons
+        if match_rate < required_match_rate:
+            return False, f"insufficient accuracy: {successful_matches}/{total_comparisons} ({match_rate:.2%}) matched, required {required_match_rate:.0%}"
 
         return True, None
 
@@ -119,20 +195,28 @@ def parse_growth_rate(cell):
     if cell is None:
         return None
     if isinstance(cell, (int, float)):
-        # Assume all numeric values are in percentage format
-        return float(cell / 100)
+        # For ground truth data, values are already in percentage format (e.g., 4.806875561 means 4.806875561%)
+        # For agent data, check if it's a small decimal (< 1) which would indicate it's already converted
+        if abs(float(cell)) <= 1.0:
+            return float(cell) * 100  # Convert from decimal to percentage
+        else:
+            return float(cell)  # Already in percentage format
     elif isinstance(cell, str):
         cell = cell.strip().upper()
         if cell == 'NA':
             return 0.0
         if cell.endswith('%'):
             try:
-                return float(cell[:-1]) / 100
+                return float(cell[:-1])  # Remove % and convert to number
             except ValueError:
                 pass
         try:
-            # Assume numeric string values are in percentage format
-            return float(cell) / 100
+            # Try to parse as a number
+            num = float(cell)
+            if abs(num) <= 1.0:
+                return num * 100  # Convert from decimal to percentage
+            else:
+                return num  # Already in percentage format
         except ValueError:
             pass
     return None
