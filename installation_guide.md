@@ -53,6 +53,8 @@ In this file we guide you how to install all needed servers for this project.
 
     `arxiv-latex`: see `install_records/arxiv_latex.md`
 
+    `google-forms`: see `install_records/google_forms.md`
+
 5. other preparation
 
     `playwright`: see `install_records/playwright.md`
