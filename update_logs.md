@@ -1,3 +1,7 @@
+### 2025.8.20 21:40
+- 添加google-forms
+    - 相关文件`configs/mcp_servers/google_forms.yaml`
+
 ### 2025.8.19 23:20
 - 升级emails-mcp-server
     - 0.1.5 -> 0.1.6
