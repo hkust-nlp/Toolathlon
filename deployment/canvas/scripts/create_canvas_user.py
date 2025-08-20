@@ -17,7 +17,6 @@ import time
 import argparse
 from datetime import datetime
 
-CONTAINER_NAME = "canvas-docker"
 BUNDLE_PATH = "/opt/canvas/.gems/bin/bundle"
 CANVAS_DIR = "/opt/canvas/canvas-lms"
 
@@ -95,6 +94,9 @@ def load_users_from_json(start_id=None, end_id=None):
             if start_id is not None and user_id < start_id:
                 continue
             if end_id is not None and user_id > end_id:
+                continue
+                
+            if user['full_name'].startswith('MCP Canvas Admin'):
                 continue
                 
             users.append({
@@ -401,9 +403,12 @@ def main():
                         help='批处理大小（默认10个用户一批）')
     parser.add_argument('--skip-test', action='store_true',
                         help='跳过测试直接创建所有用户')
-    
+    parser.add_argument("--container-name", type=str, default="canvas-docker")
     args = parser.parse_args()
     
+    global CONTAINER_NAME
+    CONTAINER_NAME = args.container_name
+
     print("=== Canvas Batch User Creation Tool v3 ===")
     
     # 检查参数冲突
