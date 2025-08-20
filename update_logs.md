@@ -1,3 +1,7 @@
+### 2025.8.21 2:20
+- 修复canvas mcp的bug
+    - 需重新安装 (rm -rf node_modules && npm install)
+
 ### 2025.8.20 21:40
 - 添加google-forms
     - 相关文件`configs/mcp_servers/google_forms.yaml`
