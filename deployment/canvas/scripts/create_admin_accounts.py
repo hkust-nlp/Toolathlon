@@ -8,7 +8,12 @@ import os
 import time
 from datetime import datetime
 
-CONTAINER_NAME = "canvas-docker"
+from argparse import ArgumentParser
+parser = ArgumentParser()
+parser.add_argument("--container-name", type=str, default="canvas-docker")
+args = parser.parse_args()
+
+CONTAINER_NAME = args.container_name
 BUNDLE_PATH = "/opt/canvas/.gems/bin/bundle"
 CANVAS_DIR = "/opt/canvas/canvas-lms"
 

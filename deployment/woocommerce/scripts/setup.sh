@@ -525,3 +525,6 @@ echo "  Start Service: $0 start"
 echo "  Restart Service: $0 restart"
 echo "  Show Help: $0 help"
 echo "========================================="
+
+echo "fix premissions ..."
+bash deployment/woocommerce/scripts/fix_permissions.sh
