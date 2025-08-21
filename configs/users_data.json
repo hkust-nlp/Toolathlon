@@ -22,8 +22,8 @@
             "email": "drichardson@mcp.com",
             "password": "DR0602@NJBmV",
             "canvas_token": "canvas_token_DR0602@NJBmV",
-            "woocommerce_consumer_key": "ck_woocommerce_token_DR0602@NJBmV",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_DR0602@NJBmV"
+            "woocommerce_consumer_key": "ck_woocommerce_token_DR0602NJBmV",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_DR0602NJBmV"
         },
         {
             "id": 3,
@@ -33,8 +33,8 @@
             "email": "klee@mcp.com",
             "password": "lee$k270a3NJ",
             "canvas_token": "canvas_token_lee$k270a3NJ",
-            "woocommerce_consumer_key": "ck_woocommerce_token_lee$k270a3NJ",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_lee$k270a3NJ"
+            "woocommerce_consumer_key": "ck_woocommerce_token_leek270a3NJ",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_leek270a3NJ"
         },
         {
             "id": 4,
@@ -44,8 +44,8 @@
             "email": "elizabethr@mcp.com",
             "password": "elizqwmP4$Wp",
             "canvas_token": "canvas_token_elizqwmP4$Wp",
-            "woocommerce_consumer_key": "ck_woocommerce_token_elizqwmP4$Wp",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_elizqwmP4$Wp"
+            "woocommerce_consumer_key": "ck_woocommerce_token_elizqwmP4Wp",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_elizqwmP4Wp"
         },
         {
             "id": 5,
@@ -55,8 +55,8 @@
             "email": "gregory_scott@mcp.com",
             "password": "scott@g425Qj",
             "canvas_token": "canvas_token_scott@g425Qj",
-            "woocommerce_consumer_key": "ck_woocommerce_token_scott@g425Qj",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_scott@g425Qj"
+            "woocommerce_consumer_key": "ck_woocommerce_token_scottg425Qj",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_scottg425Qj"
         },
         {
             "id": 6,
@@ -99,8 +99,8 @@
             "email": "smartinez@mcp.com",
             "password": "SM0201#oxWSm",
             "canvas_token": "canvas_token_SM0201#oxWSm",
-            "woocommerce_consumer_key": "ck_woocommerce_token_SM0201#oxWSm",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_SM0201#oxWSm"
+            "woocommerce_consumer_key": "ck_woocommerce_token_SM0201oxWSm",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_SM0201oxWSm"
         },
         {
             "id": 10,
@@ -143,8 +143,8 @@
             "email": "debra_flores76@mcp.com",
             "password": "debrx$Unz1cX",
             "canvas_token": "canvas_token_debrx$Unz1cX",
-            "woocommerce_consumer_key": "ck_woocommerce_token_debrx$Unz1cX",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_debrx$Unz1cX"
+            "woocommerce_consumer_key": "ck_woocommerce_token_debrxUnz1cX",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_debrxUnz1cX"
         },
         {
             "id": 14,
@@ -187,8 +187,8 @@
             "email": "steven.hernandez@mcp.com",
             "password": "hernandez@s133",
             "canvas_token": "canvas_token_hernandez@s133",
-            "woocommerce_consumer_key": "ck_woocommerce_token_hernandez@s133",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_hernandez@s133"
+            "woocommerce_consumer_key": "ck_woocommerce_token_hernandezs133",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_hernandezs133"
         },
         {
             "id": 18,
@@ -231,8 +231,8 @@
             "email": "jamesw@mcp.com",
             "password": "JW0113@FWXn5",
             "canvas_token": "canvas_token_JW0113@FWXn5",
-            "woocommerce_consumer_key": "ck_woocommerce_token_JW0113@FWXn5",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_JW0113@FWXn5"
+            "woocommerce_consumer_key": "ck_woocommerce_token_JW0113FWXn5",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_JW0113FWXn5"
         },
         {
             "id": 22,
@@ -242,8 +242,8 @@
             "email": "leev2@mcp.com",
             "password": "lee@v980FhDD",
             "canvas_token": "canvas_token_lee@v980FhDD",
-            "woocommerce_consumer_key": "ck_woocommerce_token_lee@v980FhDD",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_lee@v980FhDD"
+            "woocommerce_consumer_key": "ck_woocommerce_token_leev980FhDD",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_leev980FhDD"
         },
         {
             "id": 23,
@@ -275,8 +275,8 @@
             "email": "angela_hughes4@mcp.com",
             "password": "ange7#P9COYg",
             "canvas_token": "canvas_token_ange7#P9COYg",
-            "woocommerce_consumer_key": "ck_woocommerce_token_ange7#P9COYg",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_ange7#P9COYg"
+            "woocommerce_consumer_key": "ck_woocommerce_token_ange7P9COYg",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_ange7P9COYg"
         },
         {
             "id": 26,
@@ -308,8 +308,8 @@
             "email": "coxw@mcp.com",
             "password": "WC0101#iKpTl",
             "canvas_token": "canvas_token_WC0101#iKpTl",
-            "woocommerce_consumer_key": "ck_woocommerce_token_WC0101#iKpTl",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_WC0101#iKpTl"
+            "woocommerce_consumer_key": "ck_woocommerce_token_WC0101iKpTl",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_WC0101iKpTl"
         },
         {
             "id": 29,
@@ -319,8 +319,8 @@
             "email": "robinsond53@mcp.com",
             "password": "dennis2000!j",
             "canvas_token": "canvas_token_dennis2000!j",
-            "woocommerce_consumer_key": "ck_woocommerce_token_dennis2000!j",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_dennis2000!j"
+            "woocommerce_consumer_key": "ck_woocommerce_token_dennis2000j",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_dennis2000j"
         },
         {
             "id": 30,
@@ -330,8 +330,8 @@
             "email": "dreed@mcp.com",
             "password": "DR0824@gpMA0",
             "canvas_token": "canvas_token_DR0824@gpMA0",
-            "woocommerce_consumer_key": "ck_woocommerce_token_DR0824@gpMA0",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_DR0824@gpMA0"
+            "woocommerce_consumer_key": "ck_woocommerce_token_DR0824gpMA0",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_DR0824gpMA0"
         },
         {
             "id": 31,
@@ -363,8 +363,8 @@
             "email": "creed99@mcp.com",
             "password": "christina1994@",
             "canvas_token": "canvas_token_christina1994@",
-            "woocommerce_consumer_key": "ck_woocommerce_token_christina1994@",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_christina1994@"
+            "woocommerce_consumer_key": "ck_woocommerce_token_christina1994",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_christina1994"
         },
         {
             "id": 34,
@@ -374,8 +374,8 @@
             "email": "jennifer_cruz9@mcp.com",
             "password": "cruz@j304tdg",
             "canvas_token": "canvas_token_cruz@j304tdg",
-            "woocommerce_consumer_key": "ck_woocommerce_token_cruz@j304tdg",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_cruz@j304tdg"
+            "woocommerce_consumer_key": "ck_woocommerce_token_cruzj304tdg",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_cruzj304tdg"
         },
         {
             "id": 35,
@@ -396,8 +396,8 @@
             "email": "cgomez41@mcp.com",
             "password": "gomez$c571Fp",
             "canvas_token": "canvas_token_gomez$c571Fp",
-            "woocommerce_consumer_key": "ck_woocommerce_token_gomez$c571Fp",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_gomez$c571Fp"
+            "woocommerce_consumer_key": "ck_woocommerce_token_gomezc571Fp",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_gomezc571Fp"
         },
         {
             "id": 37,
@@ -407,8 +407,8 @@
             "email": "rebecca.richardson@mcp.com",
             "password": "RR1206!SWseq",
             "canvas_token": "canvas_token_RR1206!SWseq",
-            "woocommerce_consumer_key": "ck_woocommerce_token_RR1206!SWseq",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_RR1206!SWseq"
+            "woocommerce_consumer_key": "ck_woocommerce_token_RR1206SWseq",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_RR1206SWseq"
         },
         {
             "id": 38,
@@ -418,8 +418,8 @@
             "email": "richard.castillo52@mcp.com",
             "password": "RC0807@XecTY",
             "canvas_token": "canvas_token_RC0807@XecTY",
-            "woocommerce_consumer_key": "ck_woocommerce_token_RC0807@XecTY",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_RC0807@XecTY"
+            "woocommerce_consumer_key": "ck_woocommerce_token_RC0807XecTY",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_RC0807XecTY"
         },
         {
             "id": 39,
@@ -440,8 +440,8 @@
             "email": "bruiz@mcp.com",
             "password": "brian1990$p1",
             "canvas_token": "canvas_token_brian1990$p1",
-            "woocommerce_consumer_key": "ck_woocommerce_token_brian1990$p1",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_brian1990$p1"
+            "woocommerce_consumer_key": "ck_woocommerce_token_brian1990p1",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_brian1990p1"
         },
         {
             "id": 41,
@@ -451,8 +451,8 @@
             "email": "stephanie.cox@mcp.com",
             "password": "steph@cGF#XU",
             "canvas_token": "canvas_token_steph@cGF#XU",
-            "woocommerce_consumer_key": "ck_woocommerce_token_steph@cGF#XU",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_steph@cGF#XU"
+            "woocommerce_consumer_key": "ck_woocommerce_token_stephcGFXU",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_stephcGFXU"
         },
         {
             "id": 42,
@@ -462,8 +462,8 @@
             "email": "james.thomas30@mcp.com",
             "password": "jameC!t3RR7J",
             "canvas_token": "canvas_token_jameC!t3RR7J",
-            "woocommerce_consumer_key": "ck_woocommerce_token_jameC!t3RR7J",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_jameC!t3RR7J"
+            "woocommerce_consumer_key": "ck_woocommerce_token_jameCt3RR7J",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_jameCt3RR7J"
         },
         {
             "id": 43,
@@ -484,8 +484,8 @@
             "email": "raymond_reyes60@mcp.com",
             "password": "raymond1987@",
             "canvas_token": "canvas_token_raymond1987@",
-            "woocommerce_consumer_key": "ck_woocommerce_token_raymond1987@",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_raymond1987@"
+            "woocommerce_consumer_key": "ck_woocommerce_token_raymond1987",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_raymond1987"
         },
         {
             "id": 45,
@@ -506,8 +506,8 @@
             "email": "ronaldm@mcp.com",
             "password": "miller#r347M",
             "canvas_token": "canvas_token_miller#r347M",
-            "woocommerce_consumer_key": "ck_woocommerce_token_miller#r347M",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_miller#r347M"
+            "woocommerce_consumer_key": "ck_woocommerce_token_millerr347M",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_millerr347M"
         },
         {
             "id": 47,
@@ -517,8 +517,8 @@
             "email": "syoung@mcp.com",
             "password": "susan1997@ZA",
             "canvas_token": "canvas_token_susan1997@ZA",
-            "woocommerce_consumer_key": "ck_woocommerce_token_susan1997@ZA",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_susan1997@ZA"
+            "woocommerce_consumer_key": "ck_woocommerce_token_susan1997ZA",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_susan1997ZA"
         },
         {
             "id": 48,
@@ -528,8 +528,8 @@
             "email": "droberts@mcp.com",
             "password": "dorothy2002#",
             "canvas_token": "canvas_token_dorothy2002#",
-            "woocommerce_consumer_key": "ck_woocommerce_token_dorothy2002#",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_dorothy2002#"
+            "woocommerce_consumer_key": "ck_woocommerce_token_dorothy2002",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_dorothy2002"
         },
         {
             "id": 49,
@@ -550,8 +550,8 @@
             "email": "raymond_cox@mcp.com",
             "password": "RC0628!oRE53",
             "canvas_token": "canvas_token_RC0628!oRE53",
-            "woocommerce_consumer_key": "ck_woocommerce_token_RC0628!oRE53",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_RC0628!oRE53"
+            "woocommerce_consumer_key": "ck_woocommerce_token_RC0628oRE53",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_RC0628oRE53"
         },
         {
             "id": 51,
@@ -561,8 +561,8 @@
             "email": "cynthiad@mcp.com",
             "password": "CD1203!HonG9",
             "canvas_token": "canvas_token_CD1203!HonG9",
-            "woocommerce_consumer_key": "ck_woocommerce_token_CD1203!HonG9",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_CD1203!HonG9"
+            "woocommerce_consumer_key": "ck_woocommerce_token_CD1203HonG9",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_CD1203HonG9"
         },
         {
             "id": 52,
@@ -572,8 +572,8 @@
             "email": "cmartinez@mcp.com",
             "password": "CM0415#LSbet",
             "canvas_token": "canvas_token_CM0415#LSbet",
-            "woocommerce_consumer_key": "ck_woocommerce_token_CM0415#LSbet",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_CM0415#LSbet"
+            "woocommerce_consumer_key": "ck_woocommerce_token_CM0415LSbet",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_CM0415LSbet"
         },
         {
             "id": 53,
@@ -583,8 +583,8 @@
             "email": "shirleyg@mcp.com",
             "password": "gray$s631Q2y",
             "canvas_token": "canvas_token_gray$s631Q2y",
-            "woocommerce_consumer_key": "ck_woocommerce_token_gray$s631Q2y",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_gray$s631Q2y"
+            "woocommerce_consumer_key": "ck_woocommerce_token_grays631Q2y",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_grays631Q2y"
         },
         {
             "id": 54,
@@ -594,8 +594,8 @@
             "email": "stewartt@mcp.com",
             "password": "tracy1987%ac",
             "canvas_token": "canvas_token_tracy1987%ac",
-            "woocommerce_consumer_key": "ck_woocommerce_token_tracy1987%ac",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_tracy1987%ac"
+            "woocommerce_consumer_key": "ck_woocommerce_token_tracy1987ac",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_tracy1987ac"
         },
         {
             "id": 55,
@@ -616,8 +616,8 @@
             "email": "samantha_martin@mcp.com",
             "password": "martin@s818y",
             "canvas_token": "canvas_token_martin@s818y",
-            "woocommerce_consumer_key": "ck_woocommerce_token_martin@s818y",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_martin@s818y"
+            "woocommerce_consumer_key": "ck_woocommerce_token_martins818y",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_martins818y"
         },
         {
             "id": 57,
@@ -638,8 +638,8 @@
             "email": "groberts@mcp.com",
             "password": "GR1119!0hP6B",
             "canvas_token": "canvas_token_GR1119!0hP6B",
-            "woocommerce_consumer_key": "ck_woocommerce_token_GR1119!0hP6B",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_GR1119!0hP6B"
+            "woocommerce_consumer_key": "ck_woocommerce_token_GR11190hP6B",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_GR11190hP6B"
         },
         {
             "id": 59,
@@ -682,8 +682,8 @@
             "email": "jjones@mcp.com",
             "password": "jessica1987%",
             "canvas_token": "canvas_token_jessica1987%",
-            "woocommerce_consumer_key": "ck_woocommerce_token_jessica1987%",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_jessica1987%"
+            "woocommerce_consumer_key": "ck_woocommerce_token_jessica1987",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_jessica1987"
         },
         {
             "id": 63,
@@ -704,8 +704,8 @@
             "email": "helen_hall91@mcp.com",
             "password": "hall$h632vul",
             "canvas_token": "canvas_token_hall$h632vul",
-            "woocommerce_consumer_key": "ck_woocommerce_token_hall$h632vul",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_hall$h632vul"
+            "woocommerce_consumer_key": "ck_woocommerce_token_hallh632vul",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_hallh632vul"
         },
         {
             "id": 65,
@@ -715,8 +715,8 @@
             "email": "timothy.lopez@mcp.com",
             "password": "lopez#t109EU",
             "canvas_token": "canvas_token_lopez#t109EU",
-            "woocommerce_consumer_key": "ck_woocommerce_token_lopez#t109EU",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_lopez#t109EU"
+            "woocommerce_consumer_key": "ck_woocommerce_token_lopezt109EU",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_lopezt109EU"
         },
         {
             "id": 66,
@@ -748,8 +748,8 @@
             "email": "bennettb47@mcp.com",
             "password": "bennett$b549",
             "canvas_token": "canvas_token_bennett$b549",
-            "woocommerce_consumer_key": "ck_woocommerce_token_bennett$b549",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_bennett$b549"
+            "woocommerce_consumer_key": "ck_woocommerce_token_bennettb549",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_bennettb549"
         },
         {
             "id": 69,
@@ -759,8 +759,8 @@
             "email": "gortiz78@mcp.com",
             "password": "ortiz$g114yW",
             "canvas_token": "canvas_token_ortiz$g114yW",
-            "woocommerce_consumer_key": "ck_woocommerce_token_ortiz$g114yW",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_ortiz$g114yW"
+            "woocommerce_consumer_key": "ck_woocommerce_token_ortizg114yW",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_ortizg114yW"
         },
         {
             "id": 70,
@@ -781,8 +781,8 @@
             "email": "timothyb@mcp.com",
             "password": "bennett#t236",
             "canvas_token": "canvas_token_bennett#t236",
-            "woocommerce_consumer_key": "ck_woocommerce_token_bennett#t236",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_bennett#t236"
+            "woocommerce_consumer_key": "ck_woocommerce_token_bennettt236",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_bennettt236"
         },
         {
             "id": 72,
@@ -792,8 +792,8 @@
             "email": "maryc@mcp.com",
             "password": "castillo$m888",
             "canvas_token": "canvas_token_castillo$m888",
-            "woocommerce_consumer_key": "ck_woocommerce_token_castillo$m888",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_castillo$m888"
+            "woocommerce_consumer_key": "ck_woocommerce_token_castillom888",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_castillom888"
         },
         {
             "id": 73,
@@ -803,8 +803,8 @@
             "email": "myersj@mcp.com",
             "password": "jason1984%lt",
             "canvas_token": "canvas_token_jason1984%lt",
-            "woocommerce_consumer_key": "ck_woocommerce_token_jason1984%lt",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_jason1984%lt"
+            "woocommerce_consumer_key": "ck_woocommerce_token_jason1984lt",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_jason1984lt"
         },
         {
             "id": 74,
@@ -847,8 +847,8 @@
             "email": "stephen_mitchell@mcp.com",
             "password": "step6@FkixLQ",
             "canvas_token": "canvas_token_step6@FkixLQ",
-            "woocommerce_consumer_key": "ck_woocommerce_token_step6@FkixLQ",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_step6@FkixLQ"
+            "woocommerce_consumer_key": "ck_woocommerce_token_step6FkixLQ",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_step6FkixLQ"
         },
         {
             "id": 78,
@@ -869,8 +869,8 @@
             "email": "mitchelle75@mcp.com",
             "password": "mitchell$e852",
             "canvas_token": "canvas_token_mitchell$e852",
-            "woocommerce_consumer_key": "ck_woocommerce_token_mitchell$e852",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_mitchell$e852"
+            "woocommerce_consumer_key": "ck_woocommerce_token_mitchelle852",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_mitchelle852"
         },
         {
             "id": 80,
@@ -880,8 +880,8 @@
             "email": "garyr@mcp.com",
             "password": "gary1982%Vdi",
             "canvas_token": "canvas_token_gary1982%Vdi",
-            "woocommerce_consumer_key": "ck_woocommerce_token_gary1982%Vdi",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_gary1982%Vdi"
+            "woocommerce_consumer_key": "ck_woocommerce_token_gary1982Vdi",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_gary1982Vdi"
         },
         {
             "id": 81,
@@ -946,8 +946,8 @@
             "email": "jessicae50@mcp.com",
             "password": "jessica2002%",
             "canvas_token": "canvas_token_jessica2002%",
-            "woocommerce_consumer_key": "ck_woocommerce_token_jessica2002%",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_jessica2002%"
+            "woocommerce_consumer_key": "ck_woocommerce_token_jessica2002",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_jessica2002"
         },
         {
             "id": 87,
@@ -968,8 +968,8 @@
             "email": "christine.murphy91@mcp.com",
             "password": "christine1993#",
             "canvas_token": "canvas_token_christine1993#",
-            "woocommerce_consumer_key": "ck_woocommerce_token_christine1993#",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_christine1993#"
+            "woocommerce_consumer_key": "ck_woocommerce_token_christine1993",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_christine1993"
         },
         {
             "id": 89,
@@ -979,8 +979,8 @@
             "email": "mendozab3@mcp.com",
             "password": "betty2002@oA",
             "canvas_token": "canvas_token_betty2002@oA",
-            "woocommerce_consumer_key": "ck_woocommerce_token_betty2002@oA",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_betty2002@oA"
+            "woocommerce_consumer_key": "ck_woocommerce_token_betty2002oA",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_betty2002oA"
         },
         {
             "id": 90,
@@ -990,8 +990,8 @@
             "email": "williamp@mcp.com",
             "password": "perez$w995IC",
             "canvas_token": "canvas_token_perez$w995IC",
-            "woocommerce_consumer_key": "ck_woocommerce_token_perez$w995IC",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_perez$w995IC"
+            "woocommerce_consumer_key": "ck_woocommerce_token_perezw995IC",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_perezw995IC"
         },
         {
             "id": 91,
@@ -1012,8 +1012,8 @@
             "email": "thomas_watson@mcp.com",
             "password": "TW0309#zid0W",
             "canvas_token": "canvas_token_TW0309#zid0W",
-            "woocommerce_consumer_key": "ck_woocommerce_token_TW0309#zid0W",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_TW0309#zid0W"
+            "woocommerce_consumer_key": "ck_woocommerce_token_TW0309zid0W",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_TW0309zid0W"
         },
         {
             "id": 93,
@@ -1023,8 +1023,8 @@
             "email": "johnh@mcp.com",
             "password": "JH0613!Kw2AM",
             "canvas_token": "canvas_token_JH0613!Kw2AM",
-            "woocommerce_consumer_key": "ck_woocommerce_token_JH0613!Kw2AM",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_JH0613!Kw2AM"
+            "woocommerce_consumer_key": "ck_woocommerce_token_JH0613Kw2AM",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_JH0613Kw2AM"
         },
         {
             "id": 94,
@@ -1034,8 +1034,8 @@
             "email": "william_gonzalez@mcp.com",
             "password": "gonzalez$w840",
             "canvas_token": "canvas_token_gonzalez$w840",
-            "woocommerce_consumer_key": "ck_woocommerce_token_gonzalez$w840",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_gonzalez$w840"
+            "woocommerce_consumer_key": "ck_woocommerce_token_gonzalezw840",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_gonzalezw840"
         },
         {
             "id": 95,
@@ -1045,8 +1045,8 @@
             "email": "cooperr@mcp.com",
             "password": "raymond1986#",
             "canvas_token": "canvas_token_raymond1986#",
-            "woocommerce_consumer_key": "ck_woocommerce_token_raymond1986#",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_raymond1986#"
+            "woocommerce_consumer_key": "ck_woocommerce_token_raymond1986",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_raymond1986"
         },
         {
             "id": 96,
@@ -1056,8 +1056,8 @@
             "email": "aaron_mitchell@mcp.com",
             "password": "mitchell@a108",
             "canvas_token": "canvas_token_mitchell@a108",
-            "woocommerce_consumer_key": "ck_woocommerce_token_mitchell@a108",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_mitchell@a108"
+            "woocommerce_consumer_key": "ck_woocommerce_token_mitchella108",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_mitchella108"
         },
         {
             "id": 97,
@@ -1067,8 +1067,8 @@
             "email": "samanthaw@mcp.com",
             "password": "walker@s147a",
             "canvas_token": "canvas_token_walker@s147a",
-            "woocommerce_consumer_key": "ck_woocommerce_token_walker@s147a",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_walker@s147a"
+            "woocommerce_consumer_key": "ck_woocommerce_token_walkers147a",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_walkers147a"
         },
         {
             "id": 98,
@@ -1089,8 +1089,8 @@
             "email": "dennisc@mcp.com",
             "password": "chavez#d617F",
             "canvas_token": "canvas_token_chavez#d617F",
-            "woocommerce_consumer_key": "ck_woocommerce_token_chavez#d617F",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_chavez#d617F"
+            "woocommerce_consumer_key": "ck_woocommerce_token_chavezd617F",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_chavezd617F"
         },
         {
             "id": 100,
@@ -1100,8 +1100,8 @@
             "email": "pamelae@mcp.com",
             "password": "PE0613@bf053",
             "canvas_token": "canvas_token_PE0613@bf053",
-            "woocommerce_consumer_key": "ck_woocommerce_token_PE0613@bf053",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_PE0613@bf053"
+            "woocommerce_consumer_key": "ck_woocommerce_token_PE0613bf053",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_PE0613bf053"
         },
         {
             "id": 101,
@@ -1111,8 +1111,8 @@
             "email": "dcooper@mcp.com",
             "password": "cooper$d660s",
             "canvas_token": "canvas_token_cooper$d660s",
-            "woocommerce_consumer_key": "ck_woocommerce_token_cooper$d660s",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_cooper$d660s"
+            "woocommerce_consumer_key": "ck_woocommerce_token_cooperd660s",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_cooperd660s"
         },
         {
             "id": 102,
@@ -1133,8 +1133,8 @@
             "email": "anthony_murphy24@mcp.com",
             "password": "anthony1997#",
             "canvas_token": "canvas_token_anthony1997#",
-            "woocommerce_consumer_key": "ck_woocommerce_token_anthony1997#",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_anthony1997#"
+            "woocommerce_consumer_key": "ck_woocommerce_token_anthony1997",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_anthony1997"
         },
         {
             "id": 104,
@@ -1144,8 +1144,8 @@
             "email": "cturner@mcp.com",
             "password": "carol2002$ik",
             "canvas_token": "canvas_token_carol2002$ik",
-            "woocommerce_consumer_key": "ck_woocommerce_token_carol2002$ik",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_carol2002$ik"
+            "woocommerce_consumer_key": "ck_woocommerce_token_carol2002ik",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_carol2002ik"
         },
         {
             "id": 105,
@@ -1155,8 +1155,8 @@
             "email": "ashley_anderson@mcp.com",
             "password": "AA0202@kEpFH",
             "canvas_token": "canvas_token_AA0202@kEpFH",
-            "woocommerce_consumer_key": "ck_woocommerce_token_AA0202@kEpFH",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_AA0202@kEpFH"
+            "woocommerce_consumer_key": "ck_woocommerce_token_AA0202kEpFH",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_AA0202kEpFH"
         },
         {
             "id": 106,
@@ -1166,8 +1166,8 @@
             "email": "brenda_rivera81@mcp.com",
             "password": "brenda1991$q",
             "canvas_token": "canvas_token_brenda1991$q",
-            "woocommerce_consumer_key": "ck_woocommerce_token_brenda1991$q",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_brenda1991$q"
+            "woocommerce_consumer_key": "ck_woocommerce_token_brenda1991q",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_brenda1991q"
         },
         {
             "id": 107,
@@ -1177,8 +1177,8 @@
             "email": "walkera@mcp.com",
             "password": "AW0808!6v5nP",
             "canvas_token": "canvas_token_AW0808!6v5nP",
-            "woocommerce_consumer_key": "ck_woocommerce_token_AW0808!6v5nP",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_AW0808!6v5nP"
+            "woocommerce_consumer_key": "ck_woocommerce_token_AW08086v5nP",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_AW08086v5nP"
         },
         {
             "id": 108,
@@ -1188,8 +1188,8 @@
             "email": "dhall@mcp.com",
             "password": "daniel1980%g",
             "canvas_token": "canvas_token_daniel1980%g",
-            "woocommerce_consumer_key": "ck_woocommerce_token_daniel1980%g",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_daniel1980%g"
+            "woocommerce_consumer_key": "ck_woocommerce_token_daniel1980g",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_daniel1980g"
         },
         {
             "id": 109,
@@ -1199,8 +1199,8 @@
             "email": "andersonp@mcp.com",
             "password": "anderson#p282",
             "canvas_token": "canvas_token_anderson#p282",
-            "woocommerce_consumer_key": "ck_woocommerce_token_anderson#p282",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_anderson#p282"
+            "woocommerce_consumer_key": "ck_woocommerce_token_andersonp282",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_andersonp282"
         },
         {
             "id": 110,
@@ -1210,8 +1210,8 @@
             "email": "raymondm@mcp.com",
             "password": "RM0517!1f7ZJ",
             "canvas_token": "canvas_token_RM0517!1f7ZJ",
-            "woocommerce_consumer_key": "ck_woocommerce_token_RM0517!1f7ZJ",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_RM0517!1f7ZJ"
+            "woocommerce_consumer_key": "ck_woocommerce_token_RM05171f7ZJ",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_RM05171f7ZJ"
         },
         {
             "id": 111,
@@ -1243,8 +1243,8 @@
             "email": "ortiza2@mcp.com",
             "password": "AO0419!6HJU1",
             "canvas_token": "canvas_token_AO0419!6HJU1",
-            "woocommerce_consumer_key": "ck_woocommerce_token_AO0419!6HJU1",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_AO0419!6HJU1"
+            "woocommerce_consumer_key": "ck_woocommerce_token_AO04196HJU1",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_AO04196HJU1"
         },
         {
             "id": 114,
@@ -1254,8 +1254,8 @@
             "email": "clarkt12@mcp.com",
             "password": "clark$t476AR",
             "canvas_token": "canvas_token_clark$t476AR",
-            "woocommerce_consumer_key": "ck_woocommerce_token_clark$t476AR",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_clark$t476AR"
+            "woocommerce_consumer_key": "ck_woocommerce_token_clarkt476AR",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_clarkt476AR"
         },
         {
             "id": 115,
@@ -1287,8 +1287,8 @@
             "email": "frances_jones@mcp.com",
             "password": "FJ0906#MWe3n",
             "canvas_token": "canvas_token_FJ0906#MWe3n",
-            "woocommerce_consumer_key": "ck_woocommerce_token_FJ0906#MWe3n",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_FJ0906#MWe3n"
+            "woocommerce_consumer_key": "ck_woocommerce_token_FJ0906MWe3n",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_FJ0906MWe3n"
         },
         {
             "id": 118,
@@ -1320,8 +1320,8 @@
             "email": "petersonr@mcp.com",
             "password": "ronald1988@s",
             "canvas_token": "canvas_token_ronald1988@s",
-            "woocommerce_consumer_key": "ck_woocommerce_token_ronald1988@s",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_ronald1988@s"
+            "woocommerce_consumer_key": "ck_woocommerce_token_ronald1988s",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_ronald1988s"
         },
         {
             "id": 121,
@@ -1342,8 +1342,8 @@
             "email": "ejames15@mcp.com",
             "password": "EJ0906!7gomw",
             "canvas_token": "canvas_token_EJ0906!7gomw",
-            "woocommerce_consumer_key": "ck_woocommerce_token_EJ0906!7gomw",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_EJ0906!7gomw"
+            "woocommerce_consumer_key": "ck_woocommerce_token_EJ09067gomw",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_EJ09067gomw"
         },
         {
             "id": 123,
@@ -1375,8 +1375,8 @@
             "email": "moralesm@mcp.com",
             "password": "martha1995#E",
             "canvas_token": "canvas_token_martha1995#E",
-            "woocommerce_consumer_key": "ck_woocommerce_token_martha1995#E",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_martha1995#E"
+            "woocommerce_consumer_key": "ck_woocommerce_token_martha1995E",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_martha1995E"
         },
         {
             "id": 126,
@@ -1386,8 +1386,8 @@
             "email": "lisad@mcp.com",
             "password": "lisasenJP#02",
             "canvas_token": "canvas_token_lisasenJP#02",
-            "woocommerce_consumer_key": "ck_woocommerce_token_lisasenJP#02",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_lisasenJP#02"
+            "woocommerce_consumer_key": "ck_woocommerce_token_lisasenJP02",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_lisasenJP02"
         },
         {
             "id": 127,
@@ -1408,8 +1408,8 @@
             "email": "angela_moore89@mcp.com",
             "password": "angecu1T@470",
             "canvas_token": "canvas_token_angecu1T@470",
-            "woocommerce_consumer_key": "ck_woocommerce_token_angecu1T@470",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_angecu1T@470"
+            "woocommerce_consumer_key": "ck_woocommerce_token_angecu1T470",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_angecu1T470"
         },
         {
             "id": 129,
@@ -1419,8 +1419,8 @@
             "email": "debras3@mcp.com",
             "password": "debra1982#6A",
             "canvas_token": "canvas_token_debra1982#6A",
-            "woocommerce_consumer_key": "ck_woocommerce_token_debra1982#6A",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_debra1982#6A"
+            "woocommerce_consumer_key": "ck_woocommerce_token_debra19826A",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_debra19826A"
         },
         {
             "id": 130,
@@ -1430,8 +1430,8 @@
             "email": "nancyr@mcp.com",
             "password": "robinson#n640",
             "canvas_token": "canvas_token_robinson#n640",
-            "woocommerce_consumer_key": "ck_woocommerce_token_robinson#n640",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_robinson#n640"
+            "woocommerce_consumer_key": "ck_woocommerce_token_robinsonn640",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_robinsonn640"
         },
         {
             "id": 131,
@@ -1496,8 +1496,8 @@
             "email": "rhall@mcp.com",
             "password": "raymond1999$",
             "canvas_token": "canvas_token_raymond1999$",
-            "woocommerce_consumer_key": "ck_woocommerce_token_raymond1999$",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_raymond1999$"
+            "woocommerce_consumer_key": "ck_woocommerce_token_raymond1999",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_raymond1999"
         },
         {
             "id": 137,
@@ -1507,8 +1507,8 @@
             "email": "laura.hall@mcp.com",
             "password": "laura2004%fA",
             "canvas_token": "canvas_token_laura2004%fA",
-            "woocommerce_consumer_key": "ck_woocommerce_token_laura2004%fA",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_laura2004%fA"
+            "woocommerce_consumer_key": "ck_woocommerce_token_laura2004fA",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_laura2004fA"
         },
         {
             "id": 138,
@@ -1540,8 +1540,8 @@
             "email": "janet.mendoza@mcp.com",
             "password": "janet1997$71",
             "canvas_token": "canvas_token_janet1997$71",
-            "woocommerce_consumer_key": "ck_woocommerce_token_janet1997$71",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_janet1997$71"
+            "woocommerce_consumer_key": "ck_woocommerce_token_janet199771",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_janet199771"
         },
         {
             "id": 141,
@@ -1551,8 +1551,8 @@
             "email": "truiz81@mcp.com",
             "password": "TR1022#GnpaG",
             "canvas_token": "canvas_token_TR1022#GnpaG",
-            "woocommerce_consumer_key": "ck_woocommerce_token_TR1022#GnpaG",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_TR1022#GnpaG"
+            "woocommerce_consumer_key": "ck_woocommerce_token_TR1022GnpaG",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_TR1022GnpaG"
         },
         {
             "id": 142,
@@ -1573,8 +1573,8 @@
             "email": "donald_richardson93@mcp.com",
             "password": "richardson#d763",
             "canvas_token": "canvas_token_richardson#d763",
-            "woocommerce_consumer_key": "ck_woocommerce_token_richardson#d763",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_richardson#d763"
+            "woocommerce_consumer_key": "ck_woocommerce_token_richardsond763",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_richardsond763"
         },
         {
             "id": 144,
@@ -1584,8 +1584,8 @@
             "email": "shirley_rodriguez71@mcp.com",
             "password": "rodriguez#s811",
             "canvas_token": "canvas_token_rodriguez#s811",
-            "woocommerce_consumer_key": "ck_woocommerce_token_rodriguez#s811",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_rodriguez#s811"
+            "woocommerce_consumer_key": "ck_woocommerce_token_rodriguezs811",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_rodriguezs811"
         },
         {
             "id": 145,
@@ -1595,8 +1595,8 @@
             "email": "warda@mcp.com",
             "password": "AW0925@TcB58",
             "canvas_token": "canvas_token_AW0925@TcB58",
-            "woocommerce_consumer_key": "ck_woocommerce_token_AW0925@TcB58",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_AW0925@TcB58"
+            "woocommerce_consumer_key": "ck_woocommerce_token_AW0925TcB58",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_AW0925TcB58"
         },
         {
             "id": 146,
@@ -1606,8 +1606,8 @@
             "email": "fphillips@mcp.com",
             "password": "frank1987!92",
             "canvas_token": "canvas_token_frank1987!92",
-            "woocommerce_consumer_key": "ck_woocommerce_token_frank1987!92",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_frank1987!92"
+            "woocommerce_consumer_key": "ck_woocommerce_token_frank198792",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_frank198792"
         },
         {
             "id": 147,
@@ -1650,8 +1650,8 @@
             "email": "teresat@mcp.com",
             "password": "TT1021#WQtww",
             "canvas_token": "canvas_token_TT1021#WQtww",
-            "woocommerce_consumer_key": "ck_woocommerce_token_TT1021#WQtww",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_TT1021#WQtww"
+            "woocommerce_consumer_key": "ck_woocommerce_token_TT1021WQtww",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_TT1021WQtww"
         },
         {
             "id": 151,
@@ -1683,8 +1683,8 @@
             "email": "rogerss68@mcp.com",
             "password": "rogers@s147g",
             "canvas_token": "canvas_token_rogers@s147g",
-            "woocommerce_consumer_key": "ck_woocommerce_token_rogers@s147g",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_rogers@s147g"
+            "woocommerce_consumer_key": "ck_woocommerce_token_rogerss147g",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_rogerss147g"
         },
         {
             "id": 154,
@@ -1694,8 +1694,8 @@
             "email": "edward.james18@mcp.com",
             "password": "EJ0610@DOOnw",
             "canvas_token": "canvas_token_EJ0610@DOOnw",
-            "woocommerce_consumer_key": "ck_woocommerce_token_EJ0610@DOOnw",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_EJ0610@DOOnw"
+            "woocommerce_consumer_key": "ck_woocommerce_token_EJ0610DOOnw",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_EJ0610DOOnw"
         },
         {
             "id": 155,
@@ -1705,8 +1705,8 @@
             "email": "ryang@mcp.com",
             "password": "RG0119#Ozsph",
             "canvas_token": "canvas_token_RG0119#Ozsph",
-            "woocommerce_consumer_key": "ck_woocommerce_token_RG0119#Ozsph",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_RG0119#Ozsph"
+            "woocommerce_consumer_key": "ck_woocommerce_token_RG0119Ozsph",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_RG0119Ozsph"
         },
         {
             "id": 156,
@@ -1738,8 +1738,8 @@
             "email": "ddavis@mcp.com",
             "password": "DD0219#zn9Jj",
             "canvas_token": "canvas_token_DD0219#zn9Jj",
-            "woocommerce_consumer_key": "ck_woocommerce_token_DD0219#zn9Jj",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_DD0219#zn9Jj"
+            "woocommerce_consumer_key": "ck_woocommerce_token_DD0219zn9Jj",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_DD0219zn9Jj"
         },
         {
             "id": 159,
@@ -1771,8 +1771,8 @@
             "email": "awalker@mcp.com",
             "password": "walker@a905Z",
             "canvas_token": "canvas_token_walker@a905Z",
-            "woocommerce_consumer_key": "ck_woocommerce_token_walker@a905Z",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_walker@a905Z"
+            "woocommerce_consumer_key": "ck_woocommerce_token_walkera905Z",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_walkera905Z"
         },
         {
             "id": 162,
@@ -1793,8 +1793,8 @@
             "email": "gary.sanchez@mcp.com",
             "password": "gary1992#fav",
             "canvas_token": "canvas_token_gary1992#fav",
-            "woocommerce_consumer_key": "ck_woocommerce_token_gary1992#fav",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_gary1992#fav"
+            "woocommerce_consumer_key": "ck_woocommerce_token_gary1992fav",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_gary1992fav"
         },
         {
             "id": 164,
@@ -1837,8 +1837,8 @@
             "email": "scott_wright58@mcp.com",
             "password": "scott1994%zo",
             "canvas_token": "canvas_token_scott1994%zo",
-            "woocommerce_consumer_key": "ck_woocommerce_token_scott1994%zo",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_scott1994%zo"
+            "woocommerce_consumer_key": "ck_woocommerce_token_scott1994zo",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_scott1994zo"
         },
         {
             "id": 168,
@@ -1870,8 +1870,8 @@
             "email": "cookr@mcp.com",
             "password": "cook#r983eVB",
             "canvas_token": "canvas_token_cook#r983eVB",
-            "woocommerce_consumer_key": "ck_woocommerce_token_cook#r983eVB",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_cook#r983eVB"
+            "woocommerce_consumer_key": "ck_woocommerce_token_cookr983eVB",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_cookr983eVB"
         },
         {
             "id": 171,
@@ -1903,8 +1903,8 @@
             "email": "francess@mcp.com",
             "password": "frances2002!",
             "canvas_token": "canvas_token_frances2002!",
-            "woocommerce_consumer_key": "ck_woocommerce_token_frances2002!",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_frances2002!"
+            "woocommerce_consumer_key": "ck_woocommerce_token_frances2002",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_frances2002"
         },
         {
             "id": 174,
@@ -1947,8 +1947,8 @@
             "email": "rscott53@mcp.com",
             "password": "RS0808!HvwzX",
             "canvas_token": "canvas_token_RS0808!HvwzX",
-            "woocommerce_consumer_key": "ck_woocommerce_token_RS0808!HvwzX",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_RS0808!HvwzX"
+            "woocommerce_consumer_key": "ck_woocommerce_token_RS0808HvwzX",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_RS0808HvwzX"
         },
         {
             "id": 178,
@@ -1958,8 +1958,8 @@
             "email": "awilson@mcp.com",
             "password": "AW1007!vyvzw",
             "canvas_token": "canvas_token_AW1007!vyvzw",
-            "woocommerce_consumer_key": "ck_woocommerce_token_AW1007!vyvzw",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_AW1007!vyvzw"
+            "woocommerce_consumer_key": "ck_woocommerce_token_AW1007vyvzw",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_AW1007vyvzw"
         },
         {
             "id": 179,
@@ -2002,8 +2002,8 @@
             "email": "rbennett78@mcp.com",
             "password": "richard2004#",
             "canvas_token": "canvas_token_richard2004#",
-            "woocommerce_consumer_key": "ck_woocommerce_token_richard2004#",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_richard2004#"
+            "woocommerce_consumer_key": "ck_woocommerce_token_richard2004",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_richard2004"
         },
         {
             "id": 183,
@@ -2013,8 +2013,8 @@
             "email": "raymondm713@mcp.com",
             "password": "raymond1985!",
             "canvas_token": "canvas_token_raymond1985!",
-            "woocommerce_consumer_key": "ck_woocommerce_token_raymond1985!",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_raymond1985!"
+            "woocommerce_consumer_key": "ck_woocommerce_token_raymond1985",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_raymond1985"
         },
         {
             "id": 184,
@@ -2024,8 +2024,8 @@
             "email": "rebeccah@mcp.com",
             "password": "RH1124!XOFHX",
             "canvas_token": "canvas_token_RH1124!XOFHX",
-            "woocommerce_consumer_key": "ck_woocommerce_token_RH1124!XOFHX",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_RH1124!XOFHX"
+            "woocommerce_consumer_key": "ck_woocommerce_token_RH1124XOFHX",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_RH1124XOFHX"
         },
         {
             "id": 185,
@@ -2035,8 +2035,8 @@
             "email": "anna.wright@mcp.com",
             "password": "AW0603#rzGef",
             "canvas_token": "canvas_token_AW0603#rzGef",
-            "woocommerce_consumer_key": "ck_woocommerce_token_AW0603#rzGef",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_AW0603#rzGef"
+            "woocommerce_consumer_key": "ck_woocommerce_token_AW0603rzGef",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_AW0603rzGef"
         },
         {
             "id": 186,
@@ -2046,8 +2046,8 @@
             "email": "dsanders@mcp.com",
             "password": "sanders@d976",
             "canvas_token": "canvas_token_sanders@d976",
-            "woocommerce_consumer_key": "ck_woocommerce_token_sanders@d976",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_sanders@d976"
+            "woocommerce_consumer_key": "ck_woocommerce_token_sandersd976",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_sandersd976"
         },
         {
             "id": 187,
@@ -2079,8 +2079,8 @@
             "email": "aadams93@mcp.com",
             "password": "adams$a401Wy",
             "canvas_token": "canvas_token_adams$a401Wy",
-            "woocommerce_consumer_key": "ck_woocommerce_token_adams$a401Wy",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_adams$a401Wy"
+            "woocommerce_consumer_key": "ck_woocommerce_token_adamsa401Wy",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_adamsa401Wy"
         },
         {
             "id": 190,
@@ -2090,8 +2090,8 @@
             "email": "larry_wood@mcp.com",
             "password": "LW0725!1Prbi",
             "canvas_token": "canvas_token_LW0725!1Prbi",
-            "woocommerce_consumer_key": "ck_woocommerce_token_LW0725!1Prbi",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_LW0725!1Prbi"
+            "woocommerce_consumer_key": "ck_woocommerce_token_LW07251Prbi",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_LW07251Prbi"
         },
         {
             "id": 191,
@@ -2101,8 +2101,8 @@
             "email": "howardd@mcp.com",
             "password": "howard@d149Y",
             "canvas_token": "canvas_token_howard@d149Y",
-            "woocommerce_consumer_key": "ck_woocommerce_token_howard@d149Y",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_howard@d149Y"
+            "woocommerce_consumer_key": "ck_woocommerce_token_howardd149Y",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_howardd149Y"
         },
         {
             "id": 192,
@@ -2211,8 +2211,8 @@
             "email": "emmar@mcp.com",
             "password": "rivera#e632y",
             "canvas_token": "canvas_token_rivera#e632y",
-            "woocommerce_consumer_key": "ck_woocommerce_token_rivera#e632y",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_rivera#e632y"
+            "woocommerce_consumer_key": "ck_woocommerce_token_riverae632y",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_riverae632y"
         },
         {
             "id": 202,
@@ -2233,8 +2233,8 @@
             "email": "kimberlym82@mcp.com",
             "password": "KM0311#oG7OM",
             "canvas_token": "canvas_token_KM0311#oG7OM",
-            "woocommerce_consumer_key": "ck_woocommerce_token_KM0311#oG7OM",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_KM0311#oG7OM"
+            "woocommerce_consumer_key": "ck_woocommerce_token_KM0311oG7OM",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_KM0311oG7OM"
         },
         {
             "id": 204,
@@ -2244,8 +2244,8 @@
             "email": "jamesb@mcp.com",
             "password": "bria8@kqGjus",
             "canvas_token": "canvas_token_bria8@kqGjus",
-            "woocommerce_consumer_key": "ck_woocommerce_token_bria8@kqGjus",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_bria8@kqGjus"
+            "woocommerce_consumer_key": "ck_woocommerce_token_bria8kqGjus",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_bria8kqGjus"
         },
         {
             "id": 205,
@@ -2255,8 +2255,8 @@
             "email": "larry.hall8@mcp.com",
             "password": "hall@l575mTp",
             "canvas_token": "canvas_token_hall@l575mTp",
-            "woocommerce_consumer_key": "ck_woocommerce_token_hall@l575mTp",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_hall@l575mTp"
+            "woocommerce_consumer_key": "ck_woocommerce_token_halll575mTp",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_halll575mTp"
         },
         {
             "id": 206,
@@ -2266,8 +2266,8 @@
             "email": "ashleyw@mcp.com",
             "password": "ashley2003$2",
             "canvas_token": "canvas_token_ashley2003$2",
-            "woocommerce_consumer_key": "ck_woocommerce_token_ashley2003$2",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_ashley2003$2"
+            "woocommerce_consumer_key": "ck_woocommerce_token_ashley20032",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_ashley20032"
         },
         {
             "id": 207,
@@ -2288,8 +2288,8 @@
             "email": "smorgan88@mcp.com",
             "password": "morgan#s959t",
             "canvas_token": "canvas_token_morgan#s959t",
-            "woocommerce_consumer_key": "ck_woocommerce_token_morgan#s959t",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_morgan#s959t"
+            "woocommerce_consumer_key": "ck_woocommerce_token_morgans959t",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_morgans959t"
         },
         {
             "id": 209,
@@ -2299,8 +2299,8 @@
             "email": "bflores@mcp.com",
             "password": "flores$b4063",
             "canvas_token": "canvas_token_flores$b4063",
-            "woocommerce_consumer_key": "ck_woocommerce_token_flores$b4063",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_flores$b4063"
+            "woocommerce_consumer_key": "ck_woocommerce_token_floresb4063",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_floresb4063"
         },
         {
             "id": 210,
@@ -2321,8 +2321,8 @@
             "email": "nicholas_scott@mcp.com",
             "password": "NS0224#9L2SN",
             "canvas_token": "canvas_token_NS0224#9L2SN",
-            "woocommerce_consumer_key": "ck_woocommerce_token_NS0224#9L2SN",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_NS0224#9L2SN"
+            "woocommerce_consumer_key": "ck_woocommerce_token_NS02249L2SN",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_NS02249L2SN"
         },
         {
             "id": 212,
@@ -2409,8 +2409,8 @@
             "email": "jramos@mcp.com",
             "password": "ramos$j551kn",
             "canvas_token": "canvas_token_ramos$j551kn",
-            "woocommerce_consumer_key": "ck_woocommerce_token_ramos$j551kn",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_ramos$j551kn"
+            "woocommerce_consumer_key": "ck_woocommerce_token_ramosj551kn",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_ramosj551kn"
         },
         {
             "id": 220,
@@ -2442,8 +2442,8 @@
             "email": "rebecca_jackson18@mcp.com",
             "password": "RJ1220!PGZkk",
             "canvas_token": "canvas_token_RJ1220!PGZkk",
-            "woocommerce_consumer_key": "ck_woocommerce_token_RJ1220!PGZkk",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_RJ1220!PGZkk"
+            "woocommerce_consumer_key": "ck_woocommerce_token_RJ1220PGZkk",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_RJ1220PGZkk"
         },
         {
             "id": 223,
@@ -2453,8 +2453,8 @@
             "email": "pamelas@mcp.com",
             "password": "sanchez@p343",
             "canvas_token": "canvas_token_sanchez@p343",
-            "woocommerce_consumer_key": "ck_woocommerce_token_sanchez@p343",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_sanchez@p343"
+            "woocommerce_consumer_key": "ck_woocommerce_token_sanchezp343",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_sanchezp343"
         },
         {
             "id": 224,
@@ -2475,8 +2475,8 @@
             "email": "nguyent@mcp.com",
             "password": "TN1022@VY9gR",
             "canvas_token": "canvas_token_TN1022@VY9gR",
-            "woocommerce_consumer_key": "ck_woocommerce_token_TN1022@VY9gR",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_TN1022@VY9gR"
+            "woocommerce_consumer_key": "ck_woocommerce_token_TN1022VY9gR",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_TN1022VY9gR"
         },
         {
             "id": 226,
@@ -2519,8 +2519,8 @@
             "email": "nancy.hill@mcp.com",
             "password": "hill$n704L5k",
             "canvas_token": "canvas_token_hill$n704L5k",
-            "woocommerce_consumer_key": "ck_woocommerce_token_hill$n704L5k",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_hill$n704L5k"
+            "woocommerce_consumer_key": "ck_woocommerce_token_hilln704L5k",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_hilln704L5k"
         },
         {
             "id": 230,
@@ -2530,8 +2530,8 @@
             "email": "cynthia.mendoza@mcp.com",
             "password": "cyntkS!n5YMB",
             "canvas_token": "canvas_token_cyntkS!n5YMB",
-            "woocommerce_consumer_key": "ck_woocommerce_token_cyntkS!n5YMB",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_cyntkS!n5YMB"
+            "woocommerce_consumer_key": "ck_woocommerce_token_cyntkSn5YMB",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_cyntkSn5YMB"
         },
         {
             "id": 231,
@@ -2541,8 +2541,8 @@
             "email": "ejackson@mcp.com",
             "password": "EJ1026#K6k1m",
             "canvas_token": "canvas_token_EJ1026#K6k1m",
-            "woocommerce_consumer_key": "ck_woocommerce_token_EJ1026#K6k1m",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_EJ1026#K6k1m"
+            "woocommerce_consumer_key": "ck_woocommerce_token_EJ1026K6k1m",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_EJ1026K6k1m"
         },
         {
             "id": 232,
@@ -2552,8 +2552,8 @@
             "email": "aevans@mcp.com",
             "password": "amanda1999%U",
             "canvas_token": "canvas_token_amanda1999%U",
-            "woocommerce_consumer_key": "ck_woocommerce_token_amanda1999%U",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_amanda1999%U"
+            "woocommerce_consumer_key": "ck_woocommerce_token_amanda1999U",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_amanda1999U"
         },
         {
             "id": 233,
@@ -2563,8 +2563,8 @@
             "email": "kathleen.jones@mcp.com",
             "password": "jones#k913E1",
             "canvas_token": "canvas_token_jones#k913E1",
-            "woocommerce_consumer_key": "ck_woocommerce_token_jones#k913E1",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_jones#k913E1"
+            "woocommerce_consumer_key": "ck_woocommerce_token_jonesk913E1",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_jonesk913E1"
         },
         {
             "id": 234,
@@ -2574,8 +2574,8 @@
             "email": "henry_howard51@mcp.com",
             "password": "howard$h6411",
             "canvas_token": "canvas_token_howard$h6411",
-            "woocommerce_consumer_key": "ck_woocommerce_token_howard$h6411",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_howard$h6411"
+            "woocommerce_consumer_key": "ck_woocommerce_token_howardh6411",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_howardh6411"
         },
         {
             "id": 235,
@@ -2607,8 +2607,8 @@
             "email": "rmyers81@mcp.com",
             "password": "myers$r890jM",
             "canvas_token": "canvas_token_myers$r890jM",
-            "woocommerce_consumer_key": "ck_woocommerce_token_myers$r890jM",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_myers$r890jM"
+            "woocommerce_consumer_key": "ck_woocommerce_token_myersr890jM",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_myersr890jM"
         },
         {
             "id": 238,
@@ -2618,8 +2618,8 @@
             "email": "zachary.baker53@mcp.com",
             "password": "baker@z266gQ",
             "canvas_token": "canvas_token_baker@z266gQ",
-            "woocommerce_consumer_key": "ck_woocommerce_token_baker@z266gQ",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_baker@z266gQ"
+            "woocommerce_consumer_key": "ck_woocommerce_token_bakerz266gQ",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_bakerz266gQ"
         },
         {
             "id": 239,
@@ -2651,8 +2651,8 @@
             "email": "tyler_perez28@mcp.com",
             "password": "tyler2005%O6",
             "canvas_token": "canvas_token_tyler2005%O6",
-            "woocommerce_consumer_key": "ck_woocommerce_token_tyler2005%O6",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_tyler2005%O6"
+            "woocommerce_consumer_key": "ck_woocommerce_token_tyler2005O6",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_tyler2005O6"
         },
         {
             "id": 242,
@@ -2673,8 +2673,8 @@
             "email": "wilsona@mcp.com",
             "password": "wilson@a710z",
             "canvas_token": "canvas_token_wilson@a710z",
-            "woocommerce_consumer_key": "ck_woocommerce_token_wilson@a710z",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_wilson@a710z"
+            "woocommerce_consumer_key": "ck_woocommerce_token_wilsona710z",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_wilsona710z"
         },
         {
             "id": 244,
@@ -2728,8 +2728,8 @@
             "email": "karen.white66@mcp.com",
             "password": "karen2000#vJ",
             "canvas_token": "canvas_token_karen2000#vJ",
-            "woocommerce_consumer_key": "ck_woocommerce_token_karen2000#vJ",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_karen2000#vJ"
+            "woocommerce_consumer_key": "ck_woocommerce_token_karen2000vJ",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_karen2000vJ"
         },
         {
             "id": 249,
@@ -2739,8 +2739,8 @@
             "email": "alexander_williams@mcp.com",
             "password": "alexander1992!",
             "canvas_token": "canvas_token_alexander1992!",
-            "woocommerce_consumer_key": "ck_woocommerce_token_alexander1992!",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_alexander1992!"
+            "woocommerce_consumer_key": "ck_woocommerce_token_alexander1992",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_alexander1992"
         },
         {
             "id": 250,
@@ -2761,8 +2761,8 @@
             "email": "henryn@mcp.com",
             "password": "HN1215!s1iwh",
             "canvas_token": "canvas_token_HN1215!s1iwh",
-            "woocommerce_consumer_key": "ck_woocommerce_token_HN1215!s1iwh",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_HN1215!s1iwh"
+            "woocommerce_consumer_key": "ck_woocommerce_token_HN1215s1iwh",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_HN1215s1iwh"
         },
         {
             "id": 252,
@@ -2805,8 +2805,8 @@
             "email": "mary.edwards57@mcp.com",
             "password": "edwards#m354",
             "canvas_token": "canvas_token_edwards#m354",
-            "woocommerce_consumer_key": "ck_woocommerce_token_edwards#m354",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_edwards#m354"
+            "woocommerce_consumer_key": "ck_woocommerce_token_edwardsm354",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_edwardsm354"
         },
         {
             "id": 256,
@@ -2816,8 +2816,8 @@
             "email": "slewis@mcp.com",
             "password": "step@RumdZLQ",
             "canvas_token": "canvas_token_step@RumdZLQ",
-            "woocommerce_consumer_key": "ck_woocommerce_token_step@RumdZLQ",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_step@RumdZLQ"
+            "woocommerce_consumer_key": "ck_woocommerce_token_stepRumdZLQ",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_stepRumdZLQ"
         },
         {
             "id": 257,
@@ -2827,8 +2827,8 @@
             "email": "nwilson@mcp.com",
             "password": "NW1119!oB9x2",
             "canvas_token": "canvas_token_NW1119!oB9x2",
-            "woocommerce_consumer_key": "ck_woocommerce_token_NW1119!oB9x2",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_NW1119!oB9x2"
+            "woocommerce_consumer_key": "ck_woocommerce_token_NW1119oB9x2",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_NW1119oB9x2"
         },
         {
             "id": 258,
@@ -2860,8 +2860,8 @@
             "email": "timothyc57@mcp.com",
             "password": "timothy1981#",
             "canvas_token": "canvas_token_timothy1981#",
-            "woocommerce_consumer_key": "ck_woocommerce_token_timothy1981#",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_timothy1981#"
+            "woocommerce_consumer_key": "ck_woocommerce_token_timothy1981",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_timothy1981"
         },
         {
             "id": 261,
@@ -2871,8 +2871,8 @@
             "email": "kathleen_kelly@mcp.com",
             "password": "kelly$k896wb",
             "canvas_token": "canvas_token_kelly$k896wb",
-            "woocommerce_consumer_key": "ck_woocommerce_token_kelly$k896wb",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_kelly$k896wb"
+            "woocommerce_consumer_key": "ck_woocommerce_token_kellyk896wb",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_kellyk896wb"
         },
         {
             "id": 262,
@@ -2882,8 +2882,8 @@
             "email": "ramosa@mcp.com",
             "password": "andrew1997%n",
             "canvas_token": "canvas_token_andrew1997%n",
-            "woocommerce_consumer_key": "ck_woocommerce_token_andrew1997%n",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_andrew1997%n"
+            "woocommerce_consumer_key": "ck_woocommerce_token_andrew1997n",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_andrew1997n"
         },
         {
             "id": 263,
@@ -2893,8 +2893,8 @@
             "email": "edavis@mcp.com",
             "password": "edward1984%I",
             "canvas_token": "canvas_token_edward1984%I",
-            "woocommerce_consumer_key": "ck_woocommerce_token_edward1984%I",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_edward1984%I"
+            "woocommerce_consumer_key": "ck_woocommerce_token_edward1984I",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_edward1984I"
         },
         {
             "id": 264,
@@ -2904,8 +2904,8 @@
             "email": "amanda_chavez@mcp.com",
             "password": "AC0115!KG93v",
             "canvas_token": "canvas_token_AC0115!KG93v",
-            "woocommerce_consumer_key": "ck_woocommerce_token_AC0115!KG93v",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_AC0115!KG93v"
+            "woocommerce_consumer_key": "ck_woocommerce_token_AC0115KG93v",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_AC0115KG93v"
         },
         {
             "id": 265,
@@ -2937,8 +2937,8 @@
             "email": "marie.walker@mcp.com",
             "password": "marie1997%w6",
             "canvas_token": "canvas_token_marie1997%w6",
-            "woocommerce_consumer_key": "ck_woocommerce_token_marie1997%w6",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_marie1997%w6"
+            "woocommerce_consumer_key": "ck_woocommerce_token_marie1997w6",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_marie1997w6"
         },
         {
             "id": 268,
@@ -2981,8 +2981,8 @@
             "email": "adamsc@mcp.com",
             "password": "christina1984#",
             "canvas_token": "canvas_token_christina1984#",
-            "woocommerce_consumer_key": "ck_woocommerce_token_christina1984#",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_christina1984#"
+            "woocommerce_consumer_key": "ck_woocommerce_token_christina1984",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_christina1984"
         },
         {
             "id": 272,
@@ -2992,8 +2992,8 @@
             "email": "martha.hill@mcp.com",
             "password": "MH0904@AmDOP",
             "canvas_token": "canvas_token_MH0904@AmDOP",
-            "woocommerce_consumer_key": "ck_woocommerce_token_MH0904@AmDOP",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_MH0904@AmDOP"
+            "woocommerce_consumer_key": "ck_woocommerce_token_MH0904AmDOP",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_MH0904AmDOP"
         },
         {
             "id": 273,
@@ -3036,8 +3036,8 @@
             "email": "maryt92@mcp.com",
             "password": "MT0216#cOldn",
             "canvas_token": "canvas_token_MT0216#cOldn",
-            "woocommerce_consumer_key": "ck_woocommerce_token_MT0216#cOldn",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_MT0216#cOldn"
+            "woocommerce_consumer_key": "ck_woocommerce_token_MT0216cOldn",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_MT0216cOldn"
         },
         {
             "id": 277,
@@ -3069,8 +3069,8 @@
             "email": "thomas_sanchez8@mcp.com",
             "password": "TS1105!yw2iB",
             "canvas_token": "canvas_token_TS1105!yw2iB",
-            "woocommerce_consumer_key": "ck_woocommerce_token_TS1105!yw2iB",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_TS1105!yw2iB"
+            "woocommerce_consumer_key": "ck_woocommerce_token_TS1105yw2iB",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_TS1105yw2iB"
         },
         {
             "id": 280,
@@ -3102,8 +3102,8 @@
             "email": "tyler_roberts72@mcp.com",
             "password": "tyler1997@ib",
             "canvas_token": "canvas_token_tyler1997@ib",
-            "woocommerce_consumer_key": "ck_woocommerce_token_tyler1997@ib",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_tyler1997@ib"
+            "woocommerce_consumer_key": "ck_woocommerce_token_tyler1997ib",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_tyler1997ib"
         },
         {
             "id": 283,
@@ -3124,8 +3124,8 @@
             "email": "sthomas@mcp.com",
             "password": "ST0608#6pK4u",
             "canvas_token": "canvas_token_ST0608#6pK4u",
-            "woocommerce_consumer_key": "ck_woocommerce_token_ST0608#6pK4u",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_ST0608#6pK4u"
+            "woocommerce_consumer_key": "ck_woocommerce_token_ST06086pK4u",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_ST06086pK4u"
         },
         {
             "id": 285,
@@ -3135,8 +3135,8 @@
             "email": "bennettr@mcp.com",
             "password": "raymo#S!1NuB",
             "canvas_token": "canvas_token_raymo#S!1NuB",
-            "woocommerce_consumer_key": "ck_woocommerce_token_raymo#S!1NuB",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_raymo#S!1NuB"
+            "woocommerce_consumer_key": "ck_woocommerce_token_raymoS1NuB",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_raymoS1NuB"
         },
         {
             "id": 286,
@@ -3146,8 +3146,8 @@
             "email": "mcruz@mcp.com",
             "password": "MC1011#DWhEw",
             "canvas_token": "canvas_token_MC1011#DWhEw",
-            "woocommerce_consumer_key": "ck_woocommerce_token_MC1011#DWhEw",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_MC1011#DWhEw"
+            "woocommerce_consumer_key": "ck_woocommerce_token_MC1011DWhEw",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_MC1011DWhEw"
         },
         {
             "id": 287,
@@ -3234,8 +3234,8 @@
             "email": "dennis.watson8@mcp.com",
             "password": "DW0817!terui",
             "canvas_token": "canvas_token_DW0817!terui",
-            "woocommerce_consumer_key": "ck_woocommerce_token_DW0817!terui",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_DW0817!terui"
+            "woocommerce_consumer_key": "ck_woocommerce_token_DW0817terui",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_DW0817terui"
         },
         {
             "id": 295,
@@ -3245,8 +3245,8 @@
             "email": "reedn@mcp.com",
             "password": "NR1211!4fEwR",
             "canvas_token": "canvas_token_NR1211!4fEwR",
-            "woocommerce_consumer_key": "ck_woocommerce_token_NR1211!4fEwR",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_NR1211!4fEwR"
+            "woocommerce_consumer_key": "ck_woocommerce_token_NR12114fEwR",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_NR12114fEwR"
         },
         {
             "id": 296,
@@ -3256,8 +3256,8 @@
             "email": "timothy_mitchell@mcp.com",
             "password": "TM0314!lUv1Z",
             "canvas_token": "canvas_token_TM0314!lUv1Z",
-            "woocommerce_consumer_key": "ck_woocommerce_token_TM0314!lUv1Z",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_TM0314!lUv1Z"
+            "woocommerce_consumer_key": "ck_woocommerce_token_TM0314lUv1Z",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_TM0314lUv1Z"
         },
         {
             "id": 297,
@@ -3300,8 +3300,8 @@
             "email": "richardl@mcp.com",
             "password": "richard1995!",
             "canvas_token": "canvas_token_richard1995!",
-            "woocommerce_consumer_key": "ck_woocommerce_token_richard1995!",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_richard1995!"
+            "woocommerce_consumer_key": "ck_woocommerce_token_richard1995",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_richard1995"
         },
         {
             "id": 301,
@@ -3322,8 +3322,8 @@
             "email": "john_reed@mcp.com",
             "password": "JR0223@fTRgi",
             "canvas_token": "canvas_token_JR0223@fTRgi",
-            "woocommerce_consumer_key": "ck_woocommerce_token_JR0223@fTRgi",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_JR0223@fTRgi"
+            "woocommerce_consumer_key": "ck_woocommerce_token_JR0223fTRgi",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_JR0223fTRgi"
         },
         {
             "id": 303,
@@ -3333,8 +3333,8 @@
             "email": "diaza48@mcp.com",
             "password": "AD0120#OSuSL",
             "canvas_token": "canvas_token_AD0120#OSuSL",
-            "woocommerce_consumer_key": "ck_woocommerce_token_AD0120#OSuSL",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_AD0120#OSuSL"
+            "woocommerce_consumer_key": "ck_woocommerce_token_AD0120OSuSL",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_AD0120OSuSL"
         },
         {
             "id": 304,
@@ -3344,8 +3344,8 @@
             "email": "matthew.bailey32@mcp.com",
             "password": "MB0403!ZgB27",
             "canvas_token": "canvas_token_MB0403!ZgB27",
-            "woocommerce_consumer_key": "ck_woocommerce_token_MB0403!ZgB27",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_MB0403!ZgB27"
+            "woocommerce_consumer_key": "ck_woocommerce_token_MB0403ZgB27",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_MB0403ZgB27"
         },
         {
             "id": 305,
@@ -3355,8 +3355,8 @@
             "email": "ryang13@mcp.com",
             "password": "RG0813!cFTd6",
             "canvas_token": "canvas_token_RG0813!cFTd6",
-            "woocommerce_consumer_key": "ck_woocommerce_token_RG0813!cFTd6",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_RG0813!cFTd6"
+            "woocommerce_consumer_key": "ck_woocommerce_token_RG0813cFTd6",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_RG0813cFTd6"
         },
         {
             "id": 306,
@@ -3366,8 +3366,8 @@
             "email": "pwatson23@mcp.com",
             "password": "patrpD$ajw6P",
             "canvas_token": "canvas_token_patrpD$ajw6P",
-            "woocommerce_consumer_key": "ck_woocommerce_token_patrpD$ajw6P",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_patrpD$ajw6P"
+            "woocommerce_consumer_key": "ck_woocommerce_token_patrpDajw6P",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_patrpDajw6P"
         },
         {
             "id": 307,
@@ -3377,8 +3377,8 @@
             "email": "kimberly.murphy@mcp.com",
             "password": "kimberly2000$",
             "canvas_token": "canvas_token_kimberly2000$",
-            "woocommerce_consumer_key": "ck_woocommerce_token_kimberly2000$",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_kimberly2000$"
+            "woocommerce_consumer_key": "ck_woocommerce_token_kimberly2000",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_kimberly2000"
         },
         {
             "id": 308,
@@ -3388,8 +3388,8 @@
             "email": "edward.ruiz@mcp.com",
             "password": "ER0815#uvaLx",
             "canvas_token": "canvas_token_ER0815#uvaLx",
-            "woocommerce_consumer_key": "ck_woocommerce_token_ER0815#uvaLx",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_ER0815#uvaLx"
+            "woocommerce_consumer_key": "ck_woocommerce_token_ER0815uvaLx",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_ER0815uvaLx"
         },
         {
             "id": 309,
@@ -3410,8 +3410,8 @@
             "email": "murphyc@mcp.com",
             "password": "catherine1984%",
             "canvas_token": "canvas_token_catherine1984%",
-            "woocommerce_consumer_key": "ck_woocommerce_token_catherine1984%",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_catherine1984%"
+            "woocommerce_consumer_key": "ck_woocommerce_token_catherine1984",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_catherine1984"
         },
         {
             "id": 311,
@@ -3421,8 +3421,8 @@
             "email": "sandra.miller@mcp.com",
             "password": "SM1212!VJy6B",
             "canvas_token": "canvas_token_SM1212!VJy6B",
-            "woocommerce_consumer_key": "ck_woocommerce_token_SM1212!VJy6B",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_SM1212!VJy6B"
+            "woocommerce_consumer_key": "ck_woocommerce_token_SM1212VJy6B",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_SM1212VJy6B"
         },
         {
             "id": 312,
@@ -3443,8 +3443,8 @@
             "email": "michelle_brooks26@mcp.com",
             "password": "michoNZZe@Li",
             "canvas_token": "canvas_token_michoNZZe@Li",
-            "woocommerce_consumer_key": "ck_woocommerce_token_michoNZZe@Li",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_michoNZZe@Li"
+            "woocommerce_consumer_key": "ck_woocommerce_token_michoNZZeLi",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_michoNZZeLi"
         },
         {
             "id": 314,
@@ -3465,8 +3465,8 @@
             "email": "calvarez@mcp.com",
             "password": "alvarez@c241",
             "canvas_token": "canvas_token_alvarez@c241",
-            "woocommerce_consumer_key": "ck_woocommerce_token_alvarez@c241",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_alvarez@c241"
+            "woocommerce_consumer_key": "ck_woocommerce_token_alvarezc241",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_alvarezc241"
         },
         {
             "id": 316,
@@ -3476,8 +3476,8 @@
             "email": "castilloj@mcp.com",
             "password": "jennifer1993!",
             "canvas_token": "canvas_token_jennifer1993!",
-            "woocommerce_consumer_key": "ck_woocommerce_token_jennifer1993!",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_jennifer1993!"
+            "woocommerce_consumer_key": "ck_woocommerce_token_jennifer1993",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_jennifer1993"
         },
         {
             "id": 317,
@@ -3487,8 +3487,8 @@
             "email": "moorea@mcp.com",
             "password": "moore$a6457i",
             "canvas_token": "canvas_token_moore$a6457i",
-            "woocommerce_consumer_key": "ck_woocommerce_token_moore$a6457i",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_moore$a6457i"
+            "woocommerce_consumer_key": "ck_woocommerce_token_moorea6457i",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_moorea6457i"
         },
         {
             "id": 318,
@@ -3498,8 +3498,8 @@
             "email": "chavezj74@mcp.com",
             "password": "chavez$j329B",
             "canvas_token": "canvas_token_chavez$j329B",
-            "woocommerce_consumer_key": "ck_woocommerce_token_chavez$j329B",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_chavez$j329B"
+            "woocommerce_consumer_key": "ck_woocommerce_token_chavezj329B",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_chavezj329B"
         },
         {
             "id": 319,
@@ -3520,8 +3520,8 @@
             "email": "stephen_patel@mcp.com",
             "password": "patel$s108QD",
             "canvas_token": "canvas_token_patel$s108QD",
-            "woocommerce_consumer_key": "ck_woocommerce_token_patel$s108QD",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_patel$s108QD"
+            "woocommerce_consumer_key": "ck_woocommerce_token_patels108QD",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_patels108QD"
         },
         {
             "id": 321,
@@ -3531,8 +3531,8 @@
             "email": "martineze@mcp.com",
             "password": "EM0426!5Gba4",
             "canvas_token": "canvas_token_EM0426!5Gba4",
-            "woocommerce_consumer_key": "ck_woocommerce_token_EM0426!5Gba4",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_EM0426!5Gba4"
+            "woocommerce_consumer_key": "ck_woocommerce_token_EM04265Gba4",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_EM04265Gba4"
         },
         {
             "id": 322,
@@ -3542,8 +3542,8 @@
             "email": "emilyc79@mcp.com",
             "password": "emily1988%hc",
             "canvas_token": "canvas_token_emily1988%hc",
-            "woocommerce_consumer_key": "ck_woocommerce_token_emily1988%hc",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_emily1988%hc"
+            "woocommerce_consumer_key": "ck_woocommerce_token_emily1988hc",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_emily1988hc"
         },
         {
             "id": 323,
@@ -3553,8 +3553,8 @@
             "email": "christinar@mcp.com",
             "password": "robinson@c819",
             "canvas_token": "canvas_token_robinson@c819",
-            "woocommerce_consumer_key": "ck_woocommerce_token_robinson@c819",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_robinson@c819"
+            "woocommerce_consumer_key": "ck_woocommerce_token_robinsonc819",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_robinsonc819"
         },
         {
             "id": 324,
@@ -3564,8 +3564,8 @@
             "email": "aliced@mcp.com",
             "password": "alick#DbSlLU",
             "canvas_token": "canvas_token_alick#DbSlLU",
-            "woocommerce_consumer_key": "ck_woocommerce_token_alick#DbSlLU",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_alick#DbSlLU"
+            "woocommerce_consumer_key": "ck_woocommerce_token_alickDbSlLU",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_alickDbSlLU"
         },
         {
             "id": 325,
@@ -3575,8 +3575,8 @@
             "email": "morrisk@mcp.com",
             "password": "KM0201#CbjbV",
             "canvas_token": "canvas_token_KM0201#CbjbV",
-            "woocommerce_consumer_key": "ck_woocommerce_token_KM0201#CbjbV",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_KM0201#CbjbV"
+            "woocommerce_consumer_key": "ck_woocommerce_token_KM0201CbjbV",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_KM0201CbjbV"
         },
         {
             "id": 326,
@@ -3597,8 +3597,8 @@
             "email": "lhughes62@mcp.com",
             "password": "hughes#l6509",
             "canvas_token": "canvas_token_hughes#l6509",
-            "woocommerce_consumer_key": "ck_woocommerce_token_hughes#l6509",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_hughes#l6509"
+            "woocommerce_consumer_key": "ck_woocommerce_token_hughesl6509",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_hughesl6509"
         },
         {
             "id": 328,
@@ -3619,8 +3619,8 @@
             "email": "mitchellj40@mcp.com",
             "password": "jack2001%D6T",
             "canvas_token": "canvas_token_jack2001%D6T",
-            "woocommerce_consumer_key": "ck_woocommerce_token_jack2001%D6T",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_jack2001%D6T"
+            "woocommerce_consumer_key": "ck_woocommerce_token_jack2001D6T",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_jack2001D6T"
         },
         {
             "id": 330,
@@ -3630,8 +3630,8 @@
             "email": "brenda.clark@mcp.com",
             "password": "clark@b5505y",
             "canvas_token": "canvas_token_clark@b5505y",
-            "woocommerce_consumer_key": "ck_woocommerce_token_clark@b5505y",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_clark@b5505y"
+            "woocommerce_consumer_key": "ck_woocommerce_token_clarkb5505y",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_clarkb5505y"
         },
         {
             "id": 331,
@@ -3707,8 +3707,8 @@
             "email": "jasons@mcp.com",
             "password": "sanchez@j196",
             "canvas_token": "canvas_token_sanchez@j196",
-            "woocommerce_consumer_key": "ck_woocommerce_token_sanchez@j196",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_sanchez@j196"
+            "woocommerce_consumer_key": "ck_woocommerce_token_sanchezj196",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_sanchezj196"
         },
         {
             "id": 338,
@@ -3740,8 +3740,8 @@
             "email": "dbrown@mcp.com",
             "password": "DB0213!CEF7F",
             "canvas_token": "canvas_token_DB0213!CEF7F",
-            "woocommerce_consumer_key": "ck_woocommerce_token_DB0213!CEF7F",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_DB0213!CEF7F"
+            "woocommerce_consumer_key": "ck_woocommerce_token_DB0213CEF7F",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_DB0213CEF7F"
         },
         {
             "id": 341,
@@ -3751,8 +3751,8 @@
             "email": "mmorgan@mcp.com",
             "password": "melissa2002@",
             "canvas_token": "canvas_token_melissa2002@",
-            "woocommerce_consumer_key": "ck_woocommerce_token_melissa2002@",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_melissa2002@"
+            "woocommerce_consumer_key": "ck_woocommerce_token_melissa2002",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_melissa2002"
         },
         {
             "id": 342,
@@ -3773,8 +3773,8 @@
             "email": "baileye27@mcp.com",
             "password": "elizabeth2001%",
             "canvas_token": "canvas_token_elizabeth2001%",
-            "woocommerce_consumer_key": "ck_woocommerce_token_elizabeth2001%",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_elizabeth2001%"
+            "woocommerce_consumer_key": "ck_woocommerce_token_elizabeth2001",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_elizabeth2001"
         },
         {
             "id": 344,
@@ -3784,8 +3784,8 @@
             "email": "andrews@mcp.com",
             "password": "sanchez#a871",
             "canvas_token": "canvas_token_sanchez#a871",
-            "woocommerce_consumer_key": "ck_woocommerce_token_sanchez#a871",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_sanchez#a871"
+            "woocommerce_consumer_key": "ck_woocommerce_token_sancheza871",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_sancheza871"
         },
         {
             "id": 345,
@@ -3817,8 +3817,8 @@
             "email": "christinea@mcp.com",
             "password": "anderson#c980",
             "canvas_token": "canvas_token_anderson#c980",
-            "woocommerce_consumer_key": "ck_woocommerce_token_anderson#c980",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_anderson#c980"
+            "woocommerce_consumer_key": "ck_woocommerce_token_andersonc980",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_andersonc980"
         },
         {
             "id": 348,
@@ -3839,8 +3839,8 @@
             "email": "amy.bennett26@mcp.com",
             "password": "AB0909#Qulod",
             "canvas_token": "canvas_token_AB0909#Qulod",
-            "woocommerce_consumer_key": "ck_woocommerce_token_AB0909#Qulod",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_AB0909#Qulod"
+            "woocommerce_consumer_key": "ck_woocommerce_token_AB0909Qulod",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_AB0909Qulod"
         },
         {
             "id": 350,
@@ -3861,8 +3861,8 @@
             "email": "susan_ramirez@mcp.com",
             "password": "susan1989$c4",
             "canvas_token": "canvas_token_susan1989$c4",
-            "woocommerce_consumer_key": "ck_woocommerce_token_susan1989$c4",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_susan1989$c4"
+            "woocommerce_consumer_key": "ck_woocommerce_token_susan1989c4",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_susan1989c4"
         },
         {
             "id": 352,
@@ -3883,8 +3883,8 @@
             "email": "richardsonp@mcp.com",
             "password": "richardson@p953",
             "canvas_token": "canvas_token_richardson@p953",
-            "woocommerce_consumer_key": "ck_woocommerce_token_richardson@p953",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_richardson@p953"
+            "woocommerce_consumer_key": "ck_woocommerce_token_richardsonp953",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_richardsonp953"
         },
         {
             "id": 354,
@@ -3894,8 +3894,8 @@
             "email": "mparker35@mcp.com",
             "password": "MP1223#3r9cl",
             "canvas_token": "canvas_token_MP1223#3r9cl",
-            "woocommerce_consumer_key": "ck_woocommerce_token_MP1223#3r9cl",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_MP1223#3r9cl"
+            "woocommerce_consumer_key": "ck_woocommerce_token_MP12233r9cl",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_MP12233r9cl"
         },
         {
             "id": 355,
@@ -3905,8 +3905,8 @@
             "email": "smithl@mcp.com",
             "password": "smith$l669lD",
             "canvas_token": "canvas_token_smith$l669lD",
-            "woocommerce_consumer_key": "ck_woocommerce_token_smith$l669lD",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_smith$l669lD"
+            "woocommerce_consumer_key": "ck_woocommerce_token_smithl669lD",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_smithl669lD"
         },
         {
             "id": 356,
@@ -3938,8 +3938,8 @@
             "email": "jessicak@mcp.com",
             "password": "kelly@j8625K",
             "canvas_token": "canvas_token_kelly@j8625K",
-            "woocommerce_consumer_key": "ck_woocommerce_token_kelly@j8625K",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_kelly@j8625K"
+            "woocommerce_consumer_key": "ck_woocommerce_token_kellyj8625K",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_kellyj8625K"
         },
         {
             "id": 359,
@@ -3949,8 +3949,8 @@
             "email": "watsont@mcp.com",
             "password": "teresa1986#o",
             "canvas_token": "canvas_token_teresa1986#o",
-            "woocommerce_consumer_key": "ck_woocommerce_token_teresa1986#o",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_teresa1986#o"
+            "woocommerce_consumer_key": "ck_woocommerce_token_teresa1986o",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_teresa1986o"
         },
         {
             "id": 360,
@@ -3971,8 +3971,8 @@
             "email": "jackm@mcp.com",
             "password": "jack1997#VoS",
             "canvas_token": "canvas_token_jack1997#VoS",
-            "woocommerce_consumer_key": "ck_woocommerce_token_jack1997#VoS",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_jack1997#VoS"
+            "woocommerce_consumer_key": "ck_woocommerce_token_jack1997VoS",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_jack1997VoS"
         },
         {
             "id": 362,
@@ -3993,8 +3993,8 @@
             "email": "alice.white@mcp.com",
             "password": "white$a493Ym",
             "canvas_token": "canvas_token_white$a493Ym",
-            "woocommerce_consumer_key": "ck_woocommerce_token_white$a493Ym",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_white$a493Ym"
+            "woocommerce_consumer_key": "ck_woocommerce_token_whitea493Ym",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_whitea493Ym"
         },
         {
             "id": 364,
@@ -4004,8 +4004,8 @@
             "email": "angela_nguyen90@mcp.com",
             "password": "nguyen#a2016",
             "canvas_token": "canvas_token_nguyen#a2016",
-            "woocommerce_consumer_key": "ck_woocommerce_token_nguyen#a2016",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_nguyen#a2016"
+            "woocommerce_consumer_key": "ck_woocommerce_token_nguyena2016",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_nguyena2016"
         },
         {
             "id": 365,
@@ -4026,8 +4026,8 @@
             "email": "jeffrey.bailey@mcp.com",
             "password": "bailey@j225b",
             "canvas_token": "canvas_token_bailey@j225b",
-            "woocommerce_consumer_key": "ck_woocommerce_token_bailey@j225b",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_bailey@j225b"
+            "woocommerce_consumer_key": "ck_woocommerce_token_baileyj225b",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_baileyj225b"
         },
         {
             "id": 367,
@@ -4048,8 +4048,8 @@
             "email": "harrisb@mcp.com",
             "password": "BH1204#Twd7T",
             "canvas_token": "canvas_token_BH1204#Twd7T",
-            "woocommerce_consumer_key": "ck_woocommerce_token_BH1204#Twd7T",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_BH1204#Twd7T"
+            "woocommerce_consumer_key": "ck_woocommerce_token_BH1204Twd7T",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_BH1204Twd7T"
         },
         {
             "id": 369,
@@ -4070,8 +4070,8 @@
             "email": "ryanr18@mcp.com",
             "password": "ryan1989%jlH",
             "canvas_token": "canvas_token_ryan1989%jlH",
-            "woocommerce_consumer_key": "ck_woocommerce_token_ryan1989%jlH",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_ryan1989%jlH"
+            "woocommerce_consumer_key": "ck_woocommerce_token_ryan1989jlH",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_ryan1989jlH"
         },
         {
             "id": 371,
@@ -4081,8 +4081,8 @@
             "email": "jmartinez@mcp.com",
             "password": "jeffPRZtm#Xf",
             "canvas_token": "canvas_token_jeffPRZtm#Xf",
-            "woocommerce_consumer_key": "ck_woocommerce_token_jeffPRZtm#Xf",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_jeffPRZtm#Xf"
+            "woocommerce_consumer_key": "ck_woocommerce_token_jeffPRZtmXf",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_jeffPRZtmXf"
         },
         {
             "id": 372,
@@ -4092,8 +4092,8 @@
             "email": "benjaminr86@mcp.com",
             "password": "reed#b210Ia3",
             "canvas_token": "canvas_token_reed#b210Ia3",
-            "woocommerce_consumer_key": "ck_woocommerce_token_reed#b210Ia3",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_reed#b210Ia3"
+            "woocommerce_consumer_key": "ck_woocommerce_token_reedb210Ia3",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_reedb210Ia3"
         },
         {
             "id": 373,
@@ -4103,8 +4103,8 @@
             "email": "samantha.gonzalez@mcp.com",
             "password": "sama!fDOt6yo",
             "canvas_token": "canvas_token_sama!fDOt6yo",
-            "woocommerce_consumer_key": "ck_woocommerce_token_sama!fDOt6yo",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_sama!fDOt6yo"
+            "woocommerce_consumer_key": "ck_woocommerce_token_samafDOt6yo",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_samafDOt6yo"
         },
         {
             "id": 374,
@@ -4147,8 +4147,8 @@
             "email": "alvarezc37@mcp.com",
             "password": "CA0510@MuP18",
             "canvas_token": "canvas_token_CA0510@MuP18",
-            "woocommerce_consumer_key": "ck_woocommerce_token_CA0510@MuP18",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_CA0510@MuP18"
+            "woocommerce_consumer_key": "ck_woocommerce_token_CA0510MuP18",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_CA0510MuP18"
         },
         {
             "id": 378,
@@ -4158,8 +4158,8 @@
             "email": "bennettc@mcp.com",
             "password": "bennett@c739",
             "canvas_token": "canvas_token_bennett@c739",
-            "woocommerce_consumer_key": "ck_woocommerce_token_bennett@c739",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_bennett@c739"
+            "woocommerce_consumer_key": "ck_woocommerce_token_bennettc739",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_bennettc739"
         },
         {
             "id": 379,
@@ -4169,8 +4169,8 @@
             "email": "dsanders316@mcp.com",
             "password": "sanders@d545",
             "canvas_token": "canvas_token_sanders@d545",
-            "woocommerce_consumer_key": "ck_woocommerce_token_sanders@d545",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_sanders@d545"
+            "woocommerce_consumer_key": "ck_woocommerce_token_sandersd545",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_sandersd545"
         },
         {
             "id": 380,
@@ -4191,8 +4191,8 @@
             "email": "laura.morgan@mcp.com",
             "password": "morgan$l631K",
             "canvas_token": "canvas_token_morgan$l631K",
-            "woocommerce_consumer_key": "ck_woocommerce_token_morgan$l631K",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_morgan$l631K"
+            "woocommerce_consumer_key": "ck_woocommerce_token_morganl631K",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_morganl631K"
         },
         {
             "id": 382,
@@ -4202,8 +4202,8 @@
             "email": "rebeccam@mcp.com",
             "password": "mitchell$r208",
             "canvas_token": "canvas_token_mitchell$r208",
-            "woocommerce_consumer_key": "ck_woocommerce_token_mitchell$r208",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_mitchell$r208"
+            "woocommerce_consumer_key": "ck_woocommerce_token_mitchellr208",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_mitchellr208"
         },
         {
             "id": 383,
@@ -4213,8 +4213,8 @@
             "email": "baileyt@mcp.com",
             "password": "TB0701!PXdod",
             "canvas_token": "canvas_token_TB0701!PXdod",
-            "woocommerce_consumer_key": "ck_woocommerce_token_TB0701!PXdod",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_TB0701!PXdod"
+            "woocommerce_consumer_key": "ck_woocommerce_token_TB0701PXdod",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_TB0701PXdod"
         },
         {
             "id": 384,
@@ -4246,8 +4246,8 @@
             "email": "debrah@mcp.com",
             "password": "debra1983@15",
             "canvas_token": "canvas_token_debra1983@15",
-            "woocommerce_consumer_key": "ck_woocommerce_token_debra1983@15",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_debra1983@15"
+            "woocommerce_consumer_key": "ck_woocommerce_token_debra198315",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_debra198315"
         },
         {
             "id": 387,
@@ -4290,8 +4290,8 @@
             "email": "caroln59@mcp.com",
             "password": "CN0121@Y0cU0",
             "canvas_token": "canvas_token_CN0121@Y0cU0",
-            "woocommerce_consumer_key": "ck_woocommerce_token_CN0121@Y0cU0",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_CN0121@Y0cU0"
+            "woocommerce_consumer_key": "ck_woocommerce_token_CN0121Y0cU0",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_CN0121Y0cU0"
         },
         {
             "id": 391,
@@ -4301,8 +4301,8 @@
             "email": "angela_gomez@mcp.com",
             "password": "AG0920!b8egK",
             "canvas_token": "canvas_token_AG0920!b8egK",
-            "woocommerce_consumer_key": "ck_woocommerce_token_AG0920!b8egK",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_AG0920!b8egK"
+            "woocommerce_consumer_key": "ck_woocommerce_token_AG0920b8egK",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_AG0920b8egK"
         },
         {
             "id": 392,
@@ -4345,8 +4345,8 @@
             "email": "marka@mcp.com",
             "password": "MA0619@QUI0w",
             "canvas_token": "canvas_token_MA0619@QUI0w",
-            "woocommerce_consumer_key": "ck_woocommerce_token_MA0619@QUI0w",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_MA0619@QUI0w"
+            "woocommerce_consumer_key": "ck_woocommerce_token_MA0619QUI0w",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_MA0619QUI0w"
         },
         {
             "id": 396,
@@ -4356,8 +4356,8 @@
             "email": "reyese71@mcp.com",
             "password": "reyes@e375z9",
             "canvas_token": "canvas_token_reyes@e375z9",
-            "woocommerce_consumer_key": "ck_woocommerce_token_reyes@e375z9",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_reyes@e375z9"
+            "woocommerce_consumer_key": "ck_woocommerce_token_reyese375z9",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_reyese375z9"
         },
         {
             "id": 397,
@@ -4389,8 +4389,8 @@
             "email": "josee@mcp.com",
             "password": "edwards#j102",
             "canvas_token": "canvas_token_edwards#j102",
-            "woocommerce_consumer_key": "ck_woocommerce_token_edwards#j102",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_edwards#j102"
+            "woocommerce_consumer_key": "ck_woocommerce_token_edwardsj102",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_edwardsj102"
         },
         {
             "id": 400,
@@ -4400,8 +4400,8 @@
             "email": "plee37@mcp.com",
             "password": "PL0221!9crka",
             "canvas_token": "canvas_token_PL0221!9crka",
-            "woocommerce_consumer_key": "ck_woocommerce_token_PL0221!9crka",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_PL0221!9crka"
+            "woocommerce_consumer_key": "ck_woocommerce_token_PL02219crka",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_PL02219crka"
         },
         {
             "id": 401,
@@ -4411,8 +4411,8 @@
             "email": "jonathanp23@mcp.com",
             "password": "patel@j786IE",
             "canvas_token": "canvas_token_patel@j786IE",
-            "woocommerce_consumer_key": "ck_woocommerce_token_patel@j786IE",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_patel@j786IE"
+            "woocommerce_consumer_key": "ck_woocommerce_token_patelj786IE",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_patelj786IE"
         },
         {
             "id": 402,
@@ -4433,8 +4433,8 @@
             "email": "angela_cox@mcp.com",
             "password": "angela1996@S",
             "canvas_token": "canvas_token_angela1996@S",
-            "woocommerce_consumer_key": "ck_woocommerce_token_angela1996@S",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_angela1996@S"
+            "woocommerce_consumer_key": "ck_woocommerce_token_angela1996S",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_angela1996S"
         },
         {
             "id": 404,
@@ -4444,8 +4444,8 @@
             "email": "tcruz@mcp.com",
             "password": "TC1027!KviR9",
             "canvas_token": "canvas_token_TC1027!KviR9",
-            "woocommerce_consumer_key": "ck_woocommerce_token_TC1027!KviR9",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_TC1027!KviR9"
+            "woocommerce_consumer_key": "ck_woocommerce_token_TC1027KviR9",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_TC1027KviR9"
         },
         {
             "id": 405,
@@ -4455,8 +4455,8 @@
             "email": "taylord@mcp.com",
             "password": "DT0611#2H3QY",
             "canvas_token": "canvas_token_DT0611#2H3QY",
-            "woocommerce_consumer_key": "ck_woocommerce_token_DT0611#2H3QY",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_DT0611#2H3QY"
+            "woocommerce_consumer_key": "ck_woocommerce_token_DT06112H3QY",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_DT06112H3QY"
         },
         {
             "id": 406,
@@ -4499,8 +4499,8 @@
             "email": "kevink@mcp.com",
             "password": "king#k431G2V",
             "canvas_token": "canvas_token_king#k431G2V",
-            "woocommerce_consumer_key": "ck_woocommerce_token_king#k431G2V",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_king#k431G2V"
+            "woocommerce_consumer_key": "ck_woocommerce_token_kingk431G2V",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_kingk431G2V"
         },
         {
             "id": 410,
@@ -4510,8 +4510,8 @@
             "email": "galvarez77@mcp.com",
             "password": "alvarez@g654",
             "canvas_token": "canvas_token_alvarez@g654",
-            "woocommerce_consumer_key": "ck_woocommerce_token_alvarez@g654",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_alvarez@g654"
+            "woocommerce_consumer_key": "ck_woocommerce_token_alvarezg654",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_alvarezg654"
         },
         {
             "id": 411,
@@ -4521,8 +4521,8 @@
             "email": "stephanie_carter@mcp.com",
             "password": "carter$s187o",
             "canvas_token": "canvas_token_carter$s187o",
-            "woocommerce_consumer_key": "ck_woocommerce_token_carter$s187o",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_carter$s187o"
+            "woocommerce_consumer_key": "ck_woocommerce_token_carters187o",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_carters187o"
         },
         {
             "id": 412,
@@ -4543,8 +4543,8 @@
             "email": "george.gonzalez@mcp.com",
             "password": "gonzalez#g577",
             "canvas_token": "canvas_token_gonzalez#g577",
-            "woocommerce_consumer_key": "ck_woocommerce_token_gonzalez#g577",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_gonzalez#g577"
+            "woocommerce_consumer_key": "ck_woocommerce_token_gonzalezg577",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_gonzalezg577"
         },
         {
             "id": 414,
@@ -4565,8 +4565,8 @@
             "email": "raymond.chavez29@mcp.com",
             "password": "raymond2005#",
             "canvas_token": "canvas_token_raymond2005#",
-            "woocommerce_consumer_key": "ck_woocommerce_token_raymond2005#",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_raymond2005#"
+            "woocommerce_consumer_key": "ck_woocommerce_token_raymond2005",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_raymond2005"
         },
         {
             "id": 416,
@@ -4576,8 +4576,8 @@
             "email": "stephenm@mcp.com",
             "password": "stephen2000@",
             "canvas_token": "canvas_token_stephen2000@",
-            "woocommerce_consumer_key": "ck_woocommerce_token_stephen2000@",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_stephen2000@"
+            "woocommerce_consumer_key": "ck_woocommerce_token_stephen2000",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_stephen2000"
         },
         {
             "id": 417,
@@ -4609,8 +4609,8 @@
             "email": "dorothyc42@mcp.com",
             "password": "campbell$d659",
             "canvas_token": "canvas_token_campbell$d659",
-            "woocommerce_consumer_key": "ck_woocommerce_token_campbell$d659",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_campbell$d659"
+            "woocommerce_consumer_key": "ck_woocommerce_token_campbelld659",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_campbelld659"
         },
         {
             "id": 420,
@@ -4620,8 +4620,8 @@
             "email": "janet_rivera@mcp.com",
             "password": "JR0703!PFg3B",
             "canvas_token": "canvas_token_JR0703!PFg3B",
-            "woocommerce_consumer_key": "ck_woocommerce_token_JR0703!PFg3B",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_JR0703!PFg3B"
+            "woocommerce_consumer_key": "ck_woocommerce_token_JR0703PFg3B",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_JR0703PFg3B"
         },
         {
             "id": 421,
@@ -4664,8 +4664,8 @@
             "email": "hughess@mcp.com",
             "password": "hughes#s825I",
             "canvas_token": "canvas_token_hughes#s825I",
-            "woocommerce_consumer_key": "ck_woocommerce_token_hughes#s825I",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_hughes#s825I"
+            "woocommerce_consumer_key": "ck_woocommerce_token_hughess825I",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_hughess825I"
         },
         {
             "id": 425,
@@ -4675,8 +4675,8 @@
             "email": "ortizj@mcp.com",
             "password": "ortiz@j3451a",
             "canvas_token": "canvas_token_ortiz@j3451a",
-            "woocommerce_consumer_key": "ck_woocommerce_token_ortiz@j3451a",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_ortiz@j3451a"
+            "woocommerce_consumer_key": "ck_woocommerce_token_ortizj3451a",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_ortizj3451a"
         },
         {
             "id": 426,
@@ -4697,8 +4697,8 @@
             "email": "jessicaw@mcp.com",
             "password": "watson#j303w",
             "canvas_token": "canvas_token_watson#j303w",
-            "woocommerce_consumer_key": "ck_woocommerce_token_watson#j303w",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_watson#j303w"
+            "woocommerce_consumer_key": "ck_woocommerce_token_watsonj303w",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_watsonj303w"
         },
         {
             "id": 428,
@@ -4719,8 +4719,8 @@
             "email": "nhoward@mcp.com",
             "password": "NH0719@u4NWN",
             "canvas_token": "canvas_token_NH0719@u4NWN",
-            "woocommerce_consumer_key": "ck_woocommerce_token_NH0719@u4NWN",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_NH0719@u4NWN"
+            "woocommerce_consumer_key": "ck_woocommerce_token_NH0719u4NWN",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_NH0719u4NWN"
         },
         {
             "id": 430,
@@ -4774,8 +4774,8 @@
             "email": "lisa.mendoza@mcp.com",
             "password": "mendoza@l465",
             "canvas_token": "canvas_token_mendoza@l465",
-            "woocommerce_consumer_key": "ck_woocommerce_token_mendoza@l465",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_mendoza@l465"
+            "woocommerce_consumer_key": "ck_woocommerce_token_mendozal465",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_mendozal465"
         },
         {
             "id": 435,
@@ -4807,8 +4807,8 @@
             "email": "edward.campbell@mcp.com",
             "password": "edward1981#g",
             "canvas_token": "canvas_token_edward1981#g",
-            "woocommerce_consumer_key": "ck_woocommerce_token_edward1981#g",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_edward1981#g"
+            "woocommerce_consumer_key": "ck_woocommerce_token_edward1981g",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_edward1981g"
         },
         {
             "id": 438,
@@ -4818,8 +4818,8 @@
             "email": "emmab28@mcp.com",
             "password": "brooks$e5664",
             "canvas_token": "canvas_token_brooks$e5664",
-            "woocommerce_consumer_key": "ck_woocommerce_token_brooks$e5664",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_brooks$e5664"
+            "woocommerce_consumer_key": "ck_woocommerce_token_brookse5664",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_brookse5664"
         },
         {
             "id": 439,
@@ -4851,8 +4851,8 @@
             "email": "angela.sanders@mcp.com",
             "password": "AS0920#bz4qw",
             "canvas_token": "canvas_token_AS0920#bz4qw",
-            "woocommerce_consumer_key": "ck_woocommerce_token_AS0920#bz4qw",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_AS0920#bz4qw"
+            "woocommerce_consumer_key": "ck_woocommerce_token_AS0920bz4qw",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_AS0920bz4qw"
         },
         {
             "id": 442,
@@ -4873,8 +4873,8 @@
             "email": "virginia.hernandez@mcp.com",
             "password": "VH0514@bviVm",
             "canvas_token": "canvas_token_VH0514@bviVm",
-            "woocommerce_consumer_key": "ck_woocommerce_token_VH0514@bviVm",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_VH0514@bviVm"
+            "woocommerce_consumer_key": "ck_woocommerce_token_VH0514bviVm",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_VH0514bviVm"
         },
         {
             "id": 444,
@@ -4895,8 +4895,8 @@
             "email": "aaron_davis@mcp.com",
             "password": "aaroawzx!gzl",
             "canvas_token": "canvas_token_aaroawzx!gzl",
-            "woocommerce_consumer_key": "ck_woocommerce_token_aaroawzx!gzl",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_aaroawzx!gzl"
+            "woocommerce_consumer_key": "ck_woocommerce_token_aaroawzxgzl",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_aaroawzxgzl"
         },
         {
             "id": 446,
@@ -4906,8 +4906,8 @@
             "email": "edwardj@mcp.com",
             "password": "jackson#e955",
             "canvas_token": "canvas_token_jackson#e955",
-            "woocommerce_consumer_key": "ck_woocommerce_token_jackson#e955",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_jackson#e955"
+            "woocommerce_consumer_key": "ck_woocommerce_token_jacksone955",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_jacksone955"
         },
         {
             "id": 447,
@@ -4961,8 +4961,8 @@
             "email": "floresc@mcp.com",
             "password": "CF0913#oMw2H",
             "canvas_token": "canvas_token_CF0913#oMw2H",
-            "woocommerce_consumer_key": "ck_woocommerce_token_CF0913#oMw2H",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_CF0913#oMw2H"
+            "woocommerce_consumer_key": "ck_woocommerce_token_CF0913oMw2H",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_CF0913oMw2H"
         },
         {
             "id": 452,
@@ -4983,8 +4983,8 @@
             "email": "john_morales@mcp.com",
             "password": "morales#j510",
             "canvas_token": "canvas_token_morales#j510",
-            "woocommerce_consumer_key": "ck_woocommerce_token_morales#j510",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_morales#j510"
+            "woocommerce_consumer_key": "ck_woocommerce_token_moralesj510",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_moralesj510"
         },
         {
             "id": 454,
@@ -4994,8 +4994,8 @@
             "email": "michaelt@mcp.com",
             "password": "MT0706@2WJUH",
             "canvas_token": "canvas_token_MT0706@2WJUH",
-            "woocommerce_consumer_key": "ck_woocommerce_token_MT0706@2WJUH",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_MT0706@2WJUH"
+            "woocommerce_consumer_key": "ck_woocommerce_token_MT07062WJUH",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_MT07062WJUH"
         },
         {
             "id": 455,
@@ -5005,8 +5005,8 @@
             "email": "christine_baker@mcp.com",
             "password": "CB1026@gsrS6",
             "canvas_token": "canvas_token_CB1026@gsrS6",
-            "woocommerce_consumer_key": "ck_woocommerce_token_CB1026@gsrS6",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_CB1026@gsrS6"
+            "woocommerce_consumer_key": "ck_woocommerce_token_CB1026gsrS6",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_CB1026gsrS6"
         },
         {
             "id": 456,
@@ -5016,8 +5016,8 @@
             "email": "mark_scott14@mcp.com",
             "password": "markj4TSN#Mr",
             "canvas_token": "canvas_token_markj4TSN#Mr",
-            "woocommerce_consumer_key": "ck_woocommerce_token_markj4TSN#Mr",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_markj4TSN#Mr"
+            "woocommerce_consumer_key": "ck_woocommerce_token_markj4TSNMr",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_markj4TSNMr"
         },
         {
             "id": 457,
@@ -5027,8 +5027,8 @@
             "email": "amorris49@mcp.com",
             "password": "AM0916!E6TYD",
             "canvas_token": "canvas_token_AM0916!E6TYD",
-            "woocommerce_consumer_key": "ck_woocommerce_token_AM0916!E6TYD",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_AM0916!E6TYD"
+            "woocommerce_consumer_key": "ck_woocommerce_token_AM0916E6TYD",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_AM0916E6TYD"
         },
         {
             "id": 458,
@@ -5038,8 +5038,8 @@
             "email": "agreen@mcp.com",
             "password": "green$a540Ps",
             "canvas_token": "canvas_token_green$a540Ps",
-            "woocommerce_consumer_key": "ck_woocommerce_token_green$a540Ps",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_green$a540Ps"
+            "woocommerce_consumer_key": "ck_woocommerce_token_greena540Ps",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_greena540Ps"
         },
         {
             "id": 459,
@@ -5071,8 +5071,8 @@
             "email": "nicholas_gonzalez@mcp.com",
             "password": "NG1216#UQwAS",
             "canvas_token": "canvas_token_NG1216#UQwAS",
-            "woocommerce_consumer_key": "ck_woocommerce_token_NG1216#UQwAS",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_NG1216#UQwAS"
+            "woocommerce_consumer_key": "ck_woocommerce_token_NG1216UQwAS",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_NG1216UQwAS"
         },
         {
             "id": 462,
@@ -5093,8 +5093,8 @@
             "email": "lisac33@mcp.com",
             "password": "lisa1982$ztZ",
             "canvas_token": "canvas_token_lisa1982$ztZ",
-            "woocommerce_consumer_key": "ck_woocommerce_token_lisa1982$ztZ",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_lisa1982$ztZ"
+            "woocommerce_consumer_key": "ck_woocommerce_token_lisa1982ztZ",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_lisa1982ztZ"
         },
         {
             "id": 464,
@@ -5104,8 +5104,8 @@
             "email": "allenr@mcp.com",
             "password": "allen@r660jc",
             "canvas_token": "canvas_token_allen@r660jc",
-            "woocommerce_consumer_key": "ck_woocommerce_token_allen@r660jc",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_allen@r660jc"
+            "woocommerce_consumer_key": "ck_woocommerce_token_allenr660jc",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_allenr660jc"
         },
         {
             "id": 465,
@@ -5126,8 +5126,8 @@
             "email": "mary.morris70@mcp.com",
             "password": "morris$m380O",
             "canvas_token": "canvas_token_morris$m380O",
-            "woocommerce_consumer_key": "ck_woocommerce_token_morris$m380O",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_morris$m380O"
+            "woocommerce_consumer_key": "ck_woocommerce_token_morrism380O",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_morrism380O"
         },
         {
             "id": 467,
@@ -5159,8 +5159,8 @@
             "email": "brenda_cruz@mcp.com",
             "password": "brenda1997@C",
             "canvas_token": "canvas_token_brenda1997@C",
-            "woocommerce_consumer_key": "ck_woocommerce_token_brenda1997@C",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_brenda1997@C"
+            "woocommerce_consumer_key": "ck_woocommerce_token_brenda1997C",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_brenda1997C"
         },
         {
             "id": 470,
@@ -5181,8 +5181,8 @@
             "email": "virginiab@mcp.com",
             "password": "virgf7!n4awv",
             "canvas_token": "canvas_token_virgf7!n4awv",
-            "woocommerce_consumer_key": "ck_woocommerce_token_virgf7!n4awv",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_virgf7!n4awv"
+            "woocommerce_consumer_key": "ck_woocommerce_token_virgf7n4awv",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_virgf7n4awv"
         },
         {
             "id": 472,
@@ -5214,8 +5214,8 @@
             "email": "richard_chavez@mcp.com",
             "password": "RC0913@3rN1T",
             "canvas_token": "canvas_token_RC0913@3rN1T",
-            "woocommerce_consumer_key": "ck_woocommerce_token_RC0913@3rN1T",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_RC0913@3rN1T"
+            "woocommerce_consumer_key": "ck_woocommerce_token_RC09133rN1T",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_RC09133rN1T"
         },
         {
             "id": 475,
@@ -5225,8 +5225,8 @@
             "email": "perezc37@mcp.com",
             "password": "christina1985#",
             "canvas_token": "canvas_token_christina1985#",
-            "woocommerce_consumer_key": "ck_woocommerce_token_christina1985#",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_christina1985#"
+            "woocommerce_consumer_key": "ck_woocommerce_token_christina1985",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_christina1985"
         },
         {
             "id": 476,
@@ -5247,8 +5247,8 @@
             "email": "raymond.morales61@mcp.com",
             "password": "raymond1996%",
             "canvas_token": "canvas_token_raymond1996%",
-            "woocommerce_consumer_key": "ck_woocommerce_token_raymond1996%",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_raymond1996%"
+            "woocommerce_consumer_key": "ck_woocommerce_token_raymond1996",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_raymond1996"
         },
         {
             "id": 478,
@@ -5291,8 +5291,8 @@
             "email": "edwardse@mcp.com",
             "password": "EE0920#Nga18",
             "canvas_token": "canvas_token_EE0920#Nga18",
-            "woocommerce_consumer_key": "ck_woocommerce_token_EE0920#Nga18",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_EE0920#Nga18"
+            "woocommerce_consumer_key": "ck_woocommerce_token_EE0920Nga18",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_EE0920Nga18"
         },
         {
             "id": 482,
@@ -5302,8 +5302,8 @@
             "email": "murphyl@mcp.com",
             "password": "murphy$l389b",
             "canvas_token": "canvas_token_murphy$l389b",
-            "woocommerce_consumer_key": "ck_woocommerce_token_murphy$l389b",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_murphy$l389b"
+            "woocommerce_consumer_key": "ck_woocommerce_token_murphyl389b",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_murphyl389b"
         },
         {
             "id": 483,
@@ -5313,8 +5313,8 @@
             "email": "marie.wilson@mcp.com",
             "password": "wilson#m571u",
             "canvas_token": "canvas_token_wilson#m571u",
-            "woocommerce_consumer_key": "ck_woocommerce_token_wilson#m571u",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_wilson#m571u"
+            "woocommerce_consumer_key": "ck_woocommerce_token_wilsonm571u",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_wilsonm571u"
         },
         {
             "id": 484,
@@ -5335,8 +5335,8 @@
             "email": "shirleyn27@mcp.com",
             "password": "SN0726!76SNC",
             "canvas_token": "canvas_token_SN0726!76SNC",
-            "woocommerce_consumer_key": "ck_woocommerce_token_SN0726!76SNC",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_SN0726!76SNC"
+            "woocommerce_consumer_key": "ck_woocommerce_token_SN072676SNC",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_SN072676SNC"
         },
         {
             "id": 486,
@@ -5357,8 +5357,8 @@
             "email": "anthony.young28@mcp.com",
             "password": "anth$oqVx5zD",
             "canvas_token": "canvas_token_anth$oqVx5zD",
-            "woocommerce_consumer_key": "ck_woocommerce_token_anth$oqVx5zD",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_anth$oqVx5zD"
+            "woocommerce_consumer_key": "ck_woocommerce_token_anthoqVx5zD",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_anthoqVx5zD"
         },
         {
             "id": 488,
@@ -5379,8 +5379,8 @@
             "email": "jennifer.baker@mcp.com",
             "password": "jennifer1994#",
             "canvas_token": "canvas_token_jennifer1994#",
-            "woocommerce_consumer_key": "ck_woocommerce_token_jennifer1994#",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_jennifer1994#"
+            "woocommerce_consumer_key": "ck_woocommerce_token_jennifer1994",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_jennifer1994"
         },
         {
             "id": 490,
@@ -5423,8 +5423,8 @@
             "email": "greenl@mcp.com",
             "password": "green#l285Sq",
             "canvas_token": "canvas_token_green#l285Sq",
-            "woocommerce_consumer_key": "ck_woocommerce_token_green#l285Sq",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_green#l285Sq"
+            "woocommerce_consumer_key": "ck_woocommerce_token_greenl285Sq",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_greenl285Sq"
         },
         {
             "id": 494,
@@ -5456,8 +5456,8 @@
             "email": "debrac99@mcp.com",
             "password": "chavez@d485Y",
             "canvas_token": "canvas_token_chavez@d485Y",
-            "woocommerce_consumer_key": "ck_woocommerce_token_chavez@d485Y",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_chavez@d485Y"
+            "woocommerce_consumer_key": "ck_woocommerce_token_chavezd485Y",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_chavezd485Y"
         },
         {
             "id": 497,
@@ -5478,8 +5478,8 @@
             "email": "emily_ruiz@mcp.com",
             "password": "emily2001$Qe",
             "canvas_token": "canvas_token_emily2001$Qe",
-            "woocommerce_consumer_key": "ck_woocommerce_token_emily2001$Qe",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_emily2001$Qe"
+            "woocommerce_consumer_key": "ck_woocommerce_token_emily2001Qe",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_emily2001Qe"
         },
         {
             "id": 499,
@@ -5489,8 +5489,8 @@
             "email": "phall62@mcp.com",
             "password": "hall#p438myb",
             "canvas_token": "canvas_token_hall#p438myb",
-            "woocommerce_consumer_key": "ck_woocommerce_token_hall#p438myb",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_hall#p438myb"
+            "woocommerce_consumer_key": "ck_woocommerce_token_hallp438myb",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_hallp438myb"
         },
         {
             "id": 500,
@@ -5500,8 +5500,8 @@
             "email": "reedh29@mcp.com",
             "password": "helen1983#7k",
             "canvas_token": "canvas_token_helen1983#7k",
-            "woocommerce_consumer_key": "ck_woocommerce_token_helen1983#7k",
-            "woocommerce_consumer_secret": "cs_woocommerce_token_helen1983#7k"
+            "woocommerce_consumer_key": "ck_woocommerce_token_helen19837k",
+            "woocommerce_consumer_secret": "cs_woocommerce_token_helen19837k"
         },
         {
             "id": 501,
