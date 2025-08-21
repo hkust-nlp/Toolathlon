@@ -1,6 +1,6 @@
 {
     "id": "weihao_meetingassign_001",
-    "needed_mcp_servers": ["fetch", "gmail", "playwright_with_chunk"],
+    "needed_mcp_servers": ["fetch", "emails", "playwright_with_chunk"],
     "needed_local_tools": ["claim_done", "web_search"],
     "meta": {}
 } 

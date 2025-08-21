@@ -1,0 +1,34 @@
+{
+    "departure": {
+        "location": "Tokyo Sta. Nihonbashi Entrance"
+    },
+    "destination": {
+        "location": "Kamakura Museum of History and Culture"
+    },
+    "transportation": {
+        "route": "JR Yokosuka Line Direct: Tokyo Station → Kamakura Station",
+        "line_name": "JR Yokosuka Line",
+        "duration": "Approximately 1 hour 10 minutes",
+        "cost": "Approximately 640 yen",
+        "transfer_stations": "No transfers"
+    },
+    "kamakura_station": {
+        "recommended_exit": "West Exit",
+        "exit_reason": "West exit is the closest to Kamakura Museum of History and Culture, about 9 minutes walk"
+    },
+    "walking_route": {
+        "from": "Kamakura Station West Exit",
+        "to": "Kamakura Museum of History and Culture",
+        "duration": "Approximately 9 minutes",
+        "distance": "Approximately 750 meters",
+        "route_description": "From Kamakura Station West Exit, walk south along Wakamiya Oji for about 750 meters to reach Kamakura Museum of History and Culture"
+    },
+    "starbucks_tokyo": {
+        "location": "Starbucks Coffee - JR Tokyo Station Nihonbashi Entrance",
+        "address": "Japan, 〒100-0005 Tokyo, Chiyoda City, Marunouchi, 1 Chome−9−1 丸の内中央ビル",
+        "distance_from_nihonbashi": "Inside station",
+        "walking_time": "Approximately 1 minute",
+        "choice_reason": "Located inside JR Tokyo Station Nihonbashi entrance, this is the closest Starbucks to Nihonbashi exit, no need to leave the station"
+    },
+    "summary_route": "Tokyo Sta. Nihonbashi Entrance → JR Yokosuka Line Direct → Kamakura Station (West Exit) + 9 minutes walk + Starbucks Coffee - JR Tokyo Station Nihonbashi Entrance"
+} 

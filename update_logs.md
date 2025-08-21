@@ -1,6 +1,34 @@
+### 2025.8.21 2:20
+- 修复canvas mcp的bug
+    - 需重新安装 (rm -rf node_modules && npm install)
+
+### 2025.8.20 21:40
+- 添加google-forms
+    - 相关文件`configs/mcp_servers/google_forms.yaml`
+
+### 2025.8.19 23:20
+- 升级emails-mcp-server
+    - 0.1.5 -> 0.1.6
+
+### 2025.8.19 22:35
+- 升级emails-mcp-server
+    - 0.1.0 -> 0.1.5
+
+### 2025.8.19 3:20
+- 修改terminal mcp server
+    - 添加代理控制，修>>bug以及输出长度控制
+    - 需重新安装
+    - 相关文件 `configs/mcp_servers/terminal.yaml`
+
+### 2025.8.19 2:20
+- 修改yahoo finance mcp server
+    - 新增按天搜索价格信息
+    - 需重新安装
+
 ### 2025.8.18 23:45
 - 修改ytb mcp server安装方式
     - fork出新的到个人账户，然后进行源码修改
+    - 需重新安装
 
 ### 2025.8.15 23:00
 - 修改ytb mcp server安装方式及mcp配置方式

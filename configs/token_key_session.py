@@ -1,6 +1,19 @@
 from addict import Dict
 import os
+import json
 # I am gradually modifying the tokens to the pseudo account in this project
+
+if os.path.exists("./configs/google_credentials.json"):
+    google_credentials_filename = "./configs/google_credentials.json"
+elif os.path.exists("./configs/credentials.json"):
+    google_credentials_filename = "./configs/credentials.json"
+else:
+    raise ValueError("No google credentials file found")
+
+with open(google_credentials_filename, "r") as f:
+    google_credentials = json.load(f)
+
+
 all_token_key_session = Dict(
     # added, use mcp0606 account!
     leetcode_session = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhY2NvdW50X3ZlcmlmaWVkX2VtYWlsIjpudWxsLCJfYXV0aF91c2VyX2lkIjoiMTc5NDI4NjMiLCJfYXV0aF91c2VyX2JhY2tlbmQiOiJhbGxhdXRoLmFjY291bnQuYXV0aF9iYWNrZW5kcy5BdXRoZW50aWNhdGlvbkJhY2tlbmQiLCJfYXV0aF91c2VyX2hhc2giOiI0ZmIzZjdiMmI5YjRhM2FhMGFmZTgxMmQzNjFiOTIyMzk1MTM2M2MzYjJjZGZjZTNhYzllMGQ0YjgzNWI2MGQ1Iiwic2Vzc2lvbl91dWlkIjoiNjhmODg3ZGQiLCJpZCI6MTc5NDI4NjMsImVtYWlsIjoibWNwdGVzdDA2MDZAZ21haWwuY29tIiwidXNlcm5hbWUiOiJ6eE51aGlEeXJoIiwidXNlcl9zbHVnIjoienhOdWhpRHlyaCIsImF2YXRhciI6Imh0dHBzOi8vYXNzZXRzLmxlZXRjb2RlLmNvbS91c2Vycy9kZWZhdWx0X2F2YXRhci5qcGciLCJyZWZyZXNoZWRfYXQiOjE3NDk0MzY4MDEsImlwIjoiMTkyLjIxMC4yMDYuMjMxIiwiaWRlbnRpdHkiOiIwZmU2ZmViNTQyODlmNGM2NzAyN2VjMDZjYzIxMzFmOCIsImRldmljZV93aXRoX2lwIjpbImI0OTQ1MGIwYTMwMzVjMDM4ZTBmYTc3MDY4NzQ4NjBhIiwiMTkyLjIxMC4yMDYuMjMxIl19.ifUux-wVKksegSMEvjY2TvLXxIOyshAEO9CE7rV790g",
@@ -59,4 +72,9 @@ all_token_key_session = Dict(
     snowflake_database = "SNOWFLAKE",
     snowflake_schema = "PUBLIC",
     snowflake_op_allowed_databases = "PLEASE_RESET_IN_TASK_SPECIFIC_DIR",
+
+    # google credentials
+    google_client_id = google_credentials["client_id"],
+    google_client_secret = google_credentials["client_secret"],
+    google_refresh_token = google_credentials["refresh_token"],
 )

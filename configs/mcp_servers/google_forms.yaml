@@ -1,0 +1,15 @@
+# mcp 4 youtube
+# https://github.com/ZubeidHendricks/youtube-mcp-server
+# this servers has been mostly fixed, however, the transcript retrieval is still buddy .. .idk why
+type: stdio
+name: google-forms
+params:
+  command: node
+  args:
+    - "${local_servers_paths}/google-forms-mcp/build/index.js"
+  env:
+    GOOGLE_CLIENT_ID: "${token.google_client_id}"
+    GOOGLE_CLIENT_SECRET: "${token.google_client_secret}"
+    GOOGLE_REFRESH_TOKEN: "${token.google_refresh_token}"
+client_session_timeout_seconds: 20
+cache_tools_list: true

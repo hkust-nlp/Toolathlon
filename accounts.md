@@ -2,10 +2,11 @@
 
 - google account x 1
 - github account x 1
-- linkedin account x 1 
+- linkedin account x 1
 - wandb account x 1
 - notion account x 1
 - snowflake account x 1
+- huggingface account x 1
 
 =======
 Google
@@ -29,6 +30,10 @@ login via google
 Snowflake
 mcptest0606
 MCPtest0606!!!
+
+Huggingface
+username mcptest0606@gmail.com
+password MCPtest0606!!
 
 // Two auxliary google accounts 👇
 username mcpllm.bench@gmail.com
