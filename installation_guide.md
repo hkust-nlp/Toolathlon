@@ -63,11 +63,14 @@ In this file we guide you how to install all needed servers for this project.
 
     `ocr`: see `install_records/tesseract.md` (we need to install tesseract by ourselves on our lab cluster since no sudo is available)
 
+4.5 prepare accounts
+
+    please register some accounts, see accounts.md, and prepare credentials, tokens, sessions etc (TO BE FINISHED)
+
 5. configurate some tokens and keys
     
     Within the scope of this project, we have setup some keys and tokens by ourselves in `configs/token_key_session.py`, so you do not need to do it again by yourselves. Please just use them freely please.
 
-    TODO: guide for community researchers who want to use our benchmark.
+6. other preparation
 
-    TODOs: google cloud application，wandb, notion, github, snowflake, linkedin
-    
+    (TO BE FINISHED)
