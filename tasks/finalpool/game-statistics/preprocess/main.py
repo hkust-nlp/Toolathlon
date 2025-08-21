@@ -406,7 +406,7 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--agent_workspace", required=False)
     parser.add_argument("--credentials_file", default="configs/mcp-bench0606-2b68b5487343.json")
-    parser.add_argument("--launch_time", nargs='*', required=False, help="Launch time (can contain spaces)")
+    parser.add_argument("--launch_time", required=False, help="Launch time (can contain spaces)")
     args = parser.parse_args()
 
     print("🎮 开始设置 BigQuery 游戏统计资源...")

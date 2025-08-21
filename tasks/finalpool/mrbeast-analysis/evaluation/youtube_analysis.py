@@ -52,15 +52,17 @@ async def get_youtube_tools():
             print(f"- {tool.name}: {tool.description}")
         return youtube_server
 
-async def get_channel_videos(channel_id="UCX6OQ3DkcsbYNE6H8uQQuVA"):
+async def get_channel_videos(channel_id="UCX6OQ3DkcsbYNE6H8uQQuVA", max_results=50, page_token=None):
     """
     获取指定频道的视频列表
     
     Args:
         channel_id (str): YouTube频道ID，默认为MrBeast频道
+        max_results (int): 每次请求的最大结果数
+        page_token (str): 分页令牌，用于获取下一页结果
         
     Returns:
-        list: 包含视频信息的列表，每个视频包含标题、发布时间、描述等基本信息
+        dict: 包含视频信息和分页信息的字典
         
     注意：此函数返回的是搜索结果格式的数据，不包含详细的统计信息
     """
@@ -68,11 +70,20 @@ async def get_channel_videos(channel_id="UCX6OQ3DkcsbYNE6H8uQQuVA"):
     server = mcp_manager.servers['youtube']
     
     async with server as youtube_server:
+        # 构建参数
+        arguments = {"channelId": channel_id}
+        if max_results:
+            arguments["maxResults"] = max_results
+        if page_token:
+            arguments["pageToken"] = page_token
+            
+        print(f"Debug: Calling channels_listVideos with arguments: {arguments}")
+        
         # 调用channels_listVideos工具获取频道视频列表
         result = await call_tool_with_retry(
             youtube_server,
             tool_name="channels_listVideos",
-            arguments={"channelId": channel_id}
+            arguments=arguments
         )
         
         # 处理返回结果
@@ -83,10 +94,132 @@ async def get_channel_videos(channel_id="UCX6OQ3DkcsbYNE6H8uQQuVA"):
                 return json.loads(response_text)
             else:
                 print("Empty response from API")
-                return []
+                return {}
         else:
             print("No content in result")
+            return {}
+
+async def get_all_channel_videos(channel_id="UCX6OQ3DkcsbYNE6H8uQQuVA", target_start_date="2024-01-01"):
+    """
+    获取频道的所有视频，支持分页获取历史视频
+    
+    Args:
+        channel_id (str): YouTube频道ID
+        target_start_date (str): 目标开始日期，用于判断何时停止获取更多视频
+        
+    Returns:
+        list: 所有视频的列表
+    """
+    from datetime import datetime, timezone
+    
+    mcp_manager = MCPServerManager(agent_workspace="./")
+    server = mcp_manager.servers['youtube']
+    
+    async with server as youtube_server:
+        all_videos = []
+        page_count = 0
+        target_date = datetime.fromisoformat(target_start_date).replace(tzinfo=timezone.utc)
+        
+        print(f"开始获取频道 {channel_id} 的所有视频...")
+        
+        # 首先创建一个视频列表会话
+        print("创建视频列表会话...")
+        result = await call_tool_with_retry(
+            youtube_server,
+            tool_name="channels_listVideos",
+            arguments={"channelId": channel_id}
+        )
+        
+        if not result.content or len(result.content) == 0:
+            print("无法创建视频列表会话")
             return []
+            
+        # 解析第一页数据
+        response_text = result.content[0].text
+        if not response_text.strip():
+            print("第一页数据为空")
+            return []
+            
+        videos_data = json.loads(response_text)
+        if 'videos' not in videos_data:
+            print("第一页没有视频数据")
+            return []
+        
+        # 获取列表ID用于后续导航
+        list_id = videos_data.get('listId')
+        if not list_id:
+            print("无法获取列表ID")
+            return []
+            
+        print(f"列表ID: {list_id}")
+        print(f"总页数: {videos_data.get('totalPages', 'Unknown')}")
+        print(f"总视频数: {videos_data.get('totalVideos', 'Unknown')}")
+        
+        # 处理所有页面
+        while True:
+            page_count += 1
+            current_page = videos_data.get('currentPage', page_count)
+            print(f"正在处理第 {current_page} 页视频...")
+            
+            current_videos = videos_data.get('videos', [])
+            if not current_videos:
+                print("当前页没有视频")
+                break
+                
+            print(f"当前页获取到 {len(current_videos)} 个视频")
+            
+            # 检查当前页最早的视频日期
+            earliest_date_in_page = None
+            for video in current_videos:
+                if 'snippet' in video and 'publishedAt' in video['snippet']:
+                    publish_time_str = video['snippet']['publishedAt']
+                    publish_time = datetime.fromisoformat(publish_time_str.replace('Z', '+00:00'))
+                    if earliest_date_in_page is None or publish_time < earliest_date_in_page:
+                        earliest_date_in_page = publish_time
+            
+            all_videos.extend(current_videos)
+            
+            # 如果当前页最早的视频已经早于目标日期，我们可能已经获取了足够的历史数据
+            if earliest_date_in_page and earliest_date_in_page < target_date:
+                print(f"已获取到 {earliest_date_in_page.strftime('%Y-%m-%d')} 的视频，达到目标时间范围")
+                break
+            
+            # 检查是否有下一页
+            if not videos_data.get('hasNextPage', False):
+                print("没有更多页面")
+                break
+            
+            # 使用channels_navigateList导航到下一页
+            print("导航到下一页...")
+            try:
+                result = await call_tool_with_retry(
+                    youtube_server,
+                    tool_name="channels_navigateList",
+                    arguments={"listId": list_id, "action": "next"}
+                )
+                
+                if not result.content or len(result.content) == 0:
+                    print("无法获取下一页数据")
+                    break
+                    
+                response_text = result.content[0].text
+                if not response_text.strip():
+                    print("下一页数据为空")
+                    break
+                    
+                videos_data = json.loads(response_text)
+                
+            except Exception as e:
+                print(f"导航到下一页时出错: {e}")
+                break
+                
+            # 设置获取页数限制以避免无限循环
+            if page_count >= 30:  # 增加到30页以获取更多历史数据
+                print("已达到最大页数限制")
+                break
+        
+        print(f"总共获取了 {len(all_videos)} 个视频")
+        return all_videos
 
 async def get_video_transcript(video_id):
     """
@@ -237,19 +370,78 @@ def filter_videos_by_date(videos, start_date="2024-01-01", end_date="2025-07-01"
     """
     from datetime import timezone
     
+    if isinstance(videos, dict):
+        # If it's a dict, try to find the actual videos list
+        if 'videos' in videos:
+            videos = videos['videos']
+        elif 'items' in videos:
+            videos = videos['items']
+        else:
+            print(f"Error: No 'items' or 'videos' key found in dict")
+            return []
+    elif not isinstance(videos, list):
+        print(f"Error: Expected list or dict, got {type(videos)}")
+        return []
+    
+    print(f"Debug: Processing {len(videos)} total videos from channel")
+    print(f"Debug: Filtering videos between {start_date} and {end_date}")
+    
     # 将字符串日期转换为带时区的datetime对象
     start_dt = datetime.fromisoformat(start_date).replace(tzinfo=timezone.utc)
     end_dt = datetime.fromisoformat(end_date).replace(tzinfo=timezone.utc)
     
     filtered_videos = []
-    for video in videos:
-        publish_time_str = video['snippet']['publishedAt']
-        # 将YouTube API返回的ISO格式时间转换为datetime（移除Z后缀）
-        publish_time = datetime.fromisoformat(publish_time_str.replace('Z', '+00:00'))
-        
-        # 检查是否在指定时间范围内
-        if start_dt <= publish_time <= end_dt:
-            filtered_videos.append(video)
+    all_publish_dates = []
+    
+    for i, video in enumerate(videos):
+        try:
+            # Handle different possible data structures
+            publish_time_str = None
+            
+            if isinstance(video, dict):
+                # Standard YouTube API format
+                if 'snippet' in video and 'publishedAt' in video['snippet']:
+                    publish_time_str = video['snippet']['publishedAt']
+                # Alternative format where publishedAt might be at root level
+                elif 'publishedAt' in video:
+                    publish_time_str = video['publishedAt']
+                # Check for publishTime field
+                elif 'publishTime' in video:
+                    publish_time_str = video['publishTime']
+                else:
+                    print(f"Warning: video {i} missing publishedAt field. Keys: {list(video.keys())}")
+                    continue
+            else:
+                print(f"Warning: video {i} is not a dict, type: {type(video)}, value: {video}")
+                continue
+            
+            if publish_time_str:
+                # 将YouTube API返回的ISO格式时间转换为datetime（移除Z后缀）
+                publish_time = datetime.fromisoformat(publish_time_str.replace('Z', '+00:00'))
+                all_publish_dates.append(publish_time_str)
+                
+                # 检查是否在指定时间范围内
+                if start_dt <= publish_time <= end_dt:
+                    filtered_videos.append(video)
+                    print(f"Debug: Including video published at {publish_time_str}")
+                else:
+                    print(f"Debug: Excluding video published at {publish_time_str} (outside range)")
+                    
+        except Exception as e:
+            print(f"Error processing video {i}: {e}")
+            continue
+    
+    # Print summary of all video dates to understand the issue
+    print(f"\nDebug: All video publish dates found:")
+    for date in sorted(all_publish_dates)[:10]:  # Show first 10 dates
+        print(f"  - {date}")
+    if len(all_publish_dates) > 10:
+        print(f"  ... and {len(all_publish_dates) - 10} more")
+    
+    print(f"Debug: Date range analysis:")
+    print(f"  - Earliest video: {min(all_publish_dates) if all_publish_dates else 'None'}")
+    print(f"  - Latest video: {max(all_publish_dates) if all_publish_dates else 'None'}")
+    print(f"  - Total videos in range: {len(filtered_videos)}")
     
     return filtered_videos
 
@@ -273,7 +465,7 @@ async def analyze_channel_videos():
     channel_id = "UCX6OQ3DkcsbYNE6H8uQQuVA"
     
     print("Getting channel videos list...")
-    videos_data = await get_channel_videos(channel_id)
+    videos_data = await get_all_channel_videos(channel_id)
     
     if not videos_data:
         print("Failed to get video data")
@@ -286,42 +478,41 @@ async def analyze_channel_videos():
     # 获取每个视频的详细信息
     video_details = []
     for i, video in enumerate(videos):
-        video_id = video['id']['videoId']
-        # print(f"正在获取视频详情 {i+1}/{len(videos)}: {video['snippet']['title'][:50]}...")
-        
         try:
-            # 获取视频详情（不需要字幕）
-            details = await get_video_details(video_id)
+            # The video data from the YouTube MCP server already contains all needed information
+            video_id = video.get('id', '')
+            title = video.get('snippet', {}).get('title', 'Unknown')
+            published_at = video.get('snippet', {}).get('publishedAt', 'Unknown')
             
-            # print(f"Video details=============: {details}")
-            if details and isinstance(details, dict):
-                # 解析视频时长
-                duration_seconds = parse_duration(details.get('contentDetails', {}).get('duration', ''))
+            if not video_id:
+                print(f"Warning: Could not extract video_id from video {i}")
+                continue
                 
-                # 构建视频信息字典 - 只包含需要的字段
-                video_info = {
-                    'video_id': video_id,
-                    'title': video['snippet']['title'],
-                    # 'description': video['snippet']['description'],
-                    'published_at(ISO 8601 format)': video['snippet']['publishedAt'],
-                    'duration_seconds': duration_seconds,
-                    'duration_formatted(xx:xx:xx)': str(timedelta(seconds=duration_seconds)),
-                }
-                
-                video_details.append(video_info)
-                
-        except Exception as e:
-            print(f"获取视频 {video_id} 详情时出错: {e}")
-            # 添加基本信息，即使没有详细数据
+            # Extract duration from contentDetails (already available)
+            duration_seconds = 0
+            if 'contentDetails' in video and 'duration' in video['contentDetails']:
+                duration_seconds = parse_duration(video['contentDetails']['duration'])
+            
+            # 筛选：只保留时长大于2分钟(120秒)的视频
+            if duration_seconds <= 120:
+                print(f"过滤短视频: {title} (时长: {duration_seconds}秒)")
+                continue
+            
+            # 构建视频信息字典 - 使用已有的详细数据
             video_info = {
                 'video_id': video_id,
-                'title': video['snippet']['title'],
-                # 'description': video['snippet']['description'][:500],
-                'published_at(ISO 8601 format)': video['snippet']['publishedAt'],
-                'duration_seconds': 0,
-                'duration_formatted(xx:xx:xx)': '0:00:00',
+                'title': title,
+                'published_at(ISO 8601 format)': published_at,
+                'duration_seconds': duration_seconds,
+                'duration_formatted(xx:xx:xx)': str(timedelta(seconds=duration_seconds)),
             }
+            
             video_details.append(video_info)
+                
+        except Exception as e:
+            print(f"获取视频 {i} 详情时出错: {e}")
+            # Skip this video if we can't process it
+            continue
     
     # 按发布时间排序视频
     video_details.sort(key=lambda x: x['published_at(ISO 8601 format)'])
@@ -360,12 +551,11 @@ async def analyze_channel_videos():
         most_common_weekday = weekday_counts.index[0]
         stats_data.append(['Most_common_publish_weekday', most_common_weekday])
         
-        # 分析2: 平均时长（排除短视频 ≤ 60秒）
-        regular_videos = df[df['duration_seconds'] > 60]  # 过滤出常规视频
-        if len(regular_videos) > 0:
-            avg_duration_seconds = regular_videos['duration_seconds'].mean()
+        # 分析2: 平均时长（已在数据收集阶段过滤短视频）
+        if len(df) > 0:
+            avg_duration_seconds = df['duration_seconds'].mean()
             avg_duration_formatted = str(timedelta(seconds=int(avg_duration_seconds)))
-            stats_data.append(['Average_duration_excluding_shorts(HH:MM:SS)', avg_duration_formatted])
+            stats_data.append(['Average_duration_long_videos(HH:MM:SS)', avg_duration_formatted])
         
         # 分析3: 发布间隔计算
         df_sorted = df.sort_values('published_date')
@@ -392,10 +582,10 @@ async def analyze_channel_videos():
     # === 分析完成，输出结果摘要 ===
     
     print(f"\nAnalysis completed! Results saved to: {excel_filename}")
-    print(f"Total videos analyzed: {len(df)}")
+    print(f"Total long videos analyzed (>2min): {len(df)}")
     print(f"Most common publish weekday: {most_common_weekday}")
-    if len(regular_videos) > 0:
-        print(f"Average duration (excluding shorts): {avg_duration_formatted}")
+    if len(df) > 0:
+        print(f"Average duration of long videos: {avg_duration_formatted}")
     if intervals:
         print(f"Average publish interval: {avg_interval:.1f} days")
 
@@ -407,7 +597,7 @@ if __name__ == "__main__":
     1. get_youtube_tools() - 查看可用的YouTube MCP工具
     2. analyze_channel_videos() - 执行完整的频道分析
     
-    当前配置：直接运行完整分析
+    当前配置：运行完整分析
     """
     # 选项1: 查看可用工具（调试用）
     # asyncio.run(get_youtube_tools())
