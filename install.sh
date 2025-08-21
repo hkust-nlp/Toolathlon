@@ -25,6 +25,7 @@ uv tool install git+https://github.com/lockon-n/mcp-snowflake-server@75c03ca0b3c
 uv tool install git+https://github.com/lockon-n/mcp-scholarly@82a6ca268ae0d2e10664be396e1a0ea7aba23229
 
 # local servers
+rm -rf ./local_servers
 mkdir -p local_servers
 
 cd ./local_servers
