@@ -96,10 +96,10 @@ def manual_oauth_flow_debug():
             'scopes': list(credentials.scopes) if credentials.scopes else SCOPES
         }
         
-        with open('./configs/credentials.json', 'w') as f:
+        with open('./configs/google_credentials.json', 'w') as f:
             json.dump(credentials_data, f, indent=2)
         
-        print('\n✅ 成功！./configs/credentials.json 已生成')
+        print('\n✅ 成功！./configs/gooele_credentials.json 已生成')
         print(f'Token: {credentials.token[:30]}...')
         if credentials.refresh_token:
             print(f'Refresh Token: {credentials.refresh_token[:30]}...')
