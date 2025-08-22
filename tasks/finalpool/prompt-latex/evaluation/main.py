@@ -2,47 +2,13 @@ import json
 import os
 import re
 from argparse import ArgumentParser
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict
+from utils.general.helper import normalize_str
 
 
-# 内置两个 Ground Truth 候选（仅用于匹配，不再依赖外部文件）
-GT_VARIANTS: List[str] = [
-    r"""\begin{tcolorbox}[
-colback=lightProxYellow!10,
-colframe=lightProxYellow,
-left=2mm, right=2mm,title=\textcolor{black}{\textbf{Simple Prompt}}]
-\begin{small}
-\texttt{Question:\textbackslash n\{input\}\textbackslash nAnswer:\textbackslash nLet's think step by step.\textbackslash n}
-\end{small}
-\end{tcolorbox}
-""",
-    r"""\begin{tcolorbox}[
-colback=lightProxYellow!10,
-colframe=lightProxYellow,
-left=2mm, right=2mm,title=\textcolor{black}{\textbf{Complex Prompt}}]
-\begin{small}
-\texttt{<|im\_start|>system\textbackslash nYou are a helpful assistant.<|im\_end|>\textbackslash n<|im\_start|>user\textbackslash n\{input\}\textbackslash nPlease reason step by step, and put your final answer within \textbackslash\textbackslash boxed\{\}.\textbackslash n<|im\_end|>\textbackslash n<|im\_start|>assistant\textbackslash n}
-\end{small}
-\end{tcolorbox}
-""",
-]
-
-
-def normalize_text(text: str) -> str:
-    """去除常见 LaTeX 命令与花括号、空白，做鲁棒匹配。"""
-    s = re.sub(r"\\[a-zA-Z]+", "", text)
-    s = s.replace("{", "").replace("}", "")
-    s = re.sub(r"\s+", "", s)
-    return s
-
-
-def extract_last_section(tex: str) -> str:
-    """提取最后一个 \\section 或 \\section* 段落（含该节起始至文件末尾）。若未找到则返回全文。"""
-    matches = list(re.finditer(r"\\section\*?\{[^}]*\}", tex))
-    if not matches:
-        return tex
-    start = matches[-1].start()
-    return tex[start:]
+# Ground Truth中的两个prompt内容
+GT_SIMPLE_PROMPT = "Question:\\textbackslash n\\{input\\}\\textbackslash nAnswer:\\textbackslash nLet's think step by step.\\textbackslash n"
+GT_COMPLEX_PROMPT = "<|im\\_start|>system\\textbackslash nYou are a helpful assistant.<|im\\_end|>\\textbackslash n<|im\\_start|>user\\textbackslash n\\{input\\}\\textbackslash nPlease reason step by step, and put your final answer within \\textbackslash\\textbackslash boxed\\{\\}.\\textbackslash n<|im\\_end|>\\textbackslash n<|im\\_start|>assistant\\textbackslash n"
 
 
 def find_workspace_from_log(res_log_file: Optional[str]) -> Optional[str]:
@@ -60,13 +26,7 @@ def find_workspace_from_log(res_log_file: Optional[str]) -> Optional[str]:
 
 
 def locate_appendix(agent_workspace: Optional[str]) -> Tuple[Optional[str], List[str]]:
-    """在给定 workspace 下查找 Appendix.tex。
-    优先路径：
-      - <workspace>/arXiv-2503.18892v3/Appendix.tex
-      - <workspace>/arXiv-2503.18892v3_final/Appendix.tex
-      - 递归搜索包含 arXiv-2503.18892v3 的任意子目录中的 Appendix.tex
-    返回 (路径或 None, 尝试过的路径列表)
-    """
+    """在给定 workspace 下查找 Appendix.tex。"""
     tried: List[str] = []
     if not agent_workspace:
         return None, tried
@@ -88,41 +48,69 @@ def locate_appendix(agent_workspace: Optional[str]) -> Tuple[Optional[str], List
     return None, tried
 
 
-def extract_gt_small_variants() -> List[str]:
-    """从内置 GT 片段中抽取 small 环境内文本，并归一化。"""
-    results: List[str] = []
-    for v in GT_VARIANTS:
-        m = re.search(r"\\begin\{small\}(.*?)\\end\{small\}", v, flags=re.S)
-        if not m:
-            continue
-        inner = m.group(1)
-        results.append(normalize_text(inner))
-    return results
+def check_tcolorbox_format(text: str) -> bool:
+    """检查是否包含tcolorbox格式。"""
+    return 'tcolorbox' in text
 
 
-def evaluate_appendix(appendix_text: str) -> Tuple[bool, List[str], int]:
-    """在最后一节内容中检查包含了哪些 GT small 文本。
-    返回: (是否有匹配, 匹配的变体列表, 匹配数量)
-    """
-    last_sec = extract_last_section(appendix_text)
-    norm_last = normalize_text(last_sec)
-    gt_norm_list = extract_gt_small_variants()
-    matched_variants = []
+def extract_texttt_contents(text: str) -> List[str]:
+    """从文本中提取所有\\texttt{}中的内容。"""
+    pattern = r'\\texttt\{([^}]*(?:\\.[^}]*)*)\}'
+    matches = re.findall(pattern, text, flags=re.DOTALL)
+    return matches
+
+
+def evaluate_appendix(appendix_text: str) -> Dict:
+    """评估Appendix.tex中是否包含所需的prompt内容。"""
     
-    for idx, gt_norm in enumerate(gt_norm_list):
-        if gt_norm and gt_norm in norm_last:
-            matched_variants.append(f"gt_{idx+1}")
+    # 1. 检查是否包含tcolorbox格式
+    has_tcolorbox = check_tcolorbox_format(appendix_text)
     
-    has_match = len(matched_variants) > 0
-    return has_match, matched_variants, len(matched_variants)
+    # 2. 提取所有texttt内容
+    texttt_contents = extract_texttt_contents(appendix_text)
+    
+    # 3. 标准化GT prompt内容
+    gt_simple_normalized = normalize_str(GT_SIMPLE_PROMPT)
+    gt_complex_normalized = normalize_str(GT_COMPLEX_PROMPT)
+    
+    # 4. 检查是否包含两个GT prompt
+    simple_found = False
+    complex_found = False
+    
+    for content in texttt_contents:
+        content_normalized = normalize_str(content)
+        
+        # 检查简单prompt
+        if not simple_found and gt_simple_normalized in content_normalized:
+            simple_found = True
+        
+        # 检查复杂prompt  
+        if not complex_found and gt_complex_normalized in content_normalized:
+            complex_found = True
+    
+    # 5. 计算匹配的prompt数量
+    matched_prompts = []
+    if simple_found:
+        matched_prompts.append("simple")
+    if complex_found:
+        matched_prompts.append("complex")
+    
+    return {
+        'has_tcolorbox': has_tcolorbox,
+        'texttt_contents': texttt_contents,
+        'simple_prompt_found': simple_found,
+        'complex_prompt_found': complex_found,
+        'matched_prompts': matched_prompts,
+        'total_matched': len(matched_prompts)
+    }
 
 
 def main():
     parser = ArgumentParser()
     parser.add_argument("--agent_workspace", required=False)
     parser.add_argument("--res_log_file", required=False)
-    # 为了与其它评估脚本入参形态一致，接受但不使用的占位参数
     parser.add_argument("--groundtruth_workspace", required=False)
+    parser.add_argument("--launch_time", required=False, help="Launch time")
     args = parser.parse_args()
 
     agent_workspace = args.agent_workspace or find_workspace_from_log(args.res_log_file)
@@ -131,7 +119,6 @@ def main():
     if not appendix_path:
         result = {
             "matched": False,
-            "matched_variant": None,
             "appendix_path": None,
             "reason": "Appendix.tex 未找到",
             "tried": tried_paths,
@@ -146,25 +133,34 @@ def main():
     except Exception as e:
         result = {
             "matched": False,
-            "matched_variant": None,
             "appendix_path": appendix_path,
             "reason": f"读取失败: {e}",
         }
         print(json.dumps(result, ensure_ascii=False))
         return
 
-    matched, variants, match_count = evaluate_appendix(tex_content)
+    evaluation_result = evaluate_appendix(tex_content)
+    
+    # 成功条件：包含tcolorbox格式且两个prompt都找到
+    success = (
+        evaluation_result['has_tcolorbox'] and
+        evaluation_result['simple_prompt_found'] and
+        evaluation_result['complex_prompt_found']
+    )
+    
     result = {
-        "matched": matched,
-        "matched_variants": variants,
-        "match_count": match_count,
-        "total_variants": len(GT_VARIANTS),
+        "matched": success,
         "appendix_path": appendix_path,
+        "evaluation_details": evaluation_result,
+        "success_criteria": {
+            "tcolorbox_format": evaluation_result['has_tcolorbox'],
+            "simple_prompt": evaluation_result['simple_prompt_found'],
+            "complex_prompt": evaluation_result['complex_prompt_found'],
+            "both_prompts": evaluation_result['total_matched'] == 2
+        }
     }
-    print(json.dumps(result, ensure_ascii=False))
+    print(json.dumps(result, ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":
     main()
-
-

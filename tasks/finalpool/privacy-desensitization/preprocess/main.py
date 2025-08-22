@@ -7,9 +7,8 @@ import glob
 
 def main():
     parser = ArgumentParser()
-    parser.add_argument("--initial_workspace", required=True, help="初始工作空间路径，必须明确指定")
     parser.add_argument("--agent_workspace", required=True, help="agent工作空间路径，必须明确指定")
-    parser.add_argument("--launch_time", nargs='*', required=False, help="Launch time (can contain spaces)")
+    parser.add_argument("--launch_time", required=False, help="Launch time (can contain spaces)")
     args = parser.parse_args()
     
     # 确保agent workspace存在
