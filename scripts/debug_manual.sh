@@ -20,6 +20,11 @@
 # eval_claude-4-sonnet.json
 # eval_gpt-4.1-mini.json
 
+# uv run demo.py \
+# --eval_config scripts/model_wise/eval_claude-4-sonnet.json \
+# --task_dir finalpool/train-ticket-plan \
+# --debug \
+
 uv run demo.py \
 --eval_config scripts/debug_eval_config.json \
 --task_dir debug/debug-task \
