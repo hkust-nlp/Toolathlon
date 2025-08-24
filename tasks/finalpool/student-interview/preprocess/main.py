@@ -265,9 +265,9 @@ async def main():
     
     # Create unified email list (mixing student and fake emails properly)
     print(f"\n📧 Creating unified email list...")
-    student_emails_file = base_path / "preprocess" / "files" / "emails.jsonl"
-    fake_emails_file = base_path / "preprocess" / "files" / "fake_emails_300_manual.json" 
-    user_list_file = base_path / "preprocess" / "files" / "user_list.csv"
+    student_emails_file = base_path / "files" / "emails.jsonl"
+    fake_emails_file = base_path / "files" / "fake_emails_300_manual.json" 
+    user_list_file = base_path / "files" / "user_list.csv"
     num_fake = args.num_fake_emails if hasattr(args, 'num_fake_emails') and args.num_fake_emails else None
     
     all_emails = create_unified_email_list(student_emails_file, fake_emails_file, user_list_file, num_fake)
