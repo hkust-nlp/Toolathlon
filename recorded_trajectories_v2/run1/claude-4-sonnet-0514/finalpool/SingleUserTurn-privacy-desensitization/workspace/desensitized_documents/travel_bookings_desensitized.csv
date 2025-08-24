@@ -1,0 +1,6 @@
+Booking_ID,Passenger_Name,SSN,Phone,Email,Flight_Number,Departure_Date,Destination,Payment_Card
+TB001,Lisa Wang,***,(***,***,AA1234,2024-12-15,Seattle,***
+TB002,James Rodriguez,***,***,***,UA5678,2024-12-16,Miami,***
+TB003,Maria Thompson,***,(***,***,DL9012,2024-12-17,Denver,***
+TB004,Robert Kim,***,***,***,SW3456,2024-12-18,Phoenix,3782-822463-10005
+TB005,Jennifer Brown,***,(***,***,B67890,2024-12-19,Portland,*** 

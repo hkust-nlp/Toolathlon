@@ -18,6 +18,7 @@ debug.jsonl
 legacy/
 configs/global_configs.py
 
+deployment/k8s/
 ruige
 ruige*
 dumps
@@ -38,8 +39,6 @@ tmp/
 # 所有文件 pd_xxx.yaml
 pd_*.yaml
 
-tasks/debug/debug-task
-
 *.pem
 *.log
 *.pid
@@ -54,3 +53,5 @@ deployment/*/*
 !deployment/*/scripts/**
 
 wandb
+
+.DS_Store

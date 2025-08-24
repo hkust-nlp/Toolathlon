@@ -1,0 +1,47 @@
+{
+  "timestamp": "2025-08-22T17:42:28.297181",
+  "exchange_rates": {
+    "CNY": 1.0,
+    "HKD": 0.9175999760627747,
+    "SGD": 5.568900108337402,
+    "USD": 7.178199768066406
+  },
+  "results": {
+    "香港": {
+      "ipad_price": 7199.0,
+      "pencil_price": 899.0,
+      "total_price": 8098.0,
+      "currency": "HKD",
+      "cny_price": 7430.724606156349,
+      "exchange_rate": 0.9175999760627747,
+      "success": true
+    },
+    "中国大陆": {
+      "ipad_price": 6400.0,
+      "pencil_price": 899.0,
+      "total_price": 7299.0,
+      "currency": "CNY",
+      "cny_price": 7299.0,
+      "exchange_rate": 1.0,
+      "success": true
+    },
+    "新加坡": {
+      "ipad_price": 1349.0,
+      "pencil_price": 179.0,
+      "total_price": 1528.0,
+      "currency": "SGD",
+      "cny_price": 8509.27936553955,
+      "exchange_rate": 5.568900108337402,
+      "success": true
+    },
+    "美国": {
+      "ipad_price": 899.0,
+      "pencil_price": 119.0,
+      "total_price": 1018.0,
+      "currency": "USD",
+      "cny_price": 7307.407363891602,
+      "exchange_rate": 7.178199768066406,
+      "success": true
+    }
+  }
+}

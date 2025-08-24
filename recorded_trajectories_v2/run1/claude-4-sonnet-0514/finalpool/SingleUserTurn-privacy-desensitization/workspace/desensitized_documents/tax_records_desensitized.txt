@@ -1,0 +1,49 @@
+Individual Income Tax Filing Records
+
+=====================
+
+Filing Number: TAX-2024-001
+Taxpayer: Michael Johnson
+SSN: ***
+Phone: (***
+Email: ***
+Annual Income: $85,000
+Tax Amount: $12,750
+Bank Account: ***
+Employer: Tech Solutions Inc.
+
+Spouse Information:
+Name: Sarah Johnson
+SSN: ***
+Phone: (***
+
+---
+
+Filing Number: TAX-2024-002
+Taxpayer Name: Jennifer Martinez
+SSN: ***
+Phone: ***
+Email: ***
+Annual Income: $105,000
+Tax Due: $18,900
+Refund Account: ***
+Employer: Marketing Corp
+
+Contact: Robert Martinez (***)
+
+---
+
+Filing Number: TAX-2024-003
+Filer: David Wilson
+SSN: ***
+Phone: (***
+Email: ***
+Income Total: $92,000
+Tax Payment: $15,640
+Bank Card: ***
+
+Tax Department Contacts:
+Help Line: 1-800-TAX-HELP
+Online Service: ***
+System IP: 192.168.300.100
+Data Center: 10.0.300.50 

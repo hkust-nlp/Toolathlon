@@ -1,0 +1,6 @@
+Booking_ID,Passenger_Name,SSN,Phone,Email,Flight_Number,Departure_Date,Destination,Payment_Card
+TB001,Lisa Wang,123-45-6789,(555) 123-4567,lisa.wang@email.com,AA1234,2024-12-15,Seattle,4111-1111-1111-1111
+TB002,James Rodriguez,987-65-4321,555-987-6543,james.rodriguez@email.com,UA5678,2024-12-16,Miami,5555-5555-5555-4444
+TB003,Maria Thompson,456-78-9012,(555) 246-8101,maria.thompson@email.com,DL9012,2024-12-17,Denver,6222-0212-3456-7890
+TB004,Robert Kim,789-01-2345,555-999-8888,robert.kim@email.com,SW3456,2024-12-18,Phoenix,3782-822463-10005
+TB005,Jennifer Brown,345-67-8901,(555) 135-7911,jennifer.brown@gmail.com,B67890,2024-12-19,Portland,4012-8888-8888-1881 

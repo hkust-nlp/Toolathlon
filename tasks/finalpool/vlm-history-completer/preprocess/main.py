@@ -296,6 +296,7 @@ def verify_cleanup():
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--launch_time", required=False, help="Launch time")
+    parser.add_argument("--agent_workspace", required=False)
     args = parser.parse_args()
     
     print("VLM History 预处理工具")

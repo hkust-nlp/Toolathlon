@@ -1,0 +1,53 @@
+Customer Satisfaction Survey Results
+
+======================
+
+Survey ID: SURVEY-2024-001
+Participant: Jennifer Lee
+SSN: ***
+Phone: (***
+Email: ***
+Age: 31
+Gender: Female
+Occupation: Software Engineer
+Monthly Income: $8,500
+
+Satisfaction Score: 9/10
+Feedback: Great service quality, hope to improve delivery speed
+
+Contact Confirmation: Phone (*** (backup)
+
+---
+
+Survey ID: SURVEY-2024-002
+Respondent: Michael Brown
+SSN: ***
+Phone: ***
+Email: ***
+Age: 36
+Gender: Male
+Job: Marketing Manager
+Income: $95,000/year
+
+Rating: 8/10
+Comments: Good product quality, price could be lower
+
+Emergency Contact: Sarah Brown (***)
+
+---
+
+Survey ID: SURVEY-2024-003
+Survey Subject: Maria Garcia
+SSN: ***
+Phone: (***
+Email: ***
+Credit Card: *** (loyalty points)
+
+Satisfaction: 7/10
+Feedback: Hope to add more product varieties
+
+Survey System IP: ***
+Data Analysis Server: ***
+
+Customer Service: 1-800-SURVEY-HELP
+Technical Support: *** 

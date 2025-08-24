@@ -1,0 +1,35 @@
+Delivery Records
+
+=============================
+
+Order Number: ORDER-20241201-001
+Recipient: Robert Martinez
+Phone: (555) 123-4567
+SSN: 123-45-6789
+Delivery Address: 123 Oak Street, New York, NY 10001
+ZIP Code: 10001
+Delivery Status: Delivered
+Driver: John Smith (555-987-6543)
+
+---
+
+Order Number: ORDER-20241201-002
+Recipient: Lisa Thompson
+Phone: 555-246-8101
+SSN: 987-65-4321
+Delivery Address: 456 Pine Avenue, Boston, MA 02101
+ZIP Code: 02101
+Driver Contact: (555) 999-8888
+
+---
+
+Order Number: ORDER-20241201-003
+Customer: Michael Brown
+Phone: (555) 135-7911
+SSN: 456-78-9012
+Address: 789 Elm Road, Seattle, WA 98101
+Delivery Service: 1-800-DELIVERY
+Complaint Hotline: (555) 111-2222
+
+Distribution Center Server: 192.168.200.50
+Backup Server: 10.0.50.100 
