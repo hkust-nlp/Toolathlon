@@ -7,6 +7,7 @@ from time import sleep
 if __name__=="__main__":
     parser = ArgumentParser()
     parser.add_argument("--agent_workspace", required=False)
+    parser.add_argument("--launch_time", required=False, help="Launch time")
     parser.add_argument("--credentials_file",default="configs/credentials.json")
     args = parser.parse_args()
 
