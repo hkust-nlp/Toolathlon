@@ -1,0 +1,45 @@
+{
+  "school_name": "Lincoln High School",
+  "academic_year": "2024-2025",
+  "students": [
+    {
+      "student_id": "2024001",
+      "name": "Emma Johnson",
+      "ssn": "123-45-6789",
+      "phone": "(555) 123-4567",
+      "email": "emma.johnson@student.edu",
+      "parent_phone": "(555) 987-6543",
+      "parent_email": "parent.johnson@email.com",
+      "class": "Grade 12-A",
+      "home_address": "123 Elm Street, Boston, MA 02101"
+    },
+    {
+      "student_id": "2024002",
+      "name": "Michael Chen",
+      "ssn": "987-65-4321",
+      "phone": "555-246-8101",
+      "email": "michael.chen@student.edu",
+      "parent_phone": "555-999-8888",
+      "parent_email": "parent.chen@email.com",
+      "class": "Grade 12-B",
+      "home_address": "456 Oak Avenue, Boston, MA 02102"
+    },
+    {
+      "student_id": "2024003",
+      "name": "Sarah Wilson",
+      "ssn": "456-78-9012",
+      "phone": "(555) 135-7911",
+      "email": "sarah.wilson@student.edu",
+      "parent_phone": "(555) 111-2222",
+      "parent_email": "parent.wilson@email.com",
+      "class": "Grade 12-A",
+      "home_address": "789 Pine Road, Boston, MA 02103"
+    }
+  ],
+  "school_info": {
+    "principal_phone": "(617) 123-4567",
+    "admin_email": "admin@lincoln.edu",
+    "system_ip": "192.168.100.10",
+    "backup_server": "10.10.20.50"
+  }
+} 

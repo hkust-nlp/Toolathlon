@@ -1,0 +1,345 @@
+{
+  "users": {
+    "user_id": "U8847293",
+    "username": "alex_chen_90",
+    "email": "alex.chen.crypto2@protonmail.com",
+    "phone": "+1-555-847-9286",
+    "first_name": "Alex",
+    "last_name": "Chen2",
+    "date_of_birth": "1990-03-15",
+    "nationality": "USA",
+    "registration_date": "2023-02-16",
+    "kyc_status": "VERIFIED",
+    "risk_level": "HIGH",
+    "last_login": "2024-01-15T23:45:12Z",
+    "login_count_30d": 947,
+    "failed_login_attempts": 14,
+    "account_locked": false,
+    "suspicious_activity_score": 8.9
+  },
+  "accounts": {
+    "account_id": "AC7739286",
+    "user_id": "U8847293",
+    "account_type": "CRYPTO_TRADING",
+    "account_status": "ACTIVE",
+    "balance_usd": 3047392.85,
+    "balance_btc": 58.28394,
+    "balance_eth": 993.3394,
+    "daily_limit": 500000.0,
+    "monthly_limit": 5000000.0,
+    "created_date": "2023-02-16",
+    "last_transaction": "2024-01-15T23:45:12Z",
+    "transaction_count_30d": 1447,
+    "volume_30d_usd": 9947293.74,
+    "high_risk_transactions_30d": 33,
+    "frozen": false,
+    "investigation_notes": "Multiple large volume transactions, pattern analysis required - Account 3"
+  },
+  "merchants": {
+    "merchant_id": "MER9934814",
+    "business_name": "Anonymous Coin Exchange 3",
+    "legal_name": "GDAE Holdings Ltd 3",
+    "merchant_category": "CRYPTOCURRENCY_EXCHANGE",
+    "country": "Cyprus",
+    "registration_number": "RU847392849",
+    "license_status": "SUSPENDED",
+    "risk_rating": "VERY_HIGH",
+    "kyb_status": "UNDER_REVIEW",
+    "processing_volume_30d": 114739283.74,
+    "transaction_count_30d": 9372,
+    "chargeback_rate": 13.4,
+    "fraud_reports": 29,
+    "compliance_score": 2.3,
+    "last_audit_date": "2023-11-17",
+    "sanctions_check": "FLAGGED",
+    "shell_company_indicators": [
+      "offshore_jurisdiction",
+      "recent_incorporation",
+      "minimal_physical_presence"
+    ],
+    "beneficial_owners": [
+      {
+        "name": "Viktor Petrov 3",
+        "nationality": "Russia",
+        "ownership_pct": 45.2
+      },
+      {
+        "name": "Anonymous Trust Fund 3",
+        "nationality": "Cyprus",
+        "ownership_pct": 54.8
+      }
+    ]
+  },
+  "cards": {
+    "card_id": "CARD6672841",
+    "user_id": "U8847293",
+    "card_number_masked": "5547-****-****-2841",
+    "card_type": "PREPAID",
+    "issuer": "Crypto Card International 3",
+    "issuer_country": "Malta",
+    "expiry_date": "2027-12",
+    "status": "ACTIVE",
+    "created_date": "2024-01-04",
+    "last_used": "2024-01-15T23:45:12Z",
+    "transaction_count_30d": 947,
+    "volume_30d": 3047392.85,
+    "velocity_flags": [
+      "HIGH_FREQUENCY",
+      "LARGE_AMOUNTS",
+      "CROSS_BORDER"
+    ],
+    "card_present_rate": 6.2,
+    "online_transaction_rate": 93.8,
+    "foreign_transaction_rate": 82.4,
+    "atm_withdrawal_count_30d": 4,
+    "pos_transaction_count_30d": 18,
+    "ecommerce_transaction_count_30d": 913
+  },
+  "devices": {
+    "device_id": "DEV4482915",
+    "user_id": "U8847293",
+    "device_fingerprint": "def456791abcdef123456791abcdef14",
+    "device_type": "MOBILE",
+    "os": "Android 16",
+    "browser": "Chrome Mobile 123.0",
+    "ip_address": "199.87.154.255",
+    "country": "Cyprus",
+    "city": "Nicosia",
+    "isp": "Unknown VPN Service 3",
+    "proxy_detected": true,
+    "tor_detected": true,
+    "vpn_detected": true,
+    "first_seen": "2024-01-15T23:32:00Z",
+    "last_seen": "2024-01-15T23:45:12Z",
+    "session_count": 3,
+    "is_trusted": false,
+    "risk_score": 9.6,
+    "geolocation_spoofing": true,
+    "device_id_spoofing": true,
+    "multiple_users_detected": false,
+    "suspicious_user_agent": true,
+    "screen_resolution": "unknown",
+    "timezone": "Asia/Nicosia",
+    "language": "en-US"
+  },
+  "locations": {
+    "location_id": "LOC006",
+    "city": "Hong Kong",
+    "country": "Hong Kong",
+    "latitude": 22.3193,
+    "longitude": 114.1694,
+    "timezone": "Asia/Hong_Kong"
+  },
+  "related_transactions": [
+    {
+      "transaction_id": "T8492XJ3-1",
+      "user_id": "U8847293",
+      "account_id": "AC7739286",
+      "merchant_id": "MER9934814",
+      "card_id": "CARD6672841",
+      "device_id": "DEV4482915",
+      "amount": 1.0,
+      "currency": "USD",
+      "original_amount": null,
+      "original_currency": null,
+      "exchange_rate": null,
+      "transaction_type": "CRYPTO_EXCHANGE",
+      "sub_type": "BTC_TO_USD",
+      "status": "COMPLETED",
+      "timestamp": "2024-01-15T23:30:45Z",
+      "location_id": "LOC006",
+      "processing_time_ms": null,
+      "risk_score": 7.0,
+      "ml_fraud_score": null,
+      "rule_based_score": null,
+      "behavioral_score": null,
+      "flags": [
+        "SMALL_TEST_AMOUNT",
+        "NEW_DEVICE"
+      ],
+      "velocity_checks": null,
+      "geographic_data": null,
+      "device_analysis": null,
+      "merchant_analysis": null,
+      "network_analysis": null
+    },
+    {
+      "transaction_id": "T8492XJ3-2",
+      "user_id": "U8847293",
+      "account_id": "AC7739286",
+      "merchant_id": "MER9934814",
+      "card_id": "CARD6672841",
+      "device_id": "DEV4482915",
+      "amount": 5.0,
+      "currency": "USD",
+      "original_amount": null,
+      "original_currency": null,
+      "exchange_rate": null,
+      "transaction_type": "CRYPTO_EXCHANGE",
+      "sub_type": "BTC_TO_USD",
+      "status": "COMPLETED",
+      "timestamp": "2024-01-15T22:35:35Z",
+      "location_id": "LOC006",
+      "processing_time_ms": null,
+      "risk_score": 8.1,
+      "ml_fraud_score": null,
+      "rule_based_score": null,
+      "behavioral_score": null,
+      "flags": [
+        "SMALL_TEST_AMOUNT",
+        "VELOCITY_PATTERN"
+      ],
+      "velocity_checks": null,
+      "geographic_data": null,
+      "device_analysis": null,
+      "merchant_analysis": null,
+      "network_analysis": null
+    },
+    {
+      "transaction_id": "T8492XJ3-3",
+      "user_id": "U8847293",
+      "account_id": "AC7739286",
+      "merchant_id": "MER9934814",
+      "card_id": "CARD6672841",
+      "device_id": "DEV4482915",
+      "amount": 12847.33,
+      "currency": "USD",
+      "original_amount": null,
+      "original_currency": null,
+      "exchange_rate": null,
+      "transaction_type": "CRYPTO_EXCHANGE",
+      "sub_type": "BTC_TO_USD",
+      "status": "COMPLETED",
+      "timestamp": "2024-01-15T21:40:25Z",
+      "location_id": "LOC006",
+      "processing_time_ms": null,
+      "risk_score": 8.4,
+      "ml_fraud_score": null,
+      "rule_based_score": null,
+      "behavioral_score": null,
+      "flags": [
+        "VELOCITY_EXCEEDED",
+        "HIGH_RISK_MERCHANT"
+      ],
+      "velocity_checks": null,
+      "geographic_data": null,
+      "device_analysis": null,
+      "merchant_analysis": null,
+      "network_analysis": null
+    },
+    {
+      "transaction_id": "T8492XJ3-4",
+      "user_id": "U8847293",
+      "account_id": "AC7739286",
+      "merchant_id": "MER9934814",
+      "card_id": "CARD6672841",
+      "device_id": "DEV4482915",
+      "amount": 28473.92,
+      "currency": "USD",
+      "original_amount": null,
+      "original_currency": null,
+      "exchange_rate": null,
+      "transaction_type": "CRYPTO_EXCHANGE",
+      "sub_type": "BTC_TO_USD",
+      "status": "COMPLETED",
+      "timestamp": "2024-01-15T20:45:15Z",
+      "location_id": "LOC006",
+      "processing_time_ms": null,
+      "risk_score": 6.3,
+      "ml_fraud_score": null,
+      "rule_based_score": null,
+      "behavioral_score": null,
+      "flags": [
+        "LARGE_AMOUNT",
+        "GEOGRAPHIC_MISMATCH"
+      ],
+      "velocity_checks": null,
+      "geographic_data": null,
+      "device_analysis": null,
+      "merchant_analysis": null,
+      "network_analysis": null
+    }
+  ],
+  "risk_scores": {
+    "user_id": "U8847293",
+    "current_score": 8.9,
+    "score_history": [
+      {
+        "date": "2024-01-01",
+        "score": 3.4,
+        "reason": "Baseline"
+      },
+      {
+        "date": "2024-01-05",
+        "score": 4.3,
+        "reason": "Increased transaction volume"
+      },
+      {
+        "date": "2024-01-10",
+        "score": 6.0,
+        "reason": "New device login"
+      },
+      {
+        "date": "2024-01-12",
+        "score": 7.4,
+        "reason": "High-risk merchant transactions"
+      },
+      {
+        "date": "2024-01-15",
+        "score": 8.9,
+        "reason": "Suspicious transaction patterns detected"
+      }
+    ],
+    "risk_factors": [
+      {
+        "factor": "velocity",
+        "weight": 0.25,
+        "score": 9.3
+      },
+      {
+        "factor": "geography",
+        "weight": 0.2,
+        "score": 9.6
+      },
+      {
+        "factor": "device",
+        "weight": 0.15,
+        "score": 9.7
+      },
+      {
+        "factor": "merchant",
+        "weight": 0.2,
+        "score": 9.1
+      },
+      {
+        "factor": "behavioral",
+        "weight": 0.2,
+        "score": 8.2
+      }
+    ]
+  },
+  "fraud_alerts": [
+    {
+      "alert_id": "FRA_2024_001580",
+      "transaction_id": "T8492XJ3",
+      "user_id": "U8847293",
+      "alert_type": "HIGH_VALUE_SUSPICIOUS_TRANSACTION",
+      "severity": "CRITICAL",
+      "status": "OPEN",
+      "created_timestamp": "2024-01-15T23:45:15Z",
+      "triggered_rules": [
+        "RULE_001_LARGE_AMOUNT",
+        "RULE_007_NEW_DEVICE",
+        "RULE_015_HIGH_RISK_MERCHANT",
+        "RULE_023_VELOCITY_EXCEEDED",
+        "RULE_031_GEOGRAPHIC_ANOMALY",
+        "RULE_045_VPN_DETECTION"
+      ],
+      "investigation_priority": 1.0,
+      "estimated_fraud_probability": 0.927,
+      "potential_loss": 587392.85,
+      "assigned_investigator": "fraud_team_lead_3",
+      "sla_deadline": "2024-01-16T07:47:15Z"
+    }
+  ]
+}

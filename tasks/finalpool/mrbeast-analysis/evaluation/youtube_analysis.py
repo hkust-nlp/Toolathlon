@@ -19,7 +19,6 @@ youtube_channel_analysis_{channel_id}_{date}_english.xlsx
 包含三个工作表：Video_details, Statistics, Content_Classification
 """
 import os
-# os.environ["TESSDATA_PREFIX"] = "/ssddata/xiaochen/workspace/mcpbench_dev/mcp_server"
 import asyncio
 import json
 import pandas as pd
@@ -52,7 +51,7 @@ async def get_youtube_tools():
             print(f"- {tool.name}: {tool.description}")
         return youtube_server
 
-async def get_channel_videos(channel_id="UCX6OQ3DkcsbYNE6H8uQQuVA", max_results=50, page_token=None):
+async def get_channel_videos(channel_id="UCX6OQ3DkcsbYNE6H8uQQuVA", max_results=100, page_token=None):
     """
     获取指定频道的视频列表
     
@@ -101,7 +100,7 @@ async def get_channel_videos(channel_id="UCX6OQ3DkcsbYNE6H8uQQuVA", max_results=
 
 async def get_all_channel_videos(channel_id="UCX6OQ3DkcsbYNE6H8uQQuVA", target_start_date="2024-01-01"):
     """
-    获取频道的所有视频，支持分页获取历史视频
+    获取频道的所有视频，使用YouTube MCP服务器的会话分页机制
     
     Args:
         channel_id (str): YouTube频道ID
@@ -117,17 +116,20 @@ async def get_all_channel_videos(channel_id="UCX6OQ3DkcsbYNE6H8uQQuVA", target_s
     
     async with server as youtube_server:
         all_videos = []
-        page_count = 0
         target_date = datetime.fromisoformat(target_start_date).replace(tzinfo=timezone.utc)
         
         print(f"开始获取频道 {channel_id} 的所有视频...")
         
-        # 首先创建一个视频列表会话
+        # 第一步：创建列表会话，获取第一页数据
         print("创建视频列表会话...")
         result = await call_tool_with_retry(
             youtube_server,
             tool_name="channels_listVideos",
-            arguments={"channelId": channel_id}
+            arguments={
+                "channelId": channel_id,
+                "maxResults": 50,  # 每页50个视频
+                "sortOrder": "newest"  # 按最新排序
+            }
         )
         
         if not result.content or len(result.content) == 0:
@@ -140,82 +142,125 @@ async def get_all_channel_videos(channel_id="UCX6OQ3DkcsbYNE6H8uQQuVA", target_s
             print("第一页数据为空")
             return []
             
-        videos_data = json.loads(response_text)
-        if 'videos' not in videos_data:
-            print("第一页没有视频数据")
-            return []
+        first_page_data = json.loads(response_text)
         
-        # 获取列表ID用于后续导航
-        list_id = videos_data.get('listId')
+        # 检查是否成功创建会话
+        list_id = first_page_data.get('listId')
         if not list_id:
             print("无法获取列表ID")
             return []
-            
-        print(f"列表ID: {list_id}")
-        print(f"总页数: {videos_data.get('totalPages', 'Unknown')}")
-        print(f"总视频数: {videos_data.get('totalVideos', 'Unknown')}")
         
-        # 处理所有页面
-        while True:
-            page_count += 1
-            current_page = videos_data.get('currentPage', page_count)
-            print(f"正在处理第 {current_page} 页视频...")
+        total_pages = first_page_data.get('totalPages', 1)
+        total_videos = first_page_data.get('totalVideos', 0)
+        channel_title = first_page_data.get('channelTitle', 'Unknown')
+        
+        print(f"频道: {channel_title}")
+        print(f"列表ID: {list_id}")
+        print(f"总页数: {total_pages}")
+        print(f"总视频数: {total_videos}")
+        
+        # 处理第一页的视频
+        current_videos = first_page_data.get('videos', [])
+        if current_videos:
+            print(f"第1页获取到 {len(current_videos)} 个视频")
+            all_videos.extend(current_videos)
             
-            current_videos = videos_data.get('videos', [])
-            if not current_videos:
-                print("当前页没有视频")
-                break
-                
-            print(f"当前页获取到 {len(current_videos)} 个视频")
-            
-            # 检查当前页最早的视频日期
+            # 检查第一页最早的视频日期
             earliest_date_in_page = None
             for video in current_videos:
+                publish_time_str = None
+                
+                # 处理不同的数据结构
                 if 'snippet' in video and 'publishedAt' in video['snippet']:
                     publish_time_str = video['snippet']['publishedAt']
+                elif 'publishedAt' in video:
+                    publish_time_str = video['publishedAt']
+                elif 'publishTime' in video:
+                    publish_time_str = video['publishTime']
+                
+                if publish_time_str:
                     publish_time = datetime.fromisoformat(publish_time_str.replace('Z', '+00:00'))
                     if earliest_date_in_page is None or publish_time < earliest_date_in_page:
                         earliest_date_in_page = publish_time
             
-            all_videos.extend(current_videos)
+            if earliest_date_in_page:
+                print(f"第1页最早视频日期: {earliest_date_in_page.strftime('%Y-%m-%d')}")
+        
+        # 如果只有一页，直接返回
+        if total_pages <= 1:
+            print("只有一页数据")
+            return all_videos
+        
+        # 获取其余页面的数据
+        for page_num in range(2, min(total_pages + 1, 51)):  # 限制最多50页避免过度请求
+            print(f"正在获取第 {page_num} 页...")
             
-            # 如果当前页最早的视频已经早于目标日期，我们可能已经获取了足够的历史数据
-            if earliest_date_in_page and earliest_date_in_page < target_date:
-                print(f"已获取到 {earliest_date_in_page.strftime('%Y-%m-%d')} 的视频，达到目标时间范围")
-                break
-            
-            # 检查是否有下一页
-            if not videos_data.get('hasNextPage', False):
-                print("没有更多页面")
-                break
-            
-            # 使用channels_navigateList导航到下一页
-            print("导航到下一页...")
             try:
                 result = await call_tool_with_retry(
                     youtube_server,
                     tool_name="channels_navigateList",
-                    arguments={"listId": list_id, "action": "next"}
+                    arguments={
+                        "listId": list_id,
+                        "page": page_num
+                    }
                 )
                 
                 if not result.content or len(result.content) == 0:
-                    print("无法获取下一页数据")
+                    print(f"第 {page_num} 页无法获取数据")
                     break
                     
                 response_text = result.content[0].text
                 if not response_text.strip():
-                    print("下一页数据为空")
+                    print(f"第 {page_num} 页数据为空")
                     break
                     
-                videos_data = json.loads(response_text)
+                page_data = json.loads(response_text)
+                current_videos = page_data.get('videos', [])
                 
+                if not current_videos:
+                    print(f"第 {page_num} 页没有视频")
+                    break
+                    
+                print(f"第{page_num}页获取到 {len(current_videos)} 个视频")
+                
+                # 检查当前页最早的视频日期
+                earliest_date_in_page = None
+                latest_date_in_page = None
+                for video in current_videos:
+                    publish_time_str = None
+                    
+                    # 处理不同的数据结构
+                    if 'snippet' in video and 'publishedAt' in video['snippet']:
+                        publish_time_str = video['snippet']['publishedAt']
+                    elif 'publishedAt' in video:
+                        publish_time_str = video['publishedAt']
+                    elif 'publishTime' in video:
+                        publish_time_str = video['publishTime']
+                    
+                    if publish_time_str:
+                        publish_time = datetime.fromisoformat(publish_time_str.replace('Z', '+00:00'))
+                        if earliest_date_in_page is None or publish_time < earliest_date_in_page:
+                            earliest_date_in_page = publish_time
+                        if latest_date_in_page is None or publish_time > latest_date_in_page:
+                            latest_date_in_page = publish_time
+                
+                all_videos.extend(current_videos)
+                
+                if earliest_date_in_page:
+                    print(f"第{page_num}页日期范围: {earliest_date_in_page.strftime('%Y-%m-%d')} 到 {latest_date_in_page.strftime('%Y-%m-%d') if latest_date_in_page else 'N/A'}")
+                
+                # 如果当前页最早的视频已经早于目标日期，可以考虑停止
+                # 但为了获取足够的历史数据，我们继续获取更多页面
+                if earliest_date_in_page and earliest_date_in_page < target_date:
+                    print(f"已获取到目标日期之前的视频: {earliest_date_in_page.strftime('%Y-%m-%d')}")
+                    # 可以继续获取更多页面以确保完整性，或者在这里停止
+                    # 这里我们继续获取一些额外的页面以确保覆盖完整
+                    if page_num >= min(total_pages, 30):  # 限制最多30页
+                        print("已获取足够的历史数据，停止获取")
+                        break
+                        
             except Exception as e:
-                print(f"导航到下一页时出错: {e}")
-                break
-                
-            # 设置获取页数限制以避免无限循环
-            if page_count >= 30:  # 增加到30页以获取更多历史数据
-                print("已达到最大页数限制")
+                print(f"获取第 {page_num} 页时出错: {e}")
                 break
         
         print(f"总共获取了 {len(all_videos)} 个视频")

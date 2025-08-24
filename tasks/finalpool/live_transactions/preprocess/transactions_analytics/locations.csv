@@ -1,0 +1,11 @@
+location_id,city,country,latitude,longitude,timezone
+LOC001,New York,USA,40.7128,-74.006,America/New_York
+LOC002,London,UK,51.5074,-0.1278,Europe/London
+LOC003,Tokyo,Japan,35.6762,139.6503,Asia/Tokyo
+LOC004,Moscow,Russia,55.7558,37.6176,Europe/Moscow
+LOC005,Lagos,Nigeria,6.5244,3.3792,Africa/Lagos
+LOC006,Hong Kong,Hong Kong,22.3193,114.1694,Asia/Hong_Kong
+LOC007,Dubai,UAE,25.2048,55.2708,Asia/Dubai
+LOC008,Singapore,Singapore,1.3521,103.8198,Asia/Singapore
+LOC009,Frankfurt,Germany,50.1109,8.6821,Europe/Berlin
+LOC010,Sydney,Australia,-33.8688,151.2093,Australia/Sydney

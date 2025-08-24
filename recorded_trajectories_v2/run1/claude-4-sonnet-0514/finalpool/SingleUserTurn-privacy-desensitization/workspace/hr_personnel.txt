@@ -1,0 +1,43 @@
+Human Resources Department Employee Records
+
+========================================
+
+Employee Information Form
+
+Name: Michael Thompson
+Employee ID: HR001
+SSN: 123-45-6789
+Phone: (555) 123-4567
+Work Email: michael.thompson@company.com
+Emergency Contact: Sarah Thompson (555-987-6543)
+
+Hire Date: June 15, 2023
+Department: Human Resources
+Position: Recruiting Specialist
+Salary: $65,000/year
+
+Banking Information:
+Bank: Chase Bank
+Account Number: 1234567890123456
+
+---
+
+Name: Jennifer Martinez
+Employee ID: HR002
+SSN: 987-65-4321
+Phone: (555) 246-8101
+Email: jennifer.martinez@company.com
+
+Hire Date: March 20, 2022
+Position: Compensation Analyst
+Salary: $72,000/year
+
+Personal Information:
+Home Address: 123 Sunset Blvd, Los Angeles, CA 90210
+Spouse Contact: (555) 999-8888
+
+System Access:
+Username: jmartinez
+Office Network IP: 192.168.50.100
+
+Confidentiality Notice: All employee personal information must be kept strictly confidential. 

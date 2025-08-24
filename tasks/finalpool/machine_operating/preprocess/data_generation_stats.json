@@ -1,0 +1,47 @@
+{
+  "total_records": 1500,
+  "time_range": {
+    "start": "2025-08-19T11:18:59.878906",
+    "end": "2025-08-19T13:18:59.878906"
+  },
+  "machines": [
+    "M001",
+    "M002",
+    "M003",
+    "M004",
+    "M005",
+    "M006",
+    "M007",
+    "M008",
+    "M009",
+    "M010"
+  ],
+  "sensor_types": [
+    "current",
+    "flow_rate",
+    "pressure",
+    "rpm",
+    "temperature",
+    "vibration"
+  ],
+  "records_per_machine": {
+    "M001": 150,
+    "M002": 150,
+    "M003": 150,
+    "M004": 150,
+    "M005": 150,
+    "M006": 150,
+    "M007": 150,
+    "M008": 150,
+    "M009": 150,
+    "M010": 150
+  },
+  "records_per_sensor": {
+    "current": 250,
+    "flow_rate": 250,
+    "pressure": 250,
+    "rpm": 250,
+    "temperature": 250,
+    "vibration": 250
+  }
+}

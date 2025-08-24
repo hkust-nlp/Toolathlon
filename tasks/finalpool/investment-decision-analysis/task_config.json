@@ -1,5 +1,0 @@
-{
-    "needed_mcp_servers": ["yahoo-finance", "google_sheet"],
-    "needed_local_tools": [],
-    "meta": {}
-}
