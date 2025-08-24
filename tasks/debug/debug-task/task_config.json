@@ -1,5 +1,5 @@
 {
-    "needed_mcp_servers": ["filesystem","google_sheet"],
-    "needed_local_tools": ["claim_done","manage_context","history","python_execute"],
+    "needed_mcp_servers": ["playwright_with_chunk"],
+    "needed_local_tools": [],
     "meta": {}
 }
