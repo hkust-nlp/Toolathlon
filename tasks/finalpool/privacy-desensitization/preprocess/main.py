@@ -14,15 +14,7 @@ def main():
     # 确保agent workspace存在
     os.makedirs(args.agent_workspace, exist_ok=True)
     
-    # 复制压缩文件到agent workspace
-    tar_file_path = os.path.join(args.initial_workspace, "../files.tar.gz")
-    if not os.path.exists(tar_file_path):
-        print(f"错误: 压缩文件不存在: {tar_file_path}")
-        return
-    
     dst_tar_path = os.path.join(args.agent_workspace, "files.tar.gz")
-    shutil.copy2(tar_file_path, dst_tar_path)
-    print(f"复制压缩文件: files.tar.gz")
     
     # 解压缩
     try:
