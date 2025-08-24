@@ -1,0 +1,2 @@
+Architecture列：填写模型的技术架构描述，填写内容从以下五种类型中选择
+Transformer-based, Diffusion-based, Dual-Encoder, Hybrid, Unavailable
