@@ -1,0 +1,46 @@
+Real Estate Transaction Records
+
+===================
+
+Transaction ID: RE-2024-001
+Buyer: David Martinez
+SSN: ***
+Phone: (***
+Email: ***
+Property Address: 123 Broadway Street, Unit 502, New York, NY 10001
+Sale Price: $850,000
+Down Payment: $170,000
+Mortgage Account: ***
+
+Seller: Jennifer Wilson
+SSN: ***
+Phone: (***
+Email: ***
+
+Real Estate Agent: Michael Brown (***)
+Agency: Prime Real Estate
+Company Phone: 1-800-PRIME-RE
+
+---
+
+Transaction ID: RE-2024-002
+Buyer: Sarah Davis
+SSN: ***
+Phone: ***
+Email: ***
+Property Address: 456 Oak Avenue, Boston, MA 02101
+Sale Price: $650,000
+Deposit Payment Card: ***
+
+Seller Information:
+Name: Robert Thompson
+Phone: (***
+SSN: ***
+
+Property Records Office:
+Registration Center: (***
+Query System IP: ***
+
+Bank Mortgage Department:
+Customer Service: 1-800-MORTGAGE
+Business Inquiry: (*** 

@@ -1,0 +1,49 @@
+{
+  "orders": [
+    {
+      "order_id": "ORD20241201001",
+      "customer_name": "Ashley Davis",
+      "customer_ssn": "123-45-6789",
+      "phone": "(555) 123-4567",
+      "email": "ashley.davis@email.com",
+      "shipping_address": "123 Main Street, New York, NY 10001",
+      "payment_method": "Credit Card",
+      "card_number": "4111-1111-1111-1111",
+      "order_total": 299.99,
+      "items": ["Phone Case", "USB Cable"],
+      "delivery_phone": "(555) 987-6543"
+    },
+    {
+      "order_id": "ORD20241201002",
+      "customer_name": "Daniel Wilson",
+      "customer_ssn": "987-65-4321",
+      "phone": "555-246-8101",
+      "email": "daniel.wilson@email.com",
+      "shipping_address": "456 Broadway Ave, Los Angeles, CA 90210",
+      "payment_method": "Debit Card",
+      "card_number": "6222-0212-3456-7890",
+      "order_total": 189.50,
+      "items": ["Backpack", "Notebook"],
+      "delivery_phone": "(555) 999-8888"
+    },
+    {
+      "order_id": "ORD20241201003",
+      "customer_name": "Sophia Garcia",
+      "customer_ssn": "456-78-9012",
+      "phone": "(555) 135-7911",
+      "email": "sophia.garcia@email.com",
+      "shipping_address": "789 Michigan Ave, Chicago, IL 60611",
+      "payment_method": "Credit Card",
+      "card_number": "5555-5555-5555-4444",
+      "order_total": 459.00,
+      "items": ["Headphones", "Charger", "Screen Protector"],
+      "delivery_phone": "555-777-9999"
+    }
+  ],
+  "store_info": {
+    "customer_service": "1-800-888-9999",
+    "support_email": "support@onlinestore.com",
+    "server_ip": "192.168.250.100",
+    "payment_gateway": "10.0.150.50"
+  }
+} 
