@@ -23,5 +23,5 @@ params:
   # env:
   #   HTTPS_PROXY: "${config.proxy}"
   #   HTTP_PROXY: "${config.proxy}"
-client_session_timeout_seconds: 1000
+client_session_timeout_seconds: 120
 cache_tools_list: true
