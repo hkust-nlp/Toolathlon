@@ -1,1 +1,4 @@
-Please update the acceptance information for the papers currently marked as "preprint" or "under review" on my personal homepage based on the email search results. This should be a remote task and require modifications to the actual repository on GitHub. At the same time, update the status of code open-sourcing. If there is a repository on my GitHub that has already been finished and released, update it on my homepage.
+Update my personal homepage according to the following rules:
+- This should be a remote task that involves modifying the actual repository for my personal homepage. Whenever you perform an action related to a repository, you must check **all repositories**, including forked repos.
+- For papers currently marked as "preprint" or "under review" on my homepage, update their acceptance information according to my emails.
+- Update the status of code open-sourcing. If there is a released repository on my GitHub for the corresponding paper, update it on my homepage.

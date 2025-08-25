@@ -42,6 +42,7 @@ def main(args):
         print(f"Processing repository: {local_repo}")
         commit_sha = get_latest_commit_sha(args.github_token, repo, get_branch(repo_name))
         roll_back_commit(args.github_token, local_repo, commit_sha, branch=get_branch(repo_name))
+        # create_file(args.github_token, local_repo, "temp.txt", "add to update status", "", get_branch(repo_name))
         print(f"Repository {local_repo} initialized successfully.")
     
 
