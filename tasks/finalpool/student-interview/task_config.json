@@ -1,5 +1,6 @@
 {
-    "needed_mcp_servers": ["gmail","google_calendar"],
+    "id": "student_interview_001",
+    "needed_mcp_servers": ["emails", "google_calendar"],
     "needed_local_tools": ["claim_done"],
     "meta": {}
 }

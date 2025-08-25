@@ -1,0 +1,33 @@
+STRICT HIRING REQUIREMENTS GROUNDTRUTH
+==================================================
+
+STRICT CRITERIA (ALL MUST BE MET):
+1. Minimum Experience: 4+ years
+2. Education: Master degree or higher
+3. Top-tier University Graduate('Stanford', 'MIT', 'CMU', 'Peking', 'Tsinghua'): REQUIRED
+4. FAANG Experience: REQUIRED
+5. Leadership Experience: REQUIRED
+6. High-impact Projects: REQUIRED
+7. Advanced Technical Skills: 3+ areas
+8. Recommendation Level: Exceptional/Outstanding only
+9. Excellence Rating: 2+ excellence mentions
+10. Salary Budget: Under $150K
+
+QUALIFIED CANDIDATES (1):
+✅ John_Smith
+
+DISQUALIFIED CANDIDATES (12):
+❌ Zhang San
+❌ Li Si
+❌ Wang Wu
+❌ Sarah_Johnson
+❌ Michael_Chen
+❌ Emma_Davis
+❌ David_Wilson
+❌ Lisa_Garcia
+❌ James_Brown
+❌ Anna_Taylor
+❌ Robert_Kim
+❌ Rachel_White
+
+SUMMARY: 1 qualified out of 13 total candidates

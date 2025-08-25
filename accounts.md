@@ -154,4 +154,7 @@ uv run install_records/create_google_credentials.py
 根据提示操作即可，若PC浏览器不跳转，可复制链接地址到移动端获取所需内容
 会自动根据1.4中的`configs/gcp-oauth.keys.json`生成`configs/google_credentials.json`
 
-2. MORE TO BE ANNOUNCED
+2. 获取google map api凭据
+https://developers.google.com/maps/documentation/javascript/get-api-key?hl=zh-cn&setupProd=configure#create-api-keys
+
+3. TBD

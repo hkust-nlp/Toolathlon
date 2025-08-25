@@ -1,0 +1,4 @@
+{
+  "pass": false,
+  "failure": "开始检查隐私脱敏结果...\n原始文件: 27 个\n脱敏文件: 27 个\n✓ appointment_schedule_desensitized.md 检查通过\n✓ bank_transactions_desensitized.csv 检查通过\n✓ conference_attendees_desensitized.md 检查通过\n隐私脱敏任务评估失败: 文件 contact_info_desensitized.txt 中仍存在敏感信息: [('us_phone', '822463-1000')]\n"
+}

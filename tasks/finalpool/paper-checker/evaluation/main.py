@@ -4,6 +4,11 @@ import tarfile
 import tempfile
 import shutil
 from typing import Tuple, List
+import sys
+import re
+
+# Add the utils directory to the path to import normalize_str
+from utils.general.helper import normalize_str
 
 def extract_groundtruth_files(groundtruth_workspace: str) -> tuple[str, bool]:
     """Extract groundtruth files from compressed archive to the same directory
@@ -92,21 +97,37 @@ def compare_files(agent_workspace: str, groundtruth_workspace: str) -> Tuple[boo
             has_differences = True
             continue
         
-        # Compare line by line
-        if agent_lines != groundtruth_lines:
-            has_differences = True
-            different_files.append(file_path)
-            print(f"\nDIFFERENCES FOUND in {file_path}:")
-            max_lines = max(len(agent_lines), len(groundtruth_lines))
-            for i in range(max_lines):
-                agent_line = agent_lines[i].rstrip() if i < len(agent_lines) else "<MISSING>"
-                gt_line = groundtruth_lines[i].rstrip() if i < len(groundtruth_lines) else "<MISSING>"
+        # Compare line by line using normalize_str for robust comparison
+        has_file_differences = False
+        max_lines = max(len(agent_lines), len(groundtruth_lines))
+        
+        for i in range(max_lines):
+            agent_line = agent_lines[i].rstrip() if i < len(agent_lines) else "<MISSING>"
+            gt_line = groundtruth_lines[i].rstrip() if i < len(groundtruth_lines) else "<MISSING>"
+            
+            # Use normalize_str to compare normalized versions, handling spaces and punctuation
+            if agent_line == "<MISSING>" or gt_line == "<MISSING>":
+                # For missing lines, compare directly (no normalization needed)
+                lines_match = agent_line == gt_line
+            else:
+                # For existing lines, use normalize_str to handle spaces and symbols
+                lines_match = normalize_str(agent_line) == normalize_str(gt_line)
+            
+            if not lines_match:
+                if not has_file_differences:
+                    # First difference found in this file
+                    has_differences = True
+                    different_files.append(file_path)
+                    print(f"\nDIFFERENCES FOUND in {file_path}:")
+                    has_file_differences = True
                 
-                if agent_line != gt_line:
-                    print(f"  Line {i+1}:")
-                    print(f"    Expected: {gt_line}")
-                    print(f"    Actual:   {agent_line}")
-                    print("-"* 100)
+                print(f"  Line {i+1}:")
+                print(f"    Expected: {gt_line}")
+                print(f"    Actual:   {agent_line}")
+                if agent_line != "<MISSING>" and gt_line != "<MISSING>":
+                    print(f"    Expected (normalized): {normalize_str(gt_line)}")
+                    print(f"    Actual (normalized):   {normalize_str(agent_line)}")
+                print("-"* 100)
     
     if has_differences:
         summary = []

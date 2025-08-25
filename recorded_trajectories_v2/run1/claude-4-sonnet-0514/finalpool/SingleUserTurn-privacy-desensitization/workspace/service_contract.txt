@@ -1,0 +1,54 @@
+Service Contract Agreement
+
+=======================
+
+Contract Number: SC-2024-001
+Date: December 1, 2024
+
+Client Information:
+Company: ABC Corporation
+Contact Person: Robert Johnson
+Phone: (555) 123-4567
+Email: robert.johnson@abc-corp.com
+Address: 456 Business Ave, Los Angeles, CA 90210
+
+Service Provider:
+Company: TechService Solutions
+Representative: Sarah Davis
+Phone: 555-987-6543
+Email: sarah.davis@techservice.com
+Business License: BL123456789
+Tax ID: 12-3456789
+
+Contract Details:
+Service Type: IT Consulting
+Duration: 12 months
+Start Date: January 1, 2025
+Total Value: $120,000
+
+Payment Information:
+Payment Method: Bank Transfer
+Account Number: 1234567890123456
+Routing Number: 987654321
+Payment Schedule: Monthly
+
+Emergency Contacts:
+24/7 Support: (555) 999-8888
+Emergency Email: emergency@techservice.com
+On-call Engineer: Mike Wilson (555) 246-8101
+
+Technical Specifications:
+Primary Server: 192.168.100.10
+Backup Server: 10.0.50.100
+VPN Gateway: 172.16.0.1
+
+Legal Terms:
+Governing Law: California State Law
+Jurisdiction: Los Angeles County
+Arbitration Contact: legal@techservice.com
+
+Signatures:
+Client: _________________________ Date: _______
+Provider: _______________________ Date: _______
+
+For questions, contact: contracts@techservice.com 

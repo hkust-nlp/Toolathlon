@@ -1,0 +1,2102 @@
+[
+  {
+    "type": "personal",
+    "send_time": "44 days before current date",
+    "from": "alexander.hughes@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>41 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "5 days before current date",
+    "from": "newsletter150@publication.com",
+    "subject": "Weekly Update #150",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>5 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "8 days before current date",
+    "from": "ryan.johnson@mcp.org",
+    "subject": "Re: Project timeline",
+    "body": "<html><body><p>Thanks for sending over the updated timeline.</p><p>Everything looks good except for the testing phase - can we push it back by 2 days? The QA team won't be available until <strong>5 days before current date</strong>.</p><p>Let me know if that works for you.</p><p>Best,<br>Ryan</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "19 days before current date",
+    "from": "newsletter96@publication.com",
+    "subject": "Weekly Update #96",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>19 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "25 days before current date",
+    "from": "offers@microsoft.com",
+    "subject": "Microsoft 365 - 3 months free for new subscribers",
+    "body": "<html><body><div style='font-family: Segoe UI, Arial, sans-serif; max-width: 600px;'><h2 style='color: #0078d4;'>Get more done with Microsoft 365</h2><p>Transform the way you work with premium Office apps and intelligent cloud services.</p><p><strong>Special offer expires <span style='color: #d13438;'>15 days before current date</span>:</strong></p><ul><li>3 months free for new subscribers</li><li>Premium Office apps</li><li>1TB OneDrive storage</li></ul><p style='text-align: center; margin: 30px 0;'><a href='#' style='background-color: #0078d4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 2px;'>Start Free Trial</a></p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "25 days before current date",
+    "from": "james.fox@mcp.com",
+    "subject": "Special offer #267",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>20 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "52 days before current date",
+    "from": "kenneth.sanchez@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>49 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "29 days before current date",
+    "from": "mark.robinson@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>26 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "21 days before current date",
+    "from": "emma.cruz@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>18 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "8 days before current date",
+    "from": "mason.jenkins@mcp.com",
+    "subject": "Special offer #172",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>3 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "36 days before current date",
+    "from": "eli.henderson@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>33 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "8 days before current date",
+    "from": "patricia.brown@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>5 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "27 days before current date",
+    "from": "newsletter229@publication.com",
+    "subject": "Weekly Update #229",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>27 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "52 days before current date",
+    "from": "newsletter200@publication.com",
+    "subject": "Weekly Update #200",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>52 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "43 days before current date",
+    "from": "jerry.simmons@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>40 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "42 days before current date",
+    "from": "scarlett.rivera@mcp.com",
+    "subject": "Special offer #129",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>37 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "28 days before current date",
+    "from": "newsletter158@publication.com",
+    "subject": "Weekly Update #158",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>28 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "4 days before current date",
+    "from": "no-reply@amazon.com",
+    "subject": "Prime Day deals start tomorrow - Early access for you!",
+    "body": "<html><body><div style='font-family: Arial, sans-serif; max-width: 600px;'><h1 style='color: #ff9900;'>Prime Day is here!</h1><p>Hi Prime Member,</p><p>Get ready for our biggest sale of the year starting <strong>3 days before current date</strong> at midnight!</p><h3>Early access deals available now:</h3><ul><li><strong>Echo Dot (5th Gen)</strong> - 60% off until <strong>1 day before current date</strong></li><li><strong>Fire TV Stick 4K Max</strong> - 50% off</li><li><strong>Kindle Paperwhite</strong> - 40% off</li></ul><p style='text-align: center; margin: 30px 0;'><a href='#' style='background-color: #ff9900; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;'>Shop Prime Day Deals</a></p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "16 days before current date",
+    "from": "jayden.coleman@mcp.com",
+    "subject": "Special offer #293",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>11 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "15 days before current date",
+    "from": "elena.washington@mcp.com",
+    "subject": "Special offer #168",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>10 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "14 days before current date",
+    "from": "newsletter298@publication.com",
+    "subject": "Weekly Update #298",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>14 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "33 days before current date",
+    "from": "joshua.gray@mcp.com",
+    "subject": "Special offer #228",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>28 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "7 days before current date",
+    "from": "newsletter296@publication.com",
+    "subject": "Weekly Update #296",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>7 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "12 days before current date",
+    "from": "googlecloud-noreply@google.com",
+    "subject": "Google Cloud Summit - Register for free virtual event",
+    "body": "<html><body><div style='font-family: Google Sans, Arial, sans-serif; max-width: 600px;'><h2 style='color: #4285f4;'>Google Cloud Summit 2024</h2><p>Join us for the premier cloud computing event of the year!</p><p><strong>Date:</strong> <span style='color: #ea4335;'>20 days before current date</span><br><strong>Time:</strong> 9:00 AM - 5:00 PM PST</p><h3>What you'll learn:</h3><ul><li>AI and machine learning innovations</li><li>Multi-cloud strategies</li><li>Security best practices</li></ul><p style='text-align: center; margin: 30px 0;'><a href='#' style='background-color: #4285f4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px;'>Register Now</a></p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "38 days before current date",
+    "from": "hudson.sanders@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>35 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "41 days before current date",
+    "from": "liam.jenkins@mcp.com",
+    "subject": "Special offer #145",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>36 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "55 days before current date",
+    "from": "newsletter132@publication.com",
+    "subject": "Weekly Update #132",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>55 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "13 days before current date",
+    "from": "mason.sanders@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>10 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "45 days before current date",
+    "from": "newsletter84@publication.com",
+    "subject": "Weekly Update #84",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>45 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "33 days before current date",
+    "from": "skylar.ross@mcp.com",
+    "subject": "Special offer #73",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>28 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "37 days before current date",
+    "from": "newsletter266@publication.com",
+    "subject": "Weekly Update #266",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>37 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "52 days before current date",
+    "from": "donna.henderson@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>49 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "34 days before current date",
+    "from": "nora.gonzales@mcp.com",
+    "subject": "Special offer #113",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>29 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "56 days before current date",
+    "from": "daniel.lopez@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>53 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "54 days before current date",
+    "from": "madison.sanders@mcp.com",
+    "subject": "Special offer #82",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>49 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "35 days before current date",
+    "from": "weekly@fast.company",
+    "subject": "Fast Company - Weekly digest on business innovation",
+    "body": "<html><body>\n<div style='font-family: Arial, sans-serif; max-width: 600px;'>\n<h2 style='color: #2c3e50;'>Fast Company</h2>\n<p>Your weekly roundup of business innovation • <strong>35 days before current date</strong></p>\n\n<h3>This Week's Top Stories</h3>\n<div style='border-left: 3px solid #3498db; padding-left: 15px; margin: 20px 0;'>\n<h4><a href='#' style='color: #2c3e50; text-decoration: none;'>Major breakthrough in business innovation announced</a></h4>\n<p style='color: #666;'>Industry leaders gathered on <strong>37 days before current date</strong> to discuss the implications of recent developments...</p>\n</div>\n\n<div style='border-left: 3px solid #3498db; padding-left: 15px; margin: 20px 0;'>\n<h4><a href='#' style='color: #2c3e50; text-decoration: none;'>Market analysis: What investors are watching</a></h4>\n<p style='color: #666;'>Following the announcement on <strong>40 days before current date</strong>, market sentiment has shifted significantly...</p>\n</div>\n\n<h3>Upcoming Events</h3>\n<ul>\n<li><strong>Industry Conference 2024</strong> - <strong>25 days before current date</strong></li>\n<li><strong>Expert Panel Discussion</strong> - <strong>20 days before current date</strong></li>\n</ul>\n\n<p style='color: #666; font-size: 14px;'>You subscribed to Fast Company on <strong>80 days before current date</strong>.</p>\n</div>\n</body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "56 days before current date",
+    "from": "miles.barnes@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>53 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "9 days before current date",
+    "from": "abigail.spencer@mcp.com",
+    "subject": "Special offer #91",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>4 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "21 days before current date",
+    "from": "emma.wilson@freelance.net",
+    "subject": "Thank you for the referral!",
+    "body": "<html><body><p>Hi!</p><p>Just wanted to say a huge thank you for connecting me with David at TechFlow. We had our first meeting on <strong>23 days before current date</strong> and it went amazingly well!</p><p>They want to move forward with the project. I really owe you lunch - how about that new sushi place next Friday?</p><p>Best regards,<br>Emma</p></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "55 days before current date",
+    "from": "roman.ross@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>52 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "19 days before current date",
+    "from": "insights@harvard.edu",
+    "subject": "Harvard Business Review - Weekly digest on management",
+    "body": "<html><body>\n<div style='font-family: Arial, sans-serif; max-width: 600px;'>\n<h2 style='color: #2c3e50;'>Harvard Business Review</h2>\n<p>Your weekly roundup of management • <strong>19 days before current date</strong></p>\n\n<h3>This Week's Top Stories</h3>\n<div style='border-left: 3px solid #3498db; padding-left: 15px; margin: 20px 0;'>\n<h4><a href='#' style='color: #2c3e50; text-decoration: none;'>Major breakthrough in management announced</a></h4>\n<p style='color: #666;'>Industry leaders gathered on <strong>21 days before current date</strong> to discuss the implications of recent developments...</p>\n</div>\n\n<div style='border-left: 3px solid #3498db; padding-left: 15px; margin: 20px 0;'>\n<h4><a href='#' style='color: #2c3e50; text-decoration: none;'>Market analysis: What investors are watching</a></h4>\n<p style='color: #666;'>Following the announcement on <strong>24 days before current date</strong>, market sentiment has shifted significantly...</p>\n</div>\n\n<h3>Upcoming Events</h3>\n<ul>\n<li><strong>Industry Conference 2024</strong> - <strong>9 days before current date</strong></li>\n<li><strong>Expert Panel Discussion</strong> - <strong>4 days before current date</strong></li>\n</ul>\n\n<p style='color: #666; font-size: 14px;'>You subscribed to Harvard Business Review on <strong>64 days before current date</strong>.</p>\n</div>\n</body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "47 days before current date",
+    "from": "newsletter225@publication.com",
+    "subject": "Weekly Update #225",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>47 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "24 days before current date",
+    "from": "newsletter63@publication.com",
+    "subject": "Weekly Update #63",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>24 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "28 days before current date",
+    "from": "alexander.gonzales@mcp.com",
+    "subject": "Special offer #199",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>23 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "29 days before current date",
+    "from": "megan.wood@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>26 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "18 days before current date",
+    "from": "marketing@shopify.com",
+    "subject": "Black Friday sale tools - Get ready for your biggest sales day",
+    "body": "<html><body><div style='font-family: Arial, sans-serif; max-width: 600px;'><h2 style='color: #95bf47;'>Black Friday is coming!</h2><p>Get your store ready for the biggest shopping day of the year.</p><p><strong>Sale preparation checklist:</strong></p><ul><li>Set up automated email campaigns by <strong>10 days before current date</strong></li><li>Create discount codes and promotional banners</li><li>Optimize your checkout process</li></ul><p>Black Friday lands on <strong>25 days before current date</strong> - don't wait to prepare!</p><p style='text-align: center; margin: 30px 0;'><a href='#' style='background-color: #95bf47; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px;'>Get Sale Ready</a></p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "45 days before current date",
+    "from": "tyler.webb@mcp.com",
+    "subject": "Special offer #72",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>40 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "34 days before current date",
+    "from": "angela.coleman@mcp.com",
+    "subject": "Special offer #269",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>29 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "8 days before current date",
+    "from": "newsletter196@publication.com",
+    "subject": "Weekly Update #196",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>8 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "32 days before current date",
+    "from": "gabriel.henderson@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>29 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "37 days before current date",
+    "from": "sales@salesforce.com",
+    "subject": "Salesforce - Special offer for CRM platform users",
+    "body": "<html><body>\n<div style='font-family: Arial, sans-serif; max-width: 600px;'>\n<h2 style='color: #333;'>Salesforce - Transform your CRM platform workflow</h2>\n<p>Discover why over 100,000 teams choose Salesforce for their CRM platform needs.</p>\n<p><strong>Limited time offer ending <span style='color: #e74c3c;'>30 days before current date</span>:</strong></p>\n<ul>\n<li>50% off your first 6 months</li>\n<li>Free migration from your current platform</li>\n<li>Dedicated customer success manager</li>\n<li>Advanced analytics and reporting</li>\n</ul>\n<p>Join companies like Shopify, Airbnb, and Uber who have improved their CRM platform efficiency by 3x with Salesforce.</p>\n<p style='text-align: center; margin: 30px 0;'>\n<a href='#' style='background-color: #3498db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;'>Start Free Trial</a>\n</p>\n<p style='color: #666; font-size: 12px;'>Offer valid until <strong>30 days before current date</strong>. No credit card required for trial.</p>\n</div>\n</body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "10 days before current date",
+    "from": "newsletter211@publication.com",
+    "subject": "Weekly Update #211",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>10 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "25 days before current date",
+    "from": "michelle.ross@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>22 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "25 days before current date",
+    "from": "kelly.russell@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>22 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "6 days before current date",
+    "from": "no-reply@netflix.com",
+    "subject": "New releases this week + personalized recommendations",
+    "body": "<html><body><div style='font-family: Arial, sans-serif; max-width: 600px; background-color: #000;'><div style='color: white; padding: 20px;'><h2 style='color: #e50914;'>This week on Netflix</h2><p>Here's what's new and trending:</p><h3 style='color: #e50914;'>New Releases (Available <strong>7 days before current date</strong>):</h3><ul><li><strong>Stranger Things 5</strong> - The final season</li><li><strong>Wednesday: Season 2</strong> - More adventures</li></ul><p style='text-align: center; margin: 30px 0;'><a href='#' style='background-color: #e50914; color: white; padding: 12px 24px; text-decoration: none; border-radius: 3px;'>Continue Watching</a></p></div></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "17 days before current date",
+    "from": "victoria.henderson@mcp.com",
+    "subject": "Special offer #107",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>12 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "47 days before current date",
+    "from": "elizabeth.coleman@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>44 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "43 days before current date",
+    "from": "newsletter247@publication.com",
+    "subject": "Weekly Update #247",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>43 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "32 days before current date",
+    "from": "stephen.cooper@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>29 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "33 days before current date",
+    "from": "blake.ross@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>30 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "44 days before current date",
+    "from": "rachel.patel@nonprofit.org",
+    "subject": "Volunteer appreciation dinner invitation",
+    "body": "<html><body>\n<p>Dear friend,</p>\n<p>You've been such an amazing volunteer with our organization over the past year! We're hosting our annual appreciation dinner on <strong>37 days before current date</strong> at the downtown community center.</p>\n<p>The evening will feature:</p>\n<ul>\n<li>Catered dinner from Local Harvest Restaurant</li>\n<li>Recognition ceremony for outstanding volunteers</li>\n<li>Live music and networking</li>\n</ul>\n<p>Please RSVP by <strong>42 days before current date</strong>. We really hope you can join us!</p>\n<p>With gratitude,<br>Rachel</p>\n</body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "36 days before current date",
+    "from": "jonathan.ross@mcp.com",
+    "subject": "Special offer #87",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>31 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "40 days before current date",
+    "from": "gavin.coleman@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>37 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "8 days before current date",
+    "from": "braxton.barnes@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>5 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "20 days before current date",
+    "from": "owen.hamilton@mcp.com",
+    "subject": "Special offer #106",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>15 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "57 days before current date",
+    "from": "daily@wsj.com",
+    "subject": "Wall Street Journal - Weekly digest on business news",
+    "body": "<html><body>\n<div style='font-family: Arial, sans-serif; max-width: 600px;'>\n<h2 style='color: #2c3e50;'>Wall Street Journal</h2>\n<p>Your weekly roundup of business news • <strong>57 days before current date</strong></p>\n\n<h3>This Week's Top Stories</h3>\n<div style='border-left: 3px solid #3498db; padding-left: 15px; margin: 20px 0;'>\n<h4><a href='#' style='color: #2c3e50; text-decoration: none;'>Major breakthrough in business news announced</a></h4>\n<p style='color: #666;'>Industry leaders gathered on <strong>59 days before current date</strong> to discuss the implications of recent developments...</p>\n</div>\n\n<div style='border-left: 3px solid #3498db; padding-left: 15px; margin: 20px 0;'>\n<h4><a href='#' style='color: #2c3e50; text-decoration: none;'>Market analysis: What investors are watching</a></h4>\n<p style='color: #666;'>Following the announcement on <strong>62 days before current date</strong>, market sentiment has shifted significantly...</p>\n</div>\n\n<h3>Upcoming Events</h3>\n<ul>\n<li><strong>Industry Conference 2024</strong> - <strong>47 days before current date</strong></li>\n<li><strong>Expert Panel Discussion</strong> - <strong>42 days before current date</strong></li>\n</ul>\n\n<p style='color: #666; font-size: 14px;'>You subscribed to Wall Street Journal on <strong>102 days before current date</strong>.</p>\n</div>\n</body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "11 days before current date",
+    "from": "newsletter162@publication.com",
+    "subject": "Weekly Update #162",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>11 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "16 days before current date",
+    "from": "andrea.brooks@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>13 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "16 days before current date",
+    "from": "newsletter124@publication.com",
+    "subject": "Weekly Update #124",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>16 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "20 days before current date",
+    "from": "connor.ross@mcp.com",
+    "subject": "Special offer #255",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>15 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "11 days before current date",
+    "from": "kevin.lee@studio.io",
+    "subject": "Thanks for the workshop!",
+    "body": "<html><body><p>Hey,</p><p>Just wanted to thank you for the amazing React workshop on <strong>13 days before current date</strong>. I learned so much!</p><p>I've already started implementing some of the patterns you showed us. Would love to grab coffee sometime and chat more about best practices.</p><p>Thanks again!</p><p>Kevin</p></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "9 days before current date",
+    "from": "james.wright@university.edu",
+    "subject": "Research paper co-author invitation",
+    "body": "<html><body>\n<p>Hey!</p>\n<p>Quick question about the design assets you sent over on <strong>11 days before current date</strong>. I'm having trouble opening the Figma file - it might be a permissions issue.</p>\n<p>Could you double-check the sharing settings? I need to make some small tweaks before the client review on <strong>7 days before current date</strong>.</p>\n<p>Thanks!</p>\n<p>Carlos</p>\n</body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "17 days before current date",
+    "from": "genesis.jenkins@mcp.com",
+    "subject": "Special offer #297",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>12 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "33 days before current date",
+    "from": "newsletter159@publication.com",
+    "subject": "Weekly Update #159",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>33 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "46 days before current date",
+    "from": "amanda.hughes@mcp.com",
+    "subject": "Special offer #101",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>41 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "21 days before current date",
+    "from": "sandra.walker@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>18 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "1 days before current date",
+    "from": "newsletter291@publication.com",
+    "subject": "Weekly Update #291",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>1 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "42 days before current date",
+    "from": "jennifer.garcia@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>39 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "39 days before current date",
+    "from": "notifications@zoom.us",
+    "subject": "Zoom - Special offer for video conferencing users",
+    "body": "<html><body>\n<div style='font-family: Arial, sans-serif; max-width: 600px;'>\n<h2 style='color: #333;'>Zoom - Transform your video conferencing workflow</h2>\n<p>Discover why over 100,000 teams choose Zoom for their video conferencing needs.</p>\n<p><strong>Limited time offer ending <span style='color: #e74c3c;'>32 days before current date</span>:</strong></p>\n<ul>\n<li>50% off your first 6 months</li>\n<li>Free migration from your current platform</li>\n<li>Dedicated customer success manager</li>\n<li>Advanced analytics and reporting</li>\n</ul>\n<p>Join companies like Shopify, Airbnb, and Uber who have improved their video conferencing efficiency by 3x with Zoom.</p>\n<p style='text-align: center; margin: 30px 0;'>\n<a href='#' style='background-color: #3498db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;'>Start Free Trial</a>\n</p>\n<p style='color: #666; font-size: 12px;'>Offer valid until <strong>32 days before current date</strong>. No credit card required for trial.</p>\n</div>\n</body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "12 days before current date",
+    "from": "amanda.clark@marketing.agency",
+    "subject": "Brand strategy meeting follow-up",
+    "body": "<html><body>\n<p>Hey!</p>\n<p>Quick question about the design assets you sent over on <strong>14 days before current date</strong>. I'm having trouble opening the Figma file - it might be a permissions issue.</p>\n<p>Could you double-check the sharing settings? I need to make some small tweaks before the client review on <strong>10 days before current date</strong>.</p>\n<p>Thanks!</p>\n<p>Carlos</p>\n</body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "19 days before current date",
+    "from": "newsletter93@publication.com",
+    "subject": "Weekly Update #93",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>19 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "10 days before current date",
+    "from": "aurora.hughes@mcp.com",
+    "subject": "Special offer #116",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>5 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "19 days before current date",
+    "from": "rachel.cooper@mcp.com",
+    "subject": "Special offer #185",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>14 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "16 days before current date",
+    "from": "aaliyiah.powell@mcp.com",
+    "subject": "Special offer #248",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>11 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "36 days before current date",
+    "from": "landon.coleman@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>33 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "6 days before current date",
+    "from": "brooklyn.washington@mcp.com",
+    "subject": "Special offer #120",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>1 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "40 days before current date",
+    "from": "newsletter189@publication.com",
+    "subject": "Weekly Update #189",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>40 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "3 days before current date",
+    "from": "austin.henderson@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>0 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "26 days before current date",
+    "from": "benjamin.henderson@mcp.com",
+    "subject": "Special offer #207",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>21 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "3 days before current date",
+    "from": "david.kim@agency.co",
+    "subject": "Quick sync before the presentation",
+    "body": "<html><body><p>Hi,</p><p>Can we have a quick 15-minute call before the client presentation tomorrow? I want to make sure we're aligned on the messaging.</p><p>I'm available anytime between 2-4 PM today. The presentation deck looks great, by the way!</p><p>Thanks,<br>David</p></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "60 days before current date",
+    "from": "carlos.martinez@agency.com",
+    "subject": "Quick question about the design assets",
+    "body": "<html><body>\n<p>Hey!</p>\n<p>Quick question about the design assets you sent over on <strong>62 days before current date</strong>. I'm having trouble opening the Figma file - it might be a permissions issue.</p>\n<p>Could you double-check the sharing settings? I need to make some small tweaks before the client review on <strong>58 days before current date</strong>.</p>\n<p>Thanks!</p>\n<p>Carlos</p>\n</body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "14 days before current date",
+    "from": "newsletter97@publication.com",
+    "subject": "Weekly Update #97",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>14 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "21 days before current date",
+    "from": "newsletter238@publication.com",
+    "subject": "Weekly Update #238",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>21 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "11 days before current date",
+    "from": "newsletter149@publication.com",
+    "subject": "Weekly Update #149",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>11 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "47 days before current date",
+    "from": "lucas.powell@mcp.com",
+    "subject": "Special offer #289",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>42 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "13 days before current date",
+    "from": "aiden.jenkins@mcp.com",
+    "subject": "Special offer #259",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>8 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "14 days before current date",
+    "from": "nancy.white@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>11 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "4 days before current date",
+    "from": "lincoln.henderson@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>1 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "47 days before current date",
+    "from": "newsletter105@publication.com",
+    "subject": "Weekly Update #105",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>47 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "57 days before current date",
+    "from": "aiden.hamilton@mcp.com",
+    "subject": "Special offer #136",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>52 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "8 days before current date",
+    "from": "newsletter104@publication.com",
+    "subject": "Weekly Update #104",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>8 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "45 days before current date",
+    "from": "connor.gonzales@mcp.com",
+    "subject": "Special offer #75",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>40 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "24 days before current date",
+    "from": "newsletter245@publication.com",
+    "subject": "Weekly Update #245",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>24 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "3 days before current date",
+    "from": "jennifer.henderson@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>0 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "51 days before current date",
+    "from": "mason.henderson@mcp.com",
+    "subject": "Special offer #117",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>46 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "1 days before current date",
+    "from": "newsletter181@publication.com",
+    "subject": "Weekly Update #181",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>1 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "18 days before current date",
+    "from": "newsletter90@publication.com",
+    "subject": "Weekly Update #90",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>18 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "40 days before current date",
+    "from": "sebastian.barnes@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>37 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "11 days before current date",
+    "from": "newsletter249@publication.com",
+    "subject": "Weekly Update #249",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>11 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "0 days before current date",
+    "from": "noreply@apple.com",
+    "subject": "iPhone 15 Pro - Now available with trade-in offers",
+    "body": "<html><body><div style='font-family: Arial, sans-serif; max-width: 600px;'><h2 style='color: #1d1d1f;'>iPhone 15 Pro</h2><p>Discover the most advanced iPhone ever, featuring the powerful A17 Pro chip and revolutionary titanium design.</p><p><strong>Limited time offer ending <span style='color: #0066cc;'>7 days before current date</span>:</strong></p><ul><li>Trade in your old iPhone and get up to $800 credit</li><li>Free delivery by <strong>2 days before current date</strong></li><li>0% APR financing available</li></ul><p style='text-align: center; margin: 30px 0;'><a href='#' style='background-color: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;'>Shop iPhone 15 Pro</a></p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "41 days before current date",
+    "from": "newsletter146@publication.com",
+    "subject": "Weekly Update #146",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>41 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "19 days before current date",
+    "from": "victoria.sullivan@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>16 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "35 days before current date",
+    "from": "lisa.zhang@startup.com",
+    "subject": "Happy birthday! 🎉",
+    "body": "<html><body><p>Happy birthday!</p><p>Hope you have an amazing day. I saw on Instagram that you went to that new restaurant that opened on <strong>40 days before current date</strong> - how was it?</p><p>Let's celebrate properly this weekend!</p><p>Lots of love,<br>Lisa</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "54 days before current date",
+    "from": "newsletter251@publication.com",
+    "subject": "Weekly Update #251",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>54 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "51 days before current date",
+    "from": "newsletter281@publication.com",
+    "subject": "Weekly Update #281",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>51 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "51 days before current date",
+    "from": "stephanie.wong@research.edu",
+    "subject": "Collaboration proposal for the ML project",
+    "body": "<html><body>\n<p>Hi there,</p>\n<p>I hope this email finds you well. I've been following your work on machine learning applications in healthcare, particularly your paper published on <strong>81 days before current date</strong>.</p>\n<p>I'm currently working on a related project about predictive models for patient outcomes, and I think there could be some great synergy between our research.</p>\n<p>Would you be interested in a quick call sometime next week to discuss potential collaboration? I'm free on <strong>48 days before current date</strong> or <strong>46 days before current date</strong>.</p>\n<p>Looking forward to hearing from you!</p>\n<p>Best regards,<br>Stephanie</p>\n</body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "21 days before current date",
+    "from": "christian.coleman@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>18 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "19 days before current date",
+    "from": "newsletter231@publication.com",
+    "subject": "Weekly Update #231",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>19 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "20 days before current date",
+    "from": "newsletter@bloomberg.com",
+    "subject": "Bloomberg - Weekly digest on financial news",
+    "body": "<html><body>\n<div style='font-family: Arial, sans-serif; max-width: 600px;'>\n<h2 style='color: #2c3e50;'>Bloomberg</h2>\n<p>Your weekly roundup of financial news • <strong>20 days before current date</strong></p>\n\n<h3>This Week's Top Stories</h3>\n<div style='border-left: 3px solid #3498db; padding-left: 15px; margin: 20px 0;'>\n<h4><a href='#' style='color: #2c3e50; text-decoration: none;'>Major breakthrough in financial news announced</a></h4>\n<p style='color: #666;'>Industry leaders gathered on <strong>22 days before current date</strong> to discuss the implications of recent developments...</p>\n</div>\n\n<div style='border-left: 3px solid #3498db; padding-left: 15px; margin: 20px 0;'>\n<h4><a href='#' style='color: #2c3e50; text-decoration: none;'>Market analysis: What investors are watching</a></h4>\n<p style='color: #666;'>Following the announcement on <strong>25 days before current date</strong>, market sentiment has shifted significantly...</p>\n</div>\n\n<h3>Upcoming Events</h3>\n<ul>\n<li><strong>Industry Conference 2024</strong> - <strong>10 days before current date</strong></li>\n<li><strong>Expert Panel Discussion</strong> - <strong>5 days before current date</strong></li>\n</ul>\n\n<p style='color: #666; font-size: 14px;'>You subscribed to Bloomberg on <strong>65 days before current date</strong>.</p>\n</div>\n</body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "45 days before current date",
+    "from": "newsletter64@publication.com",
+    "subject": "Weekly Update #64",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>45 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "58 days before current date",
+    "from": "patricia.gonzales@mcp.com",
+    "subject": "Special offer #179",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>53 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "48 days before current date",
+    "from": "donald.perez@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>45 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "18 days before current date",
+    "from": "christopher.lane@mcp.com",
+    "subject": "Special offer #86",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>13 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "13 days before current date",
+    "from": "insights@stratechery.com",
+    "subject": "Stratechery: Big Tech's Q3 earnings analysis",
+    "body": "<html><body><div style='font-family: Georgia, serif; max-width: 600px;'><h2 style='color: #1a1a1a;'>Stratechery</h2><p>Technology strategy and analysis • <strong>13 days before current date</strong></p><h3>Today's Analysis</h3><div style='border-left: 3px solid #1a1a1a; padding-left: 20px; margin: 25px 0;'><h4>Big Tech Q3 Earnings: The AI Investment Payoff</h4><p>Amazon, Google, and Microsoft all reported strong quarterly results on <strong>15 days before current date</strong>, with AI services driving significant revenue growth...</p><p>Key takeaways:</p><ul><li>Cloud revenue up 35% year-over-year</li><li>AI adoption accelerating in enterprise</li><li>Consumer products seeing slower growth</li></ul></div><p>Premium subscribers can access the full 3,000-word analysis and quarterly comparison charts.</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "7 days before current date",
+    "from": "mike.rodriguez@university.edu",
+    "subject": "Coffee this weekend?",
+    "body": "<html><body><p>Hi there!</p><p>It's been way too long since we caught up! Are you free for coffee this Saturday around 11 AM? There's this new place that opened on <strong>12 days before current date</strong> that I've been wanting to try.</p><p>Let me know!</p><p>Cheers,<br>Mike</p></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "2 days before current date",
+    "from": "marie.morris@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>-1 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "18 days before current date",
+    "from": "newsletter76@publication.com",
+    "subject": "Weekly Update #76",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>18 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "21 days before current date",
+    "from": "olivia.collins@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>18 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "15 days before current date",
+    "from": "emma.brooks@mcp.com",
+    "subject": "Special offer #169",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>10 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "45 days before current date",
+    "from": "sophie.gonzales@mcp.com",
+    "subject": "Special offer #71",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>40 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "45 days before current date",
+    "from": "benjamin.butler@mcp.com",
+    "subject": "Special offer #163",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>40 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "7 days before current date",
+    "from": "newsletter70@publication.com",
+    "subject": "Weekly Update #70",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>7 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "7 days before current date",
+    "from": "sophia.wells@mcp.com",
+    "subject": "Special offer #60",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>2 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "52 days before current date",
+    "from": "newsletter279@publication.com",
+    "subject": "Weekly Update #279",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>52 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "31 days before current date",
+    "from": "jack.washington@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>28 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "46 days before current date",
+    "from": "linda.davis@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>43 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "39 days before current date",
+    "from": "daniel.fischer@photography.com",
+    "subject": "Wedding photography consultation",
+    "body": "<html><body>\n<p>Hey!</p>\n<p>Quick question about the design assets you sent over on <strong>41 days before current date</strong>. I'm having trouble opening the Figma file - it might be a permissions issue.</p>\n<p>Could you double-check the sharing settings? I need to make some small tweaks before the client review on <strong>37 days before current date</strong>.</p>\n<p>Thanks!</p>\n<p>Carlos</p>\n</body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "1 day before current date",
+    "from": "jenny.park@designstudio.com",
+    "subject": "Re: Logo feedback",
+    "body": "<html><body><p>Thanks for the quick turnaround!</p><p>I love the new color scheme you proposed. The client meeting is scheduled for <strong>3 days before current date</strong>, so perfect timing.</p><p>Just one small tweak - can we try the logo in a slightly bolder font? Other than that, it looks fantastic.</p><p>Best,<br>Jenny</p></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "40 days before current date",
+    "from": "samuel.long@mcp.com",
+    "subject": "Special offer #119",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>35 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "19 days before current date",
+    "from": "cody.sanders@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>16 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "11 days before current date",
+    "from": "newsletter241@publication.com",
+    "subject": "Weekly Update #241",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>11 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "33 days before current date",
+    "from": "ellie.washington@mcp.com",
+    "subject": "Special offer #253",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>28 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "19 days before current date",
+    "from": "kevin.black@mcp.com",
+    "subject": "Special offer #246",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>14 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "30 days before current date",
+    "from": "alex.morgan@mcp.com",
+    "subject": "Special offer #144",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>25 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "3 days before current date",
+    "from": "newsletter271@publication.com",
+    "subject": "Weekly Update #271",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>3 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "25 days before current date",
+    "from": "kathryn.hughes@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>22 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "59 days before current date",
+    "from": "newsletter122@publication.com",
+    "subject": "Weekly Update #122",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>59 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "19 days before current date",
+    "from": "maria.garcia@business.net",
+    "subject": "Wedding invitation coming your way!",
+    "body": "<html><body><p>Hi!</p><p>Just wanted to give you a heads up that our wedding invitation will be arriving soon! The wedding is on <strong>45 days before current date</strong> in Napa Valley.</p><p>Really hope you can make it. It would mean the world to us to have you there!</p><p>Love,<br>Maria</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "5 days before current date",
+    "from": "newsletter@theverge.com",
+    "subject": "The Verge: Technology, science, art, and culture",
+    "body": "<html><body><div style='font-family: Arial, sans-serif; max-width: 600px;'><h2 style='color: #ff6600;'>The Verge Newsletter</h2><p>Technology news and analysis • <strong>5 days before current date</strong></p><h3>Today's Stories</h3><div style='border-left: 4px solid #ff6600; padding-left: 15px; margin: 20px 0;'><h4><a href='#' style='color: #333; text-decoration: none;'>Apple's new MacBook Pro gets M3 chip upgrade</a></h4><p>The latest MacBook Pro lineup launched on <strong>7 days before current date</strong> features significant performance improvements...</p></div><div style='border-left: 4px solid #ff6600; padding-left: 15px; margin: 20px 0;'><h4><a href='#' style='color: #333; text-decoration: none;'>Tesla's Cybertruck finally hits the road</a></h4><p>First deliveries began on <strong>10 days before current date</strong> after years of delays...</p></div></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "51 days before current date",
+    "from": "newsletter@wired.com",
+    "subject": "WIRED: The future of AI and humanity",
+    "body": "<html><body><div style='font-family: Arial, sans-serif; max-width: 600px;'><h2 style='color: #000;'>WIRED Newsletter</h2><p>Ideas, breakthroughs, and the future • <strong>51 days before current date</strong></p><h3>This Week's Deep Dive</h3><div style='background-color: #f5f5f5; padding: 20px; margin: 20px 0;'><h4>The AI Revolution: Where We Stand Today</h4><p>Six months after GPT-4's release on <strong>180 days before current date</strong>, we examine how artificial intelligence has transformed industries from healthcare to creative arts.</p><p><a href='#' style='color: #000; font-weight: bold;'>Read the full analysis →</a></p></div><h3>Tech Briefing</h3><ul><li>Meta's new VR headset launches <strong>40 days before current date</strong></li><li>Quantum internet test successful in Europe</li></ul></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "14 days before current date",
+    "from": "newsletter216@publication.com",
+    "subject": "Weekly Update #216",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>14 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "9 days before current date",
+    "from": "logan.sanders@mcp.com",
+    "subject": "Special offer #257",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>4 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "10 days before current date",
+    "from": "adam.gray@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>7 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "51 days before current date",
+    "from": "newsletter173@publication.com",
+    "subject": "Weekly Update #173",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>51 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "33 days before current date",
+    "from": "deals@uber.com",
+    "subject": "50% off your next 5 rides - Limited time offer",
+    "body": "<html><body><div style='font-family: Arial, sans-serif; max-width: 600px;'><h2 style='color: #000;'>50% off your next 5 rides</h2><p>Thanks for being a loyal Uber rider! We're celebrating with a special offer just for you.</p><p><strong>Your promo code: SAVE50RIDES</strong></p><ul><li>Valid for 5 rides up to $20 discount each</li><li>Expires on <strong>20 days before current date</strong></li><li>Use for UberX, Uber Comfort, or Uber Black</li></ul><p style='text-align: center; margin: 30px 0;'><a href='#' style='background-color: #000; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px;'>Book Your Ride</a></p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "6 days before current date",
+    "from": "newsletter270@publication.com",
+    "subject": "Weekly Update #270",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>6 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "42 days before current date",
+    "from": "newsletter282@publication.com",
+    "subject": "Weekly Update #282",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>42 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "23 days before current date",
+    "from": "cole.henderson@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>20 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "58 days before current date",
+    "from": "jennifer.butler@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>55 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "37 days before current date",
+    "from": "william.russell@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>34 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "9 days before current date",
+    "from": "promotions@airbnb.com",
+    "subject": "Spring getaway deals - Up to 30% off unique stays",
+    "body": "<html><body><div style='font-family: Arial, sans-serif; max-width: 600px;'><h2 style='color: #ff385c;'>Spring into savings</h2><p>Discover amazing places to stay with up to 30% off select properties.</p><p><strong>Featured destinations for spring travel:</strong></p><ul><li>Cozy cabins in the mountains</li><li>Beachfront villas</li><li>City apartments with stunning views</li></ul><p>Book by <strong>3 days before current date</strong> for stays through <strong>60 days before current date</strong>.</p><p style='text-align: center; margin: 30px 0;'><a href='#' style='background-color: #ff385c; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px;'>Explore Deals</a></p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "57 days before current date",
+    "from": "ethan.hamilton@mcp.com",
+    "subject": "Special offer #118",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>52 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "14 days before current date",
+    "from": "jayden.barnes@mcp.com",
+    "subject": "Special offer #193",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>9 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "44 days before current date",
+    "from": "ashley.washington@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>41 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "42 days before current date",
+    "from": "savannah.hamilton@mcp.com",
+    "subject": "Special offer #292",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>37 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "55 days before current date",
+    "from": "promotions@linkedin.com",
+    "subject": "LinkedIn - Special offer for professional network users",
+    "body": "<html><body>\n<div style='font-family: Arial, sans-serif; max-width: 600px;'>\n<h2 style='color: #333;'>LinkedIn - Transform your professional network workflow</h2>\n<p>Discover why over 100,000 teams choose LinkedIn for their professional network needs.</p>\n<p><strong>Limited time offer ending <span style='color: #e74c3c;'>48 days before current date</span>:</strong></p>\n<ul>\n<li>50% off your first 6 months</li>\n<li>Free migration from your current platform</li>\n<li>Dedicated customer success manager</li>\n<li>Advanced analytics and reporting</li>\n</ul>\n<p>Join companies like Shopify, Airbnb, and Uber who have improved their professional network efficiency by 3x with LinkedIn.</p>\n<p style='text-align: center; margin: 30px 0;'>\n<a href='#' style='background-color: #3498db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;'>Start Free Trial</a>\n</p>\n<p style='color: #666; font-size: 12px;'>Offer valid until <strong>48 days before current date</strong>. No credit card required for trial.</p>\n</div>\n</body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "20 days before current date",
+    "from": "nina.kowalski@startup.io",
+    "subject": "Exciting news about the funding round!",
+    "body": "<html><body>\n<p>Hey!</p>\n<p>I couldn't wait to share the amazing news - we just closed our Series A funding round! The announcement went public on <strong>21 days before current date</strong>.</p>\n<p>We raised $15 million led by Andreessen Horowitz, with participation from several other top-tier VCs. This is a huge validation of everything we've been building.</p>\n<p>Celebration drinks are on me next Friday! Are you free to join us at that rooftop bar we went to last month?</p>\n<p>So excited about what's next!</p>\n<p>Nina</p>\n</body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "19 days before current date",
+    "from": "hunter.sanders@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>16 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "56 days before current date",
+    "from": "team@slack.com",
+    "subject": "Slack - Special offer for workplace communication users",
+    "body": "<html><body>\n<div style='font-family: Arial, sans-serif; max-width: 600px;'>\n<h2 style='color: #333;'>Slack - Transform your workplace communication workflow</h2>\n<p>Discover why over 100,000 teams choose Slack for their workplace communication needs.</p>\n<p><strong>Limited time offer ending <span style='color: #e74c3c;'>49 days before current date</span>:</strong></p>\n<ul>\n<li>50% off your first 6 months</li>\n<li>Free migration from your current platform</li>\n<li>Dedicated customer success manager</li>\n<li>Advanced analytics and reporting</li>\n</ul>\n<p>Join companies like Shopify, Airbnb, and Uber who have improved their workplace communication efficiency by 3x with Slack.</p>\n<p style='text-align: center; margin: 30px 0;'>\n<a href='#' style='background-color: #3498db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;'>Start Free Trial</a>\n</p>\n<p style='color: #666; font-size: 12px;'>Offer valid until <strong>49 days before current date</strong>. No credit card required for trial.</p>\n</div>\n</body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "58 days before current date",
+    "from": "carter.washington@mcp.com",
+    "subject": "Special offer #94",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>53 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "33 days before current date",
+    "from": "deals@dropbox.com",
+    "subject": "Dropbox - Special offer for cloud storage users",
+    "body": "<html><body>\n<div style='font-family: Arial, sans-serif; max-width: 600px;'>\n<h2 style='color: #333;'>Dropbox - Transform your cloud storage workflow</h2>\n<p>Discover why over 100,000 teams choose Dropbox for their cloud storage needs.</p>\n<p><strong>Limited time offer ending <span style='color: #e74c3c;'>26 days before current date</span>:</strong></p>\n<ul>\n<li>50% off your first 6 months</li>\n<li>Free migration from your current platform</li>\n<li>Dedicated customer success manager</li>\n<li>Advanced analytics and reporting</li>\n</ul>\n<p>Join companies like Shopify, Airbnb, and Uber who have improved their cloud storage efficiency by 3x with Dropbox.</p>\n<p style='text-align: center; margin: 30px 0;'>\n<a href='#' style='background-color: #3498db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;'>Start Free Trial</a>\n</p>\n<p style='color: #666; font-size: 12px;'>Offer valid until <strong>26 days before current date</strong>. No credit card required for trial.</p>\n</div>\n</body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "50 days before current date",
+    "from": "gabriel.hughes@mcp.com",
+    "subject": "Special offer #130",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>45 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "17 days before current date",
+    "from": "paul.king@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>14 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "51 days before current date",
+    "from": "newsletter242@publication.com",
+    "subject": "Weekly Update #242",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>51 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "1 days before current date",
+    "from": "stephanie.henderson@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>-2 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "56 days before current date",
+    "from": "updates@nytimes.com",
+    "subject": "New York Times - Weekly digest on general news",
+    "body": "<html><body>\n<div style='font-family: Arial, sans-serif; max-width: 600px;'>\n<h2 style='color: #2c3e50;'>New York Times</h2>\n<p>Your weekly roundup of general news • <strong>56 days before current date</strong></p>\n\n<h3>This Week's Top Stories</h3>\n<div style='border-left: 3px solid #3498db; padding-left: 15px; margin: 20px 0;'>\n<h4><a href='#' style='color: #2c3e50; text-decoration: none;'>Major breakthrough in general news announced</a></h4>\n<p style='color: #666;'>Industry leaders gathered on <strong>58 days before current date</strong> to discuss the implications of recent developments...</p>\n</div>\n\n<div style='border-left: 3px solid #3498db; padding-left: 15px; margin: 20px 0;'>\n<h4><a href='#' style='color: #2c3e50; text-decoration: none;'>Market analysis: What investors are watching</a></h4>\n<p style='color: #666;'>Following the announcement on <strong>61 days before current date</strong>, market sentiment has shifted significantly...</p>\n</div>\n\n<h3>Upcoming Events</h3>\n<ul>\n<li><strong>Industry Conference 2024</strong> - <strong>46 days before current date</strong></li>\n<li><strong>Expert Panel Discussion</strong> - <strong>41 days before current date</strong></li>\n</ul>\n\n<p style='color: #666; font-size: 14px;'>You subscribed to New York Times on <strong>101 days before current date</strong>.</p>\n</div>\n</body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "53 days before current date",
+    "from": "betty.washington@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>50 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "31 days before current date",
+    "from": "newsletter77@publication.com",
+    "subject": "Weekly Update #77",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>31 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "34 days before current date",
+    "from": "melissa.coleman@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>31 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "43 days before current date",
+    "from": "scott.ward@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>40 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "23 days before current date",
+    "from": "newsletter74@publication.com",
+    "subject": "Weekly Update #74",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>23 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "31 days before current date",
+    "from": "nicholas.graham@mcp.com",
+    "subject": "Special offer #215",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>26 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "7 days before current date",
+    "from": "maya.hamilton@mcp.com",
+    "subject": "Special offer #261",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>2 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "28 days before current date",
+    "from": "newsletter265@publication.com",
+    "subject": "Weekly Update #265",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>28 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "54 days before current date",
+    "from": "newsletter67@publication.com",
+    "subject": "Weekly Update #67",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>54 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "9 days before current date",
+    "from": "julie.cook@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>6 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "38 days before current date",
+    "from": "jack.hughes@mcp.com",
+    "subject": "Special offer #160",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>33 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "24 days before current date",
+    "from": "caleb.russell@mcp.com",
+    "subject": "Special offer #80",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>19 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "31 days before current date",
+    "from": "priya.sharma@consulting.biz",
+    "subject": "Can you review this proposal draft?",
+    "body": "<html><body>\n<p>Hey!</p>\n<p>Quick question about the design assets you sent over on <strong>33 days before current date</strong>. I'm having trouble opening the Figma file - it might be a permissions issue.</p>\n<p>Could you double-check the sharing settings? I need to make some small tweaks before the client review on <strong>29 days before current date</strong>.</p>\n<p>Thanks!</p>\n<p>Carlos</p>\n</body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "52 days before current date",
+    "from": "thomas.anderson@techcompany.com",
+    "subject": "Code review feedback needed",
+    "body": "<html><body>\n<p>Hi,</p>\n<p>I've finished reviewing the authentication module you pushed on <strong>53 days before current date</strong>. Overall, the implementation looks solid!</p>\n<p>I have a few suggestions:</p>\n<ul>\n<li>Consider adding rate limiting to the login endpoint</li>\n<li>The password validation could be stricter</li>\n<li>Add unit tests for the edge cases we discussed</li>\n</ul>\n<p>The deadline is <strong>47 days before current date</strong>, so we have some time to iterate. Let me know if you want to pair program on any of these changes.</p>\n<p>Great work!</p>\n<p>Thomas</p>\n</body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "28 days before current date",
+    "from": "annie.sanders@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>25 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "22 days before current date",
+    "from": "newsletter108@publication.com",
+    "subject": "Weekly Update #108",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>22 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "16 days before current date",
+    "from": "tech@reuters.com",
+    "subject": "Reuters Tech - Weekly digest on technology news",
+    "body": "<html><body>\n<div style='font-family: Arial, sans-serif; max-width: 600px;'>\n<h2 style='color: #2c3e50;'>Reuters Tech</h2>\n<p>Your weekly roundup of technology news • <strong>16 days before current date</strong></p>\n\n<h3>This Week's Top Stories</h3>\n<div style='border-left: 3px solid #3498db; padding-left: 15px; margin: 20px 0;'>\n<h4><a href='#' style='color: #2c3e50; text-decoration: none;'>Major breakthrough in technology news announced</a></h4>\n<p style='color: #666;'>Industry leaders gathered on <strong>18 days before current date</strong> to discuss the implications of recent developments...</p>\n</div>\n\n<div style='border-left: 3px solid #3498db; padding-left: 15px; margin: 20px 0;'>\n<h4><a href='#' style='color: #2c3e50; text-decoration: none;'>Market analysis: What investors are watching</a></h4>\n<p style='color: #666;'>Following the announcement on <strong>21 days before current date</strong>, market sentiment has shifted significantly...</p>\n</div>\n\n<h3>Upcoming Events</h3>\n<ul>\n<li><strong>Industry Conference 2024</strong> - <strong>6 days before current date</strong></li>\n<li><strong>Expert Panel Discussion</strong> - <strong>1 days before current date</strong></li>\n</ul>\n\n<p style='color: #666; font-size: 14px;'>You subscribed to Reuters Tech on <strong>61 days before current date</strong>.</p>\n</div>\n</body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "44 days before current date",
+    "from": "daily@arstechnica.com",
+    "subject": "Ars Technica: Science and technology news",
+    "body": "<html><body><div style='font-family: Arial, sans-serif; max-width: 600px;'><h2 style='color: #c41e3a;'>Ars Technica Daily</h2><p>Science, technology, and policy news • <strong>44 days before current date</strong></p><h3>Featured Articles</h3><ul><li><a href='#' style='color: #c41e3a;'>New quantum computing breakthrough at IBM</a> - Published <strong>45 days before current date</strong></li><li><a href='#' style='color: #c41e3a;'>SpaceX Starship completes successful orbital test</a></li><li><a href='#' style='color: #c41e3a;'>Climate change report shows accelerating trends</a></li></ul><h3>Policy & Law</h3><p>EU's Digital Services Act enforcement begins on <strong>30 days before current date</strong>, affecting major tech platforms...</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "53 days before current date",
+    "from": "newsletter237@publication.com",
+    "subject": "Weekly Update #237",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>53 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "1 days before current date",
+    "from": "carol.allen@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>-2 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "24 days before current date",
+    "from": "justin.perry@mcp.com",
+    "subject": "Special offer #112",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>19 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "19 days before current date",
+    "from": "newsletter222@publication.com",
+    "subject": "Weekly Update #222",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>19 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "36 days before current date",
+    "from": "wyatt.henderson@mcp.com",
+    "subject": "Special offer #99",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>31 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "44 days before current date",
+    "from": "newsletter197@publication.com",
+    "subject": "Weekly Update #197",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>44 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "52 days before current date",
+    "from": "daily@venturebeat.com",
+    "subject": "VentureBeat - Weekly digest on startup news",
+    "body": "<html><body>\n<div style='font-family: Arial, sans-serif; max-width: 600px;'>\n<h2 style='color: #2c3e50;'>VentureBeat</h2>\n<p>Your weekly roundup of startup news • <strong>52 days before current date</strong></p>\n\n<h3>This Week's Top Stories</h3>\n<div style='border-left: 3px solid #3498db; padding-left: 15px; margin: 20px 0;'>\n<h4><a href='#' style='color: #2c3e50; text-decoration: none;'>Major breakthrough in startup news announced</a></h4>\n<p style='color: #666;'>Industry leaders gathered on <strong>54 days before current date</strong> to discuss the implications of recent developments...</p>\n</div>\n\n<div style='border-left: 3px solid #3498db; padding-left: 15px; margin: 20px 0;'>\n<h4><a href='#' style='color: #2c3e50; text-decoration: none;'>Market analysis: What investors are watching</a></h4>\n<p style='color: #666;'>Following the announcement on <strong>57 days before current date</strong>, market sentiment has shifted significantly...</p>\n</div>\n\n<h3>Upcoming Events</h3>\n<ul>\n<li><strong>Industry Conference 2024</strong> - <strong>42 days before current date</strong></li>\n<li><strong>Expert Panel Discussion</strong> - <strong>37 days before current date</strong></li>\n</ul>\n\n<p style='color: #666; font-size: 14px;'>You subscribed to VentureBeat on <strong>97 days before current date</strong>.</p>\n</div>\n</body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "9 days before current date",
+    "from": "newsletter140@publication.com",
+    "subject": "Weekly Update #140",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>9 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "29 days before current date",
+    "from": "updates@protocol.com",
+    "subject": "Protocol - Weekly digest on enterprise technology",
+    "body": "<html><body>\n<div style='font-family: Arial, sans-serif; max-width: 600px;'>\n<h2 style='color: #2c3e50;'>Protocol</h2>\n<p>Your weekly roundup of enterprise technology • <strong>29 days before current date</strong></p>\n\n<h3>This Week's Top Stories</h3>\n<div style='border-left: 3px solid #3498db; padding-left: 15px; margin: 20px 0;'>\n<h4><a href='#' style='color: #2c3e50; text-decoration: none;'>Major breakthrough in enterprise technology announced</a></h4>\n<p style='color: #666;'>Industry leaders gathered on <strong>31 days before current date</strong> to discuss the implications of recent developments...</p>\n</div>\n\n<div style='border-left: 3px solid #3498db; padding-left: 15px; margin: 20px 0;'>\n<h4><a href='#' style='color: #2c3e50; text-decoration: none;'>Market analysis: What investors are watching</a></h4>\n<p style='color: #666;'>Following the announcement on <strong>34 days before current date</strong>, market sentiment has shifted significantly...</p>\n</div>\n\n<h3>Upcoming Events</h3>\n<ul>\n<li><strong>Industry Conference 2024</strong> - <strong>19 days before current date</strong></li>\n<li><strong>Expert Panel Discussion</strong> - <strong>14 days before current date</strong></li>\n</ul>\n\n<p style='color: #666; font-size: 14px;'>You subscribed to Protocol on <strong>74 days before current date</strong>.</p>\n</div>\n</body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "22 days before current date",
+    "from": "riley.gonzales@mcp.com",
+    "subject": "Special offer #166",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>17 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "9 days before current date",
+    "from": "michael.stone@mcp.com",
+    "subject": "Special offer #277",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>4 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "44 days before current date",
+    "from": "mary.henderson@mcp.com",
+    "subject": "Special offer #286",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>39 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "45 days before current date",
+    "from": "updates@notion.so",
+    "subject": "Notion - Special offer for productivity tool users",
+    "body": "<html><body>\n<div style='font-family: Arial, sans-serif; max-width: 600px;'>\n<h2 style='color: #333;'>Notion - Transform your productivity tool workflow</h2>\n<p>Discover why over 100,000 teams choose Notion for their productivity tool needs.</p>\n<p><strong>Limited time offer ending <span style='color: #e74c3c;'>38 days before current date</span>:</strong></p>\n<ul>\n<li>50% off your first 6 months</li>\n<li>Free migration from your current platform</li>\n<li>Dedicated customer success manager</li>\n<li>Advanced analytics and reporting</li>\n</ul>\n<p>Join companies like Shopify, Airbnb, and Uber who have improved their productivity tool efficiency by 3x with Notion.</p>\n<p style='text-align: center; margin: 30px 0;'>\n<a href='#' style='background-color: #3498db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;'>Start Free Trial</a>\n</p>\n<p style='color: #666; font-size: 12px;'>Offer valid until <strong>38 days before current date</strong>. No credit card required for trial.</p>\n</div>\n</body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "2 days before current date",
+    "from": "avery.mitchell@mcp.com",
+    "subject": "Special offer #137",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>-3 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "6 days before current date",
+    "from": "sebastian.powell@mcp.com",
+    "subject": "Special offer #165",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>1 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "4 days before current date",
+    "from": "jennifer.ross@mcp.com",
+    "subject": "Special offer #65",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>-1 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "48 days before current date",
+    "from": "newsletter191@publication.com",
+    "subject": "Weekly Update #191",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>48 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "42 days before current date",
+    "from": "addison.coleman@mcp.com",
+    "subject": "Special offer #294",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>37 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "47 days before current date",
+    "from": "team@discord.com",
+    "subject": "Discord - Special offer for communication platform users",
+    "body": "<html><body>\n<div style='font-family: Arial, sans-serif; max-width: 600px;'>\n<h2 style='color: #333;'>Discord - Transform your communication platform workflow</h2>\n<p>Discover why over 100,000 teams choose Discord for their communication platform needs.</p>\n<p><strong>Limited time offer ending <span style='color: #e74c3c;'>40 days before current date</span>:</strong></p>\n<ul>\n<li>50% off your first 6 months</li>\n<li>Free migration from your current platform</li>\n<li>Dedicated customer success manager</li>\n<li>Advanced analytics and reporting</li>\n</ul>\n<p>Join companies like Shopify, Airbnb, and Uber who have improved their communication platform efficiency by 3x with Discord.</p>\n<p style='text-align: center; margin: 30px 0;'>\n<a href='#' style='background-color: #3498db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;'>Start Free Trial</a>\n</p>\n<p style='color: #666; font-size: 12px;'>Offer valid until <strong>40 days before current date</strong>. No credit card required for trial.</p>\n</div>\n</body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "37 days before current date",
+    "from": "cameron.sanders@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>34 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "15 days before current date",
+    "from": "morning-brew@morningbrew.com",
+    "subject": "Market volatility continues as Fed signals rate changes",
+    "body": "<html><body><div style='font-family: Arial, sans-serif; max-width: 600px;'><div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center;'><h1 style='margin: 0;'>Morning Brew</h1></div><div style='padding: 20px;'><p>Good morning! It's <strong>15 days before current date</strong> and here's what you need to know:</p><h2 style='color: #333;'>🏦 Markets</h2><p><strong>Stocks opened mixed</strong> after yesterday's Fed announcement. The Dow gained 0.3% while the Nasdaq fell 0.8%.</p><h2 style='color: #333;'>💼 Business</h2><p><strong>Amazon's new initiative:</strong> A $15 billion investment in AI infrastructure announced on <strong>17 days before current date</strong>.</p></div></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "37 days before current date",
+    "from": "digest@techcrunch.com",
+    "subject": "TechCrunch: Startups, funding, and the latest in tech",
+    "body": "<html><body><div style='font-family: Arial, sans-serif; max-width: 600px;'><div style='background-color: #0f7b0f; color: white; padding: 20px;'><h1 style='margin: 0; font-size: 24px;'>TechCrunch</h1></div><div style='padding: 20px;'><p>Here are today's top stories from <strong>37 days before current date</strong>:</p><div style='border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 15px;'><h3 style='color: #0f7b0f;'><a href='#' style='text-decoration: none; color: #0f7b0f;'>AI startup Anthropic raises $450M in Series C</a></h3><p style='color: #666; font-size: 14px;'>Claude AI maker closed a massive funding round...</p></div><h3 style='color: #333;'>📈 Funding Roundup</h3><ul><li><strong>CloudSec</strong> - $35M Series B announced <strong>40 days before current date</strong></li></ul></div></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "1 day before current date",
+    "from": "noreply@medium.com",
+    "subject": "Your personalized reading digest - 5 min read",
+    "body": "<html><body><div style='font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; max-width: 600px;'><h2 style='color: #242424;'>Your daily digest</h2><p>Good morning! Here are today's top stories:</p><div style='border-left: 3px solid #03a87c; padding-left: 15px; margin: 20px 0;'><h3><a href='#' style='color: #242424; text-decoration: none;'>The Future of AI in 2024: What Developers Need to Know</a></h3><p style='color: #757575;'>By Sarah Chen • 8 min read • Published <strong>2 days before current date</strong></p><p>A comprehensive look at emerging AI trends and their impact on software development...</p></div><p style='color: #757575; font-size: 14px;'>You subscribed on <strong>45 days before current date</strong>.</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "44 days before current date",
+    "from": "newsletter141@publication.com",
+    "subject": "Weekly Update #141",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>44 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "42 days before current date",
+    "from": "newsletter66@publication.com",
+    "subject": "Weekly Update #66",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>42 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "21 days before current date",
+    "from": "newsletter62@publication.com",
+    "subject": "Weekly Update #62",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>21 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "31 days before current date",
+    "from": "newsletter214@publication.com",
+    "subject": "Weekly Update #214",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>31 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "8 days before current date",
+    "from": "newsletter@substack.com",
+    "subject": "The Weekly Tech Roundup - Issue #247",
+    "body": "<html><body><div style='font-family: Georgia, serif; max-width: 600px;'><h1 style='color: #ff6719;'>The Weekly Tech Roundup</h1><p style='color: #666; font-style: italic;'>Issue #247 • <strong>8 days before current date</strong></p><h2>This Week's Headlines</h2><h3>🚀 Product Launches</h3><ul><li><strong>OpenAI GPT-4 Turbo</strong> - Released on <strong>10 days before current date</strong></li><li><strong>Apple Vision Pro</strong> - Developer beta available</li></ul><h3>📊 Funding News</h3><ul><li><strong>TechStart AI</strong> - $50M Series B (announced <strong>12 days before current date</strong>)</li></ul><p>Next issue drops on <strong>1 day before current date</strong>.</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "8 days before current date",
+    "from": "newsletter170@publication.com",
+    "subject": "Weekly Update #170",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>8 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "16 days before current date",
+    "from": "newsletter152@publication.com",
+    "subject": "Weekly Update #152",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>16 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "30 days before current date",
+    "from": "mia.woods@mcp.com",
+    "subject": "Special offer #125",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>25 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "39 days before current date",
+    "from": "aubrey.butler@mcp.com",
+    "subject": "Special offer #220",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>34 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "37 days before current date",
+    "from": "helen.lewis@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>34 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "46 days before current date",
+    "from": "douglas.james@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>43 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "36 days before current date",
+    "from": "julie.hamilton@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>33 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "53 days before current date",
+    "from": "digest@economist.com",
+    "subject": "The Economist - Weekly digest on economic analysis",
+    "body": "<html><body>\n<div style='font-family: Arial, sans-serif; max-width: 600px;'>\n<h2 style='color: #2c3e50;'>The Economist</h2>\n<p>Your weekly roundup of economic analysis • <strong>53 days before current date</strong></p>\n\n<h3>This Week's Top Stories</h3>\n<div style='border-left: 3px solid #3498db; padding-left: 15px; margin: 20px 0;'>\n<h4><a href='#' style='color: #2c3e50; text-decoration: none;'>Major breakthrough in economic analysis announced</a></h4>\n<p style='color: #666;'>Industry leaders gathered on <strong>55 days before current date</strong> to discuss the implications of recent developments...</p>\n</div>\n\n<div style='border-left: 3px solid #3498db; padding-left: 15px; margin: 20px 0;'>\n<h4><a href='#' style='color: #2c3e50; text-decoration: none;'>Market analysis: What investors are watching</a></h4>\n<p style='color: #666;'>Following the announcement on <strong>58 days before current date</strong>, market sentiment has shifted significantly...</p>\n</div>\n\n<h3>Upcoming Events</h3>\n<ul>\n<li><strong>Industry Conference 2024</strong> - <strong>43 days before current date</strong></li>\n<li><strong>Expert Panel Discussion</strong> - <strong>38 days before current date</strong></li>\n</ul>\n\n<p style='color: #666; font-size: 14px;'>You subscribed to The Economist on <strong>98 days before current date</strong>.</p>\n</div>\n</body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "60 days before current date",
+    "from": "matthew.hunt@mcp.com",
+    "subject": "Special offer #209",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>55 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "27 days before current date",
+    "from": "marketing@adobe.com",
+    "subject": "Adobe - Special offer for creative software users",
+    "body": "<html><body>\n<div style='font-family: Arial, sans-serif; max-width: 600px;'>\n<h2 style='color: #333;'>Adobe - Transform your creative software workflow</h2>\n<p>Discover why over 100,000 teams choose Adobe for their creative software needs.</p>\n<p><strong>Limited time offer ending <span style='color: #e74c3c;'>20 days before current date</span>:</strong></p>\n<ul>\n<li>50% off your first 6 months</li>\n<li>Free migration from your current platform</li>\n<li>Dedicated customer success manager</li>\n<li>Advanced analytics and reporting</li>\n</ul>\n<p>Join companies like Shopify, Airbnb, and Uber who have improved their creative software efficiency by 3x with Adobe.</p>\n<p style='text-align: center; margin: 30px 0;'>\n<a href='#' style='background-color: #3498db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;'>Start Free Trial</a>\n</p>\n<p style='color: #666; font-size: 12px;'>Offer valid until <strong>20 days before current date</strong>. No credit card required for trial.</p>\n</div>\n</body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "19 days before current date",
+    "from": "betty.harris@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>16 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "45 days before current date",
+    "from": "newsletter182@publication.com",
+    "subject": "Weekly Update #182",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>45 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "58 days before current date",
+    "from": "jacob.howard@mcp.com",
+    "subject": "Special offer #167",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>53 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "53 days before current date",
+    "from": "carter.barnes@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>50 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "23 days before current date",
+    "from": "liam.gonzales@mcp.com",
+    "subject": "Special offer #223",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>18 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "37 days before current date",
+    "from": "noah.flores@mcp.com",
+    "subject": "Special offer #227",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>32 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "41 days before current date",
+    "from": "newsletter102@publication.com",
+    "subject": "Weekly Update #102",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>41 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "13 days before current date",
+    "from": "harper.reed@mcp.com",
+    "subject": "Special offer #121",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>8 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "12 days before current date",
+    "from": "oliver.sanders@mcp.com",
+    "subject": "Special offer #198",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>7 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "31 days before current date",
+    "from": "wyatt.sanders@mcp.com",
+    "subject": "Special offer #188",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>26 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "1 days before current date",
+    "from": "newsletter69@publication.com",
+    "subject": "Weekly Update #69",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>1 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "42 days before current date",
+    "from": "offers@canva.com",
+    "subject": "Canva - Special offer for design platform users",
+    "body": "<html><body>\n<div style='font-family: Arial, sans-serif; max-width: 600px;'>\n<h2 style='color: #333;'>Canva - Transform your design platform workflow</h2>\n<p>Discover why over 100,000 teams choose Canva for their design platform needs.</p>\n<p><strong>Limited time offer ending <span style='color: #e74c3c;'>35 days before current date</span>:</strong></p>\n<ul>\n<li>50% off your first 6 months</li>\n<li>Free migration from your current platform</li>\n<li>Dedicated customer success manager</li>\n<li>Advanced analytics and reporting</li>\n</ul>\n<p>Join companies like Shopify, Airbnb, and Uber who have improved their design platform efficiency by 3x with Canva.</p>\n<p style='text-align: center; margin: 30px 0;'>\n<a href='#' style='background-color: #3498db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;'>Start Free Trial</a>\n</p>\n<p style='color: #666; font-size: 12px;'>Offer valid until <strong>35 days before current date</strong>. No credit card required for trial.</p>\n</div>\n</body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "36 days before current date",
+    "from": "emily.porter@mcp.com",
+    "subject": "Special offer #201",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>31 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "14 days before current date",
+    "from": "elizabeth.barnes@mcp.com",
+    "subject": "Special offer #285",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>9 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "2 days before current date",
+    "from": "sarah.chen@techstartup.io",
+    "subject": "Quick question about the API integration",
+    "body": "<html><body><p>Hey!</p><p>Hope you're doing well. I'm working on the payment gateway integration and ran into a small issue with the webhook verification. Do you have 10 minutes for a quick call this afternoon?</p><p>The deadline is <strong>5 days before current date</strong>, so we should be fine, but I'd love to get your input.</p><p>Thanks!<br>Sarah</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "41 days before current date",
+    "from": "newsletter233@publication.com",
+    "subject": "Weekly Update #233",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>41 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "17 days before current date",
+    "from": "newsletter183@publication.com",
+    "subject": "Weekly Update #183",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>17 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "50 days before current date",
+    "from": "amelia.cole@mcp.com",
+    "subject": "Special offer #100",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>45 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "21 days before current date",
+    "from": "jason.parker@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>18 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "16 days before current date",
+    "from": "team@figma.com",
+    "subject": "Figma Pro - Advanced design features for your team",
+    "body": "<html><body><div style='font-family: Arial, sans-serif; max-width: 600px;'><h2 style='color: #f24e1e;'>Design better, together</h2><p>Take your design workflow to the next level with Figma Pro's advanced collaboration features.</p><p><strong>New features available starting <span style='color: #f24e1e;'>20 days before current date</span>:</strong></p><ul><li>Advanced prototyping with smart animations</li><li>Design system libraries</li><li>Version history and branching</li></ul><p>Try Pro free for 30 days, then $15/month per editor.</p><p style='text-align: center; margin: 30px 0;'><a href='#' style='background-color: #f24e1e; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;'>Start Free Trial</a></p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "60 days before current date",
+    "from": "thomas.martin@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>57 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "46 days before current date",
+    "from": "jordan.gonzales@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>43 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "34 days before current date",
+    "from": "caroline.flores@mcp.com",
+    "subject": "Special offer #156",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>29 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "53 days before current date",
+    "from": "newsletter142@publication.com",
+    "subject": "Weekly Update #142",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>53 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "52 days before current date",
+    "from": "leah.hughes@mcp.com",
+    "subject": "Special offer #161",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>47 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "4 days before current date",
+    "from": "newsletter278@publication.com",
+    "subject": "Weekly Update #278",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>4 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "46 days before current date",
+    "from": "newsletter205@publication.com",
+    "subject": "Weekly Update #205",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>46 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "32 days before current date",
+    "from": "raymond.flores@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>29 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "23 days before current date",
+    "from": "karen.washington@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>20 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "4 days before current date",
+    "from": "newsletter287@publication.com",
+    "subject": "Weekly Update #287",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>4 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "14 days before current date",
+    "from": "alex.thompson@consulting.biz",
+    "subject": "Dinner plans cancelled - rain check?",
+    "body": "<html><body><p>Hey,</p><p>Really sorry, but I need to cancel our dinner tonight. Something urgent came up with a client presentation tomorrow morning.</p><p>Can we reschedule for next week? I'm free any evening after <strong>7 days before current date</strong>.</p><p>Sorry again!</p><p>Alex</p></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "35 days before current date",
+    "from": "william.knight@mcp.com",
+    "subject": "Special offer #234",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>30 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "39 days before current date",
+    "from": "grayson.henderson@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>36 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "32 days before current date",
+    "from": "martha.sanders@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>29 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "22 days before current date",
+    "from": "hello@hackernoon.com",
+    "subject": "This Week in Tech: AI, Crypto, and Open Source",
+    "body": "<html><body><div style='font-family: Courier New, monospace; max-width: 600px;'><div style='background-color: #00ff00; color: black; padding: 15px; font-weight: bold;'>HACKER NOON WEEKLY // 22 days before current date</div><div style='background-color: #000; color: #00ff00; padding: 20px;'><h2>$ cat this_week.txt</h2><h3>> AI_DEVELOPMENTS</h3><p>• OpenAI released ChatGPT-5 preview on <strong>25 days before current date</strong><br>• Google's Gemini Ultra now available since <strong>30 days before current date</strong></p><h3>> CRYPTO_NEWS</h3><p>• Bitcoin ETF approval delayed until <strong>10 days before current date</strong></p><p style='color: #ffff00;'>$ echo \"Keep building the future!\"</p></div></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "3 days before current date",
+    "from": "evelyn.cruz@mcp.com",
+    "subject": "Special offer #204",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>-2 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "15 days before current date",
+    "from": "brenda.flores@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>12 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "11 days before current date",
+    "from": "newsletter@mit.edu",
+    "subject": "MIT Technology Review - Weekly digest on technology research",
+    "body": "<html><body>\n<div style='font-family: Arial, sans-serif; max-width: 600px;'>\n<h2 style='color: #2c3e50;'>MIT Technology Review</h2>\n<p>Your weekly roundup of technology research • <strong>11 days before current date</strong></p>\n\n<h3>This Week's Top Stories</h3>\n<div style='border-left: 3px solid #3498db; padding-left: 15px; margin: 20px 0;'>\n<h4><a href='#' style='color: #2c3e50; text-decoration: none;'>Major breakthrough in technology research announced</a></h4>\n<p style='color: #666;'>Industry leaders gathered on <strong>13 days before current date</strong> to discuss the implications of recent developments...</p>\n</div>\n\n<div style='border-left: 3px solid #3498db; padding-left: 15px; margin: 20px 0;'>\n<h4><a href='#' style='color: #2c3e50; text-decoration: none;'>Market analysis: What investors are watching</a></h4>\n<p style='color: #666;'>Following the announcement on <strong>16 days before current date</strong>, market sentiment has shifted significantly...</p>\n</div>\n\n<h3>Upcoming Events</h3>\n<ul>\n<li><strong>Industry Conference 2024</strong> - <strong>1 days before current date</strong></li>\n<li><strong>Expert Panel Discussion</strong> - <strong>-4 days before current date</strong></li>\n</ul>\n\n<p style='color: #666; font-size: 14px;'>You subscribed to MIT Technology Review on <strong>56 days before current date</strong>.</p>\n</div>\n</body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "29 days before current date",
+    "from": "notifications@spotify.com",
+    "subject": "Spotify Premium - First 3 months for $0.99",
+    "body": "<html><body><div style='font-family: Arial, sans-serif; max-width: 600px;'><h2 style='color: #1db954;'>Music like never before</h2><p>Upgrade to Spotify Premium and enjoy ad-free music, offline downloads, and unlimited skips.</p><p><strong>Limited time offer ending <span style='color: #1db954;'>15 days before current date</span>:</strong></p><ul><li>First 3 months for just $0.99</li><li>Then $9.99/month, cancel anytime</li><li>Available on all your devices</li></ul><p style='text-align: center; margin: 30px 0;'><a href='#' style='background-color: #1db954; color: white; padding: 12px 24px; text-decoration: none; border-radius: 50px;'>Start Premium</a></p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "51 days before current date",
+    "from": "laura.sanders@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>48 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "6 days before current date",
+    "from": "henry.flores@mcp.com",
+    "subject": "Special offer #230",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>1 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "42 days before current date",
+    "from": "newsletter295@publication.com",
+    "subject": "Weekly Update #295",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>42 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "34 days before current date",
+    "from": "john.jones@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>31 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "13 days before current date",
+    "from": "frances.coleman@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>10 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "56 days before current date",
+    "from": "patrick.long@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>53 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "35 days before current date",
+    "from": "newsletter272@publication.com",
+    "subject": "Weekly Update #272",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>35 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "20 days before current date",
+    "from": "newsletter171@publication.com",
+    "subject": "Weekly Update #171",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>20 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "37 days before current date",
+    "from": "brandon.kelly@mcp.com",
+    "subject": "Special offer #85",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>32 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "33 days before current date",
+    "from": "alice.murphy@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>30 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "47 days before current date",
+    "from": "julian.henderson@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>44 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "30 days before current date",
+    "from": "newsletter153@publication.com",
+    "subject": "Weekly Update #153",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>30 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "58 days before current date",
+    "from": "newsletter61@publication.com",
+    "subject": "Weekly Update #61",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>58 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "19 days before current date",
+    "from": "jasmine.jenkins@mcp.com",
+    "subject": "Special offer #263",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>14 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "1 days before current date",
+    "from": "newsletter103@publication.com",
+    "subject": "Weekly Update #103",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>1 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "47 days before current date",
+    "from": "sebastian.barnes@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>44 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "5 days before current date",
+    "from": "newsletter178@publication.com",
+    "subject": "Weekly Update #178",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>5 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "60 days before current date",
+    "from": "benjamin.powell@mcp.com",
+    "subject": "Special offer #252",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>55 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "6 days before current date",
+    "from": "hello@stripe.com",
+    "subject": "Stripe - Special offer for payment processing users",
+    "body": "<html><body>\n<div style='font-family: Arial, sans-serif; max-width: 600px;'>\n<h2 style='color: #333;'>Stripe - Transform your payment processing workflow</h2>\n<p>Discover why over 100,000 teams choose Stripe for their payment processing needs.</p>\n<p><strong>Limited time offer ending <span style='color: #e74c3c;'>-1 days before current date</span>:</strong></p>\n<ul>\n<li>50% off your first 6 months</li>\n<li>Free migration from your current platform</li>\n<li>Dedicated customer success manager</li>\n<li>Advanced analytics and reporting</li>\n</ul>\n<p>Join companies like Shopify, Airbnb, and Uber who have improved their payment processing efficiency by 3x with Stripe.</p>\n<p style='text-align: center; margin: 30px 0;'>\n<a href='#' style='background-color: #3498db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;'>Start Free Trial</a>\n</p>\n<p style='color: #666; font-size: 12px;'>Offer valid until <strong>-1 days before current date</strong>. No credit card required for trial.</p>\n</div>\n</body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "24 days before current date",
+    "from": "newsletter284@publication.com",
+    "subject": "Weekly Update #284",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>24 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "13 days before current date",
+    "from": "newsletter226@publication.com",
+    "subject": "Weekly Update #226",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>13 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "advertisement",
+    "send_time": "15 days before current date",
+    "from": "david.hayes@mcp.com",
+    "subject": "Special offer #206",
+    "body": "<html><body><div style='font-family: Arial;'><h2>Limited Time Offer</h2><p>Save 30% until <strong>10 days before current date</strong>!</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "28 days before current date",
+    "from": "justin.cox@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>25 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "6 days before current date",
+    "from": "parker.sanders@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>3 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "42 days before current date",
+    "from": "newsletter115@publication.com",
+    "subject": "Weekly Update #115",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>42 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "56 days before current date",
+    "from": "oliver.nguyen@freelance.net",
+    "subject": "Project completed - invoice attached",
+    "body": "<html><body>\n<p>Hey!</p>\n<p>Quick question about the design assets you sent over on <strong>58 days before current date</strong>. I'm having trouble opening the Figma file - it might be a permissions issue.</p>\n<p>Could you double-check the sharing settings? I need to make some small tweaks before the client review on <strong>54 days before current date</strong>.</p>\n<p>Thanks!</p>\n<p>Carlos</p>\n</body></html>"
+  },
+  {
+    "type": "personal",
+    "send_time": "21 days before current date",
+    "from": "matthew.gonzalez@mcp.com",
+    "subject": "Quick sync needed",
+    "body": "<html><body><p>Hi! Can we sync on the project status? The deadline is <strong>18 days before current date</strong>.</p><p>Best,<br>Team</p></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "28 days before current date",
+    "from": "updates@github.com",
+    "subject": "GitHub Universe 2024 - Join us virtually",
+    "body": "<html><body><div style='font-family: -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif; max-width: 600px;'><h2 style='color: #24292e;'>GitHub Universe 2024</h2><p>The biggest event for developers is happening on <strong>35 days before current date</strong>!</p><h3>What to expect:</h3><ul><li>GitHub Copilot X new features demo</li><li>AI-powered code review tools</li><li>Security and DevOps best practices</li><li>Open source project showcases</li></ul><p>Registration opens on <strong>30 days before current date</strong>. Early bird tickets available until <strong>25 days before current date</strong>.</p><p style='text-align: center; margin: 30px 0;'><a href='#' style='background-color: #2ea44f; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;'>Register Now</a></p></div></body></html>"
+  },
+  {
+    "type": "subscription",
+    "send_time": "41 days before current date",
+    "from": "newsletter194@publication.com",
+    "subject": "Weekly Update #194",
+    "body": "<html><body><div style='font-family: Arial;'><h2>This Week's News</h2><p>Published on <strong>41 days before current date</strong></p><p>Top stories this week...</p></div></body></html>"
+  }
+]

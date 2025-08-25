@@ -1,0 +1,48 @@
+Vendor Contract Management
+
+==================
+
+Contract Number: CON-2024-001
+Vendor: Tech Solutions LLC
+Legal Representative: Robert Johnson
+Business License: BL123456789
+Contact Person: Mr. Johnson
+Phone: (***
+Company Email: ***
+Bank: Wells Fargo
+Account Number: ***
+Contract Value: $250,000
+
+---
+
+Contract Number: CON-2024-002
+Vendor Name: Smart Equipment Corp
+Manager: Jennifer Davis
+SSN: ***
+Phone: ***
+Email: ***
+Company Fax: (***
+Bank Account: ***
+Contract Amount: $185,000
+
+Finance Contact: Michael Wilson (***)
+
+---
+
+Contract Number: CON-2024-003
+Contractor: Construction Pro Inc
+Project Manager: David Martinez
+Phone: (***
+Email: ***
+Office Phone: (***
+Credit Card: ***
+Project Value: $500,000
+
+Supervisor Contact: ***
+Safety Manager: Lisa Garcia (***)
+
+Contract Management System: ***
+Document Server: ***
+
+Procurement Hotline: 1-800-PROCUREMENT
+Emergency Contact: *** 

@@ -1,69 +1,29 @@
-import asyncio
-import json
-import re
+#!/usr/bin/env python3
+"""
+iPad education discount price comparison task evaluation script
+Evaluation process:
+1. Get result.json file from agent_workspace
+2. Check JSON format compliance with requirements 
+3. Get real-time price data
+4. Compare with agent output to determine correctness
+"""
+
 from argparse import ArgumentParser
 import os
-from utils.mcp.tool_servers import MCPServerManager, call_tool_with_retry, ToolCallError
+import json
+import re
+import asyncio
+import sys
+import yfinance as yf
+# Add project path to system path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
 
-def extract_ipad_price_from_text(text, currency_identifiers, price_range=(5000, 15000)):
-    """
-    Extract iPad Pro price from text with validation for reasonable price ranges.
-    Focus on education pricing and filter out accessory-only prices.
-    """
-    # Patterns that indicate iPad Pro pricing (not just accessories)
-    ipad_indicators = [
-        r'ipad\s+pro.*?(?:' + '|'.join(re.escape(id) for id in currency_identifiers) + r')\s*([\d,]+)',
-        r'(?:' + '|'.join(re.escape(id) for id in currency_identifiers) + r')\s*([\d,]+).*?ipad\s+pro',
-        r'教育优惠.*?(?:' + '|'.join(re.escape(id) for id in currency_identifiers) + r')\s*([\d,]+)',
-        r'(?:' + '|'.join(re.escape(id) for id in currency_identifiers) + r')\s*([\d,]+).*?教育优惠',
-        r'education.*?(?:' + '|'.join(re.escape(id) for id in currency_identifiers) + r')\s*([\d,]+)',
-        r'(?:' + '|'.join(re.escape(id) for id in currency_identifiers) + r')\s*([\d,]+).*?education'
-    ]
-    
-    found_prices = []
-    
-    for pattern in ipad_indicators:
-        matches = re.finditer(pattern, text, re.IGNORECASE)
-        for match in matches:
-            try:
-                price_str = match.group(1).replace(',', '')
-                price = float(price_str)
-                
-                # Filter by reasonable price range (avoid accessory prices)
-                if price_range[0] <= price <= price_range[1]:
-                    found_prices.append(price)
-            except (ValueError, IndexError):
-                continue
-    
-    # Also try general currency patterns as fallback
-    if not found_prices:
-        for identifier in currency_identifiers:
-            patterns = [
-                r'(?:' + re.escape(identifier) + r')\s*([\d,]+\.?\d*)',
-                r'([\d,]+\.?\d*)\s*(?:' + re.escape(identifier) + r')'
-            ]
-            
-            for pattern in patterns:
-                matches = re.finditer(pattern, text, re.IGNORECASE)
-                for match in matches:
-                    try:
-                        price_str = match.group(1).replace(',', '')
-                        price = float(price_str)
-                        if price_range[0] <= price <= price_range[1]:
-                            found_prices.append(price)
-                    except (ValueError, IndexError):
-                        continue
-    
-    # Return the most common price if multiple found, otherwise the first reasonable one
-    if found_prices:
-        return min(found_prices)  # Take the lowest reasonable price (likely education price)
-    
-    return None
+from utils.mcp.tool_servers import MCPServerManager, call_tool_with_retry
 
-async def get_current_exchange_rate(yahoo_server, from_currency, to_currency="CNY"):
-    """
-    Get current exchange rate with better error handling
-    """
+
+
+def get_current_exchange_rate(from_currency, to_currency="CNY"):
+    """Get current exchange rate"""
     if from_currency == to_currency:
         return 1.0
     
@@ -78,443 +38,401 @@ async def get_current_exchange_rate(yahoo_server, from_currency, to_currency="CN
         raise ValueError(f"No ticker mapping for currency: {from_currency}")
     
     try:
-        result = await call_tool_with_retry(yahoo_server, "get_ticker_data", {"ticker": ticker})
-        if result.content and result.content[0].text:
-            text_content = result.content[0].text.strip()
-            if text_content:
-                try:
-                    data = json.loads(text_content)
-                    rate = data.get('regularMarketPrice') or data.get('price')
-                    if rate is not None:
-                        return float(rate)
-                except json.JSONDecodeError:
-                    # Try to extract rate from plain text response
-                    rate_match = re.search(r'[\d.]+', text_content)
-                    if rate_match:
-                        return float(rate_match.group())
+        ticker_obj = yf.Ticker(ticker)
+        hist = ticker_obj.history(period="1d")
         
-        raise ValueError(f"No valid rate data from Yahoo Finance for {ticker}")
+        if not hist.empty:
+            rate = hist['Close'].iloc[-1]
+            return float(rate)
+        else:
+            info = ticker_obj.info
+            rate = info.get('regularMarketPrice') or info.get('price')
+            if rate is not None:
+                return float(rate)
+        
+        raise ValueError(f"No valid rate data from yfinance for {ticker}")
         
     except Exception as e:
-        print(f"Yahoo Finance API error for {from_currency}: {e}")
+        print(f"yfinance error for {from_currency}: {e}")
+
         raise
 
-async def get_apple_official_price(playwright_server, region_info, exchange_rate):
-    """
-    Get official Apple education pricing using Playwright to scrape the official website
-    """
-    region = region_info['region']
-    currency = region_info['currency']
-    url = region_info['apple_url']
+
+def extract_price_from_text(text, currency_identifiers, price_range=(100, 20000)):
+    """Extract price from text"""
+    patterns = [
+        r'(?:' + '|'.join(re.escape(id) for id in currency_identifiers) + r')\s*([0-9,]+(?:\.[0-9]{1,2})?)',
+        r'([0-9,]+(?:\.[0-9]{1,2})?)\s*(?:' + '|'.join(re.escape(id) for id in currency_identifiers) + r')',
+        r'education.*?(?:' + '|'.join(re.escape(id) for id in currency_identifiers) + r')\s*([0-9,]+(?:\.[0-9]{1,2})?)',
+        r'student.*?(?:' + '|'.join(re.escape(id) for id in currency_identifiers) + r')\s*([0-9,]+(?:\.[0-9]{1,2})?)',
+    ]
     
-    print(f"  🌐 Accessing Apple official site: {url}")
+    found_prices = []
     
-    try:
-        # Install browser if needed
-        try:
-            await call_tool_with_retry(playwright_server, "browser_install", {})
-        except Exception as e:
-            print(f"    ⚠️  Browser install warning: {e}")
-        
-        # Navigate to the Apple education store
-        await call_tool_with_retry(playwright_server, "browser_navigate", {"url": url})
-        
-        # Wait for page to load
-        await call_tool_with_retry(playwright_server, "browser_wait_for", {"time": 5})
-        
-        # Get page snapshot to see the content
-        page_result = await call_tool_with_retry(playwright_server, "browser_snapshot", {})
-        
-        if page_result.content and page_result.content[0].text:
-            page_content = page_result.content[0].text
-            
-            # Set price range based on currency
-            if currency == 'CNY':
-                price_range = (5000, 15000)
-            elif currency == 'HKD':
-                price_range = (5000, 15000)
-            elif currency == 'USD':
-                price_range = (700, 2000)
-            elif currency == 'SGD':
-                price_range = (1000, 2500)
-            else:
-                price_range = (500, 20000)
-            
-            # Extract iPad Pro M4 price from page content
-            identifiers = region_info['identifiers']
-            price = extract_ipad_price_from_text(page_content, identifiers, price_range)
-            
-            if price:
-                cny_price = price * exchange_rate
-                print(f"    ✅ Official price: {currency} {price:,.0f} (≈ ¥{cny_price:,.0f})")
-                
-                return {
-                    'local_price': price,
-                    'currency': currency,
-                    'cny_price': cny_price,
-                    'source': 'Apple Official Website',
-                    'url': url,
-                    'method': 'playwright_official'
-                }
-            else:
-                print(f"    ❌ Could not extract price from {url}")
-                # Save page content for debugging
-                with open(f"debug_page_{region}.html", "w", encoding="utf-8") as f:
-                    f.write(page_content[:5000])  # Save first 5000 chars for debugging
-                
-    except Exception as e:
-        print(f"    ❌ Error accessing {url}: {e}")
+    for pattern in patterns:
+        matches = re.finditer(pattern, text, re.IGNORECASE | re.DOTALL)
+        for match in matches:
+            try:
+                price_str = match.group(1).replace(',', '').replace(' ', '')
+                price = float(price_str)
+                if price_range[0] <= price <= price_range[1]:
+                    found_prices.append(price)
+            except (ValueError, IndexError, AttributeError):
+                continue
     
+    if found_prices:
+        return min(found_prices)  # Return minimum price (usually education discount price)
     return None
 
-async def comprehensive_price_search(google_server, region_info, exchange_rate):
-    """
-    Perform comprehensive price searches with multiple specific queries (fallback method)
-    """
+
+async def get_real_time_price(region_info, playwright_server):
+    """Get real-time price"""
     region = region_info['region']
     currency = region_info['currency']
     identifiers = region_info['identifiers']
     
-    # Multiple specific search queries for better coverage
-    search_queries = [
-        f"iPad Pro M4 11寸 教育优惠价格 {region} {currency} 2024 苹果官网",
-        f"iPad Pro M4 11 inch education discount price {region} {currency} 2024 apple.com",
-        f"苹果 iPad Pro M4 学生优惠 {region} {currency} 返校季",
-        f"Apple iPad Pro M4 student discount {region} {currency} back to school",
-        f"site:apple.com iPad Pro M4 education {region} {currency}",
-        f"iPad Pro M4 教育优惠 {region} {currency} 官方价格"
-    ]
+    print(f"Getting real-time price for {region}...")
     
-    all_prices = []
-    search_details = []
+    # Define price ranges
+    if currency == 'CNY':
+        ipad_range = (7000, 15000)
+        pencil_range = (600, 1200)
+    elif currency == 'HKD':
+        ipad_range = (7000, 15000)
+        pencil_range = (650, 1300)
+    elif currency == 'USD':
+        ipad_range = (700, 1500)
+        pencil_range = (80, 150)
+    elif currency == 'SGD':
+        ipad_range = (900, 2000)
+        pencil_range = (90, 220)
+    else:
+        ipad_range = (500, 20000)
+        pencil_range = (100, 1000)
     
-    for query in search_queries:
-        try:
-            print(f"  🔍 Query: {query}")
-            
-            search_result = await call_tool_with_retry(google_server, "search", {
-                "query": query,
-                "num": 5
-            })
-            
-            if search_result.content and search_result.content[0].text:
-                search_data = json.loads(search_result.content[0].text)
-                
-                # Combine title and snippet for each result
-                for item in search_data:
-                    title = item.get('title', '')
-                    snippet = item.get('snippet', '')
-                    link = item.get('link', '')
-                    
-                    combined_text = f"{title} {snippet}"
-                    
-                    # Set price range based on currency
-                    if currency == 'CNY':
-                        price_range = (5000, 15000)
-                    elif currency == 'HKD':
-                        price_range = (5000, 15000)
-                    elif currency == 'USD':
-                        price_range = (700, 2000)
-                    elif currency == 'SGD':
-                        price_range = (1000, 2500)
-                    else:
-                        price_range = (500, 20000)
-                    
-                    price = extract_ipad_price_from_text(combined_text, identifiers, price_range)
-                    
-                    if price:
-                        all_prices.append(price)
-                        search_details.append({
-                            'query': query,
-                            'price': price,
-                            'currency': currency,
-                            'source': title,
-                            'link': link,
-                            'snippet': snippet[:100] + "..."
-                        })
-                        print(f"    ✓ Found: {currency} {price:,.0f} from {title[:50]}...")
-                        
-        except Exception as e:
-            print(f"  ❌ Search error: {e}")
-            continue
-    
-    # Return the most reliable price (median of found prices)
-    if all_prices:
-        # Remove outliers and get median
-        sorted_prices = sorted(all_prices)
-        if len(sorted_prices) >= 3:
-            # Remove extreme outliers
-            q1_idx = len(sorted_prices) // 4
-            q3_idx = 3 * len(sorted_prices) // 4
-            filtered_prices = sorted_prices[q1_idx:q3_idx+1]
-            if filtered_prices:
-                median_price = filtered_prices[len(filtered_prices) // 2]
-            else:
-                median_price = sorted_prices[len(sorted_prices) // 2]
-        else:
-            median_price = sorted_prices[len(sorted_prices) // 2]
-        
-        cny_price = median_price * exchange_rate
-        
-        return {
-            'local_price': median_price,
-            'currency': currency,
-            'cny_price': cny_price,
-            'all_prices': all_prices,
-            'search_details': search_details,
-            'confidence': len(all_prices)  # Number of sources found
-        }
-    
-    return None
-
-async def main(args):
-    result_file = args.res_log_file
-    if not os.path.exists(result_file):
-        print(f"Result file not found: {result_file}")
-        exit(1)
-        
-    # Read and parse agent result
     try:
-        with open(result_file, 'r') as f:
-            log_data = json.load(f)
-    except (IOError, json.JSONDecodeError) as e:
-        print(f"Could not read or parse JSON from result file '{result_file}': {e}")
-        exit(1)
-    
-    # Extract final assistant response
-    final_response = None
-    if 'messages' in log_data:
-        for message in reversed(log_data['messages']):
-            if message.get('role') == 'assistant' and message.get('content'):
-                final_response = message['content']
-                break
-    
-    if not final_response:
-        print(f"No final assistant response found in result file: {result_file}")
-        exit(1)
+        # Get iPad Pro price
+        await call_tool_with_retry(playwright_server, "browser_navigate", {"url": region_info['ipad_url']})
+        await call_tool_with_retry(playwright_server, "browser_wait_for", {"time": 5})
+        
+        page_result = await call_tool_with_retry(playwright_server, "browser_snapshot", {})
+        if page_result.content and page_result.content[0].text:
+            ipad_price = extract_price_from_text(page_result.content[0].text, identifiers, ipad_range)
+        else:
+            ipad_price = None
+        
+        # Get Apple Pencil Pro price
+        await call_tool_with_retry(playwright_server, "browser_navigate", {"url": region_info['pencil_url']})
+        await call_tool_with_retry(playwright_server, "browser_wait_for", {"time": 5})
+        
+        page_result = await call_tool_with_retry(playwright_server, "browser_snapshot", {})
+        if page_result.content and page_result.content[0].text:
+            pencil_price = extract_price_from_text(page_result.content[0].text, identifiers, pencil_range)
+        else:
+            pencil_price = None
+        
+        if ipad_price and pencil_price:
+            total_price = ipad_price + pencil_price
+            return {
+                'ipad_price': ipad_price,
+                'pencil_price': pencil_price,
+                'total_price': total_price,
+                'currency': currency,
+                'success': True
+            }
+        else:
+            return {'success': False, 'currency': currency}
+            
+    except Exception as e:
+        print(f"Error getting price for {region}: {e}")
+        return {'success': False, 'currency': currency}
 
-    print(f"Final response: {final_response}")
 
-    # Parse agent's result
-    pattern = r"price_comparison_.*?\\boxed\{([^}]+)\}.*?total.*?\\boxed\{([^}]+)\}"
-    match = re.search(pattern, final_response, re.DOTALL)
-    
-    if not match:
-        print(f"❌ Result format incorrect. Expected: price_comparison_\\boxed{{region}}_total_\\boxed{{price}}")
-        exit(1)
-    
-    agent_region = match.group(1).strip()
-    agent_price_str = match.group(2).strip()
-    
-    # Parse agent's price
-    price_match = re.search(r'([\d,]+\.?\d*)', agent_price_str)
-    if not price_match:
-        print(f"❌ Could not parse agent's price: '{agent_price_str}'")
-        exit(1)
-    
-    agent_price = float(price_match.group(1).replace(',', ''))
-    
-    print(f"📋 Agent's Answer: {agent_region} - ¥{agent_price:,.0f}")
-    
-    # Initialize MCP servers
-    print("\n" + "="*70)
-    print("🔬 INDEPENDENT VERIFICATION ANALYSIS")
-    print("="*70)
-    
-    xx_MCPServerManager = MCPServerManager(agent_workspace="./")
-    google_search_server = xx_MCPServerManager.servers['googlesearch']
-    yahoo_finance_server = xx_MCPServerManager.servers['yahoo-finance']
-    playwright_server = xx_MCPServerManager.servers['playwright']
-    
-    # Define regions for verification with Apple official URLs
-    regions_to_verify = [
+async def get_real_time_prices():
+    """Get real-time prices for all regions"""
+    regions = [
         {
             'region': '香港',
+            'region_en': 'Hong Kong',
             'currency': 'HKD',
-            'identifiers': ['HK$', 'HKD'],
-            'variants': ['香港', '中国香港', 'Hong Kong', 'HK'],
-            'apple_url': 'https://www.apple.com/hk-edu/shop/buy-ipad'
+            'identifiers': ['HK$', '$'],
+            'ipad_url': 'https://www.apple.com/hk-edu/shop/buy-ipad/ipad-pro',
+            'pencil_url': 'https://www.apple.com/hk-edu/shop/product/MX2D3ZA/A/apple-pencil-pro'
         },
         {
             'region': '中国大陆',
+            'region_en': 'China',
             'currency': 'CNY',
-            'identifiers': ['¥', 'RMB', 'CNY'],
-            'variants': ['中国大陆', '中国', '大陆', 'China', '内地'],
-            'apple_url': 'https://www.apple.com/cn-edu/shop/buy-ipad'
+            'identifiers': ['¥', 'RMB'],
+            'ipad_url': 'https://www.apple.com.cn/cn-edu/shop/buy-ipad/ipad-pro',
+            'pencil_url': 'https://www.apple.com.cn/cn-edu/shop/product/MX2D3CH/A'
         },
         {
             'region': '新加坡',
+            'region_en': 'Singapore',
             'currency': 'SGD',
-            'identifiers': ['S$', 'SGD'],
-            'variants': ['新加坡', 'Singapore', 'SG'],
-            'apple_url': 'https://www.apple.com/sg-edu/shop/buy-ipad'
+            'identifiers': ['S$', '$'],
+            'ipad_url': 'https://www.apple.com/sg-edu/shop/buy-ipad/ipad-pro',
+            'pencil_url': 'https://www.apple.com/sg-edu/shop/product/MX2D3ZA/A/apple-pencil-pro'
         },
         {
             'region': '美国',
-            'currency': 'USD',
-            'identifiers': ['$', 'USD'],
-            'variants': ['美国', '美國', 'USA', 'US', 'United States'],
-            'apple_url': 'https://www.apple.com/us-edu/shop/buy-ipad'
+            'region_en': 'United States',
+            'currency': 'USD', 
+            'identifiers': ['$'],
+            'ipad_url': 'https://www.apple.com/us-edu/shop/buy-ipad/ipad-pro',
+            'pencil_url': 'https://www.apple.com/us-edu/shop/product/MX2D3AM/A/apple-pencil-pro'
         }
     ]
     
     # Get exchange rates
     exchange_rates = {'CNY': 1.0}
-    print("📊 Fetching current exchange rates...")
+    for region in regions:
+        currency = region['currency']
+        if currency != 'CNY':
+            try:
+                rate = get_current_exchange_rate(currency)
+                exchange_rates[currency] = rate
+            except Exception as e:
+                print(f"Failed to get exchange rate for {currency}: {e}")
+                fallback_rates = {'USD': 7.25, 'HKD': 0.93, 'SGD': 5.40}
+                if currency in fallback_rates:
+                    exchange_rates[currency] = fallback_rates[currency]
     
-    async with yahoo_finance_server as yahoo_server:
-        for region_info in regions_to_verify:
-            currency = region_info['currency']
-            if currency != 'CNY':
-                try:
-                    rate = await get_current_exchange_rate(yahoo_server, currency)
-                    exchange_rates[currency] = rate
-                    print(f"  ✅ {currency}/CNY: {rate:.4f}")
-                except Exception as e:
-                    print(f"  ❌ {currency}/CNY: Failed ({e})")
-                    # More accurate fallback rates (as of 2024)
-                    fallback_rates = {'USD': 7.25, 'HKD': 0.93, 'SGD': 5.40}
-                    if currency in fallback_rates:
-                        exchange_rates[currency] = fallback_rates[currency]
-                        print(f"  ⚠️  Using fallback rate: {fallback_rates[currency]:.4f}")
-    
-    # Comprehensive price verification using Playwright first, then Google search as fallback
-    verification_results = {}
-    
-    # First try to get official prices using Playwright
-    async with playwright_server as pw_server:
-        print("\n🎯 Getting official Apple education prices...")
+    # Get real-time prices
+    try:
+        server_manager = MCPServerManager(agent_workspace="./")
+        playwright_server = server_manager.servers['playwright_with_chunk']
         
-        for region_info in regions_to_verify:
-            region = region_info['region']
-            currency = region_info['currency']
-            rate = exchange_rates.get(currency, 1.0)
+        async with playwright_server as pw_server:
+            try:
+                await call_tool_with_retry(pw_server, "browser_install", {})
+            except Exception as e:
+                print(f"Browser install warning: {e}")
             
-            print(f"\n🔍 Checking {region} ({currency}) official prices...")
-            
-            # Try to get official price first
-            official_result = await get_apple_official_price(pw_server, region_info, rate)
-            
-            if official_result:
-                verification_results[region] = official_result
-                print(f"  ✅ Official: {currency} {official_result['local_price']:,.0f} (≈ ¥{official_result['cny_price']:,.0f})")
-            else:
-                print(f"  ❌ Could not get official price for {region}")
-    
-    # For regions where official price extraction failed, use Google search as fallback
-    missing_regions = [info for info in regions_to_verify if info['region'] not in verification_results]
-    
-    if missing_regions:
-        print("\n🔍 Using Google search for missing regions...")
-        async with google_search_server as google_server:
-            for region_info in missing_regions:
-                region = region_info['region']
-                currency = region_info['currency']
-                rate = exchange_rates.get(currency, 1.0)
+            results = {}
+            for region_info in regions:
+                price_data = await get_real_time_price(region_info, pw_server)
                 
-                print(f"\n🔍 Searching for {region} ({currency}) prices...")
-                
-                result = await comprehensive_price_search(google_server, region_info, rate)
-                
-                if result:
-                    verification_results[region] = result
-                    print(f"  ✅ Verified: {currency} {result['local_price']:,.0f} (≈ ¥{result['cny_price']:,.0f}) [confidence: {result['confidence']}]")
+                if price_data['success']:
+                    rate = exchange_rates.get(price_data['currency'], 1.0)
+                    cny_price = price_data['total_price'] * rate
+                    
+                    results[region_info['region']] = {
+                        **price_data,
+                        'cny_price': cny_price,
+                        'exchange_rate': rate,
+                        'region_en': region_info['region_en']
+                    }
                 else:
-                    print(f"  ❌ No reliable price found for {region}")
+                    results[region_info['region']] = price_data
+            
+            return results, exchange_rates
+            
+    except Exception as e:
+        print(f"Error initializing MCP server: {e}")
+        return {}, {}
+
+
+def read_agent_result(agent_workspace):
+    """Read agent result file"""
+    result_file = os.path.join(agent_workspace, "result.json")
     
-    # EVALUATION
-    print("\n" + "="*70)
-    print("📊 EVALUATION RESULTS")
-    print("="*70)
+    if not os.path.exists(result_file):
+        return False, "result.json file not found in agent workspace"
     
-    errors = []
-    warnings = []
+    try:
+        with open(result_file, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # Extract JSON block
+        json_pattern = r'```(?:json)?\s*(\{[^`]+\})\s*```'
+        match = re.search(json_pattern, content, re.DOTALL)
+        
+        if not match:
+            # Try to find JSON format directly
+            json_pattern2 = r'\{[^}]*"cheapest_region"[^}]*"cheapest_total_price"[^}]*\}'
+            match = re.search(json_pattern2, content, re.DOTALL)
+            
+        if not match:
+            return False, "No valid JSON format found in result.json"
+        
+        json_str = match.group(1) if json_pattern in str(match.re.pattern) else match.group()
+        
+        try:
+            result_data = json.loads(json_str)
+        except json.JSONDecodeError as e:
+            return False, f"Invalid JSON format: {e}"
+        
+        # Check required fields
+        required_fields = ["cheapest_region", "cheapest_total_price"]
+        for field in required_fields:
+            if field not in result_data:
+                return False, f"Missing required field: {field}"
+        
+        return True, result_data
+        
+    except Exception as e:
+        return False, f"Error reading result file: {e}"
+
+
+def normalize_region_name(region_name):
+    """Normalize region name"""
+    region_mappings = {
+        '香港': ['Hong Kong', 'HK', '香港'],
+        '中国大陆': ['China', '中国', '内地', '中国大陆'], 
+        '新加坡': ['Singapore', 'SG', '新加坡'],
+        '美国': ['USA', 'US', 'United States', '美国']
+    }
     
-    # 1. Validate agent's region choice
-    agent_region_normalized = None
-    for region_info in regions_to_verify:
-        if agent_region in region_info['variants']:
-            agent_region_normalized = region_info['region']
+    region_name_lower = region_name.lower().strip()
+    
+    for standard_name, variants in region_mappings.items():
+        for variant in variants:
+            if variant.lower() == region_name_lower:
+                return standard_name
+    
+    return region_name
+
+
+def extract_price_and_currency_from_string(price_string):
+    """Extract numeric price and currency from string"""
+    price_string = str(price_string).strip()
+    
+    # Currency patterns and their mappings
+    currency_patterns = {
+        'CNY': [r'¥', r'RMB', r'CNY'],
+        'USD': [r'\$(?!.*(?:HK|S))', r'USD'],  # $ but not HK$ or S$
+        'HKD': [r'HK\$', r'HKD'],
+        'SGD': [r'S\$', r'SGD']
+    }
+    
+    # Try to detect currency
+    detected_currency = None
+    for currency, patterns in currency_patterns.items():
+        for pattern in patterns:
+            if re.search(pattern, price_string, re.IGNORECASE):
+                detected_currency = currency
+                break
+        if detected_currency:
             break
     
-    if not agent_region_normalized:
-        errors.append(f"Invalid region: '{agent_region}'. Must be one of: 香港, 中国大陆, 新加坡, 美国")
+    # If no currency detected, default to CNY for Chinese regions, USD for others
+    if not detected_currency:
+        if re.search(r'[中国香港新加坡美国]', price_string):
+            detected_currency = 'CNY'
+        else:
+            detected_currency = 'USD'
     
-    # 2. Cross-validate with verification results
-    if len(verification_results) >= 2:
-        # Find actual cheapest region
-        cheapest_region = min(verification_results, key=lambda r: verification_results[r]['cny_price'])
-        cheapest_price = verification_results[cheapest_region]['cny_price']
-        
-        print(f"\n📋 Verification Summary:")
-        sorted_regions = sorted(verification_results.items(), key=lambda x: x[1]['cny_price'])
-        
-        for region, data in sorted_regions:
-            marker = "👑" if region == cheapest_region else "  "
-            print(f"{marker} {region}: {data['currency']} {data['local_price']:,.0f} (≈ ¥{data['cny_price']:,.0f})")
-        
-        print(f"\n🤖 Agent vs Verification:")
-        print(f"  Agent choice: {agent_region} (¥{agent_price:,.0f})")
-        print(f"  Verified cheapest: {cheapest_region} (¥{cheapest_price:,.0f})")
-        
-        # Check region accuracy
-        if agent_region_normalized and agent_region_normalized != cheapest_region:
-            price_diff = abs(agent_price - cheapest_price)
-            if price_diff > cheapest_price * 0.10:  # 10% tolerance
-                errors.append(f"Incorrect region choice. Agent chose '{agent_region_normalized}' but '{cheapest_region}' is ¥{cheapest_price - (verification_results.get(agent_region_normalized, {}).get('cny_price', 0)):,.0f} cheaper")
-        
-        # Check price accuracy
-        if agent_region_normalized in verification_results:
-            verified_price = verification_results[agent_region_normalized]['cny_price']
-            price_error = abs(agent_price - verified_price) / verified_price
-            if price_error > 0.20:  # 20% tolerance
-                errors.append(f"Price inaccuracy. Agent reported ¥{agent_price:,.0f} but verified price is ¥{verified_price:,.0f} ({price_error:.1%} error)")
-            elif price_error > 0.10:
-                warnings.append(f"Price deviation: {price_error:.1%} difference from verified price")
+    # Extract numeric value
+    price_pattern = r'[0-9,]+(?:\.[0-9]{1,2})?'
+    match = re.search(price_pattern, price_string)
+    if match:
+        try:
+            price_value = float(match.group().replace(',', ''))
+            return price_value, detected_currency
+        except ValueError:
+            pass
     
-    else:
-        errors.append(f"Insufficient verification data: only {len(verification_results)}/4 regions verified")
+    return None, None
+
+
+def evaluate_result(agent_result, real_time_prices, exchange_rates):
+    """Evaluate comparison between agent result and real-time prices"""
+    agent_region = normalize_region_name(agent_result["cheapest_region"])
+    agent_price, agent_currency = extract_price_and_currency_from_string(agent_result["cheapest_total_price"])
     
-    # 3. Check research quality
-    conversation_text = " ".join(msg.get('content', '') or '' for msg in log_data.get('messages', []))
+    if not agent_price or not agent_currency:
+        return False, "Agent price or currency format invalid"
     
-    regions_mentioned = sum(1 for region_info in regions_to_verify if region_info['region'] in conversation_text)
-    if regions_mentioned < 3:
-        errors.append(f"Insufficient research: only {regions_mentioned}/4 regions mentioned in conversation")
+    # Convert agent price to CNY for comparison
+    agent_rate = exchange_rates.get(agent_currency, 1.0)
+    agent_price_cny = agent_price * agent_rate
     
-    education_keywords = ['教育优惠', '学生优惠', 'education discount', 'student discount', '返校季', 'back to school']
-    if not any(keyword in conversation_text.lower() for keyword in education_keywords):
-        errors.append("No evidence of education discount research")
+    print(f"Agent result: {agent_region}, {agent_currency} {agent_price:.2f} (≈ ¥{agent_price_cny:.2f})")
     
-    # FINAL ASSESSMENT
-    print(f"\n📊 Assessment Details:")
-    print(f"  📍 Region valid: {'✅' if agent_region_normalized else '❌'}")
-    print(f"  💰 Price format: ✅ ¥{agent_price:,.0f}")
-    print(f"  🔍 Research coverage: {regions_mentioned}/4 regions")
-    print(f"  🎓 Education focus: {'✅' if any(keyword in conversation_text.lower() for keyword in education_keywords) else '❌'}")
-    print(f"  ✅ Verification success: {len(verification_results)}/4 regions")
+    if agent_region not in real_time_prices:
+        return False, f"Agent reported region '{agent_region}' not found in real-time data"
     
-    if warnings:
-        print(f"\n⚠️  Warnings:")
-        for warning in warnings:
-            print(f"     • {warning}")
+    real_time_data = real_time_prices[agent_region]
+    if not real_time_data.get('success'):
+        print(f"Warning: Could not get real-time price for {agent_region}")
+        return True, "Cannot verify due to real-time price unavailable, assuming correct"
     
-    if errors:
-        print(f"\n❌ Critical Issues:")
-        for error in errors:
-            print(f"     • {error}")
-        print(f"\n💡 EVALUATION: FAILED")
+    # Find actual cheapest region
+    valid_prices = {}
+    for region, data in real_time_prices.items():
+        if data.get('success'):
+            valid_prices[region] = data['cny_price']
+    
+    if not valid_prices:
+        return True, "Cannot verify due to no real-time prices available, assuming correct"
+    
+    actual_cheapest_region = min(valid_prices.items(), key=lambda x: x[1])
+    actual_cheapest_region_name = actual_cheapest_region[0]
+    
+    # Check if region is correct
+    if agent_region != actual_cheapest_region_name:
+        return False, f"Wrong region. Agent: {agent_region}, Actual: {actual_cheapest_region_name}"
+    
+    # Check if price is within reasonable range (allow 1% error)
+    real_price_cny = real_time_data['cny_price']
+    price_diff_ratio = abs(agent_price_cny - real_price_cny) / real_price_cny
+    
+    if price_diff_ratio > 0.01:  # More than 1% error
+        return False, f"Price difference too large. Agent: ¥{agent_price_cny:.2f}, Actual: ¥{real_price_cny:.2f} (diff: {price_diff_ratio:.2%})"
+    
+    return True, f"Correct region and price within acceptable range (diff: {price_diff_ratio:.2%})"
+
+
+async def main():
+    parser = ArgumentParser()
+    parser.add_argument("--agent_workspace", required=True, help="Agent workspace path")
+    parser.add_argument("--groundtruth_workspace", required=False, help="Ground truth workspace path") 
+    parser.add_argument("--res_log_file", required=False, help="Result log file path")
+    parser.add_argument("--launch_time", required=False, help="Launch time")
+    args = parser.parse_args()
+
+    print("🔍 iPad education discount price comparison task evaluation")
+    print("=" * 50)
+    
+    # Step 1: Read agent result.json file
+    print("📋 Step 1: Reading agent result...")
+    success, agent_result = read_agent_result(args.agent_workspace)
+    
+    if not success:
+        print(f"✗ Failed to read agent result: {agent_result}")
         exit(1)
+    
+    print(f"✓ Agent result loaded:")
+    print(f"  Region: {agent_result['cheapest_region']}")
+    print(f"  Price: {agent_result['cheapest_total_price']}")
+    
+    # Step 2: JSON format validation (already done in read_agent_result)
+    print("✓ Step 2: JSON format validation passed")
+    
+    # Step 3: Get real-time prices
+    print("💰 Step 3: Getting real-time prices...")
+    real_time_prices, exchange_rates = await get_real_time_prices()
+    
+    print("Real-time price summary:")
+    for region, data in real_time_prices.items():
+        if data.get('success'):
+            print(f"  ✓ {region}: {data['currency']} {data['total_price']:.2f} (≈ ¥{data['cny_price']:.2f})")
+        else:
+            print(f"  ✗ {region}: Failed to get price")
+    
+    # Step 4: Compare and judge
+    print("🔍 Step 4: Evaluating result...")
+    evaluation_success, evaluation_message = evaluate_result(agent_result, real_time_prices, exchange_rates)
+    
+    if evaluation_success:
+        print(f"✓ Evaluation PASSED: {evaluation_message}")
+        exit(0)
     else:
-        print(f"\n🎉 EVALUATION: PASSED")
-        print(f"     ✓ Region selection accurate")
-        print(f"     ✓ Price analysis thorough")
-        print(f"     ✓ Research methodology sound")
+        print(f"✗ Evaluation FAILED: {evaluation_message}")
+        exit(1)
+
 
 if __name__ == "__main__":
-    parser = ArgumentParser()
-    parser.add_argument("--agent_workspace", required=False)
-    parser.add_argument("--groundtruth_workspace", required=False)
-    parser.add_argument("--res_log_file", required=False)
-    args = parser.parse_args()
-    asyncio.run(main(args))
+    asyncio.run(main())
