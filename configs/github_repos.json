@@ -1,0 +1,13 @@
+[
+    {
+        "task_id": "email-paper-homepage",
+        "upstream_repos": [
+            "mcpbench-repos/My-Homepage",
+            "mcpbench-repos/enhancing-llms",
+            "mcpbench-repos/ipsum-lorem-all-you-need",
+            "mcpbench-repos/llm-adaptive-learning",
+            "mcpbench-repos/optimizing-llms-contextual-reasoning"
+        ],
+        "github_token": "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"
+    }
+]
