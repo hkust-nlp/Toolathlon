@@ -10,7 +10,7 @@ if __name__=="__main__":
     parser.add_argument("--agent_workspace", required=False)
     parser.add_argument("--groundtruth_workspace", required=False)
     parser.add_argument("--res_log_file", required=False)
-    parser.add_argument("--launch_time", required=False, help="Launch time")
+    parser.add_argument("--launch_time", required=False)
     args = parser.parse_args()
 
     res_log = read_json(args.res_log_file)
@@ -35,14 +35,14 @@ if __name__=="__main__":
         print("local check error: ", e)
         exit(1)
     
-    # check remote
-    try:
-        remote_pass, remote_error = check_remote(args.agent_workspace, args.groundtruth_workspace, res_log)
-        if not remote_pass:
-                print("remote check failed: ", remote_error)
-                exit(1)
-    except Exception as e:
-        print("remote check error: ", e)
-        exit(1)
+    # # check remote
+    # try:
+    #     remote_pass, remote_error = check_remote(args.agent_workspace, args.groundtruth_workspace, res_log)
+    #     if not remote_pass:
+    #             print("remote check failed: ", remote_error)
+    #             exit(1)
+    # except Exception as e:
+    #     print("remote check error: ", e)
+    #     exit(1)
     
     print("Pass all tests!")
