@@ -1,0 +1,526 @@
+\section{On Emerging Reasoning in Zero RL Training}
+
+Existing research on zero RL training primarily focuses on Qwen2.5-series models, tracking only superficial metrics like accuracy and response length~\citep{zeng2025simplerl,OpenReasonerZero2025,yu2025dapoopensourcellmreinforcement}. However, Qwen2.5 models, due to their extensive use of synthetic data during pretraining, already exhibit instruction-following abilities and reflective behaviors, which may not represent base models in diverse scenarios. Additionally, an increase in response length does not necessarily indicate the emergence of cognitive behaviors and can sometimes result from meaningless repetition.
+To address these issues, this section explores zero RL training across various base models of different sizes and families. By monitoring a range of metrics beyond accuracy and response length, we aim to provide a more comprehensive and transparent understanding of zero RL training for open base models in the wild.
+
+% Existing works on studying zero RL training mostly focus on Qwen2.5-series models, and only track superficial metrics such as accuracy and response length~\citep{zeng2025simplerl,OpenReasonerZero2025,yu2025dapoopensourcellmreinforcement}. First, while Qwen2.5 models exhibit strong performance, they may not be representative of base models commonly encountered in the wild. This is because Qwen2.5 models incorporate a substantial amount of synthetic data during pretraining and already display robust instruction-following abilities and certain reflective behaviors, as observed in our preliminary trials. Second, an increase in response length can result from various factors and does not necessarily imply an ``aha moment'', the emergence of specific cognitive behaviors such as self-reflection. For instance, we observe that response length increases can sometimes be unhealthy, stemming from meaningless repetition.
+% To address these gaps, this section investigates zero RL training across a diverse range of base models spanning multiple families and sizes. By carefully monitoring training dynamics across a variety of metrics beyond accuracy and response length, we aim to provide a more comprehensive and transparent understanding of zero RL training for open base models in the wild.
+% \subsection{Background: ``Zero RL Training"}
+% DeepSeek-R1-Zero~\citep{guo2025deepseek} demonstrates that reasoning capabilities can be effectively developed through large-scale reinforcement learning (RL), even without supervised fine-tuning (SFT) as an initial step. We follow this ``zero RL training" approach, conduct our experiments on various open base models 
+
+
+
+
+% %Additional experiments exploring alternative algorithms are included in the Appendix xxxx. 
+% GRPO optimizes computational efficiency by eliminating the need for a separate value model; instead, it directly utilizes group-normalized rewards to estimate advantages. For a query \( q \) and a set of responses \( O = \{o_1, o_2, \dots, o_G\} \) sampled from the old policy model \( \pi_{\text{old}} \), we adopt a token-level, length-rectified GRPO objective to optimize the policy model \( \pi \):\footnote{The original GRPO objective has a length normalization term that introduces length biases. We remove the length normalization term similar to concurrent works~\citep{yu2025dapoopensourcellmreinforcement,liu2025understanding} -- this length-rectified objective was the default implementation of GRPO in our adapted codebase, verl~\citep{sheng2024hybridflow}.}
+% % \begin{align}
+% % \mathcal{J}_{GRPO}(\theta) &= \mathbb{E}[q \sim P(Q), \{ o_i \}_{i=1}^G \sim \pi_{\theta_{\text{old}}}(O|q)] \\
+% % &= \frac{1}{G} \sum_{i=1}^{G} \frac{1}{|o_i|} \sum_{t=1}^{|o_i|} \left\{ \min \left[ \frac{\pi_{\theta}(o_{i,t} | q, o_{i,<t})}{\pi_{\theta_{\text{old}}}(o_{i,t} | q, o_{i,<t})} \hat{A}_{i}, 1 - \epsilon, 1 + \epsilon \right] \right\} - \beta \mathbb{D}_{KL} [\pi_{\theta} || \pi_{\text{ref}}]
+% % \end{align}
+
+
+% % \begin{equation}
+% %     \begin{split}
+% %         \mathcal{J}_{\text{GRPO}}(\theta) 
+% %         = & \underset{\text{Clipped policy update}}{\underbrace{\frac{1}{\sum_{i=1}^{G}|o_{i}|} \sum_{i=1}^G\sum_{t=1}^{|o_i|} \min\left[ r_{i,t}(\theta) \hat{A}_i,\, \operatorname{clip}\left(r_{i,t}(\theta); 1-\epsilon, 1+\epsilon\right) \hat{A}_i \right]}} \\
+% %         & - \underset{\text{KL penalty}}{\underbrace{\beta \, \mathbb{D}_{\text{KL}}[\pi_\theta \parallel \pi_{\text{ref}}]}}
+% %     \end{split}
+% % \end{equation}
+
+% \begin{equation}
+%     \begin{aligned}
+%         \mathcal{J}_{\text{GRPO}}(\theta) &= \underbrace{\frac{1}{\sum_{i=1}^{G}|o_{i}|} \sum_{i=1}^G\sum_{t=1}^{|o_i|} \min\left[ r_{i,t}(\theta) \hat{A}_i,\, \operatorname{clip}\left(r_{i,t}(\theta); 1-\epsilon, 1+\epsilon\right) \hat{A}_i \right]}_{\text{Clipped policy update}} 
+%         - \underbrace{\beta \, \mathbb{D}_{\text{KL}}[\pi_\theta \parallel \pi_{\text{ref}}]}_{\text{KL penalty}} \\
+%         &\text{where } r_{i,t}(\theta)=\frac{\pi_\theta(o_{i,t} \mid q, o_{i,<t})}{\pi_{\theta_{\text{old}}}(o_{i,t} \mid q, o_{i,<t})}
+%     \end{aligned}
+% \end{equation}
+
+
+% % \begin{equation}
+% %         \mathcal{J}_{\text{GRPO}}(\theta) = \underset{\text{Clipped policy update}}{\underbrace{\frac{1}{\sum_{i=1}^{G}|o_{i}|} \sum_{i=1}^G\sum_{t=1}^{|o_i|} \min\left[ \frac{\pi_\theta(o_{i,t} \mid q, o_{i,<t})}{\pi_{\theta_{\text{old}}}(o_{i,t} \mid q, o_{i,<t})} \hat{A}_i,\, \operatorname{clip}(\frac{\pi_\theta(o_{i,t} \mid q, o_{i,<t})}{\pi_{\theta_{\text{old}}}(o_{i,t} \mid q, o_{i,<t})}; 1-\epsilon, 1+\epsilon) \hat{A}_i \right]}}  - \underset{\text{KL penalty}}{\underbrace{\beta \, \mathbb{D}_{\text{KL}}[\pi_\theta \parallel \pi_{\text{ref}}]}}
+% % \end{equation}
+
+% where  \( \pi_{\text{ref}} \) represents the reference model, and the term \( \mathbb{D}_{KL} \) introduces a KL divergence constraint to limit how much the model can deviate from this reference. The advantage estimate \( \hat{A}_i \) measures how much better the response \( o_i \) is compared to the average response, which is computed using a group of rewards \( \{r_1, r_2, \dots, r_G\} \) for the responses in set \( O \):
+% \begin{equation}
+%    \hat{A}_i = \frac{r_i - \text{mean}(\{r_1, r_2, \dots, r_G\})}{\text{std}(\{r_1, r_2, \dots, r_G\})}
+% \end{equation}
+
+
+% explain sth about zero-training and GRPO
+
+\subsection{Experimental Setup}
+\label{sec:setup}
+
+
+% sth about data, reward, model, prompt, evaluation dataset
+% \paragraph{Dataset:} To keep the training recipe simple, we select training data exclusively from the GSM8K~\citep{cobbe2021training} and MATH~\citep{hendrycks2021measuring} datasets. 
+% Each example in the MATH dataset is originally labeled with a difficulty level ranging from 1 to 5. In our experiments, we find that data difficulty is critical for successful zero RL (\textsection\ref{sec:data_complextiy_behaviur}) and it is necessary to use data that aligns with the model's capability. To investigate this phenomenon, we categorize the data into three difficulty levels: Easy (GSM8K and MATH lv.1), Medium (MATH lv.1–4), and Hard (MATH lv.3–5), with each category containing roughly 8,000 problems. The data difficulty for different models in main training runs are provided in the Appendix~\ref{sec:dataset_setting}, and we report an ablation study on data difficulty in Section~\ref{sec:data_complextiy_behaviur}.
+
+% \label{sec:reward_remove}
+
+% \paragraph{Reward:} We use a rule-based reward function that assigns rewards solely based on the correctness of the generated response: a correct final answer receives a reward of +1, while an incorrect one receives a reward of 0. Recent studies~\citep{deepscaler2025,chen2025empirical} often incorporate format-based rules into reward calculation, encouraging the model to follow specific output formats. However, we find that this approach may hinder the model's exploration and ultimately harm its performance particularly for the base models which struggle with following the format in the initial stage, as detailed in \textsection\ref{sec:remove_format}.
+
+% % We also discuss the impact of incorporating format-based rewards on training in \textsection\ref{}.
+
+% \paragraph{Models:} We conduct zero RL training experiments on Llama-3.1-8B~\citep{dubey2024llama}, DeepSeek-Math-7B~\citep{shao2024deepseekmath}, Mistral-v0.1-7B~\citep{jiang2023mistral7b}, Mistral-Small-24b-Base-2501~\citep{mistral2024small}, and Qwen-2.5 (0.5B, 1.5B, 7B, 14B, 32B)~\citep{yang2024qwen2}.
+% As we perform experiments for a variety of models, under extremely simple settings with small, simple datasets and only correctness reward, we refer to our obtained models as \emph{SimpleRL-Zoo} to represent a simple training recipe for a zoo of open base models.
+% For models with weaker instruction-following capabilities (Llama-3.1-8B, Mistral-v0.1-7B, and Qwen-2.5-0.5B/1.5B), we employ simpler prompts~\citep{abel} requiring only step-by-step reasoning. For models with stronger instruction-following abilities, we use more complex prompts~\citep{yang2024qwen2} that require the final answers to be placed in boxes. In our preliminary experiments, we observe that using complex prompts with models that have weak instruction-following capabilities often results in large amounts of irrelevant or nonsensical content being generated early in training, leading to instability.
+% The content of simpler prompts and more complex prompts is shown in Figure~\ref{fig:prompt_case} in Appendix.
+% %% todo: add figure for this prompt
+
+
+% % \begin{figure}[!t]
+% %         \centering
+% % \includegraphics[width=0.95\columnwidth]{fig/Prompt_Case.pdf}
+% % \caption{Comparison between simple prompts and more complex prompts.  \yh{This figure can be smaller, or move to appendix. }      }
+% %         \label{fig:prompt_case}
+% % \end{figure}
+
+% \paragraph{Benchmark:} We evaluate performance on standard mathematical reasoning benchmarks, including GSM8K~\citep{cobbe2021training}, MATH 500~\citep{hendrycks2021measuring}, Minerva Math~\citep{lewkowycz2022solving}, and OlympiadBench~\citep{he2024olympiadbench}, as well as on competition-level benchmarks such as AIME 2024 and AMC 2023. 
+% % We also evaluate the generalization ability of zero RL training using three benchmarks: IFEVAL~\citep{zhou2023instruction}, MMLU~\citep{hendrycks2020measuring}, and GPQA-Diamond~\citep{rein2024gpqa}. IFEVAL measures instruction-following capability, MMLU assesses the model's mastery of general knowledge, and GPQA-Diamond is a challenging benchmark that tests domain-specific expertise in chemistry, physics, and biology.
+% % \jh{We also need to mention that we also test generalization, on xxx benchmarks}
+% % \yh{
+% \paragraph{Other Configurations:}
+% % \jh{I think we need to talk some important training/eval configs. for example, the rollout size (which is relevant to pass@k), the training max length and eval max length that we will mention again later, and mention we use verl [cite]. For some detailed configs that we want include in appendix (batch size, some GRPO hyperparams), we also need to cite that appendix here}
+% We train our models using the verl~\citep{sheng2024hybridflow} framework. We provide detailed training and evaluation details in the Appendix ~\ref{sec:train_evaluate_details}.
+\label{sec:training_algorithm}
+
+\paragraph{Training Algorithm:}
+In our study, we follow the zero RL training recipe in ~\citet{guo2025deepseek} using various open base models, employing the GRPO algorithm~\citep{shao2024deepseekmath}. Here, zero RL training refers to RL directly from the base model without any prior supervised fine-tuning (SFT). A detailed introduction to GRPO is provided in Appendix~\ref{sec:detailed_grpo}.
+\label{sec:dataset_setting}
+
+\paragraph{Training Dataset:} We use the GSM8K~\citep{cobbe2021training} and MATH~\citep{hendrycks2021measuring} training datasets. In our experiments, we find that data difficulty is critical for successful zero RL (\textsection\ref{sec:data_complextiy_behaviur}) and it is necessary to use data that aligns with the model's capability. To investigate this phenomenon, we categorize the data into three difficulty levels: Easy (GSM8K and MATH lv.1), Medium (MATH lv.1–4), and Hard (MATH lv.3–5), with each category containing roughly 8,000 problems.
+\label{sec:reward_remove}
+
+\textbf{Reward: } We use a rule-based reward function that assigns +1 for correct answers and 0 for incorrect ones. Unlike prior works~\citep{deepscaler2025,chen2025empirical}, we avoid format-based reward, which may hinder exploration, particularly for base models struggling with format adherence, as detailed in \textsection\ref{sec:remove_format}.
+
+\textbf{Models: }We conduct zero RL training experiments on Llama-3.1-8B, DeepSeek-Math-7B, Mistral-v0.1-7B, Mistral-Small-24b-Base-2501, and Qwen-2.5 (0.5B, 1.5B, 7B, 14B, 32B). As we perform experiments for a variety of models, under extremely simple settings with small, simple datasets and only correctness reward, we refer to our obtained models as \emph{SimpleRL-Zoo} to represent a simple training recipe for a zoo of open base models. In our preliminary experiments, we observe that using complex prompts with models that have weak instruction-following capabilities often results in instability during training. Therefore, we apply simpler prompts to some models (Llama-3.1-8B, Mistral-v0.1-7B, and Qwen-2.5-0.5B/1.5B). Examples of these prompts are shown in Figure~\ref{fig:prompt_case} in the Appendix.
+
+\textbf{Benchmark: }We evaluate performance on standard mathematical reasoning benchmarks, including GSM8K~\citep{cobbe2021training}, MATH 500~\citep{hendrycks2021measuring}, Minerva Math~\citep{lewkowycz2022solving}, and OlympiadBench~\citep{he2024olympiadbench}, as well as on competition-level benchmarks such as AIME 2024 and AMC 2023.
+
+For more experimental setup details, please refer to Appendix~\ref{appx:detailed_setup}.
+% \paragraph{Other Configurations}: Training is conducted using the verl framework (Sheng et al., 2024), with additional details in Appendix C.2.
+
+% Specifically, during training, we use a prompt batch size of 1024, generate 8 rollouts per prompt, set a maximum rollout length of 8,192 tokens, and train using a mini-batch size of 256. 
+% It is worth noting that we use the same training hyperparameters to train all the models.
+% During evaluation, we set the sampling temperature to 1.0 and allow a maximum generation length of 16,384 tokens. For most benchmarks, we report pass@1 results. However, for the AIME 2024 benchmark specifically, we report both pass@1 and average accuracy computed over 32 samples (avg@32) due to limited data points. We provide detailed training and evaluation details in the Appendix ~\ref{sec:train_evaluate_details}.
+% }
+
+
+\subsection{Evaluation Metrics}
+\label{sec:eval_metrics}
+During training, we monitor standard metrics such as accuracy and response length across benchmarks. In our preliminary experiment, we observe that response length as a metric is quite superficial and cannot accurately reflect changes in the model's reasoning behavior. Therefore, we adopt the following metrics additionally:
+
+\textbf{Reasoning Behavior Ratio: }To better understand the model's reasoning patterns throughout the training process, we adopt the cognitive behavior framework proposed by ~\citet{gandhi2025cognitive} and use GPT-4o~\citep{hurst2024gpt} to identify reasoning-related behaviors, including ``Backtracking", ``Verification", ``Subgoal Setting", and ``Enumeration". We compare the consistency between GPT-4o and human annotations of reasoning-related behaviors in the Appendix~\ref{sec:human_consistency}.
+We report the ratio of responses that contain such cognitive behaviors.
+While some recent studies suggest tracking reflection behavior using related keywords~\citep{yeo2025demystifying,xie2025logic} as monitoring signals, we argue that these keywords only exhibit only a weak correlation with high-level reasoning patterns like reflection and verification. As a result, they fail to adequately capture the development of these reasoning processes. We place the setting details, comparisons of different tracking methods, and reasoning behavior cases of different models in Appendix~\ref{appx:bahaviour}.
+
+% Further details refer to Appendix~\ref{appx:bahaviour}.
+
+
+\begin{table*}[t]
+\centering
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lcccccccc}
+\toprule
+\multicolumn{1}{c}{\textbf{Model}} & \textbf{GSM8K} & \textbf{\begin{tabular}[c]{@{}c@{}}MATH\\ 500\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}Minerva\\ Math\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}Olympiad\\ Bench\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}AIME24 \\ (Pass@1)\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}AIME24 \\ (Avg@32)\end{tabular}} & \textbf{AMC23} & \textbf{Avg.} \\ \midrule
+\multicolumn{9}{c}{\textit{Llama, DeepSeek and Mistral Models}}   \\
+Mistral-v0.1-7B  & 21.2  & 4.2      & 4.0       & 2.4        & 0.0        & 0.0        & 0.0  & 5.3  \\
+\rowcolor[rgb]{ .867, .922, .969}~~~~$\hookrightarrow$~+~\ourmethod  & 75.0  & 15.8      & 6.6       & 4.1        & 0.0        & 0.2        & 10.0  & 18.6  \\
+Llama-3.1-8B    & 39.7  & 13.6      & 4.8       & 3.1        & 0.0        & 0.2        & 2.5  & 10.6  \\
+\rowcolor[rgb]{ .867, .922, .969}~~~~$\hookrightarrow$~+~\ourmethod  & 79.2  & 23.0      & 9.6       & 5.3        & 0.0        & 0.2        & 15.0  & 22.0  \\
+DeepSeek-Math-7B  & 28.4  & 19.4      & 5.5       & 4.7        & 0.0        & 0.0        & 10.0  & 11.3  \\
+\rowcolor[rgb]{ .867, .922, .969}~~~~$\hookrightarrow$~+~\ourmethod & 78.5  & 39.6      & 21.0      & 12.6        & 3.3        & 0.6        & 20.0  & 29.2  \\
+Mistral-Small-24B  & 78.6  & 43.6      & 10.7      & 11.6        & 3.3        & 0.5        & 17.5  & 27.6  \\
+\rowcolor[rgb]{ .867, .922, .969}~~~~$\hookrightarrow$~+~\ourmethod  & 92.0  & 70.6      & 36.8      & 36.6        & 16.7        & 13.1        & 45.0  & 49.6  \\ \midrule
+\multicolumn{9}{c}{\textit{Qwen Series Models}}                                        \\
+Qwen-2.5-0.5B    & 36.7  & 15.8      & 4.8       & 2.8        & 0.0        & 0.3        & 12.5  & 12.1  \\
+\rowcolor[rgb]{ .867, .922, .969}~~~~$\hookrightarrow$~+~\ourmethod  & 49.5  & 34.4      & 10.3      & 8.9        & 0.0        & 0.7        & 22.5  & 20.9  \\
+Qwen-2.5-1.5B    & 55.7  & 29.6      & 6.6       & 6.5        & 0.0        & 0.1        & 12.5  & 18.5  \\
+\rowcolor[rgb]{ .867, .922, .969}~~~~$\hookrightarrow$~+~\ourmethod  & 74.4  & 59.0      & 20.2      & 21.0        & 6.7        & 4.2        & 35.0  & 36.1  \\
+Qwen-2.5-7B    & 88.2  & 64.6      & 25.7      & 30.1        & 3.3        & 0.3        & 30.0  & 40.3  \\
+\rowcolor[rgb]{ .867, .922, .969}~~~~$\hookrightarrow$~+~\ourmethod  & 91.7  & 78.2      & 38.6      & 40.4        & 20.0        & 15.6        & 62.5  & 55.2  \\
+Qwen-2.5-Math-7B  & 65.5  & 63.6      & 12.5      & 25.8        & 13.3        & 8.6        & 42.5  & 37.2  \\
+\rowcolor[rgb]{ .867, .922, .969}~~~~$\hookrightarrow$~+~\ourmethod  & 90.2  & 80.2      & 37.5      & 39.0        & 40.0        & 24.0        & 70.0  & 59.5  \\
+Qwen-2.5-14B    & 91.6  & 65.4      & 24.3      & 33.5        & 6.7        & 3.4        & 37.5  & 43.2  \\
+\rowcolor[rgb]{ .867, .922, .969}~~~~$\hookrightarrow$~+~\ourmethod  & 94.4  & 80.2      & 40.4      & 44.9        & 23.3        & 14.2        & 57.6  & 56.8  \\
+Qwen-2.5-32B    & 92.9  & 68.6      & 27.9      & 31.1        & 10.0        & 4.5        & 45.0  & 45.9  \\
+\rowcolor[rgb]{ .867, .922, .969}~~~~$\hookrightarrow$~+~\ourmethod  & 95.9  & 82.4      & 42.6      & 46.4        & 36.7        & 27.2        & 67.5  & 61.9  \\ \bottomrule
+\end{tabular}
+}
+\caption{Detailed performance of various models across multiple benchmarks. The blue lines represent the models trained with our recipe. AIME is evaluated in two ways: Pass@1 (single run) and Avg@32 (average score from 32 runs). For AIME24 (Pass@1) and other benchmarks, baselines use greedy decoding, and models with \ourmethod use temperature=1.0 and top-p=0.95. For AIME24 (Avg@32), we sample 32 responses per model with the same settings. Average scores are based on AIME (Pass@1) and other benchmarks.}
+\label{table:performance}
+% \vspace{-12pt}
+\end{table*}
+
+
+\textbf{Clip Ratio: }In the early stages of training, the base model exhibits weak instruction-following ability and often fails to stop appropriately, resulting in irrelevant or excessively long outputs. After training collapses, the model may also generate repetitive or overly extended responses. Since the model has a fixed maximum context length, such outputs may be truncated during both training and evaluation. To monitor this issue, we define the proportion of truncated outputs as the ``Clip Ratio".
+
+\textbf{Average Stopped Length: }Generations that are truncated often result from issues such as repetitive patterns or incomplete reasoning, which typically do not contribute to effective trajectories. To account for this factor, we introduce a new metric to track the average length of responses that are stopped under normal conditions. 
+% It is a more reliable metric to consider only valid responses, thereby eliminating the interference caused by unstopped responses.
+
+For more evaluation metrics details, please refer to Appendix~\ref{appx:eval_detail}.
+% Unstable training can lead to repetitive content generation that exceeds the model's context length. To measure this issue, we track the clip ratio -- the percentage of generated responses truncated due to context length limitations.
+
+
+%\yh{add more detail about the def of these reasoning behavior. }
+% introduce enumeration as a reasoning behavior. Leveraging the prompt in the Figure xxxx, GPT-4o~\citep{hurst2024gpt} identifies reasoning-related behaviors—"Backtracking", "Verification", "Subgoal Setting", and "Enumeration"—and we calculate their proportions.
+
+\subsection{Main Results}
+
+
+
+% todo: we still need other benchmark's result 
+% todo: remind to compare the greedy result with sampling result.
+
+
+% \begin{table*}[t]
+% \centering
+% \resizebox{0.98\textwidth}{!}{
+% \begin{tabular}{lccccccc}
+% \hline
+% \multicolumn{1}{c}{\textbf{Model}} & GSM 8K       & MATH 500     & Minerva Math & OlympiadBench & AIME 2024    & AMC 2023     & Avg.         \\ \hline
+% Qwen-2.5-1.5B-Zero                 &              &              &              &               &              &              &              \\
+% Mistral-v0.1-7B-Zero               & 75.0 (+66.6) & 15.8 (+12.4) & 6.6 (+4.0)   & 4.1 (+2.5)    & 0.0 (+0.0)   & 10.0 (+5.0)  & 18.6 (+15.1) \\
+% DeepSeek-math-7B-Zero              & 78.5 (+61.4) & 39.6 (+31.2) & 21.0 (+17.7) & 12.6 (+9.3)   & 3.3 (+3.3)   & 20.0 (+17.5) & 29.2 (+23.4) \\
+% Qwen-2.5-7B-Zero                   & 91.7 (+25.5) & 78.2 (+30.6) & 38.6 (+22.4) & 40.4 (+22.3)  & 20.0 (+13.3) & 62.5 (+35.0) & 55.2 (+24.9) \\
+% Llama-3.1-8B-Zero                  &              &              &              &               &              &              &              \\
+% Qwen-2.5-14B-Zero                  &              &              &              &               &              &              &              \\
+% Mistral-Small-24B-Zero             & 92.0 (+46.1) & 70.6 (+43.6) & 36.8 (+26.5) & 36.6 (+30.4)  & 16.7 (+16.7) & 45.0 (+30.0) & 49.6 (+32.2) \\
+% Qwen-2.5-32B-Zero                  &              &              &              &               &              &              &              \\ \hline
+% \end{tabular}
+% }
+% % \vspace{-5pt}
+% \caption{}
+% \label{}
+% \vspace{-10pt}
+% \end{table*}
+
+
+
+% \begin{table*}[t]
+% \centering
+% \resizebox{\textwidth}{!}{
+% \begin{tabular}{lccccccc}
+% \toprule
+% \multicolumn{1}{c}{\textbf{Model}} & \textbf{GSM8K} & \textbf{MATH 500} & \textbf{Minerva Math} & \textbf{OlympiadBench} & \textbf{AIME24} & \textbf{AMC23} & \textbf{Avg.} \\ \midrule
+
+% \multicolumn{8}{c}{\textbf{Llama and DeepSeek Series Model }}\vspace{4pt}  \\
+% DeepSeek-math-7B              & 78.5 \up{61.4}   & 39.6 \up{31.2}     & 21.0 \up{17.7}         & 12.6 \up{9.3}          & 3.3 \up{3.3}       & 20.0 \up{17.5}    & 29.2 \up{23.4} \\  % Llama3-70B
+% Llama-3.1-8B                 & 79.2 \up{65.9}           & 23.0 \up{19.0}              & 9.6 \up{7.0}                  & 5.3 \up{4.0}                  & 0.0               & 15.0 \up{12.5}             & 22.0 \up{18.1}          \\ \midrule
+% \multicolumn{8}{c}{\textbf{Mistral Series Model }}\vspace{4pt}  \\
+% Mistral-v0.1-7B              & 75.0 \up{66.6}   & 15.8 \up{12.4}     & 6.6 \up{4.0}          & 4.1 \up{2.5}           & 0.0         & 10.0 \up{5.0}     & 18.6 \up{15.1} \\
+% Mistral-Small-24B             & 92.0 \up{46.1}   & 70.6 \up{43.6}     & 36.8 \up{26.5}         & 36.6 \up{30.4}         & 16.7 \up{16.7}     & 45.0 \up{30.0}    & 49.6 \up{32.2} \\ \midrule
+
+% \multicolumn{8}{c}{\textbf{Qwen Series Model }}\vspace{4pt}  \\
+% Qwen-2.5-1.5B                & 74.4 \up{55.1}            & 59.0 \up{51.8}              & 20.2 \up{18.0}                  & 21.0 \up{19.4}                  & 6.7 \up{6.7}              & 35.0 \up{32.5}            & 36.1 \up{30.6}          \\
+% Qwen-2.5-7B                   & 91.7 \up{25.5}   & 78.2 \up{30.6}     & 38.6 \up{22.4}         & 40.4 \up{22.3}         & 20.0 \up{13.3}     & 62.5 \up{35.0}    & 55.2 \up{24.9} \\
+% Qwen-2.5-14B               & 94.4 \up{10.0}            & 80.2 \up{25.6}              & 40.4 \up{23.9}                  & 44.9 \up{24.9}                  & 23.3 \up{13.3}              & 62.5 \up{20.0}             & 57.6 \up{19.6}         \\
+% Qwen-2.5-32B                 & N/A            & N/A              & N/A                  & N/A                  & N/A              & N/A             & N/A          \\ 
+
+%  \bottomrule
+% \end{tabular}
+% }
+% \caption{Detailed performance of various models across multiple benchmarks. Values in green indicate an improvement in performance compared to the corresponding initial base models.\wz{will add more baseline}\jh{32b results}\jh{do we have qwen2.5-math results?}\jh{we should show the numbers of the base models as well, rather than just showing the improvement. It is weird to only show the delta but not show the baseline numbers, this is not common practice}}
+% \label{table:performance}
+% \vspace{-10pt}
+% \end{table*}
+
+
+
+%%%% Original version of Table 1, commented by Qian
+% \begin{table*}[t]
+% \centering
+% \resizebox{\textwidth}{!}{
+% \begin{tabular}{lcccccccc}
+% \toprule
+% \multicolumn{1}{c}{\textbf{Model}} & \textbf{GSM8K} & \textbf{\begin{tabular}[c]{@{}c@{}}MATH\\ 500\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}Minerva\\ Math\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}Olympiad\\ Bench\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}AIME24 \\ (Pass@1)\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}AIME24 \\ (Avg@32)\end{tabular}} & \textbf{AMC23} & \textbf{Avg.} \\ \midrule
+% \multicolumn{9}{c}{Llama and DeepSeek Series Model}                                                                                                                                                                                                                                                                                                                                                                                  \\
+% DeepSeek-Math-7B                   & 28.4           & 19.4                                                        & 5.5                                                             & 4.7                                                               & 0.0                                                                 & 0.0                                                                 & 10.0           & 11.3          \\
+% Llama-3.1-8B                       & 39.7           & 13.6                                                        & 4.8                                                             & 3.1                                                               & 0.0                                                                 & 0.2                                                                 & 2.5            & 10.6          \\
+%  \rowcolor[rgb]{ .867, .922, .969}DeepSeek-Math-7B-SimpleRL          & 78.5           & 39.6                                                        & 21.0                                                            & 12.6                                                              & 3.3                                                                 & 0.6                                                                 & 20.0           & 29.2          \\
+%  \rowcolor[rgb]{ .867, .922, .969}Llama-3.1-8B-SimpleRL              & 79.2           & 23.0                                                        & 9.6                                                             & 5.3                                                               & 0.0                                                                 & 0.2                                                                 & 15.0           & 22.0          \\ \midrule
+% \multicolumn{9}{c}{Mistral Series Model}                                                                                                                                                                                                                                                                                                                                                                                             \\
+% Mistral-v0.1-7B                    & 21.2           & 4.2                                                         & 4.0                                                             & 2.4                                                               & 0.0                                                                 & 0.0                                                                 & 0.0            & 5.3           \\
+% Mistral-Small-24B                  & 78.6           & 43.6                                                        & 10.7                                                            & 11.6                                                              & 3.3                                                                 & 0.5                                                                 & 17.5           & 27.6          \\
+%  \rowcolor[rgb]{ .867, .922, .969}Mistral-v0.1-7B-SimpleRL           & 75.0           & 15.8                                                        & 6.6                                                             & 4.1                                                               & 0.0                                                                 & 0.2                                                                 & 10.0           & 18.6          \\
+%  \rowcolor[rgb]{ .867, .922, .969}Mistral-Small-24B-SimpleRL         & 92.0           & 70.6                                                        & 36.8                                                            & 36.6                                                              & 16.7                                                                & 13.1                                                                & 45.0           & 49.6          \\ \midrule
+% \multicolumn{9}{c}{Qwen Series Model}                                                                                                                                                                                                                                                                                                                                                                                                \\
+% Qwen-2.5-0.5B                      & 36.7           & 15.8                                                        & 4.8                                                             & 2.8                                                               & 0.0                                                                 & 0.3                                                                 & 12.5           & 12.1          \\
+% Qwen-2.5-1.5B                      & 55.7           & 29.6                                                        & 6.6                                                             & 6.5                                                               & 0.0                                                                 & 0.1                                                                 & 12.5           & 18.5          \\
+% Qwen-2.5-7B                        & 88.2           & 64.6                                                        & 25.7                                                            & 30.1                                                              & 3.3                                                                 & 0.3                                                                 & 30.0           & 40.3          \\
+% Qwen-2.5-14B                       & 91.6           & 65.4                                                        & 24.3                                                            & 33.5                                                              & 6.7                                                                 & 3.4                                                                 & 37.5           & 43.2          \\
+% Qwen-2.5-32B                       & 92.9           & 68.6                                                        & 27.9                                                            & 31.1                                                              & 10.0                                                                & 4.5                                                                 & 45.0           & 45.9          \\
+% Qwen-2.5-Math-7B                   & 65.5           & 63.6                                                        & 12.5                                                            & 25.8                                                              & 13.3                                                                & 8.6                                                                 & 42.5           & 37.2          \\
+%  \rowcolor[rgb]{ .867, .922, .969}Qwen-2.5-0.5B-SimpleRL             & 49.5           & 34.4                                                        & 10.3                                                            & 8.9                                                               & 0.0                                                                 & 0.7                                                                 & 22.5           & 20.9          \\
+%  \rowcolor[rgb]{ .867, .922, .969}Qwen-2.5-1.5B-SimpleRL             & 74.4           & 59.0                                                        & 20.2                                                            & 21.0                                                              & 6.7                                                                 & 4.2                                                                 & 35.0           & 36.1          \\
+%  \rowcolor[rgb]{ .867, .922, .969}Qwen-2.5-7B-SimpleRL               & 91.7           & 78.2                                                        & 38.6                                                            & 40.4                                                              & 20.0                                                                & 15.6                                                                & 62.5           & 55.2          \\
+%  \rowcolor[rgb]{ .867, .922, .969}Qwen-2.5-14B-SimpleRL              & 94.4           & 80.2                                                        & 40.4                                                            & 44.9                                                              & 23.3                                                                & 14.2                                                                & 57.6           & 56.8          \\
+%  \rowcolor[rgb]{ .867, .922, .969}Qwen-2.5-32B-SimpleRL              & 95.9           & 82.4                                                        & 42.6                                                            & 46.4                                                              & 36.7                                                                & 27.2                                                                & 67.5           & 61.9          \\
+%  \rowcolor[rgb]{ .867, .922, .969}Qwen-2.5-Math-7B-SimpleRL          & 90.2           & 80.2                                                        & 37.5                                                            & 39.0                                                              & 40.0                                                                & 24.0                                                                & 70.0           & 59.5          \\ \bottomrule
+% \end{tabular}
+% }
+% \caption{Detailed performance of various models across multiple benchmarks is presented. The blue lines represent the model trained with our recipe. AIME is evaluated in two ways: Pass@1 (single run) and Avg@32 (average score from 32 runs). For AIME24 (Pass@1) and other benchmarks, baselines use greedy decoding, and models with "zero RL training" use temperature=1 and top-p=0.95. For AIME24 (Avg@32), we sample 32 responses per model with the same settings. Average scores are based on AIME (Avg@1) and other benchmarks.
+% }
+% \label{table:performance}
+% % \vspace{-10pt}
+% \end{table*}
+
+
+%%%%%%%%% Qian's Proposal
+
+
+
+% \begin{figure}[!t]
+%         \centering
+% \includegraphics[width=\columnwidth]{fig/plot_figure3_v1.1_acc_vs_passk.pdf}\vspace{-10pt}
+% \caption{Pass@1 and Pass@8 accuracy over the training iterations of Mistral-Small-24B. The model is trained on the hard data (MATH levels 3–5) as described in \S~\ref{sec:setup}. We evaluate its performance on three benchmarks: AIME24, AMC23, and Math500. The reported average score is the mean across these three benchmarks.
+%         }
+%         \label{fig3:passk-mistral}
+% \end{figure}
+
+
+
+
+
+
+% \begin{table*}[t]
+% \centering
+% \resizebox{\textwidth}{!}{
+% \begin{tabular}{lccccccc}
+% \toprule
+% \multicolumn{1}{c}{\textbf{Model}} & \textbf{GSM8K} & \textbf{MATH 500} & \textbf{Minerva Math} & \textbf{OlympiadBench} & \textbf{AIME24} & \textbf{AMC23} & \textbf{Avg.} \\ \midrule
+% Qwen-2.5-1.5B                & N/A            & N/A              & N/A                  & N/A                  & N/A              & N/A             & N/A          \\
+% Mistral-v0.1-7B              & 75.0 \up{66.6}   & 15.8 \up{12.4}     & 6.6 \up{4.0}          & 4.1 \up{2.5}           & 0.0        & 10.0 \up{5.0}     & 18.6 \up{15.1} \\
+% DeepSeek-math-7B              & 78.5 \up{61.4}   & 39.6 \up{31.2}     & 21.0 \up{17.7}         & 12.6 \up{9.3}          & 3.3 \up{3.3}       & 20.0 \up{17.5}    & 29.2 \up{23.4} \\
+% Qwen-2.5-7B                   & 91.7 \up{25.5}   & 78.2 \up{30.6}     & 38.6 \up{22.4}         & 40.4 \up{22.3}         & 20.0 \up{13.3}     & 62.5 \up{35.0}    & 55.2 \up{24.9} \\
+% Llama-3.1-8B                 & N/A            & N/A              & N/A                  & N/A                  & N/A              & N/A             & N/A          \\
+% Qwen-2.5-14B               & N/A            & N/A              & N/A                  & N/A                  & N/A              & N/A             & N/A          \\
+% Mistral-Small-24B             & 92.0 \up{46.1}   & 70.6 \up{43.6}     & 36.8 \up{26.5}         & 36.6 \up{30.4}         & 16.7 \up{16.7}     & 45.0 \up{30.0}    & 49.6 \up{32.2} \\
+% Qwen-2.5-32B                 & N/A            & N/A              & N/A                  & N/A                  & N/A              & N/A             & N/A          \\ \bottomrule
+% \end{tabular}
+% }
+% \caption{Performance of various models across multiple datasets. Numbers indicate performance, with the values in parentheses representing the improvements.}
+% \label{table:performance}
+% \vspace{-10pt}
+% \end{table*}
+
+\paragraph{Zero RL Training Improves both Accuracy and Response Length Significantly:}
+Figure~\ref{fig1:acc&len} and Figure~\ref{fig:appx_acc&len} in Appendix~\ref{appx:DetailedResult} illustrate a steady improvement in both response length and average accuracy across various benchmarks.  Table~\ref{table:performance} provides a detailed breakdown of the results. Despite using only 8K training samples, we observe significant performance gains for all models. The improvements cover competition-level tests like AIME 2024 and AMC 2023 for most cases. This demonstrates the remarkable generalization capabilities of zero RL training, enabling the model to effectively progress from easier to more challenging problems.
+% Remarkably, even with only 8K training data for training, we observe significant performance gains across all benchmarks. Despite the limited training data, consisting solely of GSM8K and MATH 500, we observe substantial performance gains on competition-level benchmarks such as AIME 2024 and AMC 2023. This highlights the generalization abilities of zero RL training allowing the model to bridge the gap from easy to hard.
+\label{sec:mistral_fail}
+In addition to the Qwen series models, we also significantly improve both performance and response length for other models that initially starts with low baselines. For instance, after just 80 training iterations, the DeepSeek-Math-7B's performance increases more than threefold, while its response length grows from around 300 to over 1200 tokens. 
+% We also evaluate the generalization ability across IFEVAL~\citep{zhou2023instruction}, MMLU~\citep{hendrycks2020measuring}, and GPQA-Diamond~\citep{rein2024gpqa}. As shown in Table~\ref{table:generalization_performance}, our method not only improve models' instruction-following ability but also exhibits strong generalization performance, with detailed results provided in the Appendix~\ref{sec:generalization_capability}.
+% We also evaluate generalization ability across IFEVAL~\citep{zhou2023instruction}, MMLU~\citep{hendrycks2020measuring}, and GPQA-Diamond~\citep{rein2024gpqa}. As shown in Table~\ref{table:generalization_performance} of Appendix~\ref{sec:generalization_capability}, our method demonstrates strong generalization performance.
+
+\paragraph{Zero RL Training also Demonstrates Strong Generalization Performance.}
+
+We also evaluate the generalization ability of zero RL training using three benchmarks: IFEVAL~\citep{zhou2023instruction}, MMLU~\citep{hendrycks2020measuring}, and GPQA-Diamond~\citep{rein2024gpqa}. IFEVAL measures instruction-following capability, MMLU assesses the model's mastery of general knowledge, and GPQA-Diamond is a challenging benchmark that tests domain-specific expertise in chemistry, physics, and biology. Table~\ref{table:generalization_performance} presents the changes in model performance on IFEval, MMLU, and GPQA-Diamond before and after training. Despite zero RL training being conducted on only ~8K math reasoning-related examples, the model generalizes effectively across a range of tasks. Notably, it shows significant gains in instruction-following and general knowledge on IFEval and MMLU, as well as substantial improvements on the challenging GPQA-Diamond benchmark, which spans chemistry, physics, and biology.
+
+\begin{table*}[t]
+\centering
+\resizebox{0.75\textwidth}{!}{
+\begin{tabular}{lccccc}
+\toprule
+\multicolumn{1}{c}{\textbf{Model}} & \textbf{\begin{tabular}[c]{@{}c@{}}IFEVAL\\ strict-prompt\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}MMLU\\Stem\end{tabular}} & \textbf{MMLU} & \textbf{GPQA} & \textbf{Avg.} \\ \midrule
+\multicolumn{6}{c}{\textit{Llama, DeepSeek and Mistral Models}} \\
+Mistral-v0.1-7B & 13.5 & 26.1 & 28.0 & 23.2 & 22.7 \\
+\rowcolor[rgb]{ .867, .922, .969}~~~~$\hookrightarrow$~+~\ourmethod & 21.8 & 28.1 & 34.6 & 30.3 & 28.7 \\
+Llama-3.1-8B & 16.1 & 27.1 & 28.7 & 22.7 & 23.6 \\
+\rowcolor[rgb]{ .867, .922, .969}~~~~$\hookrightarrow$~+~\ourmethod & 25.1 & 40.7 & 44.5 & 20.2 & 32.6 \\
+DeepSeek-Math-7B & 11.5 & 21.6 & 22.7 & 19.2 & 18.7 \\
+\rowcolor[rgb]{ .867, .922, .969}~~~~$\hookrightarrow$~+~\ourmethod & 16.3 & 47.4 & 45.5 & 27.3 & 34.1 \\
+Mistral-Small-24B & 17.4 & 30.9 & 31.7 & 20.2 & 25.0 \\
+\rowcolor[rgb]{ .867, .922, .969}~~~~$\hookrightarrow$~+~\ourmethod & 23.5 & 73.9 & 78.8 & 45.0 & 55.3 \\ \midrule
+\multicolumn{6}{c}{\textit{Qwen Series Models}} \\
+Qwen-2.5-0.5B & 9.6 & 23.2 & 24.9 & 24.8 & 20.6 \\
+\rowcolor[rgb]{ .867, .922, .969}~~~~$\hookrightarrow$~+~\ourmethod & 14.4 & 32.1 & 34.6 & 26.3 & 26.8 \\
+Qwen-2.5-1.5B & 15.2 & 33.1 & 35.4 & 24.8 & 27.1 \\
+\rowcolor[rgb]{ .867, .922, .969}~~~~$\hookrightarrow$~+~\ourmethod & 20.3 & 42.1 & 45.2 & 28.8 & 34.1 \\
+Qwen-2.5-7B & 21.3 & 39.8 & 38.6 & 23.7 & 30.8 \\
+\rowcolor[rgb]{ .867, .922, .969}~~~~$\hookrightarrow$~+~\ourmethod & 25.9 & 49.6 & 47.0 & 29.8 & 38.1 \\
+Qwen-2.5-Math-7B & 14.1 & 40.6 & 38.0 & 27.8 & 30.1 \\
+\rowcolor[rgb]{ .867, .922, .969}~~~~$\hookrightarrow$~+~\ourmethod & 17.0 & 55.6 & 56.6 & 35.4 & 41.1 \\
+Qwen-2.5-14B & 22.9 & 59.8 & 63.5 & 24.8 & 42.7 \\
+\rowcolor[rgb]{ .867, .922, .969}~~~~$\hookrightarrow$~+~\ourmethod & 29.4 & 76.3 & 79.1 & 50.0 & 58.7 \\
+Qwen-2.5-32B & 24.6 & 60.7 & 62.7 & 38.9 & 46.7 \\
+\rowcolor[rgb]{ .867, .922, .969}~~~~$\hookrightarrow$~+~\ourmethod & 31.2 & 79.0 & 82.5 & 49.5 & 60.6 \\ \bottomrule
+\end{tabular}
+
+}
+\caption{Detailed performance of various models across IFEVAL, MMLU and GPQA. The blue lines represent the models trained with our recipe.}
+\label{table:generalization_performance}
+% \vspace{-12pt}
+\end{table*}
+
+\begin{figure}[!t]
+        \centering
+\includegraphics[width=0.97\columnwidth]{fig/plot_figure3_v1.1_acc_vs_passk.pdf}\vspace{-10pt}
+\caption{Pass@1 and Pass@8 accuracy over the training iterations of Mistral-Small-24B. The model is trained on the hard data (MATH levels 3–5) as described in \S\ref{sec:setup}. We evaluate its performance on three benchmarks: AIME24, AMC23, and Math500. The reported average score is the mean across these three benchmarks.
+        }
+        %\vspace{-12pt}
+        \label{fig3:passk-mistral}
+\end{figure}
+
+
+\label{sec:lift_pass_k}
+\paragraph{Steady Improvement of Pass@k Accuracy:}
+% \begin{wrapfigure}{r}{.45\textwidth}
+%     \centering
+%     \includegraphics[width=\linewidth]{fig/plot_figure7_v1_pass_at_k_avg.pdf}\vspace{-10pt}
+%     \caption{Pass@k of Mistral-24B based on the average results from AIME24 and AMC23. }
+%     \label{fig:different_passk}
+%     % \vspace{-10pt}
+% \end{wrapfigure}
+
+As shown in Figure~\ref{fig3:passk-mistral}, Mistral-Small-24B exhibits robust growth in pass@8. Furthermore, as training progresses, the model's pass@1 results eventually surpass the initial pass@8 results of the base model. 
+By iteration 100, the two metrics differ by more than 30 absolute points on average. This suggests significant potential for further improvements in RL, as our training rolls out 8 responses for each query and pass@8 represents the model's ability to explore correct responses. Surprisingly, the gap between pass@1 and pass@8 does not diminish during training; instead, it widens as training progresses. 
+Figure~\ref{fig:different_passk} shows that a significant gap in pass@k persists between the base model and the model after RL training, even at higher values of k -- the gap is from 13 to 30 absolute points when we vary k up to 128. 
+% Notably, after just 100 training iterations, the model achieves a pass@1 performance comparable to the base model’s pass@16.
+This suggests that zero RL training is not just reranking the model’s output distribution within the top k candidates at a reasonably large range of k~\citep{shao2024deepseekmath}, instead, it enhances the model’s fundamental reasoning abilities.
+
+\begin{wrapfigure}{r}{.45\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{fig/plot_figure7_v1_pass_at_k_avg.pdf}\vspace{-10pt}
+    \caption{Pass@k of Mistral-24B based on the average results from AIME24 and AMC23. }
+    \label{fig:different_passk}
+    % \vspace{-10pt}
+\end{wrapfigure}
+
+\paragraph{Growth in Response Length May be Unhealthy:}Response length does not always reflect genuine growth in reasoning. In some cases, unstable training can cause models to generate excessive repetitive content until they hit the context length limit, artificially inflating response length without improving reasoning depth.  For example, Figure~\ref{fig2:clip&stop} shows that while most models maintain a low clip ratio -- below 5\% of the data -- when their average stopping length steadily increases, Mistral-7B-v0.1 exhibits a high clip ratio and significant fluctuations in stopping length. Upon closer inspection of its responses, we find that the responses consist of incoherent, mixed-language gibberish, suggesting that its thinking process is not genuinely expanding.
+We note that such patterns would not be captured by response length as in Figure~\ref{fig1:acc&len}.
+These findings indicate that most models demonstrate a meaningful increase in response length. This raises an important question: What exactly do models learn as their thinking time increases? We answer this question next.
+
+\begin{figure}[!t]
+        \centering
+\includegraphics[width=0.97\columnwidth]{fig/plot_figure2_v2.3_clip_ratio_vs_stop_tokens.pdf}
+\vspace{-10pt}
+\caption{Average clip ratio and stopped length across training iterations for different models. We assess the models every five steps on a variety of math benchmarks, including GSM8K, MATH500, Minerva Math, and OlympiadBench, as well as competition-level benchmarks like AIME24 and AMC23. The red line indicates the clip ratio, while the blue line represents the stopped length. Per-benchmark results are in Figure~\ref{fig:appx_clip&stop} (Appendix~\ref{appx:DetailedResult}).}
+        \label{fig2:clip&stop}
+        \vspace{-10pt}
+\end{figure}
+
+
+
+
+
+% \begin{figure*}[!t]
+%     \centering
+%     % \subfigure[Pass@1 on GSM8K]{
+%     %     \includegraphics[width=0.23\textwidth]{fig/gsm8k_pass@1_math_only_v2.pdf}
+%     % }
+%     \subfigure[MATH]{
+%         \includegraphics[width=0.23\textwidth]{fig/plot_figure3_v2/math500.pdf}
+%         \label{fig:passk_math-mistral}
+%     }
+%     % \subfigure[Diversity on GSM8K]{
+%     %     \includegraphics[width=0.23\textwidth]{fig/gsm8k_diversity_math_only_v1.pdf}
+%     % }
+%     \subfigure[AIME24]{
+%         \includegraphics[width=0.23\textwidth]{fig/plot_figure3_v2/aime24.pdf}
+%     \label{fig:passk_aime-mistral}
+%     }
+%     %\label{fig:deiver_math}
+%     \subfigure[AMC23]{
+%         \includegraphics[width=0.23\textwidth]{fig/plot_figure3_v2/amc23.pdf}
+%         \label{fig:passk_amc-mistral}
+%     }  
+%     \subfigure[Average]{
+%         \includegraphics[width=0.23\textwidth]{fig/plot_figure3_v2/average.pdf}
+%          \label{fig:passk_avg-mistral}
+%     }
+%     % \hspace{-5pt}
+%     \caption{TDB}
+%     \label{fig:pass@k-mistral}
+%     \vspace{-10pt}
+% \end{figure*}
+
+
+
+% \begin{figure}[!t]
+%         \centering
+% \includegraphics[width=\columnwidth]{fig/plot_figure3_v1.1_acc_vs_passk.pdf}\vspace{-10pt}
+% \caption{Pass@1 and Pass@8 accuracy over the training iterations of Mistral-Small-24B. The model is trained on the hard data (MATH levels 3–5) as described in \S~\ref{sec:setup}. We evaluate its performance on three benchmarks: AIME24, AMC23, and Math500. The reported average score is the mean across these three benchmarks.
+%         }
+%         \label{fig3:passk-mistral}
+% \end{figure}
+
+
+
+
+
+
+
+
+% \begin{figure}[!t]
+%         \centering
+% \includegraphics[width=\columnwidth]{fig/plot_figure4_v4_behavior_lines.pdf}\vspace{-10pt}
+% \caption{The change in reasoning behavior over the training iterations across all models. As described in \S\ref{sec:eval_metrics}, we use GPT-4o to extract and track shifts in reasoning behaviors on OlympiadBench. We focus on four reasoning-related behaviors: ``Backtracking", ``Verification", ``Subgoal Setting", and ``Enumeration".
+%         }
+%         \label{fig4:behavior&counts}
+%     \vspace{-15pt}
+% \end{figure}
+% accuacy and lenght dynamics, pass@k 
+
+% maybe other metrics in appendix
+
+\subsection{The ``Aha Moment'' -- Quantifying Emergence of Reasoning Behaviors} 
+% \label{sec:behavior}
+Figure~\ref{fig4:behavior&counts} illustrates the reasoning behavior ratio on OlympiadBench during model training.
+%, while results for other benchmarks are provided in the Appendix \jh{XXXX}. 
+By comparing Figure~\ref{fig4:behavior&counts} with Figure~\ref{fig2:clip&stop}, we observe that fluctuations in the reasoning behavior ratio effectively account for variations in the average stopped length. Interestingly, we find that different models exhibit entirely distinct trends in reasoning behavior changes. 
+
+
+
+% \begin{figure}[!t]
+%         \centering
+% \includegraphics[width=\columnwidth]{fig/plot_figure4_v4_behavior_lines.pdf}\vspace{-10pt}
+% \caption{The change in reasoning behavior over the training iterations across all models. As described in \S\ref{sec:eval_metrics}, we use GPT-4o to extract and track shifts in reasoning behaviors on OlympiadBench. We focus on four reasoning-related behaviors: ``Backtracking", ``Verification", ``Subgoal Setting", and ``Enumeration".
+%         }
+%         \label{fig4:behavior&counts}
+%     \vspace{-15pt}
+% \end{figure}
+
+
+Smaller models, such as Qwen-2.5-0.5B and 1.5B, tend to prioritize learning the "Subgoal Setting" behavior, with its proportion increasing by approximately 4–5 times. Additionally, the proportions of "Verification" and "Enumeration" also show noticeable growth. In contrast, for other base models that inherently possess step-by-step reasoning capabilities, adjustments in "Subgoal Setting" during the RL training process are relatively minor.
+
+% \wz{Based on recent experiments, models with different capabilities focus on learning different behaviors. For example, Qwen 2.5 0.5b prioritizes learning "subgoal setting", while more powerful models tend to learn high level patterns such as "verification" and "backtracking". will add this insteresting finding later.}
+% Our analysis indicates that most base models inherently exhibit step-by-step reasoning capabilities. As a result, during the RL training process, adjustments in ``Subgoal Setting" remain relatively subtle.
+\label{sec:deepseek-math_behabiur}
+DeepSeek-Math-7B, Llama-3.1-8B, and Mistral-Small-24B exhibit substantial increases in the proportions of ``Enumeration" and ``Verification" behaviors, rising from relatively low initial levels by approximately 3-4 times. This growth correlates closely with their changes in average stopped length, suggesting a shift in reasoning patterns over time. For instance, in Mistral-Small-24B, reflection-oriented behaviors such as ``Verification" and ``Backtracking" increase dramatically from nearly 0\% to approximately 50\%, indicating the emergence of reflection behavior from scratch. This shift suggests that the model progressively internalizes verification as part of its reasoning process, offering a promising trajectory for enhancement.
+
+
+\label{sec:qwen_behabiur}
+In contrast, Qwen-2.5-7B and 32B demonstrate strong reasoning behaviors from the outset, with minimal changes throughout training. This phenomenon aligns with their slow length adjustments (Figure~\ref{fig1:acc&len}) and suggests that Qwen models inherently possess robust reasoning capabilities. Rather than undergoing a structural shift in their reasoning processes, they primarily benefit from small increases in thinking time, which yield significant performance improvements. Finally, we observe that Mistral-7B-v0.1 consistently exhibits low reasoning behaviors with no noticeable growth, further supporting our earlier analysis in \textsection\ref{sec:mistral_fail}.
+
+
+% \begin{figure}[!t]
+%         \centering
+% \includegraphics[width=\columnwidth]{fig/mistral24b_verification.pdf}\vspace{-10pt}
+% \caption{A comparison of Mistral-24B's "verification" and "backtraining" behavior before and after "zero training." Here, "base solution" represents the response of the Mistral-24B base model, while "zero solution" represents the response of the model after training.\yh{move to appx}
+%         }
+%         \label{fig7:verfication_case}
+%     \vspace{-10pt}
+% \end{figure}
+
+
+% \begin{figure}[!t]
+%         \centering
+% \includegraphics[width=\columnwidth]{fig/mistral24b_enumeration_case.png}
+% \caption{A comparison of Mistral-24B's "Enumeration" behavior before and after "zero training." Here, "base solution" represents the response of the Mistral-24B base model, while "zero solution" represents the response of the model after training.\jh{this example is not good and does not look like an enumeration case, maybe just remove it from the paper.}
+%         }
+%         \label{fig8:enumeration_case}
+%     \vspace{-10pt}
+% \end{figure}
+% \wz{plan to add some cases on model like Mistral-24B}
+
+To intuitively illustrate the changes in reasoning behavior, we present examples of Mistral 24B's reasoning before and after training in Figures~\ref{fig7:verfication_case}. Comprehensive case studies involving other models are available in Appendix~\ref{sec:other_model_behaviour}. In Figure~\ref{fig7:verfication_case}, we observe that unlike the base model, the zero training model actively attempts to verify if its initial solution is valid by substituting it back into the original expression. Upon recognizing that the first solution does not meet the necessary conditions, the model explicitly initiates a backtracking approach, stating "let's try another possibility," eventually arriving at the correct answer. 
+
+
+
+
+%\jh{does not look like an enumeration example}In Figure~\ref{fig8:enumeration_case}, we highlight a significant improvement in the current model's ability to enumerate possibilities compared to the base model. The zero training model demonstrates a clearer understanding of the required steps: it first calculates permutations across different groups, then permutations within each group, and finally combines these results through multiplication, correctly obtaining the final answer.
+
+% \wz{add more cases in appendix}
+
+% use more metric to analyse some reflection pattern, maybe some case in appendix
