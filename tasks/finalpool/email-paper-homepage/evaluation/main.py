@@ -3,14 +3,19 @@ from pathlib import Path
 import json
 import yaml
 import sys
-from utils.github_tools.helper_funcs import read_file_content, get_latest_commit_sha, get_modified_files_between_commits
+import re
+from utils.github_tools.helper_funcs import read_file_content, get_latest_commit_sha, get_modified_files_between_commits, get_user_name, check_repo_exists
 
 sys.path.insert(0, str(Path(__file__).parent.parent))  # 添加任务目录到路径
 from token_key_session import all_token_key_session
     
-def check_acceptance(args):
-    import re  # Import re for regex usage
 
+def get_branch(repo_name):
+    if "My-Homepage" not in repo_name:
+        return "main"
+    return "master"
+
+def check_acceptance(args):
     check_files = [
         "_publications/2025-06-01-ipsum-lorem-all-you-need.md",
         "_publications/2025-06-15-ipsum-lorem-workshop.md",
@@ -21,8 +26,12 @@ def check_acceptance(args):
         "COMLW 2025",
         "COAI 2025"
     ]
+
+    repo_name = f"{args.user_name}/My-Homepage"
+    branch = get_branch(repo_name)
+
     for file, venue in zip(check_files, venues):
-        content = read_file_content(args.github_token, args.repo_name, file, args.branch_name)
+        content = read_file_content(args.github_token, repo_name, file, branch)
         try:
             front_matter = content.split('---')[1].strip()
             data = yaml.safe_load(front_matter)
@@ -59,7 +68,6 @@ def check_acceptance(args):
 
 def check_paper_repositories_codeurl(args):
     """Check codeurl requirements for the four papers with repositories"""
-    import re
     
     # Define the four papers with their repository status (based on README files)
     papers_to_check = [
@@ -67,19 +75,19 @@ def check_paper_repositories_codeurl(args):
             "file": "_publications/2024-05-15-enhancing-llms.md",
             "name": "Enhancing LLMs",
             "status": "released",  # Released - has complete implementation
-            "expected_codeurl": "https://github.com/mcptest-user/enhancing-llms"
+            "expected_codeurl": f"https://github.com/{args.user_name}/enhancing-llms"
         },
         {
             "file": "_publications/2025-06-01-ipsum-lorem-all-you-need.md", 
             "name": "Ipsum Lorem",
             "status": "released",  # Released - has complete implementation
-            "expected_codeurl": "https://github.com/mcptest-user/ipsum-lorem-all-you-need"
+            "expected_codeurl": f"https://github.com/{args.user_name}/ipsum-lorem-all-you-need"
         },
         {
             "file": "_publications/2025-06-20-llm-adaptive-learning.md",
             "name": "LLM Adaptive Learning", 
             "status": "released",  # Released - has complete implementation
-            "expected_codeurl": "https://github.com/mcptest-user/llm-adaptive-learning"
+            "expected_codeurl": f"https://github.com/{args.user_name}/llm-adaptive-learning"
         },
         {
             "file": "_publications/2025-07-01-optimizing-llms-contextual-reasoning.md",
@@ -89,10 +97,13 @@ def check_paper_repositories_codeurl(args):
         }
     ]
     
+    repo_name = f"{args.user_name}/My-Homepage"
+    branch = get_branch(repo_name)
+
     for paper in papers_to_check:
         print(f"Checking codeurl for {paper['name']}...")
-        content = read_file_content(args.github_token, args.repo_name, paper['file'], args.branch_name)
-        
+        content = read_file_content(args.github_token, repo_name, paper['file'], branch)
+
         # Try to extract codeurl using YAML first, then fallback to regex
         codeurl_data = None
         try:
@@ -130,25 +141,46 @@ def check_paper_repositories_codeurl(args):
     
     print("All paper repository codeurl checks passed.")
 
+def get_config():
+    task_id = "email-paper-homepage"
+    config_path = "configs/github_repos.json"
+    with open(config_path, 'r') as f:
+        data = json.load(f)
+    for task in data:
+        if task.get("task_id") == task_id:
+            return task
+    raise ValueError(f"Task ID {task_id} not found in config.")
 
 def check_modified_files(args):
-    init_commit_path = Path(__file__).parent / ".." / "files" / "init_commit_sha.json"
-    with open(init_commit_path, 'r') as f:
-        init_commit_data = json.load(f)
-    init_commit_sha = init_commit_data.get("init_commit_sha")
-    latest_commit_sha = get_latest_commit_sha(args.github_token, args.repo_name, args.branch_name)
-    modified_files = get_modified_files_between_commits(args.github_token, args.repo_name, init_commit_sha, latest_commit_sha)
-    
-    limited_modified_files = [
-        "_publications/2025-06-01-ipsum-lorem-all-you-need.md",
-        "_publications/2025-06-15-ipsum-lorem-workshop.md",
-        "_publications/2025-07-01-optimizing-llms-contextual-reasoning.md",
-        "_config.yml"
-    ]
-    for file in modified_files:
-        if file.filename not in limited_modified_files:
-            print(f"Unexpected modified file: {file.filename}")
+    task_config = get_config()
+    for repo in task_config.get("upstream_repos"):
+        repo_name = repo.split('/')[-1]
+        local_repo = f"{args.user_name}/{repo_name}"
+        if not check_repo_exists(args.github_token, local_repo):
+            print(f"Expected repository {local_repo} does not exist.")
             exit(1)
+        init_commit_sha = get_latest_commit_sha(args.github_token, repo, get_branch(repo_name))
+        latest_commit_sha = get_latest_commit_sha(args.github_token, local_repo, get_branch(repo_name))
+        modified_files = get_modified_files_between_commits(args.github_token, local_repo, init_commit_sha, latest_commit_sha)
+
+        if repo_name == "My-Homepage":
+            limited_modified_files = [
+                "_publications/2025-06-01-ipsum-lorem-all-you-need.md",
+                "_publications/2025-06-15-ipsum-lorem-workshop.md",
+                "_publications/2025-07-01-optimizing-llms-contextual-reasoning.md",
+                "_config.yml"
+            ]
+            for file in modified_files:
+                if file.filename not in limited_modified_files:
+                    print(f"Unexpected modified file: {file.filename}")
+                    exit(1)
+        else:
+            if modified_files:
+                print(f"Unexpected modified files found in {repo_name}:")
+                for file in modified_files:
+                    print(f" - {file.filename}")
+                exit(1)
+    
     print("Modified files check passed. Only expected files were modified.")
 
 def main(args):
@@ -161,17 +193,17 @@ def main(args):
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--github_token", default=None)
-    parser.add_argument("--repo_name", default="mcptest-user/My-Homepage")
-    parser.add_argument("--branch_name", default="master")
+    parser.add_argument("--user_name", default=None)
+    
     parser.add_argument("--agent_workspace", required=False)
     parser.add_argument("--launch_time", required=False, help="Launch time")
     parser.add_argument("--res_log_file", required=False)
     parser.add_argument("--groundtruth_workspace", required=False)
     args = parser.parse_args()
     
-    # 使用 token_key_session 中的 github_token，如果命令行没有提供的话
-    if args.github_token is None:
-        args.github_token = all_token_key_session.github_token
+    args.github_token = all_token_key_session.github_token
+    user_name = get_user_name(args.github_token)
+    args.user_name = user_name
     
     print("Evaluating...")
     main(args)

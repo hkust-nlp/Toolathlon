@@ -10,7 +10,7 @@
     "@gongrzhe/server-calendar-autoauth-mcp": "^1.0.2",
     "@gongrzhe/server-gmail-autoauth-mcp": "^1.1.9",
     "@jinzcdev/leetcode-mcp-server": "^1.1.0",
-    "@lockon0927/playwright-mcp-with-chunk": "^0.1.1",
+    "@lockon0927/playwright-mcp-with-chunk": "^0.1.2",
     "@lockon0927/woocommerce-mcp": "^1.0.1",
     "@modelcontextprotocol/server-filesystem": "^2025.7.29",
     "@modelcontextprotocol/server-github": "^2025.4.8",
@@ -35,7 +35,7 @@
     "mcp-deepwiki": "^0.0.10",
     "mcp-remote": "^0.1.16",
     "mcp-server-code-runner": "^0.1.7",
-    "mcp-server-kubernetes": "^2.5.1",
+    "mcp-server-kubernetes": "file:../mcp-server-kubernetes/mcp-server-kubernetes-2.8.0.tgz",
     "shadcn-ui-mcp-server": "^0.1.2",
     "zod": "^3.25.23"
   },

@@ -53,3 +53,5 @@ deployment/*/*
 !deployment/*/scripts/**
 
 wandb
+
+.DS_Store

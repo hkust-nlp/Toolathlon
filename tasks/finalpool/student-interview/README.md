@@ -1,100 +1,91 @@
-# 学生面试安排任务 (Student Interview Task)
+# Student Interview Scheduling Task
 
-## 任务概述
+This task simulates a professor's workflow of scheduling interviews with students based on their research qualifications and calendar availability.
 
-这是一个基于Gmail和Google Calendar的MCP Agent任务，模拟HKUST教授处理学生面试安排的真实场景。
+> 关于无关邮件注入：在`student-interview/preprocess/files/fake_emails_300_manual.json`下有300个构造好的无关邮件，所有内容均为虚构，含有mcp.com的邮件名称和当前实际部署的503个无冲突，可以在preprocess中随机抽取并用IMAP和任务邮件一起注入到INBOX当中，注意在注入前最好先根据send_time排序
+> 
+> 另外关于邮件中涉及的时间：`student-interview/preprocess/files/fake_emails_300_manual.json`当中的所有时间都使用占位符`xx days before current date`代替，可以通过指定当前时间来批量替换，具体实现过程可以直接使用Claude Code解析本任务的预处理过程，迁移到其他任务上
 
-## 任务描述
+## Email System Design
 
-作为HKUST的一名教授，您最近收到了5名学生的简历邮件，需要安排面试。由于人数较多，您只想与有独立一作发表的学生进行面试。任务要求：
+### Student Emails (20 emails)
 
-1. **邮件筛选**：在收件箱中筛选出有独立一作发表的学生简历
-2. **日历查看**：查看今天和明天的空余时间
-3. **面试安排**：为符合条件的学生安排面试时间
-4. **日程同步**：将面试安排同步到Google Calendar
-5. **结果报告**：告知具体的面试时间安排
+- **Source**: `preprocess/files/emails.jsonl`
+- **Email addresses**: Mapped to actual `@mcp.com` addresses from `user_list.csv`
+- **Timestamps**: Random dates 1-60 days before current date
+- **Content**: Detailed academic backgrounds, publications, and contact information
 
-## 学生简历概况
+#### Fake Email Characteristics
 
-任务中包含5名学生的简历：
+- **Source**: `preprocess/files/fake_emails_300_manual.json`
+- **Timestamps**: Random dates 1-30 days before current date (more recent than most student emails)
+- **Sender patterns**: Generic corporate/service email formats
+- **Content**: Non-academic subjects that should be ignored
+- **Date placeholders**: Dynamic content with resolved relative dates
 
-| 学生姓名 | 学校 | 独立一作发表 | 筛选结果 |
-|---------|------|-------------|----------|
-| 张小明 | 清华大学 | ✅ (ICML 2023, NeurIPS 2023) | 应安排面试 |
-| 李小红 | 北京大学 | ❌ (无正式发表) | 不安排面试 |
-| 王大伟 | 浙江大学 | ✅ (CVPR 2023) | 应安排面试 |
-| 刘小丽 | 上海交通大学 | ❌ (仅为第二、三作者) | 不安排面试 |
-| 陈小强 | 中山大学 | ✅ (ICML 2023, KDD 2023, AAAI 2023) | 应安排面试 |
+## Preprocessing System
 
-## 评估标准
+### Simple Email Processing Method
 
-任务的评估基于以下几个维度：
+#### Step 1: Load All Emails
 
-1. **筛选准确性** (50分)：是否正确识别并筛选出3名有独立一作发表的学生
-2. **时间安排合理性** (30分)：面试时间是否安排在今天和明天两天内
-3. **日程完整性** (20分)：是否为每个合格学生都安排了具体的面试时间
+```python
+# Load student emails from JSONL
+student_emails = load_student_emails("emails.jsonl")
 
-## 目录结构
-
-```
-tasks/wenshuo/Student-Interview/
-├── docs/
-│   ├── task.md                    # 任务描述
-│   ├── agent_system_prompt.md     # Agent系统提示
-│   └── user_system_prompt.md      # 用户系统提示
-├── files/
-│   ├── emails.jsonl               # 学生简历邮件数据
-│   └── placeholder_values.json    # 占位符配置
-├── preprocess/
-│   ├── main.py                    # 预处理主程序
-│   ├── send_email.py              # 邮件发送工具
-│   ├── clean_gmail_calendar.py    # 清理工具
-│   └── wait_for_emails.py         # 邮件等待工具
-├── evaluation/
-│   └── main.py                    # 评估脚本
-├── groundtruth_workspace/
-│   └── today.txt                  # 基准日期
-└── task_config.json               # 任务配置
+# Load fake emails from JSON  
+fake_emails = load_fake_emails("fake_emails_300_manual.json", count=50-100)
 ```
 
-## 使用方法
+#### Step 2: Assign Timestamps
 
-### 1. 预处理
-```bash
-# 运行预处理脚本，发送学生简历邮件
-python tasks/wenshuo/Student-Interview/preprocess/main.py --credentials_file configs/credentials.json
+```python
+# Student emails: 1-60 days before current date
+for email in student_emails:
+    email['send_time'] = current_date - random(1-60 days)
+
+# Fake emails: 1-30 days before current date  
+for email in fake_emails:
+    email['send_time'] = current_date - random(1-30 days)
 ```
 
-### 2. 运行任务
-启动Agent系统，让其处理学生面试安排任务。
+#### Step 3: Combine and Sort
 
-### 3. 评估结果
-```bash
-# 运行评估脚本
-python tasks/wenshuo/Student-Interview/evaluation/main.py
+```python
+# Mix all emails together
+all_emails = student_emails + fake_emails
+
+# Sort by timestamp (newest first - like real inbox)
+all_emails.sort(key=lambda x: x['send_time'], reverse=True)
 ```
 
-## 技术要求
+#### Step 4: Inject to IMAP
 
-- **MCP服务器**：gmail, google_calendar
-- **Python依赖**：详见各脚本的导入部分
-- **Google账户**：需要配置Gmail和Google Calendar API访问权限
+```python
+# Clean existing emails
+clean_inbox()
 
-## 预期行为
+# Inject all emails in sorted order
+for email in all_emails:
+    inject_to_imap(email)
+```
 
-一个成功的Agent应该能够：
+## Evaluation Logic
 
-1. 自动读取Gmail中的学生简历邮件
-2. 识别并解析每个学生的发表情况
-3. 准确筛选出有独立一作发表的学生
-4. 查看Google Calendar中的空余时间
-5. 合理安排面试时间（避免冲突，分布在今明两天）
-6. 将面试安排同步到Google Calendar
-7. 向用户报告具体的面试时间安排
+The evaluation checks three key checkpoints:
 
-## 注意事项
+### Checkpoint 1 (50 points): Correct Student Selection
 
-- 任务专注于"独立一作"的识别，需要区分"第一作者"与"第二/三作者"
-- 时间安排需要考虑实际的日历冲突
-- 每场面试建议安排45分钟到1小时
-- 评估脚本会检查Calendar中的实际事件安排 
+- Agent must identify the 3 qualified students with first-author publications
+- Points awarded only for correctly identified students
+
+### Checkpoint 2 (30 points): Valid Scheduling
+
+- Interview times must not conflict with existing calendar events
+- Times must be within reasonable hours
+- No overlapping appointments
+
+### Checkpoint 3 (20 points): Complete Coverage
+
+- All 3 qualified students must be scheduled
+- No qualified student should be missed

@@ -1,3 +1,14 @@
+### 2025.8.24 21:30
+- 开始创建global preparation脚本, 见 `global_preparation`文件夹
+    - 大体目标：
+        - 环境配置
+        - 所需应用容器部署
+        - 其他启动项 （TBD）
+            - 配置google calendar和gmail相关
+            - 启动所需github repo/google drive folder并得到对应token和folderid
+            - and more ...
+        
+
 ### 2025.8.21 2:20
 - 修复canvas mcp的bug
     - 需重新安装 (rm -rf node_modules && npm install)
