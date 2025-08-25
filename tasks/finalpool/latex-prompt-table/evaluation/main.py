@@ -160,6 +160,7 @@ def main():
         }
     }
     print(json.dumps(result, ensure_ascii=False, indent=2))
+    return success
 
 
 if __name__ == "__main__":
