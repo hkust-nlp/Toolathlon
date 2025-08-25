@@ -1,3 +1,6 @@
+### 2025.8.26 3:30
+- 修正轮数统计逻辑
+
 ### 2025.8.24 21:30
 - 开始创建global preparation脚本, 见 `global_preparation`文件夹
     - 大体目标：
