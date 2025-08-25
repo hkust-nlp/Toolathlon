@@ -64,7 +64,7 @@ class ContextManagedRunner(Runner):
         # 记录初始输入到历史
         # 不用记录,会在user那里处理
         # cls._save_initial_input_to_history(session_id, input, history_dir)
-        
+
         # 调用父类的 run 方法
         result = await super().run(
             starting_agent=starting_agent,
@@ -936,7 +936,9 @@ class ContextManagedRunner(Runner):
             "total_turns": 0,
             "total_messages": 0,
             "tool_calls": 0,
-            "truncations": 0
+            "truncations": 0,
+            "user_input_turns": 0,
+            "assistant_turns": 0, # 一次返回+执行其中所有工具为一个assistant轮
         }
         
         with open(history_file, 'r', encoding='utf-8') as f:
@@ -945,15 +947,18 @@ class ContextManagedRunner(Runner):
                     record = json.loads(line)
                     stats["total_messages"] += 1
                     
+                    if record.get("type") == "user_input":
+                        stats["user_input_turns"] += 1
                     if record.get("item_type") == "message_output_item":
-                        # 从 raw_content 中提取角色
-                        raw_content = record.get("raw_content", {})
-                        if isinstance(raw_content, dict) and raw_content.get("role") == "assistant":
-                            stats["total_turns"] += 1
+                        pass
                     elif record.get("item_type") == "tool_call_item":
                         stats["tool_calls"] += 1
                         
                 except json.JSONDecodeError:
                     continue
+            # stats["total_turns"] 为最后一个line的 "turn" 字段 + 1
+            stats["total_turns"] = record.get("turn", 0)+1 # 包括用户输入,并考虑从0计数的问题
+            stats["assistant_turns"] = record.get("turn", 0)+1 - stats["user_input_turns"]
+            
         
         return stats

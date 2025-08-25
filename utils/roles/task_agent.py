@@ -501,7 +501,7 @@ class TaskAgent:
                 "session_id": self.session_id,
                 "history_dir": self.history_dir,
                 "started_at": datetime.datetime.now().isoformat(),
-                "current_turn": 0,
+                "current_turn": -1,
                 "total_turns_ever": 0,
                 "turns_in_current_sequence": 0,
                 "mini_turns_in_current_sequence": 0,
@@ -570,7 +570,7 @@ class TaskAgent:
                 self.shared_context["_context_meta"]["turns_in_current_sequence"] = current_turn_in_seq + 1
                 self.shared_context["_context_meta"]["mini_turns_in_current_sequence"] += 1
                 self.shared_context["_context_meta"]["total_turns_ever"] += 1
-                # self.shared_context["_context_meta"]["current_turn"] += 1
+                self.shared_context["_context_meta"]["current_turn"] += 1
                 # 上面不再加1，因为是从0编号
 
                 # 保存用户输入到历史
@@ -601,6 +601,8 @@ class TaskAgent:
                     remaining_steps = max_inner_steps - self.cumulative_inner_steps
                     
                     try:
+
+                        turn_before = self.shared_context["_context_meta"]["current_turn"]
                         result = await ContextManagedRunner.run(
                             starting_agent=self.agent,
                             input=self.logs,  # 传入完整历史
@@ -611,11 +613,11 @@ class TaskAgent:
                             history_dir=self.history_dir,
                             session_id=self.session_id,
                         )
+                        turn_after = self.shared_context["_context_meta"]["current_turn"]
                         
-                        # 统计这次运行使用的步数
-                        steps_used = len(result.new_items) if result.new_items else 1
-                        self.cumulative_inner_steps += steps_used
-                        self._debug_print(f"Used {steps_used} inner steps, total: {self.cumulative_inner_steps}/{max_inner_steps}")
+                        # 统计这次运行使用的assiatant轮数
+                        self.cumulative_inner_steps += turn_after - turn_before
+                        self._debug_print(f"Used {turn_after - turn_before} assistant turns, total: {self.cumulative_inner_steps}/{max_inner_steps}")
                         
                         # 成功完成，跳出循环
                         break
