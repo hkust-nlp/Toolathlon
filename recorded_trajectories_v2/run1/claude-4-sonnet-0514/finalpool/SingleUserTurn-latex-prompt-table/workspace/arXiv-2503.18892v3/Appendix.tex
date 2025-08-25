@@ -543,67 +543,84 @@ while ``zero solution" represents the response of the model after training.}
         \label{fig:llama3.1-8b_base_subgoal_setting}
 \end{figure}
 
-\section{Final Prompts Used in the Paper}
-\label{sec:final_prompts}
+\section{Model Prompt}
+% ==============================================
+% To add prompt here
+% ==============================================
 
-This section presents the actual prompts used in our zero RL training experiments. As mentioned in Section~\ref{appx:detailed_setup}, we employ two different types of prompts depending on the instruction-following capabilities of the base models: simpler prompts for weaker models and more complex prompts for stronger models.
+\section{Final Prompt Template Used in the Paper}
+\label{sec:final_prompt}
 
-\subsection{Simple Prompt Template}
+This section presents the final prompt template actually used in our paper for the zero RL training experiments. The prompt design varies based on the model's instruction-following capabilities, as described in Section~\ref{sec:setup}.
 
-For models with weaker instruction-following capabilities (Llama-3.1-8B, Mistral-v0.1-7B, and Qwen-2.5-0.5B/1.5B), we use the following simple prompt that requires only step-by-step reasoning:
+\subsection{Simple Prompt for Weaker Models}
+
+For models with weaker instruction-following capabilities (Llama-3.1-8B, Mistral-v0.1-7B, and Qwen-2.5-0.5B/1.5B), we employ the following simple prompt:
 
 \begin{tcolorbox}[
 colback=lightblue!10,
-colframe=lightblue!50!black,
+colframe=lightblue,
 left=2mm, right=2mm,
 title=\textcolor{black}{\textbf{Simple Prompt Template}}]
 
 \begin{small}
 \textbf{System:} You are a helpful assistant.
 
-\textbf{User:} Solve the following math problem step by step.
+\textbf{User:} Please solve the following problem step by step:
 
-\{problem\}
+[PROBLEM DESCRIPTION]
 
-\textbf{Assistant:} I need to solve this step by step.
+\textbf{Assistant:} I'll solve this step by step.
 \end{small}
 
 \end{tcolorbox}
 
-\subsection{Complex Prompt Template}
+\subsection{Complex Prompt for Stronger Models}
 
-For models with stronger instruction-following abilities (Mistral-Small-24B, Qwen-2.5-Math-7B, and Qwen-2.5-7B/14B/32B), we use more complex prompts that require the final answers to be placed in boxes:
+For models with stronger instruction-following abilities (Qwen-2.5-7B/14B/32B, Qwen-2.5-Math-7B, Mistral-Small-24B), we use the following more complex prompt that requires final answers to be placed in boxes:
 
 \begin{tcolorbox}[
 colback=lightblue!10,
-colframe=lightblue!50!black,
+colframe=lightblue,
 left=2mm, right=2mm,
 title=\textcolor{black}{\textbf{Complex Prompt Template}}]
 
 \begin{small}
-\textbf{System:} You are a helpful assistant.
+\textbf{System:} You are a helpful assistant specialized in mathematical reasoning.
 
-\textbf{User:} Solve the following math problem step by step. Show your reasoning clearly and put your final answer in \textbackslash boxed\{\}.
+\textbf{User:} Please solve the following mathematical problem step by step. Show your reasoning process clearly and provide your final answer in a box using \textbackslash boxed\{\}.
 
-\{problem\}
+[PROBLEM DESCRIPTION]
 
-\textbf{Assistant:} I'll solve this problem step by step.
+\textbf{Assistant:} I'll solve this mathematical problem step by step, showing my reasoning process clearly.
+
+[STEP-BY-STEP SOLUTION]
+
+Therefore, the final answer is \textbackslash boxed\{[FINAL ANSWER]\}.
 \end{small}
 
 \end{tcolorbox}
 
-\subsection{Evaluation Prompt Template}
+\subsection{Warmup Phase Prompt}
 
-During evaluation, we use the same prompt template that was used during training to ensure consistency. The evaluation process uses a temperature of 1.0 and a maximum generation length of 16K tokens as specified in Section~\ref{sec:train_evaluate_details}.
+During the warmup phase to unlock chain-of-thought capabilities, we use the following enhanced instruction:
 
 \begin{tcolorbox}[
 colback=lightblue!10,
-colframe=lightblue!50!black,
+colframe=lightblue,
 left=2mm, right=2mm,
-title=\textcolor{black}{\textbf{Note on Prompt Selection}}]
+title=\textcolor{black}{\textbf{Warmup Phase Prompt Template}}]
 
 \begin{small}
-The choice between simple and complex prompts is crucial for successful zero RL training. In our preliminary experiments, we observed that using complex prompts with models that have weak instruction-following capabilities often results in large amounts of irrelevant or nonsensical content being generated early in training, leading to instability. Therefore, the prompt complexity should be matched to the model's inherent capabilities.
+\textbf{System:} You are a helpful assistant specialized in detailed mathematical reasoning.
+
+\textbf{User:} Please solve the following problem. Offer a comprehensive breakdown of your analytical process, detailing each step, the reasoning behind your decisions, and how you integrated various pieces of information, and put your answer at the end.
+
+[PROBLEM DESCRIPTION]
+
+\textbf{Assistant:} I'll provide a comprehensive breakdown of my analytical process for this problem.
 \end{small}
 
 \end{tcolorbox}
+
+These prompt templates were carefully designed based on our empirical findings that models with different instruction-following capabilities require different levels of prompt complexity to achieve optimal performance in zero RL training scenarios.
