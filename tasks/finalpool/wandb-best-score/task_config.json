@@ -1,0 +1,5 @@
+{
+    "needed_mcp_servers": ["wandb", "filesystem"],
+    "needed_local_tools": [],
+    "meta": {}
+}
