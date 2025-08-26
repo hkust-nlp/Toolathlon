@@ -1,0 +1,36 @@
+{
+  "files": [
+    "Entertainment/产品设计方案.pptx",
+    "Entertainment/机器学习课程笔记.md",
+    "Entertainment/美剧_老友记S01E01.mkv",
+    "Entertainment/音乐_周杰伦精选.mp3",
+    "Listening1-3.mp3",
+    "Recommendation_Letter_1.pdf",
+    "Recommendation_Letter_2.pdf",
+    "Work/客户需求文档.pdf",
+    "Work/毕业论文初稿.docx",
+    "Work/电影_流浪地球.mp4",
+    "Work/高数期末复习.ppt",
+    "answer.pdf",
+    "course_schedule.xls",
+    "cv-gboeing.pdf",
+    "exam.xlsx"
+  ],
+  "directories": [
+    "Entertainment/",
+    "Entertainment/Games/",
+    "Entertainment/Movies/",
+    "Entertainment/Music/",
+    "Entertainment/Pictures/",
+    "School/",
+    "School/Assignments/",
+    "School/Courses/",
+    "School/Notes/",
+    "School/Others/",
+    "Work/",
+    "Work/Documents/",
+    "Work/Meetings/",
+    "Work/Projects/",
+    "Work/Reports/"
+  ]
+}
