@@ -3,6 +3,7 @@ from __future__ import annotations
 from agents.mcp.util import *
 from agents import _debug
 import os
+from utils.general.helper import print_color
 
 
 import shortuuid
@@ -10,7 +11,7 @@ import shortuuid
 MAX_SINGLE_TURN_RETURN_CHARS = 20000 # 单轮工具返回字符数限制
 ENABLE_OVERLONG_TOOL_OUTPUT_MANAGEMENT = os.getenv("BENCH_ENABLE_OVERLONG_TOOL_OUTPUT_MANAGEMENT", "false").lower() == "true"
 
-logger.info(f"ENABLE_OVERLONG_TOOL_OUTPUT_MANAGEMENT: {ENABLE_OVERLONG_TOOL_OUTPUT_MANAGEMENT} | MAX_SINGLE_TURN_RETURN_CHARS: {MAX_SINGLE_TURN_RETURN_CHARS}")
+print_color(f"BENCH_ENABLE_OVERLONG_TOOL_OUTPUT_MANAGEMENT: {ENABLE_OVERLONG_TOOL_OUTPUT_MANAGEMENT} | MAX_SINGLE_TURN_RETURN_CHARS: {MAX_SINGLE_TURN_RETURN_CHARS}", color="yellow")
 
 @classmethod
 def my_to_function_tool(
