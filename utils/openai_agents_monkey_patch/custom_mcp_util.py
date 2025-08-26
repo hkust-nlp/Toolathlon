@@ -2,7 +2,16 @@
 from __future__ import annotations
 from agents.mcp.util import *
 from agents import _debug
+import os
+from utils.general.helper import print_color
 
+
+import shortuuid
+
+MAX_SINGLE_TURN_RETURN_CHARS = 20000 # 单轮工具返回字符数限制
+ENABLE_OVERLONG_TOOL_OUTPUT_MANAGEMENT = os.getenv("BENCH_ENABLE_OVERLONG_TOOL_OUTPUT_MANAGEMENT", "false").lower() == "true"
+
+print_color(f"BENCH_ENABLE_OVERLONG_TOOL_OUTPUT_MANAGEMENT: {ENABLE_OVERLONG_TOOL_OUTPUT_MANAGEMENT} | MAX_SINGLE_TURN_RETURN_CHARS: {MAX_SINGLE_TURN_RETURN_CHARS}", color="yellow")
 
 @classmethod
 def my_to_function_tool(
@@ -86,6 +95,26 @@ async def my_invoke_mcp_tool(
             logger.warning(
                 f"Current span is not a FunctionSpanData, skipping tool output: {current_span}"
             )
+
+    # this is a very temp solution!
+    if len(tool_output) > MAX_SINGLE_TURN_RETURN_CHARS:
+        original_length = len(tool_output)
+
+        logger.warning(f"Tool output is too long, return truncated one.")
+        tool_short_uuid = shortuuid.uuid()
+
+        agent_workspace = context.context.get('_agent_workspace', '.')
+        agent_workspace = os.path.abspath(agent_workspace)
+        overlong_toolcall_save_dir = os.path.join(agent_workspace, '.overlong_tool_outputs')
+        os.makedirs(overlong_toolcall_save_dir, exist_ok=True)
+
+        # save the original tool output to a file
+        with open(os.path.join(overlong_toolcall_save_dir, f"{tool_short_uuid}.json"), "w", encoding="utf-8") as f:
+            f.write(tool_output)
+        logger.warning(f"Tool output saved to {os.path.join(overlong_toolcall_save_dir, f'{tool_short_uuid}.json')}")
+        
+        tool_output = tool_output[:MAX_SINGLE_TURN_RETURN_CHARS] + \
+            f" ...\n\n(The output of the tool call (shortuuid identifier: {tool_short_uuid}) is too long! Only the first {MAX_SINGLE_TURN_RETURN_CHARS} characters are shown here. The original output length is {original_length} characters. The full output has been saved to the file {os.path.join(overlong_toolcall_save_dir, f'{tool_short_uuid}.json')}. Please check this file carefully, as it may be very long!)"
 
     return tool_output
 
