@@ -45,6 +45,7 @@ from utils.aux_tools.context_management_tools import context_management_tools
 from utils.aux_tools.history_tools import history_tools
 from utils.aux_tools.python_interpretor import tool_python_execute
 from utils.aux_tools.web_search import tool_web_search
+from utils.aux_tools.overlong_tool_manager import overlong_tool_tools
 
 local_tool_mappings = {
     "ai_webpage_summary": tool_ai_webpage_summary,
@@ -54,6 +55,7 @@ local_tool_mappings = {
     "history": history_tools,
     'python_execute': tool_python_execute,
     "web_search": tool_web_search,
+    "handle_overlong_tool_outputs": overlong_tool_tools,
 }
 
 class TaskStatus(Enum):

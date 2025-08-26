@@ -1,3 +1,9 @@
+### 2025.8.26 11:30
+- 增加对MCP工具超长的管理（只保留前20000字符）
+    - 相关文件 `utils/openai_agents_monkey_patch/custom_mcp_util.py`
+- 增加对超长工具输出的搜索和翻页浏览
+    - 相关文件 `utils/aux_tools/overlong_tool_manager.py`
+
 ### 2025.8.26 3:30
 - 修正轮数统计逻辑
 

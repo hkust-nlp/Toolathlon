@@ -2,12 +2,20 @@ import json
 import os
 import time
 import re
+import uuid
 from typing import Any, List, Dict, Optional, Tuple
 from agents.tool import FunctionTool, RunContextWrapper
 
 OVERLONG_DIR_NAME = '.overlong_tool_outputs'
-PAGE_SIZE = 10
+SEARCH_PAGE_SIZE = 10
+VIEW_PAGE_SIZE = 5000
+MAX_VIEW_PAGE_SIZE = 20000
 CONTEXT_SIZE = 1000  # Characters of context around each match
+
+# Global storage for search sessions
+search_sessions = {}
+# Global storage for view sessions
+view_sessions = {}
 
 def get_overlong_dir(context: RunContextWrapper) -> str:
     """Get the overlong tool outputs directory path."""
@@ -114,12 +122,11 @@ def search_in_content(content: str, pattern: str, context_size: int = CONTEXT_SI
     return matches
 
 async def on_search_overlong_tool_invoke(context: RunContextWrapper, params_str: str) -> str:
-    """Search within overlong tool output content using regex pattern."""
+    """Search within overlong tool output content using regex pattern and return first page with session ID."""
     params = json.loads(params_str)
     shortuuid = params.get("shortuuid", "").strip()
     pattern = params.get("pattern", "").strip()
-    page = params.get("page", 1)
-    page_size = params.get("page_size", PAGE_SIZE)
+    page_size = params.get("page_size", SEARCH_PAGE_SIZE)
     context_size = params.get("context_size", CONTEXT_SIZE)
     
     if not shortuuid:
@@ -127,9 +134,6 @@ async def on_search_overlong_tool_invoke(context: RunContextWrapper, params_str:
     
     if not pattern:
         return "Error: pattern parameter is required"
-    
-    if page < 1:
-        return "Error: page must be >= 1"
     
     if page_size < 1 or page_size > 50:
         return "Error: page_size must be between 1 and 50"
@@ -154,24 +158,33 @@ async def on_search_overlong_tool_invoke(context: RunContextWrapper, params_str:
         if not matches:
             return f"No matches found for pattern '{pattern}' in shortuuid: {shortuuid}\nFile size: {len(content)} characters"
         
-        # Paginate results
+        # Create search session
+        search_session_id = str(uuid.uuid4())[:8]
+        search_sessions[search_session_id] = {
+            'shortuuid': shortuuid,
+            'pattern': pattern,
+            'matches': matches,
+            'page_size': page_size,
+            'context_size': context_size,
+            'content_length': len(content),
+            'current_page': 1,
+            'created_time': time.time()
+        }
+        
+        # Return first page
         total_matches = len(matches)
         total_pages = (total_matches + page_size - 1) // page_size if total_matches > 0 else 1
         
-        if page > total_pages:
-            return f"Error: page {page} exceeds total pages {total_pages}"
-        
-        start_idx = (page - 1) * page_size
-        end_idx = min(start_idx + page_size, total_matches)
-        page_matches = matches[start_idx:end_idx]
+        page_matches = matches[:page_size]
         
         # Format results
-        result = f"Search Results in {shortuuid} (Page {page}/{total_pages})\n"
+        result = f"Search Results in {shortuuid} (Page 1/{total_pages})\n"
         result += f"Pattern: '{pattern}' | Total matches: {total_matches} | File size: {len(content)} chars\n"
+        result += f"Search Session ID: {search_session_id}\n"
         result += "=" * 80 + "\n\n"
         
         for i, match in enumerate(page_matches):
-            match_num = start_idx + i + 1
+            match_num = i + 1
             result += f"Match {match_num} (Line ~{match['line_num']}, Pos {match['start_pos']}-{match['end_pos']}):\n"
             result += "-" * 60 + "\n"
             
@@ -184,8 +197,8 @@ async def on_search_overlong_tool_invoke(context: RunContextWrapper, params_str:
             
             result += context_text + "\n\n"
         
-        result += f"Navigation: Use page parameter (1-{total_pages}) to view more results\n"
-        result += f"Use jump_to_match to view specific match with more context"
+        result += f"Use search_session_id '{search_session_id}' with search_navigate tool for pagination\n"
+        result += f"Available commands: next_page, prev_page, jump_to_page, first_page, last_page"
         
         return result
         
@@ -194,171 +207,97 @@ async def on_search_overlong_tool_invoke(context: RunContextWrapper, params_str:
     except Exception as e:
         return f"Error processing file for shortuuid {shortuuid}: {str(e)}"
 
-async def on_browse_overlong_tools_invoke(context: RunContextWrapper, params_str: str) -> str:
-    """Browse overlong tool outputs with pagination."""
+async def on_search_navigate_invoke(context: RunContextWrapper, params_str: str) -> str:
+    """Navigate through search results using session ID."""
     params = json.loads(params_str)
-    page = params.get("page", 1)
-    page_size = params.get("page_size", PAGE_SIZE)
+    search_session_id = params.get("search_session_id", "").strip()
+    action = params.get("action", "next_page").strip().lower()
+    target_page = params.get("target_page")
     
-    if page < 1:
-        return "Error: page must be >= 1"
+    if not search_session_id:
+        return "Error: search_session_id parameter is required"
     
-    if page_size < 1 or page_size > 100:
-        return "Error: page_size must be between 1 and 100"
+    if search_session_id not in search_sessions:
+        return f"Error: Invalid or expired search session ID: {search_session_id}"
     
-    overlong_dir = get_overlong_dir(context)
+    session = search_sessions[search_session_id]
+    matches = session['matches']
+    page_size = session['page_size']
+    total_matches = len(matches)
+    total_pages = (total_matches + page_size - 1) // page_size if total_matches > 0 else 1
     
-    # Cleanup old files first
-    removed_files = cleanup_old_files(overlong_dir)
+    # Determine current page from session state
+    current_page = session.get('current_page', 1)
     
-    files = get_file_list(overlong_dir)
-    total_files = len(files)
-    total_pages = (total_files + page_size - 1) // page_size if total_files > 0 else 1
-    
-    if page > total_pages and total_files > 0:
-        return f"Error: page {page} exceeds total pages {total_pages}"
-    
-    start_idx = (page - 1) * page_size
-    end_idx = min(start_idx + page_size, total_files)
-    page_files = files[start_idx:end_idx]
-    
-    result = f"Overlong Tool Outputs (Page {page}/{total_pages}, Total: {total_files})\n"
-    result += "=" * 60 + "\n"
-    
-    if removed_files:
-        result += f"Cleaned up {len(removed_files)} old files (>1 hour)\n\n"
-    
-    if not page_files:
-        result += "No overlong tool outputs found.\n"
+    # Handle different actions
+    if action == "next_page":
+        target_page = min(current_page + 1, total_pages)
+    elif action == "prev_page":
+        target_page = max(current_page - 1, 1)
+    elif action == "first_page":
+        target_page = 1
+    elif action == "last_page":
+        target_page = total_pages
+    elif action == "jump_to_page":
+        if target_page is None:
+            return "Error: target_page parameter is required for jump_to_page action"
+        if target_page < 1 or target_page > total_pages:
+            return f"Error: target_page {target_page} must be between 1 and {total_pages}"
     else:
-        result += f"{'Index':<5} {'ShortUUID':<12} {'Age (hrs)':<10} {'Size (MB)':<10} {'Last Accessed':<20}\n"
+        return f"Error: Invalid action '{action}'. Valid actions: next_page, prev_page, jump_to_page, first_page, last_page"
+    
+    # Update session current page
+    session['current_page'] = target_page
+    
+    # Get page results
+    start_idx = (target_page - 1) * page_size
+    end_idx = min(start_idx + page_size, total_matches)
+    page_matches = matches[start_idx:end_idx]
+    
+    # Format results
+    result = f"Search Results in {session['shortuuid']} (Page {target_page}/{total_pages})\n"
+    result += f"Pattern: '{session['pattern']}' | Total matches: {total_matches} | File size: {session['content_length']} chars\n"
+    result += f"Search Session ID: {search_session_id}\n"
+    result += "=" * 80 + "\n\n"
+    
+    for i, match in enumerate(page_matches):
+        match_num = start_idx + i + 1
+        result += f"Match {match_num} (Line ~{match['line_num']}, Pos {match['start_pos']}-{match['end_pos']}):\n"
         result += "-" * 60 + "\n"
         
-        for i, file_info in enumerate(page_files):
-            idx = start_idx + i + 1
-            result += f"{idx:<5} {file_info['shortuuid']:<12} {file_info['age_hours']:<10} {file_info['size_mb']:<10} {file_info['last_accessed']:<20}\n"
+        # Show context with match highlighted
+        context_text = match['before_context'] + f">>>{match['match_text']}<<<" + match['after_context']
+        
+        # Truncate very long contexts for readability
+        if len(context_text) > session['context_size'] * 2:
+            context_text = context_text[:session['context_size'] * 2] + "...[truncated]"
+        
+        result += context_text + "\n\n"
     
-    result += f"\nNavigation: Use page parameter to jump to different pages (1-{total_pages})\n"
-    result += "Use search_overlong_tool with shortuuid to view specific content"
+    # Navigation info
+    nav_info = []
+    if target_page > 1:
+        nav_info.append("prev_page")
+    if target_page < total_pages:
+        nav_info.append("next_page")
+    nav_info.extend(["first_page", "last_page", "jump_to_page"])
+    
+    result += f"Available navigation: {', '.join(nav_info)}\n"
+    result += f"Use search_session_id '{search_session_id}' to continue navigation"
     
     return result
 
-async def on_cleanup_overlong_tools_invoke(context: RunContextWrapper, params_str: str) -> str:
-    """Manually cleanup overlong tool outputs older than specified hours."""
-    params = json.loads(params_str)
-    max_age_hours = params.get("max_age_hours", 1.0)
-    
-    if max_age_hours <= 0:
-        return "Error: max_age_hours must be > 0"
-    
-    overlong_dir = get_overlong_dir(context)
-    
-    if not os.path.exists(overlong_dir):
-        return "No overlong tool outputs directory found"
-    
-    current_time = time.time()
-    cutoff_time = current_time - (max_age_hours * 3600)
-    removed_files = []
-    
-    for filename in os.listdir(overlong_dir):
-        if filename.endswith('.json'):
-            file_path = os.path.join(overlong_dir, filename)
-            try:
-                stat = os.stat(file_path)
-                if stat.st_atime < cutoff_time:
-                    os.remove(file_path)
-                    removed_files.append(filename)
-            except OSError:
-                continue
-    
-    if removed_files:
-        return f"Cleaned up {len(removed_files)} files older than {max_age_hours} hours:\n" + "\n".join(removed_files)
-    else:
-        return f"No files found older than {max_age_hours} hours"
-
-async def on_jump_to_match_invoke(context: RunContextWrapper, params_str: str) -> str:
-    """Jump to a specific match with extended context."""
-    params = json.loads(params_str)
-    shortuuid = params.get("shortuuid", "").strip()
-    pattern = params.get("pattern", "").strip()
-    match_number = params.get("match_number", 1)
-    context_size = params.get("context_size", CONTEXT_SIZE * 2)  # Double context for jump
-    
-    if not shortuuid:
-        return "Error: shortuuid parameter is required"
-    
-    if not pattern:
-        return "Error: pattern parameter is required"
-    
-    if match_number < 1:
-        return "Error: match_number must be >= 1"
-    
-    overlong_dir = get_overlong_dir(context)
-    file_path = os.path.join(overlong_dir, f"{shortuuid}.json")
-    
-    if not os.path.exists(file_path):
-        return f"Error: No overlong tool output found for shortuuid: {shortuuid}"
-    
-    try:
-        # Touch the file to update access time
-        touch_file(file_path)
-        
-        # Read file content
-        with open(file_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-        
-        # Search for pattern
-        matches = search_in_content(content, pattern, context_size)
-        
-        if not matches:
-            return f"No matches found for pattern '{pattern}' in shortuuid: {shortuuid}"
-        
-        if match_number > len(matches):
-            return f"Error: match_number {match_number} exceeds total matches {len(matches)}"
-        
-        match = matches[match_number - 1]
-        
-        # Format detailed result
-        result = f"Match {match_number} of {len(matches)} in {shortuuid}\n"
-        result += f"Pattern: '{pattern}' | Line ~{match['line_num']} | Position {match['start_pos']}-{match['end_pos']}\n"
-        result += "=" * 80 + "\n\n"
-        
-        # Show extended context with match highlighted
-        context_text = match['before_context'] + f">>>{match['match_text']}<<<" + match['after_context']
-        
-        result += f"Context ({len(context_text)} characters):\n"
-        result += "-" * 60 + "\n"
-        result += context_text + "\n\n"
-        
-        # Show surrounding matches info
-        if len(matches) > 1:
-            result += "Other matches in this file:\n"
-            for i, other_match in enumerate(matches):
-                if i != match_number - 1:
-                    result += f"  Match {i+1}: Line ~{other_match['line_num']}, Pos {other_match['start_pos']}\n"
-        
-        return result
-        
-    except ValueError as e:
-        return f"Error: {str(e)}"
-    except Exception as e:
-        return f"Error processing file for shortuuid {shortuuid}: {str(e)}"
-
 async def on_view_overlong_tool_invoke(context: RunContextWrapper, params_str: str) -> str:
-    """View overlong tool output content by shortuuid (without search)."""
+    """View overlong tool output content with pagination and return first page with session ID."""
     params = json.loads(params_str)
     shortuuid = params.get("shortuuid", "").strip()
-    start_pos = params.get("start_pos", 0)
-    length = params.get("length", 5000)  # Default 5000 characters
+    page_size = params.get("page_size", VIEW_PAGE_SIZE)
     
     if not shortuuid:
         return "Error: shortuuid parameter is required"
     
-    if start_pos < 0:
-        return "Error: start_pos must be >= 0"
-    
-    if length < 1 or length > 20000:
-        return "Error: length must be between 1 and 20000"
+    if page_size < 1 or page_size > MAX_VIEW_PAGE_SIZE:
+        return f"Error: page_size must be between 1 and {MAX_VIEW_PAGE_SIZE}"
     
     overlong_dir = get_overlong_dir(context)
     file_path = os.path.join(overlong_dir, f"{shortuuid}.json")
@@ -375,35 +314,136 @@ async def on_view_overlong_tool_invoke(context: RunContextWrapper, params_str: s
             content = f.read()
         
         total_length = len(content)
+        total_pages = (total_length + page_size - 1) // page_size if total_length > 0 else 1
         
-        if start_pos >= total_length:
-            return f"Error: start_pos {start_pos} exceeds file length {total_length}"
+        # Create view session
+        view_session_id = str(uuid.uuid4())[:8]
+        view_sessions[view_session_id] = {
+            'shortuuid': shortuuid,
+            'content_length': total_length,
+            'page_size': page_size,
+            'current_page': 1,
+            'created_time': time.time()
+        }
         
-        end_pos = min(start_pos + length, total_length)
-        excerpt = content[start_pos:end_pos]
+        # Get first page content
+        end_pos = min(page_size, total_length)
+        excerpt = content[:end_pos]
         
         # Calculate line numbers
-        start_line = content[:start_pos].count('\n') + 1
+        start_line = 1
         end_line = content[:end_pos].count('\n') + 1
         
-        result = f"Viewing {shortuuid} (Characters {start_pos}-{end_pos} of {total_length})\n"
-        result += f"Lines ~{start_line}-{end_line}\n"
+        result = f"Viewing {shortuuid} (Page 1/{total_pages})\n"
+        result += f"Characters 0-{end_pos} of {total_length} | Lines ~{start_line}-{end_line}\n"
+        result += f"View Session ID: {view_session_id}\n"
         result += "=" * 80 + "\n\n"
         result += excerpt
         
         if end_pos < total_length:
-            result += f"\n\n[Truncated - {total_length - end_pos} more characters available]"
-            result += f"\nUse start_pos={end_pos} to continue reading"
+            result += f"\n\n[Page 1 of {total_pages} - {total_length - end_pos} more characters available]\n"
+            result += f"Use view_session_id '{view_session_id}' with view_navigate tool for pagination\n"
+            result += f"Available commands: next_page, prev_page, jump_to_page, first_page, last_page"
+        else:
+            result += f"\n\n[End of file - {total_length} characters total]"
         
         return result
         
     except Exception as e:
         return f"Error reading file for shortuuid {shortuuid}: {str(e)}"
 
+async def on_view_navigate_invoke(context: RunContextWrapper, params_str: str) -> str:
+    """Navigate through view content using session ID."""
+    params = json.loads(params_str)
+    view_session_id = params.get("view_session_id", "").strip()
+    action = params.get("action", "next_page").strip().lower()
+    target_page = params.get("target_page")
+    
+    if not view_session_id:
+        return "Error: view_session_id parameter is required"
+    
+    if view_session_id not in view_sessions:
+        return f"Error: Invalid or expired view session ID: {view_session_id}"
+    
+    session = view_sessions[view_session_id]
+    shortuuid = session['shortuuid']
+    page_size = session['page_size']
+    total_length = session['content_length']
+    total_pages = (total_length + page_size - 1) // page_size if total_length > 0 else 1
+    
+    # Determine current page from session state
+    current_page = session.get('current_page', 1)
+    
+    # Handle different actions
+    if action == "next_page":
+        target_page = min(current_page + 1, total_pages)
+    elif action == "prev_page":
+        target_page = max(current_page - 1, 1)
+    elif action == "first_page":
+        target_page = 1
+    elif action == "last_page":
+        target_page = total_pages
+    elif action == "jump_to_page":
+        if target_page is None:
+            return "Error: target_page parameter is required for jump_to_page action"
+        if target_page < 1 or target_page > total_pages:
+            return f"Error: target_page {target_page} must be between 1 and {total_pages}"
+    else:
+        return f"Error: Invalid action '{action}'. Valid actions: next_page, prev_page, jump_to_page, first_page, last_page"
+    
+    # Update session current page
+    session['current_page'] = target_page
+    
+    # Read file content
+    overlong_dir = get_overlong_dir(context)
+    file_path = os.path.join(overlong_dir, f"{shortuuid}.json")
+    
+    try:
+        # Touch the file to update access time
+        touch_file(file_path)
+        
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # Calculate page boundaries
+        start_pos = (target_page - 1) * page_size
+        end_pos = min(start_pos + page_size, total_length)
+        excerpt = content[start_pos:end_pos]
+        
+        # Calculate line numbers
+        start_line = content[:start_pos].count('\n') + 1
+        end_line = content[:end_pos].count('\n') + 1
+        
+        result = f"Viewing {shortuuid} (Page {target_page}/{total_pages})\n"
+        result += f"Characters {start_pos}-{end_pos} of {total_length} | Lines ~{start_line}-{end_line}\n"
+        result += f"View Session ID: {view_session_id}\n"
+        result += "=" * 80 + "\n\n"
+        result += excerpt
+        
+        if end_pos < total_length:
+            result += f"\n\n[Page {target_page} of {total_pages} - {total_length - end_pos} more characters available]\n"
+        else:
+            result += f"\n\n[End of file reached - {total_length} characters total]\n"
+        
+        # Navigation info
+        nav_info = []
+        if target_page > 1:
+            nav_info.append("prev_page")
+        if target_page < total_pages:
+            nav_info.append("next_page")
+        nav_info.extend(["first_page", "last_page", "jump_to_page"])
+        
+        result += f"Available navigation: {', '.join(nav_info)}\n"
+        result += f"Use view_session_id '{view_session_id}' to continue navigation"
+        
+        return result
+        
+    except Exception as e:
+        return f"Error reading file for shortuuid {shortuuid}: {str(e)}"
 # Tool definitions
 tool_search_overlong = FunctionTool(
-    name='local-search_overlong_tool',
-    description='Search within overlong tool output content using regex patterns with pagination',
+    name='local-search_overlong_tooloutput',
+    description='Search within overlong tool output content using regex patterns and return first page with session ID',
     params_json_schema={
         "type": "object",
         "properties": {
@@ -414,11 +454,6 @@ tool_search_overlong = FunctionTool(
             "pattern": {
                 "type": "string",
                 "description": "The regex pattern to search for in the content"
-            },
-            "page": {
-                "type": "integer",
-                "description": "Page number for search results (default: 1)",
-                "minimum": 1
             },
             "page_size": {
                 "type": "integer",
@@ -438,9 +473,35 @@ tool_search_overlong = FunctionTool(
     on_invoke_tool=on_search_overlong_tool_invoke
 )
 
+tool_search_navigate = FunctionTool(
+    name='local-search_overlong_tooloutput_navigate',
+    description='Navigate through search results using search session ID',
+    params_json_schema={
+        "type": "object",
+        "properties": {
+            "search_session_id": {
+                "type": "string",
+                "description": "The search session ID returned from search_overlong_tool"
+            },
+            "action": {
+                "type": "string",
+                "description": "Navigation action to perform",
+                "enum": ["next_page", "prev_page", "jump_to_page", "first_page", "last_page"]
+            },
+            "target_page": {
+                "type": "integer",
+                "description": "Target page number (required for jump_to_page action)",
+                "minimum": 1
+            }
+        },
+        "required": ["search_session_id"]
+    },
+    on_invoke_tool=on_search_navigate_invoke
+)
+
 tool_view_overlong = FunctionTool(
-    name='local-view_overlong_tool',
-    description='View overlong tool output content by shortuuid without search (for browsing)',
+    name='local-view_overlong_tooloutput',
+    description='View overlong tool output content with pagination and return first page with session ID',
     params_json_schema={
         "type": "object",
         "properties": {
@@ -448,16 +509,11 @@ tool_view_overlong = FunctionTool(
                 "type": "string",
                 "description": "The shortuuid identifier for the overlong tool output"
             },
-            "start_pos": {
+            "page_size": {
                 "type": "integer",
-                "description": "Starting character position in the file (default: 0)",
-                "minimum": 0
-            },
-            "length": {
-                "type": "integer",
-                "description": "Number of characters to read (default: 5000, max: 20000)",
+                "description": f"Number of characters per page (default: {VIEW_PAGE_SIZE}, max: {MAX_VIEW_PAGE_SIZE})",
                 "minimum": 1,
-                "maximum": 20000
+                "maximum": MAX_VIEW_PAGE_SIZE
             }
         },
         "required": ["shortuuid"]
@@ -465,76 +521,35 @@ tool_view_overlong = FunctionTool(
     on_invoke_tool=on_view_overlong_tool_invoke
 )
 
-tool_jump_to_match = FunctionTool(
-    name='local-jump_to_match',
-    description='Jump to a specific search match with extended context',
+tool_view_navigate = FunctionTool(
+    name='local-view_overlong_tooloutput_navigate',
+    description='Navigate through view content using view session ID',
     params_json_schema={
         "type": "object",
         "properties": {
-            "shortuuid": {
+            "view_session_id": {
                 "type": "string",
-                "description": "The shortuuid identifier for the overlong tool output"
+                "description": "The view session ID returned from view_overlong_tool"
             },
-            "pattern": {
+            "action": {
                 "type": "string",
-                "description": "The regex pattern that was used in the search"
+                "description": "Navigation action to perform",
+                "enum": ["next_page", "prev_page", "jump_to_page", "first_page", "last_page"]
             },
-            "match_number": {
+            "target_page": {
                 "type": "integer",
-                "description": "The match number to jump to (1-based index)",
+                "description": "Target page number (required for jump_to_page action)",
                 "minimum": 1
-            },
-            "context_size": {
-                "type": "integer",
-                "description": "Characters of context around the match (default: 2000)",
-                "minimum": 200,
-                "maximum": 10000,
-                "default": 5000
             }
         },
-        "required": ["shortuuid", "pattern", "match_number"]
+        "required": ["view_session_id"]
     },
-    on_invoke_tool=on_jump_to_match_invoke
+    on_invoke_tool=on_view_navigate_invoke
 )
 
-tool_browse_overlong = FunctionTool(
-    name='local-browse_overlong_tools',
-    description='Browse overlong tool outputs with pagination and cleanup',
-    params_json_schema={
-        "type": "object",
-        "properties": {
-            "page": {
-                "type": "integer",
-                "description": "Page number (default: 1)",
-                "minimum": 1
-            },
-            "page_size": {
-                "type": "integer",
-                "description": "Number of items per page (default: 10, max: 100)",
-                "minimum": 1,
-                "maximum": 100
-            }
-        }
-    },
-    on_invoke_tool=on_browse_overlong_tools_invoke
-)
-
-tool_cleanup_overlong = FunctionTool(
-    name='local-cleanup_overlong_tools',
-    description='Manually cleanup overlong tool outputs older than specified hours',
-    params_json_schema={
-        "type": "object",
-        "properties": {
-            "max_age_hours": {
-                "type": "number",
-                "description": "Maximum age in hours for files to keep (default: 1.0)",
-                "minimum": 0.01
-            }
-        }
-    },
-    on_invoke_tool=on_cleanup_overlong_tools_invoke
-)
-
-if __name__ == "__main__":
-    # Test the functions
-    pass
+overlong_tool_tools = [
+    tool_search_overlong,
+    tool_search_navigate,
+    tool_view_overlong,
+    tool_view_navigate
+]
