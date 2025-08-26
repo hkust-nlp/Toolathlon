@@ -1,0 +1,3 @@
+Based on the 7 major regions listed in the Google Sheet from WorldBank, calculate the CR5 index for each region's GDP, and create a new sheet named "gdp_cr5_analysis", to save the data as follows: Region, Top5_Countries, Top5_GDP_Sum, Region_GDP_Total, CR5_Ratio respectively representing the region name, top 5 country names separated by commas, sum of GDP for the top 5 countries, total regional GDP, CR5 index (percentage, rounded to two decimal places)
+
+Sort in descending order by CR5 index. (If you are unsure about WorldBank's classification of a country in which region, you can search for it)

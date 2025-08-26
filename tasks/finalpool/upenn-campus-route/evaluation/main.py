@@ -134,8 +134,8 @@ def find_optimal_route(distance_matrix: Dict[str, Dict[str, Tuple[int, str]]]) -
         "College Hall"
     ]
     
-    print(f"[严格模式] 计算最优路线，起点: {start_location}")
-    print(f"[严格模式] 目的地数量: {len(destinations)}")
+    print(f"计算最优路线，起点: {start_location}")
+    print(f"目的地数量: {len(destinations)}")
     
     min_time = float('inf')
     best_route = []
@@ -164,9 +164,9 @@ def find_optimal_route(distance_matrix: Dict[str, Dict[str, Tuple[int, str]]]) -
         if total_time < min_time:
             min_time = total_time
             best_route = route
-            print(f"[严格模式] 发现更优路线: {' -> '.join(route)}, 时间: {min_time}秒 ({min_time//60}分{min_time%60}秒)")
+            print(f"发现更优路线: {' -> '.join(route)}, 时间: {min_time}秒 ({min_time//60}分{min_time%60}秒)")
     
-    print(f"[严格模式] TSP搜索完成，尝试了{total_permutations}种排列")
+    print(f"TSP搜索完成，尝试了{total_permutations}种排列")
     return best_route, min_time
 
 def check_json_structure_strict(json_data) -> Tuple[bool, Dict]:
@@ -237,7 +237,7 @@ def check_json_structure_strict(json_data) -> Tuple[bool, Dict]:
             validation_result["warnings"].append(f"第{i+1}个元素的目的地缺少description字段（可选）")
     
     validation_result["structure_valid"] = True
-    print(f"[严格模式] JSON结构验证通过，检查了{len(validation_result['checked_fields'])}个关键字段")
+    print(f"JSON结构验证通过，检查了{len(validation_result['checked_fields'])}个关键字段")
     
     return True, validation_result
 
@@ -314,9 +314,9 @@ def check_required_locations_strict(json_data) -> Tuple[bool, Dict]:
     location_result["locations_valid"] = all_found
     
     if all_found:
-        print(f"[严格模式] 地点验证通过，找到所有{len(location_result['found_locations'])}个必需地点")
+        print(f"地点验证通过，找到所有{len(location_result['found_locations'])}个必需地点")
     else:
-        print(f"[严格模式] 地点验证失败，缺少地点: {location_result['missing_locations']}")
+        print(f"地点验证失败，缺少地点: {location_result['missing_locations']}")
     
     return all_found, location_result
 
@@ -357,9 +357,9 @@ def extract_agent_route(json_data) -> List[str]:
         
         if matched_location:
             agent_route.append(matched_location)
-            print(f"[严格模式] 地点匹配: {dest['name']} -> {matched_location}")
+            print(f"地点匹配: {dest['name']} -> {matched_location}")
         else:
-            print(f"[严格模式] 警告: 无法匹配地点: {dest['name']}")
+            print(f"警告: 无法匹配地点: {dest['name']}")
             agent_route.append(dest['name'])  # 使用原始名称
     
     return agent_route
@@ -381,7 +381,7 @@ def calculate_route_efficiency_strict(agent_route: List[str], optimal_route: Lis
                     "distance": distance
                 })
             else:
-                print(f"[严格模式] 警告: 缺少路径数据 {route[i]} -> {route[i+1]}")
+                print(f"警告: 缺少路径数据 {route[i]} -> {route[i+1]}")
                 total_time += 600  # 默认10分钟
                 route_details.append({
                     "from": route[i],

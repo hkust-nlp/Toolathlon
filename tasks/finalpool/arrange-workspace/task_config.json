@@ -1,0 +1,7 @@
+{
+    "needed_mcp_servers": ["filesystem" , "python", "terminal"],
+    "needed_local_tools": [ ],
+   
+    "max_turns": 200,
+    "meta": {}
+}

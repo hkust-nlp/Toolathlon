@@ -1,0 +1,37 @@
+{
+    "task": "GDP CR5地区分析",
+    "description": "2022年全球GDP数据按7大地区的CR5集中度指标分析",
+    "expected_regions": [
+        "East Asia & Pacific",
+        "Europe & Central Asia", 
+        "Latin America & Caribbean",
+        "Middle East & North Africa",
+        "North America",
+        "South Asia",
+        "Sub-Saharan Africa"
+    ],
+    "required_columns": [
+        "Region",
+        "Top5_Countries", 
+        "Top5_GDP_Sum",
+        "Region_GDP_Total",
+        "CR5_Ratio"
+    ],
+    "validation_rules": {
+        "min_regions": 5,
+        "max_regions": 10,
+        "cr5_range": [0, 100],
+        "gdp_positive": true,
+        "top5_less_than_total": true,
+        "sort_by_cr5_desc": true
+    },
+    "sample_data": {
+        "region_example": {
+            "Region": "East Asia & Pacific",
+            "Top5_Countries": "China,Japan,Australia,Korea Rep.,Indonesia",
+            "Top5_GDP_Sum": 26854077,
+            "Region_GDP_Total": 29424541,
+            "CR5_Ratio": 91.26
+        }
+    }
+}
