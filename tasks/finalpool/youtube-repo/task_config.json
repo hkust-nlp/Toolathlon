@@ -1,0 +1,6 @@
+{
+    "id": "youtube-repo",
+    "needed_mcp_servers": ["playwright_with_chunk", "youtube", "filesystem"],
+    "meta": {},
+    "needed_local_tools": ["claim_done"]
+} 
