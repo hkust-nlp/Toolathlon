@@ -1,3 +1,15 @@
+### 2025.8.26 11:30
+- 增加对MCP工具超长的管理（只保留前20000字符）
+    - 相关文件 `utils/openai_agents_monkey_patch/custom_mcp_util.py`
+    - 通过 `BENCH_ENABLE_OVERLONG_TOOL_OUTPUT_MANAGEMENT`  系统变量设置是否启用
+- 增加对超长工具输出的搜索和翻页浏览
+    - 相关文件 `utils/aux_tools/overlong_tool_manager.py`
+    - 启用超长管理时，请务必一并启用该工具
+
+
+### 2025.8.26 3:30
+- 修正轮数统计逻辑
+
 ### 2025.8.24 21:30
 - 开始创建global preparation脚本, 见 `global_preparation`文件夹
     - 大体目标：

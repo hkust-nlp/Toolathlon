@@ -314,6 +314,20 @@ API_MAPPINGS = {
         concurrency=32,
         context_window=64000
     ),
+    'deepseek-v3.1': Dict(
+        api_model={"ds_internal": "",
+                   "aihubmix": "DeepSeek-V3.1"},
+        price=[0.56/1000, 1.68/1000],
+        concurrency=32,
+        context_window=128000
+    ),
+    'deepseek-v3.1-think': Dict(
+        api_model={"ds_internal": "",
+                   "aihubmix": "DeepSeek-V3.1-Think"},
+        price=[0.56/1000, 1.68/1000],
+        concurrency=32,
+        context_window=128000
+    ),
     'gpt-4o': Dict(
         api_model={"ds_internal": "azure-gpt-4o-2024-11-20",
                    "aihubmix": "gpt-4o-2024-11-20"},

@@ -1,5 +1,0 @@
-{
-    "needed_mcp_servers": ["yahoo-finance", "filesystem", "terminal"],
-    "needed_local_tools": ["claim_done"],
-    "meta": {}
-}
