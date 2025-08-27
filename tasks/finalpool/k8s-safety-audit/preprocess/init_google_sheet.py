@@ -63,8 +63,8 @@ def reset_folder_with_sheet(drive_service, folder_id: str, source_sheet_url: str
 
 def main():
     parser = ArgumentParser()
-    parser.add_argument("--folder_id", default="1q1hoc0BMFnpSiov1pABy3PbstA4nY2fm")
-    parser.add_argument("--credentials_file",default="configs/credentials.json")
+    parser.add_argument("--folder_id", required=True)
+    parser.add_argument("--credentials_file", default="configs/google_credentials.json")
     args = parser.parse_args()
 
     print(f"Using folder ID: {args.folder_id}")

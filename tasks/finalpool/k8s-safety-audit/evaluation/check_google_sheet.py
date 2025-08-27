@@ -254,8 +254,8 @@ def compare_week3_with_gt(week3_rows: List[Dict[str, str]], gt_rows: List[Dict[s
 
 def main():
     parser = ArgumentParser()
-    parser.add_argument("--folder_id", default="1q1hoc0BMFnpSiov1pABy3PbstA4nY2fm")
-    parser.add_argument("--credentials_file",default="configs/credentials.json")
+    parser.add_argument("--folder_id", required=True)
+    parser.add_argument("--credentials_file", default="configs/google_credentials.json")
     parser.add_argument("--kubeconfig_path", default="deployment/k8s/configs/cluster241-config.yaml")
     args = parser.parse_args()
 
