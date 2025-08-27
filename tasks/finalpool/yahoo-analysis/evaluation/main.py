@@ -199,16 +199,20 @@ def get_gt(ticker):
     return summary
 
 def load_results_md(workspace: Path) -> str:
-    """
-    优先读取 workspace/results.md；
-    若不存在则读取 workspace/results_template.md；
-    都不存在则退出(1)。
-    """
-    for name in ("results.md", "results_template.md"):
-        p = workspace / name
-        if p.exists():
-            return p.read_text(encoding="utf-8")
-    exit(1)
+    target_file = "results.md"
+    p = workspace / target_file
+    if not p.exists():
+        print("Target file does not exist. Test fail.")
+        exit(1)
+    
+    template_file = "results_template.md"
+    template_p = workspace / template_file
+    if template_p.exists():
+        print("Template file still exists. Test fail.")
+        exit(1)
+    
+    return p.read_text(encoding="utf-8")
+
 
 def parse_table(md: str) -> pd.DataFrame:
     """
@@ -262,7 +266,11 @@ def parse_data_range(md: str):
 def main():
     parser = ArgumentParser()
     parser.add_argument("--agent_workspace", required=True)
+    parser.add_argument("--groundtruth_workspace", required=False)
+    parser.add_argument("--res_log_file", required=False)
+    parser.add_argument("--launch_time", required=False)
     args = parser.parse_args()
+
     print(f"Using agent workspace: {args.agent_workspace}")
     ws = Path(args.agent_workspace)
 
@@ -345,9 +353,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
-
-
-
-
-    
