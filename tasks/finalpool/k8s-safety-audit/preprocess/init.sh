@@ -1,9 +1,11 @@
 #!/bin/bash
 
 # 设置变量
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 k8sconfig_path_dir=deployment/k8s/configs
 cluster_name="cluster241"
-resource_yaml="tasks/ruige/k8s-safety-audit/preprocess/config.yaml"
+resource_yaml="$SCRIPT_DIR/config.yaml"
 
 # 颜色输出
 RED='\033[0;31m'
