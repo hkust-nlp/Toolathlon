@@ -3,6 +3,37 @@ if ! command -v uv &> /dev/null; then
     echo "uv could not be found, please install via `curl -LsSf https://astral.sh/uv/install.sh | sh`"
 fi
 
+# Node.js and npm installation via NVM (only if not already installed)
+echo "Checking Node.js and npm installation..."
+if ! command -v node &> /dev/null || ! command -v npm &> /dev/null; then
+    echo "Node.js or npm not found. Installing via NVM..."
+    
+    # Check if NVM is already installed
+    if ! command -v nvm &> /dev/null; then
+        echo "Installing NVM..."
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+        
+        # Load NVM
+        export NVM_DIR="$HOME/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+        [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+        
+        # Also add to current session
+        source ~/.bashrc 2>/dev/null || true
+    fi
+    
+    # Install Node.js LTS version (includes npm)
+    echo "Installing Node.js LTS..."
+    nvm install --lts
+    npm install -g npm@latest
+    
+    echo "Node.js and npm installed successfully!"
+else
+    echo "Node.js and npm are already installed."
+    node -v
+    npm -v
+fi
+
 # uv
 uv sync
 
@@ -12,6 +43,10 @@ npm install
 cd node_modules/@lockon0927/playwright-mcp-with-chunk
 npx playwright install chromium
 cd ../../..
+
+# Set environment variable for Playwright (ignore host requirements warnings)
+export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1
+echo "export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1" >> ~/.bashrc
 
 # uvx
 uv tool install office-powerpoint-mcp-server@2.0.6
@@ -62,3 +97,48 @@ echo "\033[33mfixing npm audit issues...\033[0m"
 npm audit fix
 
 cd ../..
+
+# Tesseract OCR installation (for users without sudo)
+echo "Setting up Tesseract OCR..."
+USERNAME="${USER}"
+BASE_DIR="/home/${USERNAME}"
+APPIMAGE_URL="https://github.com/AlexanderP/tesseract-appimage/releases/download/v5.5.1/tesseract-5.5.1-x86_64.AppImage"
+
+if [ ! -f "$BASE_DIR/local/bin/tesseract" ]; then
+    echo "Installing Tesseract 5.5.1..."
+    
+    # Create directories
+    mkdir -p "$BASE_DIR/local/bin"
+    mkdir -p "$BASE_DIR/local/share/tessdata"
+    
+    # Download AppImage
+    cd "$BASE_DIR/local/bin"
+    if [ ! -f "tesseract-5.5.1-x86_64.AppImage" ]; then
+        wget "$APPIMAGE_URL"
+        chmod +x tesseract-5.5.1-x86_64.AppImage
+    fi
+    
+    # Create wrapper script
+    cat > tesseract << EOF
+#!/bin/bash
+exec "$BASE_DIR/local/bin/tesseract-5.5.1-x86_64.AppImage" "\$@"
+EOF
+    chmod +x tesseract
+    
+    # Download language data
+    cd "$BASE_DIR/local/share/tessdata"
+    for lang in eng chi_sim; do
+        if [ ! -f "${lang}.traineddata" ]; then
+            echo "Downloading $lang language pack..."
+            wget "https://github.com/tesseract-ocr/tessdata/raw/main/${lang}.traineddata"
+        fi
+    done
+    
+    # Add to PATH and set TESSDATA_PREFIX
+    echo "export PATH=\"$BASE_DIR/local/bin:\$PATH\"" >> ~/.bashrc
+    echo "export TESSDATA_PREFIX=\"$BASE_DIR/local/share/tessdata\"" >> ~/.bashrc
+    
+    echo "Tesseract installed successfully!"
+else
+    echo "Tesseract already installed."
+fi
