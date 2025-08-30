@@ -12,7 +12,8 @@
     "@jinzcdev/leetcode-mcp-server": "^1.1.0",
     "@lockon0927/playwright-mcp-with-chunk": "^0.1.2",
     "@lockon0927/woocommerce-mcp": "^1.0.1",
-    "@modelcontextprotocol/server-filesystem": "^2025.7.29",
+    "@modelcontextprotocol/sdk": "^1.17.4",
+    "@modelcontextprotocol/server-filesystem": "^2025.7.1",
     "@modelcontextprotocol/server-github": "^2025.4.8",
     "@modelcontextprotocol/server-google-maps": "^0.6.2",
     "@modelcontextprotocol/server-memory": "^2025.4.25",
@@ -35,7 +36,7 @@
     "mcp-deepwiki": "^0.0.10",
     "mcp-remote": "^0.1.16",
     "mcp-server-code-runner": "^0.1.7",
-    "mcp-server-kubernetes": "github:lockon-n/mcp-server-kubernetes#21852c9a2efd31c569e4d00a34d482a4fe948abc",
+    "mcp-server-kubernetes": "github:lockon-n/mcp-server-kubernetes#7e4d3a571af9078e1fa35b51189baaa58864b84f",
     "shadcn-ui-mcp-server": "^0.1.2",
     "zod": "^3.25.23"
   },
