@@ -1,0 +1,1 @@
+我跟我的好朋友alex都想参加一个活动，并且全天参加。帮我根据记忆库中的内容自动给我们俩填写问卷。记忆库中没有的东西默认都是否定的。链接是 https://docs.google.com/forms/d/e/1FAIpQLScVy8ARgPhrWsDPGItxgbWZDHN5n-IeV8YhkwdSRxEctpJ_ig/viewform?usp=dialog

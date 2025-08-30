@@ -1,5 +1,5 @@
 {
     "needed_mcp_servers": ["yahoo-finance", "filesystem", "terminal"],
-    "needed_local_tools": ["claim_done"],
+    "needed_local_tools": ["claim_done", "python_execute"],
     "meta": {}
 }
