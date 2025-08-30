@@ -3,6 +3,7 @@ import asyncio
 import os
 import yaml
 from utils.general.helper import print_color
+from configs.global_configs import global_configs
 
 async def main():
 
@@ -30,7 +31,7 @@ async def main():
             async with server_x as server:
                 pass
             
-            if server_name == "github":
+            if server_name == "github" and global_configs.podman_or_docker == "podman":
                 print_color("If you see `2025-08-30T11:10:04.982268: process not running: No such process` somthing like in checking github MCP server with podman, do not worry, this is just a expected behavior :)", "cyan")
             print_color(f"Server {server_name} is checked", "green")
         except Exception as e:
