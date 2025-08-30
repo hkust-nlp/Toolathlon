@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# read out `podman_or_docker` from global_configs.py
+podman_or_docker=$(uv run python -c "import sys; sys.path.append('configs'); from global_configs import global_configs; print(global_configs.podman_or_docker)")
+
+
 # 设置变量
 k8sconfig_path_dir=deployment/k8s/configs
 cluster_prefix="cluster"
@@ -101,8 +105,8 @@ create_cluster() {
     
     log_info "Create cluster: $cluster_name"
     
-    # 使用 podman 作为 provider 创建集群
-    if KIND_EXPERIMENTAL_PROVIDER=podman kind create cluster --name "$cluster_name" --kubeconfig "$config_path"; then
+    # 使用 podman/docker 作为 provider 创建集群
+    if KIND_EXPERIMENTAL_PROVIDER=$podman_or_docker kind create cluster --name "$cluster_name" --kubeconfig "$config_path"; then
         log_info "Cluster $cluster_name created successfully"
         return 0
     else
@@ -279,7 +283,7 @@ main() {
 
 # 检查依赖
 check_dependencies() {
-    local deps=("kind" "kubectl" "podman")
+    local deps=("kind" "kubectl" "$podman_or_docker")
     local missing=()
     
     for cmd in "${deps[@]}"; do

@@ -101,6 +101,7 @@ class MCPServerManager:
             # 基本路径变量
             'agent_workspace': self.agent_workspace,
             'local_servers_paths': self.local_servers_paths,
+            'podman_or_docker': global_configs.podman_or_docker,
         }
         
         # 动态添加 global_configs 中的所有属性

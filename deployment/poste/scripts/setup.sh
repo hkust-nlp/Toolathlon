@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# read out `podman_or_docker` from global_configs.py
+podman_or_docker=$(uv run python -c "import sys; sys.path.append('configs'); from global_configs import global_configs; print(global_configs.podman_or_docker)")
+
+
 # 配置暴露的端口 - 使用非特权端口
 WEB_PORT=10005      # Web 界面端口
 SMTP_PORT=2525     # SMTP 端口
@@ -17,8 +21,8 @@ COMMAND=${1:-start}  # 默认为 start
 # 停止和删除容器的函数
 stop_container() {
   echo "🛑 Stop Poste.io container..."
-  podman stop poste 2>/dev/null
-  podman rm poste 2>/dev/null
+  $podman_or_docker stop poste 2>/dev/null
+  $podman_or_docker rm poste 2>/dev/null
   echo "✅ Container stopped and deleted"
 }
 
@@ -34,7 +38,7 @@ start_container() {
   
  # 启动 Poste.io
 echo "🚀 Start Poste.io..."
-podman run -d \
+$podman_or_docker run -d \
   --name poste \
   --cap-add NET_ADMIN \
   --cap-add NET_RAW \
@@ -65,7 +69,7 @@ podman run -d \
     echo "   Submission: localhost:${SUBMISSION_PORT}"
     echo ""
     echo "First visit please go to: http://localhost:${WEB_PORT}/admin/install"
-    echo "View logs please run: podman logs -f poste"
+    echo "View logs please run: $podman_or_docker logs -f poste"
   else
     echo "❌ Start failed!"
     exit 1
@@ -77,52 +81,62 @@ create_accounts() {
   bash deployment/poste/scripts/create_users.sh $NUM_USERS
 }
 
-# 主逻辑
+# 定义清理函数
+perform_cleanup() {
+  echo "🧹 Starting cleanup process..."
+  
+  # 清理数据目录
+  if [ -d "$DATA_DIR" ]; then
+    if [ "$podman_or_docker" = "podman" ] && command -v podman >/dev/null 2>&1; then
+      # Podman 环境
+      echo "🗑️  Clean data directory (podman unshare)..."
+      podman unshare rm -rf "$DATA_DIR"
+    elif [ "$EUID" -eq 0 ]; then
+      # Root 用户
+      echo "🗑️  Clean data directory (as root)..."
+      rm -rf "$DATA_DIR"
+    else
+      # 有 sudo 权限
+      echo "🗑️  Clean data directory (sudo)..."
+      sudo rm -rf "$DATA_DIR"
+    fi
+  fi
+  
+  # 清理配置目录（通常不需要特殊权限）
+  if [ -d "$CONFIG_DIR" ]; then
+    echo "🗑️  Clean configs directory..."
+    rm -rf "$CONFIG_DIR"
+  fi
+  
+  echo "✅ Cleanup completed"
+}
+
+# 修改主逻辑
 case "$COMMAND" in
   start)
     stop_container
-    echo "🗑️  Clean data directory..."
-    podman unshare rm -rf "$DATA_DIR"
-    echo "🗑️  Clean configs directory..."
-    rm -rf "$CONFIG_DIR"
-    echo "✅ Data & Configs cleaned"
+    perform_cleanup
     start_container
     sleep 30
     create_accounts
     ;;
   stop)
     stop_container
-    echo "🗑️  Clean data directory..."
-    podman unshare rm -rf "$DATA_DIR"
-    echo "🗑️  Clean configs directory..."
-    rm -rf "$CONFIG_DIR"
-    echo "✅ Data & Configs cleaned"
+    perform_cleanup
     ;;
   restart)
     stop_container
-    echo "🗑️  Clean data directory..."
-    podman unshare rm -rf "$DATA_DIR"
-    echo "🗑️  Clean configs directory..."
-    rm -rf "$CONFIG_DIR"
-    echo "✅ Data & Configs cleaned"
+    perform_cleanup
     start_container
     sleep 30
     create_accounts
     ;;
   clean)
     stop_container
-    echo "🗑️  Clean data directory..."
-    podman unshare rm -rf "$DATA_DIR"
-    echo "🗑️  Clean configs directory..."
-    rm -rf "$CONFIG_DIR"
-    echo "✅ Data & Configs cleaned"
+    perform_cleanup
     ;;
   *)
     echo "How to use: $0 {start|stop|restart|clean}"
-    echo "  start   - Stop old container and start new container"
-    echo "  stop    - Just stop and delete container"
-    echo "  restart - Restart container"
-    echo "  All above operations will clear old data and configs"
     exit 1
     ;;
 esac
