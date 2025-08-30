@@ -3,7 +3,7 @@
 # 设置变量
 k8sconfig_path_dir=deployment/k8s/configs
 cluster_prefix="cluster"
-cluster_count=10
+cluster_count=1
 batch_size=3  # 每批创建3个集群
 batch_delay=5  # 批次之间等待30秒
 
@@ -242,7 +242,9 @@ start_operation() {
     echo ""
     log_info "========== Deployment completed =========="
     log_info "Successfully created and verified clusters: $success_count"
-    log_error "Failed clusters: $failed_count"
+    if [ $failed_count -gt 0 ]; then
+        log_error "Failed clusters: $failed_count"
+    fi
     
     # 列出所有集群
     log_info "All Kind clusters:"
