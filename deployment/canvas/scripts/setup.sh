@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# read out `podman_or_docker` from global_configs.py
+podman_or_docker=$(uv run python -c "import sys; sys.path.append('configs'); from global_configs import global_configs; print(global_configs.podman_or_docker)")
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(pwd)"
 
@@ -23,14 +26,14 @@ case $operation in
 
     # Start Canvas Docker container
     echo "Starting Canvas Docker container (port: $http_port)..."
-    podman run --name $container_name -p ${http_port}:3000 -d lbjay/canvas-docker
+    $podman_or_docker run --name $container_name -p ${http_port}:3000 -d lbjay/canvas-docker
     
     # Wait for container to start
     echo "Waiting for Canvas container to start..."
     sleep 5
     
     # Check if container started successfully
-    if podman ps | grep $container_name > /dev/null; then
+    if $podman_or_docker ps | grep $container_name > /dev/null; then
       echo "Canvas Docker container started successfully"
     else
       echo "Canvas Docker container failed to start"
@@ -61,8 +64,8 @@ case $operation in
     else
       echo "HTTPS proxy failed to start"
       # Cleanup
-      podman stop $container_name 2>/dev/null || true
-      podman rm $container_name 2>/dev/null || true
+      $podman_or_docker stop $container_name 2>/dev/null || true
+      $podman_or_docker rm $container_name 2>/dev/null || true
       exit 1
     fi
 
@@ -94,8 +97,8 @@ case $operation in
     
     # Stop Canvas Docker container
     echo "Stopping Canvas Docker container..."
-    podman stop $container_name 2>/dev/null || true
-    podman rm $container_name 2>/dev/null || true
+    $podman_or_docker stop $container_name 2>/dev/null || true
+    $podman_or_docker rm $container_name 2>/dev/null || true
     
     echo "Canvas service has been stopped"
 
@@ -109,7 +112,7 @@ case $operation in
     
     # Check Docker container status
     echo "Canvas Docker container status:"
-    if podman ps | grep $container_name > /dev/null; then
+    if $podman_or_docker ps | grep $container_name > /dev/null; then
       echo "  ✓ Running (port: $http_port)"
     else
       echo "  ✗ Not running"
