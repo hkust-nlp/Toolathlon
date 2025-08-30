@@ -6,7 +6,7 @@ PROJECT_ROOT="$(pwd)"
 # Configure ports
 http_port=${4:-10001}
 https_port=${5:-20001}
-USERS_COUNT=${3:-100}
+USERS_COUNT=${3:-503}
 # Check operation parameter
 operation=${1:-start}
 container_name=${2:-canvas-docker}
