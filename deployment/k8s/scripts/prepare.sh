@@ -37,15 +37,24 @@ else
 fi
 
 # Install kind
-curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64
-chmod +x ./kind
-$SUDO mv ./kind "$INSTALL_KIND_PATH"
+if command -v kind &> /dev/null; then
+    echo "kind is already installed at: $(which kind)"
+else
+    echo "Installing kind..."
+    curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64
+    chmod +x ./kind
+    $SUDO mv ./kind "$INSTALL_KIND_PATH"
+    echo "kind has been installed to: $INSTALL_KIND_PATH"
+fi
 
 # Install kubectl
-KUBECTL_VERSION=$(curl -L -s https://dl.k8s.io/release/stable.txt)
-curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
-chmod +x kubectl
-$SUDO mv kubectl "$INSTALL_KUBECTL_PATH"
-
-echo "kind has been installed to: $INSTALL_KIND_PATH"
-echo "kubectl has been installed to: $INSTALL_KUBECTL_PATH"
+if command -v kubectl &> /dev/null; then
+    echo "kubectl is already installed at: $(which kubectl)"
+else
+    echo "Installing kubectl..."
+    KUBECTL_VERSION=$(curl -L -s https://dl.k8s.io/release/stable.txt)
+    curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
+    chmod +x kubectl
+    $SUDO mv kubectl "$INSTALL_KUBECTL_PATH"
+    echo "kubectl has been installed to: $INSTALL_KUBECTL_PATH"
+fi
