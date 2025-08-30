@@ -34,7 +34,7 @@ all_token_key_session = Dict(
 
     wandb_api_key = "b3abe195bd69c07bdc47469d3956ac8d0c008714",
     
-    tessdata_prefix = os.environ["TESSDATA_PREFIX"],
+    # tessdata_prefix = os.environ["TESSDATA_PREFIX"],
     amap_key="f789815a157fe45439c674c4a10e615b",
     
     google_sheets_folder_id = "PLEASE_RESET_IN_TASK_SPECIFIC_DIR",
@@ -43,11 +43,12 @@ all_token_key_session = Dict(
 
     notion_integration_key="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",
 
-    woocommerce_api_key = "PLEASE_RESET_IN_TASK_SPECIFIC_DIR",
-    woocommerce_api_secret = "PLEASE_RESET_IN_TASK_SPECIFIC_DIR",
-    woocommerce_site_url = "PLEASE_RESET_IN_TASK_SPECIFIC_DIR",
+    # fill in the first store globally for pre-check
+    woocommerce_api_key = "ck_woocommerce_token_emma_206rnIn",
+    woocommerce_api_secret = "cs_woocommerce_token_emma_206rnIn",
+    woocommerce_site_url = "http://localhost:10003/store81",
 
-    kubeconfig_path = "PLEASE_RESET_IN_TASK_SPECIFIC_DIR",
+    kubeconfig_path = "deployment/k8s/configs/cluster1-config.yaml",
 
     gcp_project_id = "mcp-bench0606",
     gcp_service_account_path = "configs/mcp-bench0606-2b68b5487343.json",
@@ -60,7 +61,7 @@ all_token_key_session = Dict(
     google_cloud_allowed_instances = "null",
 
     # poste emails
-    emails_config_file = "PLEASE_RESET_IN_TASK_SPECIFIC_DIR",
+    emails_config_file = "configs/example_email_config.json",
 
     # snowflake
 
