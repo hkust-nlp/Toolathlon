@@ -4,7 +4,7 @@ from pathlib import Path
 import json
 
 def get_github_token():
-    task_id = "email-paper-homepage"
+    task_id = "personal_website_construct"
     config_path = "configs/github_repos.json"
     with open(config_path, 'r') as f:
         data = json.load(f)
@@ -20,5 +20,4 @@ if not github_token:
 else:
     all_token_key_session = Dict(
         github_token = github_token,
-        emails_config_file = str(Path(__file__).parent / "email_config.json"),
     )
