@@ -250,7 +250,8 @@ class LocalEmailManager:
             # 构建邮件
             msg = MIMEMultipart()
             display_name = sender_name or self.name
-            msg['From'] = formataddr((display_name, self.email))
+            # 只显示发件人名称，不显示邮箱地址
+            msg['From'] = display_name
             msg['To'] = to_email
             msg['Subject'] = subject
             msg.attach(MIMEText(content, _subtype=content_type, _charset='utf-8'))
@@ -281,8 +282,8 @@ class LocalEmailManager:
                 except smtplib.SMTPException as e:
                     self._log(f"ℹ️ SMTP 登录失败（将尝试无认证发送）：{e}")
 
-            # 发送
-            server.send_message(msg)
+            # 发送邮件，使用真实邮箱地址作为发件人但显示自定义名称
+            server.send_message(msg, from_addr=self.email)
             server.quit()
             self._log(f"✅ 邮件发送成功: {subject}")
             self._log(f"   发件人：{display_name}")
@@ -542,3 +543,123 @@ class LocalEmailManager:
                 return payload.decode('utf-8', errors='replace')
             except Exception:
                 return ""
+
+    def get_emails_with_attachments(self, subject_keyword: str = None, 
+                                  mailbox: str = 'INBOX') -> List[Dict[str, Any]]:
+        """
+        获取包含附件的邮件
+        
+        Args:
+            subject_keyword: 主题关键词
+            mailbox: 邮箱名称
+            
+        Returns:
+            包含附件信息的邮件列表
+        """
+        mail = self.connect_imap()
+        emails = []
+        try:
+            typ, _ = mail.select(mailbox)
+            if typ != 'OK':
+                raise RuntimeError(f"无法选择邮箱 {mailbox}")
+
+            # 搜索邮件
+            if subject_keyword:
+                typ, data = mail.search(None, f'SUBJECT "{subject_keyword}"')
+            else:
+                typ, data = mail.search(None, 'ALL')
+            
+            if typ != 'OK':
+                raise RuntimeError("搜索邮件失败")
+
+            ids = data[0].split()
+            if not ids:
+                return []
+
+            for num in ids:
+                typ, msg_data = mail.fetch(num, '(RFC822)')
+                if typ != 'OK' or not msg_data or not msg_data[0]:
+                    continue
+                raw_email = msg_data[0][1]
+                msg = email.message_from_bytes(raw_email, policy=policy.default)
+
+                # 提取附件信息
+                attachments = self._extract_attachments_info(msg)
+                
+                if attachments:  # 只返回有附件的邮件
+                    emails.append({
+                        'id': num.decode(),
+                        'subject': msg['Subject'],
+                        'from': msg['From'],
+                        'date': msg['Date'],
+                        'body': self._extract_body(msg),
+                        'attachments': attachments,
+                        'raw_message': msg
+                    })
+        finally:
+            try:
+                mail.close()
+            except Exception:
+                pass
+            mail.logout()
+        return emails
+
+    def _extract_attachments_info(self, msg: email.message.EmailMessage) -> List[Dict[str, str]]:
+        """
+        从邮件中提取附件信息（不下载）
+        
+        Args:
+            msg: 邮件对象
+            
+        Returns:
+            附件信息列表，每个元素包含 filename, content_type, size
+        """
+        attachments = []
+        
+        for part in msg.walk():
+            disp = (part.get('Content-Disposition') or '').lower()
+            if 'attachment' in disp:
+                filename = part.get_filename()
+                if filename:
+                    attachments.append({
+                        'filename': filename,
+                        'content_type': part.get_content_type(),
+                        'size': len(part.get_payload(decode=False)) if part.get_payload(decode=False) else 0
+                    })
+        return attachments
+
+    def download_attachments_from_email(self, email_data: Dict[str, Any], 
+                                      download_dir: str) -> List[str]:
+        """
+        从邮件中下载附件
+        
+        Args:
+            email_data: 包含 raw_message 的邮件数据
+            download_dir: 下载目录
+            
+        Returns:
+            下载的文件路径列表
+        """
+        import os
+        
+        msg = email_data['raw_message']
+        download_path = Path(download_dir)
+        download_path.mkdir(parents=True, exist_ok=True)
+        
+        downloaded_files = []
+        
+        for part in msg.walk():
+            disp = (part.get('Content-Disposition') or '').lower()
+            if 'attachment' in disp:
+                filename = part.get_filename()
+                if filename:
+                    try:
+                        file_path = download_path / filename
+                        with open(file_path, 'wb') as f:
+                            f.write(part.get_payload(decode=True))
+                        downloaded_files.append(str(file_path))
+                        self._log(f"✅ 下载附件: {filename}")
+                    except Exception as e:
+                        self._log(f"❌ 下载附件失败 {filename}: {e}", force=True)
+        
+        return downloaded_files
