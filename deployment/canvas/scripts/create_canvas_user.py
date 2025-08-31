@@ -4,18 +4,20 @@
 # 生成完用户可以拿到姓名，邮箱，token， 密码（现在是统一的），sis_user_id，pseudonym_id
 #
 # 使用方法:
-# python create_canvas_user.py                     # 创建所有用户
-# python create_canvas_user.py -n 50               # 创建前50个用户
+# python create_canvas_user.py                         # 创建所有用户（跳过已存在）
+# python create_canvas_user.py -n 50                   # 创建前50个用户
+# python create_canvas_user.py --start-id 1 --end-id 20    # 创建ID 1-20的用户
+# python create_canvas_user.py --start-id 101 --end-id 120 # 创建ID 101-120的用户
 # python create_canvas_user.py -n 100 --batch-size 20  # 创建前100个用户，每批20个
-# python create_canvas_user.py --skip-test         # 跳过测试直接创建所有用户
+# python create_canvas_user.py --skip-test             # 跳过测试直接创建所有用户
 import json
 import subprocess
 import os
 import time
 import argparse
 from datetime import datetime
+from configs.global_configs import global_configs
 
-CONTAINER_NAME = "canvas-docker"
 BUNDLE_PATH = "/opt/canvas/.gems/bin/bundle"
 CANVAS_DIR = "/opt/canvas/canvas-lms"
 
@@ -33,11 +35,11 @@ puts "MAX_SIS_ID:#{max_id}"
     with open('./deployment/canvas/tmp/check_sis_id.rb', 'w') as f:
         f.write(check_script)
     
-    subprocess.run(['podman', 'cp', './deployment/canvas/tmp/check_sis_id.rb', f'{CONTAINER_NAME}:/tmp/'])
+    subprocess.run([global_configs.podman_or_docker, 'cp', './deployment/canvas/tmp/check_sis_id.rb', f'{CONTAINER_NAME}:/tmp/'])
     
     cmd = f"cd {CANVAS_DIR} && GEM_HOME=/opt/canvas/.gems {BUNDLE_PATH} exec rails runner /tmp/check_sis_id.rb"
     result = subprocess.run(
-        ['podman', 'exec', CONTAINER_NAME, 'bash', '-c', cmd],
+        [global_configs.podman_or_docker, 'exec', CONTAINER_NAME, 'bash', '-c', cmd],
         capture_output=True,
         text=True
     )
@@ -49,14 +51,55 @@ puts "MAX_SIS_ID:#{max_id}"
     except:
         return 1
 
-def load_users_from_json():
-    """从configs/users_data.json读取用户数据"""
+def check_existing_users(emails):
+    """检查已存在的用户邮箱"""
+    if not emails:
+        return []
+    
+    emails_str = "', '".join(emails)
+    check_script = f'''
+existing_emails = Pseudonym.where(unique_id: ['{emails_str}']).pluck(:unique_id)
+puts "EXISTING_EMAILS:" + existing_emails.join(",")
+'''
+    
+    with open('./deployment/canvas/tmp/check_existing_users.rb', 'w') as f:
+        f.write(check_script)
+    
+    subprocess.run([global_configs.podman_or_docker, 'cp', './deployment/canvas/tmp/check_existing_users.rb', f'{CONTAINER_NAME}:/tmp/'])
+    
+    cmd = f"cd {CANVAS_DIR} && GEM_HOME=/opt/canvas/.gems {BUNDLE_PATH} exec rails runner /tmp/check_existing_users.rb"
+    result = subprocess.run(
+        [global_configs.podman_or_docker, 'exec', CONTAINER_NAME, 'bash', '-c', cmd],
+        capture_output=True,
+        text=True
+    )
+    
+    try:
+        existing_line = [line for line in result.stdout.split('\n') if 'EXISTING_EMAILS:' in line][0]
+        existing_emails = existing_line.split(':', 1)[1].split(',') if ':' in existing_line and existing_line.split(':', 1)[1] else []
+        return [email.strip() for email in existing_emails if email.strip()]
+    except:
+        return []
+
+def load_users_from_json(start_id=None, end_id=None):
+    """从configs/users_data.json读取用户数据，支持按ID范围过滤"""
     try:
         with open('configs/users_data.json', 'r', encoding='utf-8') as f:
             data = json.load(f)
         
         users = []
         for user in data['users']:
+            user_id = user['id']
+            
+            # 如果指定了ID范围，进行过滤
+            if start_id is not None and user_id < start_id:
+                continue
+            if end_id is not None and user_id > end_id:
+                continue
+                
+            if user['full_name'].startswith('MCP Canvas Admin'):
+                continue
+                
             users.append({
                 'name': user['full_name'],
                 'short_name': user['first_name'],
@@ -66,7 +109,11 @@ def load_users_from_json():
                 'sis_user_id': f"MCP{user['id']:06d}"
             })
         
-        print(f"Loaded {len(users)} users from configs/users_data.json")
+        range_info = ""
+        if start_id is not None or end_id is not None:
+            range_info = f" (ID range: {start_id or 'start'}-{end_id or 'end'})"
+        
+        print(f"Loaded {len(users)} users from configs/users_data.json{range_info}")
         return users
     except FileNotFoundError:
         print("Error: configs/users_data.json not found")
@@ -188,11 +235,11 @@ def execute_batch(users, batch_num):
     with open(script_path, 'w') as f:
         f.write(script)
     
-    subprocess.run(['podman', 'cp', script_path, f'{CONTAINER_NAME}:{script_path_in_container}'])
+    subprocess.run([global_configs.podman_or_docker, 'cp', script_path, f'{CONTAINER_NAME}:{script_path_in_container}'])
     
     cmd = f"cd {CANVAS_DIR} && GEM_HOME=/opt/canvas/.gems {BUNDLE_PATH} exec rails runner {script_path_in_container}"
     result = subprocess.run(
-        ['podman', 'exec', CONTAINER_NAME, 'bash', '-c', cmd],
+        [global_configs.podman_or_docker, 'exec', CONTAINER_NAME, 'bash', '-c', cmd],
         capture_output=True,
         text=True
     )
@@ -232,19 +279,30 @@ def execute_batch(users, batch_num):
     
     return batch_results, batch_errors
 
-def create_users(total_count=None, batch_size=10):
+def create_users(users, batch_size=10):
     """主函数：创建用户"""
-    print(f"\nLoading users from JSON...")
-    users = load_users_from_json()
-    
     if not users:
-        print("No users loaded. Exiting.")
+        print("No users to create. Exiting.")
         return [], []
     
-    if total_count is None:
-        total_count = len(users)
-    else:
-        users = users[:total_count]
+    # 检查已存在的用户
+    print(f"\nChecking for existing users...")
+    emails = [user['email'] for user in users]
+    existing_emails = check_existing_users(emails)
+    
+    if existing_emails:
+        print(f"Found {len(existing_emails)} existing users, skipping them:")
+        for email in existing_emails[:5]:  # 只显示前5个
+            print(f"  - {email}")
+        if len(existing_emails) > 5:
+            print(f"  ... and {len(existing_emails) - 5} more")
+        
+        # 过滤掉已存在的用户
+        users = [user for user in users if user['email'] not in existing_emails]
+        
+        if not users:
+            print("All users already exist. Nothing to create.")
+            return [], []
     
     all_results = []
     all_errors = []
@@ -338,34 +396,53 @@ def main():
     parser = argparse.ArgumentParser(description='Canvas用户批量创建工具')
     parser.add_argument('-n', '--count', type=int, default=None, 
                         help='指定创建前N个用户（默认创建所有用户）')
+    parser.add_argument('--start-id', type=int, default=None,
+                        help='指定起始用户ID（包含）')
+    parser.add_argument('--end-id', type=int, default=None,
+                        help='指定结束用户ID（包含）')
     parser.add_argument('--batch-size', type=int, default=10,
                         help='批处理大小（默认10个用户一批）')
     parser.add_argument('--skip-test', action='store_true',
                         help='跳过测试直接创建所有用户')
-    
+    parser.add_argument("--container-name", type=str, default="canvas-docker")
     args = parser.parse_args()
     
-    print("=== Canvas Batch User Creation Tool v2 ===")
+    global CONTAINER_NAME
+    CONTAINER_NAME = args.container_name
+
+    print("=== Canvas Batch User Creation Tool v3 ===")
     
-    # 获取用户总数和实际要创建的数量
-    users = load_users_from_json()
+    # 检查参数冲突
+    if args.count is not None and (args.start_id is not None or args.end_id is not None):
+        print("❌ Error: Cannot use --count with --start-id/--end-id")
+        return
+    
+    # 获取用户数据
+    print(f"\nLoading users from JSON...")
+    users = load_users_from_json(args.start_id, args.end_id)
     if not users:
         print("No users loaded. Exiting.")
         return
     
-    total_available = len(users)
-    target_count = args.count if args.count is not None else total_available
-    target_count = min(target_count, total_available)  # 确保不超过可用数量
+    # 如果使用 --count 参数，截取用户列表
+    if args.count is not None:
+        users = users[:args.count]
+    
+    total_users = len(users)
     
     print("\n用户信息:")
-    print(f"  可用用户总数: {total_available}")
-    print(f"  计划创建数量: {target_count}")
+    if args.start_id is not None or args.end_id is not None:
+        print(f"  ID范围: {args.start_id or 'start'}-{args.end_id or 'end'}")
+    if args.count is not None:
+        print(f"  限制数量: {args.count}")
+    print(f"  待处理用户: {total_users}")
     print(f"  批处理大小: {args.batch_size}")
     
-    if not args.skip_test:
+    if not args.skip_test and total_users > 0:
         # 先测试创建一个用户
         print("\nTesting single user creation...")
-        test_results, test_errors = create_users(1, 1)
+        test_users = [users[0]]
+        test_results, test_errors = create_users(test_users, 1)
         
         if not test_results:
             print("❌ Test failed!")
@@ -383,17 +460,17 @@ def main():
         print("✅ Test successful!")
         
         # 如果只要创建1个用户，直接保存测试结果
-        if target_count == 1:
+        if total_users == 1:
             save_results(test_results, test_errors)
             return
         
-        # 调整目标数量（减去已测试的1个）
-        target_count -= 1
-        print(f"\n继续创建剩余 {target_count} 个用户...")
+        # 从用户列表中移除已测试的用户
+        users = users[1:]
+        print(f"\n继续创建剩余 {len(users)} 个用户...")
     
     # 创建用户
-    if target_count > 0:
-        results, errors = create_users(target_count, args.batch_size)
+    if users:
+        results, errors = create_users(users, args.batch_size)
         
         # 如果有测试结果，合并到最终结果中
         if not args.skip_test and 'test_results' in locals():

@@ -8,7 +8,13 @@ import os
 import time
 from datetime import datetime
 
-CONTAINER_NAME = "canvas-docker"
+from argparse import ArgumentParser
+from configs.global_configs import global_configs
+parser = ArgumentParser()
+parser.add_argument("--container-name", type=str, default="canvas-docker")
+args = parser.parse_args()
+
+CONTAINER_NAME = args.container_name
 BUNDLE_PATH = "/opt/canvas/.gems/bin/bundle"
 CANVAS_DIR = "/opt/canvas/canvas-lms"
 
@@ -142,12 +148,12 @@ end
         f.write(script)
     
     # 复制脚本到容器
-    subprocess.run(['podman', 'cp', script_path, f'{CONTAINER_NAME}:{script_path_in_container}'])
+    subprocess.run([global_configs.podman_or_docker, 'cp', script_path, f'{CONTAINER_NAME}:{script_path_in_container}'])
     
     # 执行脚本
     cmd = f"cd {CANVAS_DIR} && GEM_HOME=/opt/canvas/.gems {BUNDLE_PATH} exec rails runner {script_path_in_container}"
     result = subprocess.run(
-        ['podman', 'exec', CONTAINER_NAME, 'bash', '-c', cmd],
+        [global_configs.podman_or_docker, 'exec', CONTAINER_NAME, 'bash', '-c', cmd],
         capture_output=True,
         text=True
     )

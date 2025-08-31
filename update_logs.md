@@ -1,3 +1,66 @@
+### 2025.8.30 23:00
+- 使用新的12306 mcp
+- 继续记录整个安装流程及测试脚本
+
+### 2025.8.26 11:30
+- 增加对MCP工具超长的管理（只保留前20000字符）
+    - 相关文件 `utils/openai_agents_monkey_patch/custom_mcp_util.py`
+    - 通过 `BENCH_ENABLE_OVERLONG_TOOL_OUTPUT_MANAGEMENT`  系统变量设置是否启用
+- 增加对超长工具输出的搜索和翻页浏览
+    - 相关文件 `utils/aux_tools/overlong_tool_manager.py`
+    - 启用超长管理时，请务必一并启用该工具
+
+
+### 2025.8.26 3:30
+- 修正轮数统计逻辑
+
+### 2025.8.24 21:30
+- 开始创建global preparation脚本, 见 `global_preparation`文件夹
+    - 大体目标：
+        - 环境配置
+        - 所需应用容器部署
+        - 其他启动项 （TBD）
+            - 配置google calendar和gmail相关
+            - 启动所需github repo/google drive folder并得到对应token和folderid
+            - and more ...
+        
+
+### 2025.8.21 2:20
+- 修复canvas mcp的bug
+    - 需重新安装 (rm -rf node_modules && npm install)
+
+### 2025.8.20 21:40
+- 添加google-forms
+    - 相关文件`configs/mcp_servers/google_forms.yaml`
+
+### 2025.8.19 23:20
+- 升级emails-mcp-server
+    - 0.1.5 -> 0.1.6
+
+### 2025.8.19 22:35
+- 升级emails-mcp-server
+    - 0.1.0 -> 0.1.5
+
+### 2025.8.19 3:20
+- 修改terminal mcp server
+    - 添加代理控制，修>>bug以及输出长度控制
+    - 需重新安装
+    - 相关文件 `configs/mcp_servers/terminal.yaml`
+
+### 2025.8.19 2:20
+- 修改yahoo finance mcp server
+    - 新增按天搜索价格信息
+    - 需重新安装
+
+### 2025.8.18 23:45
+- 修改ytb mcp server安装方式
+    - fork出新的到个人账户，然后进行源码修改
+    - 需重新安装
+
+### 2025.8.15 23:00
+- 修改ytb mcp server安装方式及mcp配置方式
+    - 可能需要删掉原来local_servers/youtube-mcp-server然后重装一下
+
 ### 2025.8.12 18:15
 - 修改模拟用户为gpt-5
 

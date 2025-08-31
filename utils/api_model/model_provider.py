@@ -294,9 +294,20 @@ class CustomModelProviderAiHubMix(ModelProvider):
                                                    openai_client=client,
                                                    debug=debug)
 
+class CustomModelProviderAnthropic(ModelProvider):
+    def get_model(self, model_name: str | None, debug: bool = True) -> Model:
+        client = AsyncOpenAI(
+            api_key=global_configs.official_anthropic_key,
+            base_url="https://api.anthropic.com/v1/",
+        )
+        return OpenAIChatCompletionsModelWithRetry(model=model_name, 
+                                                   openai_client=client,
+                                                   debug=debug)
+
 model_provider_mapping = {
     "ds_internal": CustomModelProvider,
     "aihubmix": CustomModelProviderAiHubMix,
+    "anthropic": CustomModelProviderAnthropic,
 }
 
 API_MAPPINGS = {
@@ -313,6 +324,20 @@ API_MAPPINGS = {
         price=[0.546/1000, 2.184/1000],
         concurrency=32,
         context_window=64000
+    ),
+    'deepseek-v3.1': Dict(
+        api_model={"ds_internal": "",
+                   "aihubmix": "DeepSeek-V3.1"},
+        price=[0.56/1000, 1.68/1000],
+        concurrency=32,
+        context_window=128000
+    ),
+    'deepseek-v3.1-think': Dict(
+        api_model={"ds_internal": "",
+                   "aihubmix": "DeepSeek-V3.1-Think"},
+        price=[0.56/1000, 1.68/1000],
+        concurrency=32,
+        context_window=128000
     ),
     'gpt-4o': Dict(
         api_model={"ds_internal": "azure-gpt-4o-2024-11-20",
@@ -400,7 +425,8 @@ API_MAPPINGS = {
     # ),
     'claude-4-sonnet-0514': Dict(
         api_model={"ds_internal": "oai-api-claude-sonnet-4-20250514",
-                   "aihubmix": "claude-sonnet-4-20250514"},
+                   "aihubmix": "claude-sonnet-4-20250514",
+                   "anthropic": "claude-sonnet-4-20250514"},
         price=[0.003, 0.015],
         concurrency=32,
         context_window=200000
@@ -414,7 +440,8 @@ API_MAPPINGS = {
     # ),
     'claude-4.1-opus-0805': Dict(
         api_model={"ds_internal": "",
-                   "aihubmix": "claude-opus-4-1-20250805"},
+                   "aihubmix": "claude-opus-4-1-20250805",
+                   "anthropic": "claude-opus-4-1-20250805"},
         price=[16.5/1000, 82.5/1000],
         concurrency=32,
         context_window=200000

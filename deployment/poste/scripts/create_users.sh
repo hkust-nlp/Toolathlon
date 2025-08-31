@@ -6,13 +6,16 @@
 
 # set -e  # Commented out to prevent immediate exit on error
 
+# read out `podman_or_docker` from global_configs.py
+podman_or_docker=$(uv run python -c "import sys; sys.path.append('configs'); from global_configs import global_configs; print(global_configs.podman_or_docker)")
+
 DOMAIN="mcp.com"
 CONTAINER_NAME="poste"
 CONFIG_DIR="$(dirname "$0")/../configs"
 ACCOUNTS_FILE="$CONFIG_DIR/created_accounts.json"
 
 # Default number of users to create (will be overridden by JSON file)
-DEFAULT_USER_COUNT=100
+DEFAULT_USER_COUNT=503
 
 # Function to show usage
 show_usage() {
@@ -85,7 +88,7 @@ echo "👤 Creating: 1 admin + $USER_COUNT regular users"
 echo ""
 
 # Check if container is running
-if ! podman ps | grep -q "$CONTAINER_NAME"; then
+if ! $podman_or_docker ps | grep -q "$CONTAINER_NAME"; then
     echo "❌ Error: Container $CONTAINER_NAME is not running"
     echo "Please run: ./setup.sh start"
     exit 1
@@ -93,9 +96,9 @@ fi
 
 # Ensure domain exists
 echo "🌐 Checking domain $DOMAIN..."
-if ! podman exec --user=8 $CONTAINER_NAME php /opt/admin/bin/console domain:list | grep -q "$DOMAIN"; then
+if ! $podman_or_docker exec --user=8 $CONTAINER_NAME php /opt/admin/bin/console domain:list | grep -q "$DOMAIN"; then
     echo "📝 Creating domain: $DOMAIN"
-    podman exec --user=8 $CONTAINER_NAME php /opt/admin/bin/console domain:create "$DOMAIN"
+    $podman_or_docker exec --user=8 $CONTAINER_NAME php /opt/admin/bin/console domain:create "$DOMAIN"
 else
     echo "✅ Domain already exists: $DOMAIN"
 fi
@@ -129,9 +132,9 @@ ADMIN_PASSWORD="mcpposte"
 ADMIN_NAME="System Administrator"
 
 echo "📧 Creating: $ADMIN_EMAIL"
-if podman exec --user=8 $CONTAINER_NAME php /opt/admin/bin/console email:create "$ADMIN_EMAIL" "$ADMIN_PASSWORD" "$ADMIN_NAME" &>/dev/null; then
+if $podman_or_docker exec --user=8 $CONTAINER_NAME php /opt/admin/bin/console email:create "$ADMIN_EMAIL" "$ADMIN_PASSWORD" "$ADMIN_NAME" &>/dev/null; then
     echo "🔐 Setting admin privileges..."
-    podman exec --user=8 $CONTAINER_NAME php /opt/admin/bin/console email:admin "$ADMIN_EMAIL" &>/dev/null
+    $podman_or_docker exec --user=8 $CONTAINER_NAME php /opt/admin/bin/console email:admin "$ADMIN_EMAIL" &>/dev/null
     echo "✅ Admin created successfully!"
     echo "   Email: $ADMIN_EMAIL"
     echo "   Password: $ADMIN_PASSWORD"
@@ -172,7 +175,7 @@ while IFS='|' read -r id first_name last_name full_name email password; do
     draw_progress_bar $counter $USER_COUNT
     
     # Create user with error handling
-    CREATE_RESULT=$(podman exec --user=8 $CONTAINER_NAME php /opt/admin/bin/console email:create "$email" "$password" "$full_name" 2>&1)
+    CREATE_RESULT=$($podman_or_docker exec --user=8 $CONTAINER_NAME php /opt/admin/bin/console email:create "$email" "$password" "$full_name" 2>&1)
     if [ $? -eq 0 ]; then
         ((SUCCESS_COUNT++))
         # Store user data for JSON
@@ -219,7 +222,7 @@ echo ""
 
 # Show final user count
 echo "📋 Current total users:"
-TOTAL_USERS=$(podman exec --user=8 $CONTAINER_NAME php /opt/admin/bin/console email:list | wc -l)
+TOTAL_USERS=$($podman_or_docker exec --user=8 $CONTAINER_NAME php /opt/admin/bin/console email:list | wc -l)
 echo "   Total: $TOTAL_USERS users"
 
 echo ""

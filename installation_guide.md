@@ -32,13 +32,13 @@ In this file we guide you how to install all needed servers for this project.
     ```
     uv tool install office-powerpoint-mcp-server@2.0.6
     uv tool install office-word-mcp-server@1.1.9
-    uv tool install git+https://github.com/wandb/wandb-mcp-server@e1b6274a58a8dc56a47c5aaefb9d03282133f507
-    uv tool install cli-mcp-server@0.2.5
+    uv tool install git+https://github.com/lockon-n/wandb-mcp-server@83f6d7fe2ad2e6b6278aef4a792f35dd765fd315
+    uv tool install git+https://github.com/lockon-n/cli-mcp-server@da1dcb5166597c9fbf90ede5fb1f0cd22a71a3b7
     uv tool install pdf-tools-mcp@0.1.4
     uv tool install git+https://github.com/jkawamoto/mcp-youtube-transcript@28081729905a48bef533d864efbd867a2bfd14cd
     uv tool install mcp-google-sheets@0.4.1
     uv tool install google-cloud-mcp@1.0.0
-    uv tool install emails-mcp@0.1.0
+    uv tool install emails-mcp@0.1.8
     uv tool install git+https://github.com/lockon-n/mcp-snowflake-server@75c03ca0b3cee2da831e2bc1b3b7a150e4c2999a
     uv tool install git+https://github.com/lockon-n/mcp-scholarly@82a6ca268ae0d2e10664be396e1a0ea7aba23229
     ```
@@ -53,6 +53,8 @@ In this file we guide you how to install all needed servers for this project.
 
     `arxiv-latex`: see `install_records/arxiv_latex.md`
 
+    `google-forms`: see `install_records/google_forms.md`
+
 5. other preparation
 
     `playwright`: see `install_records/playwright.md`
@@ -61,11 +63,14 @@ In this file we guide you how to install all needed servers for this project.
 
     `ocr`: see `install_records/tesseract.md` (we need to install tesseract by ourselves on our lab cluster since no sudo is available)
 
+4.5 prepare accounts
+
+    please register some accounts, see accounts.md, and prepare credentials, tokens, sessions etc (TO BE FINISHED)
+
 5. configurate some tokens and keys
     
     Within the scope of this project, we have setup some keys and tokens by ourselves in `configs/token_key_session.py`, so you do not need to do it again by yourselves. Please just use them freely please.
 
-    TODO: guide for community researchers who want to use our benchmark.
+6. other preparation
 
-    TODOs: google cloud application，wandb, notion, github, snowflake, linkedin
-    
+    (TO BE FINISHED)

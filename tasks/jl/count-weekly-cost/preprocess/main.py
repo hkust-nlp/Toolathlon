@@ -5,6 +5,7 @@ import os
 if __name__=="__main__":
     parser = ArgumentParser()
     parser.add_argument("--agent_workspace", required=True)
+    parser.add_argument("--launch_time", required=False)
     args = parser.parse_args()
 
     to_copy_files = ["0519-0525_cost_food.csv",
