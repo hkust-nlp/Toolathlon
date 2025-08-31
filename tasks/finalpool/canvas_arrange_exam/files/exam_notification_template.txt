@@ -1,0 +1,33 @@
+Dear {recipient_name},
+
+Hello!
+
+This is an important exam notification email. Please read the following information carefully:
+
+📚 Course Information
+Course Name: {course_name}
+Exam Type: {exam_type}
+
+📅 Exam Schedule
+Exam Date: {exam_date}
+Exam Time: {exam_time}
+Duration: {duration}
+
+📍 Exam Location
+{exam_location}
+
+📧 Contact Information
+If you have any questions, please contact your course instructor or send an email to: {sender_email}
+
+Good luck with your exam!
+
+Best regards,
+
+{sender_name}
+{sender_email}
+Sent at: {send_time}
+
+---
+This email was sent automatically by the system. Please do not reply.
+If you have any issues, please contact the course administrator.
+
