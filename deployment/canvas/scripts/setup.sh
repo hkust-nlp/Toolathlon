@@ -70,10 +70,10 @@ case $operation in
     fi
 
     echo "Start creating users ..."
-    uv run deployment/canvas/scripts/create_canvas_user.py --count $USERS_COUNT --skip-test --batch-size 100 --container-name $container_name
+    uv run -m deployment.canvas.scripts.create_canvas_user --count $USERS_COUNT --skip-test --batch-size 100 --container-name $container_name
 
     echo "Start creating admin accounts ..."
-    uv run deployment/canvas/scripts/create_admin_accounts.py --container-name $container_name
+    uv run -m deployment.canvas.scripts.create_admin_accounts --container-name $container_name
     ;;
     
   "stop")
