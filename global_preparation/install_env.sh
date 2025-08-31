@@ -22,7 +22,7 @@ uv tool install pdf-tools-mcp@0.1.4
 uv tool install git+https://github.com/jkawamoto/mcp-youtube-transcript@28081729905a48bef533d864efbd867a2bfd14cd
 uv tool install mcp-google-sheets@0.4.1
 uv tool install google-cloud-mcp@1.0.0
-uv tool install emails-mcp@0.1.8
+uv tool install emails-mcp@0.1.11
 uv tool install git+https://github.com/lockon-n/mcp-snowflake-server@75c03ca0b3cee2da831e2bc1b3b7a150e4c2999a
 uv tool install git+https://github.com/lockon-n/mcp-scholarly@82a6ca268ae0d2e10664be396e1a0ea7aba23229
 
