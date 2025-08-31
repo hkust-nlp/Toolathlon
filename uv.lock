@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.12"
 resolution-markers = [
     "python_full_version >= '3.13' and sys_platform == 'darwin'",
@@ -1880,7 +1880,7 @@ requires-dist = [
     { name = "lxml", specifier = "==5.4.0" },
     { name = "markupsafe", specifier = "==3.0.2" },
     { name = "matplotlib", specifier = "==3.10.3" },
-    { name = "mcp", specifier = "==1.9.0" },
+    { name = "mcp", specifier = ">=1.9.0" },
     { name = "mcp-ocr", specifier = ">=0.1.2" },
     { name = "mcp-scholarly", specifier = "==0.1.0" },
     { name = "mcp-server-fetch", specifier = ">=2025.4.7" },
