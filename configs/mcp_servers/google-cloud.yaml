@@ -1,4 +1,4 @@
-# https://mcp.pipedream.com/app/google_cloud
+# https://github.com/lockon-n/google-cloud-mcp
 type: stdio
 name: google-cloud
 params:
