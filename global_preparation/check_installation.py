@@ -18,10 +18,10 @@ async def main():
     
     # to_check_servers = ['github']
     
-    # create a ./dump/mcp_servers_check directory
-    os.makedirs("dump/mcp_servers_check", exist_ok=True)
+    # create a ./dumps/mcp_servers_check directory
+    os.makedirs("dumps/mcp_servers_check", exist_ok=True)
 
-    xx_MCPServerManager = MCPServerManager(agent_workspace="./dump/mcp_servers_check") # a pseudo server manager
+    xx_MCPServerManager = MCPServerManager(agent_workspace="./dumps/mcp_servers_check") # a pseudo server manager
     
     for server_name in to_check_servers:
         server_x = xx_MCPServerManager.servers[server_name]
