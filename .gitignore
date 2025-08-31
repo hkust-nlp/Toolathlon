@@ -51,6 +51,7 @@ deployment/*/*
 !deployment/utils/**
 !deployment/*/scripts/
 !deployment/*/scripts/**
+deployment/*/scripts/__pycache__/
 
 wandb
 

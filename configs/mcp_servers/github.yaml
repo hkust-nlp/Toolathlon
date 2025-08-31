@@ -4,7 +4,7 @@
 type: stdio
 name: github
 params:
-  command: podman # or `docker`
+  command: ${podman_or_docker} # or `docker`
   args:
     - "run"
     - "-i"

@@ -16,6 +16,7 @@ import os
 import time
 import argparse
 from datetime import datetime
+from configs.global_configs import global_configs
 
 BUNDLE_PATH = "/opt/canvas/.gems/bin/bundle"
 CANVAS_DIR = "/opt/canvas/canvas-lms"
@@ -34,11 +35,11 @@ puts "MAX_SIS_ID:#{max_id}"
     with open('./deployment/canvas/tmp/check_sis_id.rb', 'w') as f:
         f.write(check_script)
     
-    subprocess.run(['podman', 'cp', './deployment/canvas/tmp/check_sis_id.rb', f'{CONTAINER_NAME}:/tmp/'])
+    subprocess.run([global_configs.podman_or_docker, 'cp', './deployment/canvas/tmp/check_sis_id.rb', f'{CONTAINER_NAME}:/tmp/'])
     
     cmd = f"cd {CANVAS_DIR} && GEM_HOME=/opt/canvas/.gems {BUNDLE_PATH} exec rails runner /tmp/check_sis_id.rb"
     result = subprocess.run(
-        ['podman', 'exec', CONTAINER_NAME, 'bash', '-c', cmd],
+        [global_configs.podman_or_docker, 'exec', CONTAINER_NAME, 'bash', '-c', cmd],
         capture_output=True,
         text=True
     )
@@ -64,11 +65,11 @@ puts "EXISTING_EMAILS:" + existing_emails.join(",")
     with open('./deployment/canvas/tmp/check_existing_users.rb', 'w') as f:
         f.write(check_script)
     
-    subprocess.run(['podman', 'cp', './deployment/canvas/tmp/check_existing_users.rb', f'{CONTAINER_NAME}:/tmp/'])
+    subprocess.run([global_configs.podman_or_docker, 'cp', './deployment/canvas/tmp/check_existing_users.rb', f'{CONTAINER_NAME}:/tmp/'])
     
     cmd = f"cd {CANVAS_DIR} && GEM_HOME=/opt/canvas/.gems {BUNDLE_PATH} exec rails runner /tmp/check_existing_users.rb"
     result = subprocess.run(
-        ['podman', 'exec', CONTAINER_NAME, 'bash', '-c', cmd],
+        [global_configs.podman_or_docker, 'exec', CONTAINER_NAME, 'bash', '-c', cmd],
         capture_output=True,
         text=True
     )
@@ -234,11 +235,11 @@ def execute_batch(users, batch_num):
     with open(script_path, 'w') as f:
         f.write(script)
     
-    subprocess.run(['podman', 'cp', script_path, f'{CONTAINER_NAME}:{script_path_in_container}'])
+    subprocess.run([global_configs.podman_or_docker, 'cp', script_path, f'{CONTAINER_NAME}:{script_path_in_container}'])
     
     cmd = f"cd {CANVAS_DIR} && GEM_HOME=/opt/canvas/.gems {BUNDLE_PATH} exec rails runner {script_path_in_container}"
     result = subprocess.run(
-        ['podman', 'exec', CONTAINER_NAME, 'bash', '-c', cmd],
+        [global_configs.podman_or_docker, 'exec', CONTAINER_NAME, 'bash', '-c', cmd],
         capture_output=True,
         text=True
     )
