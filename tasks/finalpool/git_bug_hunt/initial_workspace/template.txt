@@ -1,0 +1,16 @@
+Dear {Author's Name},
+
+We are investigating a recent performance issue in the LUFFY repository. Our analysis indicates that this issue was introduced by your commit.
+
+Below are the details of the commit that we have identified:
+
+Commit Hash: {Commit Hash}
+
+Commit Message:
+{Full Commit Message}
+
+Please get in touch with the team to discuss this issue.
+
+Thank you,
+
+LUFFY Team
