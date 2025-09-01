@@ -1,0 +1,22 @@
+scenario,A_conversion %,B_conversion %
+Appliances,72.234%,73.276%
+Automotive,75.939%,72.842%
+Baby,72.359%,76.320%
+Beauty,74.578%,74.230%
+Books,74.433%,72.501%
+Clothing,73.035%,75.444%
+Education,74.176%,73.616%
+Electronics,73.922%,72.404%
+Food,74.595%,73.813%
+FreshFood,72.862%,73.142%
+Gaming,74.961%,74.794%
+Health,74.292%,75.337%
+Home,73.597%,73.027%
+Hospitality,75.148%,75.766%
+Music,74.895%,74.695%
+Office,72.322%,74.659%
+Outdoor,73.113%,74.555%
+Pets,71.956%,73.364%
+Sports,73.834%,73.831%
+Travel,74.542%,74.801%
+overall (total_store_views/total_clicks),73.904%,74.087%
