@@ -20,9 +20,9 @@ def get_config():
     config_path = "configs/github_repos.json"
     with open(config_path, 'r') as f:
         data = json.load(f)
-    for task in data:
-        if task.get("task_id") == task_id:
-            return task
+    task_config = data.get(task_id)
+    if task_config:
+        return task_config
     raise ValueError(f"Task ID {task_id} not found in config.")
 
 def get_branch(repo_name):

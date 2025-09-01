@@ -8,9 +8,11 @@ def get_github_token():
     config_path = "configs/github_repos.json"
     with open(config_path, 'r') as f:
         data = json.load(f)
-    for task in data:
-        if task.get("task_id") == task_id:
-            return task.get("github_token", "")
+    task = data.get(task_id)
+    if task:
+        return task.get("github_token", "")
+    else:
+        raise ValueError(f"[Warning] Task ID {task_id} not found in {config_path}.")
 
 github_token = get_github_token()
 if not github_token:
