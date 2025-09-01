@@ -1,0 +1,1 @@
+I'm looking to buy furniture for my new house and want to buy a sofa on amazon. My budget is 200-400 USD, and I want a genuine leather sofa, preferably in black. Please help me find products that meet my needs and recommend 3 suitable alternatives and fill the details in `recommend.json`. An example is shown in `example.json`.
