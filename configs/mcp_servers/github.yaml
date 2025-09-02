@@ -11,7 +11,7 @@ params:
     - "--rm"
     - "-e"
     - "GITHUB_PERSONAL_ACCESS_TOKEN"
-    - "ghcr.io/github/github-mcp-server"
+    - "ghcr.io/github/github-mcp-server:v0.4.0"
   env:
     GITHUB_PERSONAL_ACCESS_TOKEN: "${token.github_token}"
 client_session_timeout_seconds: 50
