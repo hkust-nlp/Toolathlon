@@ -6,6 +6,14 @@ fi
 # uv
 uv sync
 
+# install playwright
+source .venv/bin/activate
+export TMPDIR="./tmp" # make a folder for tmp files
+mkdir -p $TMPDIR
+playwright install chromium
+unset TMPDIR
+rm -rf $TMPDIR
+
 # npm
 rm -rf node_modules
 npm install
