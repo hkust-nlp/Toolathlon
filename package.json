@@ -20,7 +20,7 @@
     "@modelcontextprotocol/server-puppeteer": "^2025.5.12",
     "@modelcontextprotocol/server-sequential-thinking": "^0.6.2",
     "@negokaz/excel-mcp-server": "^0.10.3",
-    "@notionhq/notion-mcp-server": "^1.8.1",
+    "@notionhq/notion-mcp-server": "github:lockon-n/notion-mcp-server#43f117584206cee47d939207ddbe1ac02732f865",
     "@playwright/mcp": "^0.0.32",
     "@sinco-lab/mcp-youtube-transcript": "^0.0.8",
     "@sylphlab/pdf-reader-mcp": "^0.3.23",

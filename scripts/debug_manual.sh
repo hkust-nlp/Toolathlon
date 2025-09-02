@@ -7,7 +7,7 @@
 
 uv run demo.py \
 --eval_config scripts/debug_eval_config.json \
---task_dir debug/debug-task \
+--task_dir examples/notion-example \
 --debug \
 --multi_turn_mode \
 --manual

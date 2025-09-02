@@ -863,6 +863,9 @@ class TaskAgent:
             if not await self.initialize_workspace():
                 return TaskStatus.FAILED
             
+            # 在这里读取预处理后task-specific的token_key_session.py，并赋值给task_config.local_token_key_session
+            self.task_config.load_local_token_key_session()
+
             # 设置MCP服务器
             await self.setup_mcp_servers(self.task_config.local_token_key_session)
             
