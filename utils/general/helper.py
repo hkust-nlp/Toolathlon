@@ -504,7 +504,7 @@ async def run_command(command, debug=False, show_output=False):
     
     # 如果需要显示输出
     if show_output and stdout_decoded:
-        print(f"Command output:\n{stdout_decoded})
+        print(f"Command output:\n{stdout_decoded}")
     
     # 返回输出和返回码，以便调用者可以进一步处理
     return stdout_decoded, stderr_decoded, process.returncode
