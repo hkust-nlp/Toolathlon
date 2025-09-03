@@ -32,6 +32,7 @@ class MCPServerManager:
             config_dir: 配置文件目录路径
         """
         self.local_servers_paths = os.path.abspath("./local_servers")
+        self.local_binary_paths = os.path.abspath("./local_binary")
         self.agent_workspace = os.path.abspath(agent_workspace)
         self.servers: Dict[str, Union[MCPServerStdio, MCPServerSse]] = {}
         self.connected_servers: Dict[str, Union[MCPServerStdio, MCPServerSse]] = {}
@@ -101,6 +102,7 @@ class MCPServerManager:
             # 基本路径变量
             'agent_workspace': self.agent_workspace,
             'local_servers_paths': self.local_servers_paths,
+            'local_binary_paths': self.local_binary_paths,
             'podman_or_docker': global_configs.podman_or_docker,
         }
         
