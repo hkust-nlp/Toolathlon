@@ -159,6 +159,7 @@ see `configs/users_data.json` for all accounts we will create
 #### Github Account
 We recommand register a new github account, and generate a full premission read-write token for this account (see https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens or directly https://github.com/settings/tokens/new).
 Paste the read-write token to the `github_token` variable in `configs/token_key_session.py`
+*Make sure your key has premissions to all operations, including delete repositories.
 
 #### Huggingface Account
 We recommand register a new huggingface account, and generate a read-write token for this account (see https://huggingface.co/docs/hub/security-tokens or directly https://huggingface.co/settings/tokens/new?tokenType=write).
