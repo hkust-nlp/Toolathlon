@@ -1,3 +1,7 @@
+### 2025.9.3 21:00
+- 追加了github的例子
+- 使用了更新的github mcp server
+
 ### 2025.9.2 17:35
 - 追加了notion的例子
 - 使用了更新的notion mcp server
