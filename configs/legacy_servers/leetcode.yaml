@@ -1,0 +1,14 @@
+# LeetCode 数据库检索
+type: stdio
+name: leetcode
+params:
+  command: npx
+  args:
+    - "-y"
+    - "@jinzcdev/leetcode-mcp-server"
+    - "--site"
+    - "global"
+    # 如果需要 session，取消下面的注释
+    - "--session"
+    - "${token.leetcode_session}"
+cache_tools_list: true

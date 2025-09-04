@@ -9,563 +9,318 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlencode, quote
 import logging
+import random
+import aiohttp
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+from configs.token_key_session import all_token_key_session
+
+SERPER_API_KEY = all_token_key_session.serper_api_key
+
+# 全局实例，可复用
+_global_concurrency_manager = None
+_global_retry_manager = None
+
+def get_global_concurrency_manager() -> "ConcurrencyManager":
+    """获取全局并发管理器实例"""
+    global _global_concurrency_manager
+    if _global_concurrency_manager is None:
+        _global_concurrency_manager = ConcurrencyManager(
+            max_concurrent=5, 
+            rate_limit=100, 
+            time_window=60
+        )
+    return _global_concurrency_manager
+
+def get_global_retry_manager() -> "RetryManager":
+    """获取全局重试管理器实例"""
+    global _global_retry_manager
+    if _global_retry_manager is None:
+        _global_retry_manager = RetryManager(
+            max_retries=3, 
+            base_delay=1.0, 
+            max_delay=60.0
+        )
+    return _global_retry_manager
+
 class SearchError(Exception):
     pass
 
-def get_realistic_headers(mobile=False):
-    """Get realistic browser headers to avoid detection"""
-    if mobile:
-        return {
-            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1',
-        }
-    else:
-        return {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1',
-            'Sec-Fetch-Dest': 'document',
-            'Sec-Fetch-Mode': 'navigate',
-            'Sec-Fetch-Site': 'none',
-            'Sec-Fetch-User': '?1',
-        }
+def get_random_key(api_key):
+    """Get a random key from a comma-separated list of keys"""
+    if api_key and ',' in api_key:
+        keys = api_key.split(',')
+        return random.choice(keys)
+    return api_key
 
-def extract_text_fallback(html_content: str) -> str:
-    """Extract pure text from HTML as fallback when parsing fails"""
-    try:
-        soup = BeautifulSoup(html_content, 'html.parser')
+class ConcurrencyManager:
+    def __init__(self, max_concurrent: int = 5, rate_limit: int = 100, time_window: int = 60):
+        """
+        并发管理器，同时控制信号量和速率限制
         
-        # Remove unwanted elements
-        for element in soup(['script', 'style', 'nav', 'header', 'footer', 'aside', 'iframe', 'noscript']):
-            element.decompose()
+        Args:
+            max_concurrent: 最大并发请求数
+            rate_limit: 在时间窗口内允许的最大请求数
+            time_window: 时间窗口大小(秒)
+        """
+        self.semaphore = asyncio.Semaphore(max_concurrent)
+        self.rate_limiter = RateLimiter(rate_limit, time_window)
         
-        # Get pure text
-        text = soup.get_text()
+    async def acquire(self):
+        """获取并发许可和速率限制许可"""
+        await self.semaphore.acquire()
+        await self.rate_limiter.acquire()
         
-        # Clean up text
-        text = re.sub(r'\s+', ' ', text)
-        text = text.strip()
-        
-        # Truncate if too long
-        if len(text) > 500:
-            text = text[:500] + "..."
-        
-        return text if text else "No description available"
-        
-    except Exception as e:
-        logger.warning(f"Text extraction fallback failed: {e}")
-        return "Description extraction failed"
+    def release(self):
+        """释放信号量"""
+        self.semaphore.release()
 
-
-async def search_duckduckgo(query: str, num_results: int = 10, page: int = 0) -> List[Dict[str, str]]:
-    """DuckDuckGo search implementation with HTML parsing"""
-    try:
-        # DuckDuckGo doesn't have traditional pagination, we get more results and slice
-        params = {
-            'q': query,
-            'kl': 'us-en',  # US English
-            'safe': 'moderate'
-        }
+class RetryManager:
+    def __init__(self, max_retries: int = 3, base_delay: float = 1.0, max_delay: float = 60.0):
+        """
+        重试管理器
         
-        url = f"https://html.duckduckgo.com/html/?{urlencode(params)}"
+        Args:
+            max_retries: 最大重试次数
+            base_delay: 基础延迟时间(秒)
+            max_delay: 最大延迟时间(秒)
+        """
+        self.max_retries = max_retries
+        self.base_delay = base_delay
+        self.max_delay = max_delay
         
-        headers = get_realistic_headers()
-        headers.update({
-            'Referer': 'https://duckduckgo.com/',
-        })
+    async def retry_with_backoff(self, func, *args, **kwargs):
+        """使用指数退避的重试机制"""
+        last_exception = None
         
-        # Send request
-        session = requests.Session()
-        session.headers.update(headers)
-        response = session.get(url, timeout=30)
-        response.raise_for_status()
-        
-        # Parse search results
-        soup = BeautifulSoup(response.text, 'html.parser')
-        results = []
-        
-        # DuckDuckGo HTML version uses .result class
-        search_results = soup.find_all('div', class_='result')
-        
-        for result in search_results[:num_results]:
+        for attempt in range(self.max_retries + 1):
             try:
-                # Extract title and link
-                title_elem = result.find('a', class_='result__a')
-                if not title_elem:
-                    continue
-                
-                title = title_elem.get_text(strip=True)
-                link = title_elem.get('href', '')
-                
-                # DuckDuckGo uses redirect links, extract the actual URL
-                if link.startswith('//duckduckgo.com/l/?uddg='):
-                    try:
-                        # Extract the URL from the redirect
-                        from urllib.parse import unquote, parse_qs, urlparse
-                        # Remove the leading //
-                        if link.startswith('//'):
-                            link = 'https:' + link
-                        parsed = urlparse(link)
-                        query_params = parse_qs(parsed.query)
-                        if 'uddg' in query_params:
-                            link = unquote(query_params['uddg'][0])
-                    except:
-                        continue
-                
-                if not link.startswith('http'):
-                    continue
-                
-                # Extract description
-                description = ""
-                
-                # Look for snippet in result__snippet class
-                desc_elem = result.find('a', class_='result__snippet')
-                if desc_elem:
-                    description = desc_elem.get_text(strip=True)
-                
-                # If no snippet found, try other common description elements
-                if not description:
-                    desc_candidates = result.find_all(['div', 'span'], class_=lambda x: x and 'snippet' in x.lower())
-                    for elem in desc_candidates:
-                        text = elem.get_text(strip=True)
-                        if len(text) > 20 and text != title:
-                            description = text
-                            break
-                
-                # Fallback: look for any substantial text in the result
-                if not description:
-                    all_text = result.get_text(strip=True)
-                    # Remove title and URL from text
-                    clean_text = all_text.replace(title, '').replace(link.replace('https://', '').replace('http://', ''), '')
-                    # Clean up whitespace
-                    clean_text = re.sub(r'\s+', ' ', clean_text).strip()
-                    if len(clean_text) > 30:
-                        description = clean_text
-                
-                if not description:
-                    description = "No description available"
-                
-                # Truncate long descriptions
-                if len(description) > 500:
-                    description = description[:500] + "..."
-                
-                if title and link:
-                    results.append({
-                        'title': title,
-                        'link': link,
-                        'description': description
-                    })
-                    
+                return await func(*args, **kwargs)
             except Exception as e:
-                logger.warning(f"Error parsing DuckDuckGo search result: {e}")
-                continue
+                last_exception = e
+                if attempt == self.max_retries:
+                    break
+                    
+                delay = min(self.base_delay * (2 ** attempt), self.max_delay)
+                jitter = random.uniform(0.1, 0.3) * delay
+                await asyncio.sleep(delay + jitter)
+                
+                logger.warning(f"Attempt {attempt + 1} failed: {e}. Retrying in {delay + jitter:.2f}s...")
         
-        return results
-        
-    except requests.exceptions.RequestException as e:
-        raise SearchError(f"DuckDuckGo search request failed: {e}")
-    except Exception as e:
-        raise SearchError(f"DuckDuckGo search parsing failed: {e}")
+        raise last_exception
 
-async def search_google(query: str, num_results: int = 10, page: int = 0) -> List[Dict[str, str]]:
-    """Google search implementation with mobile fallback"""
-    try:
-        # Try desktop first, then mobile
-        for is_mobile in [False, True]:
-            try:
-                if is_mobile:
-                    logger.info("Trying mobile Google search...")
-                    # Use mobile Google search
-                    start = page * num_results
-                    params = {
-                        'q': query,
-                        'num': min(num_results, 100),
-                        'start': start,
-                        'hl': 'en',
-                    }
-                    url = f"https://www.google.com/search?{urlencode(params)}"
-                    headers = get_realistic_headers(mobile=True)
-                else:
-                    # Build desktop search URL
-                    start = page * num_results
-                    params = {
-                        'q': query,
-                        'num': min(num_results, 100),
-                        'start': start,
-                        'hl': 'en',
-                        'lr': 'lang_en',
-                    }
-                    url = f"https://www.google.com/search?{urlencode(params)}"
-                    headers = get_realistic_headers(mobile=False)
-                
-                # Add delay to avoid detection
-                if page > 0:
-                    await asyncio.sleep(1 + (page * 0.5))
-                
-                headers.update({
-                    'Referer': 'https://www.google.com/',
-                })
-                
-                # Send request
-                session = requests.Session()
-                session.headers.update(headers)
-                response = session.get(url, timeout=30)
-                response.raise_for_status()
-                
-                if "Our systems have detected unusual traffic" in response.text:
-                    if is_mobile:
-                        raise SearchError("Google detected unusual traffic from both desktop and mobile")
-                    continue  # Try mobile
-                
-                # Parse search results
-                soup = BeautifulSoup(response.text, 'html.parser')
-                results = []
-                
-                # Try multiple selectors for different Google layouts
-                search_containers = (
-                    soup.find_all('div', class_='g') or  # Standard results
-                    soup.find_all('div', class_='MjjYud') or  # New layout
-                    soup.find_all('div', attrs={'data-ved': True}) or  # Results with data-ved
-                    []
+class RateLimiter:
+    def __init__(self, rate_limit: int, time_window: int = 60):
+        """
+        初始化速率限制器
+        
+        Args:
+            rate_limit: 在时间窗口内允许的最大请求数
+            time_window: 时间窗口大小(秒)，默认60秒
+        """
+        self.rate_limit = rate_limit
+        self.time_window = time_window
+        self.tokens = rate_limit
+        self.last_update = time.time()
+        self.lock = asyncio.Lock()
+
+    async def acquire(self):
+        """获取一个令牌，如果没有可用令牌则等待"""
+        async with self.lock:
+            while self.tokens <= 0:
+                now = time.time()
+                time_passed = now - self.last_update
+                self.tokens = min(
+                    self.rate_limit,
+                    self.tokens + (time_passed * self.rate_limit / self.time_window)
                 )
-                
-                # If no standard containers, try broader search
-                if not search_containers:
-                    # Look for any div containing both h3 and clickable links
-                    all_divs = soup.find_all('div')
-                    potential_results = []
-                    
-                    for div in all_divs:
-                        # Must have h3 and a link
-                        h3 = div.find('h3')
-                        link = div.find('a', href=True)
-                        if h3 and link:
-                            # Link should point to external site
-                            href = link.get('href', '')
-                            if href.startswith('http') and 'google.com' not in href:
-                                potential_results.append(div)
-                            elif href.startswith('/url?q='):
-                                potential_results.append(div)
-                    
-                    search_containers = potential_results[:num_results * 2]
-                
-                for container in search_containers[:num_results]:
-                    try:
-                        title = ""
-                        link = ""
-                        description = ""
-                        
-                        # Extract title
-                        h3_elem = container.find('h3')
-                        if h3_elem:
-                            # Get parent link of h3
-                            title_link = h3_elem.find_parent('a') or h3_elem.find('a')
-                            if title_link:
-                                title = h3_elem.get_text(strip=True)
-                                link = title_link.get('href', '')
-                        
-                        # If no title from h3, try other methods
-                        if not title:
-                            # Look for any prominent link
-                            links = container.find_all('a', href=True)
-                            for a_elem in links:
-                                text = a_elem.get_text(strip=True)
-                                if len(text) > 10 and not text.lower().startswith('http'):
-                                    title = text
-                                    link = a_elem.get('href', '')
-                                    break
-                        
-                        if not title or not link:
-                            continue
-                        
-                        # Clean Google redirect links
-                        if link.startswith('/url?q='):
-                            try:
-                                link = link.split('/url?q=')[1].split('&')[0]
-                                from urllib.parse import unquote
-                                link = unquote(link)
-                            except:
-                                continue
-                        elif link.startswith('/search?') or link.startswith('#'):
-                            continue  # Skip internal Google links
-                        
-                        if not link.startswith('http'):
-                            continue
-                        
-                        # Extract description
-                        # Try multiple description selectors
-                        desc_selectors = ['span', 'div']
-                        for tag in desc_selectors:
-                            desc_elems = container.find_all(tag)
-                            for elem in desc_elems:
-                                text = elem.get_text(strip=True)
-                                # Good description criteria
-                                if (len(text) > 30 and 
-                                    text != title and 
-                                    ' ' in text and 
-                                    not text.startswith('http') and
-                                    not text.startswith('Translate this page')):
-                                    description = text
-                                    break
-                            if description:
-                                break
-                        
-                        # Fallback description
-                        if not description:
-                            all_text = container.get_text(strip=True)
-                            if title in all_text:
-                                description = all_text.replace(title, '').strip()
-                            else:
-                                description = all_text
-                            
-                            # Clean and truncate
-                            description = re.sub(r'\s+', ' ', description)
-                            if len(description) > 500:
-                                description = description[:500] + "..."
-                        
-                        if not description:
-                            description = "No description available"
-                        
-                        results.append({
-                            'title': title,
-                            'link': link,
-                            'description': description
-                        })
-                        
-                    except Exception as e:
-                        logger.warning(f"Error parsing Google search result: {e}")
-                        continue
-                
-                if results:
-                    return results
-                elif not is_mobile:
-                    logger.info("No results from desktop Google, trying mobile...")
-                    continue
-                else:
-                    return []
-                    
-            except requests.exceptions.RequestException as e:
-                if is_mobile:
-                    raise SearchError(f"Google search request failed on both desktop and mobile: {e}")
-                continue
-        
-        return []
-        
-    except SearchError:
-        raise
-    except Exception as e:
-        raise SearchError(f"Google search parsing failed: {e}")
+                self.last_update = now
+                if self.tokens <= 0:
+                    await asyncio.sleep(random.randint(5, 30))  # 等待xxx秒后重试
+            
+            self.tokens -= 1
+            return True
 
-async def search_bing(query: str, num_results: int = 10, page: int = 0) -> List[Dict[str, str]]:
-    """Bing search implementation with text fallback"""
-    try:
-        # Build search URL
-        offset = page * num_results
-        params = {
-            'q': query,
-            'count': min(num_results, 50),  # Bing limit
-            'first': offset + 1,
-            'FORM': 'PERE',
-        }
-        
-        url = f"https://www.bing.com/search?{urlencode(params)}"
-        
-        # Add delay
-        if page > 0:
-            await asyncio.sleep(1 + (page * 0.5))
-        
-        headers = get_realistic_headers()
-        headers.update({
-            'Referer': 'https://www.bing.com/',
-            'Origin': 'https://www.bing.com',
-        })
-        
-        # Send request
-        response = requests.get(url, headers=headers, timeout=30)
-        response.raise_for_status()
-        
-        # Parse search results
-        soup = BeautifulSoup(response.text, 'html.parser')
-        results = []
-        
-        # Find search results - try multiple selectors
-        search_results = (
-            soup.find_all('li', class_='b_algo') or
-            soup.find_all('div', class_='b_algo') or
-            soup.find_all('li', class_='b_ans')
-        )
-        
-        for result in search_results:
+def search_google(query_list: list, 
+                  num_results: int = 10) -> List[Dict[str, Any]]:
+        '''Use Google search engine to search information for the given query. Google is usually a good choice. Translate your query into English for better results unless the query is Chinese localized.
+
+        Args:
+            query_list (list): The list of queries to be searched(List[str]). Search a list of queries at a time is highly recommended. Each query should be distinctive and specific. e.g. ['xx xxxx xx', 'xxxx', ...].
+            num_results (int): The number of result pages to retrieve for EACH query. default is 4.
+
+        Returns:
+            List[Dict[str, Any]]: A list of dictionaries where each dictionary represents a website.
+                Each dictionary contains the following keys:
+                - 'title': The title of the website.
+                - 'link': The URL of the website.
+                - 'snippet': A brief description of the website.
+                - 'position': A number in order.
+                - 'sitelinks': Useful links within the website.
+
+                Example:
+                {
+                    'title': 'OpenAI',
+                    'link': 'https://www.openai.com'
+                    'snippet': 'An organization focused on ensuring that
+                    'position': 1,
+                    'sitelinks': [...],
+                }
+            title, description, url of a website.
+        '''
+        if isinstance(query_list, str):
+            query_list = [query_list]
+        all_results=[]
+        for query in query_list:
+            url = "https://google.serper.dev/search"
+            headers = {
+                'X-API-KEY': get_random_key(SERPER_API_KEY),
+                'Content-Type': 'application/json'
+            }
+            payload = json.dumps({
+                "q": query,
+                "num": num_results
+            })
             try:
-                # Extract title and link
-                title_link = None
-                if result.find('h2'):
-                    title_link = result.find('h2').find('a')
-                elif result.find('h3'):
-                    title_link = result.find('h3').find('a')
-                elif result.find('a', href=True):
-                    title_link = result.find('a', href=True)
-                
-                if not title_link:
-                    continue
-                
-                title = title_link.get_text(strip=True)
-                link = title_link.get('href', '')
-                
-                if not link.startswith('http'):
-                    continue
-                
-                # Extract description with fallback strategies
-                description = ""
-                
-                # Strategy 1: Look for common Bing description elements
-                desc_selectors = [
-                    'p',
-                    '.b_caption p',
-                    '.b_snippet',
-                    'div.b_caption',
-                    '.b_dsc'
-                ]
-                
-                for selector in desc_selectors:
-                    if '.' in selector or '#' in selector:
-                        desc_elem = result.select_one(selector)
-                    else:
-                        desc_elem = result.find(selector)
-                    
-                    if desc_elem:
-                        description = desc_elem.get_text(strip=True)
-                        if len(description) > 20:
-                            break
-                
-                # Strategy 2: Text fallback
-                if not description:
-                    description = extract_text_fallback(str(result))
-                
-                if title and link:
-                    results.append({
-                        'title': title,
-                        'link': link,
-                        'description': description or "No description available"
-                    })
-                    
+                response = requests.request("POST", url, headers=headers, data=payload)
+                response.raise_for_status()
+                responses = json.loads(response.text)['organic']
             except Exception as e:
-                logger.warning(f"Error parsing Bing search result item: {e}")
-                continue
+                logger.error(f"Google search failed with error: {repr(e)}")
+                responses=[{"error": f"google serper search failed for {query=}. The error is: {repr(e)}"}]
+            
+            all_results.extend(responses)
         
-        return results
-        
-    except requests.exceptions.RequestException as e:
-        raise SearchError(f"Bing search request failed: {e}")
-    except Exception as e:
-        raise SearchError(f"Bing search parsing failed: {e}")
+        return all_results
 
-def format_search_results(results: List[Dict[str, str]]) -> str:
-    """Format search results as: title\nlink\ndescription\n\n..."""
-    if not results:
-        return "No search results found"
+async def search_google_async(session: aiohttp.ClientSession, query_list: list, 
+                             num_results: int = 10, 
+                             concurrency_manager: ConcurrencyManager = None,
+                             retry_manager: RetryManager = None) -> List[Dict[str, Any]]:
+    """异步版本的Google搜索"""
+    if isinstance(query_list, str):
+        query_list = [query_list]
     
-    formatted_results = []
-    for result in results:
-        formatted_result = f"{result['title']}\n{result['link']}\n{result['description']}"
-        formatted_results.append(formatted_result)
+    if concurrency_manager is None:
+        concurrency_manager = ConcurrencyManager()
+    if retry_manager is None:
+        retry_manager = RetryManager()
     
-    return "\n\n".join(formatted_results)
+    async def search_single_query(query: str) -> List[Dict[str, Any]]:
+        """搜索单个查询"""
+        await concurrency_manager.acquire()
+        try:
+            async def _do_search():
+                url = "https://google.serper.dev/search"
+                headers = {
+                    'X-API-KEY': get_random_key(SERPER_API_KEY),
+                    'Content-Type': 'application/json'
+                }
+                payload = {
+                    "q": query,
+                    "num": num_results
+                }
+                
+                async with session.post(url, headers=headers, json=payload) as response:
+                    response.raise_for_status()
+                    data = await response.json()
+                    return data.get('organic', [])
+            
+            return await retry_manager.retry_with_backoff(_do_search)
+            
+        except Exception as e:
+            logger.error(f"Google search failed for query '{query}': {repr(e)}")
+            return [{"error": f"google serper search failed for {query=}. The error is: {repr(e)}"}]
+        finally:
+            concurrency_manager.release()
+    
+    # 并发执行所有查询
+    tasks = [search_single_query(query) for query in query_list]
+    results_list = await asyncio.gather(*tasks, return_exceptions=True)
+    
+    # 合并结果
+    all_results = []
+    for result in results_list:
+        if isinstance(result, Exception):
+            logger.error(f"Task failed: {repr(result)}")
+            all_results.append({"error": f"Search task failed: {repr(result)}"})
+        else:
+            all_results.extend(result)
+    
+    return all_results
 
 async def on_web_search_tool_invoke(context: RunContextWrapper, params_str: str) -> Any:
     """Web search tool main function"""
     try:
+        # 解析参数
         params = json.loads(params_str)
-        query = params.get("query", "").strip()
-        num_results = params.get("num_results", 10)
-        page = params.get("page", 0)
+        query = params.get('query', '').strip()
+        num_results = min(max(params.get('num_results', 10), 1), 50)
         
         if not query:
-            return "Error: Search query cannot be empty"
+            raise SearchError("Query parameter is required and cannot be empty")
         
-        # Limit parameters
-        num_results = max(1, min(num_results, 50))
-        page = max(0, min(page, 10))  # Limit pagination
+        logger.info(f"Starting web search for query: '{query}' with {num_results} results")
         
-        logger.info(f"Executing web search: {query}, results: {num_results}, page: {page}")
+        # 使用全局并发和重试管理器
+        concurrency_manager = get_global_concurrency_manager()
+        retry_manager = get_global_retry_manager()
         
-        # Try engines in order: Google -> Bing -> DuckDuckGo
-        results = []
-        engine_used = ""
+        # 使用异步搜索
+        connector = aiohttp.TCPConnector(limit=10, limit_per_host=5)
+        timeout = aiohttp.ClientTimeout(total=30, connect=10)
         
-        # Try Google first
-        try:
-            logger.info("Trying Google search...")
-            results = await search_google(query, num_results, page)
-            if results:
-                engine_used = "GOOGLE"
-        except Exception as e:
-            logger.warning(f"Google search failed: {e}")
+        async with aiohttp.ClientSession(connector=connector, timeout=timeout) as session:
+            results = await search_google_async(
+                session=session,
+                query_list=[query], 
+                num_results=num_results,
+                concurrency_manager=concurrency_manager,
+                retry_manager=retry_manager
+            )
         
-        # If Google failed, try Bing
+        # 格式化输出
         if not results:
-            try:
-                logger.info("Google failed, trying Bing search...")
-                results = await search_bing(query, num_results, page)
-                if results:
-                    engine_used = "BING (Google fallback)"
-                    # Mark results to show they came from Bing
-                    for result in results:
-                        result['title'] = f"[Bing] {result['title']}"
-            except Exception as e:
-                logger.warning(f"Bing search failed: {e}")
+            return "No search results found."
         
-        # If both Google and Bing failed, try DuckDuckGo
-        if not results:
-            try:
-                logger.info("Google and Bing failed, trying DuckDuckGo search...")
-                results = await search_duckduckgo(query, num_results, page)
-                if results:
-                    engine_used = "DUCKDUCKGO (Google & Bing fallback)"
-                    # Mark results to show they came from DuckDuckGo
-                    for result in results:
-                        result['title'] = f"[DDG] {result['title']}"
-            except Exception as e:
-                logger.warning(f"DuckDuckGo search failed: {e}")
+        formatted_results = []
+        for i, result in enumerate(results, 1):
+            if 'error' in result:
+                formatted_results.append(f"Error: {result['error']}")
+            else:
+                title = result.get('title', 'No title')
+                link = result.get('link', 'No link')
+                snippet = result.get('snippet', 'No description')
+                sitelinks = result.get('sitelinks', 'No sitelinks')
+                
+                formatted_results.append(f"Title: {title}\nLink: {link}\nSnippet: {snippet}\nSitelinks: {sitelinks}\n")
         
-        if not results:
-            return f"No search results found for '{query}' (all search engines failed - Google has bot detection issues, Bing and DuckDuckGo may be temporarily unavailable)"
-        
-        # Format and return results
-        formatted_output = format_search_results(results)
-        
-        # Add search info
-        search_info = f"Search Engine: {engine_used}\nQuery: {query}\nResults: {len(results)}\nPage: {page + 1}\n\n"
-        
-        return search_info + formatted_output
+        output = "\n".join(formatted_results)
+        logger.info(f"Web search completed successfully, returned {len(results)} results")
+        return output
         
     except SearchError as e:
+        logger.error(f"Search error: {e}")
         return f"Error: {e}"
     except json.JSONDecodeError:
+        logger.error("Invalid JSON format in parameters")
         return "Error: Invalid JSON format in parameters"
     except Exception as e:
-        logger.error(f"Error during web search: {e}")
-        return f"Error: Unknown error occurred during search: {e}"
+        logger.error(f"Unexpected error during web search: {e}")
+        return f"Error: Unexpected error occurred during search: {e}"
 
 # Define search tool
 tool_web_search = FunctionTool(
     name='local-web_search',
-    description='Search the web using Google, Bing, and DuckDuckGo without API keys. Automatically tries Google first, then Bing, then DuckDuckGo until results are found. Returns results in format: title\\nlink\\ndescription\\n\\n...',
+    description='Search the web using Google Serper API with concurrency control and retry mechanisms. Supports various Google search operators.',
     params_json_schema={
         "type": "object",
         "properties": {
             "query": {
                 "type": "string",
-                "description": "Search query or keywords",
+                "description": "Search query with optional Google search operators.",
             },
             "num_results": {
                 "type": "integer",
@@ -573,13 +328,6 @@ tool_web_search = FunctionTool(
                 "default": 10,
                 "minimum": 1,
                 "maximum": 50
-            },
-            "page": {
-                "type": "integer", 
-                "description": "Page number starting from 0, default 0 (first page), max 10",
-                "default": 0,
-                "minimum": 0,
-                "maximum": 10
             }
         },
         "required": ["query"]

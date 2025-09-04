@@ -1,0 +1,8 @@
+update model configuration defaults
+
+Added default model precision and parallelization flags
+to improve training stability and performance consistency.
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>

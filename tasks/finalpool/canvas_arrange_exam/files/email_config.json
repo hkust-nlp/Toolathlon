@@ -1,0 +1,40 @@
+{
+    "server_config": {
+        "smtp_server": "localhost",
+        "smtp_port": 2525,
+        "imap_server": "localhost",
+        "imap_port": 1143,
+        "use_ssl": false,
+        "use_starttls": false,
+        "timeout": 30
+    },
+    "sender_account": {
+        "email": "susan.parker@mcp.com",
+        "password": "Psusk11uQT0r",
+        "name": "Susan Parker"
+    },
+    "recipient": {
+        "email": "rkelly27@mcp.com",
+        "name": "Ronald Kelly",
+        "password": "ronald_81q2O"
+    },
+    "email_content": {
+        "subject": "Exam Notification - Important Reminders",
+        "template_file": "exam_notification_template.txt",
+        "exam_info": {
+            "course_name": "Network Programming",
+            "exam_date": "2025-01-19",
+            "exam_time": "09:00",
+            "exam_location": "Building C Room 207",
+            "exam_type": "Open-book",
+            "duration": "2 hours"
+           
+        }
+    },
+    "logging": {
+        "log_file": "email_send.log",
+        "log_level": "INFO",
+        "console_output": true
+    }
+}
+

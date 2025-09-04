@@ -1,0 +1,1 @@
+我想知道国米在23年和25年欧冠决赛的表现，请帮我根据uefa官网的数据严格填充完成google sheet上inter_ucl_finals_23_25 spreadhseet里的三个sheet，若某个数据缺失则标注 “缺失”，全部数据拉取与校验完成后，将填写完成的Google Sheet只读链接直接写入到`sheet_url.txt`文件中. 在填写数据时，除非另有说明，否则将数值四舍五入到最接近的整数。此外，对于“Avg age of starting lineup"和"Avg age of team”，计算比赛时的平均年龄，并将结果四舍五入到小数点后一位。请注意，“StatsDifference”表中的值是通过从2025年的数据中减去相同指标的2023年数据来计算的。

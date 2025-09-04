@@ -32,6 +32,24 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
         self.retry_delay = retry_delay
         self.debug = debug
 
+    def _get_model_specific_config(self):
+        """获取模型特定的配置参数"""
+        if 'gpt-5' in self.model:
+            return {
+                'use_max_completion_tokens': True,
+                'use_parallel_tool_calls': True
+            }
+        elif 'o4' in self.model or 'o3' in self.model:
+            return {
+                'use_max_completion_tokens': True,
+                'use_parallel_tool_calls': False
+            }
+        else:
+            return {
+                'use_max_completion_tokens': False,
+                'use_parallel_tool_calls': True
+            }
+
     async def _fetch_response(
         self,
         system_instructions: str | None,
@@ -90,53 +108,40 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
             self._get_client(), model_settings, stream=stream
         )
 
-        # an ugly but work way to hack this
-        if 'gpt-5' in self.model:
-            ret = await self._get_client().chat.completions.create(
-                model=self.model,
-                messages=converted_messages,
-                tools=converted_tools or NOT_GIVEN,
-                temperature=self._non_null_or_not_given(model_settings.temperature),
-                top_p=self._non_null_or_not_given(model_settings.top_p),
-                frequency_penalty=self._non_null_or_not_given(model_settings.frequency_penalty),
-                presence_penalty=self._non_null_or_not_given(model_settings.presence_penalty),
-                # max_tokens=self._non_null_or_not_given(model_settings.max_tokens),
-                max_completion_tokens=self._non_null_or_not_given(model_settings.max_tokens),
-                tool_choice=tool_choice,
-                response_format=response_format,
-                parallel_tool_calls=parallel_tool_calls,
-                stream=stream,
-                stream_options=self._non_null_or_not_given(stream_options),
-                store=self._non_null_or_not_given(store),
-                reasoning_effort=self._non_null_or_not_given(reasoning_effort),
-                extra_headers={ **HEADERS, **(model_settings.extra_headers or {}) },
-                extra_query=model_settings.extra_query,
-                extra_body=model_settings.extra_body,
-                metadata=self._non_null_or_not_given(model_settings.metadata),
-            )
+        # 构建模型特定的配置
+        model_config = self._get_model_specific_config()
+        
+        # 构建基础参数
+        base_params = {
+            'model': self.model,
+            'messages': converted_messages,
+            'tools': converted_tools or NOT_GIVEN,
+            'temperature': self._non_null_or_not_given(model_settings.temperature),
+            'top_p': self._non_null_or_not_given(model_settings.top_p),
+            'frequency_penalty': self._non_null_or_not_given(model_settings.frequency_penalty),
+            'presence_penalty': self._non_null_or_not_given(model_settings.presence_penalty),
+            'tool_choice': tool_choice,
+            'response_format': response_format,
+            'stream': stream,
+            'stream_options': self._non_null_or_not_given(stream_options),
+            'store': self._non_null_or_not_given(store),
+            'reasoning_effort': self._non_null_or_not_given(reasoning_effort),
+            'extra_headers': { **HEADERS, **(model_settings.extra_headers or {}) },
+            'extra_query': model_settings.extra_query,
+            'extra_body': model_settings.extra_body,
+            'metadata': self._non_null_or_not_given(model_settings.metadata),
+        }
+        
+        # 根据模型类型添加特定参数
+        if model_config['use_max_completion_tokens']:
+            base_params['max_completion_tokens'] = self._non_null_or_not_given(model_settings.max_tokens)
         else:
-            ret = await self._get_client().chat.completions.create(
-                model=self.model,
-                messages=converted_messages,
-                tools=converted_tools or NOT_GIVEN,
-                temperature=self._non_null_or_not_given(model_settings.temperature),
-                top_p=self._non_null_or_not_given(model_settings.top_p),
-                frequency_penalty=self._non_null_or_not_given(model_settings.frequency_penalty),
-                presence_penalty=self._non_null_or_not_given(model_settings.presence_penalty),
-                max_tokens=self._non_null_or_not_given(model_settings.max_tokens),
-                # max_completion_tokens=self._non_null_or_not_given(model_settings.max_tokens),
-                tool_choice=tool_choice,
-                response_format=response_format,
-                parallel_tool_calls=parallel_tool_calls,
-                stream=stream,
-                stream_options=self._non_null_or_not_given(stream_options),
-                store=self._non_null_or_not_given(store),
-                reasoning_effort=self._non_null_or_not_given(reasoning_effort),
-                extra_headers={ **HEADERS, **(model_settings.extra_headers or {}) },
-                extra_query=model_settings.extra_query,
-                extra_body=model_settings.extra_body,
-                metadata=self._non_null_or_not_given(model_settings.metadata),
-            )
+            base_params['max_tokens'] = self._non_null_or_not_given(model_settings.max_tokens)
+            
+        if model_config['use_parallel_tool_calls']:
+            base_params['parallel_tool_calls'] = parallel_tool_calls
+        
+        ret = await self._get_client().chat.completions.create(**base_params)
 
         if isinstance(ret, ChatCompletion):
             return ret
@@ -294,9 +299,20 @@ class CustomModelProviderAiHubMix(ModelProvider):
                                                    openai_client=client,
                                                    debug=debug)
 
+class CustomModelProviderAnthropic(ModelProvider):
+    def get_model(self, model_name: str | None, debug: bool = True) -> Model:
+        client = AsyncOpenAI(
+            api_key=global_configs.official_anthropic_key,
+            base_url="https://api.anthropic.com/v1/",
+        )
+        return OpenAIChatCompletionsModelWithRetry(model=model_name, 
+                                                   openai_client=client,
+                                                   debug=debug)
+
 model_provider_mapping = {
     "ds_internal": CustomModelProvider,
     "aihubmix": CustomModelProviderAiHubMix,
+    "anthropic": CustomModelProviderAnthropic,
 }
 
 API_MAPPINGS = {
@@ -414,7 +430,8 @@ API_MAPPINGS = {
     # ),
     'claude-4-sonnet-0514': Dict(
         api_model={"ds_internal": "oai-api-claude-sonnet-4-20250514",
-                   "aihubmix": "claude-sonnet-4-20250514"},
+                   "aihubmix": "claude-sonnet-4-20250514",
+                   "anthropic": "claude-sonnet-4-20250514"},
         price=[0.003, 0.015],
         concurrency=32,
         context_window=200000
@@ -428,7 +445,8 @@ API_MAPPINGS = {
     # ),
     'claude-4.1-opus-0805': Dict(
         api_model={"ds_internal": "",
-                   "aihubmix": "claude-opus-4-1-20250805"},
+                   "aihubmix": "claude-opus-4-1-20250805",
+                   "anthropic": "claude-opus-4-1-20250805"},
         price=[16.5/1000, 82.5/1000],
         concurrency=32,
         context_window=200000
@@ -475,10 +493,10 @@ API_MAPPINGS = {
         concurrency=32,
         context_window=128000
     ),
-    "qwen-3-coder-plus": Dict(
+    "qwen-3-coder": Dict(
         api_model={"ds_internal": None,
-                   "aihubmix": "qwen3-coder-plus-2025-07-22"},
-        price=[0.54/1000, 1.08/1000],
+                   "aihubmix": "Qwen3-Coder"},
+        price=[0.54/1000, 2.16/1000],
         concurrency=32,
         context_window=128000
     ),

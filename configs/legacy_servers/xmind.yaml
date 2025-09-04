@@ -1,0 +1,12 @@
+# mcp 4 xmind
+# https://github.com/apeyroux/mcp-xmind
+type: stdio
+name: xmind
+params:
+  command: npx
+  args:
+    - "-y"
+    - "@41px/mcp-xmind"
+    - "${agent_workspace}/xmind"
+client_session_timeout_seconds: 10
+cache_tools_list: true

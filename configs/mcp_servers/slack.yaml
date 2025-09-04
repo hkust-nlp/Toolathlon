@@ -1,7 +1,0 @@
-# Slack 集成
-# https://github.com/modelcontextprotocol/servers/tree/main/src/slack
-type: sse
-name: Slack
-params:
-  url: "https://mcp.api-inference.modelscope.cn/sse/ce2c0b9ef05442"
-cache_tools_list: true

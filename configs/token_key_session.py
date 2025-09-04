@@ -15,66 +15,73 @@ with open(google_credentials_filename, "r") as f:
 
 
 all_token_key_session = Dict(
-    # added, use mcp0606 account!
-    leetcode_session = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhY2NvdW50X3ZlcmlmaWVkX2VtYWlsIjpudWxsLCJfYXV0aF91c2VyX2lkIjoiMTc5NDI4NjMiLCJfYXV0aF91c2VyX2JhY2tlbmQiOiJhbGxhdXRoLmFjY291bnQuYXV0aF9iYWNrZW5kcy5BdXRoZW50aWNhdGlvbkJhY2tlbmQiLCJfYXV0aF91c2VyX2hhc2giOiI0ZmIzZjdiMmI5YjRhM2FhMGFmZTgxMmQzNjFiOTIyMzk1MTM2M2MzYjJjZGZjZTNhYzllMGQ0YjgzNWI2MGQ1Iiwic2Vzc2lvbl91dWlkIjoiNjhmODg3ZGQiLCJpZCI6MTc5NDI4NjMsImVtYWlsIjoibWNwdGVzdDA2MDZAZ21haWwuY29tIiwidXNlcm5hbWUiOiJ6eE51aGlEeXJoIiwidXNlcl9zbHVnIjoienhOdWhpRHlyaCIsImF2YXRhciI6Imh0dHBzOi8vYXNzZXRzLmxlZXRjb2RlLmNvbS91c2Vycy9kZWZhdWx0X2F2YXRhci5qcGciLCJyZWZyZXNoZWRfYXQiOjE3NDk0MzY4MDEsImlwIjoiMTkyLjIxMC4yMDYuMjMxIiwiaWRlbnRpdHkiOiIwZmU2ZmViNTQyODlmNGM2NzAyN2VjMDZjYzIxMzFmOCIsImRldmljZV93aXRoX2lwIjpbImI0OTQ1MGIwYTMwMzVjMDM4ZTBmYTc3MDY4NzQ4NjBhIiwiMTkyLjIxMC4yMDYuMjMxIl19.ifUux-wVKksegSMEvjY2TvLXxIOyshAEO9CE7rV790g",
-    github_token = "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",
+    ### Remote Ones
+
+    #### Serper
+    serper_api_key = "96b064e2511394e4b7326a678b716eac8c24c662", # TO BR FILLED, you can fill in multiple keys separated by comma
+
+    #### Google
+    google_cloud_console_api_key = "AIzaSyD8Q5ZPqCDZIgjOwBc9QtbdFLfGkijBmMU", # TO BR FILLED
     
-    google_cloud_console_api_key = "AIzaSyD8Q5ZPqCDZIgjOwBc9QtbdFLfGkijBmMU",
-    
-    google_search_engine_id = "d08f1d4bbe2294372",
-    
-    huggingface_token = "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",
-    
-    linkedin_email = "mcptest0606@gmail.com",
-    linkedin_password = "MCPtest0606!!",
-
-    # use local deployed ones, or set up your own token to control
-    canvas_api_token = "PLEASE_RESET_IN_TASK_SPECIFIC_DIR",
-    canvas_domain = "localhost:20001",
-
-    wandb_api_key = "b3abe195bd69c07bdc47469d3956ac8d0c008714",
-    
-    tessdata_prefix = os.environ["TESSDATA_PREFIX"],
-    amap_key="f789815a157fe45439c674c4a10e615b",
-    
-    google_sheets_folder_id = "PLEASE_RESET_IN_TASK_SPECIFIC_DIR",
-    google_oauth2_credentials_path = "configs/credentials.json",
-    google_oauth2_token_path = "configs/credentials.json", # I just put them all together in the same file
-
-    notion_integration_key="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",
-
-    woocommerce_api_key = "PLEASE_RESET_IN_TASK_SPECIFIC_DIR",
-    woocommerce_api_secret = "PLEASE_RESET_IN_TASK_SPECIFIC_DIR",
-    woocommerce_site_url = "PLEASE_RESET_IN_TASK_SPECIFIC_DIR",
-
-    kubeconfig_path = "PLEASE_RESET_IN_TASK_SPECIFIC_DIR",
-
-    gcp_project_id = "mcp-bench0606",
-    gcp_service_account_path = "configs/mcp-bench0606-2b68b5487343.json",
-
-    # default set to null to disable the agent from access anything
-    # reset in task specific dir for the names your task needs
-    google_cloud_allowed_buckets = "null",
-    google_cloud_allowed_bigquery_datasets = "null",
-    google_cloud_allowed_log_buckets = "null",
-    google_cloud_allowed_instances = "null",
-
-    # poste emails
-    emails_config_file = "PLEASE_RESET_IN_TASK_SPECIFIC_DIR",
-
-    # snowflake
-
-    snowflake_account = "VBJIVCN-OI09931",
-    snowflake_warehouse = "COMPUTE_WH",
-    snowflake_role = "ACCOUNTADMIN",
-    snowflake_user = "MCPTEST0606",
-    snowflake_password = "MCPtest0606!!!",
-    snowflake_database = "SNOWFLAKE",
-    snowflake_schema = "PUBLIC",
-    snowflake_op_allowed_databases = "PLEASE_RESET_IN_TASK_SPECIFIC_DIR",
+    gcp_project_id = "mcp-bench0606", # TO BE FILLED
+    gcp_service_account_path = "configs/gcp-service_account.keys.json", # TO BE FILLED
 
     # google credentials
     google_client_id = google_credentials["client_id"],
     google_client_secret = google_credentials["client_secret"],
     google_refresh_token = google_credentials["refresh_token"],
+
+    google_sheets_folder_id = "KEEP_IT_ASIS_CUA_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR",
+    google_oauth2_credentials_path = "configs/google_credentials.json", # make sure you have already copied the json file to this path
+    google_oauth2_token_path = "configs/google_credentials.json", # make sure you have already copied the json file to this path
+    
+    # default set to null to disable the agent from access anything, these will be reset in task specific dir for the names each task needs
+    google_cloud_allowed_buckets = "null",
+    google_cloud_allowed_bigquery_datasets = "null",
+    google_cloud_allowed_log_buckets = "null",
+    google_cloud_allowed_instances = "null",
+
+    #### Github
+    github_token = "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", # TO BR FILLED
+    github_allowed_repos = "KEEP_IT_ASIS_CUA_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR",
+    github_read_only = "1", # default to ban write, but the tasks should open it if needed
+    
+    #### Huggingface
+    huggingface_token = "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", # TO BR FILLED
+
+    #### Wandb
+    wandb_api_key = "b3abe195bd69c07bdc47469d3956ac8d0c008714", # TO BR FILLED
+
+    #### Notion
+    notion_integration_key="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", # TO BE FILLED
+    source_notion_page_url="https://www.notion.so/Notion-Source-Page-262c4171366e8067863bc8645fd6d51f", # TO BE FILLED
+    eval_notion_page_url="https://www.notion.so/Notion-Eval-Page-262c4171366e80a1a366c6f10ee59381", # TO BE FILLED
+    notion_allowed_page_ids="KEEP_IT_ASIS_CUA_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR",
+
+
+    #### SnowFlake
+    snowflake_account = "VBJIVCN-OI09931", # TO BE FILLED
+    snowflake_warehouse = "COMPUTE_WH", # usually `COMPUTE_WH`
+    snowflake_role = "ACCOUNTADMIN", # TO BE FILLED
+    snowflake_user = "MCPTEST0606", # TO BE FILLED
+    snowflake_password = "MCPtest0606!!!", # TO BE FILLED
+    snowflake_database = "SNOWFLAKE", # we prefill `SNOWFLAKE` here to make compatibility
+    snowflake_schema = "PUBLIC", # we prefill `PUBLIC` here to make compatibility
+    snowflake_op_allowed_databases = "KEEP_IT_ASIS_CUA_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR",
+
+    ### Local Ones
+    # Canvas
+    canvas_api_token = "KEEP_IT_ASIS_CUA_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR",
+    canvas_domain = "localhost:20001",
+
+    # Woocommerce
+    woocommerce_api_key = "ck_woocommerce_token_emma_206rnIn",
+    woocommerce_api_secret = "cs_woocommerce_token_emma_206rnIn",
+    woocommerce_site_url = "http://localhost:10003/store81",
+
+    # K8s
+    kubeconfig_path = "deployment/k8s/configs/cluster1-config.yaml",
+
+    # Poste
+    emails_config_file = "configs/example_email_config.json",
 )

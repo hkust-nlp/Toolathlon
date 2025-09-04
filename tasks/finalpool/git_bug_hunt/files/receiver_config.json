@@ -1,0 +1,11 @@
+{
+  "email": "patrick_cruz@mcp.com",
+  "password": "patrrzKNPc5t",
+  "name": "Patrick Cruz",
+  "imap_server": "localhost",
+  "imap_port": 1143,
+  "smtp_server": "localhost",
+  "smtp_port": 1587,
+  "use_ssl": false,
+  "use_starttls": false
+}

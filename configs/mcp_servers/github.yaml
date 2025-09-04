@@ -1,18 +1,33 @@
 # GitHub API 集成
 # https://github.com/modelcontextprotocol/servers/tree/main/src/github
 # make sure you have podman or docker when using this server
+# type: stdio
+# name: github
+# params:
+#   command: ${podman_or_docker} # or `docker`
+#   args:
+#     - "run"
+#     - "-i"
+#     - "--rm"
+#     - "-e"
+#     - "GITHUB_PERSONAL_ACCESS_TOKEN"
+#     - "ghcr.io/github/github-mcp-server:v0.4.0"
+#   env:
+#     GITHUB_PERSONAL_ACCESS_TOKEN: "${token.github_token}"
+# client_session_timeout_seconds: 50
+# cache_tools_list: true
+
+# The following directly use the built binary of my forked version
+# https://github.com/lockon-n/github-mcp-server
 type: stdio
 name: github
 params:
-  command: podman # or `docker`
+  command: ${local_binary_paths}/github-mcp-server
   args:
-    - "run"
-    - "-i"
-    - "--rm"
-    - "-e"
-    - "GITHUB_PERSONAL_ACCESS_TOKEN"
-    - "ghcr.io/github/github-mcp-server"
+    - "stdio"
   env:
-    GITHUB_PERSONAL_ACCESS_TOKEN: "${token.github_token}"
+    GITHUB_PERSONAL_ACCESS_TOKEN: "${token.github_token}" 
+    GITHUB_ALLOWED_REPOS: "${token.github_allowed_repos}" # to control the access to specific repos
+    GITHUB_READ_ONLY: "${token.github_read_only}" # to control whether to ban write
 client_session_timeout_seconds: 50
 cache_tools_list: true

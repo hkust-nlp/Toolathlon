@@ -1,0 +1,14 @@
+# ocr
+# https://github.com/rjn32s/mcp-ocr
+type: stdio
+name: ocr
+params:
+  command: uv
+  args:
+    - "run"
+    - "-m"
+    - "mcp_ocr"
+  env:
+    TESSDATA_PREFIX: "${token.tessdata_prefix}"
+client_session_timeout_seconds: 10
+cache_tools_list: true

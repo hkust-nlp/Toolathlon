@@ -36,7 +36,6 @@ from typing import Union
 
 
 
-
 BASIC_TYPES = [int, float, str, bool, None, list, dict, set, tuple]
 
 def elegant_show(something, level=0, sid=0, full=False, max_list=None):
@@ -488,7 +487,7 @@ async def run_command(command, debug=False, show_output=False):
         stderr=asyncio.subprocess.PIPE
     )
     if debug:
-        print(f"Executing command : {command}")
+        print_color(f"Executing command : {command}","cyan")
 
     # 等待命令执行完成
     stdout, stderr = await process.communicate()
@@ -501,7 +500,7 @@ async def run_command(command, debug=False, show_output=False):
     #     raise RuntimeError(f"Failed in executing the command: {stderr_decoded}")
     
     if debug:
-        print("Successfully executed!")
+        print_color("Successfully executed!","green")
     
     # 如果需要显示输出
     if show_output and stdout_decoded:
