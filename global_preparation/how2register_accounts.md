@@ -192,3 +192,6 @@ Also, create an intrgration that include these above two pages, see https://www.
 We recommand register a new Snowflake account (see https://signup.snowflake.com/). After y9ou have created and activated the account. Find your account details and fill them into the `snowflake_account`, `snowflake_role`, `snowflake_user` and `snowflake_password` variables in `configs/token_key_session.py`
 ![](./figures/snowflake_part1.png)
 ![](./figures/snowflake_part2.png)
+
+#### Serper Account
+We use Serper.dev in our local web search tool. Please register your account on https://serper.dev and get your key from https://serper.dev/api-keys. Then fill it into the `serper_api_key` variable in `configs/token_key_session.py`.
