@@ -1,1 +1,1 @@
-academic-pdf-report
+nvidia-stock-analysis

@@ -99,46 +99,46 @@ npm audit fix
 cd ../..
 
 # Tesseract OCR installation (for users without sudo)
-echo "Setting up Tesseract OCR..."
-USERNAME="${USER}"
-BASE_DIR="/home/${USERNAME}"
-APPIMAGE_URL="https://github.com/AlexanderP/tesseract-appimage/releases/download/v5.5.1/tesseract-5.5.1-x86_64.AppImage"
+# echo "Setting up Tesseract OCR..."
+# USERNAME="${USER}"
+# BASE_DIR="/home/${USERNAME}"
+# APPIMAGE_URL="https://github.com/AlexanderP/tesseract-appimage/releases/download/v5.5.1/tesseract-5.5.1-x86_64.AppImage"
 
-if [ ! -f "$BASE_DIR/local/bin/tesseract" ]; then
-    echo "Installing Tesseract 5.5.1..."
+# if [ ! -f "$BASE_DIR/local/bin/tesseract" ]; then
+#     echo "Installing Tesseract 5.5.1..."
     
-    # Create directories
-    mkdir -p "$BASE_DIR/local/bin"
-    mkdir -p "$BASE_DIR/local/share/tessdata"
+#     # Create directories
+#     mkdir -p "$BASE_DIR/local/bin"
+#     mkdir -p "$BASE_DIR/local/share/tessdata"
     
-    # Download AppImage
-    cd "$BASE_DIR/local/bin"
-    if [ ! -f "tesseract-5.5.1-x86_64.AppImage" ]; then
-        wget "$APPIMAGE_URL"
-        chmod +x tesseract-5.5.1-x86_64.AppImage
-    fi
+#     # Download AppImage
+#     cd "$BASE_DIR/local/bin"
+#     if [ ! -f "tesseract-5.5.1-x86_64.AppImage" ]; then
+#         wget "$APPIMAGE_URL"
+#         chmod +x tesseract-5.5.1-x86_64.AppImage
+#     fi
     
-    # Create wrapper script
-    cat > tesseract << EOF
-#!/bin/bash
-exec "$BASE_DIR/local/bin/tesseract-5.5.1-x86_64.AppImage" "\$@"
-EOF
-    chmod +x tesseract
+#     # Create wrapper script
+#     cat > tesseract << EOF
+# #!/bin/bash
+# exec "$BASE_DIR/local/bin/tesseract-5.5.1-x86_64.AppImage" "\$@"
+# EOF
+#     chmod +x tesseract
     
-    # Download language data
-    cd "$BASE_DIR/local/share/tessdata"
-    for lang in eng chi_sim; do
-        if [ ! -f "${lang}.traineddata" ]; then
-            echo "Downloading $lang language pack..."
-            wget "https://github.com/tesseract-ocr/tessdata/raw/main/${lang}.traineddata"
-        fi
-    done
+#     # Download language data
+#     cd "$BASE_DIR/local/share/tessdata"
+#     for lang in eng chi_sim; do
+#         if [ ! -f "${lang}.traineddata" ]; then
+#             echo "Downloading $lang language pack..."
+#             wget "https://github.com/tesseract-ocr/tessdata/raw/main/${lang}.traineddata"
+#         fi
+#     done
     
-    # Add to PATH and set TESSDATA_PREFIX
-    echo "export PATH=\"$BASE_DIR/local/bin:\$PATH\"" >> ~/.bashrc
-    echo "export TESSDATA_PREFIX=\"$BASE_DIR/local/share/tessdata\"" >> ~/.bashrc
+#     # Add to PATH and set TESSDATA_PREFIX
+#     echo "export PATH=\"$BASE_DIR/local/bin:\$PATH\"" >> ~/.bashrc
+#     echo "export TESSDATA_PREFIX=\"$BASE_DIR/local/share/tessdata\"" >> ~/.bashrc
     
-    echo "Tesseract installed successfully!"
-else
-    echo "Tesseract already installed."
-fi
+#     echo "Tesseract installed successfully!"
+# else
+#     echo "Tesseract already installed."
+# fi
