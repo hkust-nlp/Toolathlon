@@ -42,5 +42,5 @@ all_token_key_session = Dict(
     emails_config_file = os.path.join(os.path.dirname(file_path), "email_config.json"),
 
     # notion
-    notion_allowed_page_ids = allowed_page_ids,
+    notion_allowed_page_ids = allowed_page_ids, # please do not change this, in notion, allowed page ids are generated automatically
 )
