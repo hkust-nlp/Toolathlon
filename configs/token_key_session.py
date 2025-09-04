@@ -16,6 +16,10 @@ with open(google_credentials_filename, "r") as f:
 
 all_token_key_session = Dict(
     ### Remote Ones
+
+    #### Serper
+    serper_api_key = "", # TO BR FILLED, you can fill in multiple keys separated by comma
+
     #### Google
     google_cloud_console_api_key = "AIzaSyD8Q5ZPqCDZIgjOwBc9QtbdFLfGkijBmMU", # TO BR FILLED
     

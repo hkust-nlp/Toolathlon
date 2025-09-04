@@ -16,7 +16,7 @@ async def main():
         # print(server_name)
         to_check_servers.append(server_name)
     
-    to_check_servers = ['github']
+    # to_check_servers = ['github']
     
     # create a ./dumps/mcp_servers_check directory
     os.makedirs("dumps/mcp_servers_check", exist_ok=True)
