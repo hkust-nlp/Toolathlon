@@ -16,7 +16,7 @@ async def main():
         # print(server_name)
         to_check_servers.append(server_name)
     
-    # to_check_servers = ['github']
+    # to_check_servers = ['canvas']
     
     # create a ./dumps/mcp_servers_check directory
     os.makedirs("dumps/mcp_servers_check", exist_ok=True)
@@ -30,9 +30,8 @@ async def main():
             print_color(f"Server {server_name} is checking ... ", "yellow")
             async with server_x as server:
                 pass
-            
-            if server_name == "github" and global_configs.podman_or_docker == "podman":
-                print_color("If you see `2025-08-30T11:10:04.982268: process not running: No such process` somthing like in checking github MCP server with podman, do not worry, this is just a expected behavior :)", "cyan")
+            # if server_name == "github" and global_configs.podman_or_docker == "podman":
+                # print_color("If you see `2025-08-30T11:10:04.982268: process not running: No such process` somthing like in checking github MCP server with podman, do not worry, this is just a expected behavior :)", "cyan")
             print_color(f"Server {server_name} is checked", "green")
         except Exception as e:
             print_color(f"Server {server_name} is checked with error: {e}", "red")

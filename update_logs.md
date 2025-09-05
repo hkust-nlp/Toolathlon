@@ -1,3 +1,7 @@
+### 2025.9.5 17:3
+- 基本完善了基于容器的任务执行隔离
+- 相关文件：`scripts/run_single_containerized.sh`
+
 ### 2025.9.4 22:30
 - 修改了新的web_search工具
 - 依赖serper api驱动，替换了原来的基于发请求的工具
