@@ -83,7 +83,7 @@ COPY uv.lock pyproject.toml ./
 RUN uv sync --frozen
 
 # 安装 Node.js 依赖
-RUN npm ci
+RUN npm install
 
 # 安装 Playwright browsers
 RUN . .venv/bin/activate && playwright install chromium --with-deps
