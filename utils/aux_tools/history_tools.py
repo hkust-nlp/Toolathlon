@@ -7,7 +7,6 @@ from utils.aux_tools.history_manager import HistoryManager
 from datetime import datetime
 from pathlib import Path
 
-from utils.aux_tools.web_search import search_bing
 
 # 搜索会话缓存
 search_sessions = {}
@@ -110,7 +109,7 @@ async def on_search_history_invoke(context: RunContextWrapper, params_str: str) 
     
     # 如果提供了search_id，从缓存获取之前的搜索策略
     if search_id and search_id in search_sessions:
-        cached_search = search_sessions[search_bing]
+        cached_search = search_sessions[search_id]
         
         # 检查是否同时提供了搜索参数
         warning = None

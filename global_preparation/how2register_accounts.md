@@ -159,6 +159,7 @@ see `configs/users_data.json` for all accounts we will create
 #### Github Account
 We recommand register a new github account, and generate a full premission read-write token for this account (see https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens or directly https://github.com/settings/tokens/new).
 Paste the read-write token to the `github_token` variable in `configs/token_key_session.py`
+*Make sure your key has premissions to all operations, including delete repositories.
 
 #### Huggingface Account
 We recommand register a new huggingface account, and generate a read-write token for this account (see https://huggingface.co/docs/hub/security-tokens or directly https://huggingface.co/settings/tokens/new?tokenType=write).
@@ -169,11 +170,28 @@ We recommand register a new WandB account, and get your API Key for this account
 Paste the read-write token to the `wandb_api_key` variable in `configs/token_key_session.py`
 
 #### Notion Account
-TBD
+*This part is largely taken from [MCPMark](https://github.com/eval-sys/mcpmark/blob/main/docs/mcp/notion.md)
 
-https://developers.notion.com/docs/authorization#obtaining-a-token
+We recommand register a new notion account and create a new workspace.
+
+First run `uv run utils/app_specific/notion/notion_login_helper.py --headless` to generate a `notion_state.json` under the `configs`, please just follow the instructions from the script, this is a one-time effort.
+
+Please duplicate the public page [Notion Source Page](...) (we will fill in later) to your workspace,
+record the url of this duplicated page (not our public page) as the `source_notion_page_url` variable in `configs/token_key_session.py`
+
+Please also create a new page called `Notion Eval Page` directly under your workspace,
+record the url if this new page as the `eval_notion_page_url` variable in `configs/token_key_session.py`
+
+Also, create an intrgration that include these above two pages, see https://www.notion.so/profile/integrations, and record the "Internal Integration Secret" as `notion_integration_key` veriable in `configs/token_key_session..py`
+![](./figures/notion_part1.png)
+![](./figures/notion_part2.png)
+![](./figures/notion_part3.png)
+
 
 #### SnowFlake Account
 We recommand register a new Snowflake account (see https://signup.snowflake.com/). After y9ou have created and activated the account. Find your account details and fill them into the `snowflake_account`, `snowflake_role`, `snowflake_user` and `snowflake_password` variables in `configs/token_key_session.py`
 ![](./figures/snowflake_part1.png)
 ![](./figures/snowflake_part2.png)
+
+#### Serper Account
+We use Serper.dev in our local web search tool. Please register your account on https://serper.dev and get your key from https://serper.dev/api-keys. Then fill it into the `serper_api_key` variable in `configs/token_key_session.py`.

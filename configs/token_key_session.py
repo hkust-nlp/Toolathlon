@@ -16,6 +16,10 @@ with open(google_credentials_filename, "r") as f:
 
 all_token_key_session = Dict(
     ### Remote Ones
+
+    #### Serper
+    serper_api_key = "96b064e2511394e4b7326a678b716eac8c24c662", # TO BR FILLED, you can fill in multiple keys separated by comma
+
     #### Google
     google_cloud_console_api_key = "AIzaSyD8Q5ZPqCDZIgjOwBc9QtbdFLfGkijBmMU", # TO BR FILLED
     
@@ -38,7 +42,9 @@ all_token_key_session = Dict(
     google_cloud_allowed_instances = "null",
 
     #### Github
-    github_token = "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", # TO BR FILLED
+    github_token = "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", # TO BR FILLED
+    github_allowed_repos = "KEEP_IT_ASIS_CUA_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR",
+    github_read_only = "1", # default to ban write, but the tasks should open it if needed
     
     #### Huggingface
     huggingface_token = "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", # TO BR FILLED
@@ -47,7 +53,11 @@ all_token_key_session = Dict(
     wandb_api_key = "b3abe195bd69c07bdc47469d3956ac8d0c008714", # TO BR FILLED
 
     #### Notion
-    notion_integration_key="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", # TO BE FILLED
+    notion_integration_key="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", # TO BE FILLED
+    source_notion_page_url="https://www.notion.so/Notion-Source-Page-262c4171366e8067863bc8645fd6d51f", # TO BE FILLED
+    eval_notion_page_url="https://www.notion.so/Notion-Eval-Page-262c4171366e80a1a366c6f10ee59381", # TO BE FILLED
+    notion_allowed_page_ids="KEEP_IT_ASIS_CUA_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR",
+
 
     #### SnowFlake
     snowflake_account = "VBJIVCN-OI09931", # TO BE FILLED
