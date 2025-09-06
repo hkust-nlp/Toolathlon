@@ -31,7 +31,7 @@ all_token_key_session = Dict(
     google_client_secret = google_credentials["client_secret"],
     google_refresh_token = google_credentials["refresh_token"],
 
-    google_sheets_folder_id = "KEEP_IT_ASIS_CUA_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR",
+    google_sheets_folder_id = "", # KEEP_IT_ASIS_CUA_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR
     google_oauth2_credentials_path = "configs/google_credentials.json", # make sure you have already copied the json file to this path
     google_oauth2_token_path = "configs/google_credentials.json", # make sure you have already copied the json file to this path
     
@@ -43,7 +43,7 @@ all_token_key_session = Dict(
 
     #### Github
     github_token = "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", # TO BR FILLED
-    github_allowed_repos = "KEEP_IT_ASIS_CUA_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR",
+    github_allowed_repos = "", # KEEP_IT_ASIS_CUA_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR
     github_read_only = "1", # default to ban write, but the tasks should open it if needed
     
     #### Huggingface
@@ -56,7 +56,7 @@ all_token_key_session = Dict(
     notion_integration_key="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", # TO BE FILLED
     source_notion_page_url="https://www.notion.so/Notion-Source-Page-262c4171366e8067863bc8645fd6d51f", # TO BE FILLED
     eval_notion_page_url="https://www.notion.so/Notion-Eval-Page-262c4171366e80a1a366c6f10ee59381", # TO BE FILLED
-    notion_allowed_page_ids="KEEP_IT_ASIS_CUA_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR",
+    notion_allowed_page_ids="", # KEEP_IT_ASIS_CUA_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR
 
 
     #### SnowFlake
@@ -67,11 +67,11 @@ all_token_key_session = Dict(
     snowflake_password = "MCPtest0606!!!", # TO BE FILLED
     snowflake_database = "SNOWFLAKE", # we prefill `SNOWFLAKE` here to make compatibility
     snowflake_schema = "PUBLIC", # we prefill `PUBLIC` here to make compatibility
-    snowflake_op_allowed_databases = "KEEP_IT_ASIS_CUA_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR",
+    snowflake_op_allowed_databases = "", # KEEP_IT_ASIS_CUA_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR
 
     ### Local Ones
-    # Canvas
-    canvas_api_token = "KEEP_IT_ASIS_CUA_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR",
+    # Canvas, we use the first student's token
+    canvas_api_token = "canvas_token_ronald_81q2O", # KEEP_IT_ASIS_CUA_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR
     canvas_domain = "localhost:20001",
 
     # Woocommerce

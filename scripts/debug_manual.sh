@@ -7,7 +7,10 @@
 
 uv run demo.py \
 --eval_config scripts/debug_eval_config.json \
---task_dir debug/debug-task \
+--task_dir jl/count-weekly-cost \
 --debug \
 --multi_turn_mode \
---manual
+--manual \
+--model_short_name deepseek-v3.1 \
+--provider aihubmix \
+--max_steps_under_single_turn_mode 203

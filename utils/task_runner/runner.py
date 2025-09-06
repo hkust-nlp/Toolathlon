@@ -1,7 +1,7 @@
 from typing import Dict, Any, Optional
 from utils.roles.task_agent import TaskAgent, TaskStatus
 from utils.task_runner.hooks import AgentLifecycle, RunLifecycle
-from utils.general.helper import build_agent_model_provider, build_user_client
+from utils.general.helper import build_agent_model_provider, build_user_client,print_color
 from utils.data_structures.task_config import TaskConfig
 from utils.data_structures.agent_config import AgentConfig
 from utils.data_structures.mcp_config import MCPConfig
@@ -9,8 +9,10 @@ from utils.data_structures.user_config import UserConfig
 from utils.task_runner.termination_checkers import default_termination_checker
 from functools import partial
 import logging
+from utils.data_structures.common import Model
 # 在 runner.py 的开头添加
 import os
+from pprint import pprint
 
 class TaskRunner:
     """任务运行器"""
@@ -34,7 +36,16 @@ class TaskRunner:
         # 创建hooks
         agent_hooks = AgentLifecycle()
         run_hooks = RunLifecycle(debug)
-        
+
+        print_color("=== Actual task config ===", "magenta")
+        pprint(task_config)
+        print_color("=== Actual agent config ===", "magenta")
+        pprint(agent_config)
+        print_color("=== Actual user config ===", "magenta")
+        pprint(user_config)
+        print_color("=== Actual mcp config ===", "magenta")
+        pprint(mcp_config)
+
         # 创建并运行TaskAgent
         task_agent = TaskAgent(
             task_config=task_config,
