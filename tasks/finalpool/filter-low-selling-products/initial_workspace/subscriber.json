@@ -1,0 +1,25 @@
+{
+  "subscriber_list": [
+    {
+      "email": "customer1@example.com",
+      "name": "张三",
+      "preferences": ["促销", "新品"]
+    },
+    {
+      "email": "customer2@example.com", 
+      "name": "李四",
+      "preferences": ["特价", "清仓"]
+    },
+    {
+      "email": "customer3@example.com",
+      "name": "王五",
+      "preferences": ["奥特莱斯", "打折"]
+    }
+  ],
+  "email_templates": {
+    "promotion": {
+      "subject": "🎉 Store82 清仓大促销！限时特价商品抢购",
+      "template": "亲爱的 {customer_name}，\n\n我们为您精选了以下特价商品：\n{product_list}\n\n活动时间：即日起\n数量有限，售完即止！\n\n祝购物愉快！\nStore82 促销团队"
+    }
+  }
+}

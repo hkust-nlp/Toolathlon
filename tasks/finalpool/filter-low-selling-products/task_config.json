@@ -1,0 +1,10 @@
+{
+    "needed_mcp_servers": ["woocommerce", "filesystem", "emails"],
+    "needed_local_tools": [],
+    "meta": {
+        "task_type": "product_filtering",
+        "requires_remote_api": true,
+        "requires_file_output": true,
+        "evaluation_modules": ["check_log", "check_local", "check_remote"]
+    }
+}
