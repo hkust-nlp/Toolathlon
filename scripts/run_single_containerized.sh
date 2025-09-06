@@ -8,13 +8,14 @@ set -e
 task_dir_arg=$1 # domain/taskname
 tag=${2:-"testrun"}
 modelname=${3:-"testmodel"}
+provider=${4:-"testprovider"}
+maxstep=${5:-"testmaxstep"}
 
 taskdomain=${task_dir_arg%/*}
 taskname=${task_dir_arg#*/}
 
 log_path="./logs/${taskdomain}/${taskname}/${modelname}_${tag}.log"
-output_folder="./outputs/${taskdomain}/${taskname}/${modelname}_${tag}_output"
-
+output_folder="./dumps/${taskdomain}/${taskname}/${modelname}_${tag}_output"
 
 
 if [ -z "$task_dir_arg" ] || [ -z "$tag" ] || [ -z "$modelname" ]; then
@@ -58,7 +59,6 @@ SAFE_TASK_NAME=$(echo "$task_dir_arg" | sed 's|/|-|g')
 CONTAINER_NAME="mcpbench-${SAFE_TASK_NAME}-${TIMESTAMP}"
 
 echo "Container name: $CONTAINER_NAME"
-
 
 
 # Cleanup function
@@ -118,9 +118,7 @@ LOG_PATH_ABS=$(readlink -f "$log_path")
 LOG_FILE_NAME=$(basename "$log_path")
 
 # Ensure output folder exists
-mkdir -p "$OUTPUT_FOLDER"
-# OUTPUT_FOLDER_ABS=$(readlink -f "$output_folder")
-# OUTPUT_FOLDER_NAME=$(basename "$output_folder")
+mkdir -p "$output_folder"
 
 echo "Preparing to start container..."
 
@@ -177,6 +175,8 @@ fi
 # Add mounts
 START_CONTAINER_ARGS+=(    
     # Mount results directory (read-write)
+    
+    # TODO: 在容器中运行时，直接输出到dumps
     "-v" "$PROJECT_ROOT/$output_folder:/workspace/dumps"
     
     # Mount log directory
@@ -326,7 +326,7 @@ echo ""
 echo "Step 3: Executing task command in container..."
 
 # Command to execute in container
-CONTAINER_CMD="uv run demo.py --eval_config scripts/debug_eval_config.json --task_dir $task_dir_arg --debug > /workspace/logs/$LOG_FILE_NAME 2>&1"
+CONTAINER_CMD="uv run demo.py --eval_config scripts/foraml_run_v0.json --task_dir $task_dir_arg --max_steps_under_single_turn_mode $maxstep --model_short_name $modelname --provider $provider --debug > /workspace/logs/$LOG_FILE_NAME 2>&1"
 
 echo "Executing command: $CONTAINER_CMD"
 echo ""

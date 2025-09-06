@@ -5,7 +5,7 @@ from utils.general.helper import read_json
 from utils.data_structures.task_config import TaskConfig
 from utils.task_runner.runner import TaskRunner
 from utils.evaluation.evaluator import TaskEvaluator
-from utils.general.helper import setup_proxy
+from utils.general.helper import setup_proxy,print_color
 import os
 
 from utils.openai_agents_monkey_patch.custom_run_impl import *
@@ -31,6 +31,15 @@ async def main():
                        help="Whether to enable multi turn mode")
     parser.add_argument("--cn_mode", action="store_true", 
                        help="Whether to enable chinese mode")
+
+    ## we override some parameters here
+    # we now just set a hard sampling parameters: temperature = 0.6, top_p = 1.0, max_tokens = 4096
+    parser.add_argument("--max_steps_under_single_turn_mode", type=int, default=None, 
+                       help="Maximum number of steps under single turn mode")
+    parser.add_argument("--model_short_name", type=str, default=None, 
+                       help="Model name")
+    parser.add_argument("--provider", type=str, default=None, 
+                       help="Provider")
     args = parser.parse_args()
     
     # 设置代理（如果需要）
@@ -39,6 +48,12 @@ async def main():
     # 加载配置
     eval_config_dict = read_json(args.eval_config)
     # task_config_dict = read_json(os.path.join(args.task_dir, "task_config.json"))
+    if args.model_short_name is not None:
+        assert args.provider is not None, "provider is required when model_short_name is provided"
+        eval_config_dict['agent']['model']['short_name'] = args.model_short_name
+        eval_config_dict['agent']['model']['provider'] = args.provider
+    if args.max_steps_under_single_turn_mode is not None:
+        eval_config_dict['global_task_config']['max_steps_under_single_turn_mode'] = args.max_steps_under_single_turn_mode
     
     # 解析配置
     mcp_config, agent_config, user_config = TaskRunner.load_configs(eval_config_dict)
@@ -52,7 +67,7 @@ async def main():
                                    args.cn_mode)
 
     # 运行任务
-    print("=== Starting Task Execution ===")
+    print_color("====== Starting Task Execution ======", "yellow")
     task_status = await TaskRunner.run_single_task(
         task_config=task_config,
         agent_config=agent_config,
@@ -64,15 +79,16 @@ async def main():
         single_turn_mode=not args.multi_turn_mode,
     )
     
-    print(f"\n=== Task completed with status: {task_status.value} ===")
+    print_color(f"\n====== Task completed with status ======", "yellow")
+    print(f"Status: {task_status.value} ")
     
     # 评估结果
-    print("\n=== Starting Task Evaluation ===")
+    print_color("\n====== Starting Task Evaluation ======", "yellow")
     log_file = task_config.log_file
     dump_line = read_json(log_file)
     eval_res = await TaskEvaluator.evaluate_from_log_file(log_file, allow_resume=args.allow_resume)
     
-    print(f"\n=== Evaluation Results ===")
+    print_color(f"\n====== Evaluation Results ======", "yellow")
     print(f"Pass: {eval_res.get('pass', False)}")
     print(f"Key statistics: {dump_line.get('key_stats', 'N/A')}")
     print(f"Total Cost: {dump_line.get('agent_cost', 'N/A').get('total_cost')} (agent) + {dump_line.get('user_cost', 'N/A').get('total_cost')} (user)")
