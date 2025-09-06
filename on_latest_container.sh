@@ -171,8 +171,8 @@ EOF
 
 # 主函数
 main() {
-    # 检查是否安装了 podman
-    if ! command -v podman &> /dev/null; then
+    # 检查是否安装了 podman/docker
+    if ! command -v $podman_or_docker &> /dev/null; then
         print_error "Podman/Docker 未安装，请先安装 Podman/Docker"
         exit 1
     fi
