@@ -10,6 +10,8 @@
 # --worker 并发度
 # --timeout 每个任务，包括预处理，agentloop和测试的最长运行时间
 
+# 部分任务存在冲突，无法同时执行，可以在一级目录下配置task_conflict.json来解决，见tasks/testparallel/task_conflict.json
+
 uv run run_parallel.py \
 --tasks_folder testparallel \
 --tag firsttry \
