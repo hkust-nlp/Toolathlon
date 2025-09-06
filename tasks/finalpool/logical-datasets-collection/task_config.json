@@ -1,0 +1,5 @@
+{
+    "needed_mcp_servers": ["filesystem", "scholarly","arxiv_local"],
+    "needed_local_tools": ["web_search","claim_done","handle_overlong_tool_outputs"],
+    "meta": {}
+}
