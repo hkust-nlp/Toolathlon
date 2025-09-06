@@ -483,7 +483,7 @@ async def main():
             print(f"    - {task}")
     
     # 生成结果报告文件
-    report_file = f"./results/execution_report_{args.model_short_name}_{tag}.json"
+    report_file = f"./results/execution_report_{args.tasks_folder}_{args.model_short_name}_{tag}.json"
     os.makedirs(os.path.dirname(report_file), exist_ok=True)
     report_data = {
         "execution_time": datetime.now().isoformat(),
