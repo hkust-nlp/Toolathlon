@@ -171,7 +171,7 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                 if self.debug:
                     for item in output_items:
                         if isinstance(item, ResponseOutputMessage):
-                            print("assistant: ", item.content[0].text)
+                            print("ASSISTANT: ", item.content[0].text)
                 return model_response
             except Exception as e:
                 error_str = str(e)

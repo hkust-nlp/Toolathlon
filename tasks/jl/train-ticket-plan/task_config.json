@@ -1,4 +1,5 @@
 {
     "needed_mcp_servers": ["filesystem","rail_12306"],
+    "needed_local_tools": [],
     "meta": {}
 }

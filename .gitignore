@@ -56,3 +56,7 @@ deployment/*/scripts/__pycache__/
 wandb
 
 .DS_Store
+
+# tasks/testparallel
+logs_containers
+results

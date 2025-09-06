@@ -303,7 +303,7 @@ def print_color(text, color="yellow", end='\n'):
         'blue': '\033[94m',
         'magenta': '\033[95m',
         'cyan': '\033[96m',
-        'white': '\033[97m'
+        'white': '\033[97m',
     }
     
     reset_code = '\033[0m'
@@ -543,9 +543,9 @@ def build_user_client(user_config: UserConfig) -> AsyncOpenAIClientWithRetry:
         provider=user_config.model.provider,
     )
 
-def build_agent_model_provider(agent_config: AgentConfig) -> ModelProvider:
+def build_agent_model_provider(agent_config: AgentConfig, override_provider: str = None) -> ModelProvider:
     """构建Agent模型提供者"""
-    return model_provider_mapping[agent_config.model.provider]()
+    return model_provider_mapping[agent_config.model.provider if override_provider is None else override_provider]()
 
 def setup_proxy(use_proxy: bool = False) -> None:
     """设置代理"""
