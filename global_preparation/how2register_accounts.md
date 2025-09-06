@@ -156,6 +156,22 @@ see `configs/users_data.json` for all accounts we will create
     ![](./figures/gcp_serviceaccount_part4.png)
     Then rename and move the downloaded key json file to `configs/gcp-service_account.keys.json`
 
+#### Google Auth State for Playwright
+Some of the tasks needs google login state for playwright. We prepare a script for it.
+
+The script is `global_preparation/create_google_state.py`.
+
+Copy this script to a normal PC, like your laptop.
+
+You will find a `browser_path` in line 5, please fill in it with the actual chrome executable path on your PC.
+
+Then run `python create_google_state.py`, make sure the python executable you use have `playwright` installed. Please just follow the instructions of the script. (We strongly encouraged you to set up a small uv project to handle this.)
+
+It will save a `google_auth_state.json` at the same path your run this script.
+
+Finally, copy this file to `configs/google_auth_state.json`
+
+
 #### Github Account
 We recommand register a new github account, and generate a full premission read-write token for this account (see https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens or directly https://github.com/settings/tokens/new).
 Paste the read-write token to the `github_token` variable in `configs/token_key_session.py`
