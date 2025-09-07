@@ -1,0 +1,10 @@
+{
+  "github_repo": "mcptest-user/Annoy-DataSync",
+  "issue_number": 1,
+  "issue_url": "https://github.com/mcptest-user/Annoy-DataSync/issues/1",
+  "hf_datasets": {
+    "reasoning": "https://huggingface.co/datasets/mcptester0606/Annoy-PyEdu-Rs",
+    "raw": "https://huggingface.co/datasets/mcptester0606/Annoy-PyEdu-Rs-Raw"
+  },
+  "latest_commit_hash": "2c5f20a730d6c3f0d6289d286a797c86a439ab8b"
+}

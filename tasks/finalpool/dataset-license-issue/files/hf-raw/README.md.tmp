@@ -1,0 +1,31 @@
+# Annoy: This should be a paper Title
+
+<p align="left">
+    📑 <a href="https://huggingface.co/papers/xxxx.xxxxx" target="_blank">Paper</a> &nbsp&nbsp | &nbsp&nbsp 🌐 <a href="https://specx.github.io/" target="_blank">Project Page</a> &nbsp&nbsp | &nbsp&nbsp 💾 <a href="https://huggingface.co/collections/mcptester0606/specx-67a978e28fd926b56a4f55a2" target="_blank">Released Resources</a> &nbsp&nbsp | &nbsp&nbsp 📦 <a href="https://github.com/mcptest-user/Annoy" target="_blank">Repo</a> 
+
+We release the raw data for our processed PythonEdu-Rs dataset, adopted from the original dataset from HuggingFaceTB team.
+
+The data format for each line in the `0_368500_filtered_v2_ds25.sced.jsonl` is as follows:
+
+```
+{
+  "problem_description": <the problem description of the function>,
+  "io_requirements": <the input/output requirements and constraints>,
+  "refcode": <the reference code, including imported packages (optional), auxiliary functions (optional) and main entrypoint function>,
+  "funcname": <the function name for the entrypoint function>,
+  "ios": [
+    {
+      "input": <the input arguments>,
+      "output":<the returned value>
+    },
+    ...
+  ],
+  "source": <the source of the raw code files>,
+  "category": <the reasoning type we assign to this sample>,
+  "meta": <meta information about this sample>
+}
+```
+
+Some of the `ios` are empty. The reason is that when executing the code, the input/output sizes are too large and exceed our required constraints. Thus, they are not stored or used later.
+
+*Note: Due to imperfect LLM-based transformations, some problem descriptions do not contain enough information to describe the code. We leave this as future work to further enhance our data and update it to a better version.
