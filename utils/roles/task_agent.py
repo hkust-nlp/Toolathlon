@@ -368,7 +368,7 @@ class TaskAgent:
             if self.task_config.initialization.process_command is not None:
                 args = f"--agent_workspace {self.task_config.agent_workspace} --launch_time \"{self.task_config.launch_time}\""
                 command = f"{self.task_config.initialization.process_command} {args}"
-                output, error, returncode = await run_command(command)
+                output, error, returncode = await run_command(command,debug=self.debug)
                 if self.debug:
                     print_color("== PreProcess STDOUT ==", "red")
                 # self._debug_print("== PreProcess STDOUT ==")

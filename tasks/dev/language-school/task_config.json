@@ -1,5 +1,0 @@
-{
-    "needed_mcp_servers": ["filesystem", "playwright_with_chunk", "excel"],
-    "needed_local_tools": ["claim_done","web_search"],
-    "meta": {}
-}

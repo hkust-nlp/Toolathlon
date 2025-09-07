@@ -37,7 +37,7 @@ class TaskEvaluator:
             # try:
             args = f"--res_log_file {res_log_file} --agent_workspace {agent_workspace} --groundtruth_workspace {groundtruth_workspace} --launch_time \"{launch_time}\""
             command = f"{eval_command} {args}"
-            output, error, returncode = await run_command(command,debug=True)
+            output, error, returncode = await run_command(command, debug=True)
             print("== Evaluation STDOUT ==")
             print(output)
             print("== Evaluation STDERR ==")
