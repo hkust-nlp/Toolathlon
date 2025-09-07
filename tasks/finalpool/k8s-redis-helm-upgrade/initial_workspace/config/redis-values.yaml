@@ -1,0 +1,95 @@
+# 简化的Redis配置用于调试
+master:
+  persistence:
+    enabled: false  # 禁用持久化简化部署
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "50m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+  # 添加一些不影响启动速度的自定义配置
+  nodeSelector:
+    kubernetes.io/os: linux
+  tolerations:
+    - key: "node-type"
+      operator: "Equal"
+      value: "redis"
+      effect: "NoSchedule"
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: redis
+            topologyKey: kubernetes.io/hostname
+
+replica:
+  replicaCount: 2
+  persistence:
+    enabled: false  # 禁用持久化
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "50m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+  # 副本也使用相同的调度配置
+  nodeSelector:
+    kubernetes.io/os: linux
+  tolerations:
+    - key: "node-type"
+      operator: "Equal"
+      value: "redis"
+      effect: "NoSchedule"
+
+auth:
+  enabled: true
+  password: "simple123"
+
+metrics:
+  enabled: false  # 暂时禁用metrics
+
+# 添加更多不影响启动的配置项
+commonLabels:
+  app: redis-cluster
+  environment: test
+  team: platform
+
+# 服务配置
+service:
+  type: ClusterIP
+  port: 6379
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    prometheus.io/scrape: "false"
+
+# 网络策略配置
+networkPolicy:
+  enabled: false
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: shared-services
+
+# Redis配置参数（不影响启动速度）
+redis:
+  configmap: |
+    # Custom Redis configuration
+    maxmemory-policy allkeys-lru
+    timeout 300
+    tcp-keepalive 60
+    # Disable some heavy operations
+    save ""
+    
+# 安全上下文
+securityContext:
+  enabled: true
+  fsGroup: 1001
+  runAsUser: 1001
+  runAsNonRoot: true

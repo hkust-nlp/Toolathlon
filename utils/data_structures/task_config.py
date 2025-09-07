@@ -208,13 +208,22 @@ class TaskConfig:
             self.task_root = str(global_dump_path / task_root_path)
             task_root_path = Path(self.task_root)
         
+        if self.global_task_config is not None and self.global_task_config.get('direct_to_dumps', False) and "dump_path" in self.global_task_config:
+            self.task_root = self.global_task_config['dump_path'] # dumps
+            task_root_path = Path(self.task_root)
+
+        # task_root 确保为绝对路径
+        self.task_root = os.path.abspath(self.task_root)
+
         # 如果没有指定 log_file，自动生成
         if self.log_file is None:
             self.log_file = str(task_root_path / "log.json")
+        self.log_file = os.path.abspath(self.log_file)
         
         # 如果没有指定 agent_workspace，自动生成
         if self.agent_workspace is None:
             self.agent_workspace = str(task_root_path / "workspace")
+        self.agent_workspace = os.path.abspath(self.agent_workspace)
 
         if self.global_task_config is not None and "max_turns" in self.global_task_config:
             self.max_turns = self.global_task_config['max_turns']
@@ -228,18 +237,20 @@ class TaskConfig:
                                   self.single_turn_mode,
                                   self.cn_mode)
 
-        if self.local_token_key_session is None:
-            # 构造模块路径
-            token_key_session_path = str(Path("tasks")/ self.task_dir / "token_key_session.py")
+        # if self.local_token_key_session is None:
+        #     # 构造模块路径
+            
+    def load_local_token_key_session(self) -> None:
+        token_key_session_path = str(Path("tasks")/ self.task_dir / "token_key_session.py")
 
-            if Path(token_key_session_path).exists():
-                # 使用 importlib.util 来从文件路径导入模块
-                spec = importlib.util.spec_from_file_location("token_key_session", token_key_session_path)
-                token_key_session_module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(token_key_session_module)
-                
-                # 获取 all_token_key_session 变量
-                self.local_token_key_session = token_key_session_module.all_token_key_session
+        if Path(token_key_session_path).exists():
+            # 使用 importlib.util 来从文件路径导入模块
+            spec = importlib.util.spec_from_file_location("token_key_session", token_key_session_path)
+            token_key_session_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(token_key_session_module)
+            
+            # 获取 all_token_key_session 变量
+            self.local_token_key_session = token_key_session_module.all_token_key_session
 
             
         

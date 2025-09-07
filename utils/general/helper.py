@@ -36,7 +36,6 @@ from typing import Union
 
 
 
-
 BASIC_TYPES = [int, float, str, bool, None, list, dict, set, tuple]
 
 def elegant_show(something, level=0, sid=0, full=False, max_list=None):
@@ -304,7 +303,7 @@ def print_color(text, color="yellow", end='\n'):
         'blue': '\033[94m',
         'magenta': '\033[95m',
         'cyan': '\033[96m',
-        'white': '\033[97m'
+        'white': '\033[97m',
     }
     
     reset_code = '\033[0m'
@@ -488,7 +487,7 @@ async def run_command(command, debug=False, show_output=False):
         stderr=asyncio.subprocess.PIPE
     )
     if debug:
-        print(f"Executing command : {command}")
+        print_color(f"Executing command : {command}","cyan")
 
     # 等待命令执行完成
     stdout, stderr = await process.communicate()
@@ -501,7 +500,7 @@ async def run_command(command, debug=False, show_output=False):
     #     raise RuntimeError(f"Failed in executing the command: {stderr_decoded}")
     
     if debug:
-        print("Successfully executed!")
+        print_color("Successfully executed!","green")
     
     # 如果需要显示输出
     if show_output and stdout_decoded:
@@ -544,9 +543,9 @@ def build_user_client(user_config: UserConfig) -> AsyncOpenAIClientWithRetry:
         provider=user_config.model.provider,
     )
 
-def build_agent_model_provider(agent_config: AgentConfig) -> ModelProvider:
+def build_agent_model_provider(agent_config: AgentConfig, override_provider: str = None) -> ModelProvider:
     """构建Agent模型提供者"""
-    return model_provider_mapping[agent_config.model.provider]()
+    return model_provider_mapping[agent_config.model.provider if override_provider is None else override_provider]()
 
 def setup_proxy(use_proxy: bool = False) -> None:
     """设置代理"""

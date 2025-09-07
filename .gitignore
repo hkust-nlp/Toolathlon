@@ -6,6 +6,7 @@
 
 local_tools
 local_servers
+
 node_modules
 sample_files
 
@@ -58,3 +59,6 @@ wandb
 .DS_Store
 
 tasks/finalpool/arrange-workspace/local_files/
+# tasks/testparallel
+logs_containers
+results

@@ -1,6 +1,5 @@
-[
-    {
-        "task_id": "email-paper-homepage",
+{
+    "email-paper-homepage" : {
         "upstream_repos": [
             "mcpbench-repos/My-Homepage",
             "mcpbench-repos/enhancing-llms",
@@ -9,5 +8,8 @@
             "mcpbench-repos/optimizing-llms-contextual-reasoning"
         ],
         "github_token": "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"
+    },
+    "personal_website_construct": {
+        "github_token": "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"
     }
-]
+}

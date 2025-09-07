@@ -1,0 +1,5 @@
+{
+    "needed_mcp_servers": ["filesystem","playwright_with_chunk"],
+    "needed_local_tools": ["history","claim_done"],
+    "meta": {}
+}

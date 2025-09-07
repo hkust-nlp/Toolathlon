@@ -6,6 +6,14 @@ fi
 # uv
 uv sync
 
+# install playwright
+source .venv/bin/activate
+export TMPDIR="./tmp" # make a folder for tmp files
+mkdir -p $TMPDIR
+playwright install chromium
+unset TMPDIR
+rm -rf $TMPDIR
+
 # npm
 rm -rf node_modules
 npm install
@@ -22,7 +30,7 @@ uv tool install pdf-tools-mcp@0.1.4
 uv tool install git+https://github.com/jkawamoto/mcp-youtube-transcript@28081729905a48bef533d864efbd867a2bfd14cd
 uv tool install mcp-google-sheets@0.4.1
 uv tool install google-cloud-mcp@1.0.0
-uv tool install emails-mcp@0.1.6
+uv tool install emails-mcp@0.1.12
 uv tool install git+https://github.com/lockon-n/mcp-snowflake-server@75c03ca0b3cee2da831e2bc1b3b7a150e4c2999a
 uv tool install git+https://github.com/lockon-n/mcp-scholarly@82a6ca268ae0d2e10664be396e1a0ea7aba23229
 
@@ -61,3 +69,12 @@ npm run build
 printf "\033[33mfixing npm audit issues...\033[0m\n"
 npm audit fix
 cd ../..
+
+# pull image
+# check use podman  or docker from configs/global_configs.py
+podman_or_docker=$(uv run python -c "import sys; sys.path.append('configs'); from global_configs import global_configs; print(global_configs.podman_or_docker)")
+if [ "$podman_or_docker" = "podman" ]; then
+    podman pull lockon0927/mcpbench-task-image:latest
+else
+    docker pull lockon0927/mcpbench-task-image:latest
+fi
