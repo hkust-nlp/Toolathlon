@@ -1,9 +1,11 @@
 #!/bin/bash
 
+agent_workspace=$3
+
 # 设置变量
-k8sconfig_path_dir=deployment/k8s/configs
+k8sconfig_path_dir=${agent_workspace}/k8s_configs
 cluster_name="cluster-redis-helm"
-resource_yaml="deployment/k8s/source_files/redis_helm_namespace.yaml"
+resource_yaml="${agent_workspace}/k8s_configs/redis_helm_namespace.yaml"
 helm_repo_name="bitnami"
 helm_repo_url="https://charts.bitnami.com/bitnami"
 helm_chart_name="redis"
@@ -136,7 +138,7 @@ create_namespace() {
   log_info "Creating namespace: $namespace"
   
   # Create namespace YAML if it doesn't exist
-  mkdir -p deployment/k8s/source_files
+  mkdir -p ${agent_workspace}/k8s_configs
   cat > "$resource_yaml" <<EOF
 apiVersion: v1
 kind: Namespace

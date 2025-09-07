@@ -35,11 +35,13 @@ if __name__ == "__main__":
 
     # Initialize the Kubernetes cluster with Redis Helm deployment
     print("Constructing the Kind cluster with Redis Helm deployment...")
+    # 这里的路径改成当前文件的父目录/scripts/init_redis_helm.sh
+    script_path = os.path.join(os.path.dirname(__file__), "..", "scripts","init_redis_helm.sh")
     asyncio.run(run_command(
-        f"bash deployment/k8s/scripts/init_redis_helm.sh start {source_values_file}", 
+        f"bash {script_path} start {source_values_file} {args.agent_workspace}", 
         debug=True, 
         show_output=True
-    ))
+    )) 
     print("Cluster constructed and Redis deployed via Helm")
     
     print("Initialization complete")
