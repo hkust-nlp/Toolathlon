@@ -1,0 +1,1 @@
+**可能需要先运行preprocess/woocommerce_initializer.py 再运行database_setup.py，我没把他俩集成到main.py里，但感觉影响应该不是很大。。**
