@@ -1,1 +1,1 @@
-Upgrade the 'redis' chart from the 'bitnami' Helm repository in the shared-services namespace to version 22.0.0, and ensure that all configurations in `config/redis-values.yaml` remain effective after the upgrade.
+Upgrade the 'redis' chart from the 'bitnami' Helm repository in the shared-services namespace to version 22.0.0 exactly, and ensure that all configurations in `config/redis-values.yaml` remain effective after the upgrade.
