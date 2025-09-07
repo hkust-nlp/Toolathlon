@@ -72,6 +72,13 @@ RUN curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64 \
     && chmod +x ./kind \
     && mv ./kind /usr/local/bin/kind
 
+# 安装 Helm
+RUN curl -Lo helm.tar.gz https://get.helm.sh/helm-v3.14.0-linux-amd64.tar.gz \
+    && tar -zxf helm.tar.gz \
+    && mv linux-amd64/helm /usr/local/bin/helm \
+    && chmod +x /usr/local/bin/helm \
+    && rm -rf helm.tar.gz linux-amd64
+
 # 设置工作目录
 WORKDIR /workspace
 
@@ -86,7 +93,7 @@ RUN uv sync --frozen
 RUN npm install
 
 # 安装 Playwright browsers
-RUN . .venv/bin/activate && playwright install chromium --with-deps
+RUN . .venv/bin/activate && playwright install chromium
 
 # 安装 playwright for node_modules（如果需要）
 RUN if [ -d "node_modules/@lockon0927/playwright-mcp-with-chunk" ]; then \

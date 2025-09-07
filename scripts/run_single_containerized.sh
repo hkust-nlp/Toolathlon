@@ -51,7 +51,7 @@ except Exception as e:
 echo "Using container runtime: $CONTAINER_RUNTIME"
 
 # Image name
-IMAGE_NAME="lockon0927/mcpbench-task-image:latest"
+IMAGE_NAME="lockon0927/mcpbench-task-image-v2:latest"
 
 # Generate unique container name
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
