@@ -1,0 +1,131 @@
+{
+  "meta": {
+    "generated_at": "2025-09-02T10:29:40Z",
+    "source": "yfinance-python-package"
+  },
+  "sheets": {
+    "Investment Return Comparison": [
+      [
+        "Year",
+        "NVDA Year-end Price",
+        "AAPL Year-end Price",
+        "NVDA Annual Return",
+        "AAPL Annual Return",
+        "NVDA Cumulative Value ($10,000)",
+        "AAPL Cumulative Value ($10,000)"
+      ],
+      [
+        2021.0,
+        30.0,
+        174.0,
+        127.72,
+        34.01,
+        22772.0,
+        13401.0
+      ],
+      [
+        2022.0,
+        15.0,
+        128.0,
+        -50.14,
+        -26.31,
+        11353.0,
+        9874.0
+      ],
+      [
+        2023.0,
+        49.0,
+        186.0,
+        231.73,
+        44.46,
+        37663.0,
+        14264.0
+      ],
+      [
+        2024.0,
+        136.0,
+        248.0,
+        176.25,
+        33.66,
+        104047.0,
+        19066.0
+      ]
+    ],
+    "Fundamental Analysis": [
+      [
+        "Year",
+        "NVDA Annual Revenue (Billion USD)",
+        "AAPL Annual Revenue (Billion USD)",
+        "NVDA Year-end P/E",
+        "AAPL Year-end P/E",
+        "NVDA Revenue Growth Rate",
+        "AAPL Revenue Growth Rate"
+      ],
+      [
+        2022.0,
+        26.97,
+        394.33,
+        84.31,
+        20.89,
+        0.22,
+        7.79
+      ],
+      [
+        2023.0,
+        60.92,
+        383.29,
+        40.68,
+        30.13,
+        125.85,
+        -2.8
+      ],
+      [
+        2024.0,
+        130.5,
+        391.04,
+        45.78,
+        40.6,
+        114.2,
+        2.02
+      ]
+    ],
+    "Investment Decision Reference": [
+      [
+        "Metric",
+        "NVDA Value",
+        "AAPL Value",
+        "Better Stock"
+      ],
+      [
+        "Cumulative Return",
+        356.9,
+        42.28,
+        "NVDA"
+      ],
+      [
+        "Annualized Return",
+        65.94,
+        12.47,
+        "NVDA"
+      ],
+      [
+        "Current P/E Ratio",
+        49.46,
+        35.23,
+        "AAPL"
+      ],
+      [
+        "Analyst Target Price",
+        206.0,
+        235.0,
+        "AAPL"
+      ],
+      [
+        "Target Price Upside %",
+        18.33,
+        1.23,
+        "NVDA"
+      ]
+    ]
+  }
+}

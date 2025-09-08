@@ -3,6 +3,37 @@ if ! command -v uv &> /dev/null; then
     echo "uv could not be found, please install via `curl -LsSf https://astral.sh/uv/install.sh | sh`"
 fi
 
+# Node.js and npm installation via NVM (only if not already installed)
+echo "Checking Node.js and npm installation..."
+if ! command -v node &> /dev/null || ! command -v npm &> /dev/null; then
+    echo "Node.js or npm not found. Installing via NVM..."
+    
+    # Check if NVM is already installed
+    if ! command -v nvm &> /dev/null; then
+        echo "Installing NVM..."
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+        
+        # Load NVM
+        export NVM_DIR="$HOME/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+        [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+        
+        # Also add to current session
+        source ~/.bashrc 2>/dev/null || true
+    fi
+    
+    # Install Node.js LTS version (includes npm)
+    echo "Installing Node.js LTS..."
+    nvm install --lts
+    npm install -g npm@latest
+    
+    echo "Node.js and npm installed successfully!"
+else
+    echo "Node.js and npm are already installed."
+    node -v
+    npm -v
+fi
+
 # uv
 uv sync
 
@@ -20,6 +51,10 @@ npm install
 cd node_modules/@lockon0927/playwright-mcp-with-chunk
 npx playwright install chromium
 cd ../../..
+
+# Set environment variable for Playwright (ignore host requirements warnings)
+export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1
+echo "export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1" >> ~/.bashrc
 
 # uvx
 uv tool install office-powerpoint-mcp-server@2.0.6
