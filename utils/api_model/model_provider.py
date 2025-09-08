@@ -309,10 +309,23 @@ class CustomModelProviderAnthropic(ModelProvider):
                                                    openai_client=client,
                                                    debug=debug)
 
+class CustomModelProviderLocalVLLM(ModelProvider):
+    def get_model(self, model_name: str | None, debug: bool = True) -> Model:
+        import os
+        vllm_base_url = os.getenv('VLLM_BASE_URL', 'http://localhost:8000/v1')
+        client = AsyncOpenAI(
+            api_key="fake-key",  # VLLM doesn't require a real API key
+            base_url=vllm_base_url,
+        )
+        return OpenAIChatCompletionsModelWithRetry(model=model_name, 
+                                                   openai_client=client,
+                                                   debug=debug)
+
 model_provider_mapping = {
     "ds_internal": CustomModelProvider,
     "aihubmix": CustomModelProviderAiHubMix,
     "anthropic": CustomModelProviderAnthropic,
+    "local_vllm": CustomModelProviderLocalVLLM,
 }
 
 API_MAPPINGS = {
@@ -506,6 +519,10 @@ API_MAPPINGS = {
 set_tracing_disabled(disabled=True)
 
 def calculate_cost(model_name, input_tokens, output_tokens):
+    # For local VLLM models, cost is 0
+    if model_name not in API_MAPPINGS:
+        return 0.0, 0.0, 0.0
+    
     prices = API_MAPPINGS[model_name]['price']
     input_price_per_1k = prices[0] / 1000
     output_price_per_1k = prices[1] / 1000
@@ -517,4 +534,8 @@ def calculate_cost(model_name, input_tokens, output_tokens):
     return input_cost, output_cost, total_cost
 
 def get_context_window(model_name):
+    # For local VLLM models, assume a reasonable default context window
+    if model_name not in API_MAPPINGS:
+        return 128000  # Default context window for local models
+    
     return API_MAPPINGS[model_name]['context_window']
