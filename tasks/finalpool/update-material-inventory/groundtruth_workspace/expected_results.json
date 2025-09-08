@@ -1,0 +1,113 @@
+{
+  "task_description": "原材料库存自动管理任务 - 验证用groundtruth",
+  "test_orders_summary": {
+    "total_quantities_ordered": {
+      "TABLE_001": 10,
+      "DESK_001": 7,
+      "CHAIR_001": 9
+    }
+  },
+  "initial_inventories": {
+    "product_inventory": {
+      "CHAIR_001": 75,
+      "TABLE_001": 37,
+      "DESK_001": 25
+    },
+    "material_inventory": {
+      "WOOD_OAK": 250.0,
+      "SCREW_M6": 600,
+      "SCREW_M8": 450,
+      "GLUE_WOOD": 15.0,
+      "FINISH_VARNISH": 25.0,
+      "WOOD_PINE": 100.0,
+      "METAL_LEG": 100,
+      "FINISH_PAINT": 10.0
+    }
+  },
+  "bom_data": {
+    "CHAIR_001": {
+      "WOOD_OAK": 2.5,
+      "SCREW_M6": 8,
+      "GLUE_WOOD": 0.1,
+      "FINISH_VARNISH": 0.2
+    },
+    "TABLE_001": {
+      "WOOD_OAK": 5.0,
+      "SCREW_M8": 12,
+      "GLUE_WOOD": 0.3,
+      "FINISH_VARNISH": 0.5
+    },
+    "DESK_001": {
+      "WOOD_PINE": 3.0,
+      "METAL_LEG": 4,
+      "SCREW_M6": 16,
+      "FINISH_PAINT": 0.3
+    }
+  },
+  "expected_material_consumption": {
+    "WOOD_OAK": 72.5,
+    "SCREW_M8": 120,
+    "GLUE_WOOD": 3.9,
+    "FINISH_VARNISH": 6.8,
+    "WOOD_PINE": 21.0,
+    "METAL_LEG": 28,
+    "SCREW_M6": 184,
+    "FINISH_PAINT": 2.1
+  },
+  "expected_final_inventories": {
+    "woocommerce_inventory": {
+      "CHAIR_001": 52,
+      "TABLE_001": 27,
+      "DESK_001": 18
+    },
+    "google_sheets_material_inventory": {
+      "WOOD_OAK": 177.5,
+      "SCREW_M6": 416,
+      "SCREW_M8": 330,
+      "GLUE_WOOD": 11.1,
+      "FINISH_VARNISH": 18.2,
+      "WOOD_PINE": 79.0,
+      "METAL_LEG": 72,
+      "FINISH_PAINT": 7.9
+    }
+  },
+  "calculation_details": {
+    "product_inventory": {},
+    "material_consumption": {
+      "TABLE_001_consumption": {
+        "WOOD_OAK": "10 × 5.0 = 50.0",
+        "SCREW_M8": "10 × 12 = 120",
+        "GLUE_WOOD": "10 × 0.3 = 3.0",
+        "FINISH_VARNISH": "10 × 0.5 = 5.0"
+      },
+      "DESK_001_consumption": {
+        "WOOD_PINE": "7 × 3.0 = 21.0",
+        "METAL_LEG": "7 × 4 = 28",
+        "SCREW_M6": "7 × 16 = 112",
+        "FINISH_PAINT": "7 × 0.3 = 2.1"
+      },
+      "CHAIR_001_consumption": {
+        "WOOD_OAK": "9 × 2.5 = 22.5",
+        "SCREW_M6": "9 × 8 = 72",
+        "GLUE_WOOD": "9 × 0.1 = 0.9",
+        "FINISH_VARNISH": "9 × 0.2 = 1.8"
+      },
+      "material_inventory_deduction": {
+        "WOOD_OAK": "250.0 - 72.5 = 177.5",
+        "SCREW_M6": "600 - 184 = 416",
+        "SCREW_M8": "450 - 120 = 330",
+        "GLUE_WOOD": "15.0 - 3.9 = 11.1",
+        "FINISH_VARNISH": "25.0 - 6.8 = 18.2",
+        "WOOD_PINE": "100.0 - 21.0 = 79.0",
+        "METAL_LEG": "100 - 28 = 72",
+        "FINISH_PAINT": "10.0 - 2.1 = 7.9"
+      }
+    }
+  },
+  "evaluation_criteria": {
+    "description": "验证agent处理订单后WooCommerce产品库存和Google Sheets原材料库存是否正确更新",
+    "woocommerce_tolerance": 0,
+    "material_inventory_tolerance": 0.01,
+    "required_accuracy": "100%"
+  }
+}

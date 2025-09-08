@@ -1,0 +1,80 @@
+{
+    "sender": {
+        "jamess@mcp.com": {
+            "password": "JsteuyatGI4v",
+            "imap_server": "localhost",
+            "imap_port": 1143,
+            "smtp_server": "localhost",
+            "smtp_port": 1587,
+            "use_ssl": false,
+            "use_starttls": false
+        }
+    },
+    "should_receive":{
+        "ejames15@mcp.com": {
+            "password": "EJ0906!7gomw",
+            "imap_server": "localhost",
+            "imap_port": 1143,
+            "smtp_server": "localhost",
+            "smtp_port": 1587,
+            "use_ssl": false,
+            "use_starttls": false
+        },
+        "debras3@mcp.com": {
+            "password": "debra1982#6A",
+            "imap_server": "localhost", 
+            "imap_port": 1143,
+            "use_ssl": false
+        },
+        "angela_moore89@mcp.com": {
+            "password": "angecu1T@470",
+            "imap_server": "localhost",
+            "imap_port": 1143,
+            "use_ssl": false
+        },
+        "moralesm@mcp.com": {
+            "password": "martha1995#E",
+            "imap_server": "localhost",
+            "imap_port": 1143,
+            "use_ssl": false
+        }
+    },
+    "shouldnt_receive": {
+        "alice_jackson38@mcp.com": {
+            "password": "Ajackson706Q",
+            "imap_server": "localhost",
+            "imap_port": 1143,
+            "use_ssl": false
+        },
+        "ccastillo@mcp.com": {
+            "password": "Ccastillo349",
+            "imap_server": "localhost",
+            "imap_port": 1143,
+            "use_ssl": false
+        },
+        "jeffreyd@mcp.com": {
+            "password": "Jdavis901ANU",
+            "imap_server": "localhost",
+            "imap_port": 1143,
+            "use_ssl": false
+        },
+        "lisad@mcp.com": {
+            "password": "lisasenJP#02",
+            "imap_server": "localhost",
+            "imap_port": 1143,
+            "use_ssl": false
+        },
+        "mdiaz@mcp.com": {
+            "password": "Mdiaz690JIFm",
+            "imap_server": "localhost",
+            "imap_port": 1143,
+            "use_ssl": false
+        },
+        "nancyr@mcp.com": {
+            "password": "robinson#n640",
+            "imap_server": "localhost",
+            "imap_port": 1143,
+            "use_ssl": false
+        }
+    }
+}

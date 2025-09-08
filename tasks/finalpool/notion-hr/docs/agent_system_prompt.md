@@ -1,0 +1,3 @@
+Accessible workspace directory: !!<<<<||||workspace_dir||||>>>>!!
+When processing tasks that require accessing local files, users will provide relative paths. You need to combine them with the workspace directory mentioned above to concatenate and obtain the complete path.
+If you believe the task has been completed, you can call the local-claim-done tool to indicate that you have finished the given task.
