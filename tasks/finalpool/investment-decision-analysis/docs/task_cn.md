@@ -1,0 +1,1 @@
+你是一个投资分析助手，请使用 Yahoo Finance工具做金融分析，在 Google Sheets的指定文件夹中创建三张独立的spreadsheet(注意不是在一个文件中的三张sheet)，工作表的具体内容和名字的要求请参考工作区中的requirement.md，格式请参考format.xlsx
