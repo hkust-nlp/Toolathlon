@@ -4,7 +4,7 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
 def get_google_service():
-    credentials_file = "/ssddata/junlong/projects/mcpbench_finalpool_dev/configs/google_credentials.json"
+    credentials_file = "configs/google_credentials.json"
     
     with open(credentials_file, 'r') as f:
         cred_data = json.load(f)
