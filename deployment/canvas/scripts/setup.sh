@@ -46,8 +46,18 @@ case $operation in
     
     mkdir -p deployment/canvas/$logsfolder
     
+    # Find node executable
+    NODE_PATH=$(which node 2>/dev/null || echo "")
+    if [ -z "$NODE_PATH" ] && [ -f "/home/xiaoxian/.nvm/versions/node/v22.18.0/bin/node" ]; then
+        NODE_PATH="/home/xiaoxian/.nvm/versions/node/v22.18.0/bin/node"
+    fi
+    if [ -z "$NODE_PATH" ]; then
+        echo "Error: Node.js not found. Please install Node.js or ensure it's in PATH."
+        exit 1
+    fi
+    
     # Start in background using nohup
-    nohup node deployment/utils/build_proxy.mjs ${https_port} ${http_port} localhost http deployment/canvas/$logsfolder > deployment/canvas/$logsfolder/proxy.log 2>&1 &
+    nohup $NODE_PATH deployment/utils/build_proxy.mjs ${https_port} ${http_port} localhost http deployment/canvas/$logsfolder > deployment/canvas/$logsfolder/proxy.log 2>&1 &
     PROXY_PID=$!
     echo $PROXY_PID > deployment/canvas/$logsfolder/proxy.pid
     
@@ -159,7 +169,17 @@ case $operation in
 
     mkdir -p deployment/canvas/$logsfolder
 
-    node deployment/utils/build_proxy.mjs ${https_port} ${http_port} localhost http deployment/canvas/$logsfolder
+    # Find node executable
+    NODE_PATH=$(which node 2>/dev/null || echo "")
+    if [ -z "$NODE_PATH" ] && [ -f "/home/xiaoxian/.nvm/versions/node/v22.18.0/bin/node" ]; then
+        NODE_PATH="/home/xiaoxian/.nvm/versions/node/v22.18.0/bin/node"
+    fi
+    if [ -z "$NODE_PATH" ]; then
+        echo "Error: Node.js not found. Please install Node.js or ensure it's in PATH."
+        exit 1
+    fi
+
+    $NODE_PATH deployment/utils/build_proxy.mjs ${https_port} ${http_port} localhost http deployment/canvas/$logsfolder
     ;;
     
   *)

@@ -1,5 +1,5 @@
 # launch local servers
-bash deployment/k8s/scripts/prepare.sh --no-sudo # or no-sudo if you cannot use sudo
+bash deployment/k8s/scripts/prepare.sh  # or no-sudo if you cannot use sudo
 bash deployment/k8s/scripts/setup.sh
 
 bash deployment/canvas/scripts/setup.sh # port 10001 20001
