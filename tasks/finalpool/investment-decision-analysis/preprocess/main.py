@@ -17,7 +17,7 @@ try:
         clear_folder
     )
     USE_DRIVE_HELPER = True
-    print("✅ 使用现有的drive_helper模块")
+    print("使用现有的drive_helper模块")
 except ImportError as e:
     print(f"⚠️ 无法导入drive_helper: {e}")
     USE_DRIVE_HELPER = False
@@ -147,39 +147,39 @@ def main():
         # 删除旧的folder_id文件
         if os.path.exists(folder_id_file):
             os.remove(folder_id_file)
-            print("✅ 已删除旧的folder_id文件")
+            print("已删除旧的folder_id文件")
 
         # 获取Google服务
         drive_service, sheets_service = get_google_service()
-        print("✅ Google服务认证成功")
+        print("Google服务认证成功")
 
         # 查找或创建文件夹
         folder_id = find_folder_by_name(drive_service, FOLDER_NAME)
         if not folder_id:
             folder_id = create_folder(drive_service, FOLDER_NAME)
-            print(f"✅ 创建了新文件夹: {FOLDER_NAME} (ID: {folder_id})")
+            print(f"创建了新文件夹: {FOLDER_NAME} (ID: {folder_id})")
         else:
-            print(f"✅ 找到现有文件夹: {FOLDER_NAME} (ID: {folder_id})")
+            print(f"找到现有文件夹: {FOLDER_NAME} (ID: {folder_id})")
 
         # 清理文件夹内容
         clear_folder(drive_service, folder_id)
-        print("✅ 已清理文件夹内容")
+        print("已清理文件夹内容")
 
         # 保存folder_id到文件
         with open(folder_id_file, "w") as f:
             f.write(folder_id)
 
-        print(f"✅ Folder ID已保存: {folder_id}")
+        print(f"Folder ID已保存: {folder_id}")
         print("=" * 60)
-        print("✅ 预处理完成：环境已准备好，可以开始任务")
+        print("预处理完成：环境已准备好，可以开始任务")
         print("=" * 60)
         
         return True
         
     except Exception as e:
-        print(f"❌ 预处理过程中发生错误: {e}")
+        print(f" 预处理过程中发生错误: {e}")
         print("=" * 60)
-        print("❌ 预处理失败：无法准备环境")
+        print(" 预处理失败：无法准备环境")
         print("=" * 60)
         return False
 
