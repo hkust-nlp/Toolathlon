@@ -1,30 +1,43 @@
 #!/bin/bash
 
-# 容器化运行单个任务的脚本
-# 用法: ./run_single_containerized.sh <task_dir> <log_path>
+# Script for running a single task in a containerized environment
+# Usage: ./run_single_containerized.sh <task_dir> <log_path>
 
 set -e
 
-task_dir_arg=$1
-log_path=$2
+task_dir_arg=$1 # domain/taskname
+tag=${2:-"testrun"}
+modelname=${3:-"testmodel"}
+provider=${4:-"testprovider"}
+maxstep=${5:-"testmaxstep"}
 
-if [ -z "$task_dir_arg" ] || [ -z "$log_path" ]; then
-    echo "用法: $0 <task_dir> <log_path>"
-    echo "示例: $0 debug/debug-task /tmp/test.log"
+taskdomain=${task_dir_arg%/*}
+taskname=${task_dir_arg#*/}
+
+log_path="./logs/${taskdomain}/${taskname}/${modelname}_${tag}.log"
+output_folder="./dumps/${taskdomain}/${taskname}/${modelname}_${tag}_output"
+
+
+if [ -z "$task_dir_arg" ] || [ -z "$tag" ] || [ -z "$modelname" ]; then
+    echo "Usage: $0 <task_dir> <tag> <modelname>"
+    echo "Example: $0 debug/debug-task testrun testmodel"
     exit 1
 fi
 
-# 获取项目根目录
+# Get project root directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 cd "$PROJECT_ROOT"
 
-echo "项目根目录: $PROJECT_ROOT"
-echo "任务目录: $task_dir_arg"
-echo "日志路径: $log_path"
+echo "Project root: $PROJECT_ROOT"
+echo "Task directory: $task_dir_arg"
+echo "Tag: $tag"
+echo "Modelname: $modelname"
+echo "Log path: $log_path"
+echo "Output folder: $output_folder"
 
-# 读取容器运行时配置
-CONTAINER_RUNTIME=$(python3 -c "
+# Read container runtime configuration
+CONTAINER_RUNTIME=$(uv run python -c "
 import sys
 sys.path.append('$PROJECT_ROOT/configs')
 try:
@@ -35,49 +48,49 @@ except Exception as e:
     print('podman')
 " 2>/dev/null)
 
-echo "使用容器运行时: $CONTAINER_RUNTIME"
+echo "Using container runtime: $CONTAINER_RUNTIME"
 
-# 镜像名称
-IMAGE_NAME="lockon0927/mcpbench-basic-image:latest"
+# Image name
+IMAGE_NAME="lockon0927/mcpbench-task-image-v2:latest"
 
-# 生成唯一容器名
+# Generate unique container name
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 SAFE_TASK_NAME=$(echo "$task_dir_arg" | sed 's|/|-|g')
 CONTAINER_NAME="mcpbench-${SAFE_TASK_NAME}-${TIMESTAMP}"
 
-echo "容器名称: $CONTAINER_NAME"
+echo "Container name: $CONTAINER_NAME"
 
 
-
-# 清理函数
+# Cleanup function
 cleanup() {
     echo ""
-    echo "执行清理操作..."
-    # 停止并清理容器
+    echo "Performing cleanup..."
+    # Stop and clean up container
     if $CONTAINER_RUNTIME ps -aq --filter "name=$CONTAINER_NAME" 2>/dev/null | grep -q .; then
-        echo "  停止并清除容器: $CONTAINER_NAME"
+        echo "  Stopping and removing container: $CONTAINER_NAME"
         $CONTAINER_RUNTIME stop "$CONTAINER_NAME" >/dev/null 2>&1 || true
         $CONTAINER_RUNTIME rm "$CONTAINER_NAME" >/dev/null 2>&1 || true
-        echo "  ✓ 容器已停止并清除"
+        echo "  ✓ Container stopped and removed"
     fi
-    echo "清理完成"
+    echo "Cleanup completed"
 }
-# trap cleanup EXIT
+trap cleanup EXIT
 
-# 验证任务目录存在
+# Verify task directory exists
 TASK_SOURCE="$PROJECT_ROOT/tasks/$task_dir_arg"
 if [ ! -d "$TASK_SOURCE" ]; then
-    echo "错误: 任务目录不存在: $TASK_SOURCE"
+    echo "Error: Task directory does not exist: $TASK_SOURCE"
     exit 1
 fi
 
-# 准备需要复制到容器的文件列表
-echo "准备项目文件..."
+# Prepare list of files to copy to container
+echo "Preparing project files..."
 
-# 需要复制的文件和目录列表
+# List of files and directories to copy
 FILES_TO_COPY=(
     "configs"
-    "deployment/k8s"
+    # "deployment/k8s"
+    "scripts"
     "deployment/canvas/logs"
     "global_preparation/check_installation.py"
     "local_binary/github-mcp-server"
@@ -85,155 +98,173 @@ FILES_TO_COPY=(
     "demo.py"
 )
 
-# 验证所有需要的文件/目录是否存在
-echo "  验证文件存在性..."
+# Verify all required files/directories exist
+echo "  Verifying file existence..."
 for item in "${FILES_TO_COPY[@]}"; do
     if [ ! -e "$PROJECT_ROOT/$item" ]; then
-        echo "  警告: $item 不存在，跳过"
+        echo "  Warning: $item does not exist, skipping"
     else
-        echo "  ✓ $item 存在"
+        echo "  ✓ $item exists"
     fi
 done
 
-# 验证任务目录存在性
-echo "  ✓ 任务目录: tasks/$task_dir_arg"
+# Verify task directory existence
+echo "  ✓ Task directory: tasks/$task_dir_arg"
 
-# 确保日志目录存在
+# Ensure log directory exists
 LOG_DIR=$(dirname "$log_path")
 mkdir -p "$LOG_DIR"
 LOG_PATH_ABS=$(readlink -f "$log_path")
 LOG_FILE_NAME=$(basename "$log_path")
 
-echo "准备启动容器..."
+# Ensure output folder exists
+mkdir -p "$output_folder"
 
-# 第一步：启动容器并保持运行
-echo "第一步：启动容器并保持运行..."
+echo "Preparing to start container..."
 
-# 启动容器参数（不执行命令，只启动并保持运行）
+# Step 1: Start container and keep it running
+echo "Step 1: Starting container and keeping it running..."
+
+# Container startup parameters (don't execute commands, just start and keep running)
 START_CONTAINER_ARGS=(
     "$CONTAINER_RUNTIME" "run"
     "-d"  # 后台运行
     "--name" "$CONTAINER_NAME"
-    # 使用host网络，让容器能访问宿主机上的Kind集群
+    # Use host network to allow container access to Kind cluster on host
     "--network" "host"
 )
 
-# 根据容器运行时添加socket挂载
+# Add socket mount based on container runtime
 if [ "$CONTAINER_RUNTIME" = "podman" ]; then
-    echo "配置Podman环境..."
-    # Podman socket挂载，让容器内的kind能在宿主机创建集群
+    echo "Configuring Podman environment..."
+    # Podman socket mount, allowing kind in container to create clusters on host
+    PODMAN_SOCKET_FOUND=false
+    
+    # 1. Check system-level podman socket
     if [ -S "/run/podman/podman.sock" ]; then
         START_CONTAINER_ARGS+=(
-            "-v" "/run/podman/podman.sock:/var/run/docker.sock"
+            "-v" "/run/podman/podman.sock:/run/podman/podman.sock"
         )
+        echo "Using system-level podman socket: /run/podman/podman.sock"
+        PODMAN_SOCKET_FOUND=true
+    # 2. Check user-level podman socket
     elif [ -S "/run/user/$(id -u)/podman/podman.sock" ]; then
-        # 用户级podman socket
         START_CONTAINER_ARGS+=(
-            "-v" "/run/user/$(id -u)/podman/podman.sock:/var/run/docker.sock"
+            "-v" "/run/user/$(id -u)/podman/podman.sock:/run/podman/podman.sock"
         )
-    else
-        echo "警告: 未找到Podman socket，Kind可能无法工作"
+        echo "Using user-level podman socket: /run/user/$(id -u)/podman/podman.sock"
+        PODMAN_SOCKET_FOUND=true
     fi
-    # 设置环境变量让Kind使用Podman
+    
+    if [ "$PODMAN_SOCKET_FOUND" = false ]; then
+        echo "Warning: Podman socket not found, Kind may not work"
+        echo "Tip: Please manually run 'systemctl --user start podman.socket' or 'sudo systemctl start podman.socket'"
+    fi
+    # # Set environment variable for Kind to use Podman
     START_CONTAINER_ARGS+=(
         "-e" "KIND_EXPERIMENTAL_PROVIDER=podman"
     )
 elif [ "$CONTAINER_RUNTIME" = "docker" ]; then
-    echo "配置Docker环境..."
-    # Docker socket挂载
+    echo "Configuring Docker environment..."
+    # Docker socket mount
     START_CONTAINER_ARGS+=(
         "-v" "/var/run/docker.sock:/var/run/docker.sock"
     )
 fi
 
-# 添加挂载
+# Add mounts
 START_CONTAINER_ARGS+=(    
-    # 挂载结果目录（读写）
-    "-v" "$PROJECT_ROOT/dumps:/workspace/dumps"
+    # Mount results directory (read-write)
     
-    # 挂载日志目录
+    # TODO: 在容器中运行时，直接输出到dumps
+    "-v" "$PROJECT_ROOT/$output_folder:/workspace/dumps"
+    
+    # Mount log directory
     "-v" "$LOG_DIR:/workspace/logs"
+
+    # Mount deployment/k8s directory
+    "-v" "$PROJECT_ROOT/deployment/k8s:/workspace/deployment/k8s"
     
-    # 工作目录
+    # Working directory
     "-w" "/workspace"
     
-    # 镜像
+    # Image
     "$IMAGE_NAME"
     
-    # 保持容器运行的命令
+    # Command to keep container running
     "sleep" "infinity"
 )
 
-echo "启动容器命令: ${START_CONTAINER_ARGS[*]}"
+echo "Container start command: ${START_CONTAINER_ARGS[*]}"
 echo ""
 
 # exit 0
 
-# 启动容器
-echo "正在启动容器..."
+# Start container
+echo "Starting container..."
 CONTAINER_ID=$("${START_CONTAINER_ARGS[@]}")
 START_EXIT_CODE=$?
 
 if [ $START_EXIT_CODE -eq 0 ]; then
-    echo "✓ 容器启动成功"
-    echo "  容器ID: $CONTAINER_ID"
-    echo "  容器名称: $CONTAINER_NAME"
+    echo "✓ Container started successfully"
+    echo "  Container ID: $CONTAINER_ID"
+    echo "  Container name: $CONTAINER_NAME"
 else
-    echo "✗ 容器启动失败，退出码: $START_EXIT_CODE"
+    echo "✗ Container startup failed, exit code: $START_EXIT_CODE"
     exit $START_EXIT_CODE
 fi
 
-# 第二步：等待容器就绪
+# Step 2: Wait for container to be ready
 echo ""
-echo "第二步：等待容器就绪..."
+echo "Step 2: Waiting for container to be ready..."
 
-# 检查容器状态
+# Check container status
 MAX_WAIT=30
 WAIT_COUNT=0
 CONTAINER_READY=false
 
 while [ $WAIT_COUNT -lt $MAX_WAIT ]; do
-    # 检查容器是否仍在运行
+    # Check if container is still running
     if $CONTAINER_RUNTIME ps -q --filter "name=$CONTAINER_NAME" | grep -q .; then
-        # 尝试在容器内执行简单命令来验证就绪状态
+        # Try to execute simple command in container to verify ready state
         if $CONTAINER_RUNTIME exec "$CONTAINER_NAME" echo "container ready" >/dev/null 2>&1; then
             CONTAINER_READY=true
             break
         fi
     else
-        echo "✗ 容器意外停止"
+        echo "✗ Container unexpectedly stopped"
         exit 1
     fi
     
-    echo "  等待容器就绪... (${WAIT_COUNT}/${MAX_WAIT})"
+    echo "  Waiting for container to be ready... (${WAIT_COUNT}/${MAX_WAIT})"
     sleep 1
     WAIT_COUNT=$((WAIT_COUNT + 1))
 done
 
 if [ "$CONTAINER_READY" = true ]; then
-    echo "✓ 容器已就绪"
+    echo "✓ Container is ready"
 else
-    echo "✗ 容器在${MAX_WAIT}秒内未就绪，超时退出"
+    echo "✗ Container not ready within ${MAX_WAIT} seconds, timeout exit"
     exit 1
 fi
 
-# 第2.5步：复制项目文件到容器内的/workspace
+# Step 2.5: Copy project files to container's /workspace
 echo ""
-echo "第2.5步：复制项目文件到容器内..."
+echo "Step 2.5: Copying project files to container..."
 
-# 首先在容器内创建必要的目录结构
-echo "  创建目录结构..."
-$CONTAINER_RUNTIME exec "$CONTAINER_NAME" mkdir -p "/workspace/deployment/k8s"
+# First create necessary directory structure in container
+echo "  Creating directory structure..."
+$CONTAINER_RUNTIME exec "$CONTAINER_NAME" mkdir -p "/workspace/deployment"
 $CONTAINER_RUNTIME exec "$CONTAINER_NAME" mkdir -p "/workspace/deployment/canvas"
 $CONTAINER_RUNTIME exec "$CONTAINER_NAME" mkdir -p "/workspace/global_preparation"
 $CONTAINER_RUNTIME exec "$CONTAINER_NAME" mkdir -p "/workspace/tasks"
 
-# 复制基本文件和目录到容器
+# Copy basic files and directories to container
 for item in "${FILES_TO_COPY[@]}"; do
     if [ -e "$PROJECT_ROOT/$item" ]; then
-        echo "  复制 $item 到容器..."
+        echo "  Copying $item to container..."
         if [ -d "$PROJECT_ROOT/$item" ]; then
-            # 如果是目录，确保目标父目录存在
+            # If it's a directory, ensure target parent directory exists
             parent_dir=$(dirname "$item")
             if [ "$parent_dir" != "." ]; then
                 $CONTAINER_RUNTIME exec "$CONTAINER_NAME" mkdir -p "/workspace/$parent_dir"
@@ -243,55 +274,91 @@ for item in "${FILES_TO_COPY[@]}"; do
     fi
 done
 
-# 复制任务目录
-echo "  复制任务目录 tasks/$task_dir_arg 到容器..."
-# 复制具体的任务目录
-$CONTAINER_RUNTIME cp "$TASK_SOURCE" "$CONTAINER_NAME:/workspace/tasks/"
+# Copy task directory
+echo "  Copying task directory tasks/$task_dir_arg to container..."
+# Ensure target directory structure exists
+TARGET_PARENT_DIR=$(dirname "$task_dir_arg")
+if [ "$TARGET_PARENT_DIR" != "." ]; then
+    $CONTAINER_RUNTIME exec "$CONTAINER_NAME" mkdir -p "/workspace/tasks/$TARGET_PARENT_DIR"
+fi
+# Copy specific task directory, maintaining complete directory structure
+$CONTAINER_RUNTIME cp "$TASK_SOURCE" "$CONTAINER_NAME:/workspace/tasks/$TARGET_PARENT_DIR/"
 
-echo "✓ 文件复制完成" 
+echo "✓ File copying completed" 
 
-# 再运行一下上面的命令
+# Run the above command again
+echo ""
+echo "Step 2.6: Executing necessary configurations..."
+echo " Executing necessary configurations"
 $CONTAINER_RUNTIME exec "$CONTAINER_NAME" bash -c "mkdir -p ~/.gmail-mcp && mkdir -p ~/.calendar-mcp && cp ./configs/gcp-oauth.keys.json ~/.calendar-mcp/ && cp ./configs/gcp-oauth.keys.json ~/.gmail-mcp/ && cp ./configs/google_credentials.json  ~/.calendar-mcp/credentials.json && cp ./configs/google_credentials.json  ~/.gmail-mcp/credentials.json"
 
 
-# 第三步：在容器内执行任务命令
+# Add after step 2.7
 echo ""
-echo "第三步：在容器内执行任务命令..."
+echo "Step 2.7: Verifying Kind environment..."
 
-# 容器内执行的命令
-CONTAINER_CMD="uv run demo.py --eval_config scripts/debug_eval_config.json --task_dir $task_dir_arg --debug > /workspace/logs/$LOG_FILE_NAME 2>&1"
+# Check kind command
+if $CONTAINER_RUNTIME exec "$CONTAINER_NAME" which kind >/dev/null 2>&1; then
+    echo "✓ Kind is installed"
+    $CONTAINER_RUNTIME exec "$CONTAINER_NAME" kind version
+else
+    echo "✗ Kind not installed, installing..."
+    $CONTAINER_RUNTIME exec "$CONTAINER_NAME" bash -c "
+        curl -Lo /tmp/kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64 &&
+        chmod +x /tmp/kind &&
+        mv /tmp/kind /usr/local/bin/kind
+    "
+fi
 
-echo "执行命令: $CONTAINER_CMD"
+
+# Test Kind functionality
+echo "Testing Kind connection..."
+if $CONTAINER_RUNTIME exec "$CONTAINER_NAME" $CONTAINER_RUNTIME version >/dev/null 2>&1; then
+    echo "✓ $CONTAINER_RUNTIME API accessible"
+else
+    echo "✗ Cannot access $CONTAINER_RUNTIME API"
+    exit 1
+fi
+
+
+# Step 3: Execute task command in container
+echo ""
+echo "Step 3: Executing task command in container..."
+
+# Command to execute in container
+CONTAINER_CMD="uv run demo.py --eval_config scripts/foraml_run_v0.json --task_dir $task_dir_arg --max_steps_under_single_turn_mode $maxstep --model_short_name $modelname --provider $provider --debug > /workspace/logs/$LOG_FILE_NAME 2>&1"
+
+echo "Executing command: $CONTAINER_CMD"
 echo ""
 
-exit 0
+# exit 0
 
-# 在容器内执行命令
-echo "正在执行任务..."
+# Execute command in container
+echo "Executing task..."
 $CONTAINER_RUNTIME exec "$CONTAINER_NAME" bash -c "$CONTAINER_CMD"
 EXEC_EXIT_CODE=$?
 
 echo ""
 if [ $EXEC_EXIT_CODE -eq 0 ]; then
-    echo "✓ 任务执行成功，退出码: $EXEC_EXIT_CODE"
+    echo "✓ Task executed successfully, exit code: $EXEC_EXIT_CODE"
 else
-    echo "✗ 任务执行失败，退出码: $EXEC_EXIT_CODE"
+    echo "✗ Task execution failed, exit code: $EXEC_EXIT_CODE"
 fi
 
 EXIT_CODE=$EXEC_EXIT_CODE
 
-# 显示日志摘要
+# Display log summary
 if [ -f "$LOG_PATH_ABS" ]; then
     echo ""
-    echo "=== 任务执行日志（最后20行）==="
+    echo "=== Task execution log (last 20 lines) ==="
     tail -20 "$LOG_PATH_ABS"
     echo ""
-    echo "=== 完整日志路径: $LOG_PATH_ABS ==="
+    echo "=== Full log path: $LOG_PATH_ABS ==="
 fi
 
-# 检查是否有生成的kubeconfig
+# Check if kubeconfig was generated
 echo ""
-echo "=== 检查容器内生成的Kubeconfig文件 ==="
-$CONTAINER_RUNTIME exec "$CONTAINER_NAME" bash -c "ls -la /workspace/deployment/k8s/configs/*.yaml 2>/dev/null || echo '无'"
+echo "=== Checking generated Kubeconfig files in container ==="
+$CONTAINER_RUNTIME exec "$CONTAINER_NAME" bash -c "ls -la /workspace/deployment/k8s/configs/*.yaml 2>/dev/null || echo 'None'"
 
 exit $EXIT_CODE

@@ -47,6 +47,8 @@ from utils.aux_tools.python_interpretor import tool_python_execute
 from utils.aux_tools.web_search import tool_web_search
 from utils.aux_tools.overlong_tool_manager import overlong_tool_tools
 
+from utils.general.helper import print_color
+
 local_tool_mappings = {
     "ai_webpage_summary": tool_ai_webpage_summary,
     "sleep": tool_sleep,
@@ -335,7 +337,7 @@ class TaskAgent:
 
     async def initialize_workspace(self, show_traceback=False) -> bool:
         """初始化工作空间"""
-        self._debug_print(f"Starting to initialize workspace for {self.task_config.id} ...")
+        self._debug_print(f"\n\nStarting to initialize workspace for {self.task_config.id} ...")
         
         log_file = self.task_config.log_file
         agent_workspace = self.task_config.agent_workspace
@@ -366,10 +368,14 @@ class TaskAgent:
             if self.task_config.initialization.process_command is not None:
                 args = f"--agent_workspace {self.task_config.agent_workspace} --launch_time \"{self.task_config.launch_time}\""
                 command = f"{self.task_config.initialization.process_command} {args}"
-                output, error, returncode = await run_command(command)
-                self._debug_print("== PreProcess STDOUT ==")
+                output, error, returncode = await run_command(command,debug=self.debug)
+                if self.debug:
+                    print_color("== PreProcess STDOUT ==", "red")
+                # self._debug_print("== PreProcess STDOUT ==")
                 self._debug_print(output)
-                self._debug_print("== PreProcess STDERR ==")
+                if self.debug:
+                    print_color("== PreProcess STDERR ==", "red")
+                # self._debug_print("== PreProcess STDERR ==")
                 self._debug_print(error)
                 if returncode != 0:
                     raise RuntimeError(f"PreProcess command failed! returncode: {returncode}")
@@ -389,6 +395,10 @@ class TaskAgent:
     
     async def setup_mcp_servers(self, local_token_key_session: Dict) -> None:
         """设置并连接MCP服务器"""
+
+        if self.debug:
+            print_color("\n=== Starting to setup MCP servers ===", "blue")
+
         self.mcp_manager = MCPServerManager(
             agent_workspace=self.task_config.agent_workspace,
             config_dir=self.mcp_config.server_config_path,
@@ -484,11 +494,12 @@ class TaskAgent:
         
         return tool_calls_in_response
 
-    async def run_interaction_loop(self) -> None:
+    async def run_interaction_loop(self,
+                                   abs_original_task_root: str) -> None:
         """运行交互循环"""
         # 使用固定的 session_id
         self.session_id = f"task_{self.task_config.id}_session"
-        self.history_dir = os.path.join(self.task_config.task_root, "conversation_history")
+        self.history_dir = os.path.join(abs_original_task_root, "conversation_history")
         
         # 初始化对话历史
         self.logs = []  # 保留这个，用于传给 Runner
@@ -542,6 +553,9 @@ class TaskAgent:
         else:
             real_max_turns = self.task_config.max_turns
 
+        if self.debug:
+            print_color("=== Starting interaction loop ===", "blue")
+
         while self.stats["interaction_turns"] < real_max_turns:
             try:
                 # 每轮对话开始时重置累积的inner steps计数
@@ -551,10 +565,10 @@ class TaskAgent:
                 if self.single_turn_mode:
                     user_query = self.task_config.task_str
                 elif self.manual:
-                    user_query = await self.ainput("user: ")
+                    user_query = await self.ainput("USER: ")
                 else:
                     user_query = await self.user_simulator.interact()
-                    self._debug_print(f"user: {user_query}")
+                    self._debug_print(f"USER: {user_query}")
 
                 # 保存第一轮用户输入
                 if self.first_user_input is None:
@@ -619,7 +633,7 @@ class TaskAgent:
                         
                         # 统计这次运行使用的assiatant轮数
                         self.cumulative_inner_steps += turn_after - turn_before
-                        self._debug_print(f"Used {turn_after - turn_before} assistant turns, total: {self.cumulative_inner_steps}/{max_inner_steps}")
+                        self._debug_print(f"\033[90m[INFO] Used {turn_after - turn_before} assistant turns, total: {self.cumulative_inner_steps}/{max_inner_steps}\033[0m")
                         
                         # 成功完成，跳出循环
                         break
@@ -875,8 +889,17 @@ class TaskAgent:
             # 设置用户模拟器
             await self.setup_user_simulator()
             
+            # 切换工作目录为agent_workspace
+            current_dir = os.path.abspath(os.getcwd())
+            os.chdir(self.task_config.agent_workspace)
+            self._debug_print(f"Switched working directory to {self.task_config.agent_workspace}")
+            
             # 运行交互循环
-            await self.run_interaction_loop()
+            await self.run_interaction_loop(os.path.abspath(self.task_config.task_root))
+
+            # 切换回原工作目录
+            os.chdir(current_dir)
+            self._debug_print(f"Switched back working directory to {current_dir}")
             
             # 如果没有设置其他状态，则为成功
             if self.task_status not in [TaskStatus.MAX_TURNS_REACHED, TaskStatus.INTERRUPTED]:

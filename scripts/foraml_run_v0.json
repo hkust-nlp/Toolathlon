@@ -1,0 +1,38 @@
+{
+    "global_task_config":{
+        "max_turns": 50,
+        "max_steps_under_single_turn_mode": 200,
+        "dump_path":"./dumps",
+        "direct_to_dumps": true
+    },
+    "mcp":{
+        "server_config_path": "configs/mcp_servers"
+    },
+    "agent":{
+        "model":{
+            "short_name": "claude-4-sonnet-0514",
+            "provider": "aihubmix"
+        },
+        "generation":{
+            "temperature":0.6,
+            "top_p":1.0,
+            "max_tokens":4096
+        },
+        "tool":{
+            "tool_choice": "auto",
+            "parallel_tool_calls":true,
+            "max_inner_turns": 2000
+        }
+    },
+    "user":{
+        "model":{
+            "short_name": "gpt-5",
+            "provider": "aihubmix"
+        },
+        "generation":{
+            "temperature":1.0,
+            "top_p":1.0,
+            "max_tokens":1024
+        }
+    }
+}

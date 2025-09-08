@@ -1,0 +1,8 @@
+{
+    "needed_mcp_servers": [
+        "woocommerce",
+        "filesystem"
+    ],
+    "needed_local_tools": ["python_execute"],
+    "meta": {}
+}

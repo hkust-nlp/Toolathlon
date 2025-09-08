@@ -1,0 +1,23 @@
+# terminal controller
+# https://github.com/MladenSU/cli-mcp-server
+type: stdio
+name: terminal_unlimited
+params:
+  command: uvx
+  args:
+    - "cli-mcp-server"
+  env:
+    # you can add needed commands
+    ALLOWED_DIR: "${agent_workspace}"  # 仅允许对该目录下的文件进行读写
+    ALLOWED_COMMANDS: "all"
+    ALLOWED_FLAGS: "all"
+    MAX_COMMAND_LENGTH: "2048"
+    COMMAND_TIMEOUT: "60"
+    ALLOW_SHELL_OPERATORS: "true"
+    MAX_OUTPUT_LENGTH: "10240"
+    MAX_STDOUT_LENGTH: "8192"
+    MAX_STDERR_LENGTH: "2048"
+    CLI_PROXY_ENABLED: "false" # set to true if you want to use a proxy
+    CLI_PROXY_URL: "" # set to the proxy url if you want to use a proxy
+client_session_timeout_seconds: 60
+cache_tools_list: true

@@ -303,7 +303,7 @@ def print_color(text, color="yellow", end='\n'):
         'blue': '\033[94m',
         'magenta': '\033[95m',
         'cyan': '\033[96m',
-        'white': '\033[97m'
+        'white': '\033[97m',
     }
     
     reset_code = '\033[0m'
@@ -543,9 +543,9 @@ def build_user_client(user_config: UserConfig) -> AsyncOpenAIClientWithRetry:
         provider=user_config.model.provider,
     )
 
-def build_agent_model_provider(agent_config: AgentConfig) -> ModelProvider:
+def build_agent_model_provider(agent_config: AgentConfig, override_provider: str = None) -> ModelProvider:
     """构建Agent模型提供者"""
-    return model_provider_mapping[agent_config.model.provider]()
+    return model_provider_mapping[agent_config.model.provider if override_provider is None else override_provider]()
 
 def setup_proxy(use_proxy: bool = False) -> None:
     """设置代理"""
@@ -611,6 +611,17 @@ def get_module_path(replace_last: str = None) -> str:
 def normalize_str(xstring):
     # remove punctuation and whitespace and lowercase
     return re.sub(r'[^\w]', '', xstring).lower().strip()
+
+async def fork_repo(source_repo, target_repo, fork_default_branch_only, readonly=False):
+    command = f"uv run -m utils.app_specific.github.github_delete_and_refork "
+    command += f"--source_repo_name {source_repo} "
+    command += f"--target_repo_name {target_repo}"
+    if fork_default_branch_only:
+        command += " --default_branch_only"
+    if readonly:
+        command += " --read_only"
+    await run_command(command, debug=True, show_output=True)
+    print_color(f"Forked repo {source_repo} to {target_repo} successfully","green")
 
 if __name__=="__main__":
     pass

@@ -24,14 +24,12 @@ class TaskEvaluator:
         """
         task_config = TaskConfig.from_dict(dump_line['config'])
         task_status = dump_line['status']
-
         # 准备评估所需的信息
         res_log_file = task_config.log_file
         agent_workspace = task_config.agent_workspace
         groundtruth_workspace = task_config.evaluation.groundtruth_workspace
         eval_command = task_config.evaluation.evaluation_command
         launch_time = task_config.launch_time
-
         print(f"launch time in eval is {launch_time}")
 
         # 评估所有内容
@@ -39,7 +37,7 @@ class TaskEvaluator:
             # try:
             args = f"--res_log_file {res_log_file} --agent_workspace {agent_workspace} --groundtruth_workspace {groundtruth_workspace} --launch_time \"{launch_time}\""
             command = f"{eval_command} {args}"
-            output, error, returncode = await run_command(command)
+            output, error, returncode = await run_command(command, debug=True)
             print("== Evaluation STDOUT ==")
             print(output)
             print("== Evaluation STDERR ==")
@@ -72,13 +70,11 @@ class TaskEvaluator:
                     "failure": "log_file_not_found",
                     "details": f"Log file not found: {log_file_path}"
                 }
-
             # if allow_resume AND we can load pre exist eval res, we just load it
             eval_file_path = os.path.join(os.path.dirname(log_file_path),"eval_res.json")
             if allow_resume and os.path.exists(eval_file_path):
                 eval_res = read_json(eval_file_path)
                 return eval_res
-            
             # otherwise, we do real eval and store the eval result
             dump_line = read_json(log_file_path)
             eval_res = await TaskEvaluator.evaluate_one(dump_line)

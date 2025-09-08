@@ -1,0 +1,5 @@
+{
+    "needed_mcp_servers": ["huggingface", "github", "terminal"],
+    "needed_local_tools": ["python_execute","claim_done","web_search","handle_overlong_tool_outputs"],
+    "meta": {}
+}

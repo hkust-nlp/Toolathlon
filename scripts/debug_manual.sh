@@ -7,7 +7,10 @@
 
 uv run demo.py \
 --eval_config scripts/debug_eval_config.json \
---task_dir debug/debug-task \
+--task_dir finalpool/k8s-redis-helm-upgrade \
 --debug \
+--model_short_name claude-4-sonnet-0514 \
+--provider aihubmix \
+--max_steps_under_single_turn_mode 200 \
 --multi_turn_mode \
---manual
+--manual \

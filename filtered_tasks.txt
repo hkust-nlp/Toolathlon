@@ -17,7 +17,7 @@ nvidia-stock-analysis
 paper-checker
 privacy-desensitization
 profile-update-online
-prompt-latex
+latex-prompt-table
 reimbursement-form-filler
 sales-accounting
 search-ca-school
@@ -28,4 +28,4 @@ university-course-selection
 upenn-campus-route
 verl-dataset
 vlm-history-completer
-travel_exchange 
+travel-exchange 

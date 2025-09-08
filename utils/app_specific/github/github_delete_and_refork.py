@@ -28,25 +28,29 @@ def main():
 
     source_repo_name = args.source_repo_name
     target_repo_name = args.target_repo_name
-    target_repo_org = None
+    target_repo_org_or_user = None
+
+    username = requests.get("https://api.github.com/user", headers=headers).json()["login"]
 
     if "/" in target_repo_name:
-        target_repo_org = target_repo_name.split("/")[0]
+        target_repo_org_or_user = target_repo_name.split("/")[0]
         target_repo_name = target_repo_name.split("/")[1]
+    else:
+        target_repo_org_or_user = username
 
     # if the task is readonly, we just need to check if the target repo exists
     # as globally we only need to fork once
 
     # first check if the target repo exists
     existed_flag = False
-    if requests.get(f"https://api.github.com/repos/{target_repo_name}", headers=headers).status_code == 200:
-        print_color(f"Target repo {target_repo_name} already exists","green")
+    if requests.get(f"https://api.github.com/repos/{target_repo_org_or_user}/{target_repo_name}", headers=headers).status_code == 200:
+        print_color(f"Target repo {target_repo_org_or_user}/{target_repo_name} already exists","green")
         existed_flag = True
     else:
-        print_color(f"Target repo {target_repo_name} does not exist","yellow")
+        print_color(f"Target repo {target_repo_org_or_user}/{target_repo_name} does not exist","yellow")
 
     if args.read_only and existed_flag:
-        print_color(f"This is a read only task and target repo {target_repo_name} already exists, skipping...","green")
+        print_color(f"This is a read only task and target repo {target_repo_org_or_user}/{target_repo_name} already exists, skipping...","green")
         return
 
     # in all other cases: 1) write tasks, or, 2) read tasks but we have not forked yet
@@ -54,17 +58,17 @@ def main():
     # then fork the repo
 
     if existed_flag:
-        print_color(f"Deleting repo {source_repo_name} and reforking to {target_repo_name}","cyan")
+        print_color(f"Deleting repo {source_repo_name} and reforking to {target_repo_org_or_user}/{target_repo_name}","cyan")
         
         # delete the target repo first if it exists
-        delete_url = f"https://api.github.com/repos/{target_repo_name}"
+        delete_url = f"https://api.github.com/repos/{target_repo_org_or_user}/{target_repo_name}"
 
         response = requests.delete(delete_url, headers=headers)
         if response.status_code == 204:
-            print_color(f"Deleted repo {target_repo_name}","green")
+            print_color(f"Deleted repo {target_repo_org_or_user}/{target_repo_name}","green")
         else:
-            print_color(f"Failed to delete repo {target_repo_name}","red")
-            raise Exception(f"Failed to delete repo {target_repo_name}")
+            print_color(f"Failed to delete repo {target_repo_org_or_user}/{target_repo_name}","red")
+            raise Exception(f"Failed to delete repo {target_repo_org_or_user}/{target_repo_name}")
     
     print_color(f"Forking repo {source_repo_name} to {target_repo_name}","cyan")
     # refork the repo
@@ -73,8 +77,8 @@ def main():
         "name": target_repo_name,
         "default_branch_only": args.default_branch_only
     }
-    if target_repo_org is not None:
-        data["organization"] = target_repo_org
+    if target_repo_org_or_user is not None and target_repo_org_or_user != username:
+        data["organization"] = target_repo_org_or_user
         
     response = requests.post(fork_url, headers=headers, json=data)
     if response.status_code == 202:
@@ -83,7 +87,7 @@ def main():
         print_color(f"Failed to fork repo {source_repo_name} to {target_repo_name}","red")
         raise Exception(f"Failed to fork repo {source_repo_name} to {target_repo_name}")
     
-    print_color(f"Forked repo {source_repo_name} to {target_repo_name} successfully","green")
+    # print_color(f"Forked repo {source_repo_name} to {target_repo_name} successfully","green")
 
 if __name__ == "__main__":
     main()

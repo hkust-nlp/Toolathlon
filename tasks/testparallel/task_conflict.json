@@ -1,0 +1,7 @@
+{
+    "conflict_groups": [
+        ["count-weekly-cost", "count-weekly-cost-2"],
+        ["count-weekly-cost-3", "count-weekly-cost-4"],
+        ["count-weekly-cost-5", "count-weekly-cost-6", "count-weekly-cost-7"]
+    ]
+}

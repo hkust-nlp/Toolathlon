@@ -1,0 +1,1 @@
+模型应该能找到两个数据集的页面，在Raw里，我们写了数据构造自HuggingfaceTB Team的原始数据集，模型应当能从这里找到PythonEdu的原始数据集并获取其license。然后再Reasoning里我们写了这个是用DeepSeek-V2.5合成的，模型应当能找到该模型的license。后续就比较直接了。

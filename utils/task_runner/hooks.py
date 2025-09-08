@@ -1,5 +1,6 @@
 from typing import Any
 from agents import AgentHooks, RunHooks, RunContextWrapper, Agent, Tool, TContext
+from utils.general.helper import print_color
 
 class AgentLifecycle(AgentHooks):
     """Agent生命周期钩子"""
@@ -40,7 +41,7 @@ class RunLifecycle(RunHooks):
     ) -> None:
         """工具调用开始时的钩子"""
         if self.debug:
-            print('>>调用工具', tool.name)
+            print_color(f'>>>>Invoking tool: {tool.name}', "cyan")
         
     async def on_tool_end(
         self,
@@ -51,4 +52,4 @@ class RunLifecycle(RunHooks):
     ) -> None:
         """工具调用结束时的钩子"""
         if self.debug:
-            print('>>收到工具执行结果', tool.name)
+            print_color(f'>>>>Tool execution result: {tool.name}', "cyan")

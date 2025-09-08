@@ -9,5 +9,5 @@ params:
     - "mcp-server-kubernetes"
   env:
     KUBECONFIG_PATH: "${token.kubeconfig_path}"
-client_session_timeout_seconds: 10
+client_session_timeout_seconds: 600
 cache_tools_list: true
