@@ -6,6 +6,72 @@ import requests
 from urllib.parse import urlparse
 from configs.token_key_session import all_token_key_session
 
+# -----------------------
+# Cleanup support (module-level)
+# -----------------------
+_cleanup_github_repo = None
+_cleanup_hf_datasets = None
+_cleanup_github_token = None
+_cleanup_hf_token = None
+
+def _extract_hf_dataset_id(hf_url: str):
+    if not hf_url:
+        return None
+    try:
+        p = urlparse(hf_url)
+        parts = p.path.strip("/").split("/")
+        idx = parts.index("datasets")
+        ns = parts[idx + 1]
+        name = parts[idx + 2]
+        return f"{ns}/{name}"
+    except Exception:
+        return None
+
+def _final_cleanup():
+    github_repo = _cleanup_github_repo
+    hf_datasets = _cleanup_hf_datasets
+    github_token = _cleanup_github_token
+    hf_token = _cleanup_hf_token
+
+    # Delete GitHub repo if possible
+    try:
+        if github_repo and github_token:
+            headers = {
+                "Authorization": f"token {github_token}",
+                "Accept": "application/vnd.github+json",
+                "X-GitHub-Api-Version": "2022-11-28",
+            }
+            del_url = f"https://api.github.com/repos/{github_repo}"
+            r = requests.delete(del_url, headers=headers)
+            # 204 No Content is success; 404 Not Found means already gone
+            if r.status_code not in (204, 404):
+                print(f"Cleanup: Failed to delete GitHub repo {github_repo}: {r.status_code} {r.text}")
+    except Exception as e:
+        print(f"Cleanup: Exception while deleting GitHub repo {github_repo}: {e}")
+
+    # Delete HF datasets if possible
+    try:
+        if isinstance(hf_datasets, dict) and hf_token:
+            try:
+                from huggingface_hub import HfApi
+            except Exception as e:
+                print(f"Cleanup: huggingface_hub not available, skip HF deletion: {e}")
+                return
+
+            api = HfApi()
+            for key in ["reasoning", "raw"]:
+                rid_url = (hf_datasets or {}).get(key)
+                rid = _extract_hf_dataset_id(rid_url)
+                if not rid:
+                    continue
+                try:
+                    api.delete_repo(repo_id=rid, repo_type="dataset", token=hf_token)
+                except Exception as e:
+                    # Ignore not found and other non-fatal errors
+                    print(f"Cleanup: Failed to delete HF dataset {rid}: {e}")
+    except Exception as e:
+        print(f"Cleanup: Exception while deleting HF datasets: {e}")
+
 def main():
     parser = ArgumentParser()
     # 对齐 investment_analysis/evaluation/main.py 的入参风格
@@ -19,6 +85,7 @@ def main():
     task_state = read_json(task_state_file)
 
     github_token = all_token_key_session.github_token
+    hf_token = all_token_key_session.huggingface_token
 
 
     """
@@ -38,6 +105,13 @@ def main():
     issue_number = task_state.get("issue_number")
     hf_datasets = task_state.get("hf_datasets")
     latest_commit_hash = task_state.get("latest_commit_hash")
+
+    # Update cleanup context as early as possible
+    global _cleanup_github_repo, _cleanup_hf_datasets, _cleanup_github_token, _cleanup_hf_token
+    _cleanup_github_repo = github_repo
+    _cleanup_hf_datasets = hf_datasets
+    _cleanup_github_token = github_token
+    _cleanup_hf_token = hf_token
 
     # 最开始检查现在的repo commithash有没有变过
     # 如果变了直接返回false
@@ -188,6 +262,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    finally:
+        _final_cleanup()
 
 
