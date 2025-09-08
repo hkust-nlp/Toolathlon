@@ -1,0 +1,16 @@
+{
+  "bom_sheet_name": "BOM",
+  "inventory_sheet_name": "Material_Inventory",
+  "product_mapping": {
+    "CHAIR_001": {
+      "woocommerce_id": "247"
+    },
+    "TABLE_001": {
+      "woocommerce_id": "248"
+    },
+    "DESK_001": {
+      "woocommerce_id": "249"
+    }
+  },
+  "spreadsheet_id": "13K_oZ32wICyZUai_ETcwicAP2K2P0_pZ"
+}

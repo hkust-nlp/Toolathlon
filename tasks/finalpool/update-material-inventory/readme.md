@@ -1,0 +1,1 @@
+**要先运行一下preprocess里的main.py （e.g., python /ssddata/cyxuan/mcpbench_dev/tasks/yuxuan/update-material-inventory/preprocess/main.py --setup_test --agent_workspace /ssddata/cyxuan/mcpbench_dev/recorded_trajectories_v2/run1/claude-4-sonnet-0514/yuxuan/SingleUserTurn-update-material-inventory），创建好/清空好woocommerce的环境和Google Sheets表格后再bash运行此任务，可能这里有一些集成没做好**
