@@ -126,7 +126,8 @@ class AsyncTaskScheduler:
     
     async def run_single_task(self, task_dir_arg: str, tag: str, 
                              model_short_name: str, provider: str, 
-                             maxstep: str, timeout: int = 1800):
+                             maxstep: str, timeout: int = 1800, eval_config: str = "scripts/foraml_run_v0.json",
+                             dump_path: str = "./dumps"):
         """改进版：更智能的任务调度"""
         
         conflict_lock = self.get_task_lock(task_dir_arg)
@@ -141,7 +142,7 @@ class AsyncTaskScheduler:
                     async with self.semaphore:  # 获得锁后再占用worker
                         return await self._execute_task(
                             task_dir_arg, tag, model_short_name, 
-                            provider, maxstep, timeout, has_lock=True
+                            provider, maxstep, timeout, has_lock=True, eval_config=eval_config, dump_path=dump_path
                         )
             finally:
                 self.waiting_for_lock.discard(task_dir_arg)
@@ -152,7 +153,7 @@ class AsyncTaskScheduler:
                 async with self.semaphore:
                     return await self._execute_task(
                         task_dir_arg, tag, model_short_name, 
-                        provider, maxstep, timeout, has_lock=True
+                        provider, maxstep, timeout, has_lock=True, eval_config=eval_config, dump_path=dump_path
                     )
         
         else:
@@ -160,15 +161,16 @@ class AsyncTaskScheduler:
             async with self.semaphore:
                 return await self._execute_task(
                     task_dir_arg, tag, model_short_name, 
-                    provider, maxstep, timeout, has_lock=False
+                    provider, maxstep, timeout, has_lock=False, eval_config=eval_config, dump_path=dump_path
                 )
     
     async def _execute_task(self, task_dir_arg: str, tag: str, 
                            model_short_name: str, provider: str, 
-                           maxstep: str, timeout: int, has_lock: bool):
+                           maxstep: str, timeout: int, has_lock: bool, eval_config: str = "scripts/foraml_run_v0.json",
+                           dump_path: str = "./dumps"):
         """实际执行任务"""
         command = f"bash scripts/run_single_containerized.sh " \
-                 f"{task_dir_arg} {tag} {model_short_name} {provider} {maxstep}"
+                 f"{task_dir_arg} {tag} {model_short_name} {provider} {maxstep} {eval_config} {dump_path}"
         
         # 构建日志文件路径
         # task_dir_arg 格式: tasks_folder/task
@@ -180,8 +182,8 @@ class AsyncTaskScheduler:
             tasks_folder = ""
             task_name = task_dir_arg
         
-        log_file = os.path.join("logs_containers", tasks_folder, task_name, 
-                               f"{model_short_name}_{tag}.log")
+        # Updated to use container log path in dump_path structure
+        log_file = os.path.join(dump_path, tasks_folder, task_name, "container.log")
         
         task_start = datetime.now()
         lock_status = "with lock" if has_lock else "no lock"
@@ -258,7 +260,7 @@ class AsyncTaskScheduler:
         print(f"  Max concurrent workers: {self.max_workers}")
         print(f"{'='*60}\n")
 
-def analyze_results(all_task_dir_args: List[str], model_short_name: str, tag: str) -> TaskResult:
+def analyze_results(all_task_dir_args: List[str], model_short_name: str, tag: str, dump_path: str = "dumps") -> TaskResult:
     """
     分析任务执行结果
     检查 dumps/{task_folder}/{task}/{model_short_name}_{tag}_output/eval_res.json
@@ -275,10 +277,9 @@ def analyze_results(all_task_dir_args: List[str], model_short_name: str, tag: st
             tasks_folder = ""
             task_name = task_dir_arg
         
-        # 构建输出文件路径
+        # 构建输出文件路径 - 现在文件直接在任务目录下，不在{model}_{tag}_output子目录
         eval_res_path = os.path.join(
-            "dumps", tasks_folder, task_name, 
-            f"{model_short_name}_{tag}_output", "eval_res.json"
+            dump_path, tasks_folder, task_name, "eval_res.json"
         )
         
         if not os.path.exists(eval_res_path):
@@ -323,6 +324,12 @@ async def main():
     parser.add_argument("--workers", required=False, default=100, type=int)
     parser.add_argument("--timeout", required=False, default=1800, type=int, 
                        help="Timeout for each task in seconds (default: 1800 = 30 minutes)")
+    parser.add_argument("--dump_path", required=False, default=None,
+                       help="Custom path to save results (optional)")
+    parser.add_argument("--task_list", required=False, default=None,
+                       help="Path to task list file to filter tasks (optional, e.g., filtered_tasks.txt)")
+    parser.add_argument("--eval_config", required=False, default="scripts/foraml_run_v0.json",
+                       help="Path to evaluation config file (default: scripts/foraml_run_v0.json)")
     
     args = parser.parse_args()
     
@@ -337,6 +344,36 @@ async def main():
     all_tasks = sorted(os.listdir(full_tasks_folder))  # 排序以保证顺序一致
     all_task_dir_args = [f"{args.tasks_folder}/{task}" for task in all_tasks 
                          if os.path.isdir(os.path.join(full_tasks_folder, task))]
+    
+    # 如果提供了任务列表文件，则过滤任务
+    if args.task_list:
+        if not os.path.exists(args.task_list):
+            print(f"Error: Task list file '{args.task_list}' not found!")
+            return
+        
+        # 读取任务列表文件
+        try:
+            with open(args.task_list, 'r', encoding='utf-8') as f:
+                task_names = []
+                for line in f:
+                    line = line.strip()
+                    # 跳过空行和注释行（以#开头）
+                    if line and not line.startswith('#'):
+                        task_names.append(line)
+            
+            # 过滤任务目录参数，只保留列表中的任务
+            filtered_task_dir_args = []
+            for task_dir_arg in all_task_dir_args:
+                task_name = task_dir_arg.split('/')[-1]  # 获取任务名称
+                if task_name in task_names:
+                    filtered_task_dir_args.append(task_dir_arg)
+            
+            all_task_dir_args = filtered_task_dir_args
+            print(f"Filtered to {len(all_task_dir_args)} tasks from task list: {args.task_list}")
+            
+        except Exception as e:
+            print(f"Error reading task list file '{args.task_list}': {e}")
+            return
     
     if not all_task_dir_args:
         print("No tasks found!")
@@ -364,6 +401,15 @@ async def main():
     print(f"  Max steps: {args.maxstep}")
     print(f"  Max concurrent workers: {args.workers}")
     print(f"  Timeout per task: {args.timeout}s ({args.timeout/60:.1f} minutes)")
+    if args.dump_path:
+        print(f"  Custom dump path: {args.dump_path}")
+    else:
+        print(f"  Default dump path: ./results")
+    if args.task_list:
+        print(f"  Task list filter: {args.task_list}")
+    else:
+        print(f"  Task list filter: None (all tasks)")
+    print(f"  Eval config: {args.eval_config}")
     
     if task_conflict_info:
         print(f"  Conflict groups: {len(task_conflict_info)} groups")
@@ -381,7 +427,7 @@ async def main():
     tasks = [
         scheduler.run_single_task(
             task_dir_arg, tag, args.model_short_name, 
-            args.provider, args.maxstep, args.timeout
+            args.provider, args.maxstep, args.timeout, args.eval_config, args.dump_path
         )
         for task_dir_arg in all_task_dir_args
     ]
@@ -424,9 +470,9 @@ async def main():
     print(f"{'='*60}")
     print(f"ANALYZING RESULTS FROM OUTPUT FILES")
     print(f"{'='*60}")
-    print(f"Checking eval_res.json files in dumps/{args.tasks_folder}/*/{{model}}_{tag}_output/\n")
+    print(f"Checking eval_res.json files in {args.dump_path}/{args.tasks_folder}/*/\n")
     
-    task_result = analyze_results(all_task_dir_args, args.model_short_name, tag)
+    task_result = analyze_results(all_task_dir_args, args.model_short_name, tag, args.dump_path)
     
     # 打印最终统计
     print(f"\n{'='*60}")
@@ -483,7 +529,14 @@ async def main():
             print(f"    - {task}")
     
     # 生成结果报告文件
-    report_file = f"./results/execution_report_{args.tasks_folder}_{args.model_short_name}_{tag}.json"
+    if args.dump_path:
+        # 使用自定义保存路径
+        results_dir = args.dump_path
+    else:
+        # 使用默认路径
+        results_dir = "./results"
+    
+    report_file = f"{results_dir}/execution_report_{args.tasks_folder}_{args.model_short_name}_{tag}.json"
     os.makedirs(os.path.dirname(report_file), exist_ok=True)
     report_data = {
         "execution_time": datetime.now().isoformat(),
