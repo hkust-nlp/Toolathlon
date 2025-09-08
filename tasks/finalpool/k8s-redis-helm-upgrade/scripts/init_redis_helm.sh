@@ -4,6 +4,7 @@ agent_workspace=$3
 
 # 设置变量
 k8sconfig_path_dir=${agent_workspace}/k8s_configs
+backup_k8sconfig_path_dir=deployment/k8s/configs
 cluster_name="cluster-redis-helm"
 resource_yaml="${agent_workspace}/k8s_configs/redis_helm_namespace.yaml"
 helm_repo_name="bitnami"
@@ -72,6 +73,14 @@ cleanup_config_files() {
     log_info "No configuration file found for ${cluster_name}"
   fi
   mkdir -p "$k8sconfig_path_dir"
+  local backup_config_path="$backup_k8sconfig_path_dir/${cluster_name}-config.yaml"
+  log_info "Clean up backup configuration file: $backup_config_path"
+  if [ -f "$backup_config_path" ]; then
+    rm -f "$backup_config_path"
+    log_info "Backup configuration file cleaned up"
+  else
+    log_info "No backup configuration file found for ${cluster_name}"
+  fi
 }
 
 # 停止操作
@@ -408,6 +417,7 @@ start_operation() {
   cleanup_config_files
   show_inotify_status
   configpath="$k8sconfig_path_dir/${cluster_name}-config.yaml"
+  backup_configpath="$backup_k8sconfig_path_dir/${cluster_name}-config.yaml"
 
   echo ""
   log_info "========== Processing cluster ${cluster_name} =========="
@@ -432,6 +442,9 @@ start_operation() {
   # Update: no need to do so I think
   # copy_values_to_home
   
+  # 复制配置文件到备份目录
+  cp "$configpath" "$backup_configpath"
+
   log_info "========== Redis Helm deployment completed =========="
   log_info "Cluster: $cluster_name"  # 应该加上这行
   log_info "Redis has been deployed to namespace: $namespace"
@@ -446,6 +459,7 @@ start_operation() {
   kind get clusters
   log_info "Generated configuration files:"
   ls -la "$k8sconfig_path_dir"/*.yaml 2>/dev/null || log_warning "No configuration files found"
+  ls -la "$backup_k8sconfig_path_dir"/*.yaml 2>/dev/null || log_warning "No backup configuration files found"
   show_inotify_status
 }
 
