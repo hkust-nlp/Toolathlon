@@ -1,3 +1,5 @@
-- All amounts must be accurate to 2 decimal places
-- Months must be in chronological order
-- Total amount must be the exact sum of all monthly amounts
+- Fill the Department with R&D Department and fill Applicant's name with Lei WANG.
+- Only consider the taxi receipt while reviewing the PDFs.
+- Use numerical format to save numerical information and all amounts must be accurate to 2 decimal places.
+- The format of the months must be YYYY-MM and arranged in chronological order
+- In total reimbursement, first calculate and fill in the sum of each month separately, then fill total amount with the exact sum of all monthly amounts.
