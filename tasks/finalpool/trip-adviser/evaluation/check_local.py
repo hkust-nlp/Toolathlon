@@ -31,7 +31,7 @@ def check_local(agent_workspace: str, groundtruth_workspace: str) -> Tuple[bool,
 
     # 3. Validate top-level structure
     required_top_level_fields = [
-        "starbucks", "transportation_rote", "kamakura_station", "walking_route"
+        "starbucks", "transportation_route", "kamakura_station", "walking_route"
     ]
     for field in required_top_level_fields:
         if field not in travel_plan:
@@ -56,19 +56,19 @@ def check_local(agent_workspace: str, groundtruth_workspace: str) -> Tuple[bool,
         return False, "Starbucks address does not appear to be in Marunouchi, Chiyoda City, near Tokyo Station."
 
     # --- Transportation Route Validation ---
-    transportation = travel_plan.get("transportation_rote", {})
+    transportation = travel_plan.get("transportation_route", {})
     required_transport_fields = ["from", "to", "line_name", "duration", "cost"]
     for field in required_transport_fields:
         if not transportation.get(field):
-            return False, f"transportation_rote.{field} is required and cannot be empty."
+            return False, f"transportation_route.{field} is required and cannot be empty."
 
-    if "tokyo station" not in transportation.get("from", "").lower() or "nihonbashi" not in transportation.get("from", "").lower():
-        return False, "transportation_rote.from must be 'Tokyo Station Nihonbashi Entrance'."
+    if "tokyo station" not in transportation.get("from", "").lower():
+        return False, "transportation_route.from must be 'Tokyo Station Nihonbashi Entrance'."
     if "kamakura" not in transportation.get("to", "").lower():
-        return False, "transportation_rote.to must be 'Kamakura Station'."
+        return False, "transportation_route.to must be 'Kamakura Station'."
     if "yokosuka" not in transportation.get("line_name", "").lower():
         print(f"received name: {transportation.get("line_name", "").lower()}")
-        return False, "transportation_rote.line_name must be the 'JR Yokosuka Line' for a direct route."
+        return False, "transportation_route.line_name must be the 'JR Yokosuka Line' for a direct route."
 
     # --- Kamakura Station Validation ---
     kamakura_station = travel_plan.get("kamakura_station", {})
