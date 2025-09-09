@@ -1,0 +1,9 @@
+{
+    "needed_mcp_servers": ["filesystem", "emails", "notion", "pdf-tools"], 
+    "needed_local_tools": ["claim_done","handle_overlong_tool_outputs"],
+    "meta": {
+        "task_type": "hr_candidate_management",
+        "target_page": "HR-Record",
+        "output_format": "Updated notion database with candidate information and sent emails for positions with no openings"
+    }
+}

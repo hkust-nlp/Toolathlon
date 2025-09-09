@@ -2,7 +2,7 @@
 # https://github.com/ZubeidHendricks/youtube-mcp-server
 # this servers has been mostly fixed, however, the transcript retrieval is still buddy .. .idk why
 type: stdio
-name: google-forms
+name: google_forms
 params:
   command: node
   args:

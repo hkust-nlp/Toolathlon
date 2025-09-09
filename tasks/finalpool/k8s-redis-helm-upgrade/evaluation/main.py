@@ -37,7 +37,7 @@ def check_helm_upgrade(workspace_dir: str) -> Dict[str, Any]:
     
     try:
         # Check if kubeconfig exists
-        kubeconfig_path = "deployment/k8s/configs/cluster-redis-helm-config.yaml"
+        kubeconfig_path = f"{workspace_dir}/k8s_configs/cluster-redis-helm-config.yaml"
         if not os.path.exists(kubeconfig_path):
             return {"error": "Kubeconfig not found"}
         
@@ -60,10 +60,11 @@ def check_helm_upgrade(workspace_dir: str) -> Dict[str, Any]:
                 if version_match:
                     result["current_version"] = version_match.group(1)
                 
-                # Check if upgrade was performed (revision > 1)
-                if result["revision"] > 1:
+                # Check if upgrade was performed by comparing current version with target
+                if result["current_version"] == TARGET_VERSION:
                     result["upgrade_performed"] = True
                     result["previous_version"] = "19.0.0"  # Initial version we deployed
+
         
         # Check if pods are running
         cmd = f"kubectl get pods -n shared-services --kubeconfig {kubeconfig_path} -o json"
@@ -171,9 +172,13 @@ def evaluate(workspace_dir: str) -> Dict[str, Any]:
         }
     
     # Create evaluation report
+    current_version = details.get("current_version", "")
+    
+    # Upgrade is successful only if version is exactly the target version
+    upgrade_to_target_successful = (current_version == TARGET_VERSION)
+    
     scores = {
-        "upgrade_performed": 1.0 if details.get("upgrade_performed") else 0.0,
-        "correct_target_version": 1.0 if (details.get("current_version") == TARGET_VERSION) else 0.0,
+        "upgrade_to_target_version": 1.0 if upgrade_to_target_successful else 0.0,
         "custom_values_preserved": 1.0 if details.get("custom_values_applied") else 0.0,
         "pods_running": 1.0 if details.get("verification_checks", {}).get("pods_running") else 0.0,
         "service_available": 1.0 if details.get("verification_checks", {}).get("service_available") else 0.0,
@@ -202,11 +207,11 @@ def evaluate(workspace_dir: str) -> Dict[str, Any]:
         report["message"] = f"Successfully upgraded Redis from version {details.get('previous_version')} to {details.get('current_version')} with custom configuration preserved."
     else:
         issues = []
-        if not details.get("upgrade_performed"):
-            issues.append("Upgrade was not performed")
-        if details.get("current_version") != TARGET_VERSION:
-            current_ver = details.get("current_version", "unknown")
-            issues.append(f"Version is {current_ver}, expected {TARGET_VERSION}")
+        if not upgrade_to_target_successful:
+            if current_version:
+                issues.append(f"Version is {current_version}, expected {TARGET_VERSION}")
+            else:
+                issues.append(f"Could not determine version, expected {TARGET_VERSION}")
         if not details.get("custom_values_applied"):
             issues.append("Custom values do not match expected configuration")
         if not details.get("verification_checks", {}).get("pods_running"):

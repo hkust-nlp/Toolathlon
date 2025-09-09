@@ -12,7 +12,11 @@ class Model:
     def __post_init__(self):
         """如果没有提供real_name，默认使用short_name"""
         if self.real_name is None:
-            self.real_name = API_MAPPINGS[self.short_name].api_model[self.provider]
+            # For local VLLM provider, use the model name as-is without mapping
+            if self.provider == "local_vllm":
+                self.real_name = self.short_name
+            else:
+                self.real_name = API_MAPPINGS[self.short_name].api_model[self.provider]
         if "claude" in self.real_name and "3.7" in self.real_name:
             print("\033[91m" + "Warning: we suggest you to use **claude-4-sonnet** instead of **claude-3.7-sonnet**, as they have the same price and obviously the former is better." + "\033[0m")
 
