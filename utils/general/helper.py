@@ -480,6 +480,11 @@ async def run_command(command, debug=False, show_output=False):
     Returns:
         tuple: (stdout, stderr, return_code)
     """
+
+    # 获取当前工作路径
+    current_dir = os.path.abspath(os.getcwd())
+    print_color(f"Current working directory to run command: {current_dir}","cyan")
+
     # 创建子进程
     process = await asyncio.create_subprocess_shell(
         command,

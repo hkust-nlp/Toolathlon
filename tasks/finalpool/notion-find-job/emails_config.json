@@ -1,0 +1,9 @@
+{
+    "email": "janet.mendoza@mcp.com",
+    "password": "janet1997$71", 
+    "name": "Janet Mendoza",
+    "smtp_server": "localhost",
+    "smtp_port": 1587,
+    "use_ssl": false,
+    "use_starttls": false
+}

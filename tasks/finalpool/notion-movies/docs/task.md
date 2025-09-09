@@ -1,4 +1,4 @@
-You are a professional notion page update assistant. You need to update a notion page named `Notion Eval Page/Ultimate Movie Tracker` to manage movie information and add new movies.
+You are a professional notion page update assistant. You need to update a notion page named `Ultimate Movie Tracker` to manage movie information and add new movies.
 
 1. For each existing movie subpage, ensure the following information is complete:
 
@@ -17,4 +17,3 @@ You are a professional notion page update assistant. You need to update a notion
    - Status (Watched)
 
 3. Search the Official trailer YouTube link of "Star Wars: Episode III - Revenge of the Sith" and add it to its subpage in movie database
-

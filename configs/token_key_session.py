@@ -21,7 +21,7 @@ all_token_key_session = Dict(
     serper_api_key = "96b064e2511394e4b7326a678b716eac8c24c662", # TO BR FILLED, you can fill in multiple keys separated by comma
 
     #### Google
-    google_cloud_console_api_key = "AIzaSyD8Q5ZPqCDZIgjOwBc9QtbdFLfGkijBmMU", # TO BR FILLED
+    google_cloud_console_api_key = "AIzaSyDSrjqAk9N9ZBX2T7hH5R7cxhw4MMiTnu8", # TO BR FILLED
     
     gcp_project_id = "mcp-bench0606", # TO BE FILLED
     gcp_service_account_path = "configs/gcp-service_account.keys.json", # TO BE FILLED
