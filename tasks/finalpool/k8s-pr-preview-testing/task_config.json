@@ -1,0 +1,11 @@
+{
+    "needed_mcp_servers": [
+        "terminal",
+        "filesystem",
+        "playwright_with_chunk",
+        "k8s"
+    ],
+    "needed_local_tools": ["claim_done","handle_overlong_tool_outputs"],
+    "meta": {
+    }
+}

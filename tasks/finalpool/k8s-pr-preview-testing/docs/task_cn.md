@@ -1,0 +1,2 @@
+帮我把lockon-n/SimpleShopping仓库的feature/pr-123分支部署到k8s里，需参照preview.yaml创建configmap，并确保主机可直接通过http://localhost:30123长期访问该页面。
+部署完后用该分支下的测试脚本进行测试，并更新测试结果在分支下的对应的测试报告文件，里并将填完的报告另存为工作区根目录下的filled-test-results-report.md。
