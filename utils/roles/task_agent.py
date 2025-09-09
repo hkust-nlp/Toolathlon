@@ -868,6 +868,10 @@ class TaskAgent:
     
     async def run(self) -> TaskStatus:
         """运行整个任务"""
+
+        # 保存当前工作目录
+        current_dir = os.path.abspath(os.getcwd())
+
         try:
             # 设置日志文件路径
             self.task_config.log_file = os.path.join(self.task_config.task_root, "log.json")
@@ -890,7 +894,6 @@ class TaskAgent:
             await self.setup_user_simulator()
             
             # 切换工作目录为agent_workspace
-            current_dir = os.path.abspath(os.getcwd())
             os.chdir(self.task_config.agent_workspace)
             self._debug_print(f"Switched working directory to {self.task_config.agent_workspace}")
             
@@ -921,6 +924,10 @@ class TaskAgent:
             self.task_status = TaskStatus.FAILED
             
         finally:
+            # 切换回原工作目录，in all cases
+            os.chdir(current_dir)
+            self._debug_print(f"Switched back working directory to {current_dir}")
+
             # 计算最终的成本摘要（这会更新token统计）
             user_cost, agent_cost = self.get_cost_summary()
             

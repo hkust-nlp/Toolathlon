@@ -10,12 +10,16 @@ tag=${2:-"testrun"}
 modelname=${3:-"testmodel"}
 provider=${4:-"testprovider"}
 maxstep=${5:-"testmaxstep"}
+eval_config=${6:-"scripts/foraml_run_v0.json"}
+dump_path=${7:-"./dumps"}
 
 taskdomain=${task_dir_arg%/*}
 taskname=${task_dir_arg#*/}
 
-log_path="./logs/${taskdomain}/${taskname}/${modelname}_${tag}.log"
-output_folder="./dumps/${taskdomain}/${taskname}/${modelname}_${tag}_output"
+# Updated log paths to use dump_path
+container_log_path="${dump_path}/${taskdomain}/${taskname}/container.log"
+run_log_path="${dump_path}/${taskdomain}/${taskname}/run.log"
+output_folder="${dump_path}/${taskdomain}/${taskname}"
 
 
 if [ -z "$task_dir_arg" ] || [ -z "$tag" ] || [ -z "$modelname" ]; then
@@ -33,8 +37,10 @@ echo "Project root: $PROJECT_ROOT"
 echo "Task directory: $task_dir_arg"
 echo "Tag: $tag"
 echo "Modelname: $modelname"
-echo "Log path: $log_path"
+echo "Container log: $container_log_path"
+echo "Run log: $run_log_path"
 echo "Output folder: $output_folder"
+echo "Dump path: $dump_path"
 
 # Read container runtime configuration
 CONTAINER_RUNTIME=$(uv run python -c "
@@ -111,11 +117,13 @@ done
 # Verify task directory existence
 echo "  ✓ Task directory: tasks/$task_dir_arg"
 
-# Ensure log directory exists
-LOG_DIR=$(dirname "$log_path")
-mkdir -p "$LOG_DIR"
-LOG_PATH_ABS=$(readlink -f "$log_path")
-LOG_FILE_NAME=$(basename "$log_path")
+# Ensure log directories exist
+CONTAINER_LOG_DIR=$(dirname "$container_log_path")
+RUN_LOG_DIR=$(dirname "$run_log_path")
+mkdir -p "$CONTAINER_LOG_DIR"
+mkdir -p "$RUN_LOG_DIR"
+CONTAINER_LOG_PATH_ABS=$(readlink -f "$container_log_path")
+RUN_LOG_FILE_NAME=$(basename "$run_log_path")
 
 # Ensure output folder exists
 mkdir -p "$output_folder"
@@ -176,11 +184,11 @@ fi
 START_CONTAINER_ARGS+=(    
     # Mount results directory (read-write)
     
-    # TODO: 在容器中运行时，直接输出到dumps
+    # Mount the specific task output folder to /workspace/dumps
     "-v" "$PROJECT_ROOT/$output_folder:/workspace/dumps"
     
     # Mount log directory
-    "-v" "$LOG_DIR:/workspace/logs"
+    "-v" "$RUN_LOG_DIR:/workspace/logs"
 
     # Mount deployment/k8s directory
     "-v" "$PROJECT_ROOT/deployment/k8s:/workspace/deployment/k8s"
@@ -326,14 +334,14 @@ echo ""
 echo "Step 3: Executing task command in container..."
 
 # Command to execute in container
-CONTAINER_CMD="uv run demo.py --eval_config scripts/foraml_run_v0.json --task_dir $task_dir_arg --max_steps_under_single_turn_mode $maxstep --model_short_name $modelname --provider $provider --debug > /workspace/logs/$LOG_FILE_NAME 2>&1"
+CONTAINER_CMD="uv run demo.py --eval_config $eval_config --task_dir $task_dir_arg --max_steps_under_single_turn_mode $maxstep --model_short_name $modelname --provider $provider --debug > /workspace/logs/$RUN_LOG_FILE_NAME 2>&1"
 
 echo "Executing command: $CONTAINER_CMD"
 echo ""
 
 # exit 0
 
-# Execute command in container
+# Execute command in container (let run_parallel.py handle container log)
 echo "Executing task..."
 $CONTAINER_RUNTIME exec "$CONTAINER_NAME" bash -c "$CONTAINER_CMD"
 EXEC_EXIT_CODE=$?
@@ -347,13 +355,25 @@ fi
 
 EXIT_CODE=$EXEC_EXIT_CODE
 
+# Copy run log from container to host
+echo "Copying run log from container..."
+$CONTAINER_RUNTIME cp "$CONTAINER_NAME:/workspace/logs/$RUN_LOG_FILE_NAME" "$run_log_path" 2>/dev/null || echo "Warning: Could not copy run log from container"
+
 # Display log summary
-if [ -f "$LOG_PATH_ABS" ]; then
+if [ -f "$container_log_path" ]; then
     echo ""
-    echo "=== Task execution log (last 20 lines) ==="
-    tail -20 "$LOG_PATH_ABS"
+    echo "=== Container execution log (last 20 lines) ==="
+    tail -20 "$container_log_path"
     echo ""
-    echo "=== Full log path: $LOG_PATH_ABS ==="
+    echo "=== Container log path: $container_log_path ==="
+fi
+
+if [ -f "$run_log_path" ]; then
+    echo ""
+    echo "=== Task run log (last 20 lines) ==="
+    tail -20 "$run_log_path"
+    echo ""
+    echo "=== Run log path: $run_log_path ==="
 fi
 
 # Check if kubeconfig was generated

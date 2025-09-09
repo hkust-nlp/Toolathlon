@@ -9,13 +9,13 @@ from .check_local import check_local
 
 
 def read_json(file_path):
-    """读取JSON文件"""
+    """read JSON file"""
     import json
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             return json.load(f)
     except Exception as e:
-        print(f"读取JSON文件失败: {e}")
+        print(f"Fail to read json: {e}")
         return {}
 
 if __name__ == "__main__":
@@ -31,17 +31,19 @@ if __name__ == "__main__":
     else:
         res_log = {"status": "success", "key_statistics": {"tool_calls": 10}}
     
-    
-    # 检查本地文件
+    # agent_workspace = "/Users/quentin/Desktop/RESEARCH/MCP/finalpool/mcpbench_dev/dumps/run1/claude-4-sonnet-0514/finalpool/Chinese-SingleUserTurn-reimbursement-form-filler/workspace/"
+    # groundtruth_workspace = "/Users/quentin/Desktop/RESEARCH/MCP/finalpool/mcpbench_dev/tasks/finalpool/reimbursement-form-filler/groundtruth_workspace"
+    # check local file
     try:
         local_pass, local_error = check_local(args.agent_workspace, args.groundtruth_workspace)
+        # local_pass, local_error = check_local(agent_workspace, groundtruth_workspace)
         if not local_pass:
-            print("本地文件检查失败: ", local_error)
+            print("Local file check fail: ", local_error)
             exit(1)
-        print("✓ 本地文件检查通过")
+        print("✓ local file check pass")
     except Exception as e:
-        print("本地文件检查错误: ", e)
+        print("Local file check error: ", e)
         exit(1)
     
     
-    print("✓ 所有检查通过！报销单任务评估成功！") 
+    print("✓ All checks passed! The evaluation of the reimbursement form has been successfully passed!") 
