@@ -41,7 +41,12 @@ def check_enhanced_content(agent_workspace: str, groundtruth_workspace: str) -> 
     if not comprehension_pass:
         validation_errors.append(f"Comprehension: {comprehension_error}")
     
-    # 5. Homework explanation validation
+    # 5. Specific code snippets validation
+    specific_code_pass, specific_code_error = _check_specific_code_snippets(content)
+    if not specific_code_pass:
+        validation_errors.append(f"Specific code snippets: {specific_code_error}")
+    
+    # 6. Homework explanation validation
     homework_pass, homework_error = _check_homework_explanation(content)
     if not homework_pass:
         validation_errors.append(f"Homework explanation: {homework_error}")
@@ -177,6 +182,108 @@ def _check_homework_explanation(content: str) -> Tuple[bool, Optional[str]]:
     
     if homework_found < 2:
         return False, "Missing or insufficient homework explanation"
+    
+    return True, None
+
+
+def _check_specific_code_snippets(content: str) -> Tuple[bool, Optional[str]]:
+    """Check for specific code snippets from the presentation"""
+    
+    # Code snippet groups - each snippet must have at least one pattern match
+    code_snippet_groups = [
+        # Group 1: Tiger function from homework
+        {
+            "name": "Tiger function",
+            "patterns": [
+                r"function\s+f\s*\(.*a\s*:\s*int.*b\s*:\s*int.*c\s*:\s*int\s*\)",
+                r"print_int\s*\(.*a\s*\+\s*c\s*\).*let.*var\s+j\s*:=.*a\s*\+\s*b"
+            ]
+        },
+        
+        # Group 2: Java package classes
+        {
+            "name": "Java package classes",
+            "patterns": [
+                r"package\s+M.*class\s+E.*static\s+int\s+a\s*=\s*5",
+                r"class\s+N.*static\s+int\s+b\s*=\s*10.*static\s+int\s+a\s*=\s*E\.a\s*\+\s*b"
+            ]
+        },
+        
+        # Group 3: Hash table structure
+        {
+            "name": "Hash table structure",
+            "patterns": [
+                r"struct\s+bucket\s*\{.*string.*key.*void\s*\*.*binding.*struct\s+bucket\s*\*.*next",
+                r"#define\s+SIZE\s+109.*struct\s+bucket\s*\*.*table\[SIZE\]"
+            ]
+        },
+        
+        # Group 4: Hash table insert function
+        {
+            "name": "Hash table insert",
+            "patterns": [
+                r"void\s+insert\s*\(.*string.*key.*void\s*\*.*binding\s*\)",
+                r"table\[index\]\s*=\s*Bucket\s*\(.*key.*binding.*table\[index\]\s*\)"
+            ]
+        },
+        
+        # Group 5: Hash table lookup function
+        {
+            "name": "Hash table lookup",
+            "patterns": [
+                r"void\s*\*\s*lookup\s*\(.*string.*key\s*\)",
+                r"for\s*\(.*b\s*=\s*table\[index\].*b.*b\s*=\s*b->next\s*\).*if.*strcmp\s*\(.*b->key.*key\s*\)"
+            ]
+        },
+        
+        # Group 6: Symbol table functions
+        {
+            "name": "Symbol table functions",
+            "patterns": [
+                r"void\s+S_enter\s*\(.*S_table.*t.*S_symbol.*sym.*void\s*\*.*value\s*\)",
+                r"void\s*\*\s*S_look\s*\(.*S_table.*t.*S_symbol.*sym\s*\)"
+            ]
+        },
+        
+        # Group 7: Scope management
+        {
+            "name": "Scope management",
+            "patterns": [
+                r"void\s+S_beginScope\s*\(.*S_table.*t\s*\).*S_enter\s*\(.*t.*&marksym.*NULL\s*\)",
+                r"void\s+S_endScope\s*\(.*S_table.*t\s*\).*do.*s\s*=\s*TAB_pop\s*\(.*t\s*\).*while.*s.*marksym"
+            ]
+        },
+        
+        # Group 8: Hash function implementation
+        {
+            "name": "Hash function",
+            "patterns": [
+                r"unsigned\s+int\s+hash\s*\(.*char\s*\*.*s0\s*\)",
+                r"for\s*\(.*s\s*=\s*s0.*\*s.*s\+\+\s*\).*h\s*=\s*h\s*\*\s*65599\s*\+\s*\*s"
+            ]
+        }
+    ]
+    
+    content_normalized = re.sub(r'\s+', ' ', content.lower())  # Normalize whitespace
+    
+    found_groups = []
+    missing_groups = []
+    
+    for group in code_snippet_groups:
+        group_found = False
+        for pattern in group["patterns"]:
+            if re.search(pattern, content_normalized, re.IGNORECASE):
+                group_found = True
+                break
+        
+        if group_found:
+            found_groups.append(group["name"])
+        else:
+            missing_groups.append(group["name"])
+    
+    # Require ALL code snippet groups to be found
+    if missing_groups:
+        return False, f"Missing required code snippets: {', '.join(missing_groups)} (found: {', '.join(found_groups) if found_groups else 'none'})"
     
     return True, None
 
