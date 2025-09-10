@@ -17,7 +17,7 @@ MAX_TOKENS="4096"
 USER_TEMPERATURE="1.0"
 USER_TOP_P="1.0"
 USER_MAX_TOKENS="1024"
-DUMP_PATH="./dumps_0909_all_gpt5mini"
+DUMP_PATH="./dumps_0910_all_gpt5mini"
 
 # Optional parameters - uncomment and modify as needed
 # TASK_LIST="filtered_tasks_parallel.txt"
