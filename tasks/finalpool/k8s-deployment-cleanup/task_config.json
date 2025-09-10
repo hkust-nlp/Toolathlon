@@ -1,0 +1,11 @@
+{
+    "needed_mcp_servers": [
+        "k8s",
+        "emails",
+        "pdf-tools",
+        "filesystem"
+    ],
+    "needed_local_tools": ["claim_done"],
+    "meta": {
+    }
+}
