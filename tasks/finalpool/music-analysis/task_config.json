@@ -1,0 +1,7 @@
+{
+    "needed_mcp_servers": [ "excel", "google_sheet"  ],
+    "needed_local_tools": [ "python_execute", "claim_done"],
+   
+    "max_turns": 10,
+    "meta": {}
+}

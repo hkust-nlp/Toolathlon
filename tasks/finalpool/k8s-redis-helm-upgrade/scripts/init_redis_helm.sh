@@ -436,7 +436,8 @@ start_operation() {
   deploy_redis_helm "$configpath"
   
   # Deploy lightweight distractors
-  deploy_lightweight_distractors "$configpath"
+  # 加了干扰项会导致内存exhausted重启，所以先注释掉
+  # deploy_lightweight_distractors "$configpath"
   
   # # Copy values file to user home
   # Update: no need to do so I think
