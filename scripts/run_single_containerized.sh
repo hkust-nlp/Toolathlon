@@ -200,7 +200,7 @@ START_CONTAINER_ARGS+=(
     "$IMAGE_NAME"
     
     # Command to keep container running
-    "sleep" "infinity"
+    "sleep" "7200"
 )
 
 echo "Container start command: ${START_CONTAINER_ARGS[*]}"
