@@ -3,6 +3,9 @@ import argparse
 import shortuuid
 import os
 import json
+import signal
+import sys
+import psutil
 from utils.general.helper import read_json
 import subprocess
 from typing import List, Optional, Dict
@@ -11,28 +14,35 @@ from datetime import datetime
 from pathlib import Path
 
 
-async def run_command_async(command: str, log_file: str, timeout_seconds: int = 1800):
+async def run_command_async(command: str, log_file: str, timeout_seconds: int = 1800, scheduler: 'AsyncTaskScheduler' = None):
     """
     异步执行shell命令，带超时控制和日志记录
     timeout_seconds: 默认30分钟 = 1800秒
+    scheduler: 任务调度器，用于进程跟踪
     """
     # 确保日志目录存在
     log_dir = os.path.dirname(log_file)
     if log_dir:
         os.makedirs(log_dir, exist_ok=True)
-    
+
     try:
         # 创建进程，同时重定向输出到日志文件
         with open(log_file, 'w') as f:
             f.write(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Command: {command}\n")
             f.write("="*80 + "\n")
             f.flush()
-            
+
             process = await asyncio.create_subprocess_shell(
                 command,
                 stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT  # 将stderr重定向到stdout
+                stderr=subprocess.STDOUT,  # 将stderr重定向到stdout
+                preexec_fn=os.setsid  # 创建新的进程组，便于后续清理
             )
+
+            # 如果有调度器，添加到活跃进程集合中
+            if scheduler:
+                scheduler.active_processes.add(process)
+                active_processes.add(process)
             
             # 实时写入日志
             async def write_output():
@@ -52,7 +62,12 @@ async def run_command_async(command: str, log_file: str, timeout_seconds: int = 
                 raise
             
             f.write(f"\n[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Process ended with code: {process.returncode}\n")
-            
+
+            # 从活跃进程集合中移除
+            if scheduler:
+                scheduler.active_processes.discard(process)
+            active_processes.discard(process)
+
             return {
                 'success': process.returncode == 0,
                 'returncode': process.returncode,
@@ -60,22 +75,34 @@ async def run_command_async(command: str, log_file: str, timeout_seconds: int = 
             }
     
     except asyncio.TimeoutError:
-        # 超时时终止进程
+        # 超时时终止进程及其子进程
         try:
-            process.terminate()
-            await asyncio.sleep(5)  # 给进程5秒优雅退出
             if process.returncode is None:
-                process.kill()  # 如果还没退出，强制杀死
+                # 终止整个进程组
+                os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+                await asyncio.sleep(3)  # 给进程组3秒优雅退出
+                if process.returncode is None:
+                    os.killpg(os.getpgid(process.pid), signal.SIGKILL)  # 强制杀死进程组
         except:
             pass
-        
+
+        # 从活跃进程集合中移除
+        if scheduler:
+            scheduler.active_processes.discard(process)
+        active_processes.discard(process)
+
         # 记录超时信息到日志
         with open(log_file, 'a') as f:
             f.write(f"\n[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] TIMEOUT after {timeout_seconds} seconds\n")
-        
+
         raise TimeoutError(f"Command timed out after {timeout_seconds} seconds")
     
     except Exception as e:
+        # 从活跃进程集合中移除
+        if scheduler:
+            scheduler.active_processes.discard(process)
+        active_processes.discard(process)
+
         # 记录错误到日志
         with open(log_file, 'a') as f:
             f.write(f"\n[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: {str(e)}\n")
@@ -90,27 +117,75 @@ class TaskResult:
         self.timeout = []       # 超时的任务
         self.error = []         # 执行出错的任务
 
+# 全局进程跟踪器
+active_processes = set()
+
 class AsyncTaskScheduler:
     def __init__(self, conflict_groups: Optional[List[List[str]]], max_workers: int):
         self.max_workers = max_workers
         self.conflict_locks = {}  # 任务名到锁的映射
         self.semaphore = asyncio.Semaphore(max_workers)  # 限制并发数
-        
+
         # 新增：任务队列管理
         self.pending_tasks = asyncio.Queue()  # 待执行任务队列
         self.running_count = 0  # 实际运行中的任务数
         self.waiting_for_lock = set()  # 等待锁的任务
-        
+
         # 统计信息
         self.completed_tasks = 0
         self.failed_tasks = 0
         self.timeout_tasks = 0
         self.total_tasks = 0
         self.start_time = time.time()
-        
+
         # 任务结果
         self.task_results = TaskResult()
-        
+
+        # 进程跟踪
+        self.active_processes = set()  # 跟踪活跃的子进程
+
+        # 添加进程清理方法
+        def cleanup_processes():
+            """清理所有活跃的子进程"""
+            print("\n🧹 Cleaning up active processes...")
+            for process in list(self.active_processes):
+                try:
+                    if process.returncode is None:
+                        print(f"  Terminating process {process.pid}...")
+                        # 终止整个进程组
+                        os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+                        # 等待一会儿让进程优雅退出
+                        time.sleep(2)
+                        if process.returncode is None:
+                            os.killpg(os.getpgid(process.pid), signal.SIGKILL)
+                            print(f"  Force killed process group {process.pid}")
+                        else:
+                            print(f"  Gracefully terminated process group {process.pid}")
+                    self.active_processes.discard(process)
+                except Exception as e:
+                    print(f"  Error terminating process {process.pid}: {e}")
+                    try:
+                        process.kill()
+                    except:
+                        pass
+                    self.active_processes.discard(process)
+
+            # 清理全局进程集合
+            for process in list(active_processes):
+                if process.returncode is None:
+                    try:
+                        os.killpg(os.getpgid(process.pid), signal.SIGKILL)
+                    except:
+                        pass
+                active_processes.discard(process)
+
+            if self.active_processes or active_processes:
+                print(f"  Remaining processes: {len(self.active_processes)} local, {len(active_processes)} global")
+            else:
+                print("  ✅ All processes cleaned up")
+
+        self.cleanup_processes = cleanup_processes
+
         # 为冲突组创建锁
         if conflict_groups:
             for group in conflict_groups:
@@ -194,7 +269,7 @@ class AsyncTaskScheduler:
             print(f"   🔒 Running with conflict lock")
         
         try:
-            result = await run_command_async(command, log_file, timeout_seconds=timeout)
+            result = await run_command_async(command, log_file, timeout_seconds=timeout, scheduler=self)
             
             self.completed_tasks += 1
             elapsed = (datetime.now() - task_start).total_seconds()
@@ -456,6 +531,10 @@ async def main():
     print(f"\n{'='*60}")
     print(f"EXECUTION COMPLETE!")
     scheduler.print_progress()
+
+    # 程序结束时的清理
+    if hasattr(scheduler, 'cleanup_processes'):
+        scheduler.cleanup_processes()
     
     # 打印失败的任务详情
     failed_tasks = [r for r in results if isinstance(r, dict) and r.get('status') != 'success']
@@ -579,6 +658,107 @@ async def main():
     print("EXECUTION FINISHED")
     print(f"{'='*60}\n")
 
+def sync_cleanup_processes():
+    """同步清理所有活跃进程（用于信号处理器）"""
+    print("\n🧹 Emergency cleanup of all active processes...")
+    processes_to_cleanup = list(active_processes)
+
+    if not processes_to_cleanup:
+        print("  No active processes to clean up")
+        return
+
+    for process in processes_to_cleanup:
+        try:
+            if process.returncode is None:
+                print(f"  Force terminating process {process.pid}...")
+                # 直接使用 SIGKILL 强制终止整个进程组
+                try:
+                    os.killpg(os.getpgid(process.pid), signal.SIGKILL)
+                    print(f"  ✅ Killed process group {process.pid}")
+                except:
+                    # 如果进程组终止失败，尝试终止单个进程
+                    process.kill()
+                    print(f"  ✅ Killed process {process.pid}")
+        except Exception as e:
+            print(f"  Error terminating process {process.pid}: {e}")
+
+    active_processes.clear()
+    print("  ✅ Emergency cleanup completed")
+
+async def async_cleanup_processes():
+    """异步清理所有活跃进程"""
+    print("\n🧹 Cleaning up all active processes...")
+    processes_to_cleanup = list(active_processes)
+
+    if not processes_to_cleanup:
+        print("  No active processes to clean up")
+        return
+
+    # 并行终止所有进程
+    cleanup_tasks = []
+    for process in processes_to_cleanup:
+        task = asyncio.create_task(cleanup_single_process(process))
+        cleanup_tasks.append(task)
+
+    # 等待所有清理任务完成
+    await asyncio.gather(*cleanup_tasks, return_exceptions=True)
+    active_processes.clear()
+    print("  ✅ All processes cleaned up")
+
+async def cleanup_single_process(process):
+    """清理单个进程"""
+    try:
+        if process.returncode is None:
+            print(f"  Terminating process group {process.pid}...")
+            # 终止整个进程组
+            os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+            # 等待一会儿让进程优雅退出
+            await asyncio.sleep(1)  # 减少等待时间
+            if process.returncode is None:
+                os.killpg(os.getpgid(process.pid), signal.SIGKILL)
+                print(f"  Force killed process group {process.pid}")
+            else:
+                print(f"  Gracefully terminated process group {process.pid}")
+    except Exception as e:
+        print(f"  Error terminating process {process.pid}: {e}")
+        try:
+            process.kill()
+        except:
+            pass
+
+async def main_with_signal_handling():
+    """主函数，包含信号处理"""
+    # 设置信号处理
+    loop = asyncio.get_running_loop()
+
+    def handle_sigint():
+        print("\n🛑 SIGINT received, performing emergency cleanup...")
+        sync_cleanup_processes()
+        # 强制退出
+        os._exit(1)
+
+    def handle_sigterm():
+        print("\n🛑 SIGTERM received, performing emergency cleanup...")
+        sync_cleanup_processes()
+        # 强制退出
+        os._exit(1)
+
+    # 在 asyncio 事件循环中处理信号
+    loop.add_signal_handler(signal.SIGINT, handle_sigint)
+    loop.add_signal_handler(signal.SIGTERM, handle_sigterm)
+
+    try:
+        await main()
+    except KeyboardInterrupt:
+        print("\n🛑 KeyboardInterrupt in main...")
+        sync_cleanup_processes()
+    except Exception as e:
+        print(f"\n⚠ Exception in main: {e}")
+        sync_cleanup_processes()
+    finally:
+        # 正常退出时的异步清理
+        await async_cleanup_processes()
+
 if __name__ == "__main__":
-    # 运行主程序
-    asyncio.run(main())
+    # 运行带有信号处理的主程序
+    asyncio.run(main_with_signal_handling())

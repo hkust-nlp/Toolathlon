@@ -338,11 +338,11 @@ spec:
           value: "redis://localhost:6379"
         resources:
           requests:
-            memory: "32Mi"
-            cpu: "10m"
+            memory: "128Mi"  # 增加到 128Mi
+            cpu: "50m"       # 增加到 50m
           limits:
-            memory: "64Mi"
-            cpu: "50m"
+            memory: "256Mi"  # 增加到 256Mi
+            cpu: "100m"      # 增加到 100m
 ---
 apiVersion: v1
 kind: Service
@@ -387,11 +387,11 @@ spec:
         - containerPort: 80
         resources:
           requests:
-            memory: "16Mi"
-            cpu: "5m"
+            memory: "64Mi"   # 增加到 64Mi
+            cpu: "25m"       # 增加到 25m
           limits:
-            memory: "32Mi"
-            cpu: "20m"
+            memory: "128Mi"  # 增加到 128Mi
+            cpu: "50m"       # 增加到 50m
 ---
 apiVersion: v1
 kind: Service
@@ -436,7 +436,7 @@ start_operation() {
   deploy_redis_helm "$configpath"
   
   # Deploy lightweight distractors
-  # 加了干扰项会导致内存exhausted重启，所以先注释掉
+  # podman下 加了干扰项会导致内存exhausted重启，所以先注释掉
   # deploy_lightweight_distractors "$configpath"
   
   # # Copy values file to user home
