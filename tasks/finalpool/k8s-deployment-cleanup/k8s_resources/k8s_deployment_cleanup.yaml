@@ -1,0 +1,346 @@
+---
+# Namespaces for development environments
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev-frontend
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev-backend
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev-ml
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev-experimental
+---
+# Frontend deployments
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-prototype
+  namespace: dev-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend-prototype
+  template:
+    metadata:
+      labels:
+        app: frontend-prototype
+    spec:
+      containers:
+      - name: app
+        image: nginx:1.20-alpine
+        resources:
+          requests:
+            memory: "16Mi"
+            cpu: "10m"
+          limits:
+            memory: "32Mi"
+            cpu: "50m"
+---
+# Backend deployments
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  namespace: dev-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      containers:
+      - name: app
+        image: nginx:1.20-alpine
+        resources:
+          requests:
+            memory: "16Mi"
+            cpu: "10m"
+          limits:
+            memory: "32Mi"
+            cpu: "50m"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pod-api-service
+  namespace: dev-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pod-api-service
+  template:
+    metadata:
+      labels:
+        app: pod-api-service
+    spec:
+      containers:
+      - name: app
+        image: nginx:1.20-alpine
+        resources:
+          requests:
+            memory: "16Mi"
+            cpu: "10m"
+          limits:
+            memory: "32Mi"
+            cpu: "50m"
+---
+# ML deployments
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: model-trainer
+  namespace: dev-ml
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: model-trainer
+  template:
+    metadata:
+      labels:
+        app: model-trainer
+    spec:
+      containers:
+      - name: app
+        image: nginx:1.20-alpine
+        resources:
+          requests:
+            memory: "16Mi"
+            cpu: "10m"
+          limits:
+            memory: "32Mi"
+            cpu: "50m"
+---
+# Experimental deployments
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: experimental-feature-alpha
+  namespace: dev-experimental
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: experimental-feature-alpha
+  template:
+    metadata:
+      labels:
+        app: experimental-feature-alpha
+    spec:
+      containers:
+      - name: app
+        image: nginx:1.20-alpine
+        resources:
+          requests:
+            memory: "16Mi"
+            cpu: "10m"
+          limits:
+            memory: "32Mi"
+            cpu: "50m"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alpha-dataset-poc
+  namespace: dev-experimental
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alpha-dataset-poc
+  template:
+    metadata:
+      labels:
+        app: alpha-dataset-poc
+    spec:
+      containers:
+      - name: app
+        image: nginx:1.20-alpine
+        resources:
+          requests:
+            memory: "16Mi"
+            cpu: "10m"
+          limits:
+            memory: "32Mi"
+            cpu: "50m"
+---
+# Production namespace (干扰项 - 不应该被清理)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: production
+---
+# Staging namespace (干扰项)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: staging
+---
+# Monitoring namespace (干扰项)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+---
+# Logging namespace (干扰项)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: logging
+---
+# Backup namespace (干扰项 - 不应该被清理)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: backup
+---
+# Production deployment (干扰项 - 生产环境，不应该被清理)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-server
+  namespace: production
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web-server
+  template:
+    metadata:
+      labels:
+        app: web-server
+    spec:
+      containers:
+      - name: app
+        image: nginx:1.20-alpine
+        resources:
+          requests:
+            memory: "32Mi"
+            cpu: "20m"
+          limits:
+            memory: "64Mi"
+            cpu: "100m"
+---
+# Staging deployment (干扰项 - 旧的，应该被清理)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: staging-app
+  namespace: staging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: staging-app
+  template:
+    metadata:
+      labels:
+        app: staging-app
+    spec:
+      containers:
+      - name: app
+        image: nginx:1.20-alpine
+        resources:
+          requests:
+            memory: "16Mi"
+            cpu: "10m"
+          limits:
+            memory: "32Mi"
+            cpu: "50m"
+---
+# Monitoring deployment (干扰项 - 旧的，应该被清理)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-old
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus-old
+  template:
+    metadata:
+      labels:
+        app: prometheus-old
+    spec:
+      containers:
+      - name: app
+        image: nginx:1.20-alpine
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+---
+# Logging deployment (干扰项 - 旧的，应该被清理)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: log-collector
+  namespace: logging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: log-collector
+  template:
+    metadata:
+      labels:
+        app: log-collector
+    spec:
+      containers:
+      - name: app
+        image: nginx:1.20-alpine
+        resources:
+          requests:
+            memory: "32Mi"
+            cpu: "25m"
+          limits:
+            memory: "64Mi"
+            cpu: "100m"
+---
+# Backup deployment (干扰项 - 最近的，不应该被清理)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backup-service
+  namespace: backup
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backup-service
+  template:
+    metadata:
+      labels:
+        app: backup-service
+    spec:
+      containers:
+      - name: app
+        image: nginx:1.20-alpine
+        resources:
+          requests:
+            memory: "16Mi"
+            cpu: "10m"
+          limits:
+            memory: "32Mi"
+            cpu: "50m"
