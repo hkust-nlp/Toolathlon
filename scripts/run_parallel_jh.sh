@@ -9,7 +9,7 @@ USER_MODEL_NAME="gpt-5"
 USER_MODEL_PROVIDER="aihubmix"
 MAX_STEPS="200"
 MAX_TURNS="50"
-WORKERS="4"
+WORKERS="8"
 TIMEOUT="1800"
 TEMPERATURE="0.6"
 TOP_P="1.0"
@@ -17,10 +17,10 @@ MAX_TOKENS="4096"
 USER_TEMPERATURE="1.0"
 USER_TOP_P="1.0"
 USER_MAX_TOKENS="1024"
-DUMP_PATH="./dumps_0908_new"
+DUMP_PATH="./dumps_0909_all_gpt5mini"
 
 # Optional parameters - uncomment and modify as needed
-TASK_LIST="filtered_tasks_parallel.txt"
+# TASK_LIST="filtered_tasks_parallel.txt"
 
 # Generate temporary config file
 TEMP_CONFIG="scripts/temp_parallel_config.json"
@@ -86,7 +86,7 @@ if [ ! -z "$TASK_LIST" ]; then
 fi
 
 # Execute evaluation with custom config
-PYTHONUNBUFFERED=1 uv run run_parallel.py $ARGS
+PYTHONUNBUFFERED=1 uv run run_parallel.py $ARGS 2>&1 | tee "$DUMP_PATH/stdout.log"
 
 EVAL_EXIT_CODE=$?
 
