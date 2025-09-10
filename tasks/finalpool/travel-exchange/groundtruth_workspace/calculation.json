@@ -1,9 +1,14 @@
 {
-    "USD_to_CNY": 7.18,
-    "EUR_to_CNY": 8.22,
-    "TRY_to_CNY": 0.18,
+    "USD_to_CNY": 7.2037,
+    "EUR_to_CNY": 8.1743,
+    "TRY_to_CNY": 0.1835,
     "SGD_to_CNY": 5.5765,
-    "Andrew_Expenses (in CNY)": 13133.83,
-    "Lau_Expenses (in CNY)": 25534.79,
-    "Total_Cost (in CNY)": 38668.62
+    "Andrew_Expenses (in CNY)": 13070.10429,
+    "Lau_Expenses (in CNY)": 21697.53,
+    "Chen_Expenses (in CNY)": 5919.029405,
+    "Diana_Expenses (in CNY)": 18510.82764,
+    "Elena_Expenses (in CNY)": 17494.17809,
+    "Frank_Expenses (in CNY)": 13625.98134,
+    "Grace_Expenses (in CNY)": 122560.2165,
+    "Total_Cost (in CNY)": 212877.8673
 }

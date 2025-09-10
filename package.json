@@ -36,7 +36,7 @@
     "mcp-deepwiki": "^0.0.10",
     "mcp-remote": "^0.1.16",
     "mcp-server-code-runner": "^0.1.7",
-    "mcp-server-kubernetes": "github:lockon-n/mcp-server-kubernetes#7e4d3a571af9078e1fa35b51189baaa58864b84f",
+    "mcp-server-kubernetes": "github:lockon-n/mcp-server-kubernetes#f6ac1263ef279dd996d13042854cb1a3bf88dd9a",
     "shadcn-ui-mcp-server": "^0.1.2",
     "zod": "^3.25.23"
   },

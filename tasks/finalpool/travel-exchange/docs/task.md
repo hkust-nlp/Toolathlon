@@ -1,4 +1,3 @@
-I (Andrew) and another friend (Lau) traveled to Turkey during 2025. We exchanged all possible currencies on June 5th before the trip. Please help me read the files in the personal workspace, and calculate the total trip cost for both of us in CNY (please calculate with the exchange rate we actually use).
+I (Andrew) and six friends (Lau, Chen, Diana, Elena, Frank, and Grace) traveled to Turkey during 2025. We all exchanged currencies on June 5th before the trip. Please help me read all the files in the personal workspace, and calculate the total trip cost for all seven of us in CNY (please calculate with the exchange rate we actually used, you can find exchange rates on yahoo).
 
 Fill the specified file `calculation.json` in the workspace.
-
