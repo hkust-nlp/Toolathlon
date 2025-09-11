@@ -1,0 +1,5 @@
+{
+    "needed_mcp_servers": ["emails","snowflake", "filesystem","pdf-tools"],
+    "needed_local_tools": [],
+    "meta": {}
+}

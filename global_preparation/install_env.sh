@@ -41,7 +41,7 @@ uv sync
 source .venv/bin/activate
 export TMPDIR="./tmp" # make a folder for tmp files
 mkdir -p $TMPDIR
-playwright install-deps chromium
+playwright install chromium
 unset TMPDIR
 rm -rf $TMPDIR
 
