@@ -1,0 +1,26 @@
+[
+  {
+    "id": 14,
+    "first_name": "Ryan",
+    "last_name": "Brown",
+    "full_name": "Ryan Brown",
+    "email": "ryan.brown93@mcp.com",
+    "password": "BryapivvLK7C"
+  },
+  {
+    "id": 15,
+    "first_name": "Jacob",
+    "last_name": "Flores",
+    "full_name": "Jacob Flores",
+    "email": "jacob.flores11@mcp.com",
+    "password": "Jflores715XI"
+  },
+  {
+    "id": 16,
+    "first_name": "Christine",
+    "last_name": "Hall",
+    "full_name": "Christine Hall",
+    "email": "christineh93@mcp.com",
+    "password": "chriHxdwmla8"
+  }
+]

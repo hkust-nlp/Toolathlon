@@ -61,67 +61,52 @@ if __name__=="__main__":
     # Exchange rate tolerance
     exchange_rate_tolerance = 0.1
     
-    # Expected values from groundtruth
-    expected_andrew = groundtruth_data["Andrew_Expenses (in CNY)"]  # 13133.83
-    expected_lau = groundtruth_data["Lau_Expenses (in CNY)"]       # 25534.79  
-    expected_total = groundtruth_data["Total_Cost (in CNY)"]        # 38668.62
+    # 10% tolerance for all expense calculations
+    expense_tolerance_percent = 0.10
     
-    # Theoretical tolerance limits based on exchange rate error propagation:
-    # Andrew: ~4200 CNY (mainly from TRY: 41423.27 × 0.1 ≈ 4142 CNY potential error)
-    # Lau: ~200 CNY (mainly from SGD: ~436 SGD total × 0.1 ≈ 44 CNY potential error) 
-    # Total: Sum of individual errors
-    andrew_tolerance = 4200
-    lau_tolerance = 200  
-    total_tolerance = 4400
-    
-    # Check exchange rates if available in agent output
+    # Initialize result tracking
     all_passed = True
     
-    if "USD_to_CNY" in agent_generated_data:
-        all_passed &= check_tolerance(agent_generated_data["USD_to_CNY"], groundtruth_data["USD_to_CNY"], 
-                                    exchange_rate_tolerance, "USD_to_CNY")
-    if "EUR_to_CNY" in agent_generated_data:
-        all_passed &= check_tolerance(agent_generated_data["EUR_to_CNY"], groundtruth_data["EUR_to_CNY"], 
-                                    exchange_rate_tolerance, "EUR_to_CNY")
-    if "TRY_to_CNY" in agent_generated_data:
-        all_passed &= check_tolerance(agent_generated_data["TRY_to_CNY"], groundtruth_data["TRY_to_CNY"], 
-                                    exchange_rate_tolerance, "TRY_to_CNY")
-    if "SGD_to_CNY" in agent_generated_data:
-        all_passed &= check_tolerance(agent_generated_data["SGD_to_CNY"], groundtruth_data["SGD_to_CNY"], 
-                                    exchange_rate_tolerance, "SGD_to_CNY")
+    # Check exchange rates (0.1 tolerance)
+    exchange_rate_keys = ["USD_to_CNY", "EUR_to_CNY", "TRY_to_CNY", "SGD_to_CNY"]
+    for key in exchange_rate_keys:
+        if key in agent_generated_data and key in groundtruth_data:
+            all_passed &= check_tolerance(agent_generated_data[key], groundtruth_data[key], 
+                                        exchange_rate_tolerance, key)
+        else:
+            print(f"{key}: FAIL (missing from agent or groundtruth data)")
+            all_passed = False
     
-    # Check expense calculations - try multiple possible field names
-    andrew_fields = ["Andrew_Expenses (in CNY)"]
-    andrew_actual = None
-    for field in andrew_fields:
-        if field in agent_generated_data:
-            andrew_actual = agent_generated_data[field]
-            break
+    # Check all individual expenses (10% tolerance)
+    expense_keys = [
+        "Andrew_Expenses (in CNY)",
+        "Lau_Expenses (in CNY)", 
+        "Chen_Expenses (in CNY)",
+        "Diana_Expenses (in CNY)",
+        "Elena_Expenses (in CNY)",
+        "Frank_Expenses (in CNY)",
+        "Grace_Expenses (in CNY)"
+    ]
     
-    if andrew_actual is not None:
-        all_passed &= check_tolerance(andrew_actual, expected_andrew, andrew_tolerance, "Andrew_Expenses")
+    for key in expense_keys:
+        if key in agent_generated_data and key in groundtruth_data:
+            expected_value = groundtruth_data[key]
+            tolerance = abs(expected_value * expense_tolerance_percent)
+            all_passed &= check_tolerance(agent_generated_data[key], expected_value, 
+                                        tolerance, key.replace(" (in CNY)", ""))
+        else:
+            print(f"{key}: FAIL (missing from agent or groundtruth data)")
+            all_passed = False
     
-    lau_fields = ["Lau_Expenses (in CNY)"]
-    lau_actual = None
-    for field in lau_fields:
-        if field in agent_generated_data:
-            lau_actual = agent_generated_data[field]
-            break
-            
-    if lau_actual is not None:
-        all_passed &= check_tolerance(lau_actual, expected_lau, lau_tolerance, "Lau_Expenses")
-    
-    # Check total cost - try multiple possible field names
-    total_fields = ["Total_Cost (in CNY)"]
-    total_actual = None
-    for field in total_fields:
-        if field in agent_generated_data:
-            total_actual = agent_generated_data[field]
-            break
-    if total_actual is not None:
-        all_passed &= check_tolerance(total_actual, expected_total, total_tolerance, "Total_Cost")
+    # Check total cost (10% tolerance)
+    total_key = "Total_Cost (in CNY)"
+    if total_key in agent_generated_data and total_key in groundtruth_data:
+        expected_total = groundtruth_data[total_key]
+        total_tolerance = abs(expected_total * expense_tolerance_percent)
+        all_passed &= check_tolerance(agent_generated_data[total_key], expected_total, 
+                                    total_tolerance, "Total_Cost")
     else:
-        print("Total_Cost: FAIL (not found in agent output)")
+        print(f"{total_key}: FAIL (missing from agent or groundtruth data)")
         all_passed = False
     
     if all_passed:

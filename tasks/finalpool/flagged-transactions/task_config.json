@@ -1,0 +1,5 @@
+{
+    "needed_mcp_servers": ["google-cloud", "excel", "terminal", "filesystem"],
+    "needed_local_tools": ["python_execute", "claim_done"],
+    "meta": {}
+}

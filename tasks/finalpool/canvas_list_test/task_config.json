@@ -1,0 +1,7 @@
+{
+    "needed_mcp_servers": ["canvas", "memory"],
+    "needed_local_tools": [ "python_execute"],
+   
+    "max_turns": 10,
+    "meta": {}
+}

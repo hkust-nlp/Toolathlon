@@ -1,0 +1,3 @@
+My personal information is all stored in memory. Please find the Canvas token. Then view all my unfinished course assignments in the Canvas server deployed at localhost:10001, organize the information according to the required fields in the workspace's CSV header, keeping the format consistent with the example, and complete this csv file with ascending order by the quiz deadline (DDL). 
+
+Memory中存有个人信息（有一项是入学英语考试95分，在canvas英语课公告中表示入学考试95分以上的同学免修）。检测所有需要未完成的quiz和assignment，按照ddl进行排序，列出。 （考查点：这些作业中有我已经提交的，这些也不应该算。有一些是随堂测试不是课后作业；免修的也不算）
