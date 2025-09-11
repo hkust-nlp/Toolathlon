@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.12"
 resolution-markers = [
     "python_full_version >= '3.13' and sys_platform == 'darwin'",
@@ -1795,6 +1795,7 @@ dependencies = [
     { name = "pytz" },
     { name = "pyyaml" },
     { name = "rapidfuzz" },
+    { name = "reportlab" },
     { name = "requests" },
     { name = "roman-numerals-py" },
     { name = "scholarly" },
@@ -1806,6 +1807,7 @@ dependencies = [
     { name = "smmap" },
     { name = "sniffio" },
     { name = "snowballstemmer" },
+    { name = "snowflake" },
     { name = "snowflake-connector-python" },
     { name = "snowflake-snowpark-python" },
     { name = "sortedcontainers" },
@@ -1954,6 +1956,7 @@ requires-dist = [
     { name = "pytz", specifier = "==2025.2" },
     { name = "pyyaml", specifier = "==6.0.2" },
     { name = "rapidfuzz", specifier = "==3.13.0" },
+    { name = "reportlab", specifier = ">=4.4.3" },
     { name = "requests", specifier = "==2.32.3" },
     { name = "roman-numerals-py", specifier = "==3.1.0" },
     { name = "scholarly", specifier = "==1.7.11" },
@@ -1965,6 +1968,7 @@ requires-dist = [
     { name = "smmap", specifier = "==5.0.2" },
     { name = "sniffio", specifier = "==1.3.1" },
     { name = "snowballstemmer", specifier = "==3.0.1" },
+    { name = "snowflake", specifier = ">=1.7.0" },
     { name = "snowflake-connector-python", specifier = ">=3.16.0" },
     { name = "snowflake-snowpark-python", specifier = ">=1.36.0" },
     { name = "sortedcontainers", specifier = "==2.4.0" },
@@ -3035,6 +3039,19 @@ wheels = [
 ]
 
 [[package]]
+name = "reportlab"
+version = "4.4.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "charset-normalizer" },
+    { name = "pillow" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/2f/83/3d44b873fa71ddc7d323c577fe4cfb61e05b34d14e64b6a232f9cfbff89d/reportlab-4.4.3.tar.gz", hash = "sha256:073b0975dab69536acd3251858e6b0524ed3e087e71f1d0d1895acb50acf9c7b", size = 3887532, upload-time = "2025-07-23T11:18:23.799Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/52/c8/aaf4e08679e7b1dc896ad30de0d0527f0fd55582c2e6deee4f2cc899bf9f/reportlab-4.4.3-py3-none-any.whl", hash = "sha256:df905dc5ec5ddaae91fc9cb3371af863311271d555236410954961c5ee6ee1b5", size = 1953896, upload-time = "2025-07-23T11:18:20.572Z" },
+]
+
+[[package]]
 name = "requests"
 version = "2.32.3"
 source = { registry = "https://pypi.org/simple" }
@@ -3236,6 +3253,19 @@ wheels = [
 ]
 
 [[package]]
+name = "snowflake"
+version = "1.7.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "snowflake-core" },
+    { name = "snowflake-legacy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/0c/f8/913dfda622ba237f846ef8aec6f8a3610d02f77604a162b54170d19ce2bc/snowflake-1.7.0.tar.gz", hash = "sha256:3917640958f61895a0e542cb17d09b942864d395a13a712cb09b3099ab5b5e29", size = 6039, upload-time = "2025-08-01T09:57:52.875Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/cc/a8/161e3ddad928f13acf3afa2ab3592ef40e041a4d9276bef3dd2b43839a3c/snowflake-1.7.0-py3-none-any.whl", hash = "sha256:ce6c88fd0d589b1f0452754fca5d2ee81dc5613d9734a951bbff6d8e1f1e04fe", size = 5634, upload-time = "2025-08-01T09:57:51.577Z" },
+]
+
+[[package]]
 name = "snowflake-connector-python"
 version = "3.16.0"
 source = { registry = "https://pypi.org/simple" }
@@ -3271,6 +3301,32 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/84/19/856c19da0fb001bf4fd46a239ab33cd8b03ec4651d482cfa1354f1966945/snowflake_connector_python-3.16.0-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:41e861b3d6abfe927639554cb81ff2c70bc12691e8ac9a2919b863e805c6caf8", size = 2655306, upload-time = "2025-07-01T23:58:16.81Z" },
     { url = "https://files.pythonhosted.org/packages/fb/ed/90cc1776d3b5c9eb8f7c4e0203c3aa6cc9199920e30c53b937b5ff159774/snowflake_connector_python-3.16.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6474a2617c609461cbfa4122862aec1ba12ece2bb16505032dad4457d38e13b9", size = 2678862, upload-time = "2025-07-01T23:58:18.483Z" },
     { url = "https://files.pythonhosted.org/packages/87/6a/dcad484e2a6bcd26fe641659f2f09f598068cedc0a351cb09fc0a9939e30/snowflake_connector_python-3.16.0-cp313-cp313-win_amd64.whl", hash = "sha256:bab36467b6a9f696ae9fbae35d733557724d70ab779d89fe430844e876ce02c6", size = 950736, upload-time = "2025-07-01T23:58:44.74Z" },
+]
+
+[[package]]
+name = "snowflake-core"
+version = "1.7.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pydantic" },
+    { name = "python-dateutil" },
+    { name = "pyyaml" },
+    { name = "requests" },
+    { name = "snowflake-connector-python" },
+    { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a1/72/3daea26f941512e2a2d18eda62eb2fc67ffc1be33027b1e74f4c4430a2e2/snowflake_core-1.7.0.tar.gz", hash = "sha256:8655a94c211ae04d1d803dbc876249de6d3f8021cc5738d689aea842d1b66a7f", size = 1314443, upload-time = "2025-08-01T09:57:52.214Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c9/40/a08e639e8215a8c8832befb0d30266c465000adebb9eab7d8eb608361255/snowflake_core-1.7.0-py3-none-any.whl", hash = "sha256:f67340f2d2baafd03b34e24b07bf67f7844f09dfb05d0ad22ea1818cfa7b35d4", size = 1949343, upload-time = "2025-08-01T09:57:49.847Z" },
+]
+
+[[package]]
+name = "snowflake-legacy"
+version = "1.0.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ad/08/1c22d84aacfce90a13ce23b6bc7ca0ab6d85146e559558d05ff24b5df89a/snowflake_legacy-1.0.1.tar.gz", hash = "sha256:98f7d2b19128c53a20eb25731ba62849bbb2747c33a0ea54f340d0feac9d4bb0", size = 4059, upload-time = "2025-06-10T10:22:48.465Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a1/37/5ab1b50a62b9063f1e00322ea1982848a01638e4efd32c9f03bb387ee170/snowflake_legacy-1.0.1-py3-none-any.whl", hash = "sha256:36135aef966231d291c10ceddb27c7021e9b8d960f73bdc4eccdf02ffc5b90c7", size = 3059, upload-time = "2025-06-10T10:22:47.49Z" },
 ]
 
 [[package]]

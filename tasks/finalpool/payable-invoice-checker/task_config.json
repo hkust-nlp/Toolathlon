@@ -1,0 +1,5 @@
+{
+    "needed_mcp_servers": ["emails", "pdf-tools", "filesystem", "snowflake"],
+    "needed_local_tools": ["claim_done"],
+    "meta": {}
+}

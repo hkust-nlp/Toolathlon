@@ -1,0 +1,1000 @@
+{"invoice_id": "TEST4760-2022", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 21290.149999999998, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-01-07"}
+{"invoice_id": "TEST9381-2022", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 32563.3, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-01-04"}
+{"invoice_id": "NOISE-77211", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 196344.9, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-01-05"}
+{"invoice_id": "INT-2022-1321", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 294771.62, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-01-12"}
+{"invoice_id": "FAKE-534953", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 906098.91, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-01-02"}
+{"invoice_id": "INT-2022-0860", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 542211.92, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-01-08"}
+{"invoice_id": "FAKE-499442", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 608491.05, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-01-09"}
+{"invoice_id": "TEST3149-2022", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 160909.94, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-01-09"}
+{"invoice_id": "DIST-2022-534", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 31003.59, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-01-10"}
+{"invoice_id": "DIST-2022-713", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 113419.39, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-01-06"}
+{"invoice_id": "INT-2022-1845", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 87814.97, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-01-12"}
+{"invoice_id": "NOISE-30701", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 359823.1, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-01-18"}
+{"invoice_id": "TEST3865-2022", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 356343.60000000003, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-01-14"}
+{"invoice_id": "INT-2022-0146", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 211948.64, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-01-15"}
+{"invoice_id": "DIST-2022-978", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 155171.71, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-01-16"}
+{"invoice_id": "INT-2022-0369", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 452435.76, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-01-17"}
+{"invoice_id": "INT-2022-1687", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 216634.77999999997, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-01-20"}
+{"invoice_id": "DIST-2022-607", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 21630.48, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-01-18"}
+{"invoice_id": "TEST3089-2022", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 74210.06, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-01-13"}
+{"invoice_id": "NOISE-34083", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 46993.58, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-01-21"}
+{"invoice_id": "TEST1025-2022", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 100510.07, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-01-21"}
+{"invoice_id": "FAKE-375894", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 240951.47999999998, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-01-21"}
+{"invoice_id": "FAKE-322274", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 25264.11, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-01-22"}
+{"invoice_id": "DIST-2022-585", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 665798.71, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-01-25"}
+{"invoice_id": "DIST-2022-220", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 82688.35, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-01-23"}
+{"invoice_id": "DIST-2022-845", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 707532.38, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-01-23"}
+{"invoice_id": "FAKE-601992", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 173847.3, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-01-23"}
+{"invoice_id": "NOISE-28389", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 20065.86, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-01-25"}
+{"invoice_id": "DIST-2022-897", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 126011.97, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-01-25"}
+{"invoice_id": "INT-2022-0880", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 56554.9, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-01-22"}
+{"invoice_id": "NOISE-94930", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 68923.82, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-01-28"}
+{"invoice_id": "FAKE-778636", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 260961.24000000002, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-01-28"}
+{"invoice_id": "INT-2022-1475", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 96670.1, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-01-28"}
+{"invoice_id": "INT-2022-0842", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 206675.32, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-02-03"}
+{"invoice_id": "TEST5036-2022", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 474252.37, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-01-28"}
+{"invoice_id": "DIST-2022-884", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 68118.34999999999, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-01-28"}
+{"invoice_id": "FAKE-212681", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 46896.19, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-01-28"}
+{"invoice_id": "INT-2022-0805", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 71428.29000000001, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-02-02"}
+{"invoice_id": "NOISE-21321", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 1213188.49, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-02-01"}
+{"invoice_id": "TEST3916-2022", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 334565.83999999997, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-02-04"}
+{"invoice_id": "NOISE-24683", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 557970.4, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-02-06"}
+{"invoice_id": "NOISE-23402", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 49055.299999999996, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-02-05"}
+{"invoice_id": "NOISE-64507", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 65333.61, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-02-05"}
+{"invoice_id": "TEST3314-2022", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 453370.29, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-02-06"}
+{"invoice_id": "TEST2467-2022", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 641690.14, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-02-09"}
+{"invoice_id": "NOISE-73733", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 652004.23, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-02-07"}
+{"invoice_id": "DIST-2022-570", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 386210.89, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-02-08"}
+{"invoice_id": "DIST-2022-292", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 22535.64, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-02-07"}
+{"invoice_id": "TEST7730-2022", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 110244.15, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-02-10"}
+{"invoice_id": "DIST-2022-991", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 560556.0, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-02-10"}
+{"invoice_id": "INT-2022-1233", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 44442.05, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-02-11"}
+{"invoice_id": "FAKE-325023", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 360093.96, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-02-11"}
+{"invoice_id": "INT-2022-0345", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 42336.08, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-02-11"}
+{"invoice_id": "NOISE-72482", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 51358.75, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-02-11"}
+{"invoice_id": "TEST5822-2022", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 225612.78, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-02-12"}
+{"invoice_id": "FAKE-598833", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 331632.52, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-02-11"}
+{"invoice_id": "FAKE-749208", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 244060.35, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-02-13"}
+{"invoice_id": "NOISE-80555", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 491354.6, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-02-13"}
+{"invoice_id": "NOISE-35056", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 62489.42, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-02-13"}
+{"invoice_id": "INT-2022-1296", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 389006.64, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-02-13"}
+{"invoice_id": "INT-2022-0198", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 251323.97, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-02-14"}
+{"invoice_id": "FAKE-228643", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 427508.92, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-02-15"}
+{"invoice_id": "TEST1915-2022", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 26690.059999999998, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-02-14"}
+{"invoice_id": "INT-2022-0055", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 141302.66, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-02-14"}
+{"invoice_id": "TEST3764-2022", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 944876.7799999999, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-02-15"}
+{"invoice_id": "NOISE-89278", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 244698.96000000002, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-02-16"}
+{"invoice_id": "FAKE-268018", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 14008.880000000001, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-02-14"}
+{"invoice_id": "NOISE-46198", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 393942.51, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-02-15"}
+{"invoice_id": "INT-2022-1601", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 14838.490000000002, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-02-16"}
+{"invoice_id": "INT-2022-0759", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 175625.38, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-02-15"}
+{"invoice_id": "INT-2022-0705", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 41012.2, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-02-22"}
+{"invoice_id": "DIST-2022-275", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 41805.27, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-02-21"}
+{"invoice_id": "FAKE-985249", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 61595.33, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-02-18"}
+{"invoice_id": "TEST3369-2022", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 246363.12, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-02-18"}
+{"invoice_id": "FAKE-354646", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 24218.98, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-02-19"}
+{"invoice_id": "FAKE-584125", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 880121.27, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-02-21"}
+{"invoice_id": "DIST-2022-542", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 405188.55000000005, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-02-23"}
+{"invoice_id": "TEST8107-2022", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 362485.97000000003, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-02-17"}
+{"invoice_id": "FAKE-714017", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 32240.699999999997, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-02-17"}
+{"invoice_id": "FAKE-494468", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 97123.44, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-02-24"}
+{"invoice_id": "DIST-2022-270", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 58429.34, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-02-25"}
+{"invoice_id": "TEST8081-2022", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 21639.14, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-02-24"}
+{"invoice_id": "TEST6927-2022", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 116395.08, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-02-25"}
+{"invoice_id": "NOISE-59853", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 88405.16, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-02-28"}
+{"invoice_id": "NOISE-27027", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 265719.9, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-02-28"}
+{"invoice_id": "DIST-2022-515", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 251860.53, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-03-03"}
+{"invoice_id": "DIST-2022-735", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 197907.63999999998, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-02-28"}
+{"invoice_id": "NOISE-53278", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 88188.69, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-03-01"}
+{"invoice_id": "TEST9010-2022", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 384920.73, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-03-02"}
+{"invoice_id": "INT-2022-0945", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 58652.420000000006, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-02-26"}
+{"invoice_id": "NOISE-22776", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 262934.07, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-03-03"}
+{"invoice_id": "DIST-2022-696", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 381427.54, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-03-07"}
+{"invoice_id": "DIST-2022-872", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 315614.34, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-03-06"}
+{"invoice_id": "NOISE-24898", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 117030.85, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-03-07"}
+{"invoice_id": "INT-2022-0337", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 347333.96, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-03-04"}
+{"invoice_id": "INT-2022-1214", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 243554.63999999998, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-03-08"}
+{"invoice_id": "TEST2553-2022", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 112443.85, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-03-08"}
+{"invoice_id": "FAKE-974805", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 87587.76, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-03-08"}
+{"invoice_id": "FAKE-862398", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 103002.73000000001, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-03-11"}
+{"invoice_id": "TEST4808-2022", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 75915.54, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-03-13"}
+{"invoice_id": "FAKE-699876", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 47919.100000000006, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-03-13"}
+{"invoice_id": "NOISE-17263", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 486508.19, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-03-14"}
+{"invoice_id": "FAKE-807736", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 349929.88, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-03-15"}
+{"invoice_id": "DIST-2022-369", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 175667.91, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-03-15"}
+{"invoice_id": "FAKE-129959", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 66085.12, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-03-17"}
+{"invoice_id": "DIST-2022-349", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 216956.08, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-03-17"}
+{"invoice_id": "TEST9990-2022", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 295213.89, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-03-16"}
+{"invoice_id": "DIST-2022-291", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 1138654.0, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-03-15"}
+{"invoice_id": "NOISE-79377", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 364336.12, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-03-17"}
+{"invoice_id": "TEST3320-2022", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 894518.79, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-03-14"}
+{"invoice_id": "NOISE-75494", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 542812.34, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-03-17"}
+{"invoice_id": "DIST-2022-499", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 75173.33, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-03-22"}
+{"invoice_id": "DIST-2022-438", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 127805.1, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-03-26"}
+{"invoice_id": "NOISE-53857", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 123605.58, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-03-21"}
+{"invoice_id": "INT-2022-0878", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 31855.829999999998, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-03-18"}
+{"invoice_id": "DIST-2022-589", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 25466.620000000003, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-03-22"}
+{"invoice_id": "TEST2511-2022", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 50918.58, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-03-23"}
+{"invoice_id": "DIST-2022-125", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 50133.35, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-03-24"}
+{"invoice_id": "TEST4729-2022", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 33548.560000000005, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-03-26"}
+{"invoice_id": "INT-2022-1282", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 45786.38, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-03-19"}
+{"invoice_id": "INT-2022-0037", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 176240.1, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-03-27"}
+{"invoice_id": "FAKE-906519", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 205007.62, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-03-28"}
+{"invoice_id": "NOISE-43550", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 612942.01, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-04-04"}
+{"invoice_id": "INT-2022-0570", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 457072.36, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-04-01"}
+{"invoice_id": "DIST-2022-231", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 42671.84, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-04-02"}
+{"invoice_id": "TEST9372-2022", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 350737.27, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-04-02"}
+{"invoice_id": "FAKE-391648", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 225134.52, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-04-01"}
+{"invoice_id": "DIST-2022-262", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 347029.37, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-03-28"}
+{"invoice_id": "FAKE-595230", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 32925.94, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-04-04"}
+{"invoice_id": "FAKE-938139", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 42040.63, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-04-05"}
+{"invoice_id": "NOISE-36516", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 53012.64, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-04-08"}
+{"invoice_id": "NOISE-70338", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 9660.0, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-04-06"}
+{"invoice_id": "DIST-2022-981", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 675519.35, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-04-07"}
+{"invoice_id": "NOISE-63581", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 177292.25, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-04-09"}
+{"invoice_id": "NOISE-49361", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 117403.81, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-04-09"}
+{"invoice_id": "NOISE-50308", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 29365.6, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-04-06"}
+{"invoice_id": "TEST7911-2022", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 634824.52, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-04-12"}
+{"invoice_id": "DIST-2022-543", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 329784.42, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-04-12"}
+{"invoice_id": "TEST4977-2022", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 44118.509999999995, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-04-13"}
+{"invoice_id": "INT-2022-0606", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 429676.38, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-04-13"}
+{"invoice_id": "DIST-2022-877", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 507802.32, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-04-15"}
+{"invoice_id": "NOISE-65868", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 112536.38, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-04-17"}
+{"invoice_id": "TEST8916-2022", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 36942.299999999996, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-04-17"}
+{"invoice_id": "DIST-2022-744", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 17334.93, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-04-16"}
+{"invoice_id": "NOISE-38061", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 231651.72, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-04-20"}
+{"invoice_id": "DIST-2022-323", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 192691.57, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-04-22"}
+{"invoice_id": "TEST6807-2022", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 230780.77, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-04-20"}
+{"invoice_id": "FAKE-115799", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 31407.43, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-04-21"}
+{"invoice_id": "FAKE-290617", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 181018.35, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-04-21"}
+{"invoice_id": "DIST-2022-448", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 65425.909999999996, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-04-20"}
+{"invoice_id": "INT-2022-0766", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 40839.18, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-04-22"}
+{"invoice_id": "DIST-2022-665", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 422726.63, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-04-22"}
+{"invoice_id": "FAKE-449509", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 32450.34, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-04-24"}
+{"invoice_id": "INT-2022-0593", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 112949.34999999999, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-04-23"}
+{"invoice_id": "INT-2022-0075", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 463150.55, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-04-24"}
+{"invoice_id": "FAKE-875165", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 206705.58000000002, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-04-24"}
+{"invoice_id": "DIST-2022-411", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 27781.730000000003, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-04-25"}
+{"invoice_id": "INT-2022-1329", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 1921.84, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-04-23"}
+{"invoice_id": "FAKE-323573", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 89286.87, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-04-25"}
+{"invoice_id": "FAKE-244360", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 15765.51, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-04-25"}
+{"invoice_id": "TEST7936-2022", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 104504.96, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-04-26"}
+{"invoice_id": "DIST-2022-794", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 222482.14, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-04-26"}
+{"invoice_id": "NOISE-52964", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 179452.85, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-04-27"}
+{"invoice_id": "DIST-2022-966", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 44225.7, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-04-26"}
+{"invoice_id": "TEST5828-2022", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 60168.24, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-05-02"}
+{"invoice_id": "NOISE-27424", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 64662.14, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-05-01"}
+{"invoice_id": "TEST6419-2022", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 44961.42, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-05-01"}
+{"invoice_id": "TEST4116-2022", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 58801.38, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-05-02"}
+{"invoice_id": "NOISE-57242", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 278849.83999999997, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-05-03"}
+{"invoice_id": "NOISE-44704", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 626436.37, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-05-02"}
+{"invoice_id": "DIST-2022-882", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 182774.35, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-05-03"}
+{"invoice_id": "TEST1634-2022", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 48036.59, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-05-06"}
+{"invoice_id": "DIST-2022-761", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 250992.32, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-05-07"}
+{"invoice_id": "INT-2022-1799", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 68438.1, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-05-05"}
+{"invoice_id": "INT-2022-0941", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 35046.950000000004, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-05-04"}
+{"invoice_id": "FAKE-522379", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 41169.65, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-05-03"}
+{"invoice_id": "INT-2022-0539", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 138470.33000000002, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-05-05"}
+{"invoice_id": "FAKE-897191", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 360089.92, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-05-03"}
+{"invoice_id": "NOISE-43442", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 40702.04, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-05-03"}
+{"invoice_id": "FAKE-281720", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 181875.43, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-05-10"}
+{"invoice_id": "DIST-2022-717", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 199120.26, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-05-11"}
+{"invoice_id": "NOISE-54939", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 391854.55, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-05-13"}
+{"invoice_id": "DIST-2022-344", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 230087.63, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-05-18"}
+{"invoice_id": "FAKE-345884", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 340397.95, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-05-15"}
+{"invoice_id": "TEST6857-2022", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 172148.38, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-05-15"}
+{"invoice_id": "NOISE-98978", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 45627.22, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-05-16"}
+{"invoice_id": "FAKE-824765", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 40380.020000000004, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-05-12"}
+{"invoice_id": "NOISE-65478", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 13637.24, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-05-18"}
+{"invoice_id": "NOISE-56090", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 227185.13, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-05-20"}
+{"invoice_id": "TEST7437-2022", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 79962.45, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-05-20"}
+{"invoice_id": "NOISE-54399", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 225096.59, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-05-20"}
+{"invoice_id": "NOISE-48258", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 52706.04, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-05-21"}
+{"invoice_id": "INT-2022-1519", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 376054.7, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-05-22"}
+{"invoice_id": "NOISE-86931", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 67025.66, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-05-24"}
+{"invoice_id": "TEST2417-2022", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 57527.270000000004, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-05-26"}
+{"invoice_id": "TEST8947-2022", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 307569.08, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-05-27"}
+{"invoice_id": "TEST6521-2022", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 244019.01, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-05-28"}
+{"invoice_id": "NOISE-45002", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 362564.83, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-05-27"}
+{"invoice_id": "NOISE-16752", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 492712.94, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-05-28"}
+{"invoice_id": "INT-2022-1693", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 54390.12, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-05-28"}
+{"invoice_id": "TEST2376-2022", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 493912.52, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-06-09"}
+{"invoice_id": "TEST3362-2022", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 491860.47, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-06-01"}
+{"invoice_id": "TEST6904-2022", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 443476.98000000004, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-06-02"}
+{"invoice_id": "INT-2022-0800", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 276385.66, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-06-05"}
+{"invoice_id": "DIST-2022-224", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 318730.67, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-06-06"}
+{"invoice_id": "FAKE-478707", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 170393.99, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-06-06"}
+{"invoice_id": "FAKE-351815", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 593807.54, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-06-07"}
+{"invoice_id": "FAKE-357848", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 845134.37, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-06-08"}
+{"invoice_id": "INT-2022-0312", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 469829.0, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-06-01"}
+{"invoice_id": "TEST4389-2022", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 188809.07, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-06-10"}
+{"invoice_id": "TEST8157-2022", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 422818.85, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-06-10"}
+{"invoice_id": "INT-2022-0334", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 154461.18, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-06-10"}
+{"invoice_id": "NOISE-60122", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 47794.53, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-06-14"}
+{"invoice_id": "FAKE-747351", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 357289.45, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-06-12"}
+{"invoice_id": "NOISE-90945", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 41306.29, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-06-14"}
+{"invoice_id": "INT-2022-0144", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 433568.84, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-06-14"}
+{"invoice_id": "FAKE-546390", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 57100.08, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-06-13"}
+{"invoice_id": "FAKE-693509", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 594069.05, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-06-11"}
+{"invoice_id": "NOISE-43612", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 725329.8, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-06-15"}
+{"invoice_id": "INT-2022-0960", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 241633.34, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-06-15"}
+{"invoice_id": "DIST-2022-120", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 152463.6, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-06-15"}
+{"invoice_id": "FAKE-372986", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 239445.2, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-06-16"}
+{"invoice_id": "FAKE-184365", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 94104.72, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-06-18"}
+{"invoice_id": "TEST2113-2022", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 555974.46, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-06-18"}
+{"invoice_id": "FAKE-692910", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 21670.96, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-06-20"}
+{"invoice_id": "TEST7846-2022", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 469428.68, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-06-18"}
+{"invoice_id": "NOISE-38207", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 189655.19, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-06-19"}
+{"invoice_id": "FAKE-512042", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 27474.84, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-06-20"}
+{"invoice_id": "INT-2022-1523", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 237466.3, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-06-18"}
+{"invoice_id": "NOISE-88159", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 278245.8, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-06-21"}
+{"invoice_id": "FAKE-925026", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 158421.58, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-06-21"}
+{"invoice_id": "INT-2022-1550", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 77152.92, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-06-21"}
+{"invoice_id": "TEST4274-2022", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 270358.4, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-06-22"}
+{"invoice_id": "INT-2022-0746", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 116186.78, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-06-27"}
+{"invoice_id": "TEST1834-2022", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 360519.66, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-06-27"}
+{"invoice_id": "DIST-2022-869", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 46028.53, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-06-24"}
+{"invoice_id": "NOISE-84487", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 16081.03, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-06-25"}
+{"invoice_id": "DIST-2022-778", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 86369.02, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-06-26"}
+{"invoice_id": "DIST-2022-251", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 226406.84, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-06-23"}
+{"invoice_id": "DIST-2022-500", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 538298.33, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-06-22"}
+{"invoice_id": "INT-2022-1671", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 554902.48, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-06-27"}
+{"invoice_id": "DIST-2022-708", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 137128.42, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-06-28"}
+{"invoice_id": "TEST7365-2022", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 431408.38, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-07-03"}
+{"invoice_id": "TEST4254-2022", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 29713.28, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-07-02"}
+{"invoice_id": "TEST8201-2022", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 102769.73999999999, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-07-02"}
+{"invoice_id": "TEST1119-2022", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 496672.8, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-07-01"}
+{"invoice_id": "FAKE-107246", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 104432.82999999999, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-07-04"}
+{"invoice_id": "DIST-2022-336", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 31092.86, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-07-04"}
+{"invoice_id": "TEST4409-2022", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 32179.75, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-07-05"}
+{"invoice_id": "FAKE-577092", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 36762.79, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-07-05"}
+{"invoice_id": "TEST1015-2022", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 9471.8, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-07-10"}
+{"invoice_id": "NOISE-97916", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 38784.0, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-07-06"}
+{"invoice_id": "DIST-2022-765", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 218453.86000000002, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-07-07"}
+{"invoice_id": "FAKE-446305", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 30994.37, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-07-08"}
+{"invoice_id": "TEST5637-2022", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 536552.96, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-07-08"}
+{"invoice_id": "INT-2022-0270", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 306869.26, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-07-12"}
+{"invoice_id": "NOISE-37426", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 60477.72, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-07-10"}
+{"invoice_id": "DIST-2022-730", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 363306.01, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-07-06"}
+{"invoice_id": "NOISE-59219", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 178650.26, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-07-11"}
+{"invoice_id": "NOISE-89346", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 51091.12, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-07-10"}
+{"invoice_id": "TEST3087-2022", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 22395.46, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-07-16"}
+{"invoice_id": "NOISE-51488", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 375414.11, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-07-14"}
+{"invoice_id": "INT-2022-0645", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 360104.63, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-07-15"}
+{"invoice_id": "NOISE-87438", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 18680.28, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-07-14"}
+{"invoice_id": "INT-2022-0923", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 29019.14, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-07-17"}
+{"invoice_id": "NOISE-53749", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 103614.68000000001, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-07-16"}
+{"invoice_id": "TEST9209-2022", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 59396.89, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-07-17"}
+{"invoice_id": "TEST5947-2022", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 79311.27, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-07-17"}
+{"invoice_id": "INT-2022-0905", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 68248.54000000001, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-07-18"}
+{"invoice_id": "NOISE-21056", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 402407.6, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-07-18"}
+{"invoice_id": "TEST2207-2022", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 278031.97, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-07-19"}
+{"invoice_id": "INT-2022-0315", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 371211.73, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-07-27"}
+{"invoice_id": "DIST-2022-192", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 445466.82999999996, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-07-20"}
+{"invoice_id": "INT-2022-0821", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 94994.05, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-07-21"}
+{"invoice_id": "INT-2022-1734", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 645082.57, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-07-25"}
+{"invoice_id": "DIST-2022-433", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 69293.58, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-07-26"}
+{"invoice_id": "INT-2022-1405", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 578687.54, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-07-26"}
+{"invoice_id": "INT-2022-1535", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 37416.01, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-08-01"}
+{"invoice_id": "FAKE-766549", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 120075.28, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-07-28"}
+{"invoice_id": "DIST-2022-736", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 202681.28, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-07-20"}
+{"invoice_id": "TEST7845-2022", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 489552.15, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-08-01"}
+{"invoice_id": "INT-2022-1988", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 333243.4, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-08-01"}
+{"invoice_id": "FAKE-831257", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 103165.56, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-08-05"}
+{"invoice_id": "INT-2022-0513", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 540997.38, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-08-03"}
+{"invoice_id": "INT-2022-0012", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 462996.33, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-08-03"}
+{"invoice_id": "FAKE-730343", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 245773.68, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-08-05"}
+{"invoice_id": "INT-2022-1578", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 45238.68, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-08-05"}
+{"invoice_id": "INT-2022-1422", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 349874.64, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-08-06"}
+{"invoice_id": "TEST2899-2022", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 365982.56, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-08-03"}
+{"invoice_id": "FAKE-456871", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 62455.79, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-08-07"}
+{"invoice_id": "TEST8679-2022", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 505599.45, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-08-08"}
+{"invoice_id": "TEST7479-2022", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 429249.66000000003, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-08-08"}
+{"invoice_id": "DIST-2022-609", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 268468.13, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-08-09"}
+{"invoice_id": "NOISE-25641", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 235547.78, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-08-10"}
+{"invoice_id": "TEST4609-2022", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 346846.22000000003, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-08-13"}
+{"invoice_id": "TEST8759-2022", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 294041.82, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-08-11"}
+{"invoice_id": "DIST-2022-230", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 236361.40000000002, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-08-14"}
+{"invoice_id": "FAKE-353103", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 613411.87, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-08-13"}
+{"invoice_id": "TEST1950-2022", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 222901.06, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-08-11"}
+{"invoice_id": "FAKE-632294", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 501435.98, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-08-12"}
+{"invoice_id": "NOISE-19516", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 29472.38, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-08-14"}
+{"invoice_id": "TEST1623-2022", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 440808.06, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-08-16"}
+{"invoice_id": "FAKE-121535", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 66445.97, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-08-16"}
+{"invoice_id": "NOISE-42502", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 83567.33, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-08-19"}
+{"invoice_id": "TEST4457-2022", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 55568.35, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-08-18"}
+{"invoice_id": "TEST9941-2022", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 243219.08, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-08-18"}
+{"invoice_id": "DIST-2022-900", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 336468.41000000003, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-08-17"}
+{"invoice_id": "FAKE-583550", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 173238.9, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-08-19"}
+{"invoice_id": "TEST2375-2022", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 42839.62, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-08-17"}
+{"invoice_id": "FAKE-133589", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 233000.91999999998, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-08-20"}
+{"invoice_id": "FAKE-806402", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 280811.24, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-08-20"}
+{"invoice_id": "DIST-2022-133", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 381576.58, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-08-25"}
+{"invoice_id": "TEST3641-2022", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 340642.1, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-08-22"}
+{"invoice_id": "TEST4694-2022", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 164623.7, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-08-26"}
+{"invoice_id": "INT-2022-0098", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 279737.1, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-08-23"}
+{"invoice_id": "NOISE-48152", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 62487.909999999996, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-08-23"}
+{"invoice_id": "DIST-2022-537", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 54400.35, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-08-24"}
+{"invoice_id": "FAKE-149167", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 30916.809999999998, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-08-20"}
+{"invoice_id": "TEST5907-2022", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 16774.63, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-08-24"}
+{"invoice_id": "INT-2022-0771", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 13647.0, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-08-22"}
+{"invoice_id": "TEST2415-2022", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 60179.17999999999, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-08-28"}
+{"invoice_id": "TEST2661-2022", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 22312.36, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-08-26"}
+{"invoice_id": "DIST-2022-754", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 529232.73, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-08-27"}
+{"invoice_id": "NOISE-74117", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 386542.29, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-08-27"}
+{"invoice_id": "DIST-2022-190", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 205243.50999999998, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-08-27"}
+{"invoice_id": "INT-2022-0045", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 342451.48, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-08-26"}
+{"invoice_id": "TEST9680-2022", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 39074.39, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-09-04"}
+{"invoice_id": "NOISE-69886", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 83493.73, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-09-04"}
+{"invoice_id": "TEST3395-2022", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 23407.18, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-09-05"}
+{"invoice_id": "NOISE-62158", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 267164.63, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-09-04"}
+{"invoice_id": "FAKE-273878", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 46278.86, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-09-07"}
+{"invoice_id": "INT-2022-0324", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 1035772.6, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-09-06"}
+{"invoice_id": "TEST3184-2022", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 40559.93, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-09-08"}
+{"invoice_id": "FAKE-827391", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 361364.37, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-09-12"}
+{"invoice_id": "NOISE-45311", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 52476.84, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-09-09"}
+{"invoice_id": "FAKE-188720", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 109874.66, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-09-09"}
+{"invoice_id": "TEST7833-2022", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 15724.939999999999, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-09-09"}
+{"invoice_id": "FAKE-443598", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 489069.26, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-09-10"}
+{"invoice_id": "TEST2083-2022", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 15609.59, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-09-11"}
+{"invoice_id": "TEST3435-2022", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 392816.4, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-09-09"}
+{"invoice_id": "TEST6802-2022", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 264493.65, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-09-18"}
+{"invoice_id": "TEST5889-2022", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 199563.44, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-09-15"}
+{"invoice_id": "TEST8756-2022", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 73095.92, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-09-13"}
+{"invoice_id": "TEST6387-2022", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 829836.08, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-09-13"}
+{"invoice_id": "NOISE-10651", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 116942.51999999999, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-09-17"}
+{"invoice_id": "DIST-2022-412", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 61571.35, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-09-13"}
+{"invoice_id": "DIST-2022-620", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 218349.94, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-09-18"}
+{"invoice_id": "NOISE-71547", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 308344.07, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-09-18"}
+{"invoice_id": "DIST-2022-953", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 18564.1, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-09-18"}
+{"invoice_id": "TEST9314-2022", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 624846.19, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-09-19"}
+{"invoice_id": "NOISE-52700", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 59882.68, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-09-20"}
+{"invoice_id": "DIST-2022-549", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 47503.59, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-09-21"}
+{"invoice_id": "FAKE-706815", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 21924.03, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-09-21"}
+{"invoice_id": "TEST8596-2022", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 424366.43, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-09-24"}
+{"invoice_id": "INT-2022-1266", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 201345.47, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-09-24"}
+{"invoice_id": "DIST-2022-527", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 52256.51, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-09-23"}
+{"invoice_id": "NOISE-55332", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 145455.72999999998, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-09-24"}
+{"invoice_id": "FAKE-432339", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 19177.5, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-09-23"}
+{"invoice_id": "TEST2468-2022", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 140967.28, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-09-22"}
+{"invoice_id": "INT-2022-0715", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 416148.93000000005, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-09-24"}
+{"invoice_id": "NOISE-54353", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 238562.43, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-09-24"}
+{"invoice_id": "NOISE-95944", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 62248.020000000004, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-09-26"}
+{"invoice_id": "DIST-2022-851", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 533097.0, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-10-01"}
+{"invoice_id": "INT-2022-0685", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 811221.13, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-09-27"}
+{"invoice_id": "FAKE-570284", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 203446.80000000002, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-09-27"}
+{"invoice_id": "TEST8115-2022", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 438172.99, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-09-28"}
+{"invoice_id": "NOISE-16471", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 265006.75, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-09-28"}
+{"invoice_id": "NOISE-84814", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 263385.07, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-10-01"}
+{"invoice_id": "TEST2021-2022", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 638823.27, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-09-27"}
+{"invoice_id": "NOISE-67764", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 74666.76, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-09-28"}
+{"invoice_id": "INT-2022-1490", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 132850.91, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-10-02"}
+{"invoice_id": "TEST6822-2022", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 308571.6, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-10-05"}
+{"invoice_id": "INT-2022-0774", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 33612.68, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-10-04"}
+{"invoice_id": "DIST-2022-998", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 310984.83999999997, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-10-04"}
+{"invoice_id": "NOISE-46948", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 316979.54000000004, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-10-05"}
+{"invoice_id": "TEST7493-2022", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 53190.68, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-10-05"}
+{"invoice_id": "NOISE-80165", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 31069.24, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-10-06"}
+{"invoice_id": "NOISE-63382", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 278188.16, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-10-05"}
+{"invoice_id": "DIST-2022-907", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 126842.54, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-10-07"}
+{"invoice_id": "NOISE-21297", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 275316.55, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-10-07"}
+{"invoice_id": "DIST-2022-566", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 20737.440000000002, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-10-07"}
+{"invoice_id": "TEST2302-2022", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 67147.96, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-10-08"}
+{"invoice_id": "INT-2022-1389", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 283301.39, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-10-09"}
+{"invoice_id": "NOISE-36213", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 548511.0, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-10-10"}
+{"invoice_id": "TEST1858-2022", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 163089.68, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-10-11"}
+{"invoice_id": "INT-2022-1353", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 49865.99, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-10-13"}
+{"invoice_id": "NOISE-50438", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 595869.27, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-10-15"}
+{"invoice_id": "NOISE-27111", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 379639.93, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-10-13"}
+{"invoice_id": "DIST-2022-871", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 186035.59, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-10-15"}
+{"invoice_id": "NOISE-34347", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 219729.91, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-10-13"}
+{"invoice_id": "INT-2022-1060", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 672529.47, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-10-21"}
+{"invoice_id": "FAKE-892934", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 231756.4, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-10-21"}
+{"invoice_id": "DIST-2022-223", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 69179.7, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-10-17"}
+{"invoice_id": "FAKE-549112", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 62683.32, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-10-19"}
+{"invoice_id": "FAKE-373774", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 370097.51, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-10-20"}
+{"invoice_id": "NOISE-67534", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 98879.64, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-10-16"}
+{"invoice_id": "FAKE-499226", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 211518.37, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-10-17"}
+{"invoice_id": "FAKE-130359", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 213486.69, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-10-22"}
+{"invoice_id": "INT-2022-1481", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 246651.36, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-10-22"}
+{"invoice_id": "INT-2022-1012", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 105977.66, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-10-22"}
+{"invoice_id": "DIST-2022-564", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 684801.78, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-10-22"}
+{"invoice_id": "NOISE-51864", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 238353.95, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-10-22"}
+{"invoice_id": "FAKE-327558", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 100133.75, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-10-24"}
+{"invoice_id": "INT-2022-1336", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 29284.55, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-10-28"}
+{"invoice_id": "DIST-2022-561", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 481673.6, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-10-24"}
+{"invoice_id": "NOISE-45703", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 39907.520000000004, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-10-24"}
+{"invoice_id": "NOISE-42543", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 639303.42, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-10-25"}
+{"invoice_id": "DIST-2022-691", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 149527.45, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-10-26"}
+{"invoice_id": "TEST7108-2022", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 153479.80000000002, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-10-26"}
+{"invoice_id": "TEST2840-2022", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 105998.44, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-10-24"}
+{"invoice_id": "NOISE-37585", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 53668.19, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-11-02"}
+{"invoice_id": "TEST1324-2022", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 331462.08, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-11-02"}
+{"invoice_id": "INT-2022-1053", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 196420.72999999998, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-11-04"}
+{"invoice_id": "TEST1776-2022", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 644351.6799999999, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-11-03"}
+{"invoice_id": "FAKE-411185", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 68976.69, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-11-06"}
+{"invoice_id": "INT-2022-0161", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 55879.92, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-11-04"}
+{"invoice_id": "FAKE-422677", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 41993.340000000004, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-11-03"}
+{"invoice_id": "NOISE-40116", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 32197.03, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-11-04"}
+{"invoice_id": "TEST3215-2022", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 724344.21, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-11-06"}
+{"invoice_id": "DIST-2022-960", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 134797.69, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-11-07"}
+{"invoice_id": "DIST-2022-660", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 76007.31999999999, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-11-08"}
+{"invoice_id": "DIST-2022-116", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 160101.91, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-11-11"}
+{"invoice_id": "FAKE-954441", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 36756.58, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-11-09"}
+{"invoice_id": "INT-2022-1657", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 854200.1, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-11-10"}
+{"invoice_id": "INT-2022-1279", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 147637.7, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-11-10"}
+{"invoice_id": "NOISE-91006", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 75878.0, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-11-11"}
+{"invoice_id": "FAKE-333049", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 25741.36, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-11-11"}
+{"invoice_id": "INT-2022-0893", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 123006.29999999999, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-11-08"}
+{"invoice_id": "TEST1464-2022", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 785791.26, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-11-11"}
+{"invoice_id": "INT-2022-0134", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 72535.51, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-11-12"}
+{"invoice_id": "NOISE-50251", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 16094.580000000002, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-11-18"}
+{"invoice_id": "INT-2022-1944", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 107911.44, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-11-15"}
+{"invoice_id": "NOISE-72722", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 623859.96, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-11-15"}
+{"invoice_id": "TEST1175-2022", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 67666.43, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-11-14"}
+{"invoice_id": "INT-2022-1506", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 318791.7, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-11-15"}
+{"invoice_id": "INT-2022-1377", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 79687.59, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-11-16"}
+{"invoice_id": "FAKE-905882", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 46553.34, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-11-17"}
+{"invoice_id": "DIST-2022-729", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 392996.7, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-11-18"}
+{"invoice_id": "TEST7738-2022", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 268777.25, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-11-13"}
+{"invoice_id": "INT-2022-1717", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 15557.05, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-11-19"}
+{"invoice_id": "DIST-2022-418", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 470359.04, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-11-20"}
+{"invoice_id": "INT-2022-1585", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 71254.0, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-11-21"}
+{"invoice_id": "FAKE-749987", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 3379.92, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-11-21"}
+{"invoice_id": "DIST-2022-498", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 44883.26, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-11-23"}
+{"invoice_id": "NOISE-18966", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 131884.82, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-11-22"}
+{"invoice_id": "NOISE-38910", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 31764.64, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-11-22"}
+{"invoice_id": "TEST7132-2022", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 174122.45, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-11-24"}
+{"invoice_id": "FAKE-479404", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 374448.67, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-11-22"}
+{"invoice_id": "FAKE-682783", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 590479.0, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-11-25"}
+{"invoice_id": "NOISE-49608", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 39631.32, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-11-27"}
+{"invoice_id": "TEST7384-2022", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 136585.77, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-12-03"}
+{"invoice_id": "NOISE-78039", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 16780.52, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-11-28"}
+{"invoice_id": "DIST-2022-104", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 151108.39, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-11-27"}
+{"invoice_id": "NOISE-10705", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 86374.70999999999, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-12-01"}
+{"invoice_id": "DIST-2022-259", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 36131.88, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-12-01"}
+{"invoice_id": "NOISE-33513", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 638748.75, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-12-02"}
+{"invoice_id": "DIST-2022-132", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 656867.75, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-12-02"}
+{"invoice_id": "DIST-2022-174", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 558067.92, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-12-03"}
+{"invoice_id": "DIST-2022-489", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 7424.5199999999995, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-12-04"}
+{"invoice_id": "NOISE-11803", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 399248.62, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-12-04"}
+{"invoice_id": "DIST-2022-587", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 209302.45, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-12-06"}
+{"invoice_id": "INT-2022-0422", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 463390.07, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-12-07"}
+{"invoice_id": "DIST-2022-382", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 682022.66, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-12-09"}
+{"invoice_id": "NOISE-65550", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 254445.83, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-12-08"}
+{"invoice_id": "TEST3688-2022", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 476677.23, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-12-14"}
+{"invoice_id": "FAKE-205706", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 46112.32, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-12-14"}
+{"invoice_id": "DIST-2022-509", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 533652.17, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-12-11"}
+{"invoice_id": "NOISE-64474", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 370999.94, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-12-15"}
+{"invoice_id": "INT-2022-1301", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 253222.66999999998, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-12-15"}
+{"invoice_id": "TEST7637-2022", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 50700.59, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-12-15"}
+{"invoice_id": "DIST-2022-969", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 76419.3, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-12-20"}
+{"invoice_id": "TEST9033-2022", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 73482.20999999999, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-12-16"}
+{"invoice_id": "INT-2022-1558", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 192405.12, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-12-18"}
+{"invoice_id": "FAKE-313741", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 121661.82999999999, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-12-15"}
+{"invoice_id": "DIST-2022-964", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 332209.64, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-12-19"}
+{"invoice_id": "DIST-2022-197", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 81647.93, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-12-18"}
+{"invoice_id": "TEST1627-2022", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 532496.03, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-12-21"}
+{"invoice_id": "DIST-2022-340", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 92765.51000000001, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-12-21"}
+{"invoice_id": "DIST-2022-922", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 293635.26, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-12-22"}
+{"invoice_id": "NOISE-58719", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 159842.4, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-12-22"}
+{"invoice_id": "FAKE-534773", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 253544.36, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2022-12-28"}
+{"invoice_id": "DIST-2022-822", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 193139.23, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-12-23"}
+{"invoice_id": "DIST-2022-975", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 29582.91, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2022-12-24"}
+{"invoice_id": "FAKE-425569", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 271850.28, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-12-25"}
+{"invoice_id": "FAKE-365271", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 714481.47, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-12-26"}
+{"invoice_id": "DIST-2022-830", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 23447.84, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2022-12-27"}
+{"invoice_id": "NOISE-26341", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 44638.27, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2022-12-28"}
+{"invoice_id": "FAKE-565992", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 102620.29000000001, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2022-12-23"}
+{"invoice_id": "INT-2022-0752", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 3566.3900000000003, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2022-12-28"}
+{"invoice_id": "NOISE-36233", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 59338.700000000004, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2022-12-28"}
+{"invoice_id": "DIST-2023-841", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 44746.990000000005, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-01-04"}
+{"invoice_id": "DIST-2023-656", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 233185.41, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-01-01"}
+{"invoice_id": "FAKE-397901", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 92511.89, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-01-01"}
+{"invoice_id": "FAKE-866151", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 265470.68, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-01-02"}
+{"invoice_id": "FAKE-366825", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 456142.9, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-01-02"}
+{"invoice_id": "NOISE-73632", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 45892.74, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-01-02"}
+{"invoice_id": "NOISE-46356", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 236361.97999999998, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-01-03"}
+{"invoice_id": "INT-2023-1797", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 43614.67, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-01-04"}
+{"invoice_id": "DIST-2022-468", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 372843.77, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2022-12-28"}
+{"invoice_id": "INT-2023-1403", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 46412.369999999995, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-01-04"}
+{"invoice_id": "NOISE-80328", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 321843.04, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-01-05"}
+{"invoice_id": "NOISE-71993", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 38697.020000000004, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-01-11"}
+{"invoice_id": "TEST3567-2023", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 99920.98999999999, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-01-07"}
+{"invoice_id": "FAKE-997287", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 425347.6, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-01-10"}
+{"invoice_id": "INT-2023-1953", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 209049.59000000003, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-01-08"}
+{"invoice_id": "TEST8218-2023", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 580712.28, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-01-09"}
+{"invoice_id": "DIST-2023-703", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 250722.88, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-01-08"}
+{"invoice_id": "DIST-2023-803", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 52685.55, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-01-10"}
+{"invoice_id": "INT-2023-0912", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 207352.38999999998, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-01-10"}
+{"invoice_id": "NOISE-19108", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 103286.07999999999, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-01-06"}
+{"invoice_id": "FAKE-632216", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 251860.59, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-01-12"}
+{"invoice_id": "FAKE-502803", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 235228.48, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-01-11"}
+{"invoice_id": "FAKE-517476", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 14647.24, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-01-12"}
+{"invoice_id": "TEST9335-2023", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 814919.75, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-01-17"}
+{"invoice_id": "DIST-2023-968", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 124011.25, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-01-12"}
+{"invoice_id": "NOISE-34878", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 270067.64, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-01-13"}
+{"invoice_id": "DIST-2023-648", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 71635.91, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-01-14"}
+{"invoice_id": "FAKE-530108", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 364832.36, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-01-14"}
+{"invoice_id": "DIST-2023-776", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 438940.54000000004, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-01-15"}
+{"invoice_id": "DIST-2023-430", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 21820.16, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-01-11"}
+{"invoice_id": "TEST4189-2023", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 239281.14, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-01-17"}
+{"invoice_id": "INT-2023-0384", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 20216.21, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-01-17"}
+{"invoice_id": "DIST-2023-840", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 204769.61, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-01-18"}
+{"invoice_id": "FAKE-877259", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 284020.24, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-01-19"}
+{"invoice_id": "INT-2023-0109", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 712816.78, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-01-20"}
+{"invoice_id": "TEST6145-2023", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 939435.0, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-01-19"}
+{"invoice_id": "TEST3745-2023", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 607438.8300000001, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-01-21"}
+{"invoice_id": "TEST9189-2023", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 136332.53, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-01-21"}
+{"invoice_id": "FAKE-910552", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 52471.41, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-01-20"}
+{"invoice_id": "FAKE-182427", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 86973.61, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-01-22"}
+{"invoice_id": "TEST9514-2023", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 23102.28, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-01-23"}
+{"invoice_id": "FAKE-886476", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 386345.01, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-01-24"}
+{"invoice_id": "TEST9290-2023", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 174596.66, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-01-25"}
+{"invoice_id": "DIST-2023-401", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 261074.57, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-01-28"}
+{"invoice_id": "DIST-2023-711", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 456654.13, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-02-01"}
+{"invoice_id": "FAKE-127096", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 240967.13999999998, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-01-26"}
+{"invoice_id": "INT-2023-1089", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 308624.13, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-01-27"}
+{"invoice_id": "NOISE-27459", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 367445.59, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-02-01"}
+{"invoice_id": "TEST6388-2023", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 93716.48, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-02-01"}
+{"invoice_id": "TEST3752-2023", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 403044.21, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-02-02"}
+{"invoice_id": "TEST5105-2023", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 26194.69, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-02-02"}
+{"invoice_id": "DIST-2023-943", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 67524.95999999999, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-02-04"}
+{"invoice_id": "INT-2023-1735", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 121303.9, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-02-02"}
+{"invoice_id": "FAKE-951118", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 61864.61, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-02-03"}
+{"invoice_id": "FAKE-291366", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 29969.9, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-02-04"}
+{"invoice_id": "INT-2023-0061", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 342062.65, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-02-02"}
+{"invoice_id": "NOISE-84942", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 64025.57, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-02-04"}
+{"invoice_id": "FAKE-757311", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 73542.75, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-02-03"}
+{"invoice_id": "NOISE-44406", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 1334422.23, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-02-04"}
+{"invoice_id": "DIST-2023-976", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 421500.45, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-02-04"}
+{"invoice_id": "DIST-2023-961", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 592845.58, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-02-05"}
+{"invoice_id": "INT-2023-0111", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 63456.21, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-02-08"}
+{"invoice_id": "TEST5202-2023", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 20605.69, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-02-06"}
+{"invoice_id": "NOISE-41217", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 14084.52, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-02-07"}
+{"invoice_id": "NOISE-36563", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 490465.74, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-02-07"}
+{"invoice_id": "INT-2023-0420", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 100281.58, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-02-07"}
+{"invoice_id": "FAKE-476395", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 324961.24, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-02-08"}
+{"invoice_id": "TEST1804-2023", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 99060.65, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-02-05"}
+{"invoice_id": "DIST-2023-437", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 56463.880000000005, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-02-08"}
+{"invoice_id": "DIST-2023-173", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 123553.44, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-02-09"}
+{"invoice_id": "FAKE-341281", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 33736.97, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-02-11"}
+{"invoice_id": "FAKE-312868", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 62214.68, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-02-11"}
+{"invoice_id": "TEST5065-2023", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 807114.34, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-02-12"}
+{"invoice_id": "TEST8712-2023", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 450969.5, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-02-12"}
+{"invoice_id": "FAKE-232616", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 59246.7, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-02-14"}
+{"invoice_id": "FAKE-929165", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 690783.41, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-02-11"}
+{"invoice_id": "DIST-2023-208", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 108998.86, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-02-14"}
+{"invoice_id": "INT-2023-1229", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 307561.25, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-02-14"}
+{"invoice_id": "INT-2023-1399", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 355466.38, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-02-12"}
+{"invoice_id": "DIST-2023-378", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 405670.47, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-02-15"}
+{"invoice_id": "FAKE-952308", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 30664.97, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-02-15"}
+{"invoice_id": "TEST7392-2023", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 20433.82, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-02-15"}
+{"invoice_id": "TEST3675-2023", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 21974.82, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-02-18"}
+{"invoice_id": "TEST1214-2023", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 22910.13, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-02-18"}
+{"invoice_id": "NOISE-86640", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 640217.2899999999, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-02-17"}
+{"invoice_id": "DIST-2023-920", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 398676.36000000004, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-02-17"}
+{"invoice_id": "TEST2599-2023", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 37535.58, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-02-19"}
+{"invoice_id": "DIST-2023-393", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 281466.87, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-02-20"}
+{"invoice_id": "TEST9397-2023", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 47635.270000000004, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-02-20"}
+{"invoice_id": "DIST-2023-434", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 148196.7, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-02-21"}
+{"invoice_id": "DIST-2023-904", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 358884.37, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-03-02"}
+{"invoice_id": "FAKE-831985", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 137310.65, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-02-22"}
+{"invoice_id": "TEST3487-2023", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 17883.579999999998, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-02-24"}
+{"invoice_id": "DIST-2023-721", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 276308.27999999997, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-02-25"}
+{"invoice_id": "TEST2070-2023", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 230135.66, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-03-02"}
+{"invoice_id": "DIST-2023-334", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 287418.62, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-02-27"}
+{"invoice_id": "TEST2160-2023", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 72921.23, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-02-28"}
+{"invoice_id": "NOISE-73827", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 77656.73000000001, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-03-01"}
+{"invoice_id": "INT-2023-0103", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 64552.22, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-02-22"}
+{"invoice_id": "FAKE-338533", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 410245.14999999997, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-02-27"}
+{"invoice_id": "FAKE-385320", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 38511.93, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-03-03"}
+{"invoice_id": "FAKE-169778", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 457965.06, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-03-09"}
+{"invoice_id": "INT-2023-0786", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 366026.4, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-03-04"}
+{"invoice_id": "DIST-2023-740", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 70933.45, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-03-04"}
+{"invoice_id": "TEST3283-2023", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 86261.01, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-03-04"}
+{"invoice_id": "TEST3964-2023", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 410027.54, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-03-08"}
+{"invoice_id": "FAKE-983073", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 791484.37, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-03-08"}
+{"invoice_id": "NOISE-38414", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 41679.19, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-03-08"}
+{"invoice_id": "INT-2023-1976", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 354161.85, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-03-04"}
+{"invoice_id": "FAKE-797790", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 445600.98000000004, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-03-09"}
+{"invoice_id": "INT-2023-0865", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 304816.04, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-03-11"}
+{"invoice_id": "DIST-2023-513", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 460413.25, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-03-11"}
+{"invoice_id": "INT-2023-0260", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 166061.46, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-03-12"}
+{"invoice_id": "INT-2023-0050", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 53436.19, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-03-14"}
+{"invoice_id": "TEST1877-2023", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 834047.77, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-03-20"}
+{"invoice_id": "FAKE-563688", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 265391.58999999997, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-03-15"}
+{"invoice_id": "FAKE-303602", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 468673.63, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-03-17"}
+{"invoice_id": "NOISE-57002", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 156452.72, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-03-20"}
+{"invoice_id": "INT-2023-0670", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 19484.98, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-03-20"}
+{"invoice_id": "FAKE-359870", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 268895.1, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-03-13"}
+{"invoice_id": "INT-2023-1598", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 262314.68, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-03-22"}
+{"invoice_id": "TEST8577-2023", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 285149.97000000003, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-03-21"}
+{"invoice_id": "TEST1513-2023", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 43251.48, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-03-21"}
+{"invoice_id": "NOISE-93584", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 143488.26, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-03-23"}
+{"invoice_id": "TEST3525-2023", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 311587.18, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-03-21"}
+{"invoice_id": "NOISE-13769", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 291729.99, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-03-23"}
+{"invoice_id": "TEST9108-2023", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 335196.03, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-03-23"}
+{"invoice_id": "INT-2023-0318", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 830969.1, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-03-23"}
+{"invoice_id": "TEST7187-2023", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 942254.6699999999, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-03-23"}
+{"invoice_id": "INT-2023-1415", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 227266.9, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-03-23"}
+{"invoice_id": "FAKE-866486", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 611647.39, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-04-05"}
+{"invoice_id": "TEST5789-2023", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 576581.85, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-03-24"}
+{"invoice_id": "NOISE-63955", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 338905.23, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-03-24"}
+{"invoice_id": "DIST-2023-528", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 153545.02, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-03-26"}
+{"invoice_id": "DIST-2023-461", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 20325.97, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-04-03"}
+{"invoice_id": "FAKE-808534", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 440803.06, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-03-27"}
+{"invoice_id": "DIST-2023-533", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 38101.38, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-03-26"}
+{"invoice_id": "DIST-2023-990", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 444517.67000000004, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-04-03"}
+{"invoice_id": "FAKE-741491", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 16999.3, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-04-03"}
+{"invoice_id": "DIST-2023-708", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 275488.95999999996, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-03-24"}
+{"invoice_id": "NOISE-38902", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 136766.09, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-04-05"}
+{"invoice_id": "FAKE-102187", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 163036.22, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-04-06"}
+{"invoice_id": "TEST4396-2023", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 757317.33, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-04-10"}
+{"invoice_id": "TEST8434-2023", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 275216.22000000003, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-04-07"}
+{"invoice_id": "DIST-2023-935", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 99673.88, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-04-06"}
+{"invoice_id": "NOISE-20747", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 32594.379999999997, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-04-08"}
+{"invoice_id": "DIST-2023-177", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 521309.98000000004, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-04-10"}
+{"invoice_id": "INT-2023-0416", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 59402.4, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-04-08"}
+{"invoice_id": "INT-2023-1243", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 309821.75, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-04-09"}
+{"invoice_id": "NOISE-14845", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 471939.87, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-04-10"}
+{"invoice_id": "DIST-2023-328", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 41410.36, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-04-11"}
+{"invoice_id": "FAKE-676396", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 147819.46000000002, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-04-14"}
+{"invoice_id": "NOISE-99591", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 453419.41, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-04-14"}
+{"invoice_id": "FAKE-561999", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 33280.69, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-04-12"}
+{"invoice_id": "INT-2023-1074", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 181863.09999999998, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-04-12"}
+{"invoice_id": "NOISE-58959", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 71709.56, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-04-12"}
+{"invoice_id": "INT-2023-1702", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 771815.55, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-04-13"}
+{"invoice_id": "INT-2023-1887", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 259263.15, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-04-13"}
+{"invoice_id": "TEST7077-2023", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 37969.35, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-04-11"}
+{"invoice_id": "DIST-2023-192", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 41666.97, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-04-11"}
+{"invoice_id": "DIST-2023-202", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 477874.55, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-04-14"}
+{"invoice_id": "TEST4949-2023", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 265871.19, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-04-15"}
+{"invoice_id": "INT-2023-0566", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 501999.27, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-04-21"}
+{"invoice_id": "TEST2743-2023", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 385291.63, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-04-19"}
+{"invoice_id": "DIST-2023-604", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 477086.45999999996, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-04-19"}
+{"invoice_id": "NOISE-20752", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 445549.24, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-04-23"}
+{"invoice_id": "FAKE-318797", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 29538.75, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-04-16"}
+{"invoice_id": "DIST-2023-898", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 51493.77, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-04-22"}
+{"invoice_id": "DIST-2023-856", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 751072.2, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-04-21"}
+{"invoice_id": "INT-2023-1238", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 120591.81, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-04-23"}
+{"invoice_id": "DIST-2023-204", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 735163.46, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-04-25"}
+{"invoice_id": "TEST5507-2023", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 124267.95, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-04-23"}
+{"invoice_id": "NOISE-36106", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 298786.73, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-04-24"}
+{"invoice_id": "NOISE-36585", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 24593.760000000002, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-04-24"}
+{"invoice_id": "DIST-2023-190", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 14526.74, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-04-23"}
+{"invoice_id": "DIST-2023-245", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 5639.76, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-04-25"}
+{"invoice_id": "DIST-2023-922", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 465255.54000000004, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-04-26"}
+{"invoice_id": "FAKE-645377", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 71865.93, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-04-26"}
+{"invoice_id": "INT-2023-1586", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 255501.83000000002, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-04-27"}
+{"invoice_id": "FAKE-826648", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 288666.02999999997, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-04-28"}
+{"invoice_id": "DIST-2023-993", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 34958.79, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-04-28"}
+{"invoice_id": "TEST5811-2023", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 75722.46, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-05-05"}
+{"invoice_id": "DIST-2023-597", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 75691.82, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-05-02"}
+{"invoice_id": "NOISE-14741", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 345685.85, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-05-10"}
+{"invoice_id": "DIST-2023-457", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 43567.65, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-05-03"}
+{"invoice_id": "NOISE-83823", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 42362.740000000005, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-05-01"}
+{"invoice_id": "INT-2023-1483", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 315957.57, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-05-09"}
+{"invoice_id": "INT-2023-0221", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 176203.96, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-05-08"}
+{"invoice_id": "TEST6279-2023", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 1219355.99, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-05-07"}
+{"invoice_id": "INT-2023-0485", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 101775.98999999999, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-05-02"}
+{"invoice_id": "INT-2023-0787", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 457382.22000000003, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-05-11"}
+{"invoice_id": "INT-2023-0738", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 70368.02, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-05-12"}
+{"invoice_id": "TEST9269-2023", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 214175.96, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-05-15"}
+{"invoice_id": "TEST3020-2023", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 39908.36, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-05-12"}
+{"invoice_id": "FAKE-541727", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 47892.16, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-05-13"}
+{"invoice_id": "FAKE-377107", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 361459.33, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-05-15"}
+{"invoice_id": "INT-2023-1441", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 96434.8, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-05-13"}
+{"invoice_id": "FAKE-551860", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 25957.87, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-05-18"}
+{"invoice_id": "NOISE-26391", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 318618.18, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-05-18"}
+{"invoice_id": "NOISE-90801", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 26981.57, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-05-18"}
+{"invoice_id": "FAKE-111991", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 50544.78, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-05-19"}
+{"invoice_id": "TEST2827-2023", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 331653.96, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-05-19"}
+{"invoice_id": "FAKE-200488", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 267376.55, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-05-22"}
+{"invoice_id": "NOISE-91345", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 68056.88, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-05-22"}
+{"invoice_id": "FAKE-301238", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 46331.34, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-05-21"}
+{"invoice_id": "FAKE-478251", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 147358.12, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-05-20"}
+{"invoice_id": "TEST2952-2023", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 668101.34, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-05-20"}
+{"invoice_id": "TEST3967-2023", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 219122.35, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-05-23"}
+{"invoice_id": "TEST4268-2023", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 450642.27, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-05-23"}
+{"invoice_id": "NOISE-60079", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 587735.36, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-05-24"}
+{"invoice_id": "TEST6048-2023", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 129907.88, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-05-27"}
+{"invoice_id": "DIST-2023-226", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 16089.01, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-05-25"}
+{"invoice_id": "INT-2023-0107", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 143138.32, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-05-24"}
+{"invoice_id": "DIST-2023-588", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 39537.17, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-06-02"}
+{"invoice_id": "TEST6507-2023", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 406475.52, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-05-26"}
+{"invoice_id": "NOISE-39852", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 123688.89, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-05-26"}
+{"invoice_id": "NOISE-36476", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 40722.6, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-05-24"}
+{"invoice_id": "DIST-2023-107", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 64743.5, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-05-25"}
+{"invoice_id": "INT-2023-0834", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 45515.520000000004, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-06-02"}
+{"invoice_id": "FAKE-703945", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 399667.82, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-06-04"}
+{"invoice_id": "TEST4962-2023", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 135791.99, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-06-06"}
+{"invoice_id": "DIST-2023-469", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 678535.76, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-06-06"}
+{"invoice_id": "DIST-2023-987", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 70106.92, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-06-08"}
+{"invoice_id": "FAKE-446723", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 477905.77, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-06-10"}
+{"invoice_id": "NOISE-82129", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 227246.68, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-06-09"}
+{"invoice_id": "DIST-2023-799", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 1548101.2, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-06-13"}
+{"invoice_id": "DIST-2023-546", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 279701.35, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-06-12"}
+{"invoice_id": "TEST7090-2023", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 278039.82, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-06-11"}
+{"invoice_id": "DIST-2023-605", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 607905.98, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-06-13"}
+{"invoice_id": "INT-2023-0645", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 28080.45, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-06-14"}
+{"invoice_id": "NOISE-41610", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 63457.36, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-06-16"}
+{"invoice_id": "NOISE-14159", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 151188.01, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-06-15"}
+{"invoice_id": "FAKE-943797", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 419347.84, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-06-16"}
+{"invoice_id": "INT-2023-1313", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 28782.54, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-06-14"}
+{"invoice_id": "DIST-2023-152", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 63620.63, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-06-17"}
+{"invoice_id": "INT-2023-0774", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 64245.02, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-06-19"}
+{"invoice_id": "FAKE-745448", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 41535.55, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-06-19"}
+{"invoice_id": "TEST2631-2023", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 164691.35, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-06-22"}
+{"invoice_id": "TEST2758-2023", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 735652.16, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-06-22"}
+{"invoice_id": "FAKE-515943", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 62648.56, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-06-24"}
+{"invoice_id": "TEST8286-2023", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 32833.48, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-06-24"}
+{"invoice_id": "INT-2023-1778", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 225473.63, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-06-27"}
+{"invoice_id": "NOISE-44242", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 36926.57, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-06-26"}
+{"invoice_id": "DIST-2023-282", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 502204.26, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-06-26"}
+{"invoice_id": "FAKE-728357", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 258506.69, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-06-25"}
+{"invoice_id": "INT-2023-0368", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 349678.19, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-07-01"}
+{"invoice_id": "TEST4187-2023", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 7509.35, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-06-27"}
+{"invoice_id": "INT-2023-0532", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 639447.81, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-06-28"}
+{"invoice_id": "FAKE-764678", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 244889.37, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-06-27"}
+{"invoice_id": "NOISE-62963", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 42749.06, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-07-01"}
+{"invoice_id": "INT-2023-1420", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 74758.59, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-07-01"}
+{"invoice_id": "TEST7122-2023", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 61465.13, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-07-01"}
+{"invoice_id": "TEST9297-2023", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 612378.13, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-07-02"}
+{"invoice_id": "TEST2991-2023", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 471493.27, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-07-02"}
+{"invoice_id": "TEST6320-2023", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 253287.12, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-07-06"}
+{"invoice_id": "FAKE-960936", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 316276.33, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-07-02"}
+{"invoice_id": "DIST-2023-223", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 501492.74000000005, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-07-03"}
+{"invoice_id": "INT-2023-1121", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 49830.7, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-07-04"}
+{"invoice_id": "NOISE-58567", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 62688.12, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-07-05"}
+{"invoice_id": "DIST-2023-977", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 159403.51, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-07-02"}
+{"invoice_id": "INT-2023-0422", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 51784.16, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-07-06"}
+{"invoice_id": "FAKE-821997", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 762905.1900000001, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-07-10"}
+{"invoice_id": "TEST1887-2023", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 374066.78, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-07-08"}
+{"invoice_id": "INT-2023-0442", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 48348.62, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-07-09"}
+{"invoice_id": "FAKE-434367", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 83786.6, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-07-09"}
+{"invoice_id": "FAKE-356092", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 100311.81999999999, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-07-12"}
+{"invoice_id": "DIST-2023-404", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 796253.37, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-07-07"}
+{"invoice_id": "DIST-2023-476", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 87316.23000000001, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-07-11"}
+{"invoice_id": "DIST-2023-907", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 62583.21, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-07-12"}
+{"invoice_id": "FAKE-583757", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 106287.52, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-07-10"}
+{"invoice_id": "NOISE-81449", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 473607.59, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-07-13"}
+{"invoice_id": "INT-2023-1312", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 339608.66, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-07-17"}
+{"invoice_id": "INT-2023-1427", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 310123.3, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-07-13"}
+{"invoice_id": "DIST-2023-360", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 329789.65, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-07-19"}
+{"invoice_id": "FAKE-148693", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 212451.87000000002, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-07-16"}
+{"invoice_id": "INT-2023-0631", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 595137.01, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-07-16"}
+{"invoice_id": "FAKE-834831", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 482921.27, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-07-13"}
+{"invoice_id": "INT-2023-0439", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 94185.1, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-07-17"}
+{"invoice_id": "FAKE-533032", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 342820.68, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-07-19"}
+{"invoice_id": "NOISE-58971", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 149651.53, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-07-13"}
+{"invoice_id": "FAKE-963559", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 131729.84, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-07-23"}
+{"invoice_id": "DIST-2023-564", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 279624.39999999997, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-07-20"}
+{"invoice_id": "FAKE-555426", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 178874.8, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-07-20"}
+{"invoice_id": "NOISE-72684", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 21292.77, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-07-23"}
+{"invoice_id": "NOISE-64477", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 455878.3, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-07-22"}
+{"invoice_id": "INT-2023-0967", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 259343.87, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-07-22"}
+{"invoice_id": "TEST9282-2023", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 244817.99, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-07-20"}
+{"invoice_id": "NOISE-60023", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 75763.9, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-07-23"}
+{"invoice_id": "INT-2023-0765", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 21052.54, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-07-21"}
+{"invoice_id": "NOISE-11430", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 417171.67000000004, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-07-23"}
+{"invoice_id": "NOISE-21814", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 541582.12, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-07-25"}
+{"invoice_id": "INT-2023-1489", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 167593.39, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-08-02"}
+{"invoice_id": "TEST9491-2023", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 139902.97, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-07-28"}
+{"invoice_id": "FAKE-361662", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 257480.1, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-08-01"}
+{"invoice_id": "DIST-2023-366", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 108975.73, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-08-06"}
+{"invoice_id": "NOISE-62853", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 484581.44, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-08-11"}
+{"invoice_id": "DIST-2023-267", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 148596.5, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-07-25"}
+{"invoice_id": "INT-2023-0514", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 27687.06, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-08-10"}
+{"invoice_id": "NOISE-66418", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 225767.99000000002, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-08-10"}
+{"invoice_id": "DIST-2023-405", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 536640.8300000001, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-08-06"}
+{"invoice_id": "FAKE-683515", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 50484.71, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-08-11"}
+{"invoice_id": "FAKE-520873", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 303371.86, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-08-11"}
+{"invoice_id": "DIST-2023-620", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 28602.41, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-08-14"}
+{"invoice_id": "FAKE-602300", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 440430.96, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-08-14"}
+{"invoice_id": "NOISE-55033", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 47218.53, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-08-14"}
+{"invoice_id": "INT-2023-0006", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 155338.38, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-08-14"}
+{"invoice_id": "TEST4700-2023", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 86227.23, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-08-14"}
+{"invoice_id": "NOISE-25793", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 147620.18, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-08-14"}
+{"invoice_id": "NOISE-31031", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 63917.2, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-08-13"}
+{"invoice_id": "DIST-2023-757", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 242641.84, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-08-16"}
+{"invoice_id": "FAKE-733729", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 128573.81, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-08-16"}
+{"invoice_id": "TEST5216-2023", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 71581.3, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-08-16"}
+{"invoice_id": "FAKE-631297", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 52868.59, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-08-18"}
+{"invoice_id": "TEST6419-2023", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 573298.48, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-08-18"}
+{"invoice_id": "FAKE-122527", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 525498.04, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-08-17"}
+{"invoice_id": "TEST6028-2023", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 42431.11, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-08-18"}
+{"invoice_id": "DIST-2023-701", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 29822.149999999998, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-08-20"}
+{"invoice_id": "DIST-2023-429", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 354960.75, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-08-19"}
+{"invoice_id": "TEST3641-2023", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 67458.68000000001, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-08-19"}
+{"invoice_id": "DIST-2023-137", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 20259.35, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-08-18"}
+{"invoice_id": "TEST9280-2023", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 745630.2899999999, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-08-24"}
+{"invoice_id": "DIST-2023-253", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 34767.49, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-08-20"}
+{"invoice_id": "DIST-2023-531", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 49368.33, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-08-21"}
+{"invoice_id": "DIST-2023-356", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 20323.37, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-08-22"}
+{"invoice_id": "TEST1747-2023", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 183150.57, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-08-24"}
+{"invoice_id": "INT-2023-1558", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 19802.36, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-08-22"}
+{"invoice_id": "INT-2023-1957", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 33371.229999999996, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-08-21"}
+{"invoice_id": "INT-2023-1759", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 70365.12, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-08-23"}
+{"invoice_id": "FAKE-430489", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 370731.39, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-08-20"}
+{"invoice_id": "DIST-2023-104", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 40535.71, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-08-22"}
+{"invoice_id": "FAKE-823975", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 245339.24, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-08-25"}
+{"invoice_id": "TEST6903-2023", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 283916.36, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-08-26"}
+{"invoice_id": "FAKE-649435", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 391466.77, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-09-02"}
+{"invoice_id": "INT-2023-0048", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 72854.26, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-09-04"}
+{"invoice_id": "FAKE-132826", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 9364.48, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-09-02"}
+{"invoice_id": "INT-2023-1613", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 431058.53, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-09-03"}
+{"invoice_id": "TEST4184-2023", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 192524.44999999998, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-09-03"}
+{"invoice_id": "INT-2023-0051", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 86347.74, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-09-03"}
+{"invoice_id": "DIST-2023-814", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 637011.2899999999, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-09-02"}
+{"invoice_id": "NOISE-54786", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 404574.9, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-09-03"}
+{"invoice_id": "INT-2023-0986", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 57054.53999999999, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-09-04"}
+{"invoice_id": "TEST3270-2023", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 289088.82, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-09-06"}
+{"invoice_id": "TEST7834-2023", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 290010.33999999997, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-09-05"}
+{"invoice_id": "INT-2023-0896", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 24231.34, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-09-06"}
+{"invoice_id": "NOISE-67403", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 201061.11, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-09-05"}
+{"invoice_id": "INT-2023-0185", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 126658.27, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-09-12"}
+{"invoice_id": "DIST-2023-623", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 10963.92, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-09-07"}
+{"invoice_id": "TEST1099-2023", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 792100.99, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-09-11"}
+{"invoice_id": "DIST-2023-933", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 387839.83, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-09-07"}
+{"invoice_id": "DIST-2023-666", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 33959.62, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-09-12"}
+{"invoice_id": "INT-2023-0897", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 526638.26, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-09-12"}
+{"invoice_id": "NOISE-81176", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 91405.87999999999, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-09-13"}
+{"invoice_id": "FAKE-820034", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 222005.22, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-09-13"}
+{"invoice_id": "DIST-2023-485", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 35644.520000000004, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-09-16"}
+{"invoice_id": "NOISE-15693", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 174418.65000000002, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-09-14"}
+{"invoice_id": "TEST7125-2023", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 88315.6, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-09-15"}
+{"invoice_id": "NOISE-85052", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 274142.81, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-09-15"}
+{"invoice_id": "DIST-2023-832", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 82379.45, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-09-15"}
+{"invoice_id": "DIST-2023-881", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 76721.56999999999, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-09-15"}
+{"invoice_id": "DIST-2023-949", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 24318.09, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-09-15"}
+{"invoice_id": "DIST-2023-191", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 83183.93, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-09-21"}
+{"invoice_id": "TEST3695-2023", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 421657.23, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-09-17"}
+{"invoice_id": "DIST-2023-893", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 134327.22, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-09-17"}
+{"invoice_id": "INT-2023-1615", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 78702.05, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-09-20"}
+{"invoice_id": "DIST-2023-762", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 33625.08, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-09-18"}
+{"invoice_id": "INT-2023-1485", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 79480.18, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-09-19"}
+{"invoice_id": "NOISE-87371", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 150362.37, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-09-20"}
+{"invoice_id": "NOISE-81717", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 85062.35, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-09-17"}
+{"invoice_id": "INT-2023-1217", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 396148.74, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-09-21"}
+{"invoice_id": "TEST6272-2023", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 473269.54, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-09-16"}
+{"invoice_id": "TEST6071-2023", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 43115.86, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-09-22"}
+{"invoice_id": "DIST-2023-163", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 92401.76, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-09-23"}
+{"invoice_id": "FAKE-359409", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 292366.38, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-09-23"}
+{"invoice_id": "DIST-2023-700", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 73772.37999999999, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-09-24"}
+{"invoice_id": "INT-2023-1124", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 250161.68999999997, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-09-23"}
+{"invoice_id": "NOISE-81582", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 50119.12, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-09-24"}
+{"invoice_id": "FAKE-205244", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 49634.84, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-09-24"}
+{"invoice_id": "FAKE-128143", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 342527.93, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-09-24"}
+{"invoice_id": "INT-2023-1442", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 563183.23, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-09-24"}
+{"invoice_id": "NOISE-43823", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 1333305.57, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-09-23"}
+{"invoice_id": "NOISE-33451", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 360632.43, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-09-25"}
+{"invoice_id": "DIST-2023-580", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 369061.65, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-09-25"}
+{"invoice_id": "NOISE-14282", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 57813.380000000005, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-09-27"}
+{"invoice_id": "INT-2023-0938", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 254948.08, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-09-25"}
+{"invoice_id": "FAKE-623147", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 53643.66, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-09-28"}
+{"invoice_id": "TEST9502-2023", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 511969.97, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-10-02"}
+{"invoice_id": "FAKE-401897", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 762881.3500000001, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-10-02"}
+{"invoice_id": "DIST-2023-754", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 431182.29, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-10-02"}
+{"invoice_id": "DIST-2023-871", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 796093.66, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-10-04"}
+{"invoice_id": "FAKE-257517", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 157761.33, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-10-06"}
+{"invoice_id": "NOISE-28396", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 44353.19, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-10-13"}
+{"invoice_id": "FAKE-852204", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 68085.04000000001, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-10-11"}
+{"invoice_id": "DIST-2023-830", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 27378.5, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-10-12"}
+{"invoice_id": "NOISE-46118", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 96157.44, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-10-12"}
+{"invoice_id": "DIST-2023-397", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 656396.9, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-10-12"}
+{"invoice_id": "DIST-2023-975", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 106336.90000000001, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-10-13"}
+{"invoice_id": "INT-2023-0627", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 170911.29, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-10-13"}
+{"invoice_id": "TEST9691-2023", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 298344.29000000004, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-10-14"}
+{"invoice_id": "INT-2023-0678", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 85215.82, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-10-08"}
+{"invoice_id": "TEST9020-2023", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 69768.96, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-10-16"}
+{"invoice_id": "TEST5468-2023", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 279522.82, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-10-16"}
+{"invoice_id": "INT-2023-1868", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 361003.25, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-10-19"}
+{"invoice_id": "TEST2066-2023", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 412166.82, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-10-17"}
+{"invoice_id": "DIST-2023-416", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 471501.62000000005, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-10-18"}
+{"invoice_id": "INT-2023-1046", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 658774.91, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-10-18"}
+{"invoice_id": "INT-2023-1361", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 93531.56, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-10-18"}
+{"invoice_id": "DIST-2023-392", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 415816.77, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-10-19"}
+{"invoice_id": "INT-2023-0717", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 79448.12, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-10-18"}
+{"invoice_id": "FAKE-958136", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 483639.08, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-10-20"}
+{"invoice_id": "FAKE-266082", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 67506.45, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-10-20"}
+{"invoice_id": "FAKE-757629", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 320421.33, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-10-21"}
+{"invoice_id": "DIST-2023-865", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 125966.16, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-10-21"}
+{"invoice_id": "NOISE-16929", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 160822.63, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-10-24"}
+{"invoice_id": "TEST1336-2023", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 809222.48, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-10-23"}
+{"invoice_id": "NOISE-22653", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 152859.19, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-10-23"}
+{"invoice_id": "TEST2622-2023", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 344638.29, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-10-24"}
+{"invoice_id": "TEST4287-2023", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 795965.6699999999, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-10-24"}
+{"invoice_id": "DIST-2023-256", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 242672.22, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-10-23"}
+{"invoice_id": "DIST-2023-610", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 73626.33, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-10-24"}
+{"invoice_id": "INT-2023-1900", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 22049.809999999998, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-10-24"}
+{"invoice_id": "INT-2023-1918", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 40814.39, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-10-25"}
+{"invoice_id": "FAKE-809418", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 729008.8, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-10-25"}
+{"invoice_id": "FAKE-486469", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 55044.98, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-10-25"}
+{"invoice_id": "INT-2023-1505", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 66213.62, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-11-03"}
+{"invoice_id": "TEST5592-2023", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 59812.0, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-10-26"}
+{"invoice_id": "NOISE-41370", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 5780.61, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-11-02"}
+{"invoice_id": "NOISE-53714", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 226814.58000000002, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-11-03"}
+{"invoice_id": "FAKE-587623", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 111180.97, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-11-04"}
+{"invoice_id": "INT-2023-1871", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 1005828.37, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-11-01"}
+{"invoice_id": "INT-2023-0559", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 650009.28, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-11-04"}
+{"invoice_id": "DIST-2023-111", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 35842.2, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-11-05"}
+{"invoice_id": "TEST2312-2023", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 1179845.54, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-11-14"}
+{"invoice_id": "DIST-2023-265", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 209439.96000000002, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-11-07"}
+{"invoice_id": "FAKE-386275", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 463552.23, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-11-09"}
+{"invoice_id": "FAKE-955316", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 340224.87, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-11-05"}
+{"invoice_id": "FAKE-510020", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 375196.0, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-11-12"}
+{"invoice_id": "FAKE-722691", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 471579.06, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-11-13"}
+{"invoice_id": "DIST-2023-960", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 722602.8400000001, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-11-12"}
+{"invoice_id": "NOISE-52626", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 333609.24, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-11-15"}
+{"invoice_id": "DIST-2023-426", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 975811.5700000001, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-11-15"}
+{"invoice_id": "FAKE-585550", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 24230.43, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-11-17"}
+{"invoice_id": "INT-2023-0150", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 29516.86, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-11-18"}
+{"invoice_id": "DIST-2023-291", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 446080.4, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-11-18"}
+{"invoice_id": "DIST-2023-357", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 66110.91, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-11-18"}
+{"invoice_id": "INT-2023-0180", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 37915.16, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-11-19"}
+{"invoice_id": "NOISE-46231", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 7115.4, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-11-22"}
+{"invoice_id": "NOISE-52125", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 190916.75, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-11-20"}
+{"invoice_id": "TEST8182-2023", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 241763.13, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-11-20"}
+{"invoice_id": "FAKE-734960", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 577773.38, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-11-19"}
+{"invoice_id": "TEST7462-2023", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 285117.63, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-11-22"}
+{"invoice_id": "DIST-2023-367", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 375357.04, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-11-23"}
+{"invoice_id": "NOISE-24733", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 89480.97, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-11-23"}
+{"invoice_id": "INT-2023-1406", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 436781.19, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-12-01"}
+{"invoice_id": "FAKE-477717", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 332637.27, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-11-28"}
+{"invoice_id": "NOISE-87477", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 18172.300000000003, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-11-26"}
+{"invoice_id": "FAKE-405654", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 440973.31, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-11-27"}
+{"invoice_id": "INT-2023-0632", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 692795.79, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-11-26"}
+{"invoice_id": "INT-2023-0866", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 192212.49, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-11-28"}
+{"invoice_id": "TEST2102-2023", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 42263.090000000004, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-12-01"}
+{"invoice_id": "DIST-2023-276", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 230803.52, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-11-24"}
+{"invoice_id": "NOISE-88746", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 475744.29, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-12-03"}
+{"invoice_id": "TEST6864-2023", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 500237.55, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-12-04"}
+{"invoice_id": "DIST-2023-696", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 90092.26, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-12-04"}
+{"invoice_id": "NOISE-48671", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 179123.82, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-12-04"}
+{"invoice_id": "DIST-2023-241", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 25406.07, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-12-04"}
+{"invoice_id": "INT-2023-0837", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 198718.22, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-12-05"}
+{"invoice_id": "FAKE-776526", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 383784.14999999997, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-12-06"}
+{"invoice_id": "NOISE-54185", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 430464.59, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-12-06"}
+{"invoice_id": "DIST-2023-894", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 105509.64, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-12-06"}
+{"invoice_id": "DIST-2023-214", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 94621.39, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-12-05"}
+{"invoice_id": "TEST3415-2023", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 309298.18, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-12-09"}
+{"invoice_id": "TEST1659-2023", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 15424.57, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-12-07"}
+{"invoice_id": "NOISE-72026", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 51051.86, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-12-07"}
+{"invoice_id": "TEST8605-2023", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 422596.3, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-12-07"}
+{"invoice_id": "INT-2023-1653", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 464744.87, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-12-08"}
+{"invoice_id": "DIST-2023-951", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 711893.05, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-12-09"}
+{"invoice_id": "FAKE-381631", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 373598.18, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-12-08"}
+{"invoice_id": "INT-2023-0593", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 350317.37, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-12-10"}
+{"invoice_id": "NOISE-45838", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 207994.61000000002, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-12-10"}
+{"invoice_id": "INT-2023-1142", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 54170.96, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-12-10"}
+{"invoice_id": "TEST3818-2023", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 397174.61, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-12-13"}
+{"invoice_id": "TEST2734-2023", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 415309.17, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-12-12"}
+{"invoice_id": "NOISE-86379", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 419497.60000000003, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-12-12"}
+{"invoice_id": "DIST-2023-180", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 57369.340000000004, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-12-12"}
+{"invoice_id": "FAKE-396668", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 44839.4, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-12-12"}
+{"invoice_id": "INT-2023-0421", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 502949.22, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-12-13"}
+{"invoice_id": "TEST3707-2023", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 256947.69, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-12-11"}
+{"invoice_id": "FAKE-694706", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 207011.53, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-12-13"}
+{"invoice_id": "FAKE-759439", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 110618.74, "purchaser_email": "LDavis@mcp.com", "invoice_date": "2023-12-13"}
+{"invoice_id": "INT-2023-1949", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 19214.4, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-12-13"}
+{"invoice_id": "DIST-2023-288", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 87842.8, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-12-14"}
+{"invoice_id": "FAKE-769054", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 276692.76, "purchaser_email": "SAnderson@mcp.com", "invoice_date": "2023-12-14"}
+{"invoice_id": "NOISE-59424", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 427506.83999999997, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-12-15"}
+{"invoice_id": "NOISE-26074", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 378902.01, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-12-16"}
+{"invoice_id": "NOISE-45033", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 65611.02, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-12-16"}
+{"invoice_id": "TEST5472-2023", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 252151.15, "purchaser_email": "AWilliams@mcp.com", "invoice_date": "2023-12-16"}
+{"invoice_id": "FAKE-806242", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 484014.97000000003, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-12-19"}
+{"invoice_id": "FAKE-197649", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 212299.54, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-12-19"}
+{"invoice_id": "INT-2023-0761", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 129389.85, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-12-15"}
+{"invoice_id": "NOISE-73534", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 45495.65, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-12-20"}
+{"invoice_id": "FAKE-583214", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 313929.75, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-12-21"}
+{"invoice_id": "NOISE-89930", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 442821.65, "purchaser_email": "RJohnson@mcp.com", "invoice_date": "2023-12-21"}
+{"invoice_id": "FAKE-520726", "supplier_name": "Shanghai Technology Equipment Co., Ltd.", "invoice_amount": 261812.04, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-12-22"}
+{"invoice_id": "TEST4212-2023", "supplier_name": "Guangzhou Software Services Co., Ltd.", "invoice_amount": 433122.42, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-12-23"}
+{"invoice_id": "FAKE-643878", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 325228.26, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-12-24"}
+{"invoice_id": "DIST-2023-255", "supplier_name": "Shenzhen Logistics Delivery Company", "invoice_amount": 9792.06, "purchaser_email": "TMiller@mcp.com", "invoice_date": "2023-12-25"}
+{"invoice_id": "DIST-2023-615", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 325943.49, "purchaser_email": "MBrown@mcp.com", "invoice_date": "2023-12-25"}
+{"invoice_id": "TEST8596-2023", "supplier_name": "Beijing Office Supplies Vendor", "invoice_amount": 52355.66, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-12-26"}
+{"invoice_id": "DIST-2023-989", "supplier_name": "Suzhou Manufacturing Solutions Inc.", "invoice_amount": 535533.71, "purchaser_email": "KWilson@mcp.com", "invoice_date": "2023-12-27"}
+{"invoice_id": "DIST-2023-370", "supplier_name": "Hangzhou Business Consulting Ltd.", "invoice_amount": 272062.7, "purchaser_email": "JSmith@mcp.com", "invoice_date": "2023-12-28"}

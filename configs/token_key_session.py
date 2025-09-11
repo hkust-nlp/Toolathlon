@@ -15,6 +15,7 @@ with open(google_credentials_filename, "r") as f:
 
 
 all_token_key_session = Dict(
+    timezone = "Asia/Hong_Kong",
     ### Remote Ones
 
     #### Serper
@@ -60,10 +61,10 @@ all_token_key_session = Dict(
 
 
     #### SnowFlake
-    snowflake_account = "VBJIVCN-OI09931", # TO BE FILLED
+    snowflake_account = "RXYGDRJ-QA40744", # TO BE FILLED
     snowflake_warehouse = "COMPUTE_WH", # usually `COMPUTE_WH`
     snowflake_role = "ACCOUNTADMIN", # TO BE FILLED
-    snowflake_user = "MCPTEST0606", # TO BE FILLED
+    snowflake_user = "MCPTESTUSER2", # TO BE FILLED
     snowflake_password = "MCPtest0606!!!", # TO BE FILLED
     snowflake_database = "SNOWFLAKE", # we prefill `SNOWFLAKE` here to make compatibility
     snowflake_schema = "PUBLIC", # we prefill `PUBLIC` here to make compatibility
