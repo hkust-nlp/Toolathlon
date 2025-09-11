@@ -1,0 +1,155 @@
+{
+  "timestamp": "2025-09-11T19:29:56.401226",
+  "store_url": "http://localhost:10003/store84",
+  "expected_results_file": "/ssddata/wzengak/mcp_bench/mcpbench_dev/tasks/finalpool/update-photo-task/groundtruth_workspace/expected_results.json",
+  "summary": {
+    "total_products_checked": 3,
+    "successful_updates": 1,
+    "success_rate": 33.33333333333333
+  },
+  "detailed_results": [
+    {
+      "product_id": 950,
+      "product_name": "彩虹运动鞋",
+      "status": "failed",
+      "current_featured_image_id": 946,
+      "expected_featured_image_id": 944
+    },
+    {
+      "product_id": 955,
+      "product_name": "时尚背包",
+      "status": "failed",
+      "current_featured_image_id": 944,
+      "expected_featured_image_id": 945
+    },
+    {
+      "product_id": 960,
+      "product_name": "无线蓝牙耳机",
+      "status": "success",
+      "current_featured_image_id": 947,
+      "expected_featured_image_id": 947
+    }
+  ],
+  "expected_data": {
+    "expected_updates": {
+      "950": {
+        "product_name": "彩虹运动鞋",
+        "expected_top_variation_id": 951,
+        "expected_featured_image_id": 944,
+        "expected_color": "红色",
+        "expected_sales_quantity": 9,
+        "current_featured_image_id": null,
+        "all_variations_sales": [
+          {
+            "variation_id": 951,
+            "color": "红色",
+            "sales": 9
+          },
+          {
+            "variation_id": 953,
+            "color": "绿色",
+            "sales": 8
+          },
+          {
+            "variation_id": 954,
+            "color": "黄色",
+            "sales": 4
+          },
+          {
+            "variation_id": 952,
+            "color": "蓝色",
+            "sales": 2
+          }
+        ]
+      },
+      "955": {
+        "product_name": "时尚背包",
+        "expected_top_variation_id": 957,
+        "expected_featured_image_id": 945,
+        "expected_color": "蓝色",
+        "expected_sales_quantity": 5,
+        "current_featured_image_id": null,
+        "all_variations_sales": [
+          {
+            "variation_id": 957,
+            "color": "蓝色",
+            "sales": 5
+          },
+          {
+            "variation_id": 956,
+            "color": "红色",
+            "sales": 3
+          },
+          {
+            "variation_id": 958,
+            "color": "绿色",
+            "sales": 2
+          },
+          {
+            "variation_id": 959,
+            "color": "黄色",
+            "sales": 1
+          }
+        ]
+      },
+      "960": {
+        "product_name": "无线蓝牙耳机",
+        "expected_top_variation_id": 964,
+        "expected_featured_image_id": 947,
+        "expected_color": "黄色",
+        "expected_sales_quantity": 11,
+        "current_featured_image_id": null,
+        "all_variations_sales": [
+          {
+            "variation_id": 964,
+            "color": "黄色",
+            "sales": 11
+          },
+          {
+            "variation_id": 963,
+            "color": "绿色",
+            "sales": 6
+          },
+          {
+            "variation_id": 962,
+            "color": "蓝色",
+            "sales": 4
+          },
+          {
+            "variation_id": 961,
+            "color": "红色",
+            "sales": 2
+          }
+        ]
+      }
+    },
+    "total_products_to_update": 3,
+    "analysis_period": {
+      "description": "上周（周一到周日）",
+      "start_date": "2025-09-01",
+      "end_date": "2025-09-07",
+      "note": "基于随机受欢迎程度和实际模拟销量数据确定最佳销售变体，任何变体都可能成为最佳销售"
+    },
+    "created_test_data": {
+      "products_count": 3,
+      "variations_total": 12,
+      "total_orders": 44,
+      "total_quantity_sold": 57,
+      "average_order_quantity": 1.3
+    },
+    "sales_summary": {
+      "951": 9,
+      "956": 3,
+      "952": 2,
+      "957": 5,
+      "964": 11,
+      "962": 4,
+      "954": 4,
+      "953": 8,
+      "958": 2,
+      "963": 6,
+      "961": 2,
+      "959": 1
+    }
+  }
+}
