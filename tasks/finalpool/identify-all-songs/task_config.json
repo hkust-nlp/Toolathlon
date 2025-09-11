@@ -3,5 +3,5 @@
         "filesystem", 
         "youtube-transcript"
     ],
-    "needed_local_tools": ["web_search","claim_done"]
+    "needed_local_tools": ["web_search","claim_done","handle_overlong_tool_outputs"]
 }
