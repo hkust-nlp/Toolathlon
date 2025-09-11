@@ -71,3 +71,5 @@ gt modified by wenshuo
 - Song19: Stressed Out
 - Song20: Prayer In C
 ```
+
+### 3.因为这个视频的视频简介包含了具体的歌名和顺序，所以检验了agent是否能提取网页中的视频简介作为信息。事实上是(gpt-5, claude-4等)agent不能自行展开简介，所以大部分的内容不会被agent获取到，因此这个任务的难度不会收到太大的影响。
