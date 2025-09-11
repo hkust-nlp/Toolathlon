@@ -1,0 +1,5 @@
+{
+    "needed_mcp_servers": ["canvas", "filesystem", "terminal", "emails"],
+    "needed_local_tools": ["python_execute", "claim_done"],
+    "meta": {}
+}
