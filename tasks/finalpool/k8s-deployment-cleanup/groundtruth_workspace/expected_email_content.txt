@@ -1,0 +1,12 @@
+Dear Cluster Admin,
+
+We have cleaned up 5 deployments running application versions that haven't been updated in the last 30 days. We list them here in chronological order from oldest to newest release date for your reference:
+
+- dev-experimental/alpha-dataset-poc: Running version released 114 days ago
+- dev-experimental/experimental-feature-alpha: Running version released 98 days ago
+- dev-backend/auth-service: Running version released 88 days ago
+- dev-ml/model-trainer: Running version released 76 days ago
+- dev-frontend/frontend-prototype: Running version released 62 days ago
+
+Best,
+Emma Mitchell

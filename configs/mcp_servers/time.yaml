@@ -7,5 +7,5 @@ params:
     - "run"
     - "-m"
     - "mcp_server_time"
-    - "--local-timezone=Asia/Hong_Kong"
+    - "--local-timezone=${token.timezone}"
 cache_tools_list: true

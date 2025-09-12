@@ -1,0 +1,44 @@
+{
+    "sender": {
+        "mitchelle75@mcp.com": {
+            "password": "mitchell$e852",
+            "imap_server": "localhost",
+            "imap_port": 1143,
+            "smtp_server": "localhost",
+            "smtp_port": 1587,
+            "use_ssl": false,
+            "use_starttls": false
+        }
+    },
+    "should_receive":{
+        "stephen_mitchell@mcp.com": {
+            "password": "step6@FkixLQ",
+            "imap_server": "localhost",
+            "imap_port": 1143,
+            "smtp_server": "localhost",
+            "smtp_port": 1587,
+            "use_ssl": false,
+            "use_starttls": false
+        }
+    },
+    "shouldnt_receive": {
+        "larry_howard@mcp.com": {
+            "password": "larry_330BU3",
+            "imap_server": "localhost",
+            "imap_port": 1143,
+            "use_ssl": false
+        },
+        "youngc@mcp.com": {
+            "password": "chrilFRCtTA6",
+            "imap_server": "localhost",
+            "imap_port": 1143,
+            "use_ssl": false
+        },
+        "garyr@mcp.com": {
+            "password": "gary1982%Vdi",
+            "imap_server": "localhost",
+            "imap_port": 1143,
+            "use_ssl": false
+        }
+    }
+}

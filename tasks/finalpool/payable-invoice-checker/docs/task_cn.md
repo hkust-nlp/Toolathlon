@@ -1,0 +1,1 @@
+帮我根据我收到的工作区下的所有这些收据，自动更新到PURCHASE_INVOICE数据库里已有的两张表里。对于还没付清的收据，给相关的采购负责人发一封邮件提醒，主题为"Process Outstanding Invoices"，邮件内容需包含该负责人还需要处理的所有文件名。另外还需要给outstanding_flag这一列设一下说明,请精准设置为“0=Paid, 1=Outstanding”。
