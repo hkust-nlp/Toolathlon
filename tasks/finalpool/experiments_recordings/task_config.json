@@ -1,0 +1,5 @@
+{
+    "needed_mcp_servers": ["notion", "wandb", "terminal", "filesystem"],
+    "needed_local_tools": ["python_execute"],
+    "meta": {}
+}
