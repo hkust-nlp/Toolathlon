@@ -1,0 +1,2 @@
+| Run Name| MultiHiertt | HiTab | SuperGPQA | GPQA | CodeIO | ArcAgI1 | MATH | AMC (4x) | AIME (8x) | Zebra Puzzle | Ordering Puzzle | Graph Logical | MBPP | LiveCodeBench | HumanEval | Best Step (Average) |
+|---------|-------------|-------|-----------|------|--------|---------|------|----------|-----------|--------------|-----------------|---------------|------|---------------|-----------|---------------------|
