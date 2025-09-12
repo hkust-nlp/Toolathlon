@@ -1,0 +1,81 @@
+[  {
+  "id": 4,
+  "first_name": "Elizabeth",
+  "last_name": "Ruiz",
+  "full_name": "Elizabeth Ruiz",
+  "email": "elizabethr@mcp.com",
+  "password": "elizqwmP4$Wp"
+},
+{
+  "id": 5,
+  "first_name": "Gregory",
+  "last_name": "Scott",
+  "full_name": "Gregory Scott",
+  "email": "gregory_scott@mcp.com",
+  "password": "scott@g425Qj"
+},
+{
+  "id": 6,
+  "first_name": "Donald",
+  "last_name": "Roberts",
+  "full_name": "Donald Roberts",
+  "email": "donald_roberts@mcp.com",
+  "password": "donaYTqePhrl"
+},
+  {
+    "id": 7,
+    "first_name": "Carol",
+    "last_name": "Rodriguez",
+    "full_name": "Carol Rodriguez",
+    "email": "rodriguezc39@mcp.com",
+    "password": "carol_94biV9"
+  },
+  {
+    "id": 8,
+    "first_name": "Robert",
+    "last_name": "Sanders",
+    "full_name": "Robert Sanders",
+    "email": "robert_sanders66@mcp.com",
+    "password": "Sroba9upxkJK"
+  },
+  {
+    "id": 9,
+    "first_name": "Susan",
+    "last_name": "Martinez",
+    "full_name": "Susan Martinez",
+    "email": "smartinez@mcp.com",
+    "password": "SM0201#oxWSm"
+  },
+  {
+    "id": 10,
+    "first_name": "Patrick",
+    "last_name": "Carter",
+    "full_name": "Patrick Carter",
+    "email": "patrick.carter@mcp.com",
+    "password": "Pcarter84629"
+  },
+  {
+    "id": 11,
+    "first_name": "Maria",
+    "last_name": "Alvarez",
+    "full_name": "Maria Alvarez",
+    "email": "malvarez@mcp.com",
+    "password": "Malvarez696h"
+  },
+  {
+    "id": 12,
+    "first_name": "Zachary",
+    "last_name": "Edwards",
+    "full_name": "Zachary Edwards",
+    "email": "zedwards@mcp.com",
+    "password": "Zedwards5385"
+  },
+  {
+    "id": 13,
+    "first_name": "Debra",
+    "last_name": "Flores",
+    "full_name": "Debra Flores",
+    "email": "debra_flores76@mcp.com",
+    "password": "debrx$Unz1cX"
+  }
+]
