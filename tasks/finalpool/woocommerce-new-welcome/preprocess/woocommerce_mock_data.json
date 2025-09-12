@@ -1,0 +1,171 @@
+{
+  "orders": [
+    {
+      "id": 2001,
+      "order_key": "wc_order_2001",
+      "status": "completed",
+      "date_created": "2025-08-27T20:36:13.375996",
+      "date_completed": "2025-08-27T23:36:13.375996",
+      "customer_id": 201,
+      "billing": {
+        "first_name": "Alice",
+        "last_name": "Chen",
+        "email": "alice.chen@example.com",
+        "phone": "555-0201"
+      },
+      "total": "311.4162680849684",
+      "line_items": [
+        {
+          "product_id": 126,
+          "name": "Product B",
+          "quantity": 1,
+          "price": "190.08493741600824"
+        }
+      ]
+    },
+    {
+      "id": 2002,
+      "order_key": "wc_order_2002",
+      "status": "completed",
+      "date_created": "2025-08-28T20:36:13.375996",
+      "date_completed": "2025-08-28T23:36:13.375996",
+      "customer_id": 202,
+      "billing": {
+        "first_name": "Bob",
+        "last_name": "Martinez",
+        "email": "bob.martinez@example.com",
+        "phone": "555-0202"
+      },
+      "total": "341.00894181638705",
+      "line_items": [
+        {
+          "product_id": 200,
+          "name": "Product B",
+          "quantity": 2,
+          "price": "44.91622561491547"
+        }
+      ]
+    },
+    {
+      "id": 2003,
+      "order_key": "wc_order_2003",
+      "status": "completed",
+      "date_created": "2025-08-29T20:36:13.375996",
+      "date_completed": "2025-08-29T23:36:13.375996",
+      "customer_id": 203,
+      "billing": {
+        "first_name": "Carol",
+        "last_name": "White",
+        "email": "carol.white@example.com",
+        "phone": "555-0203"
+      },
+      "total": "414.7265416897667",
+      "line_items": [
+        {
+          "product_id": 178,
+          "name": "Product A",
+          "quantity": 3,
+          "price": "162.59159460443345"
+        }
+      ]
+    },
+    {
+      "id": 2004,
+      "order_key": "wc_order_2004",
+      "status": "completed",
+      "date_created": "2025-08-31T20:36:13.375996",
+      "date_completed": "2025-08-31T23:36:13.375996",
+      "customer_id": 204,
+      "billing": {
+        "first_name": "David",
+        "last_name": "Lee",
+        "email": "david.lee@example.com",
+        "phone": "555-0204"
+      },
+      "total": "459.185992125599",
+      "line_items": [
+        {
+          "product_id": 106,
+          "name": "Product B",
+          "quantity": 2,
+          "price": "176.2471117140424"
+        }
+      ]
+    },
+    {
+      "id": 1995,
+      "order_key": "wc_order_1995",
+      "status": "completed",
+      "date_created": "2025-08-30T20:36:13.375996",
+      "date_completed": "2025-08-30T23:36:13.375996",
+      "customer_id": 190,
+      "billing": {
+        "first_name": "Old",
+        "last_name": "Customer",
+        "email": "old.customer@example.com",
+        "phone": "555-0190"
+      },
+      "total": "150.00",
+      "line_items": [
+        {
+          "product_id": 150,
+          "name": "Product X",
+          "quantity": 1,
+          "price": "150.00"
+        }
+      ]
+    }
+  ],
+  "customers": [
+    {
+      "id": 201,
+      "date_created": "2025-08-27T20:36:13.375996",
+      "email": "alice.chen@example.com",
+      "first_name": "Alice",
+      "last_name": "Chen",
+      "username": "alicec",
+      "orders_count": 1,
+      "total_spent": "164.32956261730646"
+    },
+    {
+      "id": 202,
+      "date_created": "2025-08-28T20:36:13.375996",
+      "email": "bob.martinez@example.com",
+      "first_name": "Bob",
+      "last_name": "Martinez",
+      "username": "bobm",
+      "orders_count": 1,
+      "total_spent": "122.58122706307242"
+    },
+    {
+      "id": 203,
+      "date_created": "2025-08-29T20:36:13.375996",
+      "email": "carol.white@example.com",
+      "first_name": "Carol",
+      "last_name": "White",
+      "username": "carolw",
+      "orders_count": 1,
+      "total_spent": "451.38178837091505"
+    },
+    {
+      "id": 204,
+      "date_created": "2025-08-31T20:36:13.375996",
+      "email": "david.lee@example.com",
+      "first_name": "David",
+      "last_name": "Lee",
+      "username": "davidl",
+      "orders_count": 1,
+      "total_spent": "90.08580729004044"
+    },
+    {
+      "id": 190,
+      "date_created": "2025-08-03T20:36:13.375996",
+      "email": "old.customer@example.com",
+      "first_name": "Old",
+      "last_name": "Customer",
+      "username": "oldcustomer",
+      "orders_count": 5,
+      "total_spent": "1250.00"
+    }
+  ]
+}

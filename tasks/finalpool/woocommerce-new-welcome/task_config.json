@@ -1,0 +1,9 @@
+{
+    "needed_mcp_servers": [
+        "woocommerce",
+        "filesystem",
+        "emails",
+        "google-cloud"
+    ],
+    "needed_local_tools": ["python_execute","claim_done"]
+}

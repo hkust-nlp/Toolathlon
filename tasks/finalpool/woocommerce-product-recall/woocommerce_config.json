@@ -1,0 +1,9 @@
+{
+  "url": "http://localhost:10003/store82",
+  "consumer_key": "ck_woocommerce_token_Jcruz821xB00",
+  "consumer_secret": "cs_woocommerce_token_Jcruz821xB00",
+  "wp_api": true,
+  "version": "v3",
+  "initialization_date": null,
+  "recalled_product_model": "Smartphone Model X1"
+}
