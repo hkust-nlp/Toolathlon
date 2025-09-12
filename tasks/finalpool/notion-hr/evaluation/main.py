@@ -267,7 +267,7 @@ def check_notion(notion_token: str = None) -> Tuple[bool, str]:
         candidates_match, candidate_issues = check_candidates_match_expected(candidates)
         
         if not candidates_match:
-            return False, "Candidates database content does not match expected data: " + " | ".join(candidate_issues)
+            return False, "\nCandidates database content does not match expected data:\n\n" + "\n".join(candidate_issues)
         
         return True, "Notion check passed!"
         
@@ -334,13 +334,13 @@ if __name__ == "__main__":
     # 1. check notion
     notion_check_flag, notion_check_msg = check_notion()
     if not notion_check_flag:
-        print("❌ Notion check failed: ", notion_check_msg)
+        print("\n❌ Notion check failed: ", notion_check_msg)
         exit(1)
 
     # 2. check emails
     emails_found, email_results = check_emails()
     if not emails_found:
-        print("❌ Email check failed: ", email_results)
+        print("\n❌ Email check failed: ", email_results)
         exit(1)
 
     print("Pass all tests!")

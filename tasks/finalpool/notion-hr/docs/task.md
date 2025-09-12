@@ -1,4 +1,4 @@
-Please update the candidate information to the 'HR Record' subpage on the Notion page according to the resume in my workspace. At the same time, if the position applied for by the applicant is not currently open for hiring, then send an email to the corresponding applicant using the template below (including line breaks), and do not send the email by mistake:
+Please update the candidate information on the HR Record subpage of the Notion page according to the resumes in my workspace. All information must be filled out strictly according to the content in the resumes, without making any unauthorized modifications or adding/removing any words. Also, please delete the existing sample entries in the record table. At the same time, if the position applied for by the applicant is currently not open for recruitment, please send an email to the corresponding applicant using the following template information (including line breaks). Do not send the email by mistake:
 
 "Dear Applicant,
 
