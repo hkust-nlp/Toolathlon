@@ -1,0 +1,11 @@
+
+================================================================================
+EVALUATION SUMMARY
+================================================================================
+Data Loading: ✅ PASSED
+Email Sending: ❌ FAILED
+  Details: 无法获取邮件配置
+
+Overall: 1/2 tests passed - ❌ SOME TESTS FAILED
+
+❌ Please review the failed tests above
