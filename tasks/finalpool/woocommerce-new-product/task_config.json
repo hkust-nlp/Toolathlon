@@ -1,0 +1,12 @@
+{
+    "needed_mcp_servers": [
+        "woocommerce",
+        "filesystem",
+        "emails"
+    ],
+    "needed_local_tools": [],
+    "meta": {
+        "description": "发送新品预约和折扣提醒邮件",
+        "difficulty": "medium"
+    }
+}
