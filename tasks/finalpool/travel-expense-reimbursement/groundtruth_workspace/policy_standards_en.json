@@ -1,0 +1,198 @@
+{
+  "policy_name": "Company Travel Expense Policy (English)",
+  "currency": "CNY",
+  "effective_date": "2024-01-01",
+  "levels": ["L1", "L2", "L3", "L4"],
+  "units": {
+    "accommodation_per_night": "CNY/night",
+    "meals_per_day": "CNY/day",
+    "local_transport_per_day": "CNY/day",
+    "communication_per_trip": "CNY/trip",
+    "misc_per_trip": "CNY/trip"
+  },
+  "global_rules": {
+    "airfare": {
+      "class_requirement": "Economy class required for all employees.",
+      "business_exception": "Business class allowed only with prior written approval; recommended for L4 only.",
+      "evidence": "E-ticket invoice with flight numbers required."
+    },
+    "receipt_threshold": 200,
+    "receipt_requirement": "Valid tax invoice/receipt is required for any single expense above the threshold.",
+    "client_entertainment_exception": {
+      "multiplier": 1.5,
+      "scope": "Meals only",
+      "approval": "Department manager pre-approval required",
+      "note": "Applied per-day; attach attendee list and purpose."
+    }
+  },
+  "destinations": {
+    "Australia|Sydney": {
+      "accommodation_per_night": {"L1": 1500, "L2": 1700, "L3": 1900, "L4": 2200},
+      "meals_per_day": {"L1": 550, "L2": 650, "L3": 750, "L4": 850},
+      "local_transport_per_day": 350,
+      "communication_per_trip": 280,
+      "misc_per_trip": 1900
+    },
+    "Germany|Berlin": {
+      "accommodation_per_night": {"L1": 1400, "L2": 1600, "L3": 1800, "L4": 2100},
+      "meals_per_day": {"L1": 520, "L2": 600, "L3": 680, "L4": 780},
+      "local_transport_per_day": 380,
+      "communication_per_trip": 260,
+      "misc_per_trip": 1700
+    },
+    "Canada|Toronto": {
+      "accommodation_per_night": {"L1": 1600, "L2": 1800, "L3": 2000, "L4": 2400},
+      "meals_per_day": {"L1": 480, "L2": 560, "L3": 640, "L4": 720},
+      "local_transport_per_day": 320,
+      "communication_per_trip": 290,
+      "misc_per_trip": 1800
+    },
+    "France|Paris": {
+      "accommodation_per_night": {"L1": 1700, "L2": 1900, "L3": 2200, "L4": 2600},
+      "meals_per_day": {"L1": 600, "L2": 700, "L3": 800, "L4": 950},
+      "local_transport_per_day": 420,
+      "communication_per_trip": 310,
+      "misc_per_trip": 2100
+    },
+    "South Korea|Seoul": {
+      "accommodation_per_night": {"L1": 1200, "L2": 1400, "L3": 1600, "L4": 1900},
+      "meals_per_day": {"L1": 450, "L2": 550, "L3": 650, "L4": 750},
+      "local_transport_per_day": 200,
+      "communication_per_trip": 220,
+      "misc_per_trip": 1400
+    },
+    "United States|New York": {
+      "accommodation_per_night": {"L1": 1800, "L2": 2000, "L3": 2400, "L4": 3000},
+      "meals_per_day": {"L1": 500, "L2": 600, "L3": 700, "L4": 900},
+      "local_transport_per_day": 400,
+      "communication_per_trip": 300,
+      "misc_per_trip": 2000
+    },
+    "Switzerland|Zurich": {
+      "accommodation_per_night": {"L1": 2000, "L2": 2300, "L3": 2600, "L4": 3200},
+      "meals_per_day": {"L1": 700, "L2": 800, "L3": 900, "L4": 1100},
+      "local_transport_per_day": 500,
+      "communication_per_trip": 350,
+      "misc_per_trip": 2800
+    },
+    "Netherlands|Amsterdam": {
+      "accommodation_per_night": {"L1": 1500, "L2": 1700, "L3": 1900, "L4": 2300},
+      "meals_per_day": {"L1": 580, "L2": 680, "L3": 780, "L4": 880},
+      "local_transport_per_day": 380,
+      "communication_per_trip": 290,
+      "misc_per_trip": 1900
+    },
+    "Italy|Milan": {
+      "accommodation_per_night": {"L1": 1400, "L2": 1600, "L3": 1800, "L4": 2200},
+      "meals_per_day": {"L1": 550, "L2": 650, "L3": 750, "L4": 850},
+      "local_transport_per_day": 350,
+      "communication_per_trip": 280,
+      "misc_per_trip": 1800
+    },
+    "Japan|Tokyo": {
+      "accommodation_per_night": {"L1": 1300, "L2": 1500, "L3": 1700, "L4": 2000},
+      "meals_per_day": {"L1": 500, "L2": 650, "L3": 700, "L4": 800},
+      "local_transport_per_day": 250,
+      "communication_per_trip": 250,
+      "misc_per_trip": 1500
+    },
+    "Sweden|Stockholm": {
+      "accommodation_per_night": {"L1": 1600, "L2": 1800, "L3": 2000, "L4": 2400},
+      "meals_per_day": {"L1": 600, "L2": 700, "L3": 800, "L4": 900},
+      "local_transport_per_day": 400,
+      "communication_per_trip": 320,
+      "misc_per_trip": 2000
+    },
+    "Spain|Madrid": {
+      "accommodation_per_night": {"L1": 1200, "L2": 1400, "L3": 1600, "L4": 1900},
+      "meals_per_day": {"L1": 500, "L2": 600, "L3": 700, "L4": 800},
+      "local_transport_per_day": 300,
+      "communication_per_trip": 250,
+      "misc_per_trip": 1600
+    },
+    "United Kingdom|London": {
+      "accommodation_per_night": {"L1": 1600, "L2": 1700, "L3": 1900, "L4": 2000},
+      "meals_per_day": {"L1": 600, "L2": 700, "L3": 900, "L4": 1700},
+      "local_transport_per_day": 500,
+      "communication_per_trip": 300,
+      "misc_per_trip": 2500
+    },
+    "Brazil|São Paulo": {
+      "accommodation_per_night": {"L1": 1000, "L2": 1200, "L3": 1400, "L4": 1700},
+      "meals_per_day": {"L1": 400, "L2": 500, "L3": 600, "L4": 700},
+      "local_transport_per_day": 250,
+      "communication_per_trip": 200,
+      "misc_per_trip": 1300
+    },
+    "India|Mumbai": {
+      "accommodation_per_night": {"L1": 800, "L2": 1000, "L3": 1200, "L4": 1500},
+      "meals_per_day": {"L1": 300, "L2": 400, "L3": 500, "L4": 600},
+      "local_transport_per_day": 150,
+      "communication_per_trip": 180,
+      "misc_per_trip": 1000
+    },
+    "Russia|Moscow": {
+      "accommodation_per_night": {"L1": 1100, "L2": 1300, "L3": 1500, "L4": 1800},
+      "meals_per_day": {"L1": 450, "L2": 550, "L3": 650, "L4": 750},
+      "local_transport_per_day": 200,
+      "communication_per_trip": 240,
+      "misc_per_trip": 1400
+    },
+    "Mexico|Mexico City": {
+      "accommodation_per_night": {"L1": 900, "L2": 1100, "L3": 1300, "L4": 1600},
+      "meals_per_day": {"L1": 350, "L2": 450, "L3": 550, "L4": 650},
+      "local_transport_per_day": 200,
+      "communication_per_trip": 190,
+      "misc_per_trip": 1200
+    },
+    "Thailand|Bangkok": {
+      "accommodation_per_night": {"L1": 700, "L2": 900, "L3": 1100, "L4": 1400},
+      "meals_per_day": {"L1": 300, "L2": 400, "L3": 500, "L4": 600},
+      "local_transport_per_day": 120,
+      "communication_per_trip": 150,
+      "misc_per_trip": 900
+    },
+    "United Arab Emirates|Dubai": {
+      "accommodation_per_night": {"L1": 1400, "L2": 1600, "L3": 1800, "L4": 2200},
+      "meals_per_day": {"L1": 550, "L2": 650, "L3": 750, "L4": 900},
+      "local_transport_per_day": 300,
+      "communication_per_trip": 270,
+      "misc_per_trip": 1700
+    },
+    "Singapore|Singapore": {
+      "accommodation_per_night": {"L1": 1300, "L2": 1400, "L3": 1600, "L4": 1800},
+      "meals_per_day": {"L1": 700, "L2": 800, "L3": 900, "L4": 1000},
+      "local_transport_per_day": 300,
+      "communication_per_trip": 200,
+      "misc_per_trip": 1800
+    },
+    "Turkey|Istanbul": {
+      "accommodation_per_night": {"L1": 900, "L2": 1100, "L3": 1300, "L4": 1600},
+      "meals_per_day": {"L1": 400, "L2": 500, "L3": 600, "L4": 700},
+      "local_transport_per_day": 180,
+      "communication_per_trip": 210,
+      "misc_per_trip": 1300
+    },
+    "Argentina|Buenos Aires": {
+      "accommodation_per_night": {"L1": 950, "L2": 1150, "L3": 1350, "L4": 1650},
+      "meals_per_day": {"L1": 380, "L2": 480, "L3": 580, "L4": 680},
+      "local_transport_per_day": 220,
+      "communication_per_trip": 200,
+      "misc_per_trip": 1250
+    },
+    "Egypt|Cairo": {
+      "accommodation_per_night": {"L1": 700, "L2": 900, "L3": 1100, "L4": 1400},
+      "meals_per_day": {"L1": 280, "L2": 380, "L3": 480, "L4": 580},
+      "local_transport_per_day": 100,
+      "communication_per_trip": 160,
+      "misc_per_trip": 900
+    },
+    "South Africa|Cape Town": {
+      "accommodation_per_night": {"L1": 800, "L2": 1000, "L3": 1200, "L4": 1500},
+      "meals_per_day": {"L1": 350, "L2": 450, "L3": 550, "L4": 650},
+      "local_transport_per_day": 180,
+      "communication_per_trip": 170,
+      "misc_per_trip": 1100
+    }
+  }
+}

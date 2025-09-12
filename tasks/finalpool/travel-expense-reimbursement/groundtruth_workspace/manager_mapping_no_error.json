@@ -1,0 +1,32 @@
+{
+  "groups": [
+    {
+      "manager": { "name": "Sarah Hernandez", "email": "sarah.hernandez@mcp.com", "password": "sarah_12PUPX" },
+      "employees": [
+        { "employee_id": "EMP005", "employee_name": "Andrew Adams", "email": "aadams93@mcp.com", "password": "adams$a401Wy" },
+        { "employee_id": "EMP006", "employee_name": "Larry Wood", "email": "larry_wood@mcp.com", "password": "LW0725!1Prbi" }
+      ]
+    },
+    {
+      "manager": { "name": "Dennis Howard", "email": "howardd@mcp.com", "password": "howard@d149Y" },
+      "employees": [
+        { "employee_id": "EMP007", "employee_name": "Alexander Garcia", "email": "alexander_garcia@mcp.com", "password": "Agarcia754Uu" },
+        { "employee_id": "EMP008", "employee_name": "Michael Bennett", "email": "michaelb@mcp.com", "password": "michael_51aU" }
+      ]
+    }
+  ],
+  "employees_to_manager": {
+    "EMP005": { "name": "Sarah Hernandez", "email": "sarah.hernandez@mcp.com", "password": "sarah_12PUPX" },
+    "EMP006": { "name": "Sarah Hernandez", "email": "sarah.hernandez@mcp.com", "password": "sarah_12PUPX" },
+    "EMP007": { "name": "Dennis Howard", "email": "howardd@mcp.com", "password": "howard@d149Y" },
+    "EMP008": { "name": "Dennis Howard", "email": "howardd@mcp.com", "password": "howard@d149Y" }
+  },
+  "accounts": {
+    "sarah.hernandez@mcp.com": { "name": "Sarah Hernandez", "password": "sarah_12PUPX" },
+    "aadams93@mcp.com": { "name": "Andrew Adams", "password": "adams$a401Wy" },
+    "larry_wood@mcp.com": { "name": "Larry Wood", "password": "LW0725!1Prbi" },
+    "howardd@mcp.com": { "name": "Dennis Howard", "password": "howard@d149Y" },
+    "alexander_garcia@mcp.com": { "name": "Alexander Garcia", "password": "Agarcia754Uu" },
+    "michaelb@mcp.com": { "name": "Michael Bennett", "password": "michael_51aU" }
+  }
+}
