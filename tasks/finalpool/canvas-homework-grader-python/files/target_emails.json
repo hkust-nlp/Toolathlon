@@ -1,0 +1,209 @@
+[
+  {
+    "email_id": "1",
+    "subject": "[CS101] Submission - Two Sum Solution",
+    "from_addr": "timothy.ruiz@student.mcp.com",
+    "to_addr": "teresat@mcp.com",
+    "cc_addr": null,
+    "bcc_addr": null,
+    "date": "3 days before current date",
+    "message_id": "<202405008103000.12346@student.mcp.com>",
+    "body_text": "\n<html><body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\"><p>Dear Professor Torres,</p><p>Please find attached my submission for <strong>Two Sum Problem</strong>.</p><p>I implemented an efficient hash map solution with O(n) time complexity. The solution handles all the test cases mentioned in the problem description.</p><p>File: <strong>two_sum.py</strong></p><p>Please let me know if you have any questions.</p><p>Best regards,<br><strong>Timothy Ruiz</strong><br>Student ID: 20240101<br>Email: truiz81@mcp.com</p></body></html>\n",
+    "body_html": "<html><body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\"><p>Dear Professor Torres,</p><p>Please find attached my submission for <strong>Two Sum Problem</strong>.</p><p>I implemented an efficient hash map solution with O(n) time complexity. The solution handles all the test cases mentioned in the problem description.</p><p>File: <strong>two_sum.py</strong></p><p>Please let me know if you have any questions.</p><p>Best regards,<br><strong>Timothy Ruiz</strong><br>Student ID: 20240101<br>Email: truiz81@mcp.com</p></body></html>",
+    "is_read": true,
+    "is_important": false,
+    "folder": "INBOX",
+    "attachments": [
+      {
+        "filename": "timothy_ruiz_two_sum.py",
+        "content_type": "text/python",
+        "size": 843,
+        "content": "ZGVmIHR3b1N1bShudW1zLCB0YXJnZXQpOgogICAgIiIiCiAgICBUaW1vdGh5IFJ1aXoncyBzb2x1dGlvbiAtIENvcnJlY3QgaW1wbGVtZW50YXRpb24gdXNpbmcgaGFzaCBtYXAKICAgICIiIgogICAgbnVtX21hcCA9IHt9CiAgICBmb3IgaSwgbnVtIGluIGVudW1lcmF0ZShudW1zKToKICAgICAgICBjb21wbGVtZW50ID0gdGFyZ2V0IC0gbnVtCiAgICAgICAgaWYgY29tcGxlbWVudCBpbiBudW1fbWFwOgogICAgICAgICAgICByZXR1cm4gW251bV9tYXBbY29tcGxlbWVudF0sIGldCiAgICAgICAgbnVtX21hcFtudW1dID0gaQogICAgcmV0dXJuIFtdCgojIFRlc3QgdGhlIHNvbHV0aW9uCmlmIF9fbmFtZV9fID09ICJfX21haW5fXyI6CiAgICAjIFRlc3QgY2FzZSAxCiAgICBudW1zMSA9IFsyLCA3LCAxMSwgMTVdCiAgICB0YXJnZXQxID0gOQogICAgcmVzdWx0MSA9IHR3b1N1bShudW1zMSwgdGFyZ2V0MSkKICAgIHByaW50KGYiVGVzdCAxOiB7cmVzdWx0MX0iKSAgIyBTaG91bGQgYmUgWzAsIDFdCiAgICAKICAgICMgVGVzdCBjYXNlIDIKICAgIG51bXMyID0gWzMsIDIsIDRdCiAgICB0YXJnZXQyID0gNgogICAgcmVzdWx0MiA9IHR3b1N1bShudW1zMiwgdGFyZ2V0MikKICAgIHByaW50KGYiVGVzdCAyOiB7cmVzdWx0Mn0iKSAgIyBTaG91bGQgYmUgWzEsIDJdCiAgICAKICAgICMgVGVzdCBjYXNlIDMKICAgIG51bXMzID0gWzMsIDNdCiAgICB0YXJnZXQzID0gNgogICAgcmVzdWx0MyA9IHR3b1N1bShudW1zMywgdGFyZ2V0MykKICAgIHByaW50KGYiVGVzdCAzOiB7cmVzdWx0M30iKSAgIyBTaG91bGQgYmUgWzAsIDFdCiAgICAKICAgIHByaW50KCJBbGwgdGVzdHMgcGFzc2VkISIp"
+      }
+    ]
+  },
+  {
+    "email_id": "2",
+    "subject": "Homework 2 - Two Sum (CS101)",
+    "from_addr": "martha.watson@student.mcp.com",
+    "to_addr": "teresat@mcp.com",
+    "cc_addr": null,
+    "bcc_addr": null,
+    "date": "3 days before current date",
+    "message_id": "<202405010113000.12347@student.mcp.com>",
+    "body_text": "\n<html><body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\"><p>Hi Professor Torres,</p><p>Here's my homework 2 submission for the two sum problem. I tried my best but I'm not sure if it's perfect.</p><p>I used the hash map approach we discussed in class. Hope it works!</p><p>Thanks,<br><strong>Martha Watson</strong><br>Student ID: 20240102</p></body></html>\n",
+    "body_html": "<html><body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\"><p>Hi Professor Torres,</p><p>Here's my homework 2 submission for the two sum problem. I tried my best but I'm not sure if it's perfect.</p><p>I used the hash map approach we discussed in class. Hope it works!</p><p>Thanks,<br><strong>Martha Watson</strong><br>Student ID: 20240102</p></body></html>",
+    "is_read": true,
+    "is_important": false,
+    "folder": "INBOX",
+    "attachments": [
+      {
+        "filename": "martha_watson_two_sum.py",
+        "content_type": "text/python",
+        "size": 529,
+        "content": "ZGVmIHR3b1N1bShudW1zLCB0YXJnZXQpOgogICAgIiIiCiAgICBNYXJ0aGEgV2F0c29uJ3Mgc29sdXRpb24gLSBIYXMgc3ludGF4IGVycm9yIChtaXNzaW5nIGNvbG9uKQogICAgIiIiCiAgICBudW1fbWFwID0ge30KICAgIGZvciBpLCBudW0gaW4gZW51bWVyYXRlKG51bXMpICAjIE1pc3NpbmcgY29sb24gaGVyZSAtIHN5bnRheCBlcnJvciEKICAgICAgICBjb21wbGVtZW50ID0gdGFyZ2V0IC0gbnVtCiAgICAgICAgaWYgY29tcGxlbWVudCBpbiBudW1fbWFwOgogICAgICAgICAgICByZXR1cm4gW251bV9tYXBbY29tcGxlbWVudF0sIGldCiAgICAgICAgbnVtX21hcFtudW1dID0gaQogICAgcmV0dXJuIFtdCgojIFRlc3QgdGhlIHNvbHV0aW9uCmlmIF9fbmFtZV9fID09ICJfX21haW5fXyI6CiAgICBudW1zID0gWzIsIDcsIDExLCAxNV0KICAgIHRhcmdldCA9IDkKICAgIHJlc3VsdCA9IHR3b1N1bShudW1zLCB0YXJnZXQpCiAgICBwcmludChmIlJlc3VsdDoge3Jlc3VsdH0iKQogICAgcHJpbnQoIlRlc3RzIGNvbXBsZXRlZCEiKQ=="
+      }
+    ]
+  },
+  {
+    "email_id": "3",
+    "subject": "[CS101] HW2 Submission",
+    "from_addr": "donald.richardson@student.mcp.com",
+    "to_addr": "teresat@mcp.com",
+    "cc_addr": null,
+    "bcc_addr": null,
+    "date": "8 days before current date",
+    "message_id": "<202405012123000.12348@student.mcp.com>",
+    "body_text": "\n<html><body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\"><p>Professor Torres,</p><p>Attached is my homework 2 solution. I used a nested loop approach which should work for all test cases.</p><p>I tested it on the examples you provided and it seems to work fine.</p><p>Best,<br><strong>Donald Richardson</strong><br>ID: 20240103</p></body></html>\n",
+    "body_html": "<html><body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\"><p>Professor Torres,</p><p>Attached is my homework 2 solution. I used a nested loop approach which should work for all test cases.</p><p>I tested it on the examples you provided and it seems to work fine.</p><p>Best,<br><strong>Donald Richardson</strong><br>ID: 20240103</p></body></html>",
+    "is_read": true,
+    "is_important": false,
+    "folder": "INBOX",
+    "attachments": [
+      {
+        "filename": "donald_richardson_two_sum.py",
+        "content_type": "text/python",
+        "size": 506,
+        "content": "ZGVmIHR3b1N1bShudW1zLCB0YXJnZXQpOgogICAgIiIiCiAgICBEb25hbGQgUmljaGFyZHNvbidzIHNvbHV0aW9uIC0gSGFzIHJ1bnRpbWUgZXJyb3IgKGluZGV4IG91dCBvZiBib3VuZHMpCiAgICAiIiIKICAgIGZvciBpIGluIHJhbmdlKGxlbihudW1zKSk6CiAgICAgICAgZm9yIGogaW4gcmFuZ2UoaSArIDEsIGxlbihudW1zKSArIDEpOiAgIyBFcnJvcjogcmFuZ2UgZ29lcyBiZXlvbmQgYXJyYXkgYm91bmRzCiAgICAgICAgICAgIGlmIG51bXNbaV0gKyBudW1zW2pdID09IHRhcmdldDoKICAgICAgICAgICAgICAgIHJldHVybiBbaSwgal0KICAgIHJldHVybiBbXQoKIyBUZXN0IHRoZSBzb2x1dGlvbgppZiBfX25hbWVfXyA9PSAiX19tYWluX18iOgogICAgbnVtcyA9IFsyLCA3LCAxMSwgMTVdCiAgICB0YXJnZXQgPSA5CiAgICByZXN1bHQgPSB0d29TdW0obnVtcywgdGFyZ2V0KQogICAgcHJpbnQoZiJSZXN1bHQ6IHtyZXN1bHR9IikKICAgIHByaW50KCJUZXN0cyBjb21wbGV0ZWQhIik="
+      }
+    ]
+  },
+  {
+    "email_id": "4",
+    "subject": "Two Sum Problem Solution",
+    "from_addr": "shirley.rodriguez@student.mcp.com",
+    "to_addr": "teresat@mcp.com",
+    "cc_addr": null,
+    "bcc_addr": null,
+    "date": "12 days before current date",
+    "message_id": "<202405014133000.12349@student.mcp.com>",
+    "body_text": "\n<html><body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\"><p>Dear Professor Torres,</p><p>Please find my solution to homework 2 attached. I chose to implement the brute force approach as it's easier to understand and debug.</p><p>I've tested it with all the provided examples and verified the output.</p><p>Regards,<br><strong>Shirley Rodriguez</strong><br>Student ID: 20240104</p></body></html>\n",
+    "body_html": "<html><body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\"><p>Dear Professor Torres,</p><p>Please find my solution to homework 2 attached. I chose to implement the brute force approach as it's easier to understand and debug.</p><p>I've tested it with all the provided examples and verified the output.</p><p>Regards,<br><strong>Shirley Rodriguez</strong><br>Student ID: 20240104</p></body></html>",
+    "is_read": true,
+    "is_important": false,
+    "folder": "INBOX",
+    "attachments": [
+      {
+        "filename": "shirley_rodriguez_two_sum.py",
+        "content_type": "text/python",
+        "size": 628,
+        "content": "ZGVmIHR3b1N1bShudW1zLCB0YXJnZXQpOgogICAgIiIiCiAgICBTaGlybGV5IFJvZHJpZ3VleidzIHNvbHV0aW9uIC0gQ29ycmVjdCBicnV0ZSBmb3JjZSBpbXBsZW1lbnRhdGlvbgogICAgIiIiCiAgICBmb3IgaSBpbiByYW5nZShsZW4obnVtcykpOgogICAgICAgIGZvciBqIGluIHJhbmdlKGkgKyAxLCBsZW4obnVtcykpOgogICAgICAgICAgICBpZiBudW1zW2ldICsgbnVtc1tqXSA9PSB0YXJnZXQ6CiAgICAgICAgICAgICAgICByZXR1cm4gW2ksIGpdCiAgICByZXR1cm4gW10KCiMgVGVzdCB0aGUgc29sdXRpb24KaWYgX19uYW1lX18gPT0gIl9fbWFpbl9fIjoKICAgICMgVGVzdCBjYXNlIDEKICAgIG51bXMxID0gWzIsIDcsIDExLCAxNV0KICAgIHRhcmdldDEgPSA5CiAgICByZXN1bHQxID0gdHdvU3VtKG51bXMxLCB0YXJnZXQxKQogICAgcHJpbnQoZiJUZXN0IDE6IHtyZXN1bHQxfSIpCiAgICAKICAgICMgVGVzdCBjYXNlIDIKICAgIG51bXMyID0gWzMsIDIsIDRdCiAgICB0YXJnZXQyID0gNgogICAgcmVzdWx0MiA9IHR3b1N1bShudW1zMiwgdGFyZ2V0MikKICAgIHByaW50KGYiVGVzdCAyOiB7cmVzdWx0Mn0iKQogICAgCiAgICBwcmludCgiVGVzdHMgY29tcGxldGVkIHN1Y2Nlc3NmdWxseSEiKQ=="
+      }
+    ]
+  },
+  {
+    "email_id": "5",
+    "subject": "[CS101] Two Sum Solution",
+    "from_addr": "alice.ward@student.mcp.com",
+    "to_addr": "teresat@mcp.com",
+    "cc_addr": null,
+    "bcc_addr": null,
+    "date": "5 days before current date",
+    "message_id": "<202405016143000.12350@student.mcp.com>",
+    "body_text": "\n<html><body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\"><p>Hi Professor Torres,</p><p>This is my solution for homework 2. I implemented it using a hash map for better time complexity.</p><p>I believe it should work correctly for the given test cases.</p><p>Thank you,<br><strong>Alice Ward</strong><br>Student ID: 20240105</p></body></html>\n",
+    "body_html": "<html><body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\"><p>Hi Professor Torres,</p><p>This is my solution for homework 2. I implemented it using a hash map for better time complexity.</p><p>I believe it should work correctly for the given test cases.</p><p>Thank you,<br><strong>Alice Ward</strong><br>Student ID: 20240105</p></body></html>",
+    "is_read": true,
+    "is_important": false,
+    "folder": "INBOX",
+    "attachments": [
+      {
+        "filename": "alice_ward_two_sum.py",
+        "content_type": "text/python",
+        "size": 596,
+        "content": "ZGVmIHR3b1N1bShudW1zLCB0YXJnZXQpOgogICAgIiIiCiAgICBBbGljZSBXYXJkJ3Mgc29sdXRpb24gLSBSdW5zIGJ1dCBoYXMgbG9naWMgZXJyb3IgKHJldHVybnMgd3JvbmcgaW5kaWNlcykKICAgICIiIgogICAgbnVtX21hcCA9IHt9CiAgICBmb3IgaSwgbnVtIGluIGVudW1lcmF0ZShudW1zKToKICAgICAgICBjb21wbGVtZW50ID0gdGFyZ2V0IC0gbnVtCiAgICAgICAgaWYgY29tcGxlbWVudCBpbiBudW1fbWFwOgogICAgICAgICAgICByZXR1cm4gW2ksIG51bV9tYXBbY29tcGxlbWVudF1dICAjIFdyb25nIG9yZGVyIC0gc2hvdWxkIGJlIFtudW1fbWFwW2NvbXBsZW1lbnRdLCBpXQogICAgICAgIG51bV9tYXBbbnVtXSA9IGkKICAgIHJldHVybiBbXQoKIyBUZXN0IHRoZSBzb2x1dGlvbgppZiBfX25hbWVfXyA9PSAiX19tYWluX18iOgogICAgbnVtcyA9IFsyLCA3LCAxMSwgMTVdCiAgICB0YXJnZXQgPSA5CiAgICByZXN1bHQgPSB0d29TdW0obnVtcywgdGFyZ2V0KQogICAgcHJpbnQoZiJSZXN1bHQ6IHtyZXN1bHR9IikgICMgV2lsbCBwcmludCBbMSwgMF0gaW5zdGVhZCBvZiBbMCwgMV0KICAgIHByaW50KCJUZXN0cyBjb21wbGV0ZWQhIik="
+      }
+    ]
+  },
+  {
+    "email_id": "6",
+    "subject": "Homework 2 Submission - Advanced Two Sum",
+    "from_addr": "frank.phillips@student.mcp.com",
+    "to_addr": "teresat@mcp.com",
+    "cc_addr": null,
+    "bcc_addr": null,
+    "date": "1 days before current date",
+    "message_id": "<202405018153000.12351@student.mcp.com>",
+    "body_text": "\n<html><body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\"><p>Professor Torres,</p><p>I'm submitting my homework 2 solution. I tried to make it more advanced by using some external libraries for optimization.</p><p>Let me know if this approach is acceptable.</p><p>Best regards,<br><strong>Frank Phillips</strong><br>Student ID: 20240106</p></body></html>\n",
+    "body_html": "<html><body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\"><p>Professor Torres,</p><p>I'm submitting my homework 2 solution. I tried to make it more advanced by using some external libraries for optimization.</p><p>Let me know if this approach is acceptable.</p><p>Best regards,<br><strong>Frank Phillips</strong><br>Student ID: 20240106</p></body></html>",
+    "is_read": true,
+    "is_important": false,
+    "folder": "INBOX",
+    "attachments": [
+      {
+        "filename": "frank_phillips_two_sum.py",
+        "content_type": "text/python",
+        "size": 448,
+        "content": "aW1wb3J0IG5vbl9leGlzdGVudF9tb2R1bGUgICMgVGhpcyB3aWxsIGNhdXNlIEltcG9ydEVycm9yCgpkZWYgdHdvU3VtKG51bXMsIHRhcmdldCk6CiAgICAiIiIKICAgIEZyYW5rIFBoaWxsaXBzJ3Mgc29sdXRpb24gLSBIYXMgaW1wb3J0IGVycm9yCiAgICAiIiIKICAgICMgVXNpbmcgdGhlIG5vbi1leGlzdGVudCBtb2R1bGUKICAgIHJlc3VsdCA9IG5vbl9leGlzdGVudF9tb2R1bGUuc29sdmVfdHdvX3N1bShudW1zLCB0YXJnZXQpCiAgICByZXR1cm4gcmVzdWx0CgojIFRlc3QgdGhlIHNvbHV0aW9uCmlmIF9fbmFtZV9fID09ICJfX21haW5fXyI6CiAgICBudW1zID0gWzIsIDcsIDExLCAxNV0KICAgIHRhcmdldCA9IDkKICAgIHJlc3VsdCA9IHR3b1N1bShudW1zLCB0YXJnZXQpCiAgICBwcmludChmIlJlc3VsdDoge3Jlc3VsdH0iKQogICAgcHJpbnQoIlRlc3RzIGNvbXBsZXRlZCEiKQ=="
+      }
+    ]
+  },
+  {
+    "email_id": "7",
+    "subject": "[CS101] Homework 1 Submission - Valid Parentheses",
+    "from_addr": "timothy.ruiz@student.mcp.com",
+    "to_addr": "teresat@mcp.com",
+    "cc_addr": null,
+    "bcc_addr": null,
+    "date": "7 days before current date",
+    "message_id": "<202405020163000.12352@student.mcp.com>",
+    "body_text": "\n<html><body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\"><p>Dear Professor Torres,</p><p>Please find attached my solution for <strong>Homework 1: Valid Parentheses Problem</strong>.</p><p>I implemented a stack-based solution that efficiently checks for balanced parentheses. The solution handles all bracket types and edge cases.</p><p>File: <strong>parentheses.py</strong></p><p>Best regards,<br><strong>Timothy Ruiz</strong><br>Student ID: 20240101<br>Email: truiz81@mcp.com</p></body></html>\n",
+    "body_html": "<html><body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\"><p>Dear Professor Torres,</p><p>Please find attached my solution for <strong>Homework 1: Valid Parentheses Problem</strong>.</p><p>I implemented a stack-based solution that efficiently checks for balanced parentheses. The solution handles all bracket types and edge cases.</p><p>File: <strong>parentheses.py</strong></p><p>Best regards,<br><strong>Timothy Ruiz</strong><br>Student ID: 20240101<br>Email: truiz81@mcp.com</p></body></html>",
+    "is_read": true,
+    "is_important": false,
+    "folder": "INBOX",
+    "attachments": [
+      {
+        "filename": "timothy_ruiz_parentheses.py",
+        "content_type": "text/python",
+        "size": 1427,
+        "content": "ZGVmIGlzVmFsaWQoczogc3RyKSAtPiBib29sOgogICAgIiIiCiAgICBEZXRlcm1pbmUgaWYgdGhlIGlucHV0IHN0cmluZyBoYXMgdmFsaWQgcGFyZW50aGVzZXMuCiAgICAKICAgIEFyZ3M6CiAgICAgICAgczogU3RyaW5nIGNvbnRhaW5pbmcgcGFyZW50aGVzZXMKICAgICAgICAKICAgIFJldHVybnM6CiAgICAgICAgYm9vbDogVHJ1ZSBpZiB2YWxpZCwgRmFsc2Ugb3RoZXJ3aXNlCiAgICAiIiIKICAgICMgU3RhY2sgdG8ga2VlcCB0cmFjayBvZiBvcGVuaW5nIGJyYWNrZXRzCiAgICBzdGFjayA9IFtdCiAgICAKICAgICMgTWFwcGluZyBvZiBjbG9zaW5nIHRvIG9wZW5pbmcgYnJhY2tldHMKICAgIG1hcHBpbmcgPSB7JyknOiAnKCcsICd9JzogJ3snLCAnXSc6ICdbJ30KICAgIAogICAgZm9yIGNoYXIgaW4gczoKICAgICAgICBpZiBjaGFyIGluIG1hcHBpbmc6CiAgICAgICAgICAgICMgUG9wIHRoZSB0b3AgZWxlbWVudCBmcm9tIHN0YWNrIGlmIGl0J3Mgbm90IGVtcHR5LCBvdGhlcndpc2UgYXNzaWduIGEgZHVtbXkgdmFsdWUKICAgICAgICAgICAgdG9wX2VsZW1lbnQgPSBzdGFjay5wb3AoKSBpZiBzdGFjayBlbHNlICcjJwogICAgICAgICAgICAKICAgICAgICAgICAgIyBJZiB0aGUgbWFwcGluZyBkb2Vzbid0IG1hdGNoLCByZXR1cm4gRmFsc2UKICAgICAgICAgICAgaWYgbWFwcGluZ1tjaGFyXSAhPSB0b3BfZWxlbWVudDoKICAgICAgICAgICAgICAgIHJldHVybiBGYWxzZQogICAgICAgIGVsc2U6CiAgICAgICAgICAgICMgUHVzaCBvcGVuaW5nIGJyYWNrZXRzIG9udG8gc3RhY2sKICAgICAgICAgICAgc3RhY2suYXBwZW5kKGNoYXIpCiAgICAKICAgICMgSWYgc3RhY2sgaXMgZW1wdHksIGFsbCBicmFja2V0cyB3ZXJlIG1hdGNoZWQKICAgIHJldHVybiBub3Qgc3RhY2sKCgojIFRlc3QgeW91ciBzb2x1dGlvbgppZiBfX25hbWVfXyA9PSAiX19tYWluX18iOgogICAgIyBUZXN0IGNhc2VzCiAgICB0ZXN0X2Nhc2VzID0gWwogICAgICAgICgiKCkiLCBUcnVlKSwKICAgICAgICAoIigpW117fSIsIFRydWUpLAogICAgICAgICgiKF0iLCBGYWxzZSksCiAgICAgICAgKCIoWyldIiwgRmFsc2UpLAogICAgICAgICgie1tdfSIsIFRydWUpLAogICAgICAgICgiIiwgVHJ1ZSksCiAgICAgICAgKCIoIiwgRmFsc2UpLAogICAgICAgICgiKSIsIEZhbHNlKSwKICAgICAgICAoIigoIiwgRmFsc2UpLAogICAgICAgICgiKSkiLCBGYWxzZSkKICAgIF0KICAgIAogICAgZm9yIHMsIGV4cGVjdGVkIGluIHRlc3RfY2FzZXM6CiAgICAgICAgcmVzdWx0ID0gaXNWYWxpZChzKQogICAgICAgIHN0YXR1cyA9ICJQQVNTIiBpZiByZXN1bHQgPT0gZXhwZWN0ZWQgZWxzZSAiRkFJTCIKICAgICAgICBwcmludChmIklucHV0OiAne3N9JyAtPiBPdXRwdXQ6IHtyZXN1bHR9LCBFeHBlY3RlZDoge2V4cGVjdGVkfSBbe3N0YXR1c31dIik="
+      }
+    ]
+  },
+  {
+    "email_id": "8",
+    "subject": "[CS101] Homework 1 - Valid Parentheses Solution",
+    "from_addr": "alice.ward@student.mcp.com",
+    "to_addr": "teresat@mcp.com",
+    "cc_addr": null,
+    "bcc_addr": null,
+    "date": "4 days before current date",
+    "message_id": "<202405022173000.12353@student.mcp.com>",
+    "body_text": "\n<html><body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\"><p>Hi Professor Torres,</p><p>This is my solution for homework 1. I used a stack approach to solve the valid parentheses problem.</p><p>I tested it with all the examples and it works correctly.</p><p>Thank you,<br><strong>Alice Ward</strong><br>Student ID: 20240105</p></body></html>\n",
+    "body_html": "<html><body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\"><p>Hi Professor Torres,</p><p>This is my solution for homework 1. I used a stack approach to solve the valid parentheses problem.</p><p>I tested it with all the examples and it works correctly.</p><p>Thank you,<br><strong>Alice Ward</strong><br>Student ID: 20240105</p></body></html>",
+    "is_read": true,
+    "is_important": false,
+    "folder": "INBOX",
+    "attachments": [
+      {
+        "filename": "alice_ward_parentheses.py",
+        "content_type": "text/python",
+        "size": 1329,
+        "content": "ZGVmIGlzVmFsaWQoczogc3RyKSAtPiBib29sOgogICAgIiIiCiAgICBEZXRlcm1pbmUgaWYgdGhlIGlucHV0IHN0cmluZyBoYXMgdmFsaWQgcGFyZW50aGVzZXMuCiAgICAKICAgIEFyZ3M6CiAgICAgICAgczogU3RyaW5nIGNvbnRhaW5pbmcgcGFyZW50aGVzZXMKICAgICAgICAKICAgIFJldHVybnM6CiAgICAgICAgYm9vbDogVHJ1ZSBpZiB2YWxpZCwgRmFsc2Ugb3RoZXJ3aXNlCiAgICAiIiIKICAgICMgVXNlIGEgc3RhY2sgYXBwcm9hY2ggd2l0aCBsaXN0CiAgICBzdGFjayA9IFtdCiAgICAKICAgICMgRGljdGlvbmFyeSB0byBtYXAgY2xvc2luZyBicmFja2V0cyB0byBvcGVuaW5nIG9uZXMKICAgIGJyYWNrZXRfbWFwID0geycpJzogJygnLCAnfSc6ICd7JywgJ10nOiAnWyd9CiAgICAKICAgIGZvciBjaGFyIGluIHM6CiAgICAgICAgaWYgY2hhciBpbiBicmFja2V0X21hcC52YWx1ZXMoKToKICAgICAgICAgICAgIyBPcGVuaW5nIGJyYWNrZXQgLSBwdXNoIHRvIHN0YWNrCiAgICAgICAgICAgIHN0YWNrLmFwcGVuZChjaGFyKQogICAgICAgIGVsaWYgY2hhciBpbiBicmFja2V0X21hcC5rZXlzKCk6CiAgICAgICAgICAgICMgQ2xvc2luZyBicmFja2V0IC0gY2hlY2sgaWYgaXQgbWF0Y2hlcwogICAgICAgICAgICBpZiBub3Qgc3RhY2sgb3Igc3RhY2sucG9wKCkgIT0gYnJhY2tldF9tYXBbY2hhcl06CiAgICAgICAgICAgICAgICByZXR1cm4gRmFsc2UKICAgIAogICAgIyBWYWxpZCBpZiBzdGFjayBpcyBlbXB0eSAoYWxsIGJyYWNrZXRzIG1hdGNoZWQpCiAgICByZXR1cm4gbGVuKHN0YWNrKSA9PSAwCgoKIyBUZXN0IHlvdXIgc29sdXRpb24KaWYgX19uYW1lX18gPT0gIl9fbWFpbl9fIjoKICAgICMgVGVzdCBjYXNlcwogICAgdGVzdF9jYXNlcyA9IFsKICAgICAgICAoIigpIiwgVHJ1ZSksCiAgICAgICAgKCIoKVtde30iLCBUcnVlKSwKICAgICAgICAoIihdIiwgRmFsc2UpLAogICAgICAgICgiKFspXSIsIEZhbHNlKSwKICAgICAgICAoIntbXX0iLCBUcnVlKSwKICAgICAgICAoIiIsIFRydWUpLAogICAgICAgICgiKCIsIEZhbHNlKSwKICAgICAgICAoIikiLCBGYWxzZSksCiAgICAgICAgKCIoKCIsIEZhbHNlKSwKICAgICAgICAoIikpIiwgRmFsc2UpCiAgICBdCiAgICAKICAgIGZvciBzLCBleHBlY3RlZCBpbiB0ZXN0X2Nhc2VzOgogICAgICAgIHJlc3VsdCA9IGlzVmFsaWQocykKICAgICAgICBzdGF0dXMgPSAiUEFTUyIgaWYgcmVzdWx0ID09IGV4cGVjdGVkIGVsc2UgIkZBSUwiCiAgICAgICAgcHJpbnQoZiJJbnB1dDogJ3tzfScgLT4gT3V0cHV0OiB7cmVzdWx0fSwgRXhwZWN0ZWQ6IHtleHBlY3RlZH0gW3tzdGF0dXN9XSIp"
+      }
+    ]
+  },
+  {
+    "email_id": "9",
+    "subject": "[CS101] Submission - Updated Version",
+    "from_addr": "timothy.ruiz@student.mcp.com",
+    "to_addr": "teresat@mcp.com",
+    "cc_addr": null,
+    "bcc_addr": null,
+    "date": "1 days before current date",
+    "message_id": "<202405024183000.12354@student.mcp.com>",
+    "body_text": "\n<html><body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\"><p>Dear Professor Torres,</p><p>I just realized I made a small optimization to my previous submission. Here's the updated version of my solution.</p><p>This version includes better comments and handles edge cases more gracefully.</p><p>Please use this version for grading instead of my previous submission.</p><p>Best regards,<br><strong>Timothy Ruiz</strong><br>Student ID: 20240101<br>Email: truiz81@mcp.com</p></body></html>\n",
+    "body_html": "<html><body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\"><p>Dear Professor Torres,</p><p>I just realized I made a small optimization to my previous submission. Here's the updated version of my solution.</p><p>This version includes better comments and handles edge cases more gracefully.</p><p>Please use this version for grading instead of my previous submission.</p><p>Best regards,<br><strong>Timothy Ruiz</strong><br>Student ID: 20240101<br>Email: truiz81@mcp.com</p></body></html>",
+    "is_read": true,
+    "is_important": false,
+    "folder": "INBOX",
+    "attachments": [
+      {
+        "filename": "timothy_ruiz_two_sum_v2.py",
+        "content_type": "text/python",
+        "size": 1908,
+        "content": "ZGVmIHR3b1N1bShudW1zLCB0YXJnZXQpOgogICAgIiIiCiAgICBUaW1vdGh5IFJ1aXoncyB1cGRhdGVkIHNvbHV0aW9uIC0gQ29ycmVjdCBpbXBsZW1lbnRhdGlvbiB3aXRoIGJldHRlciBjb21tZW50cwogICAgVGhpcyB2ZXJzaW9uIGluY2x1ZGVzIG1vcmUgZGV0YWlsZWQgY29tbWVudHMgYW5kIGVkZ2UgY2FzZSBoYW5kbGluZwogICAgIiIiCiAgICAjIFVzZSBoYXNoIG1hcCBmb3IgTyhuKSB0aW1lIGNvbXBsZXhpdHkKICAgIG51bV90b19pbmRleCA9IHt9CiAgICAKICAgIGZvciBjdXJyZW50X2luZGV4LCBjdXJyZW50X251bSBpbiBlbnVtZXJhdGUobnVtcyk6CiAgICAgICAgIyBDYWxjdWxhdGUgd2hhdCBudW1iZXIgd2UgbmVlZCB0byBmaW5kCiAgICAgICAgY29tcGxlbWVudCA9IHRhcmdldCAtIGN1cnJlbnRfbnVtCiAgICAgICAgCiAgICAgICAgIyBDaGVjayBpZiB3ZSd2ZSBzZWVuIHRoZSBjb21wbGVtZW50IGJlZm9yZQogICAgICAgIGlmIGNvbXBsZW1lbnQgaW4gbnVtX3RvX2luZGV4OgogICAgICAgICAgICAjIEZvdW5kIHRoZSBwYWlyISBSZXR1cm4gaW5kaWNlcwogICAgICAgICAgICByZXR1cm4gW251bV90b19pbmRleFtjb21wbGVtZW50XSwgY3VycmVudF9pbmRleF0KICAgICAgICAKICAgICAgICAjIFN0b3JlIGN1cnJlbnQgbnVtYmVyIGFuZCBpdHMgaW5kZXggZm9yIGZ1dHVyZSBsb29rdXBzCiAgICAgICAgbnVtX3RvX2luZGV4W2N1cnJlbnRfbnVtXSA9IGN1cnJlbnRfaW5kZXgKICAgIAogICAgIyBUaGlzIHNob3VsZCBuZXZlciBoYXBwZW4gZ2l2ZW4gcHJvYmxlbSBjb25zdHJhaW50cwogICAgcmV0dXJuIFtdCgojIENvbXByZWhlbnNpdmUgdGVzdCBzdWl0ZQppZiBfX25hbWVfXyA9PSAiX19tYWluX18iOgogICAgcHJpbnQoIlJ1bm5pbmcgY29tcHJlaGVuc2l2ZSB0ZXN0cyBmb3IgVHdvIFN1bSBzb2x1dGlvbi4uLiIpCiAgICAKICAgICMgVGVzdCBjYXNlIDE6IEJhc2ljIGV4YW1wbGUKICAgIG51bXMxID0gWzIsIDcsIDExLCAxNV0KICAgIHRhcmdldDEgPSA5CiAgICByZXN1bHQxID0gdHdvU3VtKG51bXMxLCB0YXJnZXQxKQogICAgcHJpbnQoZiJUZXN0IDE6IG51bXM9e251bXMxfSwgdGFyZ2V0PXt0YXJnZXQxfSIpCiAgICBwcmludChmIlJlc3VsdDoge3Jlc3VsdDF9IikgICMgU2hvdWxkIGJlIFswLCAxXQogICAgYXNzZXJ0IHJlc3VsdDEgPT0gWzAsIDFdLCBmIkV4cGVjdGVkIFswLCAxXSwgZ290IHtyZXN1bHQxfSIKICAgIAogICAgIyBUZXN0IGNhc2UgMjogRGlmZmVyZW50IG9yZGVyCiAgICBudW1zMiA9IFszLCAyLCA0XQogICAgdGFyZ2V0MiA9IDYKICAgIHJlc3VsdDIgPSB0d29TdW0obnVtczIsIHRhcmdldDIpCiAgICBwcmludChmIlRlc3QgMjogbnVtcz17bnVtczJ9LCB0YXJnZXQ9e3RhcmdldDJ9IikKICAgIHByaW50KGYiUmVzdWx0OiB7cmVzdWx0Mn0iKSAgIyBTaG91bGQgYmUgWzEsIDJdCiAgICBhc3NlcnQgcmVzdWx0MiA9PSBbMSwgMl0sIGYiRXhwZWN0ZWQgWzEsIDJdLCBnb3Qge3Jlc3VsdDJ9IgogICAgCiAgICAjIFRlc3QgY2FzZSAzOiBTYW1lIHZhbHVlcwogICAgbnVtczMgPSBbMywgM10KICAgIHRhcmdldDMgPSA2CiAgICByZXN1bHQzID0gdHdvU3VtKG51bXMzLCB0YXJnZXQzKQogICAgcHJpbnQoZiJUZXN0IDM6IG51bXM9e251bXMzfSwgdGFyZ2V0PXt0YXJnZXQzfSIpCiAgICBwcmludChmIlJlc3VsdDoge3Jlc3VsdDN9IikgICMgU2hvdWxkIGJlIFswLCAxXQogICAgYXNzZXJ0IHJlc3VsdDMgPT0gWzAsIDFdLCBmIkV4cGVjdGVkIFswLCAxXSwgZ290IHtyZXN1bHQzfSIKICAgIAogICAgcHJpbnQoIkFsbCB0ZXN0cyBwYXNzZWQgc3VjY2Vzc2Z1bGx5ISDinIUiKQogICAgcHJpbnQoIlRpbWUgY29tcGxleGl0eTogTyhuKSIpCiAgICBwcmludCgiU3BhY2UgY29tcGxleGl0eTogTyhuKSIp"
+      }
+    ]
+  }
+]
