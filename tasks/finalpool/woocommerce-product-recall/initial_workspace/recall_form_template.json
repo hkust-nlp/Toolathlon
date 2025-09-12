@@ -1,0 +1,80 @@
+{
+  "form_title": "产品召回信息确认表",
+  "form_description": "感谢您配合我们的产品召回工作，请填写以下信息以便我们为您处理相关事宜。",
+  "fields": [
+    {
+      "name": "客户姓名",
+      "type": "text",
+      "required": true,
+      "description": "请输入您的真实姓名"
+    },
+    {
+      "name": "联系邮箱", 
+      "type": "email",
+      "required": true,
+      "description": "用于后续联系的邮箱地址"
+    },
+    {
+      "name": "联系电话",
+      "type": "text",
+      "required": false,
+      "description": "备用联系方式"
+    },
+    {
+      "name": "产品型号",
+      "type": "text", 
+      "required": true,
+      "description": "请确认您购买的产品型号"
+    },
+    {
+      "name": "产品ID",
+      "type": "text",
+      "required": true,
+      "description": "产品标识码，可在产品包装上找到"
+    },
+    {
+      "name": "订单号",
+      "type": "text",
+      "required": true,
+      "description": "您的购买订单编号"
+    },
+    {
+      "name": "购买日期",
+      "type": "date",
+      "required": true,
+      "description": "产品购买的具体日期"
+    },
+    {
+      "name": "产品当前状态",
+      "type": "choice",
+      "required": false,
+      "choices": ["未使用", "正常使用", "出现问题", "已丢弃"],
+      "description": "请选择产品的当前使用状态"
+    },
+    {
+      "name": "退货偏好",
+      "type": "choice", 
+      "required": false,
+      "choices": ["全额退款", "产品更换", "店铺积分"],
+      "description": "请选择您希望的处理方式"
+    },
+    {
+      "name": "问题描述",
+      "type": "paragraph",
+      "required": false,
+      "description": "请详细描述您遇到的产品问题或其他需要说明的情况"
+    },
+    {
+      "name": "是否同意处理条款",
+      "type": "checkbox",
+      "required": true,
+      "description": "我同意按照召回处理流程进行后续操作"
+    }
+  ],
+  "settings": {
+    "collect_email": true,
+    "allow_response_editing": true,
+    "limit_to_one_response": true,
+    "show_progress_bar": true
+  }
+}
