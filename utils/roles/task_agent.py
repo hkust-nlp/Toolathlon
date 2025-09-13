@@ -874,7 +874,7 @@ class TaskAgent:
 
         try:
             # 设置日志文件路径
-            self.task_config.log_file = os.path.join(self.task_config.task_root, "log.json")
+            self.task_config.log_file = os.path.join(self.task_config.task_root, "traj_log.json")
             self.task_config.agent_workspace = os.path.join(self.task_config.task_root, "workspace")
             
             # 初始化工作区（如果允许恢复且有检查点，则跳过重新初始化）
