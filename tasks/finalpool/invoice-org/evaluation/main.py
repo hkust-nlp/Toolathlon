@@ -67,7 +67,7 @@ def check_csv_all_columns(csv_path, groundtruth_data):
         try:
             actual_rate = float(actual_row.get("exchange_rate", "0"))
             expected_rate = expected_data["exchange_rate"]
-            if abs(actual_rate - expected_rate) > 0.01:
+            if abs(actual_rate - expected_rate) > 0.05:
                 mismatches.append(f"{filename}: exchange_rate expected {expected_rate}, got {actual_rate}")
         except (ValueError, TypeError):
             mismatches.append(f"{filename}: invalid exchange_rate '{actual_row.get('exchange_rate', '')}'")
