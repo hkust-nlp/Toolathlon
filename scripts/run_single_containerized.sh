@@ -12,6 +12,7 @@ provider=${4:-"testprovider"}
 maxstep=${5:-"testmaxstep"}
 eval_config=${6:-"scripts/foraml_run_v0.json"}
 dump_path=${7:-"./dumps"}
+image_name=${8:-"lockon0927/mcpbench-task-image-v2:latest"}
 
 taskdomain=${task_dir_arg%/*}
 taskname=${task_dir_arg#*/}
@@ -56,8 +57,9 @@ except Exception as e:
 
 echo "Using container runtime: $CONTAINER_RUNTIME"
 
-# Image name
-IMAGE_NAME="lockon0927/mcpbench-task-image-v2:latest"
+# Use the image name from parameter
+IMAGE_NAME="$image_name"
+echo "Using Docker image: $IMAGE_NAME"
 
 # Generate unique container name
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)

@@ -18,6 +18,7 @@ USER_TEMPERATURE="1.0"
 USER_TOP_P="1.0"
 USER_MAX_TOKENS="1024"
 DUMP_PATH="./parallel_debug"
+IMAGE_NAME="lockon0927/mcpbench-task-image-v2:jh0913"  # Docker image to use
 
 mkdir -p $DUMP_PATH
 
@@ -68,7 +69,7 @@ cat > "$TEMP_CONFIG" <<EOF
 EOF
 
 # Build command arguments
-ARGS="--tasks_folder $TASKS_FOLDER --tag $TAG --model_short_name $MODEL_NAME --provider $MODEL_PROVIDER --maxstep $MAX_STEPS --workers $WORKERS --timeout $TIMEOUT --dump_path $DUMP_PATH --eval_config $TEMP_CONFIG"
+ARGS="--tasks_folder $TASKS_FOLDER --tag $TAG --model_short_name $MODEL_NAME --provider $MODEL_PROVIDER --maxstep $MAX_STEPS --workers $WORKERS --timeout $TIMEOUT --dump_path $DUMP_PATH --eval_config $TEMP_CONFIG --image_name $IMAGE_NAME"
 
 # Add optional task list if specified
 if [ ! -z "$TASK_LIST" ]; then
@@ -82,6 +83,7 @@ echo "🤖 Agent model: $MODEL_NAME ($MODEL_PROVIDER)"
 echo "👤 User model: $USER_MODEL_NAME ($USER_MODEL_PROVIDER)"
 echo "🌡️  Temperature: $TEMPERATURE"
 echo "📁 Dump path: $DUMP_PATH"
+echo "🐳 Docker image: $IMAGE_NAME"
 echo "⚙️  Config file: $TEMP_CONFIG"
 if [ ! -z "$TASK_LIST" ]; then
     echo "📋 Task list filter: $TASK_LIST"
