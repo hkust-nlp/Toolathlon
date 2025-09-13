@@ -11,5 +11,5 @@ all_token_key_session = Dict(
     
     # GCP project & service account used by this task
     gcp_project_id = "mcp-bench0606",
-    gcp_service_account_path = "configs/mcp-bench0606-2b68b5487343.json",
+    gcp_service_account_path = "configs/gcp-service_account.keys.json",
 )

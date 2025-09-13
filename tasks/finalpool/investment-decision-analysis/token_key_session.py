@@ -23,6 +23,6 @@ all_token_key_session = Dict(
     google_oauth2_token_path = "configs/credentials.json", # I just put them all together in the same file
 
     gcp_project_id = "mcp-bench0606",
-    gcp_service_account_path = "configs/mcp-bench0606-2b68b5487343.json",
+    gcp_service_account_path = "configs/gcp-service_account.keys.json",
 
 )

@@ -7,8 +7,10 @@
 
 uv run demo.py \
 --eval_config scripts/debug_eval_config.json \
---task_dir finalpool/${1:-academic-pdf-report} \
+--task_dir finalpool/verl-dataset \
 --debug \
 --model_short_name gpt-5-mini \
 --provider aihubmix \
 --max_steps_under_single_turn_mode 200 \
+# --multi_turn_mode \
+# --manual \

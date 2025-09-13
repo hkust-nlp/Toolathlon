@@ -212,7 +212,7 @@ def main():
         print("========================\n")
     else:
         print("\n💥 邮件检查未通过！")
-    return 0 if all_passed else 1
+    return 1 if all_passed else 0
 
 if __name__ == '__main__':
     exit(main()) 

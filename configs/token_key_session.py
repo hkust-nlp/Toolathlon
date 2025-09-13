@@ -22,7 +22,7 @@ all_token_key_session = Dict(
     serper_api_key = "96b064e2511394e4b7326a678b716eac8c24c662", # TO BR FILLED, you can fill in multiple keys separated by comma
 
     #### Google
-    google_cloud_console_api_key = "AIzaSyDSrjqAk9N9ZBX2T7hH5R7cxhw4MMiTnu8", # TO BR FILLED
+    google_cloud_console_api_key = "AIzaSyCj3pyLBIwgFQszn5pVEAeTb_JYxAAlRrc", # TO BR FILLED
     
     gcp_project_id = "mcp-bench0606", # TO BE FILLED
     gcp_service_account_path = "configs/gcp-service_account.keys.json", # TO BE FILLED
@@ -48,7 +48,7 @@ all_token_key_session = Dict(
     github_read_only = "1", # default to ban write, but the tasks should open it if needed
     
     #### Huggingface
-    huggingface_token = "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", # TO BR FILLED
+    huggingface_token = "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", # TO BR FILLED
 
     #### Wandb
     wandb_api_key = "b3abe195bd69c07bdc47469d3956ac8d0c008714", # TO BR FILLED
