@@ -239,7 +239,7 @@ def main():
     parser.add_argument("--launch_time", required=False, help="Launch time")
     args = parser.parse_args()
     
-    success, feedback = evaluate_readme_todos(args.agent_workspace, args.groundtruth_workspace)
+    success, feedback = evaluate_readme_todos(args.agent_workspace + "/README.md", args.groundtruth_workspace + "/README.md")
     
     if args.verbose or not success:
         print(feedback)
