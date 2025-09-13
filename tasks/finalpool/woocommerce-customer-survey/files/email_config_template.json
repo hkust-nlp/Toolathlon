@@ -1,0 +1,37 @@
+{
+  "smtp_server": "smtp.gmail.com",
+  "smtp_port": 587,
+  "username": "your-email@gmail.com",
+  "password": "your-app-password",
+  "from_email": "your-email@gmail.com",
+  "from_name": "客服团队",
+  "use_tls": true,
+  "_comments": {
+    "smtp_server": "SMTP服务器地址，Gmail用户使用smtp.gmail.com",
+    "smtp_port": "SMTP端口，Gmail使用587(TLS)或465(SSL)",
+    "username": "邮箱用户名，通常是完整邮箱地址",
+    "password": "邮箱密码或应用专用密码",
+    "from_email": "发件人邮箱，通常与username相同",
+    "from_name": "发件人显示名称",
+    "use_tls": "是否使用TLS加密，Gmail推荐true",
+    "other_providers": {
+      "Outlook": {
+        "smtp_server": "smtp-mail.outlook.com",
+        "smtp_port": 587
+      },
+      "QQ": {
+        "smtp_server": "smtp.qq.com", 
+        "smtp_port": 587
+      },
+      "163": {
+        "smtp_server": "smtp.163.com",
+        "smtp_port": 25
+      }
+    },
+    "gmail_setup": [
+      "1. 启用两步验证",
+      "2. 生成应用专用密码",
+      "3. 在password字段使用应用专用密码，不是账户密码"
+    ]
+  }
+}

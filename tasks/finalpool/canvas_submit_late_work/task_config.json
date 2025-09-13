@@ -1,0 +1,7 @@
+{
+    "needed_mcp_servers": ["playwright_with_chunk","memory","filesystem" ,"excel" , "emails"],
+    "needed_local_tools": [],
+   
+    "max_turns": 10,
+    "meta": {}
+}

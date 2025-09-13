@@ -1,0 +1,124 @@
+{
+    "sender": {
+        "jennifer_peterson22@mcp.com": {
+            "password": "jennRznBZuZD",
+            "name": "Jennifer Peterson",
+            "imap_server": "localhost",
+            "imap_port": 1143,
+            "smtp_server": "localhost",
+            "smtp_port": 1587,
+            "use_ssl": false,
+            "use_starttls": false
+        }
+    },
+    "should_or_shouldnt_receive":{
+        "coopert@mcp.com": {
+            "password": "Ctimb8zmJONx",
+            "imap_server": "localhost",
+            "imap_port": 1143,
+            "smtp_server": "localhost",
+            "smtp_port": 1587,
+            "use_ssl": false,
+            "use_starttls": false
+        },
+        "cruzg@mcp.com": {
+            "password": "george_60ohr",
+            "imap_server": "localhost",
+            "imap_port": 1143,
+            "smtp_server": "localhost",
+            "smtp_port": 1587,
+            "use_ssl": false,
+            "use_starttls": false
+        },
+        "frances_jones@mcp.com": {
+            "password": "FJ0906#MWe3n",
+            "imap_server": "localhost",
+            "imap_port": 1143,
+            "smtp_server": "localhost",
+            "smtp_port": 1587,
+            "use_ssl": false,
+            "use_starttls": false
+        },
+        "sandra.davis@mcp.com": {
+            "password": "Sdavis930bSo",
+            "imap_server": "localhost",
+            "imap_port": 1143,
+            "smtp_server": "localhost",
+            "smtp_port": 1587,
+            "use_ssl": false,
+            "use_starttls": false
+        },
+        "richard_reyes61@mcp.com": {
+            "password": "Rreyes256UBC",
+            "imap_server": "localhost",
+            "imap_port": 1143,
+            "smtp_server": "localhost",
+            "smtp_port": 1587,
+            "use_ssl": false,
+            "use_starttls": false
+        },
+        "petersonr@mcp.com": {
+            "password": "ronald1988@s",
+            "imap_server": "localhost",
+            "imap_port": 1143,
+            "smtp_server": "localhost",
+            "smtp_port": 1587,
+            "use_ssl": false,
+            "use_starttls": false
+        },
+        "sarah.hernandez@mcp.com": {
+            "password": "sarah_12PUPX",
+            "imap_server": "localhost",
+            "imap_port": 1143,
+            "smtp_server": "localhost",
+            "smtp_port": 1587,
+            "use_ssl": false,
+            "use_starttls": false
+        },
+        "aadams93@mcp.com": {
+            "password": "adams$a401Wy",
+            "imap_server": "localhost",
+            "imap_port": 1143,
+            "smtp_server": "localhost",
+            "smtp_port": 1587,
+            "use_ssl": false,
+            "use_starttls": false
+        },
+        "larry_wood@mcp.com": {
+            "password": "LW0725!1Prbi",
+            "imap_server": "localhost",
+            "imap_port": 1143,
+            "smtp_server": "localhost",
+            "smtp_port": 1587,
+            "use_ssl": false,
+            "use_starttls": false
+        },
+        "howardd@mcp.com": {
+            "password": "howard@d149Y",
+            "imap_server": "localhost",
+            "imap_port": 1143,
+            "smtp_server": "localhost",
+            "smtp_port": 1587,
+            "use_ssl": false,
+            "use_starttls": false
+        },
+        "alexander_garcia@mcp.com": {
+            "password": "Agarcia754Uu",
+            "imap_server": "localhost",
+            "imap_port": 1143,
+            "smtp_server": "localhost",
+            "smtp_port": 1587,
+            "use_ssl": false,
+            "use_starttls": false
+        },
+        "michaelb@mcp.com": {
+            "password": "michael_51aU",
+            "imap_server": "localhost",
+            "imap_port": 1143,
+            "smtp_server": "localhost",
+            "smtp_port": 1587,
+            "use_ssl": false,
+            "use_starttls": false
+        }
+    }
+}

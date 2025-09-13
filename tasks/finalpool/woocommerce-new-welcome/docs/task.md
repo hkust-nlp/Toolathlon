@@ -1,0 +1,1 @@
+Please check all customers who have completed their first order in our store in the past 7 days and immediately sync their information (name, email address, etc.) from WooCommerce to our core customer relationship database (BigQuery). At the same time, send a welcome email to each customer via Poste.

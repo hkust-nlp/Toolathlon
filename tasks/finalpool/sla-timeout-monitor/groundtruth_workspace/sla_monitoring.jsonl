@@ -1,0 +1,15 @@
+{"ticket_number": "TK-1000", "manager_email": "dhall@mcp.com", "user_email": "raymondm@mcp.com", "service_level": "basic", "created_at": "2025-09-10 17:58:20", "is_overdue": false}
+{"ticket_number": "TK-1001", "manager_email": "dhall@mcp.com", "user_email": "donald_castillo@mcp.com", "service_level": "max", "created_at": "2025-09-09 23:58:20", "is_overdue": true}
+{"ticket_number": "TK-1002", "manager_email": "andersonp@mcp.com", "user_email": "ramosb@mcp.com", "service_level": "pro", "created_at": "2025-09-09 14:58:20", "is_overdue": true}
+{"ticket_number": "TK-1003", "manager_email": "andersonp@mcp.com", "user_email": "ortiza2@mcp.com", "service_level": "basic", "created_at": "2025-09-07 19:58:20", "is_overdue": true}
+{"ticket_number": "TK-1004", "manager_email": "andersonp@mcp.com", "user_email": "clarkt12@mcp.com", "service_level": "pro", "created_at": "2025-09-11 01:58:20", "is_overdue": false}
+{"ticket_number": "TK-1005", "manager_email": "dhall@mcp.com", "user_email": "rscott53@mcp.com", "service_level": "basic", "created_at": "2025-09-10 11:58:20", "is_overdue": false}
+{"ticket_number": "TK-1006", "manager_email": "andersonp@mcp.com", "user_email": "awilson@mcp.com", "service_level": "pro", "created_at": "2025-09-09 16:58:20", "is_overdue": true}
+{"ticket_number": "TK-1007", "manager_email": "dhall@mcp.com", "user_email": "janetl@mcp.com", "service_level": "max", "created_at": "2025-09-10 19:58:20", "is_overdue": false}
+{"ticket_number": "TK-1008", "manager_email": "andersonp@mcp.com", "user_email": "hernandezj@mcp.com", "service_level": "basic", "created_at": "2025-09-07 21:58:20", "is_overdue": true}
+{"ticket_number": "TK-1009", "manager_email": "andersonp@mcp.com", "user_email": "anthonyw@mcp.com", "service_level": "basic", "created_at": "2025-09-09 17:58:20", "is_overdue": false}
+{"ticket_number": "TK-1010", "manager_email": "dhall@mcp.com", "user_email": "rbennett78@mcp.com", "service_level": "pro", "created_at": "2025-09-09 13:58:20", "is_overdue": true}
+{"ticket_number": "TK-1011", "manager_email": "dhall@mcp.com", "user_email": "raymondm713@mcp.com", "service_level": "max", "created_at": "2025-09-09 23:48:20", "is_overdue": true}
+{"ticket_number": "TK-1012", "manager_email": "andersonp@mcp.com", "user_email": "rebeccah@mcp.com", "service_level": "max", "created_at": "2025-09-11 06:58:20", "is_overdue": false}
+{"ticket_number": "TK-1013", "manager_email": "andersonp@mcp.com", "user_email": "anna.wright@mcp.com", "service_level": "pro", "created_at": "2025-09-09 08:58:20", "is_overdue": true}
+{"ticket_number": "TK-1014", "manager_email": "dhall@mcp.com", "user_email": "dsanders@mcp.com", "service_level": "basic", "created_at": "2025-09-08 01:58:20", "is_overdue": true}

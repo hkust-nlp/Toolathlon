@@ -1,0 +1,13 @@
+Dear Customer,  
+
+We sincerely apologize for not responding to your service request {TICKET_NUMBER} within the promised timeframe.  
+
+We commit to providing an initial solution or the latest status update within {SECOND_REPLY_TIME} hours, and will continue following up until the issue is fully resolved.  
+
+For urgent matters, please contact us directly:  
+Phone: 400-772-1234    
+
+We apologize again for any inconvenience this may have caused.  
+
+Best,  
+MCP Inc., Customer Support Team

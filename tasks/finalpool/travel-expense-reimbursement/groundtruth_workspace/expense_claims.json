@@ -1,0 +1,4614 @@
+[
+  {
+    "claim_id": "EXP2024001",
+    "employee_id": "EMP001",
+    "employee_name": "Timothy Cooper",
+    "employee_email": "coopert@mcp.com",
+    "employee_level": "L3",
+    "department": "Sales Department",
+    "manager_email": "richard_reyes61@mcp.com",
+    "trip_start": "2024-09-15",
+    "trip_end": "2024-09-16",
+    "nights": 2,
+    "dest_country": "United States",
+    "dest_city": "New York",
+    "total_claimed": 7829.59,
+    "line_items": [
+      {
+        "line_id": "L001",
+        "date": "2024-09-15",
+        "city": "New York",
+        "country": "United States",
+        "category": "Accommodation",
+        "amount": 2760.0,
+        "description": "New York Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4001001",
+            "date": "2024-09-15",
+            "vendor": "New York Hotel",
+            "city": "New York",
+            "country": "United States",
+            "amount": 2760.0,
+            "category": "Accommodation",
+            "tax_amount": 276.0,
+            "description": "New York hotel accommodation fee",
+            "invoice_number": "INV4001001",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L002",
+        "date": "2024-09-16",
+        "city": "New York",
+        "country": "United States",
+        "category": "Accommodation",
+        "amount": 1823.8,
+        "description": "New York Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4001002",
+            "date": "2024-09-16",
+            "vendor": "New York Hotel",
+            "city": "New York",
+            "country": "United States",
+            "amount": 1823.8,
+            "category": "Accommodation",
+            "tax_amount": 182.38,
+            "description": "New York hotel accommodation fee",
+            "invoice_number": "INV4001002",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L003",
+        "date": "2024-09-15",
+        "city": "New York",
+        "country": "United States",
+        "category": "Meals",
+        "amount": 528.69,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4001003",
+            "date": "2024-09-15",
+            "vendor": "Restaurant",
+            "city": "New York",
+            "country": "United States",
+            "amount": 528.69,
+            "category": "Meals",
+            "tax_amount": 42.3,
+            "description": "Meals expense",
+            "invoice_number": "INV4001003",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L004",
+        "date": "2024-09-16",
+        "city": "New York",
+        "country": "United States",
+        "category": "Meals",
+        "amount": 1156.48,
+        "description": "Meals expense",
+        "receipts": []
+      },
+      {
+        "line_id": "L005",
+        "date": "2024-09-15",
+        "city": "New York",
+        "country": "United States",
+        "category": "Transportation",
+        "amount": 297.32,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4001005",
+            "date": "2024-09-15",
+            "vendor": "Taxi/Transit",
+            "city": "New York",
+            "country": "United States",
+            "amount": 297.32,
+            "category": "Transportation",
+            "tax_amount": 23.79,
+            "description": "Local city transport",
+            "invoice_number": "INV4001005"
+          }
+        ]
+      },
+      {
+        "line_id": "L006",
+        "date": "2024-09-16",
+        "city": "New York",
+        "country": "United States",
+        "category": "Transportation",
+        "amount": 300.85,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4001006",
+            "date": "2024-09-16",
+            "vendor": "Taxi/Transit",
+            "city": "New York",
+            "country": "United States",
+            "amount": 300.85,
+            "category": "Transportation",
+            "tax_amount": 24.07,
+            "description": "Local city transport",
+            "invoice_number": "INV4001006"
+          }
+        ]
+      },
+      {
+        "line_id": "L007",
+        "date": "2024-09-15",
+        "city": "New York",
+        "country": "United States",
+        "category": "Communication",
+        "amount": 137.0,
+        "description": "International roaming",
+        "receipts": [
+          {
+            "receipt_id": "REC4001007",
+            "date": "2024-09-15",
+            "vendor": "Carrier",
+            "city": "New York",
+            "country": "United States",
+            "amount": 137.0,
+            "category": "Communication",
+            "tax_amount": 13.7,
+            "description": "International roaming",
+            "invoice_number": "INV4001007"
+          }
+        ]
+      },
+      {
+        "line_id": "L008",
+        "date": "2024-09-16",
+        "city": "New York",
+        "country": "United States",
+        "category": "Miscellaneous",
+        "amount": 825.45,
+        "description": "Training/materials/other",
+        "receipts": [
+          {
+            "receipt_id": "REC4001008",
+            "date": "2024-09-16",
+            "vendor": "Vendor",
+            "city": "New York",
+            "country": "United States",
+            "amount": 825.45,
+            "category": "Miscellaneous",
+            "tax_amount": 66.04,
+            "description": "Other expenses",
+            "invoice_number": "INV4001008"
+          }
+        ]
+      }
+    ],
+    "_policy_violations": [
+      {
+        "type": "accommodation_over_cap",
+        "date": "2024-09-15",
+        "cap": 2400,
+        "amount": 2760.0
+      },
+      {
+        "type": "meals_over_cap",
+        "date": "2024-09-16",
+        "cap": 700,
+        "amount": 858.02,
+        "client_entertainment": false
+      }
+    ],
+    "_form_errors": [
+      {
+        "type": "amount_mismatch",
+        "details": {
+          "line_id": "L004",
+          "category": "Meals",
+          "claimed_amount": 1156.48,
+          "receipt_amount": 858.02
+        }
+      },
+      {
+        "type": "missing_receipts",
+        "details": {
+          "line_id": "L004",
+          "category": "Meals"
+        }
+      }
+    ]
+  },
+  {
+    "claim_id": "EXP2024002",
+    "employee_id": "EMP001",
+    "employee_name": "Timothy Cooper",
+    "employee_email": "coopert@mcp.com",
+    "employee_level": "L3",
+    "department": "Sales Department",
+    "manager_email": "richard_reyes61@mcp.com",
+    "trip_start": "2024-09-15",
+    "trip_end": "2024-09-16",
+    "nights": 2,
+    "dest_country": "United Arab Emirates",
+    "dest_city": "Dubai",
+    "total_claimed": 8026.45,
+    "line_items": [
+      {
+        "line_id": "L001",
+        "date": "2024-09-15",
+        "city": "Dubai",
+        "country": "United Arab Emirates",
+        "category": "Accommodation",
+        "amount": 2070.0,
+        "description": "Dubai Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4002001",
+            "date": "2024-09-15",
+            "vendor": "Dubai Hotel",
+            "city": "Dubai",
+            "country": "United Arab Emirates",
+            "amount": 2070.0,
+            "category": "Accommodation",
+            "description": "Dubai hotel accommodation fee",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L002",
+        "date": "2024-09-16",
+        "city": "Dubai",
+        "country": "United Arab Emirates",
+        "category": "Accommodation",
+        "amount": 1424.15,
+        "description": "Dubai Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4002002",
+            "date": "2024-09-16",
+            "vendor": "Dubai Hotel",
+            "city": "Dubai",
+            "country": "United Arab Emirates",
+            "amount": 1424.15,
+            "category": "Accommodation",
+            "tax_amount": 142.42,
+            "description": "Dubai hotel accommodation fee",
+            "invoice_number": "INV4002002",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L003",
+        "date": "2024-09-15",
+        "city": "Dubai",
+        "country": "United Arab Emirates",
+        "category": "Meals",
+        "amount": 652.57,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4002003",
+            "date": "2024-09-15",
+            "vendor": "Restaurant",
+            "city": "Dubai",
+            "country": "United Arab Emirates",
+            "amount": 652.57,
+            "category": "Meals",
+            "tax_amount": 52.21,
+            "description": "Meals expense",
+            "invoice_number": "INV4002003",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L004",
+        "date": "2024-09-16",
+        "city": "Dubai",
+        "country": "United Arab Emirates",
+        "category": "Meals",
+        "amount": 956.75,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4002004",
+            "date": "2024-09-16",
+            "vendor": "Restaurant",
+            "city": "Dubai",
+            "country": "United Arab Emirates",
+            "amount": 956.75,
+            "category": "Meals",
+            "tax_amount": 76.54,
+            "description": "Meals expense",
+            "invoice_number": "INV4002004",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L005",
+        "date": "2024-09-15",
+        "city": "Dubai",
+        "country": "United Arab Emirates",
+        "category": "Transportation",
+        "amount": 211.18,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4002005",
+            "date": "2024-09-15",
+            "vendor": "Taxi/Transit",
+            "city": "Dubai",
+            "country": "United Arab Emirates",
+            "amount": 211.18,
+            "category": "Transportation",
+            "tax_amount": 16.89,
+            "description": "Local city transport",
+            "invoice_number": "INV4002005"
+          }
+        ]
+      },
+      {
+        "line_id": "L006",
+        "date": "2024-09-16",
+        "city": "Dubai",
+        "country": "United Arab Emirates",
+        "category": "Transportation",
+        "amount": 375.0,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4002006",
+            "date": "2024-09-16",
+            "vendor": "Taxi/Transit",
+            "city": "Dubai",
+            "country": "United Arab Emirates",
+            "amount": 375.0,
+            "category": "Transportation",
+            "tax_amount": 30.0,
+            "description": "Local city transport",
+            "invoice_number": "INV4002006"
+          }
+        ]
+      },
+      {
+        "line_id": "L007",
+        "date": "2024-09-15",
+        "city": "Dubai",
+        "country": "United Arab Emirates",
+        "category": "Communication",
+        "amount": 211.8,
+        "description": "International roaming",
+        "receipts": [
+          {
+            "receipt_id": "REC4002007",
+            "date": "2024-09-15",
+            "vendor": "Carrier",
+            "city": "Dubai",
+            "country": "United Arab Emirates",
+            "amount": 211.8,
+            "category": "Communication",
+            "tax_amount": 21.18,
+            "description": "International roaming",
+            "invoice_number": "INV4002007"
+          }
+        ]
+      },
+      {
+        "line_id": "L008",
+        "date": "2024-09-16",
+        "city": "Dubai",
+        "country": "United Arab Emirates",
+        "category": "Miscellaneous",
+        "amount": 2125.0,
+        "description": "Training/materials/other",
+        "receipts": [
+          {
+            "receipt_id": "REC4002008",
+            "date": "2024-09-16",
+            "vendor": "Vendor",
+            "city": "Dubai",
+            "country": "United Arab Emirates",
+            "amount": 2125.0,
+            "category": "Miscellaneous",
+            "tax_amount": 170.0,
+            "description": "Other expenses",
+            "invoice_number": "INV4002008"
+          }
+        ]
+      }
+    ],
+    "_policy_violations": [
+      {
+        "type": "accommodation_over_cap",
+        "date": "2024-09-15",
+        "cap": 1800,
+        "amount": 2070.0
+      },
+      {
+        "type": "meals_over_cap",
+        "date": "2024-09-16",
+        "cap": 750,
+        "amount": 956.75,
+        "client_entertainment": false
+      },
+      {
+        "type": "local_transport_over_cap",
+        "date": "2024-09-16",
+        "cap": 300,
+        "amount": 375.0
+      },
+      {
+        "type": "misc_over_cap",
+        "cap": 1700,
+        "amount": 2125.0
+      }
+    ],
+    "_form_errors": [
+      {
+        "type": "incomplete_receipts",
+        "details": {
+          "line_id": "L001",
+          "category": "Accommodation",
+          "missing_fields": [
+            "invoice_number",
+            "tax_amount"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "claim_id": "EXP2024003",
+    "employee_id": "EMP002",
+    "employee_name": "George Cruz",
+    "employee_email": "cruzg@mcp.com",
+    "employee_level": "L2",
+    "department": "Technology Department",
+    "manager_email": "richard_reyes61@mcp.com",
+    "trip_start": "2024-12-15",
+    "trip_end": "2024-12-18",
+    "nights": 4,
+    "dest_country": "South Africa",
+    "dest_city": "Cape Town",
+    "total_claimed": 6068.22,
+    "line_items": [
+      {
+        "line_id": "L001",
+        "date": "2024-12-15",
+        "city": "Cape Town",
+        "country": "South Africa",
+        "category": "Accommodation",
+        "amount": 763.75,
+        "description": "Cape Town Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4003001",
+            "date": "2024-12-15",
+            "vendor": "Cape Town Hotel",
+            "city": "Cape Town",
+            "country": "South Africa",
+            "amount": 763.75,
+            "category": "Accommodation",
+            "tax_amount": 76.38,
+            "description": "Cape Town hotel accommodation fee",
+            "invoice_number": "INV4003001",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L002",
+        "date": "2024-12-16",
+        "city": "Cape Town",
+        "country": "South Africa",
+        "category": "Accommodation",
+        "amount": 768.72,
+        "description": "Cape Town Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4003002",
+            "date": "2024-12-16",
+            "vendor": "Cape Town Hotel",
+            "city": "Cape Town",
+            "country": "South Africa",
+            "amount": 768.72,
+            "category": "Accommodation",
+            "tax_amount": 76.87,
+            "description": "Cape Town hotel accommodation fee",
+            "invoice_number": "INV4003002",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L003",
+        "date": "2024-12-17",
+        "city": "Cape Town",
+        "country": "South Africa",
+        "category": "Accommodation",
+        "amount": 803.99,
+        "description": "Cape Town Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4003003",
+            "date": "2024-12-17",
+            "vendor": "Cape Town Hotel",
+            "city": "Cape Town",
+            "country": "South Africa",
+            "amount": 803.99,
+            "category": "Accommodation",
+            "tax_amount": 80.4,
+            "description": "Cape Town hotel accommodation fee",
+            "invoice_number": "INV4003003",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L004",
+        "date": "2024-12-18",
+        "city": "Cape Town",
+        "country": "South Africa",
+        "category": "Accommodation",
+        "amount": 889.41,
+        "description": "Cape Town Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4003004",
+            "date": "2024-12-18",
+            "vendor": "Cape Town Hotel",
+            "city": "Cape Town",
+            "country": "South Africa",
+            "amount": 889.41,
+            "category": "Accommodation",
+            "tax_amount": 88.94,
+            "description": "Cape Town hotel accommodation fee",
+            "invoice_number": "INV4003004",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L005",
+        "date": "2024-12-15",
+        "city": "Cape Town",
+        "country": "South Africa",
+        "category": "Meals",
+        "amount": 322.31,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4003005",
+            "date": "2024-12-15",
+            "vendor": "Restaurant",
+            "city": "Cape Town",
+            "country": "South Africa",
+            "amount": 322.31,
+            "category": "Meals",
+            "tax_amount": 25.78,
+            "description": "Meals expense",
+            "invoice_number": "INV4003005",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L006",
+        "date": "2024-12-16",
+        "city": "Cape Town",
+        "country": "South Africa",
+        "category": "Meals",
+        "amount": 349.83,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4003006",
+            "date": "2024-12-16",
+            "vendor": "Restaurant",
+            "city": "Cape Town",
+            "country": "South Africa",
+            "amount": 349.83,
+            "category": "Meals",
+            "tax_amount": 27.99,
+            "description": "Meals expense",
+            "invoice_number": "INV4003006",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L007",
+        "date": "2024-12-17",
+        "city": "Cape Town",
+        "country": "South Africa",
+        "category": "Meals",
+        "amount": 546.72,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4003007",
+            "date": "2024-12-17",
+            "vendor": "Restaurant",
+            "city": "Cape Town",
+            "country": "South Africa",
+            "amount": 391.64,
+            "category": "Meals",
+            "tax_amount": 31.33,
+            "description": "Meals expense",
+            "invoice_number": "INV4003007",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L008",
+        "date": "2024-12-18",
+        "city": "Cape Town",
+        "country": "South Africa",
+        "category": "Meals",
+        "amount": 414.79,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4003008",
+            "date": "2024-12-18",
+            "vendor": "Restaurant",
+            "city": "Cape Town",
+            "country": "South Africa",
+            "amount": 414.79,
+            "category": "Meals",
+            "tax_amount": 33.18,
+            "description": "Meals expense",
+            "invoice_number": "INV4003008",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L009",
+        "date": "2024-12-15",
+        "city": "Cape Town",
+        "country": "South Africa",
+        "category": "Transportation",
+        "amount": 166.19,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4003009",
+            "date": "2024-12-15",
+            "vendor": "Taxi/Transit",
+            "city": "Cape Town",
+            "country": "South Africa",
+            "amount": 166.19,
+            "category": "Transportation",
+            "tax_amount": 13.3,
+            "description": "Local city transport",
+            "invoice_number": "INV4003009"
+          }
+        ]
+      },
+      {
+        "line_id": "L010",
+        "date": "2024-12-16",
+        "city": "Cape Town",
+        "country": "South Africa",
+        "category": "Transportation",
+        "amount": 225.0,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4003010",
+            "date": "2024-12-16",
+            "vendor": "Taxi/Transit",
+            "city": "Cape Town",
+            "country": "South Africa",
+            "amount": 225.0,
+            "category": "Transportation",
+            "tax_amount": 18.0,
+            "description": "Local city transport",
+            "invoice_number": "INV4003010"
+          }
+        ]
+      },
+      {
+        "line_id": "L011",
+        "date": "2024-12-17",
+        "city": "Cape Town",
+        "country": "South Africa",
+        "category": "Transportation",
+        "amount": 139.48,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4003011",
+            "date": "2024-12-17",
+            "vendor": "Taxi/Transit",
+            "city": "Cape Town",
+            "country": "South Africa",
+            "amount": 139.48,
+            "category": "Transportation",
+            "tax_amount": 11.16,
+            "description": "Local city transport",
+            "invoice_number": "INV4003011"
+          }
+        ]
+      },
+      {
+        "line_id": "L012",
+        "date": "2024-12-18",
+        "city": "Cape Town",
+        "country": "South Africa",
+        "category": "Transportation",
+        "amount": 129.99,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4003012",
+            "date": "2024-12-18",
+            "vendor": "Taxi/Transit",
+            "city": "Cape Town",
+            "country": "South Africa",
+            "amount": 129.99,
+            "category": "Transportation",
+            "tax_amount": 10.4,
+            "description": "Local city transport",
+            "invoice_number": "INV4003012"
+          }
+        ]
+      },
+      {
+        "line_id": "L013",
+        "date": "2024-12-15",
+        "city": "Cape Town",
+        "country": "South Africa",
+        "category": "Communication",
+        "amount": 221.0,
+        "description": "International roaming",
+        "receipts": [
+          {
+            "receipt_id": "REC4003013",
+            "date": "2024-12-15",
+            "vendor": "Carrier",
+            "city": "Cape Town",
+            "country": "South Africa",
+            "amount": 221.0,
+            "category": "Communication",
+            "tax_amount": 22.1,
+            "description": "International roaming",
+            "invoice_number": "INV4003013"
+          }
+        ]
+      },
+      {
+        "line_id": "L014",
+        "date": "2024-12-18",
+        "city": "Cape Town",
+        "country": "South Africa",
+        "category": "Miscellaneous",
+        "amount": 1375.0,
+        "description": "Training/materials/other",
+        "receipts": [
+          {
+            "receipt_id": "REC4003014",
+            "date": "2024-12-18",
+            "vendor": "Vendor",
+            "city": "Cape Town",
+            "country": "South Africa",
+            "amount": 1375.0,
+            "category": "Miscellaneous",
+            "tax_amount": 110.0,
+            "description": "Other expenses",
+            "invoice_number": "INV4003014"
+          }
+        ]
+      }
+    ],
+    "_policy_violations": [
+      {
+        "type": "local_transport_over_cap",
+        "date": "2024-12-16",
+        "cap": 180,
+        "amount": 225.0
+      },
+      {
+        "type": "communication_over_cap",
+        "cap": 170,
+        "amount": 221.0
+      },
+      {
+        "type": "misc_over_cap",
+        "cap": 1100,
+        "amount": 1375.0
+      }
+    ],
+    "_form_errors": [
+      {
+        "type": "amount_mismatch",
+        "details": {
+          "line_id": "L007",
+          "category": "Meals",
+          "claimed_amount": 546.72,
+          "receipt_amount": 391.64
+        }
+      },
+      {
+        "type": "total_mismatch",
+        "details": {
+          "sum_line_items": 7116.18,
+          "total_claimed": 6068.22
+        }
+      }
+    ]
+  },
+  {
+    "claim_id": "EXP2024004",
+    "employee_id": "EMP002",
+    "employee_name": "George Cruz",
+    "employee_email": "cruzg@mcp.com",
+    "employee_level": "L2",
+    "department": "Technology Department",
+    "manager_email": "richard_reyes61@mcp.com",
+    "trip_start": "2024-10-10",
+    "trip_end": "2024-10-13",
+    "nights": 4,
+    "dest_country": "Turkey",
+    "dest_city": "Istanbul",
+    "total_claimed": 7714.94,
+    "line_items": [
+      {
+        "line_id": "L001",
+        "date": "2024-10-10",
+        "city": "Istanbul",
+        "country": "Turkey",
+        "category": "Accommodation",
+        "amount": 1265.0,
+        "description": "Istanbul Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4004001",
+            "date": "2024-10-10",
+            "vendor": "Istanbul Hotel",
+            "city": "Istanbul",
+            "country": "Turkey",
+            "amount": 1265.0,
+            "category": "Accommodation",
+            "tax_amount": 126.5,
+            "description": "Istanbul hotel accommodation fee",
+            "invoice_number": "INV4004001",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L002",
+        "date": "2024-10-11",
+        "city": "Istanbul",
+        "country": "Turkey",
+        "category": "Accommodation",
+        "amount": 1016.71,
+        "description": "Istanbul Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4004002",
+            "date": "2024-10-11",
+            "vendor": "Istanbul Hotel",
+            "city": "Istanbul",
+            "country": "Turkey",
+            "amount": 1016.71,
+            "category": "Accommodation",
+            "tax_amount": 101.67,
+            "description": "Istanbul hotel accommodation fee",
+            "invoice_number": "INV4004002",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L003",
+        "date": "2024-10-12",
+        "city": "Istanbul",
+        "country": "Turkey",
+        "category": "Accommodation",
+        "amount": 842.73,
+        "description": "Istanbul Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4004003",
+            "date": "2024-10-12",
+            "vendor": "Istanbul Hotel",
+            "city": "Istanbul",
+            "country": "Turkey",
+            "amount": 842.73,
+            "category": "Accommodation",
+            "tax_amount": 84.27,
+            "description": "Istanbul hotel accommodation fee",
+            "invoice_number": "INV4004003",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L004",
+        "date": "2024-10-13",
+        "city": "Istanbul",
+        "country": "Turkey",
+        "category": "Accommodation",
+        "amount": 923.82,
+        "description": "Istanbul Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4004004",
+            "date": "2024-10-13",
+            "vendor": "Istanbul Hotel",
+            "city": "Istanbul",
+            "country": "Turkey",
+            "amount": 923.82,
+            "category": "Accommodation",
+            "tax_amount": 92.38,
+            "description": "Istanbul hotel accommodation fee",
+            "invoice_number": "INV4004004",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L005",
+        "date": "2024-10-10",
+        "city": "Istanbul",
+        "country": "Turkey",
+        "category": "Meals",
+        "amount": 418.68,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4004005",
+            "date": "2024-10-10",
+            "vendor": "Restaurant",
+            "city": "Istanbul",
+            "country": "Turkey",
+            "amount": 418.68,
+            "category": "Meals",
+            "tax_amount": 33.49,
+            "description": "Meals expense",
+            "invoice_number": "INV4004005",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L006",
+        "date": "2024-10-11",
+        "city": "Istanbul",
+        "country": "Turkey",
+        "category": "Meals",
+        "amount": 452.41,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4004006",
+            "date": "2024-10-11",
+            "vendor": "Restaurant",
+            "city": "Istanbul",
+            "country": "Turkey",
+            "amount": 452.41,
+            "category": "Meals",
+            "tax_amount": 36.19,
+            "description": "Meals expense",
+            "invoice_number": "INV4004006",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L007",
+        "date": "2024-10-12",
+        "city": "Istanbul",
+        "country": "Turkey",
+        "category": "Meals",
+        "amount": 384.8,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4004007",
+            "date": "2024-10-12",
+            "vendor": "Restaurant",
+            "city": "Istanbul",
+            "country": "Turkey",
+            "amount": 384.8,
+            "category": "Meals",
+            "tax_amount": 30.78,
+            "description": "Meals expense",
+            "invoice_number": "INV4004007",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L008",
+        "date": "2024-10-13",
+        "city": "Istanbul",
+        "country": "Turkey",
+        "category": "Meals",
+        "amount": 682.63,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4004008",
+            "date": "2024-10-13",
+            "vendor": "Restaurant",
+            "city": "Istanbul",
+            "country": "Turkey",
+            "amount": 682.63,
+            "category": "Meals",
+            "tax_amount": 54.61,
+            "description": "Meals expense",
+            "invoice_number": "INV4004008",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L009",
+        "date": "2024-10-10",
+        "city": "Istanbul",
+        "country": "Turkey",
+        "category": "Transportation",
+        "amount": 167.58,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4004009",
+            "date": "2024-10-10",
+            "vendor": "Taxi/Transit",
+            "city": "Istanbul",
+            "country": "Turkey",
+            "amount": 167.58,
+            "category": "Transportation",
+            "tax_amount": 13.41,
+            "description": "Local city transport",
+            "invoice_number": "INV4004009"
+          }
+        ]
+      },
+      {
+        "line_id": "L010",
+        "date": "2024-10-11",
+        "city": "Istanbul",
+        "country": "Turkey",
+        "category": "Transportation",
+        "amount": 225.0,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4004010",
+            "date": "2024-10-11",
+            "vendor": "Taxi/Transit",
+            "city": "Istanbul",
+            "country": "Turkey",
+            "amount": 225.0,
+            "category": "Transportation",
+            "tax_amount": 18.0,
+            "description": "Local city transport",
+            "invoice_number": "INV4004010"
+          }
+        ]
+      },
+      {
+        "line_id": "L011",
+        "date": "2024-10-12",
+        "city": "Istanbul",
+        "country": "Turkey",
+        "category": "Transportation",
+        "amount": 104.27,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4004011",
+            "date": "2024-10-12",
+            "vendor": "Taxi/Transit",
+            "city": "Istanbul",
+            "country": "Turkey",
+            "amount": 104.27,
+            "category": "Transportation",
+            "tax_amount": 8.34,
+            "description": "Local city transport",
+            "invoice_number": "INV4004011"
+          }
+        ]
+      },
+      {
+        "line_id": "L012",
+        "date": "2024-10-13",
+        "city": "Istanbul",
+        "country": "Turkey",
+        "category": "Transportation",
+        "amount": 108.79,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4004012",
+            "date": "2024-10-13",
+            "vendor": "Taxi/Transit",
+            "city": "Istanbul",
+            "country": "Turkey",
+            "amount": 108.79,
+            "category": "Transportation",
+            "tax_amount": 8.7,
+            "description": "Local city transport",
+            "invoice_number": "INV4004012"
+          }
+        ]
+      },
+      {
+        "line_id": "L013",
+        "date": "2024-10-10",
+        "city": "Istanbul",
+        "country": "Turkey",
+        "category": "Communication",
+        "amount": 273.0,
+        "description": "International roaming",
+        "receipts": [
+          {
+            "receipt_id": "REC4004013",
+            "date": "2024-10-10",
+            "vendor": "Carrier",
+            "city": "Istanbul",
+            "country": "Turkey",
+            "amount": 273.0,
+            "category": "Communication",
+            "tax_amount": 27.3,
+            "description": "International roaming",
+            "invoice_number": "INV4004013"
+          }
+        ]
+      },
+      {
+        "line_id": "L014",
+        "date": "2024-10-13",
+        "city": "Istanbul",
+        "country": "Turkey",
+        "category": "Miscellaneous",
+        "amount": 849.52,
+        "description": "Training/materials/other",
+        "receipts": [
+          {
+            "receipt_id": "REC4004014",
+            "date": "2024-10-13",
+            "vendor": "Vendor",
+            "city": "Istanbul",
+            "country": "Turkey",
+            "amount": 849.52,
+            "category": "Miscellaneous",
+            "tax_amount": 67.96,
+            "description": "Other expenses",
+            "invoice_number": "INV4004014"
+          }
+        ]
+      }
+    ],
+    "_policy_violations": [
+      {
+        "type": "accommodation_over_cap",
+        "date": "2024-10-10",
+        "cap": 1100,
+        "amount": 1265.0
+      },
+      {
+        "type": "meals_over_cap",
+        "date": "2024-10-13",
+        "cap": 500,
+        "amount": 682.63,
+        "client_entertainment": false
+      },
+      {
+        "type": "local_transport_over_cap",
+        "date": "2024-10-11",
+        "cap": 180,
+        "amount": 225.0
+      },
+      {
+        "type": "communication_over_cap",
+        "cap": 210,
+        "amount": 273.0
+      }
+    ],
+    "_form_errors": []
+  },
+  {
+    "claim_id": "EXP2024005",
+    "employee_id": "EMP003",
+    "employee_name": "Frances Jones",
+    "employee_email": "frances_jones@mcp.com",
+    "employee_level": "L4",
+    "department": "Marketing Department",
+    "manager_email": "petersonr@mcp.com",
+    "trip_start": "2024-10-05",
+    "trip_end": "2024-10-06",
+    "nights": 2,
+    "dest_country": "Russia",
+    "dest_city": "Moscow",
+    "total_claimed": 6244.49,
+    "line_items": [
+      {
+        "line_id": "L001",
+        "date": "2024-10-05",
+        "city": "Moscow",
+        "country": "Russia",
+        "category": "Accommodation",
+        "amount": 1508.63,
+        "description": "Moscow Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4005001",
+            "date": "2024-10-05",
+            "vendor": "Moscow Hotel",
+            "city": "Moscow",
+            "country": "Russia",
+            "amount": 1508.63,
+            "category": "Accommodation",
+            "tax_amount": 150.86,
+            "description": "Moscow hotel accommodation fee",
+            "invoice_number": "INV4005001",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L002",
+        "date": "2024-10-06",
+        "city": "Moscow",
+        "country": "Russia",
+        "category": "Accommodation",
+        "amount": 1389.57,
+        "description": "Moscow Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4005002",
+            "date": "2024-10-06",
+            "vendor": "Moscow Hotel",
+            "city": "Moscow",
+            "country": "Russia",
+            "amount": 1389.57,
+            "category": "Accommodation",
+            "tax_amount": 138.96,
+            "description": "Moscow hotel accommodation fee",
+            "invoice_number": "INV4005002",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L003",
+        "date": "2024-10-05",
+        "city": "Moscow",
+        "country": "Russia",
+        "category": "Meals",
+        "amount": 637.64,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4005003",
+            "date": "2024-10-05",
+            "vendor": "Restaurant",
+            "city": "Moscow",
+            "country": "Russia",
+            "amount": 637.64,
+            "category": "Meals",
+            "tax_amount": 51.01,
+            "description": "Meals expense",
+            "invoice_number": "INV4005003",
+            "client_entertainment": true
+          }
+        ]
+      },
+      {
+        "line_id": "L004",
+        "date": "2024-10-06",
+        "city": "Moscow",
+        "country": "Russia",
+        "category": "Meals",
+        "amount": 1038.51,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4005004",
+            "date": "2024-10-06",
+            "vendor": "Restaurant",
+            "city": "Moscow",
+            "country": "Russia",
+            "amount": 1038.51,
+            "category": "Meals",
+            "tax_amount": 83.08,
+            "description": "Meals expense",
+            "invoice_number": "INV4005004",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L005",
+        "date": "2024-10-05",
+        "city": "Moscow",
+        "country": "Russia",
+        "category": "Transportation",
+        "amount": 155.24,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4005005",
+            "date": "2024-10-05",
+            "vendor": "Taxi/Transit",
+            "city": "Moscow",
+            "country": "Russia",
+            "amount": 155.24,
+            "category": "Transportation",
+            "tax_amount": 12.42,
+            "description": "Local city transport",
+            "invoice_number": "INV4005005"
+          }
+        ]
+      },
+      {
+        "line_id": "L006",
+        "date": "2024-10-06",
+        "city": "Moscow",
+        "country": "Russia",
+        "category": "Transportation",
+        "amount": 250.0,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4005006",
+            "date": "2024-10-06",
+            "vendor": "Taxi/Transit",
+            "city": "Moscow",
+            "country": "Russia",
+            "amount": 250.0,
+            "category": "Transportation",
+            "tax_amount": 20.0,
+            "description": "Local city transport",
+            "invoice_number": "INV4005006"
+          }
+        ]
+      },
+      {
+        "line_id": "L007",
+        "date": "2024-10-05",
+        "city": "Moscow",
+        "country": "Russia",
+        "category": "Communication",
+        "amount": 312.0,
+        "description": "International roaming",
+        "receipts": [
+          {
+            "receipt_id": "REC4005007",
+            "date": "2024-10-05",
+            "vendor": "Carrier",
+            "city": "Moscow",
+            "country": "Russia",
+            "amount": 312.0,
+            "category": "Communication",
+            "tax_amount": 31.2,
+            "description": "International roaming",
+            "invoice_number": "INV4005007"
+          }
+        ]
+      },
+      {
+        "line_id": "L008",
+        "date": "2024-10-06",
+        "city": "Moscow",
+        "country": "Russia",
+        "category": "Miscellaneous",
+        "amount": 952.9,
+        "description": "Training/materials/other",
+        "receipts": [
+          {
+            "receipt_id": "REC4005008",
+            "date": "2024-10-06",
+            "vendor": "Vendor",
+            "city": "Moscow",
+            "country": "Russia",
+            "amount": 952.9,
+            "category": "Miscellaneous",
+            "tax_amount": 76.23,
+            "description": "Other expenses",
+            "invoice_number": "INV4005008"
+          }
+        ]
+      }
+    ],
+    "_policy_violations": [
+      {
+        "type": "meals_over_cap",
+        "date": "2024-10-06",
+        "cap": 750,
+        "amount": 1038.51,
+        "client_entertainment": false
+      },
+      {
+        "type": "local_transport_over_cap",
+        "date": "2024-10-06",
+        "cap": 200,
+        "amount": 250.0
+      },
+      {
+        "type": "communication_over_cap",
+        "cap": 240,
+        "amount": 312.0
+      }
+    ],
+    "_form_errors": []
+  },
+  {
+    "claim_id": "EXP2024006",
+    "employee_id": "EMP003",
+    "employee_name": "Frances Jones",
+    "employee_email": "frances_jones@mcp.com",
+    "employee_level": "L4",
+    "department": "Marketing Department",
+    "manager_email": "petersonr@mcp.com",
+    "trip_start": "2024-11-10",
+    "trip_end": "2024-11-12",
+    "nights": 3,
+    "dest_country": "Canada",
+    "dest_city": "Toronto",
+    "total_claimed": 11399.87,
+    "line_items": [
+      {
+        "line_id": "L001",
+        "date": "2024-11-10",
+        "city": "Toronto",
+        "country": "Canada",
+        "category": "Accommodation",
+        "amount": 2760.0,
+        "description": "Toronto Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4006001",
+            "date": "2024-11-10",
+            "vendor": "Toronto Hotel",
+            "city": "Toronto",
+            "country": "Canada",
+            "amount": 2760.0,
+            "category": "Accommodation",
+            "tax_amount": 276.0,
+            "description": "Toronto hotel accommodation fee",
+            "invoice_number": "INV4006001",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L002",
+        "date": "2024-11-11",
+        "city": "Toronto",
+        "country": "Canada",
+        "category": "Accommodation",
+        "amount": 2207.49,
+        "description": "Toronto Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4006002",
+            "date": "2024-11-11",
+            "vendor": "Toronto Hotel",
+            "city": "Toronto",
+            "country": "Canada",
+            "amount": 2207.49,
+            "category": "Accommodation",
+            "tax_amount": 220.75,
+            "description": "Toronto hotel accommodation fee",
+            "invoice_number": "INV4006002",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L003",
+        "date": "2024-11-12",
+        "city": "Toronto",
+        "country": "Canada",
+        "category": "Accommodation",
+        "amount": 2276.69,
+        "description": "Toronto Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4006003",
+            "date": "2024-11-12",
+            "vendor": "Toronto Hotel",
+            "city": "Toronto",
+            "country": "Canada",
+            "amount": 2276.69,
+            "category": "Accommodation",
+            "tax_amount": 227.67,
+            "description": "Toronto hotel accommodation fee",
+            "invoice_number": "INV4006003",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L004",
+        "date": "2024-11-10",
+        "city": "Toronto",
+        "country": "Canada",
+        "category": "Meals",
+        "amount": 587.88,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4006004",
+            "date": "2024-11-10",
+            "vendor": "Restaurant",
+            "city": "Toronto",
+            "country": "Canada",
+            "amount": 587.88,
+            "category": "Meals",
+            "tax_amount": 47.03,
+            "description": "Meals expense",
+            "invoice_number": "INV4006004",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L005",
+        "date": "2024-11-11",
+        "city": "Toronto",
+        "country": "Canada",
+        "category": "Meals",
+        "amount": 1008.0,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4006005",
+            "date": "2024-11-11",
+            "vendor": "Restaurant",
+            "city": "Toronto",
+            "country": "Canada",
+            "amount": 1008.0,
+            "category": "Meals",
+            "tax_amount": 80.64,
+            "description": "Meals expense",
+            "invoice_number": "INV4006005",
+            "client_entertainment": true
+          }
+        ]
+      },
+      {
+        "line_id": "L006",
+        "date": "2024-11-12",
+        "city": "Toronto",
+        "country": "Canada",
+        "category": "Meals",
+        "amount": 971.03,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4006006",
+            "date": "2024-11-12",
+            "vendor": "Restaurant",
+            "city": "Toronto",
+            "country": "Canada",
+            "amount": 971.03,
+            "category": "Meals",
+            "tax_amount": 77.68,
+            "description": "Meals expense",
+            "invoice_number": "INV4006006",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L007",
+        "date": "2024-11-10",
+        "city": "Toronto",
+        "country": "Canada",
+        "category": "Transportation",
+        "amount": 183.25,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4006007",
+            "date": "2024-11-10",
+            "vendor": "Taxi/Transit",
+            "city": "Toronto",
+            "country": "Canada",
+            "amount": 183.25,
+            "category": "Transportation",
+            "tax_amount": 14.66,
+            "description": "Local city transport",
+            "invoice_number": "INV4006007"
+          }
+        ]
+      },
+      {
+        "line_id": "L008",
+        "date": "2024-11-11",
+        "city": "Toronto",
+        "country": "Canada",
+        "category": "Transportation",
+        "amount": 400.0,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4006008",
+            "date": "2024-11-11",
+            "vendor": "Taxi/Transit",
+            "city": "Toronto",
+            "country": "Canada",
+            "amount": 400.0,
+            "category": "Transportation",
+            "tax_amount": 32.0,
+            "description": "Local city transport",
+            "invoice_number": "INV4006008"
+          }
+        ]
+      },
+      {
+        "line_id": "L009",
+        "date": "2024-11-12",
+        "city": "Toronto",
+        "country": "Canada",
+        "category": "Transportation",
+        "amount": 296.94,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4006009",
+            "date": "2024-11-12",
+            "vendor": "Taxi/Transit",
+            "city": "Toronto",
+            "country": "Canada",
+            "amount": 296.94,
+            "category": "Transportation",
+            "tax_amount": 23.76,
+            "description": "Local city transport",
+            "invoice_number": "INV4006009"
+          }
+        ]
+      },
+      {
+        "line_id": "L010",
+        "date": "2024-11-10",
+        "city": "Toronto",
+        "country": "Canada",
+        "category": "Communication",
+        "amount": 139.38,
+        "description": "International roaming",
+        "receipts": [
+          {
+            "receipt_id": "REC4006010",
+            "date": "2024-11-10",
+            "vendor": "Carrier",
+            "city": "Toronto",
+            "country": "Canada",
+            "amount": 139.38,
+            "category": "Communication",
+            "tax_amount": 13.94,
+            "description": "International roaming",
+            "invoice_number": "INV4006010"
+          }
+        ]
+      },
+      {
+        "line_id": "L011",
+        "date": "2024-11-12",
+        "city": "Toronto",
+        "country": "Canada",
+        "category": "Miscellaneous",
+        "amount": 569.21,
+        "description": "Training/materials/other",
+        "receipts": [
+          {
+            "receipt_id": "REC4006011",
+            "date": "2024-11-12",
+            "vendor": "Vendor",
+            "city": "Toronto",
+            "country": "Canada",
+            "amount": 569.21,
+            "category": "Miscellaneous",
+            "tax_amount": 45.54,
+            "description": "Other expenses",
+            "invoice_number": "INV4006011"
+          }
+        ]
+      }
+    ],
+    "_policy_violations": [
+      {
+        "type": "accommodation_over_cap",
+        "date": "2024-11-10",
+        "cap": 2400,
+        "amount": 2760.0
+      },
+      {
+        "type": "meals_over_cap",
+        "date": "2024-11-12",
+        "cap": 720,
+        "amount": 971.03,
+        "client_entertainment": false
+      },
+      {
+        "type": "local_transport_over_cap",
+        "date": "2024-11-11",
+        "cap": 320,
+        "amount": 400.0
+      }
+    ],
+    "_form_errors": []
+  },
+  {
+    "claim_id": "EXP2024007",
+    "employee_id": "EMP004",
+    "employee_name": "Sandra Davis",
+    "employee_email": "sandra.davis@mcp.com",
+    "employee_level": "L1",
+    "department": "Finance Department",
+    "manager_email": "petersonr@mcp.com",
+    "trip_start": "2024-09-05",
+    "trip_end": "2024-09-07",
+    "nights": 3,
+    "dest_country": "Argentina",
+    "dest_city": "Buenos Aires",
+    "total_claimed": 4883.61,
+    "line_items": [
+      {
+        "line_id": "L001",
+        "date": "2024-09-05",
+        "city": "Buenos Aires",
+        "country": "Argentina",
+        "category": "Accommodation",
+        "amount": 802.23,
+        "description": "Buenos Aires Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4007001",
+            "date": "2024-09-05",
+            "vendor": "Buenos Aires Hotel",
+            "city": "Buenos Aires",
+            "country": "Argentina",
+            "amount": 802.23,
+            "category": "Accommodation",
+            "tax_amount": 80.22,
+            "description": "Buenos Aires hotel accommodation fee",
+            "invoice_number": "INV4007001",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L002",
+        "date": "2024-09-06",
+        "city": "Buenos Aires",
+        "country": "Argentina",
+        "category": "Accommodation",
+        "amount": 749.29,
+        "description": "Buenos Aires Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4007002",
+            "date": "2024-09-06",
+            "vendor": "Buenos Aires Hotel",
+            "city": "Buenos Aires",
+            "country": "Argentina",
+            "amount": 749.29,
+            "category": "Accommodation",
+            "tax_amount": 74.93,
+            "description": "Buenos Aires hotel accommodation fee",
+            "invoice_number": "INV4007002",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L003",
+        "date": "2024-09-07",
+        "city": "Buenos Aires",
+        "country": "Argentina",
+        "category": "Accommodation",
+        "amount": 827.48,
+        "description": "Buenos Aires Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4007003",
+            "date": "2024-09-07",
+            "vendor": "Buenos Aires Hotel",
+            "city": "Buenos Aires",
+            "country": "Argentina",
+            "amount": 827.48,
+            "category": "Accommodation",
+            "tax_amount": 82.75,
+            "description": "Buenos Aires hotel accommodation fee",
+            "invoice_number": "INV4007003",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L004",
+        "date": "2024-09-05",
+        "city": "Buenos Aires",
+        "country": "Argentina",
+        "category": "Meals",
+        "amount": 298.71,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4007004",
+            "date": "2024-09-05",
+            "vendor": "Restaurant",
+            "city": "Buenos Aires",
+            "country": "Argentina",
+            "amount": 298.71,
+            "category": "Meals",
+            "tax_amount": 23.9,
+            "description": "Meals expense",
+            "invoice_number": "INV4007004",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L005",
+        "date": "2024-09-06",
+        "city": "Buenos Aires",
+        "country": "Argentina",
+        "category": "Meals",
+        "amount": 334.7,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4007005",
+            "date": "2024-09-06",
+            "vendor": "Restaurant",
+            "city": "Buenos Aires",
+            "country": "Argentina",
+            "amount": 334.7,
+            "category": "Meals",
+            "tax_amount": 26.78,
+            "description": "Meals expense",
+            "invoice_number": "INV4007005",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L006",
+        "date": "2024-09-07",
+        "city": "Buenos Aires",
+        "country": "Argentina",
+        "category": "Meals",
+        "amount": 532.0,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4007006",
+            "date": "2024-09-07",
+            "vendor": "Restaurant",
+            "city": "Buenos Aires",
+            "country": "Argentina",
+            "amount": 532.0,
+            "category": "Meals",
+            "tax_amount": 42.56,
+            "description": "Meals expense",
+            "invoice_number": "INV4007006",
+            "client_entertainment": true
+          }
+        ]
+      },
+      {
+        "line_id": "L007",
+        "date": "2024-09-05",
+        "city": "Buenos Aires",
+        "country": "Argentina",
+        "category": "Transportation",
+        "amount": 143.44,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4007007",
+            "date": "2024-09-05",
+            "vendor": "Taxi/Transit",
+            "city": "Buenos Aires",
+            "country": "Argentina",
+            "amount": 143.44,
+            "category": "Transportation",
+            "tax_amount": 11.48,
+            "description": "Local city transport",
+            "invoice_number": "INV4007007"
+          }
+        ]
+      },
+      {
+        "line_id": "L008",
+        "date": "2024-09-06",
+        "city": "Buenos Aires",
+        "country": "Argentina",
+        "category": "Transportation",
+        "amount": 275.0,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4007008",
+            "date": "2024-09-06",
+            "vendor": "Taxi/Transit",
+            "city": "Buenos Aires",
+            "country": "Argentina",
+            "amount": 275.0,
+            "category": "Transportation",
+            "tax_amount": 22.0,
+            "description": "Local city transport",
+            "invoice_number": "INV4007008"
+          }
+        ]
+      },
+      {
+        "line_id": "L009",
+        "date": "2024-09-07",
+        "city": "Buenos Aires",
+        "country": "Argentina",
+        "category": "Transportation",
+        "amount": 207.54,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4007009",
+            "date": "2024-09-07",
+            "vendor": "Taxi/Transit",
+            "city": "Buenos Aires",
+            "country": "Argentina",
+            "amount": 207.54,
+            "category": "Transportation",
+            "tax_amount": 16.6,
+            "description": "Local city transport",
+            "invoice_number": "INV4007009"
+          }
+        ]
+      },
+      {
+        "line_id": "L010",
+        "date": "2024-09-05",
+        "city": "Buenos Aires",
+        "country": "Argentina",
+        "category": "Communication",
+        "amount": 80.21,
+        "description": "International roaming",
+        "receipts": [
+          {
+            "receipt_id": "REC4007010",
+            "date": "2024-09-05",
+            "vendor": "Carrier",
+            "city": "Buenos Aires",
+            "country": "Argentina",
+            "amount": 80.21,
+            "category": "Communication",
+            "tax_amount": 8.02,
+            "description": "International roaming",
+            "invoice_number": "INV4007010"
+          }
+        ]
+      },
+      {
+        "line_id": "L011",
+        "date": "2024-09-07",
+        "city": "Buenos Aires",
+        "country": "Argentina",
+        "category": "Miscellaneous",
+        "amount": 633.01,
+        "description": "Training/materials/other",
+        "receipts": [
+          {
+            "receipt_id": "REC4007011",
+            "date": "2024-09-07",
+            "vendor": "Vendor",
+            "city": "Buenos Aires",
+            "country": "Argentina",
+            "amount": 633.01,
+            "category": "Miscellaneous",
+            "tax_amount": 50.64,
+            "description": "Other expenses",
+            "invoice_number": "INV4007011"
+          }
+        ]
+      }
+    ],
+    "_policy_violations": [
+      {
+        "type": "local_transport_over_cap",
+        "date": "2024-09-06",
+        "cap": 220,
+        "amount": 275.0
+      }
+    ],
+    "_form_errors": []
+  },
+  {
+    "claim_id": "EXP2024008",
+    "employee_id": "EMP004",
+    "employee_name": "Sandra Davis",
+    "employee_email": "sandra.davis@mcp.com",
+    "employee_level": "L1",
+    "department": "Finance Department",
+    "manager_email": "petersonr@mcp.com",
+    "trip_start": "2024-09-15",
+    "trip_end": "2024-09-18",
+    "nights": 4,
+    "dest_country": "South Korea",
+    "dest_city": "Seoul",
+    "total_claimed": 7168.95,
+    "line_items": [
+      {
+        "line_id": "L001",
+        "date": "2024-09-15",
+        "city": "Seoul",
+        "country": "South Korea",
+        "category": "Accommodation",
+        "amount": 1380.0,
+        "description": "Seoul Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4008001",
+            "date": "2024-09-15",
+            "vendor": "Seoul Hotel",
+            "city": "Seoul",
+            "country": "South Korea",
+            "amount": 1380.0,
+            "category": "Accommodation",
+            "tax_amount": 138.0,
+            "description": "Seoul hotel accommodation fee",
+            "invoice_number": "INV4008001",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L002",
+        "date": "2024-09-16",
+        "city": "Seoul",
+        "country": "South Korea",
+        "category": "Accommodation",
+        "amount": 993.25,
+        "description": "Seoul Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4008002",
+            "date": "2024-09-16",
+            "vendor": "Seoul Hotel",
+            "city": "Seoul",
+            "country": "South Korea",
+            "amount": 993.25,
+            "category": "Accommodation",
+            "tax_amount": 99.33,
+            "description": "Seoul hotel accommodation fee",
+            "invoice_number": "INV4008002",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L003",
+        "date": "2024-09-17",
+        "city": "Seoul",
+        "country": "South Korea",
+        "category": "Accommodation",
+        "amount": 1070.76,
+        "description": "Seoul Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4008003",
+            "date": "2024-09-17",
+            "vendor": "Seoul Hotel",
+            "city": "Seoul",
+            "country": "South Korea",
+            "amount": 1070.76,
+            "category": "Accommodation",
+            "tax_amount": 107.08,
+            "description": "Seoul hotel accommodation fee",
+            "invoice_number": "INV4008003",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L004",
+        "date": "2024-09-18",
+        "city": "Seoul",
+        "country": "South Korea",
+        "category": "Accommodation",
+        "amount": 947.84,
+        "description": "Seoul Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4008004",
+            "date": "2024-09-18",
+            "vendor": "Seoul Hotel",
+            "city": "Seoul",
+            "country": "South Korea",
+            "amount": 947.84,
+            "category": "Accommodation",
+            "tax_amount": 94.78,
+            "description": "Seoul hotel accommodation fee",
+            "invoice_number": "INV4008004",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L005",
+        "date": "2024-09-15",
+        "city": "Seoul",
+        "country": "South Korea",
+        "category": "Meals",
+        "amount": 415.01,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4008005",
+            "date": "2024-09-15",
+            "vendor": "Restaurant",
+            "city": "Seoul",
+            "country": "South Korea",
+            "amount": 415.01,
+            "category": "Meals",
+            "tax_amount": 33.2,
+            "description": "Meals expense",
+            "invoice_number": "INV4008005",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L006",
+        "date": "2024-09-16",
+        "city": "Seoul",
+        "country": "South Korea",
+        "category": "Meals",
+        "amount": 386.53,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4008006",
+            "date": "2024-09-16",
+            "vendor": "Restaurant",
+            "city": "Seoul",
+            "country": "South Korea",
+            "amount": 386.53,
+            "category": "Meals",
+            "tax_amount": 30.92,
+            "description": "Meals expense",
+            "invoice_number": "INV4008006",
+            "client_entertainment": true
+          }
+        ]
+      },
+      {
+        "line_id": "L007",
+        "date": "2024-09-17",
+        "city": "Seoul",
+        "country": "South Korea",
+        "category": "Meals",
+        "amount": 396.21,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4008007",
+            "date": "2024-09-17",
+            "vendor": "Restaurant",
+            "city": "Seoul",
+            "country": "South Korea",
+            "amount": 396.21,
+            "category": "Meals",
+            "tax_amount": 31.7,
+            "description": "Meals expense",
+            "invoice_number": "INV4008007",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L008",
+        "date": "2024-09-18",
+        "city": "Seoul",
+        "country": "South Korea",
+        "category": "Meals",
+        "amount": 324.55,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4008008",
+            "date": "2024-09-18",
+            "vendor": "Restaurant",
+            "city": "Seoul",
+            "country": "South Korea",
+            "amount": 324.55,
+            "category": "Meals",
+            "tax_amount": 25.96,
+            "description": "Meals expense",
+            "invoice_number": "INV4008008",
+            "client_entertainment": true
+          }
+        ]
+      },
+      {
+        "line_id": "L009",
+        "date": "2024-09-15",
+        "city": "Seoul",
+        "country": "South Korea",
+        "category": "Transportation",
+        "amount": 102.48,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4008009",
+            "date": "2024-09-15",
+            "vendor": "Taxi/Transit",
+            "city": "Seoul",
+            "country": "South Korea",
+            "amount": 102.48,
+            "category": "Transportation",
+            "tax_amount": 8.2,
+            "description": "Local city transport",
+            "invoice_number": "INV4008009"
+          }
+        ]
+      },
+      {
+        "line_id": "L010",
+        "date": "2024-09-16",
+        "city": "Seoul",
+        "country": "South Korea",
+        "category": "Transportation",
+        "amount": 141.88,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4008010",
+            "date": "2024-09-16",
+            "vendor": "Taxi/Transit",
+            "city": "Seoul",
+            "country": "South Korea",
+            "amount": 141.88,
+            "category": "Transportation",
+            "tax_amount": 11.35,
+            "description": "Local city transport",
+            "invoice_number": "INV4008010"
+          }
+        ]
+      },
+      {
+        "line_id": "L011",
+        "date": "2024-09-17",
+        "city": "Seoul",
+        "country": "South Korea",
+        "category": "Transportation",
+        "amount": 159.03,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4008011",
+            "date": "2024-09-17",
+            "vendor": "Taxi/Transit",
+            "city": "Seoul",
+            "country": "South Korea",
+            "amount": 159.03,
+            "category": "Transportation",
+            "tax_amount": 12.72,
+            "description": "Local city transport",
+            "invoice_number": "INV4008011"
+          }
+        ]
+      },
+      {
+        "line_id": "L012",
+        "date": "2024-09-18",
+        "city": "Seoul",
+        "country": "South Korea",
+        "category": "Transportation",
+        "amount": 155.04,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4008012",
+            "date": "2024-09-18",
+            "vendor": "Taxi/Transit",
+            "city": "Seoul",
+            "country": "South Korea",
+            "amount": 155.04,
+            "category": "Transportation",
+            "tax_amount": 12.4,
+            "description": "Local city transport",
+            "invoice_number": "INV4008012"
+          }
+        ]
+      },
+      {
+        "line_id": "L013",
+        "date": "2024-09-15",
+        "city": "Seoul",
+        "country": "South Korea",
+        "category": "Communication",
+        "amount": 145.4,
+        "description": "International roaming",
+        "receipts": [
+          {
+            "receipt_id": "REC4008013",
+            "date": "2024-09-15",
+            "vendor": "Carrier",
+            "city": "Seoul",
+            "country": "South Korea",
+            "amount": 145.4,
+            "category": "Communication",
+            "tax_amount": 14.54,
+            "description": "International roaming",
+            "invoice_number": "INV4008013"
+          }
+        ]
+      },
+      {
+        "line_id": "L014",
+        "date": "2024-09-18",
+        "city": "Seoul",
+        "country": "South Korea",
+        "category": "Miscellaneous",
+        "amount": 550.97,
+        "description": "Training/materials/other",
+        "receipts": [
+          {
+            "receipt_id": "REC4008014",
+            "date": "2024-09-18",
+            "vendor": "Vendor",
+            "city": "Seoul",
+            "country": "South Korea",
+            "amount": 550.97,
+            "category": "Miscellaneous",
+            "tax_amount": 44.08,
+            "description": "Other expenses",
+            "invoice_number": "INV4008014"
+          }
+        ]
+      }
+    ],
+    "_policy_violations": [
+      {
+        "type": "accommodation_over_cap",
+        "date": "2024-09-15",
+        "cap": 1200,
+        "amount": 1380.0
+      }
+    ],
+    "_form_errors": []
+  },
+  {
+    "claim_id": "EXP2024009",
+    "employee_id": "EMP005",
+    "employee_name": "Andrew Adams",
+    "employee_email": "aadams93@mcp.com",
+    "employee_level": "L3",
+    "department": "Sales Department",
+    "manager_email": "sarah.hernandez@mcp.com",
+    "trip_start": "2024-12-15",
+    "trip_end": "2024-12-16",
+    "nights": 2,
+    "dest_country": "Singapore",
+    "dest_city": "Singapore",
+    "total_claimed": 6138.07,
+    "line_items": [
+      {
+        "line_id": "L001",
+        "date": "2024-12-15",
+        "city": "Singapore",
+        "country": "Singapore",
+        "category": "Accommodation",
+        "amount": 1378.07,
+        "description": "Singapore Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4009001",
+            "date": "2024-12-15",
+            "vendor": "Singapore Hotel",
+            "city": "Singapore",
+            "country": "Singapore",
+            "amount": 1378.07,
+            "category": "Accommodation",
+            "tax_amount": 137.81,
+            "description": "Singapore hotel accommodation fee",
+            "invoice_number": "INV4009001",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L002",
+        "date": "2024-12-16",
+        "city": "Singapore",
+        "country": "Singapore",
+        "category": "Accommodation",
+        "amount": 1304.31,
+        "description": "Singapore Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4009002",
+            "date": "2024-12-16",
+            "vendor": "Singapore Hotel",
+            "city": "Singapore",
+            "country": "Singapore",
+            "amount": 1304.31,
+            "category": "Accommodation",
+            "tax_amount": 130.43,
+            "description": "Singapore hotel accommodation fee",
+            "invoice_number": "INV4009002",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L003",
+        "date": "2024-12-15",
+        "city": "Singapore",
+        "country": "Singapore",
+        "category": "Meals",
+        "amount": 746.63,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4009003",
+            "date": "2024-12-15",
+            "vendor": "Restaurant",
+            "city": "Singapore",
+            "country": "Singapore",
+            "amount": 746.63,
+            "category": "Meals",
+            "tax_amount": 59.73,
+            "description": "Meals expense",
+            "invoice_number": "INV4009003",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L004",
+        "date": "2024-12-16",
+        "city": "Singapore",
+        "country": "Singapore",
+        "category": "Meals",
+        "amount": 653.87,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4009004",
+            "date": "2024-12-16",
+            "vendor": "Restaurant",
+            "city": "Singapore",
+            "country": "Singapore",
+            "amount": 653.87,
+            "category": "Meals",
+            "tax_amount": 52.31,
+            "description": "Meals expense",
+            "invoice_number": "INV4009004",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L005",
+        "date": "2024-12-15",
+        "city": "Singapore",
+        "country": "Singapore",
+        "category": "Transportation",
+        "amount": 183.55,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4009005",
+            "date": "2024-12-15",
+            "vendor": "Taxi/Transit",
+            "city": "Singapore",
+            "country": "Singapore",
+            "amount": 183.55,
+            "category": "Transportation",
+            "tax_amount": 14.68,
+            "description": "Local city transport",
+            "invoice_number": "INV4009005"
+          }
+        ]
+      },
+      {
+        "line_id": "L006",
+        "date": "2024-12-16",
+        "city": "Singapore",
+        "country": "Singapore",
+        "category": "Transportation",
+        "amount": 375.0,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4009006",
+            "date": "2024-12-16",
+            "vendor": "Taxi/Transit",
+            "city": "Singapore",
+            "country": "Singapore",
+            "amount": 375.0,
+            "category": "Transportation",
+            "tax_amount": 30.0,
+            "description": "Local city transport",
+            "invoice_number": "INV4009006"
+          }
+        ]
+      },
+      {
+        "line_id": "L007",
+        "date": "2024-12-15",
+        "city": "Singapore",
+        "country": "Singapore",
+        "category": "Communication",
+        "amount": 135.85,
+        "description": "International roaming",
+        "receipts": [
+          {
+            "receipt_id": "REC4009007",
+            "date": "2024-12-15",
+            "vendor": "Carrier",
+            "city": "Singapore",
+            "country": "Singapore",
+            "amount": 135.85,
+            "category": "Communication",
+            "tax_amount": 13.59,
+            "description": "International roaming",
+            "invoice_number": "INV4009007"
+          }
+        ]
+      },
+      {
+        "line_id": "L008",
+        "date": "2024-12-16",
+        "city": "Singapore",
+        "country": "Singapore",
+        "category": "Miscellaneous",
+        "amount": 1360.79,
+        "description": "Training/materials/other",
+        "receipts": [
+          {
+            "receipt_id": "REC4009008",
+            "date": "2024-12-16",
+            "vendor": "Vendor",
+            "city": "Singapore",
+            "country": "Singapore",
+            "amount": 1360.79,
+            "category": "Miscellaneous",
+            "tax_amount": 108.86,
+            "description": "Other expenses",
+            "invoice_number": "INV4009008"
+          }
+        ]
+      }
+    ],
+    "_policy_violations": [],
+    "_form_errors": []
+  },
+  {
+    "claim_id": "EXP2024010",
+    "employee_id": "EMP005",
+    "employee_name": "Andrew Adams",
+    "employee_email": "aadams93@mcp.com",
+    "employee_level": "L3",
+    "department": "Sales Department",
+    "manager_email": "sarah.hernandez@mcp.com",
+    "trip_start": "2024-12-10",
+    "trip_end": "2024-12-11",
+    "nights": 2,
+    "dest_country": "South Africa",
+    "dest_city": "Cape Town",
+    "total_claimed": 4580.47,
+    "line_items": [
+      {
+        "line_id": "L001",
+        "date": "2024-12-10",
+        "city": "Cape Town",
+        "country": "South Africa",
+        "category": "Accommodation",
+        "amount": 1021.33,
+        "description": "Cape Town Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4010001",
+            "date": "2024-12-10",
+            "vendor": "Cape Town Hotel",
+            "city": "Cape Town",
+            "country": "South Africa",
+            "amount": 1021.33,
+            "category": "Accommodation",
+            "tax_amount": 102.13,
+            "description": "Cape Town hotel accommodation fee",
+            "invoice_number": "INV4010001",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L002",
+        "date": "2024-12-11",
+        "city": "Cape Town",
+        "country": "South Africa",
+        "category": "Accommodation",
+        "amount": 1022.92,
+        "description": "Cape Town Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4010002",
+            "date": "2024-12-11",
+            "vendor": "Cape Town Hotel",
+            "city": "Cape Town",
+            "country": "South Africa",
+            "amount": 1022.92,
+            "category": "Accommodation",
+            "tax_amount": 102.29,
+            "description": "Cape Town hotel accommodation fee",
+            "invoice_number": "INV4010002",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L003",
+        "date": "2024-12-10",
+        "city": "Cape Town",
+        "country": "South Africa",
+        "category": "Meals",
+        "amount": 480.25,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4010003",
+            "date": "2024-12-10",
+            "vendor": "Restaurant",
+            "city": "Cape Town",
+            "country": "South Africa",
+            "amount": 480.25,
+            "category": "Meals",
+            "tax_amount": 38.42,
+            "description": "Meals expense",
+            "invoice_number": "INV4010003",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L004",
+        "date": "2024-12-11",
+        "city": "Cape Town",
+        "country": "South Africa",
+        "category": "Meals",
+        "amount": 683.88,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4010004",
+            "date": "2024-12-11",
+            "vendor": "Restaurant",
+            "city": "Cape Town",
+            "country": "South Africa",
+            "amount": 683.88,
+            "category": "Meals",
+            "tax_amount": 54.71,
+            "description": "Meals expense",
+            "invoice_number": "INV4010004",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L005",
+        "date": "2024-12-10",
+        "city": "Cape Town",
+        "country": "South Africa",
+        "category": "Transportation",
+        "amount": 166.26,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4010005",
+            "date": "2024-12-10",
+            "vendor": "Taxi/Transit",
+            "city": "Cape Town",
+            "country": "South Africa",
+            "amount": 166.26,
+            "category": "Transportation",
+            "tax_amount": 13.3,
+            "description": "Local city transport",
+            "invoice_number": "INV4010005"
+          }
+        ]
+      },
+      {
+        "line_id": "L006",
+        "date": "2024-12-11",
+        "city": "Cape Town",
+        "country": "South Africa",
+        "category": "Transportation",
+        "amount": 161.0,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4010006",
+            "date": "2024-12-11",
+            "vendor": "Taxi/Transit",
+            "city": "Cape Town",
+            "country": "South Africa",
+            "amount": 161.0,
+            "category": "Transportation",
+            "tax_amount": 12.88,
+            "description": "Local city transport",
+            "invoice_number": "INV4010006"
+          }
+        ]
+      },
+      {
+        "line_id": "L007",
+        "date": "2024-12-10",
+        "city": "Cape Town",
+        "country": "South Africa",
+        "category": "Communication",
+        "amount": 92.27,
+        "description": "International roaming",
+        "receipts": [
+          {
+            "receipt_id": "REC4010007",
+            "date": "2024-12-10",
+            "vendor": "Carrier",
+            "city": "Cape Town",
+            "country": "South Africa",
+            "amount": 92.27,
+            "category": "Communication",
+            "tax_amount": 9.23,
+            "description": "International roaming",
+            "invoice_number": "INV4010007"
+          }
+        ]
+      },
+      {
+        "line_id": "L008",
+        "date": "2024-12-11",
+        "city": "Cape Town",
+        "country": "South Africa",
+        "category": "Miscellaneous",
+        "amount": 952.56,
+        "description": "Training/materials/other",
+        "receipts": [
+          {
+            "receipt_id": "REC4010008",
+            "date": "2024-12-11",
+            "vendor": "Vendor",
+            "city": "Cape Town",
+            "country": "South Africa",
+            "amount": 952.56,
+            "category": "Miscellaneous",
+            "tax_amount": 76.2,
+            "description": "Other expenses",
+            "invoice_number": "INV4010008"
+          }
+        ]
+      }
+    ],
+    "_policy_violations": [],
+    "_form_errors": []
+  },
+  {
+    "claim_id": "EXP2024011",
+    "employee_id": "EMP006",
+    "employee_name": "Larry Wood",
+    "employee_email": "larry_wood@mcp.com",
+    "employee_level": "L2",
+    "department": "Technology Department",
+    "manager_email": "sarah.hernandez@mcp.com",
+    "trip_start": "2024-12-05",
+    "trip_end": "2024-12-07",
+    "nights": 3,
+    "dest_country": "Spain",
+    "dest_city": "Madrid",
+    "total_claimed": 7868.39,
+    "line_items": [
+      {
+        "line_id": "L001",
+        "date": "2024-12-05",
+        "city": "Madrid",
+        "country": "Spain",
+        "category": "Accommodation",
+        "amount": 1283.08,
+        "description": "Madrid Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4011001",
+            "date": "2024-12-05",
+            "vendor": "Madrid Hotel",
+            "city": "Madrid",
+            "country": "Spain",
+            "amount": 1283.08,
+            "category": "Accommodation",
+            "tax_amount": 128.31,
+            "description": "Madrid hotel accommodation fee",
+            "invoice_number": "INV4011001",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L002",
+        "date": "2024-12-06",
+        "city": "Madrid",
+        "country": "Spain",
+        "category": "Accommodation",
+        "amount": 1095.21,
+        "description": "Madrid Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4011002",
+            "date": "2024-12-06",
+            "vendor": "Madrid Hotel",
+            "city": "Madrid",
+            "country": "Spain",
+            "amount": 1095.21,
+            "category": "Accommodation",
+            "tax_amount": 109.52,
+            "description": "Madrid hotel accommodation fee",
+            "invoice_number": "INV4011002",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L003",
+        "date": "2024-12-07",
+        "city": "Madrid",
+        "country": "Spain",
+        "category": "Accommodation",
+        "amount": 1170.83,
+        "description": "Madrid Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4011003",
+            "date": "2024-12-07",
+            "vendor": "Madrid Hotel",
+            "city": "Madrid",
+            "country": "Spain",
+            "amount": 1170.83,
+            "category": "Accommodation",
+            "tax_amount": 117.08,
+            "description": "Madrid hotel accommodation fee",
+            "invoice_number": "INV4011003",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L004",
+        "date": "2024-12-05",
+        "city": "Madrid",
+        "country": "Spain",
+        "category": "Meals",
+        "amount": 497.34,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4011004",
+            "date": "2024-12-05",
+            "vendor": "Restaurant",
+            "city": "Madrid",
+            "country": "Spain",
+            "amount": 497.34,
+            "category": "Meals",
+            "tax_amount": 39.79,
+            "description": "Meals expense",
+            "invoice_number": "INV4011004",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L005",
+        "date": "2024-12-06",
+        "city": "Madrid",
+        "country": "Spain",
+        "category": "Meals",
+        "amount": 449.36,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4011005",
+            "date": "2024-12-06",
+            "vendor": "Restaurant",
+            "city": "Madrid",
+            "country": "Spain",
+            "amount": 449.36,
+            "category": "Meals",
+            "tax_amount": 35.95,
+            "description": "Meals expense",
+            "invoice_number": "INV4011005",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L006",
+        "date": "2024-12-07",
+        "city": "Madrid",
+        "country": "Spain",
+        "category": "Meals",
+        "amount": 422.92,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4011006",
+            "date": "2024-12-07",
+            "vendor": "Restaurant",
+            "city": "Madrid",
+            "country": "Spain",
+            "amount": 422.92,
+            "category": "Meals",
+            "tax_amount": 33.83,
+            "description": "Meals expense",
+            "invoice_number": "INV4011006",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L007",
+        "date": "2024-12-05",
+        "city": "Madrid",
+        "country": "Spain",
+        "category": "Transportation",
+        "amount": 209.46,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4011007",
+            "date": "2024-12-05",
+            "vendor": "Taxi/Transit",
+            "city": "Madrid",
+            "country": "Spain",
+            "amount": 209.46,
+            "category": "Transportation",
+            "tax_amount": 16.76,
+            "description": "Local city transport",
+            "invoice_number": "INV4011007"
+          }
+        ]
+      },
+      {
+        "line_id": "L008",
+        "date": "2024-12-06",
+        "city": "Madrid",
+        "country": "Spain",
+        "category": "Transportation",
+        "amount": 375.0,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4011008",
+            "date": "2024-12-06",
+            "vendor": "Taxi/Transit",
+            "city": "Madrid",
+            "country": "Spain",
+            "amount": 375.0,
+            "category": "Transportation",
+            "tax_amount": 30.0,
+            "description": "Local city transport",
+            "invoice_number": "INV4011008"
+          }
+        ]
+      },
+      {
+        "line_id": "L009",
+        "date": "2024-12-07",
+        "city": "Madrid",
+        "country": "Spain",
+        "category": "Transportation",
+        "amount": 194.75,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4011009",
+            "date": "2024-12-07",
+            "vendor": "Taxi/Transit",
+            "city": "Madrid",
+            "country": "Spain",
+            "amount": 194.75,
+            "category": "Transportation",
+            "tax_amount": 15.58,
+            "description": "Local city transport",
+            "invoice_number": "INV4011009"
+          }
+        ]
+      },
+      {
+        "line_id": "L010",
+        "date": "2024-12-05",
+        "city": "Madrid",
+        "country": "Spain",
+        "category": "Communication",
+        "amount": 170.44,
+        "description": "International roaming",
+        "receipts": [
+          {
+            "receipt_id": "REC4011010",
+            "date": "2024-12-05",
+            "vendor": "Carrier",
+            "city": "Madrid",
+            "country": "Spain",
+            "amount": 170.44,
+            "category": "Communication",
+            "tax_amount": 17.04,
+            "description": "International roaming",
+            "invoice_number": "INV4011010"
+          }
+        ]
+      },
+      {
+        "line_id": "L011",
+        "date": "2024-12-07",
+        "city": "Madrid",
+        "country": "Spain",
+        "category": "Miscellaneous",
+        "amount": 2000.0,
+        "description": "Training/materials/other",
+        "receipts": [
+          {
+            "receipt_id": "REC4011011",
+            "date": "2024-12-07",
+            "vendor": "Vendor",
+            "city": "Madrid",
+            "country": "Spain",
+            "amount": 2000.0,
+            "category": "Miscellaneous",
+            "tax_amount": 160.0,
+            "description": "Other expenses",
+            "invoice_number": "INV4011011"
+          }
+        ]
+      }
+    ],
+    "_policy_violations": [],
+    "_form_errors": []
+  },
+  {
+    "claim_id": "EXP2024012",
+    "employee_id": "EMP006",
+    "employee_name": "Larry Wood",
+    "employee_email": "larry_wood@mcp.com",
+    "employee_level": "L2",
+    "department": "Technology Department",
+    "manager_email": "sarah.hernandez@mcp.com",
+    "trip_start": "2024-09-05",
+    "trip_end": "2024-09-06",
+    "nights": 2,
+    "dest_country": "Russia",
+    "dest_city": "Moscow",
+    "total_claimed": 5163.67,
+    "line_items": [
+      {
+        "line_id": "L001",
+        "date": "2024-09-05",
+        "city": "Moscow",
+        "country": "Russia",
+        "category": "Accommodation",
+        "amount": 1495.0,
+        "description": "Moscow Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4012001",
+            "date": "2024-09-05",
+            "vendor": "Moscow Hotel",
+            "city": "Moscow",
+            "country": "Russia",
+            "amount": 1495.0,
+            "category": "Accommodation",
+            "tax_amount": 149.5,
+            "description": "Moscow hotel accommodation fee",
+            "invoice_number": "INV4012001",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L002",
+        "date": "2024-09-06",
+        "city": "Moscow",
+        "country": "Russia",
+        "category": "Accommodation",
+        "amount": 985.29,
+        "description": "Moscow Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4012002",
+            "date": "2024-09-06",
+            "vendor": "Moscow Hotel",
+            "city": "Moscow",
+            "country": "Russia",
+            "amount": 985.29,
+            "category": "Accommodation",
+            "tax_amount": 98.53,
+            "description": "Moscow hotel accommodation fee",
+            "invoice_number": "INV4012002",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L003",
+        "date": "2024-09-05",
+        "city": "Moscow",
+        "country": "Russia",
+        "category": "Meals",
+        "amount": 492.11,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4012003",
+            "date": "2024-09-05",
+            "vendor": "Restaurant",
+            "city": "Moscow",
+            "country": "Russia",
+            "amount": 492.11,
+            "category": "Meals",
+            "tax_amount": 39.37,
+            "description": "Meals expense",
+            "invoice_number": "INV4012003",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L004",
+        "date": "2024-09-06",
+        "city": "Moscow",
+        "country": "Russia",
+        "category": "Meals",
+        "amount": 674.67,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4012004",
+            "date": "2024-09-06",
+            "vendor": "Restaurant",
+            "city": "Moscow",
+            "country": "Russia",
+            "amount": 674.67,
+            "category": "Meals",
+            "tax_amount": 53.97,
+            "description": "Meals expense",
+            "invoice_number": "INV4012004",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L005",
+        "date": "2024-09-05",
+        "city": "Moscow",
+        "country": "Russia",
+        "category": "Transportation",
+        "amount": 182.03,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4012005",
+            "date": "2024-09-05",
+            "vendor": "Taxi/Transit",
+            "city": "Moscow",
+            "country": "Russia",
+            "amount": 182.03,
+            "category": "Transportation",
+            "tax_amount": 14.56,
+            "description": "Local city transport",
+            "invoice_number": "INV4012005"
+          }
+        ]
+      },
+      {
+        "line_id": "L006",
+        "date": "2024-09-06",
+        "city": "Moscow",
+        "country": "Russia",
+        "category": "Transportation",
+        "amount": 123.27,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4012006",
+            "date": "2024-09-06",
+            "vendor": "Taxi/Transit",
+            "city": "Moscow",
+            "country": "Russia",
+            "amount": 123.27,
+            "category": "Transportation",
+            "tax_amount": 9.86,
+            "description": "Local city transport",
+            "invoice_number": "INV4012006"
+          }
+        ]
+      },
+      {
+        "line_id": "L007",
+        "date": "2024-09-05",
+        "city": "Moscow",
+        "country": "Russia",
+        "category": "Communication",
+        "amount": 312.0,
+        "description": "International roaming",
+        "receipts": [
+          {
+            "receipt_id": "REC4012007",
+            "date": "2024-09-05",
+            "vendor": "Carrier",
+            "city": "Moscow",
+            "country": "Russia",
+            "amount": 312.0,
+            "category": "Communication",
+            "tax_amount": 31.2,
+            "description": "International roaming",
+            "invoice_number": "INV4012007"
+          }
+        ]
+      },
+      {
+        "line_id": "L008",
+        "date": "2024-09-06",
+        "city": "Moscow",
+        "country": "Russia",
+        "category": "Miscellaneous",
+        "amount": 899.3,
+        "description": "Training/materials/other",
+        "receipts": [
+          {
+            "receipt_id": "REC4012008",
+            "date": "2024-09-06",
+            "vendor": "Vendor",
+            "city": "Moscow",
+            "country": "Russia",
+            "amount": 899.3,
+            "category": "Miscellaneous",
+            "tax_amount": 71.94,
+            "description": "Other expenses",
+            "invoice_number": "INV4012008"
+          }
+        ]
+      }
+    ],
+    "_policy_violations": [],
+    "_form_errors": []
+  },
+  {
+    "claim_id": "EXP2024013",
+    "employee_id": "EMP007",
+    "employee_name": "Alexander Garcia",
+    "employee_email": "alexander_garcia@mcp.com",
+    "employee_level": "L4",
+    "department": "Marketing Department",
+    "manager_email": "howardd@mcp.com",
+    "trip_start": "2024-10-05",
+    "trip_end": "2024-10-07",
+    "nights": 3,
+    "dest_country": "Spain",
+    "dest_city": "Madrid",
+    "total_claimed": 10554.06,
+    "line_items": [
+      {
+        "line_id": "L001",
+        "date": "2024-10-05",
+        "city": "Madrid",
+        "country": "Spain",
+        "category": "Accommodation",
+        "amount": 2185.0,
+        "description": "Madrid Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4013001",
+            "date": "2024-10-05",
+            "vendor": "Madrid Hotel",
+            "city": "Madrid",
+            "country": "Spain",
+            "amount": 2185.0,
+            "category": "Accommodation",
+            "tax_amount": 218.5,
+            "description": "Madrid hotel accommodation fee",
+            "invoice_number": "INV4013001",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L002",
+        "date": "2024-10-06",
+        "city": "Madrid",
+        "country": "Spain",
+        "category": "Accommodation",
+        "amount": 1515.61,
+        "description": "Madrid Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4013002",
+            "date": "2024-10-06",
+            "vendor": "Madrid Hotel",
+            "city": "Madrid",
+            "country": "Spain",
+            "amount": 1515.61,
+            "category": "Accommodation",
+            "tax_amount": 151.56,
+            "description": "Madrid hotel accommodation fee",
+            "invoice_number": "INV4013002",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L003",
+        "date": "2024-10-07",
+        "city": "Madrid",
+        "country": "Spain",
+        "category": "Accommodation",
+        "amount": 1466.59,
+        "description": "Madrid Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4013003",
+            "date": "2024-10-07",
+            "vendor": "Madrid Hotel",
+            "city": "Madrid",
+            "country": "Spain",
+            "amount": 1466.59,
+            "category": "Accommodation",
+            "tax_amount": 146.66,
+            "description": "Madrid hotel accommodation fee",
+            "invoice_number": "INV4013003",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L004",
+        "date": "2024-10-05",
+        "city": "Madrid",
+        "country": "Spain",
+        "category": "Meals",
+        "amount": 1120.0,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4013004",
+            "date": "2024-10-05",
+            "vendor": "Restaurant",
+            "city": "Madrid",
+            "country": "Spain",
+            "amount": 1120.0,
+            "category": "Meals",
+            "tax_amount": 89.6,
+            "description": "Meals expense",
+            "invoice_number": "INV4013004",
+            "client_entertainment": true
+          }
+        ]
+      },
+      {
+        "line_id": "L005",
+        "date": "2024-10-06",
+        "city": "Madrid",
+        "country": "Spain",
+        "category": "Meals",
+        "amount": 622.4,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4013005",
+            "date": "2024-10-06",
+            "vendor": "Restaurant",
+            "city": "Madrid",
+            "country": "Spain",
+            "amount": 622.4,
+            "category": "Meals",
+            "tax_amount": 49.79,
+            "description": "Meals expense",
+            "invoice_number": "INV4013005",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L006",
+        "date": "2024-10-07",
+        "city": "Madrid",
+        "country": "Spain",
+        "category": "Meals",
+        "amount": 617.99,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4013006",
+            "date": "2024-10-07",
+            "vendor": "Restaurant",
+            "city": "Madrid",
+            "country": "Spain",
+            "amount": 617.99,
+            "category": "Meals",
+            "tax_amount": 49.44,
+            "description": "Meals expense",
+            "invoice_number": "INV4013006",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L007",
+        "date": "2024-10-05",
+        "city": "Madrid",
+        "country": "Spain",
+        "category": "Transportation",
+        "amount": 174.02,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4013007",
+            "date": "2024-10-05",
+            "vendor": "Taxi/Transit",
+            "city": "Madrid",
+            "country": "Spain",
+            "amount": 174.02,
+            "category": "Transportation",
+            "tax_amount": 13.92,
+            "description": "Local city transport",
+            "invoice_number": "INV4013007"
+          }
+        ]
+      },
+      {
+        "line_id": "L008",
+        "date": "2024-10-06",
+        "city": "Madrid",
+        "country": "Spain",
+        "category": "Transportation",
+        "amount": 375.0,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4013008",
+            "date": "2024-10-06",
+            "vendor": "Taxi/Transit",
+            "city": "Madrid",
+            "country": "Spain",
+            "amount": 375.0,
+            "category": "Transportation",
+            "tax_amount": 30.0,
+            "description": "Local city transport",
+            "invoice_number": "INV4013008"
+          }
+        ]
+      },
+      {
+        "line_id": "L009",
+        "date": "2024-10-07",
+        "city": "Madrid",
+        "country": "Spain",
+        "category": "Transportation",
+        "amount": 152.45,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4013009",
+            "date": "2024-10-07",
+            "vendor": "Taxi/Transit",
+            "city": "Madrid",
+            "country": "Spain",
+            "amount": 152.45,
+            "category": "Transportation",
+            "tax_amount": 12.2,
+            "description": "Local city transport",
+            "invoice_number": "INV4013009"
+          }
+        ]
+      },
+      {
+        "line_id": "L010",
+        "date": "2024-10-05",
+        "city": "Madrid",
+        "country": "Spain",
+        "category": "Communication",
+        "amount": 325.0,
+        "description": "International roaming",
+        "receipts": [
+          {
+            "receipt_id": "REC4013010",
+            "date": "2024-10-05",
+            "vendor": "Carrier",
+            "city": "Madrid",
+            "country": "Spain",
+            "amount": 325.0,
+            "category": "Communication",
+            "tax_amount": 32.5,
+            "description": "International roaming",
+            "invoice_number": "INV4013010"
+          }
+        ]
+      },
+      {
+        "line_id": "L011",
+        "date": "2024-10-07",
+        "city": "Madrid",
+        "country": "Spain",
+        "category": "Miscellaneous",
+        "amount": 2000.0,
+        "description": "Training/materials/other",
+        "receipts": [
+          {
+            "receipt_id": "REC4013011",
+            "date": "2024-10-07",
+            "vendor": "Vendor",
+            "city": "Madrid",
+            "country": "Spain",
+            "amount": 2000.0,
+            "category": "Miscellaneous",
+            "tax_amount": 160.0,
+            "description": "Other expenses",
+            "invoice_number": "INV4013011"
+          }
+        ]
+      }
+    ],
+    "_policy_violations": [],
+    "_form_errors": []
+  },
+  {
+    "claim_id": "EXP2024014",
+    "employee_id": "EMP007",
+    "employee_name": "Alexander Garcia",
+    "employee_email": "alexander_garcia@mcp.com",
+    "employee_level": "L4",
+    "department": "Marketing Department",
+    "manager_email": "howardd@mcp.com",
+    "trip_start": "2024-10-15",
+    "trip_end": "2024-10-18",
+    "nights": 4,
+    "dest_country": "Switzerland",
+    "dest_city": "Zurich",
+    "total_claimed": 21027.76,
+    "line_items": [
+      {
+        "line_id": "L001",
+        "date": "2024-10-15",
+        "city": "Zurich",
+        "country": "Switzerland",
+        "category": "Accommodation",
+        "amount": 3680.0,
+        "description": "Zurich Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4014001",
+            "date": "2024-10-15",
+            "vendor": "Zurich Hotel",
+            "city": "Zurich",
+            "country": "Switzerland",
+            "amount": 3680.0,
+            "category": "Accommodation",
+            "tax_amount": 368.0,
+            "description": "Zurich hotel accommodation fee",
+            "invoice_number": "INV4014001",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L002",
+        "date": "2024-10-16",
+        "city": "Zurich",
+        "country": "Switzerland",
+        "category": "Accommodation",
+        "amount": 2998.17,
+        "description": "Zurich Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4014002",
+            "date": "2024-10-16",
+            "vendor": "Zurich Hotel",
+            "city": "Zurich",
+            "country": "Switzerland",
+            "amount": 2998.17,
+            "category": "Accommodation",
+            "tax_amount": 299.82,
+            "description": "Zurich hotel accommodation fee",
+            "invoice_number": "INV4014002",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L003",
+        "date": "2024-10-17",
+        "city": "Zurich",
+        "country": "Switzerland",
+        "category": "Accommodation",
+        "amount": 2468.02,
+        "description": "Zurich Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4014003",
+            "date": "2024-10-17",
+            "vendor": "Zurich Hotel",
+            "city": "Zurich",
+            "country": "Switzerland",
+            "amount": 2468.02,
+            "category": "Accommodation",
+            "tax_amount": 246.8,
+            "description": "Zurich hotel accommodation fee",
+            "invoice_number": "INV4014003",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L004",
+        "date": "2024-10-18",
+        "city": "Zurich",
+        "country": "Switzerland",
+        "category": "Accommodation",
+        "amount": 2924.11,
+        "description": "Zurich Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4014004",
+            "date": "2024-10-18",
+            "vendor": "Zurich Hotel",
+            "city": "Zurich",
+            "country": "Switzerland",
+            "amount": 2924.11,
+            "category": "Accommodation",
+            "tax_amount": 292.41,
+            "description": "Zurich hotel accommodation fee",
+            "invoice_number": "INV4014004",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L005",
+        "date": "2024-10-15",
+        "city": "Zurich",
+        "country": "Switzerland",
+        "category": "Meals",
+        "amount": 888.85,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4014005",
+            "date": "2024-10-15",
+            "vendor": "Restaurant",
+            "city": "Zurich",
+            "country": "Switzerland",
+            "amount": 888.85,
+            "category": "Meals",
+            "tax_amount": 71.11,
+            "description": "Meals expense",
+            "invoice_number": "INV4014005",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L006",
+        "date": "2024-10-16",
+        "city": "Zurich",
+        "country": "Switzerland",
+        "category": "Meals",
+        "amount": 999.52,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4014006",
+            "date": "2024-10-16",
+            "vendor": "Restaurant",
+            "city": "Zurich",
+            "country": "Switzerland",
+            "amount": 999.52,
+            "category": "Meals",
+            "tax_amount": 79.96,
+            "description": "Meals expense",
+            "invoice_number": "INV4014006",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L007",
+        "date": "2024-10-17",
+        "city": "Zurich",
+        "country": "Switzerland",
+        "category": "Meals",
+        "amount": 909.34,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4014007",
+            "date": "2024-10-17",
+            "vendor": "Restaurant",
+            "city": "Zurich",
+            "country": "Switzerland",
+            "amount": 909.34,
+            "category": "Meals",
+            "tax_amount": 72.75,
+            "description": "Meals expense",
+            "invoice_number": "INV4014007",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L008",
+        "date": "2024-10-18",
+        "city": "Zurich",
+        "country": "Switzerland",
+        "category": "Meals",
+        "amount": 864.24,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4014008",
+            "date": "2024-10-18",
+            "vendor": "Restaurant",
+            "city": "Zurich",
+            "country": "Switzerland",
+            "amount": 864.24,
+            "category": "Meals",
+            "tax_amount": 69.14,
+            "description": "Meals expense",
+            "invoice_number": "INV4014008",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L009",
+        "date": "2024-10-15",
+        "city": "Zurich",
+        "country": "Switzerland",
+        "category": "Transportation",
+        "amount": 409.01,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4014009",
+            "date": "2024-10-15",
+            "vendor": "Taxi/Transit",
+            "city": "Zurich",
+            "country": "Switzerland",
+            "amount": 409.01,
+            "category": "Transportation",
+            "tax_amount": 32.72,
+            "description": "Local city transport",
+            "invoice_number": "INV4014009"
+          }
+        ]
+      },
+      {
+        "line_id": "L010",
+        "date": "2024-10-16",
+        "city": "Zurich",
+        "country": "Switzerland",
+        "category": "Transportation",
+        "amount": 341.06,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4014010",
+            "date": "2024-10-16",
+            "vendor": "Taxi/Transit",
+            "city": "Zurich",
+            "country": "Switzerland",
+            "amount": 341.06,
+            "category": "Transportation",
+            "tax_amount": 27.28,
+            "description": "Local city transport",
+            "invoice_number": "INV4014010"
+          }
+        ]
+      },
+      {
+        "line_id": "L011",
+        "date": "2024-10-17",
+        "city": "Zurich",
+        "country": "Switzerland",
+        "category": "Transportation",
+        "amount": 328.2,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4014011",
+            "date": "2024-10-17",
+            "vendor": "Taxi/Transit",
+            "city": "Zurich",
+            "country": "Switzerland",
+            "amount": 328.2,
+            "category": "Transportation",
+            "tax_amount": 26.26,
+            "description": "Local city transport",
+            "invoice_number": "INV4014011"
+          }
+        ]
+      },
+      {
+        "line_id": "L012",
+        "date": "2024-10-18",
+        "city": "Zurich",
+        "country": "Switzerland",
+        "category": "Transportation",
+        "amount": 262.24,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4014012",
+            "date": "2024-10-18",
+            "vendor": "Taxi/Transit",
+            "city": "Zurich",
+            "country": "Switzerland",
+            "amount": 262.24,
+            "category": "Transportation",
+            "tax_amount": 20.98,
+            "description": "Local city transport",
+            "invoice_number": "INV4014012"
+          }
+        ]
+      },
+      {
+        "line_id": "L013",
+        "date": "2024-10-15",
+        "city": "Zurich",
+        "country": "Switzerland",
+        "category": "Communication",
+        "amount": 455.0,
+        "description": "International roaming",
+        "receipts": [
+          {
+            "receipt_id": "REC4014013",
+            "date": "2024-10-15",
+            "vendor": "Carrier",
+            "city": "Zurich",
+            "country": "Switzerland",
+            "amount": 455.0,
+            "category": "Communication",
+            "tax_amount": 45.5,
+            "description": "International roaming",
+            "invoice_number": "INV4014013"
+          }
+        ]
+      },
+      {
+        "line_id": "L014",
+        "date": "2024-10-18",
+        "city": "Zurich",
+        "country": "Switzerland",
+        "category": "Miscellaneous",
+        "amount": 3500.0,
+        "description": "Training/materials/other",
+        "receipts": [
+          {
+            "receipt_id": "REC4014014",
+            "date": "2024-10-18",
+            "vendor": "Vendor",
+            "city": "Zurich",
+            "country": "Switzerland",
+            "amount": 3500.0,
+            "category": "Miscellaneous",
+            "tax_amount": 280.0,
+            "description": "Other expenses",
+            "invoice_number": "INV4014014"
+          }
+        ]
+      }
+    ],
+    "_policy_violations": [],
+    "_form_errors": []
+  },
+  {
+    "claim_id": "EXP2024015",
+    "employee_id": "EMP008",
+    "employee_name": "Michael Bennett",
+    "employee_email": "michaelb@mcp.com",
+    "employee_level": "L1",
+    "department": "Finance Department",
+    "manager_email": "howardd@mcp.com",
+    "trip_start": "2024-11-05",
+    "trip_end": "2024-11-08",
+    "nights": 4,
+    "dest_country": "Thailand",
+    "dest_city": "Bangkok",
+    "total_claimed": 5535.09,
+    "line_items": [
+      {
+        "line_id": "L001",
+        "date": "2024-11-05",
+        "city": "Bangkok",
+        "country": "Thailand",
+        "category": "Accommodation",
+        "amount": 805.0,
+        "description": "Bangkok Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4015001",
+            "date": "2024-11-05",
+            "vendor": "Bangkok Hotel",
+            "city": "Bangkok",
+            "country": "Thailand",
+            "amount": 805.0,
+            "category": "Accommodation",
+            "tax_amount": 80.5,
+            "description": "Bangkok hotel accommodation fee",
+            "invoice_number": "INV4015001",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L002",
+        "date": "2024-11-06",
+        "city": "Bangkok",
+        "country": "Thailand",
+        "category": "Accommodation",
+        "amount": 648.53,
+        "description": "Bangkok Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4015002",
+            "date": "2024-11-06",
+            "vendor": "Bangkok Hotel",
+            "city": "Bangkok",
+            "country": "Thailand",
+            "amount": 648.53,
+            "category": "Accommodation",
+            "tax_amount": 64.85,
+            "description": "Bangkok hotel accommodation fee",
+            "invoice_number": "INV4015002",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L003",
+        "date": "2024-11-07",
+        "city": "Bangkok",
+        "country": "Thailand",
+        "category": "Accommodation",
+        "amount": 555.5,
+        "description": "Bangkok Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4015003",
+            "date": "2024-11-07",
+            "vendor": "Bangkok Hotel",
+            "city": "Bangkok",
+            "country": "Thailand",
+            "amount": 555.5,
+            "category": "Accommodation",
+            "tax_amount": 55.55,
+            "description": "Bangkok hotel accommodation fee",
+            "invoice_number": "INV4015003",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L004",
+        "date": "2024-11-08",
+        "city": "Bangkok",
+        "country": "Thailand",
+        "category": "Accommodation",
+        "amount": 550.61,
+        "description": "Bangkok Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4015004",
+            "date": "2024-11-08",
+            "vendor": "Bangkok Hotel",
+            "city": "Bangkok",
+            "country": "Thailand",
+            "amount": 550.61,
+            "category": "Accommodation",
+            "tax_amount": 55.06,
+            "description": "Bangkok hotel accommodation fee",
+            "invoice_number": "INV4015004",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L005",
+        "date": "2024-11-05",
+        "city": "Bangkok",
+        "country": "Thailand",
+        "category": "Meals",
+        "amount": 420.0,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4015005",
+            "date": "2024-11-05",
+            "vendor": "Restaurant",
+            "city": "Bangkok",
+            "country": "Thailand",
+            "amount": 420.0,
+            "category": "Meals",
+            "tax_amount": 33.6,
+            "description": "Meals expense",
+            "invoice_number": "INV4015005",
+            "client_entertainment": true
+          }
+        ]
+      },
+      {
+        "line_id": "L006",
+        "date": "2024-11-06",
+        "city": "Bangkok",
+        "country": "Thailand",
+        "category": "Meals",
+        "amount": 259.2,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4015006",
+            "date": "2024-11-06",
+            "vendor": "Restaurant",
+            "city": "Bangkok",
+            "country": "Thailand",
+            "amount": 259.2,
+            "category": "Meals",
+            "tax_amount": 20.74,
+            "description": "Meals expense",
+            "invoice_number": "INV4015006",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L007",
+        "date": "2024-11-07",
+        "city": "Bangkok",
+        "country": "Thailand",
+        "category": "Meals",
+        "amount": 268.22,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4015007",
+            "date": "2024-11-07",
+            "vendor": "Restaurant",
+            "city": "Bangkok",
+            "country": "Thailand",
+            "amount": 268.22,
+            "category": "Meals",
+            "tax_amount": 21.46,
+            "description": "Meals expense",
+            "invoice_number": "INV4015007",
+            "client_entertainment": true
+          }
+        ]
+      },
+      {
+        "line_id": "L008",
+        "date": "2024-11-08",
+        "city": "Bangkok",
+        "country": "Thailand",
+        "category": "Meals",
+        "amount": 382.81,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4015008",
+            "date": "2024-11-08",
+            "vendor": "Restaurant",
+            "city": "Bangkok",
+            "country": "Thailand",
+            "amount": 382.81,
+            "category": "Meals",
+            "tax_amount": 30.62,
+            "description": "Meals expense",
+            "invoice_number": "INV4015008",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L009",
+        "date": "2024-11-05",
+        "city": "Bangkok",
+        "country": "Thailand",
+        "category": "Transportation",
+        "amount": 81.27,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4015009",
+            "date": "2024-11-05",
+            "vendor": "Taxi/Transit",
+            "city": "Bangkok",
+            "country": "Thailand",
+            "amount": 81.27,
+            "category": "Transportation",
+            "tax_amount": 6.5,
+            "description": "Local city transport",
+            "invoice_number": "INV4015009"
+          }
+        ]
+      },
+      {
+        "line_id": "L010",
+        "date": "2024-11-06",
+        "city": "Bangkok",
+        "country": "Thailand",
+        "category": "Transportation",
+        "amount": 150.0,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4015010",
+            "date": "2024-11-06",
+            "vendor": "Taxi/Transit",
+            "city": "Bangkok",
+            "country": "Thailand",
+            "amount": 150.0,
+            "category": "Transportation",
+            "tax_amount": 12.0,
+            "description": "Local city transport",
+            "invoice_number": "INV4015010"
+          }
+        ]
+      },
+      {
+        "line_id": "L011",
+        "date": "2024-11-07",
+        "city": "Bangkok",
+        "country": "Thailand",
+        "category": "Transportation",
+        "amount": 94.0,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4015011",
+            "date": "2024-11-07",
+            "vendor": "Taxi/Transit",
+            "city": "Bangkok",
+            "country": "Thailand",
+            "amount": 94.0,
+            "category": "Transportation",
+            "tax_amount": 7.52,
+            "description": "Local city transport",
+            "invoice_number": "INV4015011"
+          }
+        ]
+      },
+      {
+        "line_id": "L012",
+        "date": "2024-11-08",
+        "city": "Bangkok",
+        "country": "Thailand",
+        "category": "Transportation",
+        "amount": 64.56,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4015012",
+            "date": "2024-11-08",
+            "vendor": "Taxi/Transit",
+            "city": "Bangkok",
+            "country": "Thailand",
+            "amount": 64.56,
+            "category": "Transportation",
+            "tax_amount": 5.16,
+            "description": "Local city transport",
+            "invoice_number": "INV4015012"
+          }
+        ]
+      },
+      {
+        "line_id": "L013",
+        "date": "2024-11-05",
+        "city": "Bangkok",
+        "country": "Thailand",
+        "category": "Communication",
+        "amount": 130.39,
+        "description": "International roaming",
+        "receipts": [
+          {
+            "receipt_id": "REC4015013",
+            "date": "2024-11-05",
+            "vendor": "Carrier",
+            "city": "Bangkok",
+            "country": "Thailand",
+            "amount": 130.39,
+            "category": "Communication",
+            "tax_amount": 13.04,
+            "description": "International roaming",
+            "invoice_number": "INV4015013"
+          }
+        ]
+      },
+      {
+        "line_id": "L014",
+        "date": "2024-11-08",
+        "city": "Bangkok",
+        "country": "Thailand",
+        "category": "Miscellaneous",
+        "amount": 1125.0,
+        "description": "Training/materials/other",
+        "receipts": [
+          {
+            "receipt_id": "REC4015014",
+            "date": "2024-11-08",
+            "vendor": "Vendor",
+            "city": "Bangkok",
+            "country": "Thailand",
+            "amount": 1125.0,
+            "category": "Miscellaneous",
+            "tax_amount": 90.0,
+            "description": "Other expenses",
+            "invoice_number": "INV4015014"
+          }
+        ]
+      }
+    ],
+    "_policy_violations": [],
+    "_form_errors": []
+  },
+  {
+    "claim_id": "EXP2024016",
+    "employee_id": "EMP008",
+    "employee_name": "Michael Bennett",
+    "employee_email": "michaelb@mcp.com",
+    "employee_level": "L1",
+    "department": "Finance Department",
+    "manager_email": "howardd@mcp.com",
+    "trip_start": "2024-12-10",
+    "trip_end": "2024-12-13",
+    "nights": 4,
+    "dest_country": "Turkey",
+    "dest_city": "Istanbul",
+    "total_claimed": 5708.61,
+    "line_items": [
+      {
+        "line_id": "L001",
+        "date": "2024-12-10",
+        "city": "Istanbul",
+        "country": "Turkey",
+        "category": "Accommodation",
+        "amount": 763.95,
+        "description": "Istanbul Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4016001",
+            "date": "2024-12-10",
+            "vendor": "Istanbul Hotel",
+            "city": "Istanbul",
+            "country": "Turkey",
+            "amount": 763.95,
+            "category": "Accommodation",
+            "tax_amount": 76.4,
+            "description": "Istanbul hotel accommodation fee",
+            "invoice_number": "INV4016001",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L002",
+        "date": "2024-12-11",
+        "city": "Istanbul",
+        "country": "Turkey",
+        "category": "Accommodation",
+        "amount": 726.15,
+        "description": "Istanbul Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4016002",
+            "date": "2024-12-11",
+            "vendor": "Istanbul Hotel",
+            "city": "Istanbul",
+            "country": "Turkey",
+            "amount": 726.15,
+            "category": "Accommodation",
+            "tax_amount": 72.61,
+            "description": "Istanbul hotel accommodation fee",
+            "invoice_number": "INV4016002",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L003",
+        "date": "2024-12-12",
+        "city": "Istanbul",
+        "country": "Turkey",
+        "category": "Accommodation",
+        "amount": 786.37,
+        "description": "Istanbul Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4016003",
+            "date": "2024-12-12",
+            "vendor": "Istanbul Hotel",
+            "city": "Istanbul",
+            "country": "Turkey",
+            "amount": 786.37,
+            "category": "Accommodation",
+            "tax_amount": 78.64,
+            "description": "Istanbul hotel accommodation fee",
+            "invoice_number": "INV4016003",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L004",
+        "date": "2024-12-13",
+        "city": "Istanbul",
+        "country": "Turkey",
+        "category": "Accommodation",
+        "amount": 701.06,
+        "description": "Istanbul Hotel accommodation",
+        "receipts": [
+          {
+            "receipt_id": "REC4016004",
+            "date": "2024-12-13",
+            "vendor": "Istanbul Hotel",
+            "city": "Istanbul",
+            "country": "Turkey",
+            "amount": 701.06,
+            "category": "Accommodation",
+            "tax_amount": 70.11,
+            "description": "Istanbul hotel accommodation fee",
+            "invoice_number": "INV4016004",
+            "nights": 1
+          }
+        ]
+      },
+      {
+        "line_id": "L005",
+        "date": "2024-12-10",
+        "city": "Istanbul",
+        "country": "Turkey",
+        "category": "Meals",
+        "amount": 362.49,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4016005",
+            "date": "2024-12-10",
+            "vendor": "Restaurant",
+            "city": "Istanbul",
+            "country": "Turkey",
+            "amount": 362.49,
+            "category": "Meals",
+            "tax_amount": 29.0,
+            "description": "Meals expense",
+            "invoice_number": "INV4016005",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L006",
+        "date": "2024-12-11",
+        "city": "Istanbul",
+        "country": "Turkey",
+        "category": "Meals",
+        "amount": 331.3,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4016006",
+            "date": "2024-12-11",
+            "vendor": "Restaurant",
+            "city": "Istanbul",
+            "country": "Turkey",
+            "amount": 331.3,
+            "category": "Meals",
+            "tax_amount": 26.5,
+            "description": "Meals expense",
+            "invoice_number": "INV4016006",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L007",
+        "date": "2024-12-12",
+        "city": "Istanbul",
+        "country": "Turkey",
+        "category": "Meals",
+        "amount": 350.11,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4016007",
+            "date": "2024-12-12",
+            "vendor": "Restaurant",
+            "city": "Istanbul",
+            "country": "Turkey",
+            "amount": 350.11,
+            "category": "Meals",
+            "tax_amount": 28.01,
+            "description": "Meals expense",
+            "invoice_number": "INV4016007",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L008",
+        "date": "2024-12-13",
+        "city": "Istanbul",
+        "country": "Turkey",
+        "category": "Meals",
+        "amount": 355.29,
+        "description": "Meals expense",
+        "receipts": [
+          {
+            "receipt_id": "REC4016008",
+            "date": "2024-12-13",
+            "vendor": "Restaurant",
+            "city": "Istanbul",
+            "country": "Turkey",
+            "amount": 355.29,
+            "category": "Meals",
+            "tax_amount": 28.42,
+            "description": "Meals expense",
+            "invoice_number": "INV4016008",
+            "client_entertainment": false
+          }
+        ]
+      },
+      {
+        "line_id": "L009",
+        "date": "2024-12-10",
+        "city": "Istanbul",
+        "country": "Turkey",
+        "category": "Transportation",
+        "amount": 155.85,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4016009",
+            "date": "2024-12-10",
+            "vendor": "Taxi/Transit",
+            "city": "Istanbul",
+            "country": "Turkey",
+            "amount": 155.85,
+            "category": "Transportation",
+            "tax_amount": 12.47,
+            "description": "Local city transport",
+            "invoice_number": "INV4016009"
+          }
+        ]
+      },
+      {
+        "line_id": "L010",
+        "date": "2024-12-11",
+        "city": "Istanbul",
+        "country": "Turkey",
+        "category": "Transportation",
+        "amount": 225.0,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4016010",
+            "date": "2024-12-11",
+            "vendor": "Taxi/Transit",
+            "city": "Istanbul",
+            "country": "Turkey",
+            "amount": 225.0,
+            "category": "Transportation",
+            "tax_amount": 18.0,
+            "description": "Local city transport",
+            "invoice_number": "INV4016010"
+          }
+        ]
+      },
+      {
+        "line_id": "L011",
+        "date": "2024-12-12",
+        "city": "Istanbul",
+        "country": "Turkey",
+        "category": "Transportation",
+        "amount": 145.6,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4016011",
+            "date": "2024-12-12",
+            "vendor": "Taxi/Transit",
+            "city": "Istanbul",
+            "country": "Turkey",
+            "amount": 145.6,
+            "category": "Transportation",
+            "tax_amount": 11.65,
+            "description": "Local city transport",
+            "invoice_number": "INV4016011"
+          }
+        ]
+      },
+      {
+        "line_id": "L012",
+        "date": "2024-12-13",
+        "city": "Istanbul",
+        "country": "Turkey",
+        "category": "Transportation",
+        "amount": 154.64,
+        "description": "Local city transport",
+        "receipts": [
+          {
+            "receipt_id": "REC4016012",
+            "date": "2024-12-13",
+            "vendor": "Taxi/Transit",
+            "city": "Istanbul",
+            "country": "Turkey",
+            "amount": 154.64,
+            "category": "Transportation",
+            "tax_amount": 12.37,
+            "description": "Local city transport",
+            "invoice_number": "INV4016012"
+          }
+        ]
+      },
+      {
+        "line_id": "L013",
+        "date": "2024-12-10",
+        "city": "Istanbul",
+        "country": "Turkey",
+        "category": "Communication",
+        "amount": 194.43,
+        "description": "International roaming",
+        "receipts": [
+          {
+            "receipt_id": "REC4016013",
+            "date": "2024-12-10",
+            "vendor": "Carrier",
+            "city": "Istanbul",
+            "country": "Turkey",
+            "amount": 194.43,
+            "category": "Communication",
+            "tax_amount": 19.44,
+            "description": "International roaming",
+            "invoice_number": "INV4016013"
+          }
+        ]
+      },
+      {
+        "line_id": "L014",
+        "date": "2024-12-13",
+        "city": "Istanbul",
+        "country": "Turkey",
+        "category": "Miscellaneous",
+        "amount": 456.37,
+        "description": "Training/materials/other",
+        "receipts": [
+          {
+            "receipt_id": "REC4016014",
+            "date": "2024-12-13",
+            "vendor": "Vendor",
+            "city": "Istanbul",
+            "country": "Turkey",
+            "amount": 456.37,
+            "category": "Miscellaneous",
+            "tax_amount": 36.51,
+            "description": "Other expenses",
+            "invoice_number": "INV4016014"
+          }
+        ]
+      }
+    ],
+    "_policy_violations": [],
+    "_form_errors": []
+  }
+]
