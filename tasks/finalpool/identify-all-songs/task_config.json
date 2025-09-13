@@ -1,7 +1,8 @@
 {
     "needed_mcp_servers": [
         "filesystem", 
-        "youtube-transcript"
+        "youtube-transcript",
+        "playwright_with_chunk"
     ],
     "needed_local_tools": ["web_search","claim_done","handle_overlong_tool_outputs"]
 }
