@@ -43,7 +43,7 @@ all_token_key_session = Dict(
     google_cloud_allowed_instances = "null",
 
     #### Github
-    github_token = "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", # TO BR FILLED
+    github_token = "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", # TO BR FILLED
     github_allowed_repos = "", # KEEP_IT_ASIS_CUA_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR
     github_read_only = "1", # default to ban write, but the tasks should open it if needed
     
