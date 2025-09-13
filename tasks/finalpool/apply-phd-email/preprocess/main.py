@@ -9,6 +9,31 @@ from utils.mcp.tool_servers import MCPServerManager, call_tool_with_retry, ToolC
 
 sys.path.insert(0, str(Path(__file__).parent.parent))  # 添加任务目录到路径
 from token_key_session import all_token_key_session
+from utils.local_email import LocalEmailManager
+
+def clear_all_email_folders():
+    """
+    清理INBOX、Draft、Sent三个文件夹的邮件
+    """
+    # 获取邮件配置文件路径
+    emails_config_file = all_token_key_session.emails_config_file
+    print(f"使用邮件配置文件: {emails_config_file}")
+    
+    # 初始化邮件管理器
+    email_manager = LocalEmailManager(emails_config_file, verbose=True)
+    
+    # 清理各个邮箱文件夹
+    folders_to_clear = ['INBOX', 'Draft', 'Sent']
+    
+    for folder in folders_to_clear:
+        try:
+            print(f"清理 {folder} 文件夹...")
+            email_manager.clear_all_emails(mailbox=folder)
+            print(f"✅ {folder} 文件夹清理完成")
+        except Exception as e:
+            print(f"⚠️ 清理 {folder} 文件夹时出错: {e}")
+    
+    print("📧 所有邮箱文件夹清理完成")
 
 async def import_emails_via_mcp(backup_file: str, description: str = ""):
     """
@@ -82,6 +107,12 @@ if __name__=="__main__":
     print("Preprocessing...")
     print("使用MCP邮件导入模式")
     
+    # 步骤0：清理邮箱
+    print("=" * 60)
+    print("第零步：清理邮箱文件夹")
+    print("=" * 60)
+    clear_all_email_folders()
+    
     # 获取邮件配置文件路径（用于配置MCP server）
     emails_config_file = all_token_key_session.emails_config_file
     print(f"使用邮件配置文件: {emails_config_file}")
@@ -92,7 +123,7 @@ if __name__=="__main__":
         print("❌ 未找到任务邮件备份文件，请先运行转换脚本生成emails_backup.json")
         sys.exit(1)
     
-    print("=" * 60)
+    print("\n" + "=" * 60)
     print("第一步：导入任务相关邮件")
     print("=" * 60)
     success1 = asyncio.run(import_emails_via_mcp(str(task_backup_file), "（任务邮件）"))
