@@ -1,0 +1,32 @@
+{
+  "groups": [
+    {
+      "manager": { "name": "Richard Reyes", "email": "richard_reyes61@mcp.com", "password": "Rreyes256UBC" },
+      "employees": [
+        { "employee_id": "EMP001", "employee_name": "Timothy Cooper", "email": "coopert@mcp.com", "password": "Ctimb8zmJONx" },
+        { "employee_id": "EMP002", "employee_name": "George Cruz", "email": "cruzg@mcp.com", "password": "george_60ohr" }
+      ]
+    },
+    {
+      "manager": { "name": "Ronald Peterson", "email": "petersonr@mcp.com", "password": "ronald1988@s" },
+      "employees": [
+        { "employee_id": "EMP003", "employee_name": "Frances Jones", "email": "frances_jones@mcp.com", "password": "FJ0906#MWe3n" },
+        { "employee_id": "EMP004", "employee_name": "Sandra Davis", "email": "sandra.davis@mcp.com", "password": "Sdavis930bSo" }
+      ]
+    }
+  ],
+  "employees_to_manager": {
+    "EMP001": { "name": "Richard Reyes", "email": "richard_reyes61@mcp.com", "password": "Rreyes256UBC" },
+    "EMP002": { "name": "Richard Reyes", "email": "richard_reyes61@mcp.com", "password": "Rreyes256UBC" },
+    "EMP003": { "name": "Ronald Peterson", "email": "petersonr@mcp.com", "password": "ronald1988@s" },
+    "EMP004": { "name": "Ronald Peterson", "email": "petersonr@mcp.com", "password": "ronald1988@s" }
+  },
+  "accounts": {
+    "coopert@mcp.com": { "name": "Timothy Cooper", "password": "Ctimb8zmJONx" },
+    "cruzg@mcp.com": { "name": "George Cruz", "password": "george_60ohr" },
+    "frances_jones@mcp.com": { "name": "Frances Jones", "password": "FJ0906#MWe3n" },
+    "sandra.davis@mcp.com": { "name": "Sandra Davis", "password": "Sdavis930bSo" },
+    "richard_reyes61@mcp.com": { "name": "Richard Reyes", "password": "Rreyes256UBC" },
+    "petersonr@mcp.com": { "name": "Ronald Peterson", "password": "ronald1988@s" }
+  }
+}

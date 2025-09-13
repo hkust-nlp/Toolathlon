@@ -1,0 +1,64 @@
+{
+  "emails_sent": [
+    {
+      "recipient": "purchasing.manager@company.com",
+      "subject": "【库存预警】Laptop Dell XPS 13 库存低于安全阈值",
+      "product_id": 101,
+      "product_name": "Laptop Dell XPS 13",
+      "timestamp": "2024-12-15 15:30:01",
+      "status": "sent",
+      "message_id": "msg_001"
+    },
+    {
+      "recipient": "purchasing.manager@company.com",
+      "subject": "【库存预警】iPhone 15 Pro 库存低于安全阈值",
+      "product_id": 102,
+      "product_name": "iPhone 15 Pro",
+      "timestamp": "2024-12-15 15:30:02",
+      "status": "sent",
+      "message_id": "msg_002"
+    },
+    {
+      "recipient": "purchasing.manager@company.com",
+      "subject": "【库存预警】Samsung 65\" QLED TV 库存低于安全阈值",
+      "product_id": 104,
+      "product_name": "Samsung 65\" QLED TV",
+      "timestamp": "2024-12-15 15:30:03",
+      "status": "sent",
+      "message_id": "msg_003"
+    },
+    {
+      "recipient": "purchasing.manager@company.com",
+      "subject": "【库存预警】iPad Air 5th Gen 库存低于安全阈值",
+      "product_id": 106,
+      "product_name": "iPad Air 5th Gen",
+      "timestamp": "2024-12-15 15:30:04",
+      "status": "sent",
+      "message_id": "msg_004"
+    },
+    {
+      "recipient": "purchasing.manager@company.com",
+      "subject": "【库存预警】Canon EOS R6 库存低于安全阈值",
+      "product_id": 107,
+      "product_name": "Canon EOS R6",
+      "timestamp": "2024-12-15 15:30:05",
+      "status": "sent",
+      "message_id": "msg_005"
+    },
+    {
+      "recipient": "purchasing.manager@company.com",
+      "subject": "【库存预警】Microsoft Surface Pro 9 库存低于安全阈值",
+      "product_id": 108,
+      "product_name": "Microsoft Surface Pro 9",
+      "timestamp": "2024-12-15 15:30:06",
+      "status": "sent",
+      "message_id": "msg_006"
+    }
+  ],
+  "summary": {
+    "total_emails": 6,
+    "successful": 6,
+    "failed": 0,
+    "send_time": "2024-12-15 15:30:00"
+  }
+}

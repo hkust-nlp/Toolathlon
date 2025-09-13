@@ -13,7 +13,6 @@ sys.path.append(project_root)
 import configs.token_key_session as configs
 
 GOOGLE_CREDENTIALS_PATH = 'configs/google_credentials.json'
-NOTION_TOKEN = configs.all_token_key_session.notion_integration_key  # 从配置中获取Notion token
 TARGET_FOLDER_ID = "1kY4IMn6aRrezElP10v1rXbFpwT271dqU"  # 指定的Google Drive文件夹ID，与preprocess保持一致
 SCOPES = [
     'https://www.googleapis.com/auth/spreadsheets',

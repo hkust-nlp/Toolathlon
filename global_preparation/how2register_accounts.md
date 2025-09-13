@@ -198,10 +198,12 @@ record the url of this duplicated page (not our public page) as the `source_noti
 Please also create a new page called `Notion Eval Page` directly under your workspace,
 record the url if this new page as the `eval_notion_page_url` variable in `configs/token_key_session.py`
 
-Also, create an intrgration that include these above two pages, see https://www.notion.so/profile/integrations, and record the "Internal Integration Secret" as `notion_integration_key` veriable in `configs/token_key_session..py`
+Also, create an intrgration that include these above two pages, see https://www.notion.so/profile/integrations, and record the "Internal Integration Secret" as `notion_integration_key` veriable in `configs/token_key_session.py`
 ![](./figures/notion_part1.png)
 ![](./figures/notion_part2.png)
 ![](./figures/notion_part3.png)
+
+Finally, similar to the above steps, create an intrgration key for evaluation use only. Please only select `Notion Eval Page` into the access range of it. Record this key as `notion_integration_key_eval` variable in `configs/token_key_session.py`.
 
 
 #### SnowFlake Account

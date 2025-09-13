@@ -1,0 +1,11 @@
+{
+  "email": "johnh@mcp.com",
+  "password": "JH0613!Kw2AM",
+  "name": "Store93 产品召回专项小组",
+  "imap_server": "localhost",
+  "imap_port": 1143,
+  "smtp_server": "localhost",
+  "smtp_port": 1587,
+  "use_ssl": false,
+  "use_starttls": false
+}

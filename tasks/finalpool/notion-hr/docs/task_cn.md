@@ -1,4 +1,4 @@
-请根据我工作区下的简历更新候选人信息到Notion页面上的HR Record子页面。同时，如果申请者所申请的职位目前不招人，那就给对应的申请者发一封邮件，输入如下模板信息即可（包含换行），不要误发邮件：
+请根据我工作区下的简历更新候选人信息到Notion页面上的HR Record子页，所有信息请严格按照简历上的内容填写，不要擅自修改和增减单词，顺便把记录表里原有的示例数删掉。同时，如果申请者所申请的职位目前不招人，那就给对应的申请者发一封邮件，输入如下模板信息即可（包含换行），不要误发邮件：
 "Dear Applicant,
 
 Thank you very much for your interest in joining MCP Inc and for taking the time to submit your application. We truly appreciate the effort you put into applying for this position.

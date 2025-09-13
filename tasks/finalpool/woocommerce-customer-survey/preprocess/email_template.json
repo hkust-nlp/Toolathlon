@@ -1,0 +1,7 @@
+{
+  "subject": "感谢您的购买！请分享您的购物体验 - {customer_name}",
+  "body_template": "亲爱的 {customer_name}，\n\n感谢您在我们商店购买 {product_name}！\n\n您的订单 #{order_number} 已于 {completion_date} 成功完成。为了不断改善我们的服务质量，我们诚挚邀请您花几分钟时间分享您的购物体验。\n\n请点击以下链接填写简短的反馈问卷：\n{survey_link}\n\n您的意见对我们非常重要，将帮助我们为您和其他客户提供更好的服务。\n\n产品详情：\n- 产品名称：{product_name}\n- 订单金额：¥{product_price}\n- 购买数量：{quantity}\n\n如果您对产品或服务有任何问题，请随时联系我们的客服团队。\n\n再次感谢您的支持！\n\n此致\n客户服务团队\n在线商城",
+  "content_type": "text/plain",
+  "from_name": "在线商城客服",
+  "reply_to": "support@mcp.com"
+}

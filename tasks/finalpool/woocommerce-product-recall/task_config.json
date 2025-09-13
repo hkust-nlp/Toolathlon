@@ -1,0 +1,6 @@
+{
+    "needed_mcp_servers": ["woocommerce", "emails", "google_forms", "filesystem"],
+    "needed_local_tools": ["claim_done"],
+    "meta": {
+    }
+}

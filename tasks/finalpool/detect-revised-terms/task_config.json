@@ -1,5 +1,5 @@
 {
-    "needed_mcp_servers": ["filesystem", "excel", "pdf-tools"],
-    "needed_local_tools": ["ai_webpage_summary","claim_done","manage_context","history"],
+    "needed_mcp_servers": ["filesystem", "pdf-tools"],
+    "needed_local_tools": ["claim_done","python_execute"],
     "meta": {}
 }

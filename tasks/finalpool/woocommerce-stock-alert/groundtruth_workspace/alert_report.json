@@ -1,0 +1,90 @@
+{
+  "check_time": "2024-12-15 15:30:00",
+  "low_stock_products": [
+    {
+      "id": 101,
+      "name": "Laptop Dell XPS 13",
+      "sku": "DELL-XPS-13",
+      "current_stock": 5,
+      "threshold": 10,
+      "supplier": {
+        "name": "Dell China",
+        "contact": "supplier@dell.cn",
+        "supplier_id": "SUP001"
+      }
+    },
+    {
+      "id": 102,
+      "name": "iPhone 15 Pro",
+      "sku": "IPHONE-15-PRO",
+      "current_stock": 3,
+      "threshold": 15,
+      "supplier": {
+        "name": "Apple Authorized Distributor",
+        "contact": "sales@apple-distributor.cn",
+        "supplier_id": "SUP002"
+      }
+    },
+    {
+      "id": 104,
+      "name": "Samsung 65\" QLED TV",
+      "sku": "SAMSUNG-Q80B-65",
+      "current_stock": 2,
+      "threshold": 5,
+      "supplier": {
+        "name": "Samsung Display",
+        "contact": "b2b@samsung.cn",
+        "supplier_id": "SUP004"
+      }
+    },
+    {
+      "id": 106,
+      "name": "iPad Air 5th Gen",
+      "sku": "IPAD-AIR-5",
+      "current_stock": 7,
+      "threshold": 12,
+      "supplier": {
+        "name": "Apple Authorized Distributor",
+        "contact": "sales@apple-distributor.cn",
+        "supplier_id": "SUP002"
+      }
+    },
+    {
+      "id": 107,
+      "name": "Canon EOS R6",
+      "sku": "CANON-EOS-R6",
+      "current_stock": 4,
+      "threshold": 8,
+      "supplier": {
+        "name": "Canon Professional",
+        "contact": "pro@canon.com.cn",
+        "supplier_id": "SUP006"
+      }
+    },
+    {
+      "id": 108,
+      "name": "Microsoft Surface Pro 9",
+      "sku": "MS-SURFACE-PRO9",
+      "current_stock": 1,
+      "threshold": 6,
+      "supplier": {
+        "name": "Microsoft China",
+        "contact": "surface@microsoft.cn",
+        "supplier_id": "SUP007"
+      }
+    }
+  ],
+  "sheets_updates": {
+    "spreadsheet_id": "1A2B3C4D5E6F7G8H9I0J",
+    "sheet_name": "采购需求清单",
+    "records_added": 6,
+    "update_time": "2024-12-15 15:30:05"
+  },
+  "email_notifications": {
+    "total_sent": 6,
+    "recipient": "purchasing.manager@company.com",
+    "status": "all_sent_successfully"
+  },
+  "execution_status": "completed",
+  "execution_time_seconds": 12.5
+}
