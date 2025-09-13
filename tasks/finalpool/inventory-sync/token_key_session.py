@@ -39,7 +39,7 @@ all_token_key_session = Dict(
     kubeconfig_path = "PLEASE_RESET_IN_TASK_SPECIFIC_DIR",
 
     gcp_project_id = "mcp-bench0606",
-    gcp_service_account_path = "configs/mcp-bench0606-2b68b5487343.json",
+    gcp_service_account_path = "configs/gcp-service_account.keys.json",
 
     # default set to null to disable the agent from access anything
     # reset in task specific dir for the names your task needs

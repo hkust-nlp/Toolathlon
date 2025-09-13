@@ -21,7 +21,7 @@ pip install -r requirements.txt
 ### 方法2: 使用Service Account
 
 如果需要Service Account认证：
-- `configs/mcp-bench0606-2b68b5487343.json` - Service Account密钥
+- `configs/gcp-service_account.keys.json` - Service Account密钥
 
 ## 🚀 使用方法
 

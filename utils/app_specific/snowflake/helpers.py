@@ -28,3 +28,4 @@ def escape_sql_literal(value: Optional[str]) -> str:
     return str(value).replace("'", "''")
 
 
+
