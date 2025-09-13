@@ -1,5 +1,5 @@
 {
-    "needed_mcp_servers": ["k8s"],
-    "needed_local_tools": [""],
+    "needed_mcp_servers": ["youtube"],
+    "needed_local_tools": [],
     "meta": {}
 }

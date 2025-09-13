@@ -23,7 +23,7 @@ def main():
     parser = ArgumentParser(description="Preprocess flagged-transactions data for BigQuery")
     parser.add_argument("--agent_workspace", required=True, help="Agent workspace directory")
     parser.add_argument("--credentials_file", required=False, 
-                       default="configs/mcp-bench0606-2b68b5487343.json",
+                       default="configs/gcp-service_account.keys.json",
                        help="Path to Google Cloud credentials JSON file")
     parser.add_argument("--launch_time", required=False, help="Launch time")
     args = parser.parse_args()

@@ -98,7 +98,7 @@ def validate_record_data(actual_records: dict, expected_records: dict, tolerance
     
     print(f"✅ All {validated_count} scenarios validated successfully with {tolerance_pct}% tolerance")
 
-def get_project_id_and_credentials(credentials_file="configs/mcp-bench0606-2b68b5487343.json"):
+def get_project_id_and_credentials(credentials_file="configs/gcp-service_account.keys.json"):
     """Get project ID and credentials from a service account file."""
     try:
         credentials_path = Path(credentials_file)

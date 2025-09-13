@@ -205,7 +205,7 @@ class EmailValidator:
 class DatabaseValidator:
     """Validate customer database in BigQuery"""
     
-    def __init__(self, credentials_path: str = "configs/mcp-bench0606-2b68b5487343.json",
+    def __init__(self, credentials_path: str = "configs/gcp-service_account.keys.json",
                  project_id: str = "mcp-bench0606",
                  dataset_id: str = "woocommerce_crm"):
         self.credentials_path = credentials_path
