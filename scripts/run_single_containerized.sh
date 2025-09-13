@@ -170,7 +170,7 @@ if [ "$CONTAINER_RUNTIME" = "podman" ]; then
         echo "Warning: Podman socket not found, Kind may not work"
         echo "Tip: Please manually run 'systemctl --user start podman.socket' or 'sudo systemctl start podman.socket'"
     fi
-    # # Set environment variable for Kind to use Podman
+    # Set environment variable for Kind to use Podman
     START_CONTAINER_ARGS+=(
         "-e" "KIND_EXPERIMENTAL_PROVIDER=podman"
     )

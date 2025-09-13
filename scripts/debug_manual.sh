@@ -7,7 +7,7 @@
 
 uv run demo.py \
 --eval_config scripts/debug_eval_config.json \
---task_dir finalpool/verl-dataset \
+--task_dir finalpool/k8s-pr-preview-testing \
 --debug \
 --model_short_name gpt-5-mini \
 --provider aihubmix \
