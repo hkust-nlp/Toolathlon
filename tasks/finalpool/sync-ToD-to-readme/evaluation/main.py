@@ -235,13 +235,11 @@ def main():
     parser.add_argument("--agent_workspace", required=False)
     parser.add_argument("--groundtruth_workspace", required=False)
     parser.add_argument("--res_log_file", required=False)
-    parser.add_argument("submission_path", help="提交的README.md文件路径")
-    parser.add_argument("groundtruth_path", help="标准答案README.md文件路径")
     parser.add_argument("--verbose", "-v", action="store_true", help="显示详细信息")
     parser.add_argument("--launch_time", required=False, help="Launch time")
     args = parser.parse_args()
     
-    success, feedback = evaluate_readme_todos(args.submission_path, args.groundtruth_path)
+    success, feedback = evaluate_readme_todos(args.agent_workspace, args.groundtruth_workspace)
     
     if args.verbose or not success:
         print(feedback)
