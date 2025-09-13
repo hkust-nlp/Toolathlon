@@ -48,7 +48,7 @@ all_token_key_session = Dict(
     github_read_only = "1", # default to ban write, but the tasks should open it if needed
     
     #### Huggingface
-    huggingface_token = "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", # TO BR FILLED
+    huggingface_token = "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", # TO BR FILLED
 
     #### Wandb
     wandb_api_key = "b3abe195bd69c07bdc47469d3956ac8d0c008714", # TO BR FILLED
