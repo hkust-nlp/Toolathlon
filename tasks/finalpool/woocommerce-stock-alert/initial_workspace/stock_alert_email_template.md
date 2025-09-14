@@ -1,28 +1,26 @@
-# 库存预警邮件模板
+# Stock Alert Email Template
 
-## 邮件主题
-【库存预警】{product_name} 库存低于安全阈值
+## Email Subject
+[Stock Alert] {product_name} Stock Below Safety Threshold
 
-## 邮件正文
+## Email Body
 
-尊敬的{recipient_name}，
+Dear Purchasing Manager,
 
-系统检测到以下产品库存低于安全阈值，请及时处理：
+The system has detected that the following product's stock level is below the safety threshold. Please take immediate action:
 
-## 产品信息
-- **产品名称**: {product_name}
-- **SKU**: {sku} 
-- **当前库存**: {current_stock}
-- **安全阈值**: {threshold}
-- **供应商**: {supplier_name}
-- **供应商联系方式**: {supplier_contact}
+## Product Information
+- **Product Name**: {product_name}
+- **SKU**: {sku}
+- **Current Stock**: {current_stock}
+- **Safety Threshold**: {threshold}
+- **Supplier**: {supplier_name}
+- **Supplier Contact**: {supplier_contact}
 
-## 建议操作
-建议采购数量：{suggested_quantity}
+## Action Required
+Please review the stock levels and consider placing a purchase order to replenish inventory.
 
-请点击以下链接查看采购需求清单：
-{sheets_link}
+For detailed information and to update the purchase requisition list, please visit the Google Sheets link: {google_sheets_link}
 
----
-此邮件由库存监控系统自动发送  
-发送时间：{timestamp}
+Best regards,
+Stock Alert System
