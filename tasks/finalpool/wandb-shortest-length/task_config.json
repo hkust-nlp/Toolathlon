@@ -1,5 +1,5 @@
 {
-    "needed_mcp_servers": ["wandb", "filesystem", "terminal"],
+    "needed_mcp_servers": ["wandb", "filesystem", "terminal", "excel"],
     "needed_local_tools": ["claim_done"],
     "meta": {}
 }

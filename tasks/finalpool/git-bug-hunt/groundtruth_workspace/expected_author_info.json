@@ -1,0 +1,6 @@
+{
+    "name": "Patrick Cruz",
+    "email": "patrick_cruz@mcp.com",
+    "commit_hash": "cdd6234342b147880f5d86c55dad6c1fbe222bfe",
+    "commit_message": "add experimental caching layer optimization\n\nIntroduced remove_caching_layer flag to optimize memory usage during\noff-policy ratio computation. This experimental feature may impact\nperformance in large-scale training scenarios."
+} 

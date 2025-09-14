@@ -1,6 +1,6 @@
 {
     "id": "tripAdviser",
     "needed_mcp_servers": ["google_map", "fetch", "filesystem", "playwright_with_chunk"],
-    "needed_local_tools": ["claim_done"],
+    "needed_local_tools": ["claim_done", "search_overlong_tooloutput"],
     "meta": {}
 } 

@@ -331,12 +331,20 @@ def check_email_sending(agent_workspace: str, wc_client: WooCommerceClient) -> T
                     # 判断邮件类型
                     subject_lower = subject.lower()
                     
-                    # 新品预约邮件关键词
-                    appointment_keywords = ['新品', '预约', '预订', '即将发布', 'new product', 'appointment', 'pre-order']
+                    # 新品预约邮件关键词 (English focus)
+                    appointment_keywords = [
+                        'new product', 'new arrival', 'appointment', 'pre-order', 'pre order',
+                        'upcoming', 'coming soon', 'launch', 'release', 'reserve',
+                        '新品', '预约', '预订', '即将发布'
+                    ]
                     is_appointment_email = any(keyword in subject_lower for keyword in appointment_keywords)
-                    
-                    # 折扣邮件关键词
-                    discount_keywords = ['折扣', '优惠', '特价', '促销', 'discount', 'sale', 'promotion']
+
+                    # 折扣邮件关键词 (English focus)
+                    discount_keywords = [
+                        'discount', 'sale', 'promotion', 'deal', 'offer', 'save', 'off',
+                        'special price', 'limited time', 'clearance',
+                        '折扣', '优惠', '特价', '促销'
+                    ]
                     is_discount_email = any(keyword in subject_lower for keyword in discount_keywords)
                     
                     # 统计收件人
@@ -359,27 +367,30 @@ def check_email_sending(agent_workspace: str, wc_client: WooCommerceClient) -> T
             expected_discount = len(discount_subscribers)
             actual_appointment = len(appointment_emails)
             actual_discount = len(discount_emails)
-            
+            total_customers = len(all_customers)
+
             print(f"📧 邮件发送统计:")
-            print(f"   预约邮件: {actual_appointment}/{expected_appointment} (订阅用户)")
-            print(f"   折扣邮件: {actual_discount}/{expected_discount} (所有客户)")
+            print(f"   预约邮件: {actual_appointment}/{expected_appointment} (新品订阅用户)")
+            print(f"   折扣邮件: {actual_discount}/{total_customers} (所有客户)")
             
-            # 验证新品预约邮件
+            # 验证新品预约邮件 - 严格按照任务要求
             if expected_appointment > 0:
                 # 至少要发送给80%的订阅用户
-                appointment_threshold = max(1, expected_appointment * 0.8)
+                appointment_threshold = max(1, int(expected_appointment * 0.8))
                 if actual_appointment < appointment_threshold:
-                    return False, f"新品预约邮件发送不足: 发送给{actual_appointment}个客户，期望至少{expected_appointment}个订阅用户"
+                    return False, f"新品预约邮件发送不足: 发送给{actual_appointment}个客户，期望至少{appointment_threshold}个订阅用户"
             else:
-                # 如果没有订阅用户，但发送了预约邮件，也是可以的
+                # 如果没有订阅用户，不应该发送预约邮件
                 if actual_appointment > 0:
-                    print("   ℹ️ 没有订阅用户但发送了预约邮件，可能是发给所有客户")
+                    return False, f"错误：发送了{actual_appointment}个预约邮件，但没有订阅新品提醒的用户"
             
-            # 验证折扣邮件（应该发给所有客户或至少大部分客户）
-            if expected_discount > 0:
-                discount_threshold = max(1, expected_discount * 0.8)  # 至少80%的客户
+            # 验证折扣邮件（根据任务要求应该发给所有客户）
+            total_customers = len(all_customers)
+            if total_customers > 0:
+                # 折扣邮件应该发给所有客户，允许80%的成功率
+                discount_threshold = max(1, int(total_customers * 0.8))
                 if actual_discount < discount_threshold:
-                    return False, f"折扣邮件发送不足: 发送给{actual_discount}个客户，期望至少{expected_discount}个客户"
+                    return False, f"折扣邮件发送不足: 发送给{actual_discount}个客户，期望至少发给{discount_threshold}个客户（所有{total_customers}个客户的80%）"
             
             # 检查是否有基本的邮件发送
             if actual_appointment == 0 and actual_discount == 0:
