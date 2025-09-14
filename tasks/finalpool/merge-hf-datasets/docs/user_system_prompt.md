@@ -1,1 +1,0 @@
-当你看到这条消息，请提示任务创建者当前用于LLM模拟用户的system prompt还未构建，请不要启用--multi_turn_mode模式，最后输出#### STOP来结束对话
