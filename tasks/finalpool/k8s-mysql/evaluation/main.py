@@ -6,6 +6,11 @@ from utils.general.helper import run_command, get_module_path
 import asyncio
 import sys
 import json
+import subprocess
+import socket
+import pymysql
+
+KUBECONFIG_PATH = "deployment/k8s/configs/cluster-mysql-config.yaml"
 
 def normalize_str(s: str) -> str:
     """去掉前后空格、双引号，压缩中间空格，并转为小写"""
@@ -16,7 +21,6 @@ def normalize_str(s: str) -> str:
     # 压缩多余空格
     s = re.sub(r'\s+', ' ', s)
     return s.lower()
-
 
 def compare_csv(gt_path: str, target_path: str) -> bool:
     """比较 target 是否与 gt 一致"""
@@ -51,88 +55,89 @@ def compare_csv(gt_path: str, target_path: str) -> bool:
     return True
 
 def check_safe_connection(res_log_file):
-    """检查日志中是否包含至少一次成功的 k8s-port_forward 工具调用和 k8s-stop_port_forward 工具调用"""
-    if not res_log_file or not Path(res_log_file).exists():
-        print("Log file not found or not provided")
-        return False
-    
+    """Check if port 30124 is actively forwarded to MySQL service by:
+    1. Checking for active kubectl port-forward processes targeting port 30124
+    2. Testing direct connectivity to localhost:30124
+    3. Verifying MySQL connection using reader/mcpbench0606 credentials
+    """
+
+    print("Checking safe connection via direct cluster inspection...")
+
+    # Step 1: Check for active kubectl port-forward processes targeting port 30124
+    print("Step 1: Checking for active kubectl port-forward processes...")
     try:
-        with open(res_log_file, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-        
-        messages = data.get('messages', [])
-        
-        port_forward_success = False
-        stop_port_forward_called = False
-        
-        # 遍历所有消息，查找相关工具调用
-        for i, message in enumerate(messages):
-            if message.get('role') == 'assistant' and 'tool_calls' in message:
-                for tool_call in message['tool_calls']:
-                    tool_name = tool_call.get('function', {}).get('name', '')
-                    tool_id = tool_call.get('id', '')
-                    
-                    # 检查 k8s-port_forward
-                    if tool_name == 'k8s-port_forward':
-                        # 查找对应的工具响应
-                        for j in range(i + 1, len(messages)):
-                            if (messages[j].get('role') == 'tool' and 
-                                messages[j].get('tool_call_id') == tool_id):
-                                
-                                tool_response = messages[j].get('content', '')
-                                
-                                # 检查是否成功
-                                success_found = False
-                                
-                                try:
-                                    # 尝试直接解析整个响应
-                                    result = json.loads(tool_response)
-                                    
-                                    # 检查是否有 success 字段
-                                    if result.get('success', False):
-                                        success_found = True
-                                    # 检查是否有嵌套的 text 字段包含 JSON
-                                    elif 'text' in result:
-                                        try:
-                                            inner_result = json.loads(result['text'])
-                                            if inner_result.get('success', False):
-                                                success_found = True
-                                        except json.JSONDecodeError:
-                                            # text 字段不是有效的 JSON，检查文本内容
-                                            text_content = result['text'].lower()
-                                            if 'success' in text_content and 'true' in text_content:
-                                                success_found = True
-                                    
-                                except json.JSONDecodeError:
-                                    # 如果不是JSON格式，检查文本内容
-                                    if 'success' in tool_response.lower() and 'true' in tool_response.lower():
-                                        success_found = True
-                                
-                                if success_found:
-                                    print("Found successful k8s-port_forward call")
-                                    port_forward_success = True
-                                break
-                    
-                    # 检查 k8s-stop_port_forward
-                    elif tool_name == 'k8s-stop_port_forward':
-                        print("Found k8s-stop_port_forward call")
-                        stop_port_forward_called = True
-        
-        # 检查结果
-        if not port_forward_success:
-            print("No successful k8s-port_forward call found")
+        result = subprocess.run(['ps', 'aux'], capture_output=True, text=True, timeout=10)
+        if result.returncode != 0:
+            print("Failed to check processes")
             return False
-        
-        if not stop_port_forward_called:
-            print("No k8s-stop_port_forward call found")
+
+        processes = result.stdout
+        port_forward_found = False
+
+        # Look for kubectl port-forward processes with port 30124
+        for line in processes.split('\n'):
+            if 'kubectl' in line and 'port-forward' in line and '30124' in line:
+                print(f"Found port-forward process: {line.strip()}")
+                port_forward_found = True
+                break
+
+        if not port_forward_found:
+            print("No kubectl port-forward process found targeting port 30124")
             return False
-        
-        print("Safe connection check passed: found both k8s-port_forward (successful) and k8s-stop_port_forward")
-        return True
-        
+
     except Exception as e:
-        print(f"Error reading log file: {e}")
+        print(f"Error checking processes: {e}")
         return False
+
+    # Step 2: Test direct connectivity to localhost:30124
+    print("Step 2: Testing direct connectivity to localhost:30124...")
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(5)
+        result = sock.connect_ex(('localhost', 30124))
+        sock.close()
+
+        if result != 0:
+            print("Cannot connect to localhost:30124")
+            return False
+        print("Successfully connected to localhost:30124")
+
+    except Exception as e:
+        print(f"Error testing connectivity: {e}")
+        return False
+
+    # Step 3: Verify MySQL connection using reader/mcpbench0606 credentials
+    print("Step 3: Verifying MySQL connection with reader credentials...")
+    try:
+        connection = pymysql.connect(
+            host='localhost',
+            port=30124,
+            user='reader',
+            password='mcpbench0606',
+            database='f1',
+            connect_timeout=10,
+            read_timeout=10
+        )
+
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT COUNT(*) as table_count FROM information_schema.tables WHERE table_schema='f1'")
+            result = cursor.fetchone()
+            table_count = result[0] if result else 0
+
+            if table_count > 0:
+                print(f"Successfully connected to f1 database with {table_count} tables")
+                connection.close()
+                return True
+            else:
+                print("Connected but f1 database appears empty")
+                connection.close()
+                return False
+
+    except Exception as e:
+        print(f"Error connecting to MySQL: {e}")
+        return False
+
+    return False
 
 
 if __name__ == "__main__":
@@ -156,7 +161,7 @@ if __name__ == "__main__":
         print("Template file still exists")
         exit(1)
         
-    gt_path = Path(__file__).parent / "gt.csv"
+    gt_path = Path(args.groundtruth_workspace) / "gt.csv"
 
     csv_match = compare_csv(gt_path, target_file)
     if not csv_match:

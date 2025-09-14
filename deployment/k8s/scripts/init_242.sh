@@ -2,7 +2,7 @@
 
 # 设置变量
 k8sconfig_path_dir=deployment/k8s/configs
-cluster_name="cluster242"
+cluster_name="cluster-mysql"
 resource_yaml="deployment/k8s/source_files/242.yaml"
 dataset_path_dir="deployment/k8s/data/242/datasets/rohanrao/formula-1-world-championship-1950-2020/versions/24/."
 schema_path="deployment/k8s/source_files/f1_schema.sql"

@@ -1,14 +1,20 @@
 #!/bin/bash
 
+agent_workspace=$2
+
 # 设置变量
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-k8sconfig_path_dir=deployment/k8s/configs
-cluster_name="cluster242"
+k8sconfig_path_dir=${agent_workspace}/k8s_configs
+backup_k8sconfig_path_dir=deployment/k8s/configs
+cluster_name="cluster-mysql"
 
-resource_yaml="$SCRIPT_DIR/config.yaml"
-dataset_path_dir="$SCRIPT_DIR/../data/f1/."
-schema_path="$SCRIPT_DIR/f1_schema.sql"
+resource_yaml="${SCRIPT_DIR}/../k8s_resources/k8s_mysql.yaml"
+dataset_path_dir="$SCRIPT_DIR/../data"
+podman_or_docker=$(uv run python -c "import sys; sys.path.append('configs'); from global_configs import global_configs; print(global_configs.podman_or_docker)")
+
+echo "podman_or_docker: $podman_or_docker"
+schema_path="$SCRIPT_DIR/../data/f1_schema.sql"
 
 # 颜色输出
 RED='\033[0;31m'
@@ -48,6 +54,14 @@ cleanup_config_files() {
     log_info "No configuration file found for ${cluster_name}"
   fi
   mkdir -p "$k8sconfig_path_dir"
+  local backup_config_path="$backup_k8sconfig_path_dir/${cluster_name}-config.yaml"
+  log_info "Clean up backup configuration file: $backup_config_path"
+  if [ -f "$backup_config_path" ]; then
+    rm -f "$backup_config_path"
+    log_info "Backup configuration file cleaned up"
+  else
+    log_info "No backup configuration file found for ${cluster_name}"
+  fi
 }
 
 # 创建集群
@@ -55,7 +69,7 @@ create_cluster() {
   local cluster_name=$1
   local config_path=$2
   log_info "Create cluster: $cluster_name"
-  if KIND_EXPERIMENTAL_PROVIDER=podman kind create cluster --name "$cluster_name" --kubeconfig "$config_path"; then
+  if KIND_EXPERIMENTAL_PROVIDER=$podman_or_docker kind create cluster --name "$cluster_name" --kubeconfig "$config_path"; then
     log_info "Cluster $cluster_name created successfully"
     return 0
   else
@@ -287,6 +301,28 @@ create_mysql_readonly_user() {
   fi
 }
 
+# 停止操作
+stop_operation() {
+  log_info "========== Start stopping operation =========="
+  cleanup_existing_cluster
+  cleanup_config_files
+  log_info "========== Stopping operation completed =========="
+}
+
+# 显示使用说明
+show_usage() {
+  echo "Usage: $0 [start|stop] [agent_workspace]"
+  echo ""
+  echo "Parameters:"
+  echo "  start - Create and start Kind cluster with MySQL f1 database"
+  echo "  stop  - Stop and clean up the Kind cluster and configuration files"
+  echo "  agent_workspace - Path to agent workspace directory (optional for start)"
+  echo ""
+  echo "Examples:"
+  echo "  $0 start /path/to/workspace   # Create cluster and deploy MySQL with f1 data"
+  echo "  $0 stop                      # Clean up cluster"
+}
+
 # 启动操作
 start_operation() {
   log_info "========== Start Kind cluster deployment =========="
@@ -312,29 +348,61 @@ start_operation() {
   kubectl --kubeconfig="$configpath" -n data wait --for=condition=Ready pod/csv-loader --timeout=120s
 
   # 拷贝 CSV 到 csv-loader
-  kubectl --kubeconfig="$configpath" -n data cp "$dataset_path_dir" csv-loader:/csv
+  kubectl --kubeconfig="$configpath" -n data cp "$dataset_path_dir/f1/." csv-loader:/csv
 
   kubectl -n data exec -i mysql-f1-0 -- mysql -h mysql-f1 -uroot -p"$MYSQL_ROOT_PASSWORD" f1 < "$schema_path"
 
-  load_f1_csv 
+  load_f1_csv
 
   create_mysql_readonly_user
 
+  # 复制配置文件到备份目录
+  mkdir -p "$backup_k8sconfig_path_dir"
+  backup_configpath="$backup_k8sconfig_path_dir/${cluster_name}-config.yaml"
+  cp "$configpath" "$backup_configpath"
+
   log_info "MySQL-f1 initialization completed."
+
+  echo ""
+  log_info "========== MySQL cluster deployment completed =========="
+  log_info "Cluster: $cluster_name"
+  log_info "MySQL database deployed with f1 data"
+  log_info "Cluster config: $configpath"
+  log_info "Backup config: $backup_configpath"
 
   log_info "========== Deployment completed =========="
   log_info "All Kind clusters:"
   kind get clusters
   log_info "Generated configuration files:"
   ls -la "$k8sconfig_path_dir"/*.yaml 2>/dev/null || log_warning "No configuration files found"
+  ls -la "$backup_k8sconfig_path_dir"/*.yaml 2>/dev/null || log_warning "No backup configuration files found"
   show_inotify_status
 }
 
 
 
+# 主函数
+main() {
+  local operation=${1:-start}
+
+  case "$operation" in
+    "start")
+      start_operation
+      ;;
+    "stop")
+      stop_operation
+      ;;
+    *)
+      log_error "Invalid operation: $operation"
+      show_usage
+      exit 1
+      ;;
+  esac
+}
+
 # 检查依赖
 check_dependencies() {
-  local deps=("kind" "kubectl" "podman")
+  local deps=("kind" "kubectl" "$podman_or_docker")
   local missing=()
   for cmd in "${deps[@]}"; do
     if ! command -v "$cmd" &> /dev/null; then
@@ -350,4 +418,4 @@ check_dependencies() {
 
 # 脚本入口
 check_dependencies
-start_operation
+main "$@"
