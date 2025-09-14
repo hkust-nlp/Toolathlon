@@ -492,10 +492,24 @@ API_MAPPINGS = {
         concurrency=32,
         context_window=128000
     ),
+    'grok-code-fast-1': Dict(
+        api_model={"ds_internal": "grok-code-fast-1",
+                   "aihubmix": "grok-code-fast-1"},
+        price=[0.2/1000, 1.5/1000],
+        concurrency=32,
+        context_window=128000
+    ),    
     'kimi-k2-instruct': Dict(
         api_model={"ds_internal": None,
                    "aihubmix": "moonshotai/kimi-k2-instruct"},
         price=[0.62/1000, 2.48/1000],
+        concurrency=32,
+        context_window=128000
+    ),
+    'Kimi-K2-0905': Dict(
+        api_model={"ds_internal": None,
+                   "aihubmix": "Kimi-K2-0905"},
+        price=[0.548/1000, 2.192/1000],
         concurrency=32,
         context_window=128000
     ),
