@@ -4,9 +4,5 @@
         "filesystem",
         "emails"
     ],
-    "needed_local_tools": [],
-    "meta": {
-        "description": "发送新品预约和折扣提醒邮件",
-        "difficulty": "medium"
-    }
+    "needed_local_tools": ["claim_done","python_execute"]
 }
