@@ -166,7 +166,7 @@ def check_abtesting_logging_bucket_clean() -> bool:
         project_id_from_creds, credentials = get_project_id_and_credentials()
         if project_id_from_creds and credentials:
             client = logging.Client(project=project_id_from_creds, credentials=credentials)
-            log_filter = f'logName="projects/{project_id_from_creds}/logs/abtesting_logging"'
+            log_filter = f'logName="projects/{project_id_from_creds}/logs/abtesting_logging" AND NOT jsonPayload.logging\\.googleapis\\.com/diagnostic'
 
             entries = list(client.list_entries(
                 filter_=log_filter,
@@ -174,15 +174,24 @@ def check_abtesting_logging_bucket_clean() -> bool:
                 page_size=50  # Get all entries to verify count and content
             ))
 
+            # Filter out diagnostic logs manually if filter didn't work
+            filtered_entries = []
+            for entry in entries:
+                payload = entry.payload
+                if isinstance(payload, dict) and 'logging.googleapis.com/diagnostic' in payload:
+                    print(f"   Skipping diagnostic log: {payload}")
+                    continue
+                filtered_entries.append(entry)
+
             # Should have exactly 1 entry with "Test log entry created at " prefix
-            if len(entries) != 1:
-                print(f"❌ Expected exactly 1 log entry, found {len(entries)} entries")
-                for i, entry in enumerate(entries):
-                    print(f"   Entry {i+1}: {entry.payload}")
+            if len(filtered_entries) != 1:
+                print(f"❌ Expected exactly 1 log entry, found {len(filtered_entries)} entries (from {len(entries)} total)")
+                for i, entry in enumerate(filtered_entries):
+                    print(f"   Filtered Entry {i+1}: {entry.payload}")
                 return False
 
             # Check that the single entry is the test log entry
-            test_entry = entries[0]
+            test_entry = filtered_entries[0]
             payload_str = str(test_entry.payload)
             if not payload_str.startswith("Test log entry created at "):
                 print(f"❌ Unexpected test log entry, found: {payload_str}\nWe should only have a test log entry prefixed with 'Test log entry created at ' in preprocessing!")
