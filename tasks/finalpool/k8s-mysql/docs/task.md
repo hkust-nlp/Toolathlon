@@ -4,4 +4,4 @@ A read-only account has already been created:
 - **Username:** `reader`  
 - **Password:** `mcpbench0606`  
 
-Access the database through this read-only account using a secure connection(port forward) and finish the task given in the `task.md` in the workspace.
+Please set a port forward on port 30124 for this database and finish the task in `task.md`, please keep the port forword alive even after you finish the whole task.

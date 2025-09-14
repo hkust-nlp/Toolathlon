@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 from utils.general.helper import read_json
-from utils.github_tools.helper_funcs import get_user_name
+from utils.app_specific.github.helper_funcs import get_user_name
 
 sys.path.insert(0, str(Path(__file__).parent.parent))  # 添加任务目录到路径
 from token_key_session import all_token_key_session
@@ -15,7 +15,7 @@ import os
 import yaml
 import re
 from utils.general.helper import read_json
-from utils.github_tools.helper_funcs import read_file_content
+from utils.app_specific.github.helper_funcs import read_file_content
 
 def extract_person_info_from_memory(memory_file):
     """从内存文件中提取Junteng Liu的个人信息"""

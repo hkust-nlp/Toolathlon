@@ -2,7 +2,7 @@
 
 # 设置变量
 k8sconfig_path_dir=deployment/k8s/configs
-cluster_name="cluster241"
+cluster_name="cluster-safety-audit"
 resource_yaml="deployment/k8s/source_files/241.yaml"
 
 # 颜色输出

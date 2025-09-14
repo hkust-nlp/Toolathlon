@@ -625,6 +625,15 @@ wheels = [
 ]
 
 [[package]]
+name = "durationpy"
+version = "0.10"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/9d/a4/e44218c2b394e31a6dd0d6b095c4e1f32d0be54c2a4b250032d717647bab/durationpy-0.10.tar.gz", hash = "sha256:1fa6893409a6e739c9c72334fc65cca1f355dbdd93405d30f726deb5bde42fba", size = 3335, upload-time = "2025-05-17T13:52:37.26Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b0/0d/9feae160378a3553fa9a339b0e9c1a048e147a4127210e286ef18b730f03/durationpy-0.10-py3-none-any.whl", hash = "sha256:3b41e1b601234296b4fb368338fdcd3e13e0b4fb5b67345948f4f2bf9868b286", size = 3922, upload-time = "2025-05-17T13:52:36.463Z" },
+]
+
+[[package]]
 name = "et-xmlfile"
 version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1478,6 +1487,28 @@ wheels = [
 ]
 
 [[package]]
+name = "kubernetes"
+version = "33.1.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "certifi" },
+    { name = "durationpy" },
+    { name = "google-auth" },
+    { name = "oauthlib" },
+    { name = "python-dateutil" },
+    { name = "pyyaml" },
+    { name = "requests" },
+    { name = "requests-oauthlib" },
+    { name = "six" },
+    { name = "urllib3" },
+    { name = "websocket-client" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ae/52/19ebe8004c243fdfa78268a96727c71e08f00ff6fe69a301d0b7fcbce3c2/kubernetes-33.1.0.tar.gz", hash = "sha256:f64d829843a54c251061a8e7a14523b521f2dc5c896cf6d65ccf348648a88993", size = 1036779, upload-time = "2025-06-09T21:57:58.521Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/89/43/d9bebfc3db7dea6ec80df5cb2aad8d274dd18ec2edd6c4f21f32c237cbbb/kubernetes-33.1.0-py2.py3-none-any.whl", hash = "sha256:544de42b24b64287f7e0aa9513c93cb503f7f40eea39b20f66810011a86eabc5", size = 1941335, upload-time = "2025-06-09T21:57:56.327Z" },
+]
+
+[[package]]
 name = "levenshtein"
 version = "0.27.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1847,6 +1878,7 @@ dependencies = [
     { name = "jiter" },
     { name = "jsonlines" },
     { name = "kiwisolver" },
+    { name = "kubernetes" },
     { name = "levenshtein" },
     { name = "lxml" },
     { name = "markupsafe" },
@@ -1884,6 +1916,7 @@ dependencies = [
     { name = "pyee" },
     { name = "pygments" },
     { name = "pymupdf4llm-mcp" },
+    { name = "pymysql" },
     { name = "pyparsing" },
     { name = "pypdf2" },
     { name = "pysocks" },
@@ -2011,6 +2044,7 @@ requires-dist = [
     { name = "jiter", specifier = "==0.9.0" },
     { name = "jsonlines", specifier = "==4.0.0" },
     { name = "kiwisolver", specifier = "==1.4.8" },
+    { name = "kubernetes", specifier = ">=33.1.0" },
     { name = "levenshtein", specifier = "==0.27.1" },
     { name = "lxml", specifier = "==5.4.0" },
     { name = "markupsafe", specifier = "==3.0.2" },
@@ -2048,6 +2082,7 @@ requires-dist = [
     { name = "pyee", specifier = "==13.0.0" },
     { name = "pygments", specifier = "==2.19.1" },
     { name = "pymupdf4llm-mcp", specifier = ">=0.0.4" },
+    { name = "pymysql", specifier = ">=1.1.2" },
     { name = "pyparsing", specifier = "==3.2.3" },
     { name = "pypdf2", specifier = ">=3.0.1" },
     { name = "pysocks", specifier = "==1.7.1" },
@@ -2389,15 +2424,15 @@ wheels = [
 
 [[package]]
 name = "opentelemetry-api"
-version = "1.36.0"
+version = "1.37.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "importlib-metadata" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/27/d2/c782c88b8afbf961d6972428821c302bd1e9e7bc361352172f0ca31296e2/opentelemetry_api-1.36.0.tar.gz", hash = "sha256:9a72572b9c416d004d492cbc6e61962c0501eaf945ece9b5a0f56597d8348aa0", size = 64780, upload-time = "2025-07-29T15:12:06.02Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/63/04/05040d7ce33a907a2a02257e601992f0cdf11c73b33f13c4492bf6c3d6d5/opentelemetry_api-1.37.0.tar.gz", hash = "sha256:540735b120355bd5112738ea53621f8d5edb35ebcd6fe21ada3ab1c61d1cd9a7", size = 64923, upload-time = "2025-09-11T10:29:01.662Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/bb/ee/6b08dde0a022c463b88f55ae81149584b125a42183407dc1045c486cc870/opentelemetry_api-1.36.0-py3-none-any.whl", hash = "sha256:02f20bcacf666e1333b6b1f04e647dc1d5111f86b8e510238fcc56d7762cda8c", size = 65564, upload-time = "2025-07-29T15:11:47.998Z" },
+    { url = "https://files.pythonhosted.org/packages/91/48/28ed9e55dcf2f453128df738210a980e09f4e468a456fa3c763dbc8be70a/opentelemetry_api-1.37.0-py3-none-any.whl", hash = "sha256:accf2024d3e89faec14302213bc39550ec0f4095d1cf5ca688e1bfb1c8612f47", size = 65732, upload-time = "2025-09-11T10:28:41.826Z" },
 ]
 
 [[package]]
@@ -2916,6 +2951,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/f0/da/c21406a9f9ef94d729247d35382cce9270d06271a1247f2fe80bce5cff19/pymupdf4llm_mcp-0.0.4.tar.gz", hash = "sha256:90bdf45b6cc1f867a84048d4804fc781aeacab90d3af79e94795c91448f65348", size = 71180, upload-time = "2025-04-24T16:58:01.464Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/36/0d/1180afb0ea34f2e01266d768b75f78c2a9a219c831f8e24e9e17956a95f4/pymupdf4llm_mcp-0.0.4-py3-none-any.whl", hash = "sha256:800a9e524b941c1ac79b92010dc484a2b4f91dad1afafeaca872bfe44e779822", size = 15507, upload-time = "2025-04-24T16:58:00.608Z" },
+]
+
+[[package]]
+name = "pymysql"
+version = "1.1.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/f5/ae/1fe3fcd9f959efa0ebe200b8de88b5a5ce3e767e38c7ac32fb179f16a388/pymysql-1.1.2.tar.gz", hash = "sha256:4961d3e165614ae65014e361811a724e2044ad3ea3739de9903ae7c21f539f03", size = 48258, upload-time = "2025-08-24T12:55:55.146Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7c/4c/ad33b92b9864cbde84f259d5df035a6447f91891f5be77788e2a3892bce3/pymysql-1.1.2-py3-none-any.whl", hash = "sha256:e6b1d89711dd51f8f74b1631fe08f039e7d76cf67a42a323d3178f0f25762ed9", size = 45300, upload-time = "2025-08-24T12:55:53.394Z" },
 ]
 
 [[package]]

@@ -1,6 +1,6 @@
 from pathlib import Path
 import argparse
-from utils.github_tools.helper_funcs import get_user_name, roll_back_commit, get_latest_commit_sha, check_repo_exists
+from utils.app_specific.github.helper_funcs import get_user_name, roll_back_commit, get_latest_commit_sha, check_repo_exists
 import json
 
 def create_parser():

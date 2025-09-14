@@ -1,5 +1,5 @@
 {
-    "needed_mcp_servers": ["emails","github", "git", "terminal"],
+    "needed_mcp_servers": ["emails","github"],
     "needed_local_tools": ["claim_done"],
     "meta": {}
 }

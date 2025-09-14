@@ -33,7 +33,7 @@ all_token_key_session = Dict(
     woocommerce_site_url = "PLEASE_RESET_IN_TASK_SPECIFIC_DIR",
 
     # k8s
-    kubeconfig_path = "deployment/k8s/configs/cluster241-config.yaml",
+    kubeconfig_path = "deployment/k8s/configs/cluster-safety-audit-config.yaml",
 
     gcp_project_id = "mcp-bench0606",
     gcp_service_account_path = "configs/gcp-service_account.keys.json",

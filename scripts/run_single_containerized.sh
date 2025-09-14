@@ -82,7 +82,7 @@ cleanup() {
     fi
     echo "Cleanup completed"
 }
-trap cleanup EXIT
+# trap cleanup EXIT
 
 # Verify task directory exists
 TASK_SOURCE="$PROJECT_ROOT/tasks/$task_dir_arg"

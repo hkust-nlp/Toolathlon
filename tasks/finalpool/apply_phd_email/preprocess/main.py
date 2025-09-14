@@ -5,7 +5,7 @@ from pathlib import Path
 from utils.general.helper import run_command, get_module_path
 from time import sleep
 
-from utils.local_email import LocalEmailManager
+from utils.app_specific.poste.local_email_manager import LocalEmailManager
 
 sys.path.insert(0, str(Path(__file__).parent.parent))  # 添加任务目录到路径
 from token_key_session import all_token_key_session
