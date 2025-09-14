@@ -17,13 +17,13 @@ MAX_TOKENS="4096"
 USER_TEMPERATURE="1.0"
 USER_TOP_P="1.0"
 USER_MAX_TOKENS="1024"
-DUMP_PATH="./dumps_0913_all_gpt5mini"
+DUMP_PATH="./parallel_debug"
 IMAGE_NAME="lockon0927/mcpbench-task-image-v2:jh0913"  # Docker image to use
 
 mkdir -p $DUMP_PATH
 
 # Optional parameters - uncomment and modify as needed
-# TASK_LIST="filtered_tasks_parallel.txt"
+TASK_LIST="filtered_tasks_parallel.txt"
 
 # Generate temporary config file
 TEMP_CONFIG="scripts/temp_parallel_config.json"
