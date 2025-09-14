@@ -3,7 +3,7 @@ import os
 import csv
 import json
 import subprocess
-from google.cloud import storage
+from google.cloud import storage, logging
 from google.oauth2 import service_account
 from google.api_core import exceptions
 from pathlib import Path
@@ -159,17 +159,58 @@ def check_storage_bucket_exists(bucket_name: str, project_id: str = "mcp-bench06
         print(f"❌ Error running gcloud command: {e}")
         return False
 
+def check_abtesting_logging_bucket_clean() -> bool:
+    """Check that abtesting_logging bucket contains only the preprocessing test log entry"""
+    try:
+        # Use the same project_id retrieval method as other functions
+        project_id_from_creds, credentials = get_project_id_and_credentials()
+        if project_id_from_creds and credentials:
+            client = logging.Client(project=project_id_from_creds, credentials=credentials)
+            log_filter = f'logName="projects/{project_id_from_creds}/logs/abtesting_logging"'
+
+            entries = list(client.list_entries(
+                filter_=log_filter,
+                order_by=logging.DESCENDING,
+                page_size=50  # Get all entries to verify count and content
+            ))
+
+            # Should have exactly 1 entry with "Test log entry created at " prefix
+            if len(entries) != 1:
+                print(f"❌ Expected exactly 1 log entry, found {len(entries)} entries")
+                for i, entry in enumerate(entries):
+                    print(f"   Entry {i+1}: {entry.payload}")
+                return False
+
+            # Check that the single entry is the test log entry
+            test_entry = entries[0]
+            payload_str = str(test_entry.payload)
+            if not payload_str.startswith("Test log entry created at "):
+                print(f"❌ Unexpected test log entry, found: {payload_str}\nWe should only have a test log entry prefixed with 'Test log entry created at ' in preprocessing!")
+                return False
+
+            print("✅ abtesting_logging bucket contains only the expected test log entry")
+            return True
+
+    except Exception as e:
+        print(f"Warning: Could not check abtesting_logging bucket: {e}")
+        return True  # Don't fail evaluation if we can't check logs
+
 def validate_task_completion() -> None:
-    """Validate if task is completed correctly (check if promo-assets-for-b bucket exists)"""
+    """Validate if task is completed correctly (check bucket creation and clean log bucket)"""
     print("Checking for storage bucket creation...")
-    
+
     # Check if promo-assets-for-b bucket was created
     bucket_exists = check_storage_bucket_exists("promo-assets-for-b")
-    
+
     if bucket_exists:
         print("✅ Storage bucket 'promo-assets-for-b' found - task completed correctly")
     else:
         raise ValueError("Task validation failed - 'promo-assets-for-b' storage bucket was not created")
+
+    # Check that abtesting_logging bucket contains only the test log (no A winner logs)
+    print("Checking that abtesting_logging bucket is clean...")
+    if not check_abtesting_logging_bucket_clean():
+        raise ValueError("Task validation failed - abtesting_logging bucket should contain only the preprocessing test log")
 
 if __name__=="__main__":
     parser = ArgumentParser()
@@ -199,8 +240,8 @@ if __name__=="__main__":
         print(f"Found {len(actual_records)} scenarios in agent's record.csv")
         print(f"Expected {len(expected_records)} scenarios from groundtruth")
         
-        # Validate with 0.1% tolerance
-        validate_record_data(actual_records, expected_records, tolerance_pct=0.1)
+        # Validate with 0.05% tolerance
+        validate_record_data(actual_records, expected_records, tolerance_pct=0.05)
         print("✅ Record validation passed")
         
         # Extract overall results for summary
