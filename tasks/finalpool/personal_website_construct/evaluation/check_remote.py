@@ -3,7 +3,7 @@ import os
 import yaml
 import re
 from utils.general.helper import read_json
-from utils.github_tools.helper_funcs import read_file_content
+from utils.app_specific.github.helper_funcs import read_file_content
 
 def extract_person_info_from_memory(memory_file):
     """从内存文件中提取Junteng Liu的个人信息"""

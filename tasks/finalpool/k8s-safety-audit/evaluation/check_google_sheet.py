@@ -256,7 +256,7 @@ def main():
     parser = ArgumentParser()
     parser.add_argument("--folder_id", required=True)
     parser.add_argument("--credentials_file", default="configs/google_credentials.json")
-    parser.add_argument("--kubeconfig_path", default="deployment/k8s/configs/cluster241-config.yaml")
+    parser.add_argument("--kubeconfig_path", default="deployment/k8s/configs/cluster-safety-audit-config.yaml")
     args = parser.parse_args()
 
     

@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 from typing import List, Dict, Tuple, Optional
 
-from utils.local_email import LocalEmailManager
+from utils.app_specific.poste.local_email_manager import LocalEmailManager
 
 
 class EmailContentChecker:
