@@ -1,23 +1,7 @@
 from addict import Dict
 import os
-from pathlib import Path
-import json
-
-def get_github_token():
-    task_id = "personal_website_construct"
-    config_path = "configs/github_repos.json"
-    with open(config_path, 'r') as f:
-        data = json.load(f)
-    task = data.get(task_id)
-    if task:
-        return task.get("github_token", "")
-    else:
-        raise ValueError(f"[Warning] Task ID {task_id} not found in {config_path}.")
-
-github_token = get_github_token()
-if not github_token:
-    raise ValueError("[Warning] Task-Level GitHub token is not set.")
-else:
-    all_token_key_session = Dict(
-        github_token = github_token,
-    )
+# I am gradually modifying the tokens to the pseudo account in this project
+all_token_key_session = Dict(
+    github_allowed_repos = "LJT-Homepage", # 这个任务只允许操作这个repo
+    github_read_only = "0", # if your task does not require write access to the repos, please set to 1, otherwise set to 0
+)
