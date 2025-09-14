@@ -337,7 +337,9 @@ def main():
     
     # 使用相对于脚本文件的路径来找到 token_key_session.py
     script_dir = Path(__file__).parent.absolute()
-    token_path = script_dir.parent / "token_key_session.py"
+    
+    token_path = script_dir.parent.parent.parent.parent / "configs" / "token_key_session.py"
+    task_token_path = script_dir.parent / "token_key_session.py"
     
     print(f"脚本目录: {script_dir}")
     print(f"Token文件路径: {token_path}")
@@ -347,6 +349,7 @@ def main():
         return
     
     tokens = load_tokens(token_path)
+    task_tokens = load_tokens(task_token_path)
 
     # 确保 wandb 登录
     os.environ.setdefault("WANDB_API_KEY", str(tokens.wandb_api_key))
@@ -394,12 +397,12 @@ def main():
     notion_token = str(tokens.notion_integration_key)
     
     # 从 token 配置中获取 page_id
-    page_id = getattr(tokens, 'notion_allowed_page_ids', '').strip()
+    page_id = getattr(task_tokens, 'notion_allowed_page_ids', '').strip()
     if not page_id:
         # 尝试其他可能的字段名
-        page_id = getattr(tokens, 'notion_page_id', '').strip()
+        page_id = getattr(task_tokens, 'notion_page_id', '').strip()
     if not page_id:
-        page_id = getattr(tokens, 'page_id', '').strip()
+        page_id = getattr(task_tokens, 'page_id', '').strip()
     
     print(f"从配置获取的页面 ID: {page_id}")
     
