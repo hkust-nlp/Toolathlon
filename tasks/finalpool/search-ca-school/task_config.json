@@ -1,5 +1,13 @@
 {
-    "needed_mcp_servers": ["filesystem",  "google_map", "playwright_with_chunk"], 
-    "needed_local_tools": ["claim_done","web_search"],
+    "needed_mcp_servers": [
+        "filesystem",
+        "google_map",
+        "playwright_with_chunk"
+    ],
+    "needed_local_tools": [
+        "claim_done",
+        "web_search",
+        "handle_overlong_tool_outputs"
+    ],
     "meta": {}
 }

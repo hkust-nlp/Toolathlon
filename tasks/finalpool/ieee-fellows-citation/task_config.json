@@ -1,11 +1,16 @@
 {
     "needed_mcp_servers": [
-        "filesystem", 
+        "filesystem",
         "playwright_with_chunk",
         "gmail",
         "terminal"
     ],
-    "needed_local_tools": ["web_search","python_execute","claim_done"],
+    "needed_local_tools": [
+        "web_search",
+        "python_execute",
+        "claim_done",
+        "handle_overlong_tool_outputs"
+    ],
     "meta": {
         "description": "Collect high-citation scholars (>10k citations) who cited my papers with verification using multiple search tools, and send results to my gmail",
         "workflow": "Read profile → Scholarly search → Verify citation count > 10k → Send results"

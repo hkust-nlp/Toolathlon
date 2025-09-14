@@ -1,13 +1,22 @@
 {
     "id": "weihao_ab_testing",
-    "needed_mcp_servers": ["google-cloud", "filesystem"],
+    "needed_mcp_servers": [
+        "google-cloud",
+        "filesystem"
+    ],
     "meta": {
         "description": "Automated A/B testing analysis for new homepage conversion rates",
         "difficulty": "medium",
         "estimated_time": "30-45 minutes",
-        "tags": ["bigquery", "cloud-storage", "cloud-logging", "data-analysis", "ab-testing"],
+        "tags": [
+            "bigquery",
+            "cloud-storage",
+            "cloud-logging",
+            "data-analysis",
+            "ab-testing"
+        ],
         "requirements": [
-            "Query BigQuery dataset ab_testing for A/B test conversion data", 
+            "Query BigQuery dataset ab_testing for A/B test conversion data",
             "Calculate conversion rates for each scenario and overall",
             "Determine which version has higher overall conversion rate",
             "Create Cloud Storage bucket 'promo-assets-for-b' if version B wins",
@@ -15,14 +24,17 @@
             "Export detailed conversion rate analysis to record.csv file with scenario breakdown"
         ],
         "learning_objectives": [
-            "Working with BigQuery datasets for A/B test analysis", 
+            "Working with BigQuery datasets for A/B test analysis",
             "Implementing business logic for conversion rate comparison",
             "Creating Cloud Storage buckets conditionally",
             "Writing structured logs to Google Cloud Logging",
             "Data aggregation and statistical analysis"
         ]
     },
-    "needed_local_tools": ["claim_done"],
+    "needed_local_tools": [
+        "claim_done",
+        "handle_overlong_tool_outputs"
+    ],
     "evaluation_criteria": {
         "correctness": {
             "weight": 0.4,
@@ -59,7 +71,10 @@
     },
     "success_threshold": {
         "minimum_accuracy": 0.9,
-        "required_outputs": ["record.csv", "conditional_bucket_or_log"],
+        "required_outputs": [
+            "record.csv",
+            "conditional_bucket_or_log"
+        ],
         "data_completeness": 0.95,
         "conversion_rate_tolerance": 0.1
     }

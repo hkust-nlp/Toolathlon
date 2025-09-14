@@ -14,7 +14,8 @@
                     "University of Oxford",
                     "Google DeepMind"
                 ]
-            }
+            },
+            "personal_website": "user=9OPKqmMAAAAJ"
         },
         {
             "title": "Model Immunization from a Condition Number Perspective",
@@ -27,7 +28,8 @@
                 "should_not_contain": [
                     
                 ]
-            }
+            },
+            "personal_website": "user=SZQIVG0AAAAJ"
         },
         {
             "title": "Flowing Datasets with Wasserstein over Wasserstein Gradient Flows",
@@ -42,7 +44,8 @@
                     "Paris-Saclay",
                     "Laboratoire de"
                 ]
-            }
+            },
+            "personal_website": "user=wjCPk5kAAAAJ"
         },
         {
             "title": "Learning with Expected Signatures: Theory and Applications",
@@ -57,7 +60,8 @@
                 "should_not_contain": [
                     
                 ]
-            }
+            },
+            "personal_website": "user=-dZCdJoAAAAJ"
         },
         {
             "title": "AutoML-Agent: A Multi-Agent LLM Framework for Full-Pipeline AutoML",
@@ -71,7 +75,8 @@
                     "Seoul",
                     "South Korea"
                 ]
-            }
+            },
+            "personal_website": "user=fDZjV8EAAAAJ"
         },
         {
             "title": "Learning Smooth and Expressive Interatomic Potentials for Physical Property Prediction",
@@ -83,7 +88,8 @@
                 "should_not_contain": [
                     
                 ]
-            }
+            },
+            "personal_website": "user=Cb-ZgHEAAAAJ"
         },
         {
             "title": "Multi-agent Architecture Search via Agentic Supernet",
@@ -98,7 +104,8 @@
                     "Shanghai AI Laboratory",
                     "University of Science and Technology of China"
                 ]
-            }
+            },
+            "personal_website": "user=ApmxNvwAAAAJ"
         }
     ]
 }

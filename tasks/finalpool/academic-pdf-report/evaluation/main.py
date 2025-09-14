@@ -10,13 +10,27 @@ from pathlib import Path
 from urllib.parse import urlparse
 from .task_utils import compare_names, compare_titles, check_affiliation_requirements
 
+def compare_websites(actual_url, expected_url):
+    """
+    Check if expected URL is contained in the actual captured URL.
+    """
+    if pd.isna(actual_url) or pd.isna(expected_url):
+        return False
+
+    actual_url = str(actual_url).strip().lower()
+    expected_url = str(expected_url).strip().lower()
+
+    if not actual_url or not expected_url:
+        return False
+
+    return expected_url in actual_url
 
 def check_filled_excel(excel_path, expected_data):
     """Check if Excel file is correctly filled using robust validation methods"""
     try:
         df = pd.read_excel(excel_path)
         
-        required_columns = ["Title", "First Author", "Affiliation"]
+        required_columns = ["Title", "First Author", "Affiliation", "Personal Website"]
         missing_columns = [col for col in required_columns if col not in df.columns]
         if missing_columns:
             print(f"✗ Excel file missing required columns: {', '.join(missing_columns)}")
@@ -70,6 +84,17 @@ def check_filled_excel(excel_path, expected_data):
                         else:
                             print(f"  ✓ Affiliation filled: {row['Affiliation']}")
 
+                    # Check personal website (containment check)
+                    if pd.isna(row["Personal Website"]) or not str(row["Personal Website"]).strip():
+                        print(f"  ✗ Personal website not filled")
+                        is_row_perfect = False
+                    elif not compare_websites(row["Personal Website"], paper["personal_website"]):
+                        print(f"  ✗ Personal website does not match")
+                        print(f"    Expected: {paper['personal_website']}")
+                        print(f"    Actual: {row['Personal Website']}")
+                        is_row_perfect = False
+                    else:
+                        print(f"  ✓ Personal website matches: {row['Personal Website']}")
                     
                     if is_row_perfect:
                         filled_count += 1
@@ -122,7 +147,7 @@ def main(args):
         agent_workspace = task_dir / "initial_workspace"
         groundtruth_workspace = task_dir / "groundtruth_workspace"
     
-    excel_report = agent_workspace / "paper_updated.xlsx"
+    excel_report = agent_workspace / "paper_initial.xlsx"
     expected_data_file = groundtruth_workspace / "expected_top7.json"
     
     final_success = False

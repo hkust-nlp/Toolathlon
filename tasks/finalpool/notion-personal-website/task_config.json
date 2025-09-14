@@ -1,6 +1,14 @@
 {
-    "needed_mcp_servers": ["filesystem", "word", "notion"], 
-    "needed_local_tools": ["claim_done", "web_search"],
+    "needed_mcp_servers": [
+        "filesystem",
+        "word",
+        "notion"
+    ],
+    "needed_local_tools": [
+        "claim_done",
+        "web_search",
+        "handle_overlong_tool_outputs"
+    ],
     "meta": {
         "task_type": "notion_page_update",
         "target_page": "Colley Whisson",
