@@ -7,9 +7,9 @@ set -e
 
 task_dir_arg=$1 # domain/taskname
 tag=${2:-"testrun"}
-modelname=${3:-"testmodel"}
-provider=${4:-"testprovider"}
-maxstep=${5:-"testmaxstep"}
+modelname=${3:-"gpt-5-mini"}
+provider=${4:-"aihubmix"}
+maxstep=${5:-"100"}
 eval_config=${6:-"scripts/foraml_run_v0.json"}
 dump_path=${7:-"./dumps"}
 image_name=${8:-"lockon0927/mcpbench-task-image-v2:latest"}

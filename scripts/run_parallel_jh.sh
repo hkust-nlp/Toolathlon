@@ -17,13 +17,13 @@ MAX_TOKENS="4096"
 USER_TEMPERATURE="1.0"
 USER_TOP_P="1.0"
 USER_MAX_TOKENS="1024"
-DUMP_PATH="./parallel_debug"
+DUMP_PATH="./dumps_0913_all_gpt5mini"
 IMAGE_NAME="lockon0927/mcpbench-task-image-v2:jh0913"  # Docker image to use
 
 mkdir -p $DUMP_PATH
 
 # Optional parameters - uncomment and modify as needed
-TASK_LIST="filtered_tasks_parallel.txt"
+# TASK_LIST="filtered_tasks_parallel.txt"
 
 # Generate temporary config file
 TEMP_CONFIG="scripts/temp_parallel_config.json"
@@ -112,6 +112,11 @@ echo "✅ Run logs saved to: $DUMP_PATH/run_all.log"
 echo "📝 Creating eval_res_all.jsonl..."
 find "$DUMP_PATH" -name "eval_res.json" -type f -exec cat {} \; > "$DUMP_PATH/eval_res_all.jsonl" 2>/dev/null
 echo "✅ Evaluation results saved to: $DUMP_PATH/eval_res_all.jsonl"
+
+# 4. Create traj_log_all.jsonl by aggregating all traj_log.json files
+echo "📝 Creating traj_log_all.jsonl..."
+find "$DUMP_PATH" -name "traj_log.json" -type f -exec sh -c 'cat "$1" && echo' _ {} \; > "$DUMP_PATH/traj_log_all.jsonl" 2>/dev/null
+echo "✅ Trajectory logs saved to: $DUMP_PATH/traj_log_all.jsonl"
 
 # 4. Generate enhanced statistics using separate script
 echo "📊 Generating enhanced statistics..."
