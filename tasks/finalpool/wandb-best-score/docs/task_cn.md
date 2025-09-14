@@ -1,0 +1,1 @@
+分析wandb项目 https://wandb.ai/mluo/deepscaler-1.5b?nw=nwusermluo ，找出验证集表现最好的实验，并且找到该实验中表现最好的step是哪一个。请严格按照以下格式返回找到的结果，即返回该字符串并填上你找到的$experiment_name和$step：experiment_\boxed_1{$experiment_name}_step_\boxed_2{$step_number}

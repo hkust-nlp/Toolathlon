@@ -54,6 +54,28 @@ def compare_csv(gt_path: str, target_path: str) -> bool:
 
     return True
 
+def compare_csv_for_second_question(gt_path: str, target_path: str) -> bool:
+    """比较 target 是否与 gt 一致"""
+    with open(gt_path, newline='', encoding='utf-8') as f_gt, \
+         open(target_path, newline='', encoding='utf-8') as f_tg:
+        gt_reader = csv.DictReader(f_gt)
+        tg_reader = csv.DictReader(f_tg)
+
+        gt_rows = list(gt_reader)
+        tg_rows = list(tg_reader)
+
+    if len(gt_rows) != len(tg_rows):
+        print(f"行数不一致: gt={len(gt_rows)}, target={len(tg_rows)}")
+        return False
+
+    for i, (gt_row, tg_row) in enumerate(zip(gt_rows, tg_rows), start=1):
+        # year 必须严格相等（字符串对比即可）
+        if gt_row['driver_id'].strip() != tg_row['driver_id'].strip():
+            print(f"第{i}行 driver_id 不匹配: gt={gt_row['driver_id']}, target={tg_row['driver_id']}")
+            return False
+
+    return True
+
 def check_safe_connection(res_log_file):
     """Check if port 30124 is actively forwarded to MySQL service by:
     1. Checking for active kubectl port-forward processes targeting port 30124
@@ -151,24 +173,34 @@ if __name__ == "__main__":
 
     workspace_path = Path(args.agent_workspace)
 
-    target_file = workspace_path / "results.csv"
+    target_file = workspace_path / "results_1.csv"
     if not target_file.exists():
         print("Target file does not exist.")
         exit(1)
 
-    need_rename_path = workspace_path / "results_template.csv"
-    if need_rename_path.exists():
-        print("Template file still exists")
+    need_rename_path = workspace_path / "results_template_first_question.csv"
+    need_rename_path_2 = workspace_path / "results_template_second_question.csv"
+    if need_rename_path.exists() or need_rename_path_2.exists():
+        print("Template files still exists")
         exit(1)
         
-    gt_path = Path(args.groundtruth_workspace) / "gt.csv"
+    gt_path = Path(args.groundtruth_workspace) / "gtq1.csv"
 
     csv_match = compare_csv(gt_path, target_file)
     if not csv_match:
-        print("CSV files do not match.")
+        print("CSV file for the first question does not match.")
         exit(1)
+    print("√ CSV file for the first question matches.")
 
-    print("CSV files match.")
+    print("Check the second question...")
+    gt_path = Path(args.groundtruth_workspace) / "gtq2.csv"
+    target_file = workspace_path / "results_2.csv"
+    csv_match = compare_csv_for_second_question(gt_path, target_file)
+    if not csv_match:
+        print("CSV file for the second question does not match.")
+        exit(1)
+    print("√ CSV file for the second question matches.")
+    print("√√ CSV files for both questions match.")
 
     # 检查安全连接
     if args.res_log_file:
