@@ -7,7 +7,7 @@ from pathlib import Path
 from google.cloud import logging
 from google.oauth2 import service_account
 
-def get_project_id_and_credentials(credentials_file="configs/mcp-bench0606-2b68b5487343.json"):
+def get_project_id_and_credentials(credentials_file="configs/gcp-service_account.keys.json"):
     """Get project ID and credentials from service account file"""
     try:
         credentials_path = Path(credentials_file)
@@ -95,7 +95,7 @@ if __name__ == "__main__":
     parser.add_argument("--groundtruth_workspace", required=True)
     parser.add_argument("--res_log_file", required=True)
     parser.add_argument("--launch_time", required=False, help="Launch time")
-    parser.add_argument("--credentials_file", required=False, default="configs/mcp-bench0606-2b68b5487343.json")
+    parser.add_argument("--credentials_file", required=False, default="configs/gcp-service_account.keys.json")
     args = parser.parse_args()
 
     print("=" * 60)

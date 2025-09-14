@@ -5,11 +5,11 @@
 
   1. **Quarter**: Label of the quarter (e.g., "2023 Q1").
   2. **NVDA End-of-Quarter Stock Price (USD)**: NVDA closing price at quarter end.
-  3. **Outstanding Shares (Million Shares)**: Outstanding float shares in millions. 
-  4. **Market Cap (Billion USD)**: Float market capitalization in billion USD.
-  5. **Top 20 Shareholders Total Holding Ratio (%)**: Combined Top 20 institutions’ holding as percentage of float.
-  6. **Top 10 Shareholders Total Holding Ratio (%)**: Combined Top 10 institutions’ holding percentage.
-  7. **Top 5 Shareholders Total Holding Ratio (%)**: Combined Top 5 institutions’ holding percentage.
+  3. **Outstanding Shares (Million Shares)**: Outstanding total shares in millions.
+  4. **Market Cap (Billion USD)**: Total market capitalization in billion USD.
+  5. **Top 20 Shareholders Total Holding Ratio (%)**: Combined Top 20 institutions' holding as percentage of total outstanding shares.
+  6. **Top 10 Shareholders Total Holding Ratio (%)**: Combined Top 10 institutions' holding percentage.
+  7. **Top 5 Shareholders Total Holding Ratio (%)**: Combined Top 5 institutions' holding percentage.
   8. **Top 20 Shareholders QoQ Holding Ratio Change (%)**: Quarter-over-quarter change in Top 20 Holding.
 
 # Sheet 2: "Key Shareholders Details"
@@ -21,7 +21,7 @@
   2. **Shareholder Name**: Institution name.
   3. **Shares Held (Million Shares)**: Number of shares held.
   4. **Holding Value (Billion USD)**: Value of holdings in billions USD.
-  5. **Holding Ratio (%)**: Institution’s holding percentage vs. float.
+  5. **Holding Ratio (%)**: Institution's holding percentage vs. total outstanding shares.
   6. **Change from Last Quarter (Million Shares)**: Change in shares from prior quarter, in millions.
   7. **Change Type (New/Increase/Decrease/Exit)**: One of {New, Increase, Decrease, Exit}.
 

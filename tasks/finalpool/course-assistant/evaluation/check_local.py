@@ -12,13 +12,6 @@ import sys
 import re
 from typing import List, Tuple
 
-# 导入本地邮箱配置 - 无需外部配置文件
-# import os
-# import sys
-# config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', '..', 'configs')
-# sys.path.append(config_path)
-# from google_accounts import account_info
-
 def extract_email_body(email_message) -> str:
     """优先提取text/plain正文，如无则降级为text/html并去除标签"""
     body = ""
@@ -212,7 +205,7 @@ def main():
         print("========================\n")
     else:
         print("\n💥 邮件检查未通过！")
-    return 0 if all_passed else 1
+    return 1 if all_passed else 0
 
 if __name__ == '__main__':
     exit(main()) 

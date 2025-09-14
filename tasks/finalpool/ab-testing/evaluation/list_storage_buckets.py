@@ -5,7 +5,7 @@ from pathlib import Path
 import json
 import sys
 
-def get_project_id_and_credentials(credentials_file="configs/mcp-bench0606-2b68b5487343.json"):
+def get_project_id_and_credentials(credentials_file="configs/gcp-service_account.keys.json"):
     """Get project ID and credentials from a service account file."""
     try:
         credentials_path = Path(credentials_file)
@@ -68,7 +68,7 @@ def list_storage_buckets(project_id: str, credentials):
 if __name__ == "__main__":
     # Specify the path to your service account JSON file
     # You can also pass this as a command-line argument if you prefer
-    credentials_file_path = "configs/mcp-bench0606-2b68b5487343.json"
+    credentials_file_path = "configs/gcp-service_account.keys.json"
     
     project_id, credentials = get_project_id_and_credentials(credentials_file_path)
     

@@ -1,6 +1,6 @@
 import json
 import argparse
-from utils.github_tools.helper_funcs import check_repo_exists, fork_repo, get_user_name
+from utils.app_specific.github.helper_funcs import check_repo_exists, fork_repo, get_user_name
 
 CONFIG_PATH = "configs/github_repos.json"
 

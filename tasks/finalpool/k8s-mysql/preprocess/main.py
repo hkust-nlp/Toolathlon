@@ -2,6 +2,8 @@ import asyncio
 from utils.general.helper import run_command
 from argparse import ArgumentParser
 from pathlib import Path
+import os
+import shutil
 
 if __name__=="__main__":
     parser = ArgumentParser()
@@ -10,9 +12,12 @@ if __name__=="__main__":
     args = parser.parse_args()
 
     print("Starting the preprocess script, constructing the cluster...")
-    script_path = Path(__file__).parent / "init.sh"
-    asyncio.run(run_command(
-                f"bash {script_path}", debug=True,show_output=True))
+    script_path = os.path.join(os.path.dirname(__file__), "..","scripts","k8s_mysql.sh")
+    asyncio.run(run_command(f"bash {script_path} start {args.agent_workspace}", debug=True,show_output=True))
     print("Cluster constructed")
+
+    # 删掉agent_workspace下的k8s_configs
+    shutil.rmtree(os.path.join(args.agent_workspace, "k8s_configs"))
+    print("Deleted local k8s_configs successfully! We will only use the k8s mcp in this task!","green")
 
     print("Initialization complete")

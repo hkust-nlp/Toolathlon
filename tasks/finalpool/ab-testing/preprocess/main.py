@@ -23,7 +23,7 @@ def get_project_id(credentials_path):
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--agent_workspace", required=True)
-    parser.add_argument("--credentials_file", required=False, default="configs/mcp-bench0606-2b68b5487343.json")
+    parser.add_argument("--credentials_file", required=False, default="configs/gcp-service_account.keys.json")
     parser.add_argument("--launch_time", required=False, help="Launch time")
     args = parser.parse_args()
 

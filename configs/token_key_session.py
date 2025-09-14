@@ -22,7 +22,7 @@ all_token_key_session = Dict(
     serper_api_key = "96b064e2511394e4b7326a678b716eac8c24c662", # TO BR FILLED, you can fill in multiple keys separated by comma
 
     #### Google
-    google_cloud_console_api_key = "AIzaSyDSrjqAk9N9ZBX2T7hH5R7cxhw4MMiTnu8", # TO BR FILLED
+    google_cloud_console_api_key = "AIzaSyCj3pyLBIwgFQszn5pVEAeTb_JYxAAlRrc", # TO BR FILLED
     
     gcp_project_id = "mcp-bench0606", # TO BE FILLED
     gcp_service_account_path = "configs/gcp-service_account.keys.json", # TO BE FILLED
@@ -54,8 +54,8 @@ all_token_key_session = Dict(
     wandb_api_key = "b3abe195bd69c07bdc47469d3956ac8d0c008714", # TO BR FILLED
 
     #### Notion
-    notion_integration_key="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", # TO BE FILLED
-    notion_integration_key_eval = "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", # TO BE FILLED
+    notion_integration_key="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", # TO BE FILLED
+    notion_integration_key_eval = "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", # TO BE FILLED
     source_notion_page_url="https://www.notion.so/Notion-Source-Page-262c4171366e8067863bc8645fd6d51f", # TO BE FILLED
     eval_notion_page_url="https://www.notion.so/Notion-Eval-Page-262c4171366e80a1a366c6f10ee59381", # TO BE FILLED
     notion_allowed_page_ids="", # KEEP_IT_ASIS_CUA_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR

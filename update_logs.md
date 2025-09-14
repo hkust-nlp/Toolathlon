@@ -153,7 +153,7 @@
 ## 2025.8.1 16:30
 - 添加Google Cloud MCP服务器支持
     - 新增 `configs/mcp_servers/google-cloud.yaml` 配置文件
-    - 新增 `configs/mcp-bench0606-2b68b5487343.json` Google Cloud服务账户凭证文件
+    - 新增 `configs/gcp-service_account.keys.json` Google Cloud服务账户凭证文件
     - 更新 `configs/token_key_session.py`，添加Google Cloud相关配置项
         - 添加gcp_project_id、gcp_service_account_path等配置
         - 支持Google Cloud Storage、BigQuery、Logging、Compute Engine等服务

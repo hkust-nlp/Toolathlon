@@ -7,7 +7,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 from utils.general.helper import run_command, get_module_path
 
-from utils.local_email import LocalEmailManager
+from utils.app_specific.poste.local_email_manager import LocalEmailManager
 
 
 def setup_git_repository():

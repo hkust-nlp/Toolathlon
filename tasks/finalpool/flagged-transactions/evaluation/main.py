@@ -61,9 +61,25 @@ def compare_excel_files(agent_file, groundtruth_file):
                 
                 # Special handling for datetime columns
                 if col == 'txn_time':
-                    # Convert both to string for comparison to handle different datetime formats
-                    if str(agent_val) != str(gt_val):
-                        return False, f"Datetime mismatch at row {row_idx}, column '{col}'. Agent: {agent_val}, Groundtruth: {gt_val}"
+                    # Convert both to pandas datetime for intelligent comparison
+                    try:
+                        agent_dt = pd.to_datetime(agent_val)
+                        gt_dt = pd.to_datetime(gt_val)
+                        
+                        # Convert to UTC if not already timezone-aware
+                        if agent_dt.tz is None:
+                            agent_dt = agent_dt.tz_localize('UTC')
+                        if gt_dt.tz is None:
+                            gt_dt = gt_dt.tz_localize('UTC')
+                        
+                        # Compare with tolerance for sub-second differences
+                        time_diff = abs((agent_dt - gt_dt).total_seconds())
+                        if time_diff > 1.0:  # Allow up to 1 second difference
+                            return False, f"Datetime mismatch at row {row_idx}, column '{col}'. Agent: {agent_val}, Groundtruth: {gt_val} (difference: {time_diff:.3f} seconds)"
+                    except Exception as e:
+                        # Fallback to string comparison if datetime parsing fails
+                        if str(agent_val) != str(gt_val):
+                            return False, f"Datetime mismatch at row {row_idx}, column '{col}'. Agent: {agent_val}, Groundtruth: {gt_val} (parse error: {e})"
                 elif agent_val != gt_val:
                     return False, f"Value mismatch at row {row_idx}, column '{col}'. Agent: {agent_val}, Groundtruth: {gt_val}"
         

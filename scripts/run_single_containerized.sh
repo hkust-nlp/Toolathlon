@@ -7,9 +7,9 @@ set -e
 
 task_dir_arg=$1 # domain/taskname
 tag=${2:-"testrun"}
-modelname=${3:-"testmodel"}
-provider=${4:-"testprovider"}
-maxstep=${5:-"testmaxstep"}
+modelname=${3:-"gpt-5"}
+provider=${4:-"aihubmix"}
+maxstep=${5:-100}
 eval_config=${6:-"scripts/foraml_run_v0.json"}
 dump_path=${7:-"./dumps"}
 
@@ -80,7 +80,7 @@ cleanup() {
     fi
     echo "Cleanup completed"
 }
-trap cleanup EXIT
+# trap cleanup EXIT
 
 # Verify task directory exists
 TASK_SOURCE="$PROJECT_ROOT/tasks/$task_dir_arg"

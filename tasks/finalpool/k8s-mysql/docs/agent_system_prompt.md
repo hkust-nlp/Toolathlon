@@ -1,3 +1,3 @@
-可访问工作区目录：!!<<<<||||workspace_dir||||>>>>!!
-在处理任务时如果需要读写本地文件且用户给出的是相对路径，则你需要结合上述工作区目录进行路径的拼接得到完整路径
-若你认为任务已完成，可以调用done工具，来claim自己已经完成了给定的任务
+Accessible workspace directory: !!<<<<||||workspace_dir||||>>>>!!
+When processing tasks that require accessing local files, users will provide relative paths. You need to combine them with the workspace directory mentioned above to concatenate and obtain the complete path.
+If you believe the task has been completed, you can call the local-claim-done tool to indicate that you have finished the given task.

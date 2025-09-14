@@ -6,7 +6,7 @@ from pathlib import Path
 from .check_log import check_log
 from .check_remote import check_remote
 from utils.general.helper import read_json
-from utils.github_tools.helper_funcs import get_user_name
+from utils.app_specific.github.helper_funcs import get_user_name
 
 sys.path.insert(0, str(Path(__file__).parent.parent))  # 添加任务目录到路径
 from token_key_session import all_token_key_session
