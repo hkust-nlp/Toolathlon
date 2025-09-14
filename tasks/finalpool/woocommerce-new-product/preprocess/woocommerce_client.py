@@ -174,31 +174,70 @@ class WooCommerceClient:
         """获取单个客户"""
         return self._make_request('GET', f'customers/{customer_id}')
     
+    def search_customer_by_email(self, email: str) -> Tuple[bool, Optional[Dict]]:
+        """通过邮箱搜索客户"""
+        # 方法1：使用search参数
+        success, response = self._make_request('GET', 'customers', params={'search': email})
+        if success and response:
+            for customer in response:
+                if customer.get('email', '').lower() == email.lower():
+                    return True, customer
+
+        # 方法2：尝试使用email参数（有些WooCommerce版本支持）
+        success, response = self._make_request('GET', 'customers', params={'email': email})
+        if success and response:
+            if isinstance(response, list) and len(response) > 0:
+                return True, response[0]
+            elif isinstance(response, dict):
+                return True, response
+
+        # 方法3：获取所有客户并匹配（最后手段）
+        success, all_customers = self.get_all_customers(per_page=100)
+        if success:
+            for customer in all_customers:
+                if customer.get('email', '').lower() == email.lower():
+                    return True, customer
+
+        return False, None
+
     def get_all_customers(self, per_page: int = 100) -> Tuple[bool, List[Dict]]:
         """获取所有客户"""
         all_customers = []
         page = 1
-        
+
         while True:
-            success, response = self._make_request('GET', 'customers', params={
+            # 尝试不同的参数组合来获取客户
+            params = {
                 'per_page': per_page,
-                'page': page
-            })
-            
+                'page': page,
+                'orderby': 'id',
+                'order': 'asc'
+            }
+
+            success, response = self._make_request('GET', 'customers', params=params)
+
             if not success:
-                return False, []
-            
+                print(f"获取客户列表失败 (page {page}): {response.get('error', '未知错误')}")
+                # 尝试其他方法
+                if page == 1:
+                    # 尝试更宽松的参数
+                    success, response = self._make_request('GET', 'customers', params={'per_page': per_page})
+                    if not success:
+                        return False, []
+                else:
+                    return False, []
+
             if not response or len(response) == 0:
                 break
-            
+
             all_customers.extend(response)
-            
+
             if len(response) < per_page:
                 break
-                
+
             page += 1
             time.sleep(0.1)
-        
+
         return True, all_customers
     
     def update_customer(self, customer_id: str, customer_data: Dict) -> Tuple[bool, Dict]:
