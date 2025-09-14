@@ -1,3 +1,3 @@
-Please help me check which products are in my shop, filter out those that have been in stock for more than 90 days and have sold fewer than 10 units in the past 30 days. Move them to a product category named "Outlet/Clearance", and publish a "Promotion" blog post. Also, send an email to subscribed customers.
+Please help me check which products are in my shop, filter out those that have been in stock for more than 90 days and have sold fewer than 10 units in the past 30 days. Move them to a product category named "Outlet/Clearance" ("/" is a part of the category name). Also, send an email to each of the subscribed customers.
 
-The blog template can be found in blog_template.md, and the subscriber information is in subscriber.json.
+You can find the email template under the workspace (please sort the products by stock-in time from earliest to latest; if the stock-in time is the same, then sort by discount ratio from small to large). The subscriber information is in subscriber.json.

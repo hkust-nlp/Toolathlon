@@ -8,7 +8,7 @@
 
 识别并处理店铺中的低销量商品：
 - 筛选在库天数超过90天且过去30天内销量小于10件的商品
-- 将这些商品移动到"奥特莱斯/清仓"分类
+- 将这些商品移动到"Clearance"分类
 - 生成促销博客文章并发布
 - 向订阅客户发送促销邮件
 
@@ -50,7 +50,7 @@ filter-low-selling-products/
 - **筛选逻辑**：基于商品上架时间和销售历史数据
 
 ### 2. 分类管理
-- 创建"奥特莱斯/清仓"商品分类
+- 创建"Clearance" Product Categories
 - 批量移动筛选出的商品到新分类
 - 设置促销价格（建议折扣）
 
@@ -111,7 +111,7 @@ python evaluation/main.py --agent_workspace /path/to/workspace
 ## 评估标准
 
 系统通过 `evaluation/` 模块进行自动化验证：
-- 验证远程WooCommerce服务的商品分类变更
+- 验证远程WooCommerce服务的 Product Categories变更
 - 检查生成文件的完整性和格式
 - 确认邮件发送状态和收件人覆盖
 

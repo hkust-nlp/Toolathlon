@@ -35,28 +35,8 @@ def run_complete_evaluation(agent_workspace: str, groundtruth_workspace: str, re
         res_log = read_json(res_log_file)
         print(f"📋 Loaded result log: {res_log_file}")
     
-    # # Step 1: Check execution log
-    # print("\\n📝 STEP 1: Checking Execution Log...")
-    # try:
-    #     log_pass, log_msg = check_log(res_log)
-    #     results.append(("Log Check", log_pass, log_msg))
-    #     print(f"{'✅' if log_pass else '❌'} {log_msg}")
-    # except Exception as e:
-    #     results.append(("Log Check", False, str(e)))
-    #     print(f"❌ Log check error: {e}")
-    
-    # Step 2: Check local files
-    # print("\\n📁 STEP 2: Checking Local Files...")
-    # try:
-    #     local_pass, local_msg = check_local(agent_workspace, groundtruth_workspace)
-    #     results.append(("Local Files", local_pass, local_msg))
-    #     print(f"{'✅' if local_pass else '❌'} {local_msg}")
-    # except Exception as e:
-    #     results.append(("Local Files", False, str(e)))
-    #     print(f"❌ Local files check error: {e}")
-    
     # Step 3: Check remote services
-    print("\\n🌐 STEP 3: Checking Remote Services...")
+    print("\n🌐 STEP 3: Checking Remote Services...")
     try:
         remote_pass, remote_msg = check_remote(agent_workspace, groundtruth_workspace, res_log)
         results.append(("Remote Services", remote_pass, remote_msg))
@@ -71,7 +51,7 @@ def run_complete_evaluation(agent_workspace: str, groundtruth_workspace: str, re
     
     # Summary
     summary = []
-    summary.append("\\n" + "=" * 80)
+    summary.append("\n" + "=" * 80)
     summary.append("EVALUATION SUMMARY")
     summary.append("=" * 80)
     
@@ -82,16 +62,16 @@ def run_complete_evaluation(agent_workspace: str, groundtruth_workspace: str, re
             summary.append(f"  Details: {message}")
     
     overall_pass = passed_count == total_count
-    final_message = f"\\nOverall: {passed_count}/{total_count} tests passed"
+    final_message = f"\nOverall: {passed_count}/{total_count} tests passed"
     
     if overall_pass:
         summary.append(final_message + " - ✅ ALL TESTS PASSED!")
-        summary.append("\\n🎉 Low-selling products filter evaluation completed successfully!")
+        summary.append("\n🎉 Low-selling products filter evaluation completed successfully!")
     else:
         summary.append(final_message + " - ❌ SOME TESTS FAILED")
-        summary.append("\\n❌ Please review the failed tests above")
+        summary.append("\n❌ Please review the failed tests above")
     
-    return overall_pass, "\\n".join(summary)
+    return overall_pass, "\n".join(summary)
 
 def main(args):
     try:
@@ -101,16 +81,16 @@ def main(args):
             args.res_log_file
         )
         
-        print("\\n" + "="*80)
+        print("\n" + "="*80)
         print("FINAL EVALUATION RESULT")
         print("="*80)
         print(message)
         
         if success:
-            print("\\n✅ EVALUATION PASSED")
+            print("\n✅ EVALUATION PASSED")
             sys.exit(0)
         else:
-            print("\\n❌ EVALUATION FAILED")
+            print("\n❌ EVALUATION FAILED")
             sys.exit(1)
             
     except Exception as e:

@@ -17,5 +17,5 @@ params:
     - "${token.google_cloud_allowed_log_buckets}"
     - "--allowed-instances"
     - "${token.google_cloud_allowed_instances}"
-client_session_timeout_seconds: 10
+client_session_timeout_seconds: 30
 cache_tools_list: true

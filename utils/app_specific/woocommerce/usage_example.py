@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+"""
+Usage example for complete reset functionality
+"""
+
+import sys
+import os
+
+# Add project paths
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_dir)))
+sys.path.insert(0, project_root)
+
+from utils.app_specific.woocommerce.complete_store_reset import WooCommerceCompleteReset
+
+
+def reset_store_example():
+    """Store reset example"""
+
+    # WooCommerce API configuration
+    SITE_URL = "https://your-store.com"
+    CONSUMER_KEY = "ck_xxxxx"
+    CONSUMER_SECRET = "cs_xxxxx"
+
+    # Create resetter
+    resetter = WooCommerceCompleteReset(
+        site_url=SITE_URL,
+        consumer_key=CONSUMER_KEY,
+        consumer_secret=CONSUMER_SECRET
+    )
+
+    print("🚨 WARNING: About to completely reset store!")
+    print("⚠️  This operation will delete all data, irreversible!")
+
+    # Confirmation prompt
+    confirm = input("\nAre you sure you want to continue? Type 'YES' to confirm: ")
+
+    if confirm != 'YES':
+        print("❌ Operation cancelled")
+        return
+
+    # Execute complete reset
+    result = resetter.reset_to_empty_store(confirm=True)
+
+    if result.get("success"):
+        print("\n🎉 Store reset successful!")
+        print("📋 Reset summary:")
+        print(result.get("summary", ""))
+
+        # Save reset report
+        import json
+        from datetime import datetime
+
+        report_filename = f"store_reset_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        with open(report_filename, 'w', encoding='utf-8') as f:
+            json.dump(result, f, indent=2, ensure_ascii=False)
+
+        print(f"📄 Detailed report saved to: {report_filename}")
+
+    else:
+        print("\n❌ Store reset failed")
+        print(f"Error message: {result.get('error', 'Unknown error')}")
+
+
+if __name__ == "__main__":
+    reset_store_example()

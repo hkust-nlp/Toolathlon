@@ -1,0 +1,59 @@
+{
+  "expected_low_selling_count": 5,
+  "expected_normal_count": 3,
+  "expected_low_selling_ids": [
+    199,
+    200,
+    201,
+    202,
+    203
+  ],
+  "expected_normal_ids": [
+    204,
+    205,
+    206
+  ],
+  "total_test_products": 8,
+  "all_created_products": [
+    {
+      "id": 199,
+      "name": "Phone case iPhone X",
+      "type": "low_selling"
+    },
+    {
+      "id": 200,
+      "name": "Bluetooth Headphone",
+      "type": "low_selling"
+    },
+    {
+      "id": 201,
+      "name": "Old Sneakers 2022",
+      "type": "low_selling"
+    },
+    {
+      "id": 202,
+      "name": "Tablet Case",
+      "type": "low_selling"
+    },
+    {
+      "id": 203,
+      "name": "Charger v11",
+      "type": "low_selling"
+    },
+    {
+      "id": 204,
+      "name": "iPhone 15 Phone Case",
+      "type": "normal_selling"
+    },
+    {
+      "id": 205,
+      "name": "Wireless Charger",
+      "type": "normal_selling"
+    },
+    {
+      "id": 206,
+      "name": "Nike Sneakers",
+      "type": "normal_selling"
+    }
+  ]
+}
