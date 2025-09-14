@@ -46,10 +46,10 @@ def read_student_data(csv_path: str) -> dict:
 
 def get_students_above_threshold(student_data: dict, threshold: float) -> list:
     """Get students with drop ratio above threshold"""
-    return [student_id for student_id, data in student_data.items() 
+    return [[student_id, data["name"]] for student_id, data in student_data.items() 
             if data["drop_ratio"] > threshold]
 
-def check_lisa_wright_critical_log(project_id: str, credentials) -> bool:
+def check_critical_logs_for_students(project_id: str, credentials, needed_students, unneeded_students) -> bool:
     """Check BigQuery logs for CRITICAL entry for Lisa Wright (S060) only"""
     try:
         client = logging.Client(project=project_id, credentials=credentials)
@@ -57,7 +57,7 @@ def check_lisa_wright_critical_log(project_id: str, credentials) -> bool:
         # Query for CRITICAL logs in exam_log containing Lisa Wright
         log_filter = f'logName="projects/{project_id}/logs/exam_log" AND severity="CRITICAL"'
         
-        print(f"Checking BigQuery logs for Lisa Wright (S060) CRITICAL entry...")
+        print(f"Checking BigQuery logs CRITICAL entry...")
         entries = list(client.list_entries(
             filter_=log_filter,
             order_by=logging.DESCENDING,
@@ -70,24 +70,51 @@ def check_lisa_wright_critical_log(project_id: str, credentials) -> bool:
         
         print(f"Found {len(entries)} CRITICAL log entries")
         
+        used_entry_ids = []
         # Check if any log mentions Lisa Wright or S060
-        lisa_wright_found = False
-        for entry in entries:
-            message = str(entry.payload)
-            if "S060" in message or "Lisa Wright" in message:
-                print(f"✅ Found CRITICAL log for Lisa Wright: {message[:100]}...")
-                lisa_wright_found = True
-                break
-        
-        if not lisa_wright_found:
-            print("❌ No CRITICAL log found for Lisa Wright (S060)")
+        founds = [False] * len(needed_students)
+        for idx, (student_name, student_id) in enumerate(needed_students):
+            for eid,entry in enumerate(entries):
+                if eid in used_entry_ids:
+                    continue
+                message = str(entry.payload)
+                if str(student_id) in message and str(student_name) in message:
+                    print(f"✅ Found CRITICAL log for {student_name} {student_id}: {message[:100]}...")
+                    founds[idx] = True
+                    used_entry_ids.append(eid)
+
+        if not all(founds):
+            for idx, found in enumerate(founds):
+                if not found:
+                    print(f"❌ Missing CRITICAL log for {needed_students[idx][0]} {needed_students[idx][1]}")
             return False
+
+        # check unneeded students
+        for eid,entry in enumerate(entries):
+            message = str(entry.payload)
+            for idx, (student_name, student_id) in enumerate(unneeded_students):
+                if str(student_id) in message or str(student_name) in message:
+                    print(f"❌ Found CRITICAL log for an unneeded student {student_name} {student_id}: {message[:100]}...")
+                    return False
         
         return True
         
     except Exception as e:
         print(f"❌ Error checking BigQuery logs: {e}")
         return False
+
+def get_all_students() -> list:
+    """Get all students"""
+    onecsvfile = os.path.join(os.path.dirname(__file__), "..", "files", "scores_2501.csv")
+    # student_id,name,class_id,score
+    # S009,Edward Jones,A,98.8
+    # get a [[student_id,name],...]
+    students = []
+    with open(onecsvfile, "r", encoding="utf-8", newline="") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            students.append([row["student_id"], row["name"]])
+    return students
 
 if __name__ == "__main__":
     parser = ArgumentParser()
@@ -100,8 +127,8 @@ if __name__ == "__main__":
 
     print("=" * 60)
     print("Academic Warning Evaluation - Updated Requirements")
-    print("- 90% accuracy for student selection in bad_student.csv")
-    print("- Check for Lisa Wright (S060) critical log only")
+    print("- 100% accuracy for student selection in bad_student.csv")
+    print("- Check for all students critical log")
     print("=" * 60)
 
     # Parse launch_time if provided
@@ -149,14 +176,16 @@ if __name__ == "__main__":
         print("\n3. Analyzing thresholds...")
         gt_25_percent = get_students_above_threshold(gt_data, 0.25)
         gt_45_percent = get_students_above_threshold(gt_data, 0.45)
+        all_students = get_all_students()
+        all_below_45_percent = [x for x in all_students if x not in gt_45_percent]
         
         print(f"Students with >25% drop (should be in bad_student.csv): {len(gt_25_percent)}")
         print(f"Students with >45% drop (should have CRITICAL logs): {len(gt_45_percent)}")
 
-        # Validate bad_student.csv with 90% accuracy requirement
-        print("\n4. Validating bad_student.csv with 90% accuracy...")
+        # Validate bad_student.csv with 100% accuracy requirement
+        print("\n4. Validating bad_student.csv with 100% accuracy...")
         agent_ids = set(agent_data.keys())
-        gt_25_set = set(gt_25_percent)
+        gt_25_set = set([item[0] for item in gt_25_percent])
 
         # Calculate accuracy: how many selected students are correct
         correct_selections = agent_ids & gt_25_set  # intersection
@@ -167,79 +196,31 @@ if __name__ == "__main__":
         print(f"Correct selections: {len(correct_selections)}")
         print(f"Accuracy: {accuracy:.2%}")
 
-        if accuracy < 0.9:
+        if accuracy < 1.0:
             missing_in_agent = sorted(gt_25_set - agent_ids)
             extra_in_agent = sorted(agent_ids - gt_25_set)
-            print(f"❌ Accuracy {accuracy:.2%} is below 90% threshold")
+            print(f"❌ Accuracy {accuracy:.2%} is below 100% threshold")
             if missing_in_agent:
                 print(f"Missing students: {missing_in_agent[:5]}{'...' if len(missing_in_agent) > 5 else ''}")
             if extra_in_agent:
                 print(f"Incorrect students: {extra_in_agent[:5]}{'...' if len(extra_in_agent) > 5 else ''}")
-            raise ValueError(f"bad_student.csv accuracy {accuracy:.2%} is below required 90%")
+            raise ValueError(f"bad_student.csv accuracy {accuracy:.2%} is below required 100%")
 
-        print(f"✅ bad_student.csv accuracy {accuracy:.2%} meets 90% threshold")
-
-        # Check MCP tool calls for CRITICAL logs
-        print("\n5. Validating MCP tool calls...")
-        if not os.path.isfile(args.res_log_file):
-            raise FileNotFoundError(f"Missing log file: {args.res_log_file}")
-
-        with open(args.res_log_file, "r", encoding="utf-8") as f:
-            data = json.load(f)
-
-        messages = data.get("messages", [])
-        critical_tool_calls = []
-
-        for msg in messages:
-            if isinstance(msg, dict) and msg.get("role") == "assistant" and "tool_calls" in msg:
-                for tool_call in msg.get("tool_calls", []):
-                    function_obj = tool_call.get("function", {})
-                    function_name = function_obj.get("name")
-                    if function_name == "google-cloud-logging_write_log":
-                        args_raw = function_obj.get("arguments")
-                        try:
-                            parsed_args = json.loads(args_raw) if isinstance(args_raw, str) else (args_raw or {})
-                            if parsed_args.get("severity") == "CRITICAL":
-                                critical_tool_calls.append(parsed_args)
-                        except json.JSONDecodeError as e:
-                            print(f"⚠️  Invalid JSON in tool call: {e}")
-
-        if not critical_tool_calls:
-            print("❌ No CRITICAL logging tool calls found")
-            sys.exit(1)
-
-        print(f"✅ Found {len(critical_tool_calls)} CRITICAL logging tool calls")
-
-        # Validate tool call parameters
-        for call in critical_tool_calls:
-            log_name = call.get("log_name")
-            severity = call.get("severity")
-            message = call.get("message")
-
-            validation_errors = []
-            if log_name != "exam_log":
-                validation_errors.append(f"log_name: expected 'exam_log', got '{log_name}'")
-            if severity != "CRITICAL":
-                validation_errors.append(f"severity: expected 'CRITICAL', got '{severity}'")
-            if not isinstance(message, str) or not message.strip():
-                validation_errors.append(f"message: expected non-empty string, got {type(message).__name__} '{message}'")
-
-            if validation_errors:
-                raise RuntimeError(f"Tool call validation failed - {'; '.join(validation_errors)}")
+        print(f"✅ bad_student.csv accuracy {accuracy:.2%} meets 100% threshold")
 
         # Check actual BigQuery logs for Lisa Wright only
-        print("\n6. Checking BigQuery logs for Lisa Wright...")
-        bigquery_logs_valid = check_lisa_wright_critical_log(project_id, credentials)
+        print("\n5. Checking BigQuery logs for all students...")
+        # FIXME: here is a known issue that we only exclude students > 25% but <45%, actually we should exclude all students <45%
+        bigquery_logs_valid = check_critical_logs_for_students(project_id, credentials, gt_45_percent, all_below_45_percent)
         
         if not bigquery_logs_valid:
-            print("❌ Lisa Wright critical log validation failed")
+            print("❌ Critical log validation failed")
             sys.exit(1)
 
         print("\n" + "=" * 60)
         print("🎉 EVALUATION PASSED SUCCESSFULLY!")
-        print(f"✅ Verified {accuracy:.1%} accuracy in bad_student.csv (≥90% required)")
-        print(f"✅ Verified Lisa Wright (S060) CRITICAL log exists")
-        print(f"✅ Validated {len(critical_tool_calls)} MCP tool calls")
+        print(f"✅ Verified {accuracy:.1%} accuracy in bad_student.csv (≥100% required)")
+        print(f"✅ Verified all students CRITICAL log exists")
         print("=" * 60)
 
     except Exception as e:
