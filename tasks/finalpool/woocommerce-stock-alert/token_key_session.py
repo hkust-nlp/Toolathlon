@@ -16,12 +16,5 @@ all_token_key_session = Dict(
     google_oauth2_token_path = "configs/google_auth_state.json",
     
     # Email configuration 
-    emails_config_file = "email_config.json",
-    
-    # GCP configuration
-    gcp_project_id = "mcp-bench0606",
-    gcp_service_account_path = "configs/gcp-service_account.keys.json",
-    
-    # API keys
-    google_cloud_console_api_key = "AIzaSyD8Q5ZPqCDZIgjOwBc9QtbdFLfGkijBmMU",
+    emails_config_file = os.path.join(os.path.dirname(__file__), "emails_config.json"),
 )

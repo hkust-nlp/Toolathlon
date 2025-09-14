@@ -1,0 +1,11 @@
+{  
+    "smtp_server": "localhost",
+    "imap_server": "localhost",
+    "imap_port": 1143,
+    "smtp_port": 1587,
+    "password": "michbpxJAcHu",
+    "email": "bakerm@mcp.com",
+    "name": "Store88团队",
+    "use_ssl": false,
+    "use_starttls": false
+}
