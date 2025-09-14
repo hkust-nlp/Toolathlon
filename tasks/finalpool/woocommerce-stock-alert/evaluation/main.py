@@ -6,99 +6,81 @@ from pathlib import Path
 # Add current directory to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from evaluate_remote_stock_alert import RemoteStockAlertValidator
+from evaluate_updated_stock_alert import StockAlertEvaluator
 
 def run_complete_evaluation(agent_workspace: str) -> tuple[bool, str]:
-    """Run complete evaluation workflow for stock alert task using remote connections"""
-    
-    print("🚀 Starting Remote Stock Alert System Evaluation")
+    """Run complete evaluation workflow for stock alert task"""
+
+    print("🚀 Starting Stock Alert System Evaluation")
     print("=" * 80)
-    
+
     try:
-        # Initialize remote validator
-        validator = RemoteStockAlertValidator(agent_workspace)
-        
-        # Run remote validation
-        validation_report = validator.run_complete_validation()
-        
+        # Initialize evaluator
+        evaluator = StockAlertEvaluator(agent_workspace)
+
+        # Run evaluation
+        results = evaluator.run_evaluation()
+
         # Extract results
-        validation_summary = validation_report.get("validation_summary", {})
-        details = validation_report.get("details", {})
-        
-        # Check each component
-        components = [
-            ("WooCommerce Connection", validation_report.get("woocommerce_connection", False)),
-            ("Google Sheets Connection", validation_report.get("google_sheets_connection", False)),
-            ("Email Connection", validation_report.get("email_connection", False)),
-            ("Stock Detection", validation_report.get("stock_detection", False)),
-            ("Sheets Update", validation_report.get("sheets_update", False)),
-            ("Email Notifications", validation_report.get("email_notifications", False))
-        ]
-        
-        results = []
-        for name, passed in components:
-            status = "✅ PASSED" if passed else "❌ FAILED"
-            results.append((name, passed, f"{name}: {status}"))
-        
+        overall = results.get("overall", {})
+        sheets_result = results.get("google_sheets_update", {})
+        email_result = results.get("email_notifications", {})
+
         # Build summary
         summary = []
         summary.append("\n" + "=" * 80)
-        summary.append("REMOTE EVALUATION SUMMARY")
+        summary.append("EVALUATION SUMMARY")
         summary.append("=" * 80)
-        
-        # Add component results
-        for test_name, passed, message in results:
-            summary.append(message)
-        
-        # Add details
-        if details:
-            summary.append("\nDetails:")
-            for key, value in details.items():
-                summary.append(f"  - {key}: {value}")
-        
+
+        # Component results
+        components = [
+            ("Google Sheets Update", sheets_result.get("passed", False), sheets_result.get("message", "")),
+            ("Email Notifications", email_result.get("passed", False), email_result.get("message", ""))
+        ]
+
+        for name, passed, message in components:
+            status = "✅ PASSED" if passed else "❌ FAILED"
+            summary.append(f"{name}: {status}")
+            summary.append(f"  {message}")
+
         # Overall result
-        passed_count = sum(1 for _, passed, _ in results if passed)
-        total_count = len(results)
+        passed_count = overall.get("tests_passed", 0)
+        total_count = overall.get("total_tests", 2)
         success_rate = (passed_count / total_count) * 100 if total_count > 0 else 0
-        
-        overall_pass = validation_summary.get("validation_passed", False)
-        
+        overall_pass = overall.get("passed", False)
+
         final_message = f"\nOverall: {passed_count}/{total_count} tests passed ({success_rate:.1f}%)"
-        
+
         if overall_pass:
             summary.append(final_message + " - ✅ ALL TESTS PASSED!")
-            summary.append("\n🎉 Remote stock alert system evaluation completed successfully!")
+            summary.append("\n🎉 Stock alert system evaluation completed successfully!")
             summary.append("\nThe system correctly:")
-            summary.append("  ✓ Connected to WooCommerce, Google Sheets, and Email services")
-            summary.append("  ✓ Detected all low stock products from WooCommerce")
-            summary.append("  ✓ Updated 'stock_sheet' in Google Sheets with procurement data")
-            summary.append("  ✓ Sent email alerts using configured email template")
+            summary.append("  ✓ Added new low-stock products to Google Sheets")
+            summary.append("  ✓ Preserved existing data in Google Sheets")
+            summary.append("  ✓ Sent email alerts to purchasing manager")
+            summary.append("  ✓ Used correct email template format")
         else:
             summary.append(final_message + " - ❌ SOME TESTS FAILED")
             summary.append("\n❌ Please review the failed components above")
-            
+
             # Add failure hints
-            failed_components = [name for name, passed, _ in results if not passed]
+            failed_components = [name for name, passed, _ in components if not passed]
             if failed_components:
                 summary.append(f"\nFailed components: {', '.join(failed_components)}")
-                summary.append("\nPossible issues:")
-                if "WooCommerce Connection" in failed_components:
-                    summary.append("  - Check WooCommerce API credentials and site URL")
-                if "Google Sheets Connection" in failed_components:
-                    summary.append("  - Verify Google Sheets OAuth credentials and permissions")
-                if "Email Connection" in failed_components:
-                    summary.append("  - Check SMTP server settings in email_config.json")
-                if "Stock Detection" in failed_components:
-                    summary.append("  - Ensure alert_report.json contains all expected low stock products")
-                if "Sheets Update" in failed_components:
-                    summary.append("  - Verify 'stock_sheet' was updated with new procurement records")
+                summary.append("\nRequired fixes:")
+                if "Google Sheets Update" in failed_components:
+                    summary.append("  - Ensure MacBook Pro 14-inch M3 and Nintendo Switch OLED are added to sheet")
+                    summary.append("  - Verify new products are inserted after existing 6 records")
+                    summary.append("  - Check that original data remains unchanged")
                 if "Email Notifications" in failed_components:
-                    summary.append("  - Check email_log.json for successful delivery status")
-        
+                    summary.append("  - Send 2 emails to laura_thompson@mcp.com")
+                    summary.append("  - One email each for MacBook Pro M3 and Nintendo Switch OLED")
+                    summary.append("  - Follow the English email template format")
+
         return overall_pass, "\n".join(summary)
-        
+
     except Exception as e:
-        error_msg = f"❌ Critical remote evaluation error: {str(e)}"
+        error_msg = f"❌ Critical evaluation error: {str(e)}"
         print(error_msg)
         import traceback
         traceback.print_exc()
