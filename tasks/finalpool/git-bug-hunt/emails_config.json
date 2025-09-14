@@ -1,0 +1,11 @@
+{
+  "email": "hughesj@mcp.com",
+  "password": "Jhughes124D2",
+  "name": "James Hughes",
+  "imap_server": "localhost",
+  "imap_port": 1143,
+  "smtp_server": "localhost",
+  "smtp_port": 1587,
+  "use_ssl": false,
+  "use_starttls": false
+}

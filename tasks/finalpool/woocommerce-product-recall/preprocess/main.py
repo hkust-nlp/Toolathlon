@@ -60,7 +60,11 @@ def setup_recall_test_data():
             print(f"   - 创建了 {len(products)} 个商品")
             print(f"   - 创建了 {len(orders)} 个订单")
             
-            recalled_products = [p for p in products if "召回" in p.get('description', '')]
+            recalled_products = [
+                p for p in products
+                if any(meta.get('key') == 'recall_status' and meta.get('value') == 'need_recall'
+                       for meta in p.get('meta_data', []))
+            ]
             print(f"   - 其中 {len(recalled_products)} 个是召回商品")
             
         else:

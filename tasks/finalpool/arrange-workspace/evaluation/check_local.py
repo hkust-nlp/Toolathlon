@@ -21,6 +21,24 @@ import sys
 from pathlib import Path
 from typing import Set, Dict, List, Tuple
 
+# 需要忽略的临时目录和文件模式
+TEMP_PATTERNS_TO_IGNORE = {
+    # 临时目录模式
+    ".pdf_tools_tempfiles",
+    ".temp",
+    ".tmp",
+    "__pycache__",
+    ".cache",
+    ".DS_Store",
+    "Thumbs.db",
+    ".git",
+    ".svn",
+    ".vscode",
+    ".idea",
+    "node_modules",
+    ".pytest_cache"
+}
+
 # GT结构定义 - 预定义的标准目录结构
 GT_STRUCTURE = {
     # 目录结构
@@ -63,10 +81,10 @@ GT_STRUCTURE = {
         # "School/Official_Certificate/Tsinghua_University_Admission_Notice.pdf",
 
         # Miss
-        # "School/Applications_Matrials/Prof_Shen_PhD_Program_Admission_2025.pdf",
+        # "School/Applications_Materials/Prof_Shen_PhD_Program_Admission_2025.pdf",
 
-        "School/Applications_Matrials/Recommendation_Letter_1.pdf",
-        "School/Applications_Matrials/Recommendation_Letter_2.pdf",
+        "School/Applications_Materials/Recommendation_Letter_1.pdf",
+        "School/Applications_Materials/Recommendation_Letter_2.pdf",
      
         "School/Courses_Materials/exam.xlsx",
 
@@ -118,6 +136,29 @@ GT_STRUCTURE = {
 }
 
 
+def should_ignore_path(path: str) -> bool:
+    """
+    判断路径是否应该被忽略（临时文件/目录）
+
+    Args:
+        path: 相对路径
+
+    Returns:
+        bool: True表示应该忽略，False表示不应该忽略
+    """
+    # 检查路径本身或路径的任何部分是否在忽略列表中
+    path_parts = path.split('/')
+    for part in path_parts:
+        if part in TEMP_PATTERNS_TO_IGNORE:
+            return True
+
+    # 检查完整路径是否在忽略列表中
+    if path in TEMP_PATTERNS_TO_IGNORE:
+        return True
+
+    return False
+
+
 def scan_directory_structure(root_path: str) -> Dict[str, Set[str]]:
     """
     扫描指定目录下的所有目录和文件结构
@@ -138,7 +179,11 @@ def scan_directory_structure(root_path: str) -> Dict[str, Set[str]]:
     # 递归遍历所有子目录和文件
     for item in root.rglob("*"):
         relative_path = item.relative_to(root).as_posix()
-        
+
+        # 跳过需要忽略的临时文件和目录
+        if should_ignore_path(relative_path):
+            continue
+
         if item.is_dir():
             directories.add(relative_path)
         elif item.is_file():
