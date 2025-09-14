@@ -1,5 +1,10 @@
 from addict import Dict
 import os
+file_path = os.path.abspath(__file__)
+
+folder_id_file = os.path.join(os.path.dirname(file_path), "files", "folder_id.txt")
+with open(folder_id_file, "r") as f:
+    folder_id = f.read().strip()
 # I am gradually modifying the tokens to the pseudo account in this project
 all_token_key_session = Dict(
     # added, use pseudo account!
@@ -20,9 +25,9 @@ all_token_key_session = Dict(
     canvas_domain = "localhost:20001",
 
     wandb_api_key = "b3abe195bd69c07bdc47469d3956ac8d0c008714",
-    tessdata_prefix = os.environ["TESSDATA_PREFIX"],
+    #tessdata_prefix = os.environ["TESSDATA_PREFIX"],
     amap_key="f789815a157fe45439c674c4a10e615b",
-    google_sheets_folder_id = "1kY4IMn6aRrezElP10v1rXbFpwT271dqU",
+    google_sheets_folder_id = folder_id,
     google_oauth2_credentials_path = "configs/credentials.json",
     google_oauth2_token_path = "configs/credentials.json", # I just put them all together in the same file
 
