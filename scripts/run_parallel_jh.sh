@@ -3,21 +3,24 @@
 # Configuration Variables - Modify as needed
 TASKS_FOLDER="finalpool"
 TAG="firsttry"
-MODEL_NAME="gpt-5-mini"
+
+# Parse input arguments for model_name and dump_path
+MODEL_NAME="${1:-gpt-5-mini}"
+DUMP_PATH="${2:-./parallel_debug_gpt5}"
+
 MODEL_PROVIDER="aihubmix"
 USER_MODEL_NAME="gpt-5"
 USER_MODEL_PROVIDER="aihubmix"
-MAX_STEPS="200"
+MAX_STEPS="100"
 MAX_TURNS="50"
 WORKERS="8"
 TIMEOUT="1800"
 TEMPERATURE="0.6"
-TOP_P="1.0"
-MAX_TOKENS="4096"
+TOP_P="1"
+MAX_TOKENS="8192"
 USER_TEMPERATURE="1.0"
 USER_TOP_P="1.0"
 USER_MAX_TOKENS="1024"
-DUMP_PATH="./parallel_debug"
 IMAGE_NAME="lockon0927/mcpbench-task-image-v2:jh0913"  # Docker image to use
 
 mkdir -p $DUMP_PATH

@@ -12,7 +12,7 @@ provider=${4:-"aihubmix"}
 maxstep=${5:-"100"}
 eval_config=${6:-"scripts/foraml_run_v0.json"}
 dump_path=${7:-"./dumps"}
-image_name=${8:-"lockon0927/mcpbench-task-image-v2:latest"}
+image_name=${8:-"lockon0927/mcpbench-task-image-v2:jh0913"}
 
 taskdomain=${task_dir_arg%/*}
 taskname=${task_dir_arg#*/}
