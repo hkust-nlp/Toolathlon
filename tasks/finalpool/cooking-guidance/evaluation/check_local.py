@@ -13,7 +13,6 @@ from .recipe_quantity_extractor import RecipeQuantityExtractor
 
 # Initialize enhanced processor
 ingredient_processor = EnhancedChineseIngredientProcessor()
-recipe_extractor = RecipeQuantityExtractor()
 
 def extract_numeric_quantity(quantity_str):
     """Extract numeric value from quantity string."""
@@ -361,6 +360,10 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, res_log: Optio
 
         # 3. Capture cuisines from how2cook MCP and extract ingredients (Enhanced)
         print(f"\n🔍 Using enhanced recipe quantity extraction...")
+        
+        # Initialize recipe extractor with correct dishes path
+        dishes_path = os.path.join(groundtruth_workspace, 'dishes')
+        recipe_extractor = RecipeQuantityExtractor(dishes_path=dishes_path)
         
         # First try enhanced extraction from original recipe files
         enhanced_required_ingredients = recipe_extractor.get_enhanced_recipe_ingredients(dish_names)
