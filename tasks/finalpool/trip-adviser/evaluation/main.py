@@ -7,7 +7,11 @@ import json
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../.."))
 sys.path.insert(0, project_root)
 
-from .check_local import check_local
+try:
+    from .check_local import check_local
+except ImportError:
+    # Fallback for direct script execution
+    from check_local import check_local
 
 
 def main():
