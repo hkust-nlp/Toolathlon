@@ -8,6 +8,7 @@ import sys
 import os
 import imaplib
 import email
+import random
 
 # 动态添加当前目录到路径
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -53,24 +54,12 @@ class TestProductSetup:
             if all_products:
                 print(f"🗑️ 准备删除 {len(all_products)} 个商品...")
                 
-                for product in all_products:
-                    product_id = product.get('id')
-                    product_name = product.get('name', 'Unknown')
-                    
-                    try:
-                        success, result = self.wc_client.delete_product(str(product_id), force=True)
-                        if success:
-                            print(f"   ✅ 删除商品: {product_name} (ID: {product_id})")
-                            deleted_products += 1
-                        else:
-                            print(f"   ❌ 删除失败: {product_name} - {result}")
-                            failed_products += 1
-                    except Exception as e:
-                        print(f"   ❌ 删除商品 {product_name} 时出错: {e}")
-                        failed_products += 1
-                    
-                    # 避免API限制
-                    time.sleep(0.3)
+                success, result = self.wc_client.batch_delete_products(all_products)
+                if success:
+                    print(f"✅ 删除商品: {len(all_products)} 个商品")
+                else:
+                    print(f"❌ 删除商品失败: {result}")
+                    return {"success": False, "deleted_count": 0, "failed_count": len(all_products)}
             else:
                 print("📦 商店中没有商品需要删除")
             
@@ -91,12 +80,6 @@ class TestProductSetup:
                         category.get('count', 0) == 0):  # 空分类也可以删除
                         
                         try:
-                            # 使用DELETE请求删除分类
-                            # delete_url = f"{self.wc_client.api_base}/products/categories/{category_id}"
-                            # response = self.wc_client.session.delete(
-                            #     delete_url, 
-                            #     params={'force': True}
-                            # )
                             success, result  = self.wc_client.delete_category(category_id, force=True)
                             
                             if success:
@@ -163,33 +146,12 @@ class TestProductSetup:
         
         created_count = 0
         failed_count = 0
-        
-        for product_data in test_products:
-            success, result = self.wc_client.create_product(product_data)
-            if success:
-                product_id = result.get('id')
-                product_name = result.get('name')
-                # 提取产品类型
-                product_type = 'unknown'
-                meta_data = product_data.get('meta_data', [])
-                for meta in meta_data:
-                    if meta.get('key') == 'product_type':
-                        product_type = meta.get('value', 'unknown')
-                        break
-                
-                self.created_products.append({
-                    'id': product_id,
-                    'name': product_name,
-                    'type': product_type
-                })
-                print(f"✅ 创建商品: {product_name} (ID: {product_id})")
-                created_count += 1
-            else:
-                print(f"❌ 创建商品失败: {product_data.get('name')} - {result}")
-                failed_count += 1
-            
-            # 避免API限制
-            time.sleep(0.5)
+        success, result = self.wc_client.batch_create_products(test_products)
+        if success:
+            print(f"✅ 创建商品: {len(test_products)} 个商品")
+        else:
+            print(f"❌ 创建商品失败: {result}")
+            return {"success": False, "created_count": 0, "failed_count": len(test_products)}
         
         setup_result = {
             "success": failed_count == 0,
@@ -201,8 +163,6 @@ class TestProductSetup:
         }
         
         print(f"📊 商品创建完成:")
-        print(f"   成功创建: {created_count} 个商品")
-        print(f"   创建失败: {failed_count} 个商品")
         print(f"   预期低销量商品: {setup_result['low_selling_expected']} 个")
         print(f"   预期正常商品: {setup_result['normal_selling_expected']} 个")
         
@@ -357,8 +317,37 @@ class TestProductSetup:
             }
         ]
         
+        # 干扰项
+        extra_low_selling_products = []
+        for id in range(10,400): # 创建~400个新商品
+            regprice = 599.99+2*id # 保证价格和上面的不冲突
+            stock_quantity = random.randint(10, 200)
+            date_created = (current_date - timedelta(days=random.randint(10, 200))).isoformat()
+            sales_30_days = random.randint(11, 200) # 肯定促销
+            total_sales = sales_30_days + random.randint(11, 200)
+            name = random.choice(["AOC", "Samsung", "LG", "Xiaomi", "Sony"]) + " " + random.choice(["Monitor", "Phone", "TV", "Laptop", "Tablet"]) + " v" + str(id)
+            extra_low_selling_products.append({
+                "name": name,
+                "type": "simple",
+                "regular_price": str(regprice),
+                "stock_quantity": stock_quantity,
+                "manage_stock": True,
+                "stock_status": "instock",
+                "date_created": date_created,
+                "meta_data": [
+                    {"key": "product_type", "value": "low_selling"},
+                    {"key": "sales_last_30_days", "value": str(sales_30_days)},
+                    {"key": "_sales_last_30_days", "value": str(sales_30_days)},
+                    {"key": "total_sales", "value": str(total_sales)},
+                    {"key": "_total_sales", "value": str(total_sales)}
+                ]
+            })
+
         products.extend(low_selling_products)
         products.extend(normal_selling_products)
+        products.extend(extra_low_selling_products)
+
+        random.shuffle(products)
         
         return products
     

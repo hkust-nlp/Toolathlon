@@ -148,6 +148,39 @@ class WooCommerceClient:
         """删除商品分类"""
         params = {'force': force} if force else {}
         return self._make_request('DELETE', f'products/categories/{category_id}', params=params)
+    
+    def batch_delete_products(self, product_ids: List[Dict],batch_size=50) -> Tuple[bool, Dict]:
+        
+        """批量删除商品"""
+        for i in range(0, len(product_ids), batch_size):
+            batch = product_ids[i:i + batch_size]
+            batch_data = {
+                "delete": [{'id': item['id']} for item in batch]
+            }
+            success, result = self._make_request('POST', 'products/batch', data=batch_data)
+            if not success:
+                return False, result
+        return True, {}
+        # batch_data = {
+            # "delete": [{'id': item['id']} for item in product_ids]
+        # }
+        # return self._make_request('POST', 'products/batch', data=batch_data)
+    
+    def batch_create_products(self, product_data: List[Dict],batch_size=50) -> Tuple[bool, Dict]:
+        """批量创建商品"""
+        for i in range(0, len(product_data), batch_size):
+            batch = product_data[i:i + batch_size]
+            batch_data = {
+                "create": batch
+            }
+            success, result = self._make_request('POST', 'products/batch', data=batch_data)
+            if not success:
+                return False, result
+        return True, {}
+        # batch_data = {
+            # "create": product_data
+        # }
+        # return self._make_request('POST', 'products/batch', data=batch_data)
 
 
 class LowSellingProductFilter:

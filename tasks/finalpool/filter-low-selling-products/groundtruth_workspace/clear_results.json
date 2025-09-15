@@ -1,7 +1,7 @@
 {
   "mailbox_clear": {
     "success": true,
-    "total_deleted": 1,
+    "total_deleted": 3,
     "folders": {
       "INBOX": {
         "success": true,
@@ -10,12 +10,12 @@
       },
       "Sent": {
         "success": true,
-        "deleted_count": 1,
+        "deleted_count": 3,
         "failed_count": 0,
-        "total_found": 1
+        "total_found": 3
       }
     },
-    "timestamp": "2025-09-15T05:45:35.622684"
+    "timestamp": "2025-09-15T12:54:21.536092"
   },
   "blog_clear": {
     "status": "SKIPPED!"
@@ -23,14 +23,14 @@
   "store_clear": {
     "success": true,
     "products": {
-      "total_found": 8,
-      "deleted": 8,
-      "failed": 0
-    },
-    "categories": {
+      "total_found": 398,
       "deleted": 0,
       "failed": 0
     },
-    "timestamp": "2025-09-15T05:45:41.966027"
+    "categories": {
+      "deleted": 1,
+      "failed": 0
+    },
+    "timestamp": "2025-09-15T12:54:48.868034"
   }
 }
