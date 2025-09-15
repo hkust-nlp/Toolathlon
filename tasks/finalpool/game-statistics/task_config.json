@@ -1,5 +1,12 @@
 {
-    "needed_mcp_servers": ["google-cloud","terminal"],
-    "needed_local_tools": ["python_execute","claim_done"],
+    "needed_mcp_servers": [
+        "google-cloud",
+        "terminal"
+    ],
+    "needed_local_tools": [
+        "python_execute",
+        "claim_done",
+        "handle_overlong_tool_outputs"
+    ],
     "meta": {}
 }

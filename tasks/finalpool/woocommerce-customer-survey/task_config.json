@@ -1,5 +1,12 @@
 {
-    "needed_mcp_servers": ["woocommerce", "emails", "google_forms", "filesystem"],
-    "needed_local_tools": [],
+    "needed_mcp_servers": [
+        "woocommerce",
+        "emails",
+        "google_forms",
+        "filesystem"
+    ],
+    "needed_local_tools": [
+        "handle_overlong_tool_outputs"
+    ],
     "meta": {}
 }

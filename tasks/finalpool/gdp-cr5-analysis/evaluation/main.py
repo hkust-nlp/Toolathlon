@@ -652,9 +652,11 @@ def main():
     # 保存评估结果到日志文件
     if args.res_log_file:
         try:
-            with open(args.res_log_file, 'w', encoding='utf-8') as f:
+            # Write evaluation results to a separate file, not the trajectory file
+            eval_temp_file = os.path.join(os.path.dirname(args.res_log_file), "eval_temp.json")
+            with open(eval_temp_file, 'w', encoding='utf-8') as f:
                 json.dump(evaluation_result, f, ensure_ascii=False, indent=2)
-            print(f"评估结果已保存到: {args.res_log_file}")
+            print(f"评估结果已保存到: {eval_temp_file}")
         except Exception as e:
             print(f"保存评估结果失败: {e}")
     

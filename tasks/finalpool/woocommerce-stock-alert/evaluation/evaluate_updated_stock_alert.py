@@ -280,7 +280,9 @@ def main():
 
         # Write results to log file if specified
         if args.res_log_file:
-            with open(args.res_log_file, 'w', encoding='utf-8') as f:
+            # Write evaluation results to a separate file, not the trajectory file
+            eval_temp_file = os.path.join(os.path.dirname(args.res_log_file), "eval_temp.json")
+            with open(eval_temp_file, 'w', encoding='utf-8') as f:
                 json.dump(results, f, ensure_ascii=False, indent=2)
 
         # Exit with appropriate code

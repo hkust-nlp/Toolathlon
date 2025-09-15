@@ -1,6 +1,16 @@
 {
-    "needed_mcp_servers": ["filesystem", "playwright_with_chunk", "google_sheet", "terminal"],
-    "needed_local_tools": ["claim_done", "python_execute", "web_search"],
+    "needed_mcp_servers": [
+        "filesystem",
+        "playwright_with_chunk",
+        "google_sheet",
+        "terminal"
+    ],
+    "needed_local_tools": [
+        "claim_done",
+        "python_execute",
+        "web_search",
+        "handle_overlong_tool_outputs"
+    ],
     "meta": {},
     "max_turns": 100
 }

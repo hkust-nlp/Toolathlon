@@ -202,7 +202,7 @@ class AsyncTaskScheduler:
     async def run_single_task(self, task_dir_arg: str, tag: str, 
                              model_short_name: str, provider: str, 
                              maxstep: str, timeout: int = 1800, eval_config: str = "scripts/foraml_run_v0.json",
-                             dump_path: str = "./dumps"):
+                             dump_path: str = "./dumps", image_name: str = "lockon0927/mcpbench-task-image-v2:latest"):
         """改进版：更智能的任务调度"""
         
         conflict_lock = self.get_task_lock(task_dir_arg)
@@ -217,7 +217,7 @@ class AsyncTaskScheduler:
                     async with self.semaphore:  # 获得锁后再占用worker
                         return await self._execute_task(
                             task_dir_arg, tag, model_short_name, 
-                            provider, maxstep, timeout, has_lock=True, eval_config=eval_config, dump_path=dump_path
+                            provider, maxstep, timeout, has_lock=True, eval_config=eval_config, dump_path=dump_path, image_name=image_name
                         )
             finally:
                 self.waiting_for_lock.discard(task_dir_arg)
@@ -228,7 +228,7 @@ class AsyncTaskScheduler:
                 async with self.semaphore:
                     return await self._execute_task(
                         task_dir_arg, tag, model_short_name, 
-                        provider, maxstep, timeout, has_lock=True, eval_config=eval_config, dump_path=dump_path
+                        provider, maxstep, timeout, has_lock=True, eval_config=eval_config, dump_path=dump_path, image_name=image_name
                     )
         
         else:
@@ -236,16 +236,16 @@ class AsyncTaskScheduler:
             async with self.semaphore:
                 return await self._execute_task(
                     task_dir_arg, tag, model_short_name, 
-                    provider, maxstep, timeout, has_lock=False, eval_config=eval_config, dump_path=dump_path
+                    provider, maxstep, timeout, has_lock=False, eval_config=eval_config, dump_path=dump_path, image_name=image_name
                 )
     
     async def _execute_task(self, task_dir_arg: str, tag: str, 
                            model_short_name: str, provider: str, 
                            maxstep: str, timeout: int, has_lock: bool, eval_config: str = "scripts/foraml_run_v0.json",
-                           dump_path: str = "./dumps"):
+                           dump_path: str = "./dumps", image_name: str = "lockon0927/mcpbench-task-image-v2:latest"):
         """实际执行任务"""
         command = f"bash scripts/run_single_containerized.sh " \
-                 f"{task_dir_arg} {tag} {model_short_name} {provider} {maxstep} {eval_config} {dump_path}"
+                 f"{task_dir_arg} {tag} {model_short_name} {provider} {maxstep} {eval_config} {dump_path} {image_name}"
         
         # 构建日志文件路径
         # task_dir_arg 格式: tasks_folder/task
@@ -405,6 +405,8 @@ async def main():
                        help="Path to task list file to filter tasks (optional, e.g., filtered_tasks.txt)")
     parser.add_argument("--eval_config", required=False, default="scripts/foraml_run_v0.json",
                        help="Path to evaluation config file (default: scripts/foraml_run_v0.json)")
+    parser.add_argument("--image_name", required=False, default="lockon0927/mcpbench-task-image-v2:latest",
+                       help="Docker image name to use (default: lockon0927/mcpbench-task-image-v2:latest)")
     
     args = parser.parse_args()
     
@@ -485,6 +487,7 @@ async def main():
     else:
         print(f"  Task list filter: None (all tasks)")
     print(f"  Eval config: {args.eval_config}")
+    print(f"  Docker image: {args.image_name}")
     
     if task_conflict_info:
         print(f"  Conflict groups: {len(task_conflict_info)} groups")
@@ -502,7 +505,7 @@ async def main():
     tasks = [
         scheduler.run_single_task(
             task_dir_arg, tag, args.model_short_name, 
-            args.provider, args.maxstep, args.timeout, args.eval_config, args.dump_path
+            args.provider, args.maxstep, args.timeout, args.eval_config, args.dump_path, args.image_name
         )
         for task_dir_arg in all_task_dir_args
     ]
