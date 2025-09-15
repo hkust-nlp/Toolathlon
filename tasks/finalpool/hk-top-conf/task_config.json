@@ -1,5 +1,16 @@
 {
-    "needed_mcp_servers": ["filesystem","terminal","playwright_with_chunk"],
-    "needed_local_tools": ["claim_done","manage_context","history","python_execute","web_search"],
+    "needed_mcp_servers": [
+        "filesystem",
+        "terminal",
+        "playwright_with_chunk"
+    ],
+    "needed_local_tools": [
+        "claim_done",
+        "manage_context",
+        "history",
+        "python_execute",
+        "web_search",
+        "handle_overlong_tool_outputs"
+    ],
     "meta": {}
 }

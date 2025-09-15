@@ -1,6 +1,7 @@
 FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV TESSDATA_PREFIX=""
 
 # 安装基础依赖和 Playwright 系统依赖
 RUN apt-get update && apt-get install -y \

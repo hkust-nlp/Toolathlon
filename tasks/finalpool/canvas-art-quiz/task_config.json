@@ -1,5 +1,12 @@
 {
-    "needed_mcp_servers": ["filesystem", "canvas", "terminal"],
-    "needed_local_tools": ["python_execute"],
+    "needed_mcp_servers": [
+        "filesystem",
+        "canvas",
+        "terminal"
+    ],
+    "needed_local_tools": [
+        "python_execute",
+        "handle_overlong_tool_outputs"
+    ],
     "meta": {}
 }
