@@ -29,21 +29,21 @@ def get_sensitive_patterns() -> Dict[str, str]:
         'id_card': r'[1-6]\d{5}(18|19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dX]',
         'phone': r'1[3-9]\d{9}',
     }
-    
-    # English patterns (US-style)
+
+    # English patterns (US-style) - Fixed with proper word boundaries
     english_patterns = {
-        'ssn': r'\b\d{3}-\d{2}-\d{4}\b',
-        'us_phone': r'\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}',
+        'ssn': r'\b\d{3}[-\s]\d{2}[-\s]\d{4}\b',
+        'us_phone': r'\b\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b(?!\d)',  # Added negative lookahead
         'us_phone_alt': r'\b\d{3}-\d{3}-\d{4}\b',
     }
-    
+
     # Common patterns for both languages
     common_patterns = {
-        'email': r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}',
-        'credit_card': r'\b(?:\d{4}[\s-]?){3}\d{4}\b|\b\d{16,19}\b',
+        'email': r'\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b',
+        'credit_card': r'\b(?:\d{4}[\s-]?){3}\d{4}\b|\b\d{13,19}\b(?!\d)',  # Fixed length and added negative lookahead
         'ip_address': r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b'
     }
-    
+
     # 合并所有模式
     return {**chinese_patterns, **english_patterns, **common_patterns}
 
@@ -122,15 +122,48 @@ def check_local(agent_workspace: str) -> Tuple[bool, Optional[str]]:
         sensitive_data = check_sensitive_data_in_file(desensitized_content)
         if sensitive_data:
             return False, f"文件 {desensitized_file} 中仍存在敏感信息: {sensitive_data}"
-        
+
+        # 读取原始文件内容进行对比
+        orig_content = check_file_content(orig_path)
+        orig_sensitive_data = check_sensitive_data_in_file(orig_content)
+
         # 检查脱敏文件是否使用了***替代敏感信息
-        if "***" not in desensitized_content:
-            # 检查原始文件中是否有敏感信息
-            orig_content = check_file_content(orig_path)
-            orig_sensitive_data = check_sensitive_data_in_file(orig_content)
-            
-            if orig_sensitive_data and "***" not in desensitized_content:
-                return False, f"文件 {desensitized_file} 没有使用***替代敏感信息"
+        if orig_sensitive_data and "***" not in desensitized_content:
+            return False, f"文件 {desensitized_file} 没有使用***替代敏感信息"
+
+        # 检查是否有过度脱敏：***不应该出现在业务标识符中
+        if "***" in desensitized_content:
+            # 检查***的上下文，确保不是错误地替换了业务ID
+            asterisk_contexts = []
+            lines = desensitized_content.split('\n')
+            for i, line in enumerate(lines):
+                if "***" in line:
+                    # 检查是否在业务标识符的上下文中
+                    lower_line = line.lower()
+                    business_id_indicators = [
+                        'order', 'invoice', 'policy', 'license', 'account', 'customer',
+                        'transaction', 'reference', 'ticket', 'case', 'claim', 'contract'
+                    ]
+
+                    # 如果包含业务标识符关键词，可能是过度脱敏
+                    for indicator in business_id_indicators:
+                        if (indicator in lower_line and
+                            ('number' in lower_line or 'id' in lower_line or 'no' in lower_line) and
+                            '***' in line):
+                            # 进一步检查：如果***前后有字母数字，可能是业务ID被错误脱敏
+                            parts = line.split('***')
+                            for j, part in enumerate(parts):
+                                if j < len(parts) - 1:  # 不是最后一部分
+                                    # 检查***前后是否有字母数字字符
+                                    before = part.rstrip()
+                                    after = parts[j + 1].lstrip() if j + 1 < len(parts) else ""
+
+                                    if (before and before[-1].isalnum()) or (after and after[0].isalnum()):
+                                        asterisk_contexts.append(f"第{i+1}行: {line.strip()}")
+                                        break
+
+            if asterisk_contexts:
+                return False, f"文件 {desensitized_file} 可能存在过度脱敏，业务标识符被错误替换: {asterisk_contexts[:3]}"  # 只显示前3个
         
         print(f"✓ {desensitized_file} 检查通过")
     

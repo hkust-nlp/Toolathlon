@@ -1036,6 +1036,23 @@ wheels = [
 ]
 
 [[package]]
+name = "google-cloud-storage"
+version = "3.3.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "google-api-core" },
+    { name = "google-auth" },
+    { name = "google-cloud-core" },
+    { name = "google-crc32c" },
+    { name = "google-resumable-media" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ce/0d/6be1c7e10d1e186e22990fdc22e7ece79f7c622370793cfe88aa8c658316/google_cloud_storage-3.3.1.tar.gz", hash = "sha256:60f291b0881e5c72919b156d1ee276d1b69a2538fcdc35f4e87559ae11678f77", size = 17224623, upload-time = "2025-09-01T05:59:02.804Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/80/67/68eee082fc77e718fa483893ac2463fe0ae8f28ccab334cea9dc5aba99b0/google_cloud_storage-3.3.1-py3-none-any.whl", hash = "sha256:8cace9359b85f315f21868cf771143d6dbb47dcc5a3a9317c8207accc4d10fd3", size = 275070, upload-time = "2025-09-01T05:59:00.633Z" },
+]
+
+[[package]]
 name = "google-crc32c"
 version = "1.7.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1845,6 +1862,7 @@ dependencies = [
     { name = "google-auth-oauthlib" },
     { name = "google-cloud-bigquery" },
     { name = "google-cloud-logging" },
+    { name = "google-cloud-storage" },
     { name = "gputil" },
     { name = "greenlet" },
     { name = "griffe" },
@@ -2009,6 +2027,7 @@ requires-dist = [
     { name = "google-auth-oauthlib", specifier = ">=1.2.2" },
     { name = "google-cloud-bigquery", specifier = ">=3.35.1" },
     { name = "google-cloud-logging", specifier = ">=3.12.1" },
+    { name = "google-cloud-storage", specifier = ">=3.3.1" },
     { name = "gputil", specifier = ">=1.4.0" },
     { name = "greenlet", specifier = "==3.2.1" },
     { name = "griffe", specifier = "==1.7.3" },
