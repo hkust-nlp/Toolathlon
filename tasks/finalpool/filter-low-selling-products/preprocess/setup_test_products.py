@@ -1,22 +1,22 @@
 import requests
-from requests.auth import HTTPBasicAuth
 import json
 import time
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List
 import sys
 import os
-import imaplib
-import email
 import random
 
 # 动态添加当前目录到路径
 current_dir = os.path.dirname(os.path.abspath(__file__))
 task_dir = os.path.dirname(current_dir)
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(task_dir)))
+sys.path.insert(0, project_root)
 sys.path.insert(0, task_dir)
 sys.path.insert(0, current_dir)
 
-from woocommerce_client import WooCommerceClient
+from utils.app_specific.woocommerce.client import WooCommerceClient
+from utils.app_specific.poste.local_email_manager import LocalEmailManager
 
 class TestProductSetup:
     """测试产品设置器 - 为评估创建测试数据"""
@@ -76,9 +76,7 @@ class TestProductSetup:
                     category_id = category.get('id')
                     
                     # 只删除测试相关的分类，避免删除系统默认分类
-                    if (category_name != "Uncategorized" or 
-                        category.get('count', 0) == 0):  # 空分类也可以删除
-                        
+                    if category_name != "Uncategorized":  # 空分类也可以删除
                         try:
                             success, result  = self.wc_client.delete_category(category_id, force=True)
                             
@@ -318,15 +316,15 @@ class TestProductSetup:
         ]
         
         # 干扰项
-        extra_low_selling_products = []
+        extra_normal_selling_products = []
         for id in range(10,400): # 创建~400个新商品
             regprice = 599.99+2*id # 保证价格和上面的不冲突
             stock_quantity = random.randint(10, 200)
             date_created = (current_date - timedelta(days=random.randint(10, 200))).isoformat()
-            sales_30_days = random.randint(11, 200) # 肯定促销
+            sales_30_days = random.randint(11, 200) # 肯定不促销
             total_sales = sales_30_days + random.randint(11, 200)
             name = random.choice(["AOC", "Samsung", "LG", "Xiaomi", "Sony"]) + " " + random.choice(["Monitor", "Phone", "TV", "Laptop", "Tablet"]) + " v" + str(id)
-            extra_low_selling_products.append({
+            extra_normal_selling_products.append({
                 "name": name,
                 "type": "simple",
                 "regular_price": str(regprice),
@@ -345,7 +343,7 @@ class TestProductSetup:
 
         products.extend(low_selling_products)
         products.extend(normal_selling_products)
-        products.extend(extra_low_selling_products)
+        # products.extend(extra_normal_selling_products)
 
         random.shuffle(products)
         
@@ -431,140 +429,83 @@ class TestProductSetup:
     
     def clear_mailbox(self) -> Dict:
         """
-        清空邮箱 - 删除 Sent 和 Inbox 文件夹中的所有邮件
-        
+        Clear mailbox using general email manager
+
         Returns:
-            清理结果字典
+            Dictionary with clearing results
         """
-        print("📧 开始清空邮箱...")
-        
+        print("📧 Starting mailbox clearing...")
+
         try:
-            # 从token配置文件读取邮箱配置
+            # Get email configuration from token session
             from token_key_session import all_token_key_session
-            
+
             config_path = all_token_key_session.emails_config_file
-            with open(config_path, 'r') as f:
-                config = json.load(f)
-            
-            # 连接 IMAP 服务器
-            if config.get('use_ssl', False):
-                mail = imaplib.IMAP4_SSL(config['imap_server'], config['imap_port'])
-            else:
-                mail = imaplib.IMAP4(config['imap_server'], config['imap_port'])
-                if config.get('use_starttls', False):
-                    mail.starttls()
-            
-            # 登录
-            mail.login(config['email'], config['password'])
-            
-            # 清空的文件夹列表
+
+            # Initialize email manager
+            email_manager = LocalEmailManager(config_path, verbose=True)
+
+            # Clear both INBOX and Sent folders
             folders_to_clear = ['INBOX', 'Sent']
             clear_results = {}
-            
+
             for folder in folders_to_clear:
-                print(f"🗂️ 清理文件夹: {folder}")
-                
+                print(f"🗂️ Clearing folder: {folder}")
+
                 try:
-                    # 选择文件夹
-                    status, _ = mail.select(folder)
-                    if status != "OK":
-                        print(f"   ⚠️ 无法选择文件夹 {folder}")
+                    if folder == 'INBOX':
+                        email_manager.clear_all_emails('INBOX')
+                        # Count remaining emails to verify
+                        remaining_emails = email_manager.get_all_emails('INBOX')
                         clear_results[folder] = {
-                            "success": False,
-                            "error": f"无法选择文件夹 {folder}",
-                            "deleted_count": 0
+                            "success": len(remaining_emails) == 0,
+                            "deleted_count": "cleared" if len(remaining_emails) == 0 else 0,
+                            "message": f"Folder cleared, {len(remaining_emails)} emails remaining"
                         }
-                        continue
-                    
-                    # 搜索所有邮件
-                    status, messages = mail.search(None, "ALL")
-                    if status != "OK":
-                        print(f"   ⚠️ 无法搜索文件夹 {folder} 中的邮件")
+                    else:  # Sent folder
+                        email_manager.clear_all_emails('Sent')
+                        remaining_emails = email_manager.get_all_emails('Sent')
                         clear_results[folder] = {
-                            "success": False,
-                            "error": f"无法搜索文件夹 {folder}",
-                            "deleted_count": 0
+                            "success": len(remaining_emails) == 0,
+                            "deleted_count": "cleared" if len(remaining_emails) == 0 else 0,
+                            "message": f"Folder cleared, {len(remaining_emails)} emails remaining"
                         }
-                        continue
-                    
-                    email_ids = messages[0].split()
-                    total_emails = len(email_ids)
-                    
-                    if total_emails == 0:
-                        print(f"   📭 文件夹 {folder} 已经为空")
-                        clear_results[folder] = {
-                            "success": True,
-                            "deleted_count": 0,
-                            "message": "文件夹已为空"
-                        }
-                        continue
-                    
-                    print(f"   📬 发现 {total_emails} 封邮件，开始删除...")
-                    
-                    # 标记所有邮件为删除
-                    deleted_count = 0
-                    failed_count = 0
-                    
-                    for email_id in email_ids:
-                        try:
-                            # 标记邮件为删除
-                            mail.store(email_id, '+FLAGS', '\\Deleted')
-                            deleted_count += 1
-                        except Exception as e:
-                            print(f"   ❌ 删除邮件 {email_id.decode()} 失败: {e}")
-                            failed_count += 1
-                    
-                    # 执行删除
-                    mail.expunge()
-                    
-                    print(f"   ✅ 文件夹 {folder}: 删除 {deleted_count} 封邮件，失败 {failed_count} 封")
-                    
-                    clear_results[folder] = {
-                        "success": failed_count == 0,
-                        "deleted_count": deleted_count,
-                        "failed_count": failed_count,
-                        "total_found": total_emails
-                    }
-                    
+
+                    print(f"   ✅ Folder {folder}: {clear_results[folder]['message']}")
+
                 except Exception as e:
-                    print(f"   ❌ 清理文件夹 {folder} 时出错: {e}")
+                    print(f"   ❌ Error clearing folder {folder}: {e}")
                     clear_results[folder] = {
                         "success": False,
                         "error": str(e),
                         "deleted_count": 0
                     }
-            
-            # 关闭连接
-            mail.logout()
-            
-            # 计算总结果
-            total_deleted = sum(result.get('deleted_count', 0) for result in clear_results.values())
+
+            # Calculate total results
             all_success = all(result.get('success', False) for result in clear_results.values())
-            
+
             final_result = {
                 "success": all_success,
-                "total_deleted": total_deleted,
                 "folders": clear_results,
                 "timestamp": datetime.now().isoformat()
             }
-            
-            print(f"📊 邮箱清理完成:")
-            print(f"   总共删除: {total_deleted} 封邮件")
-            
+
+            print(f"📊 Mailbox clearing complete")
+
             if all_success:
-                print("✅ 邮箱清理成功！")
+                print("✅ Mailbox clearing successful!")
             else:
-                print("⚠️ 邮箱清理部分完成，有部分文件夹清理失败")
-            
+                print("⚠️ Mailbox clearing partially completed")
+
             return final_result
-            
+
         except Exception as e:
             error_result = {
                 "success": False,
                 "error": str(e),
                 "timestamp": datetime.now().isoformat()
             }
-            print(f"❌ 邮箱清理过程中出错: {e}")
+            print(f"❌ Error during mailbox clearing: {e}")
             return error_result
 
     def clear_blog_posts(self) -> Dict:

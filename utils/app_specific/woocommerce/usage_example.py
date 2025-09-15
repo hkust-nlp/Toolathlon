@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Usage example for complete reset functionality
+Usage example for WooCommerce client functionality
 """
 
 import sys
@@ -11,7 +11,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_dir)))
 sys.path.insert(0, project_root)
 
-from utils.app_specific.woocommerce.complete_store_reset import WooCommerceCompleteReset
+from utils.app_specific.woocommerce.client import WooCommerceClient
 
 
 def reset_store_example():
@@ -22,8 +22,8 @@ def reset_store_example():
     CONSUMER_KEY = "ck_xxxxx"
     CONSUMER_SECRET = "cs_xxxxx"
 
-    # Create resetter
-    resetter = WooCommerceCompleteReset(
+    # Create client
+    client = WooCommerceClient(
         site_url=SITE_URL,
         consumer_key=CONSUMER_KEY,
         consumer_secret=CONSUMER_SECRET
@@ -40,7 +40,7 @@ def reset_store_example():
         return
 
     # Execute complete reset
-    result = resetter.reset_to_empty_store(confirm=True)
+    result = client.reset_to_empty_store(confirm=True)
 
     if result.get("success"):
         print("\n🎉 Store reset successful!")

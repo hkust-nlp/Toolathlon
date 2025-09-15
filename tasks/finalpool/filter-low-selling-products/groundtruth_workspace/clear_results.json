@@ -1,21 +1,19 @@
 {
   "mailbox_clear": {
     "success": true,
-    "total_deleted": 3,
     "folders": {
       "INBOX": {
         "success": true,
-        "deleted_count": 0,
-        "message": "文件夹已为空"
+        "deleted_count": "cleared",
+        "message": "Folder cleared, 0 emails remaining"
       },
       "Sent": {
         "success": true,
-        "deleted_count": 3,
-        "failed_count": 0,
-        "total_found": 3
+        "deleted_count": "cleared",
+        "message": "Folder cleared, 0 emails remaining"
       }
     },
-    "timestamp": "2025-09-15T12:54:21.536092"
+    "timestamp": "2025-09-15T13:35:52.390051"
   },
   "blog_clear": {
     "status": "SKIPPED!"
@@ -28,9 +26,9 @@
       "failed": 0
     },
     "categories": {
-      "deleted": 1,
+      "deleted": 2,
       "failed": 0
     },
-    "timestamp": "2025-09-15T12:54:48.868034"
+    "timestamp": "2025-09-15T13:36:20.417254"
   }
 }
