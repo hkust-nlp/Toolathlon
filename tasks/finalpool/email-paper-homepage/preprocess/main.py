@@ -5,10 +5,11 @@ from pathlib import Path
 from utils.general.helper import run_command, get_module_path
 from time import sleep
 
-from utils.local_email import LocalEmailManager
+from utils.app_specific.poste.local_email_manager import LocalEmailManager
 
 sys.path.insert(0, str(Path(__file__).parent.parent))  # 添加任务目录到路径
-from token_key_session import all_token_key_session
+from token_key_session import all_token_key_session as local_token_key_session
+from configs.token_key_session import all_token_key_session as global_token_key_session
 
 if __name__=="__main__":
     parser = ArgumentParser()
@@ -22,7 +23,7 @@ if __name__=="__main__":
     print("发邮件以构建初始状态")
     
     # 获取邮件配置文件路径
-    emails_config_file = all_token_key_session.emails_config_file
+    emails_config_file = local_token_key_session.emails_config_file
     print(f"使用邮件配置文件: {emails_config_file}")
     
     # 初始化本地邮件管理器
@@ -70,7 +71,7 @@ if __name__=="__main__":
     
     # 等待邮件接收完成
     print("等待10s以便邮件接收完成...")
-    sleep(10)
+    # sleep(10)
     
     print("验证所有邮件都已收到...")
     success = email_manager.wait_for_emails(
@@ -85,17 +86,9 @@ if __name__=="__main__":
         sys.exit(1)
     
     print("\n✅ 已通过发送邮件构建初始状态！")
-    
-    # 打印所有邮件的发件人和主题以供调试
-    # print("\n=== 调试信息：所有邮件的发件人和主题 ===")
-    # for i, email in enumerate(emails, 1):
-    #     sender = email.get('sender_name', 'Unknown Sender')
-    #     subject = email.get('subject', 'No Subject')
-    #     print(f"{i:2d}. 发件人: {sender} | 主题: {subject}")
-    # print("=" * 50)
 
     print("初始化 GitHub 仓库...")
-    github_token = all_token_key_session.github_token
+    github_token = global_token_key_session.github_token
     asyncio.run(run_command(
                 f"uv run -m {get_module_path('init_github_repo')} --github_token {github_token}"
                 ,debug=True,show_output=True))

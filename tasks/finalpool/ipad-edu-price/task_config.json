@@ -1,5 +1,13 @@
 {
-    "needed_mcp_servers": ["yahoo-finance", "playwright_with_chunk"],
-    "needed_local_tools": ["claim_done", "python_execute", "web_search"],
+    "needed_mcp_servers": [
+        "yahoo-finance",
+        "playwright_with_chunk"
+    ],
+    "needed_local_tools": [
+        "claim_done",
+        "python_execute",
+        "web_search",
+        "handle_overlong_tool_outputs"
+    ],
     "meta": {}
 }

@@ -350,7 +350,7 @@ def build_expected_config() -> ExpectedConfig:
 
 def main() -> None:
     # 与你的创建脚本保持一致
-    kubeconfig_path = "deployment/k8s/configs/cluster242-config.yaml"
+    kubeconfig_path = "deployment/k8s/configs/cluster-mysql-config.yaml"
     expected = build_expected_config()
 
     validator = KubernetesValidator(

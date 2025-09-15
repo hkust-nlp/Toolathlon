@@ -1,6 +1,15 @@
 {
-    "needed_mcp_servers": ["google_sheet", "filesystem", "terminal"],
-    "needed_local_tools": ["manage_context", "history"],
+    "needed_mcp_servers": [
+        "google_sheet",
+        "filesystem",
+        "terminal"
+    ],
+    "needed_local_tools": [
+        "manage_context",
+        "history",
+        "claim_done",
+        "handle_overlong_tool_outputs"
+    ],
     "max_turns": 5,
     "meta": {
         "description": "NHL 2024-2025赛季背靠背比赛分析任务",

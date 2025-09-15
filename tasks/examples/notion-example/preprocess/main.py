@@ -5,7 +5,6 @@ import asyncio
 # Add utils to path
 sys.path.append(os.path.dirname(__file__))
 
-from configs.token_key_session import all_token_key_session
 # from utils.app_specific.notion_page_duplicator import NotionPageDuplicator
 from utils.general.helper import run_command, print_color
 

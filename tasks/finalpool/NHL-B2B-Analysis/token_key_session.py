@@ -20,7 +20,7 @@ all_token_key_session = Dict(
     canvas_domain = "localhost:20001",
 
     wandb_api_key = "b3abe195bd69c07bdc47469d3956ac8d0c008714",
-    tessdata_prefix = os.environ["TESSDATA_PREFIX"],
+    # tessdata_prefix = os.environ["TESSDATA_PREFIX"],
     amap_key="f789815a157fe45439c674c4a10e615b",
     google_sheets_folder_id = "1TQpPQxIDy78GTFe9fFvVDrqHu-hHzYJX",
     google_oauth2_credentials_path = "configs/credentials.json",
@@ -33,7 +33,7 @@ all_token_key_session = Dict(
     woocommerce_site_url = "PLEASE_RESET_IN_TASK_SPECIFIC_DIR",
 
     # k8s
-    kubeconfig_path = "deployment/k8s/configs/cluster241-config.yaml",
+    kubeconfig_path = "deployment/k8s/configs/cluster-safety-audit-config.yaml",
 
     gcp_project_id = "mcp-bench0606",
     gcp_service_account_path = "configs/gcp-service_account.keys.json",

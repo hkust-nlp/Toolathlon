@@ -1,0 +1,34 @@
+{
+  "mailbox_clear": {
+    "success": true,
+    "folders": {
+      "INBOX": {
+        "success": true,
+        "deleted_count": "cleared",
+        "message": "Folder cleared, 0 emails remaining"
+      },
+      "Sent": {
+        "success": true,
+        "deleted_count": "cleared",
+        "message": "Folder cleared, 0 emails remaining"
+      }
+    },
+    "timestamp": "2025-09-15T13:35:52.390051"
+  },
+  "blog_clear": {
+    "status": "SKIPPED!"
+  },
+  "store_clear": {
+    "success": true,
+    "products": {
+      "total_found": 398,
+      "deleted": 0,
+      "failed": 0
+    },
+    "categories": {
+      "deleted": 2,
+      "failed": 0
+    },
+    "timestamp": "2025-09-15T13:36:20.417254"
+  }
+}

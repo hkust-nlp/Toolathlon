@@ -41,6 +41,8 @@ def generate_enhanced_stats(dump_path, tasks_folder, temp_config, task_list_file
     all_tool_calls = []
     tasks_with_valid_turns = []
     tasks_without_valid_turns = []
+    tasks_with_failed_status = []
+    tasks_with_success_status = []
     
     print(f'📊 Processing {len(eval_files)} evaluation files...')
     
@@ -59,11 +61,18 @@ def generate_enhanced_stats(dump_path, tasks_folder, temp_config, task_list_file
                 unsuccessful_tasks.append(task_name)
             
             # Try to find corresponding log file and extract turns
-            log_file = eval_file.replace('eval_res.json', 'log.json')
+            log_file = eval_file.replace('eval_res.json', 'traj_log.json')
             if os.path.exists(log_file):
                 try:
                     with open(log_file, 'r') as f:
                         log_data = json.load(f)
+                    
+                    # Check task execution status
+                    task_status = log_data.get('status', 'unknown')
+                    if task_status == 'failed':
+                        tasks_with_failed_status.append(task_name)
+                    elif task_status == 'success':
+                        tasks_with_success_status.append(task_name)
                     
                     # Extract turn count and tool calls from log
                     num_turns = log_data.get('key_stats', {}).get('total_turns', 0)
@@ -102,6 +111,12 @@ def generate_enhanced_stats(dump_path, tasks_folder, temp_config, task_list_file
         'average_tool_calls': average_tool_calls,
         'successful_tasks': sorted(successful_tasks),
         'unsuccessful_tasks': sorted(unsuccessful_tasks),
+        'execution_status': {
+            'tasks_with_failed_status_count': len(tasks_with_failed_status),
+            'tasks_with_success_status_count': len(tasks_with_success_status),
+            'tasks_with_failed_status': sorted(tasks_with_failed_status),
+            'tasks_with_success_status': sorted(tasks_with_success_status)
+        },
         'summary': {
             'tasks_with_valid_turns': len(tasks_with_valid_turns),
             'tasks_without_valid_turns': len(tasks_without_valid_turns),
@@ -120,6 +135,7 @@ def generate_enhanced_stats(dump_path, tasks_folder, temp_config, task_list_file
     print(f'📊 Summary: {len(successful_tasks)}/{total_tasks} tasks passed ({success_rate:.1%})')
     print(f'🔄 Average turns: {average_turns:.1f}')
     print(f'🔧 Average tool calls: {average_tool_calls:.1f}')
+    print(f'📈 Execution status: {len(tasks_with_success_status)} success, {len(tasks_with_failed_status)} failed')
     
     return enhanced_stats
 

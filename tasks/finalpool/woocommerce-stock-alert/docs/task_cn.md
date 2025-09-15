@@ -1,1 +1,1 @@
-你需要读取 WooCommerce 商品的库存水平，检查每个产品的当前库存量 (`stock_quantity`) 与安全阈值 (`stock_threshold`) 进行比较,识别所有库存低于阈值的产品并自动更新 名为 `stock_sheet`的Google Sheets 采购需求清单,为每个低库存产品新增一行并发送邮件通知给采购经理，邮件中要包含 Google Sheets 链接，邮件模板见`stock_alert_email_template.md`。
+你需要读取 WooCommerce 商品的库存水平，检查每个产品的当前库存量 (`stock_quantity`) 与安全阈值 (`stock_threshold`) 进行比较,识别所有库存低于阈值的产品并自动更新名为 `stock_sheet`的Google Sheets 采购需求清单,为每个低库存产品新增一行并发送邮件通知给采购经理(原本Sheet中存在的请忽略)，邮件模板见`stock_alert_email_template.md`。

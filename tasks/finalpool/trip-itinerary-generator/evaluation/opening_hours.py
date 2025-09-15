@@ -175,18 +175,28 @@ def validate_opening_hours_simple(submitted_hours: str, real_hours: str, day_nam
         if match:
             submitted_time = match.group(2).strip()
     else:
-        # 普通格式: "Monday: 9:00 AM – 6:00 PM"
-        if ':' in submitted_hours:
-            parts = submitted_hours.split(':', 1)
-            if len(parts) == 2:
-                submitted_time = parts[1].strip()
+        # 普通格式: "Monday: 9:00 AM – 6:00 PM" 或直接时间 "9:00 AM – 6:00 PM"
+        # 检查是否有日期前缀（如 "Monday: "）
+        day_pattern = r'^(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s*:\s*(.+)$'
+        match = re.search(day_pattern, submitted_hours, re.IGNORECASE)
+        if match:
+            # 有日期前缀，提取时间部分
+            submitted_time = match.group(1).strip()
+        else:
+            # 没有日期前缀，整个字符串就是时间
+            submitted_time = submitted_hours.strip()
     
     # 从真实营业时间中提取时间部分
     real_time = real_hours
-    if ':' in real_hours:
-        parts = real_hours.split(':', 1)
-        if len(parts) == 2:
-            real_time = parts[1].strip()
+    # 同样的逻辑处理真实时间
+    day_pattern = r'^(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s*:\s*(.+)$'
+    match = re.search(day_pattern, real_hours, re.IGNORECASE)
+    if match:
+        # 有日期前缀，提取时间部分
+        real_time = match.group(1).strip()
+    else:
+        # 没有日期前缀，整个字符串就是时间
+        real_time = real_hours.strip()
     
     # 检查关闭状态
     submitted_closed = not submitted_time or "closed" in (submitted_time or "").lower() or "关闭" in (submitted_time or "")

@@ -6,7 +6,7 @@ This project performs a comprehensive Kubernetes security audit across all names
 
 ## 1. Data Sources
 
-* **Kubernetes Cluster**: Target cluster configuration specified by `cluster241-config.yaml`. The audit examines all running pods across all namespaces for security-related configurations.
+* **Kubernetes Cluster**: Target cluster configuration specified by `cluster-safety-audit-config.yaml`. The audit examines all running pods across all namespaces for security-related configurations.
 
 * **Risk Scoring Guidelines**: Defined in `guidelines.md`, which provides a comprehensive scoring system for container security risks based on privileged mode, capabilities, host mounts, and other security contexts.
 

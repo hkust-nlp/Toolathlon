@@ -1,5 +1,5 @@
 {
-    "needed_mcp_servers": ["youtube"],
+    "needed_mcp_servers": ["youtube","emails","google_sheet"],
     "needed_local_tools": [],
     "meta": {}
 }

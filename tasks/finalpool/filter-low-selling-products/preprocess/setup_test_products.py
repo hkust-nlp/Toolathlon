@@ -1,21 +1,22 @@
 import requests
-from requests.auth import HTTPBasicAuth
 import json
 import time
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List
 import sys
 import os
-import imaplib
-import email
+import random
 
 # 动态添加当前目录到路径
 current_dir = os.path.dirname(os.path.abspath(__file__))
 task_dir = os.path.dirname(current_dir)
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(task_dir)))
+sys.path.insert(0, project_root)
 sys.path.insert(0, task_dir)
 sys.path.insert(0, current_dir)
 
-from woocommerce_client import WooCommerceClient
+from utils.app_specific.woocommerce.client import WooCommerceClient
+from utils.app_specific.poste.local_email_manager import LocalEmailManager
 
 class TestProductSetup:
     """测试产品设置器 - 为评估创建测试数据"""
@@ -53,58 +54,33 @@ class TestProductSetup:
             if all_products:
                 print(f"🗑️ 准备删除 {len(all_products)} 个商品...")
                 
-                for product in all_products:
-                    product_id = product.get('id')
-                    product_name = product.get('name', 'Unknown')
-                    
-                    try:
-                        success, result = self.wc_client.delete_product(str(product_id), force=True)
-                        if success:
-                            print(f"   ✅ 删除商品: {product_name} (ID: {product_id})")
-                            deleted_products += 1
-                        else:
-                            print(f"   ❌ 删除失败: {product_name} - {result}")
-                            failed_products += 1
-                    except Exception as e:
-                        print(f"   ❌ 删除商品 {product_name} 时出错: {e}")
-                        failed_products += 1
-                    
-                    # 避免API限制
-                    time.sleep(0.3)
+                success, result = self.wc_client.batch_delete_products(all_products)
+                if success:
+                    print(f"✅ 删除商品: {len(all_products)} 个商品")
+                else:
+                    print(f"❌ 删除商品失败: {result}")
+                    return {"success": False, "deleted_count": 0, "failed_count": len(all_products)}
             else:
                 print("📦 商店中没有商品需要删除")
             
             # 3. 获取并删除自定义分类
-            print("🏷️ 清理商品分类...")
+            print("🏷️ 清理 Product Categories...")
             success, categories = self.wc_client.get_product_categories()
             
             deleted_categories = 0
             failed_categories = 0
             
-            if success and categories:
-                # 只删除可能是测试创建的分类
-                test_category_names = [
-                    "奥特莱斯", "清仓", "奥特莱斯/清仓", 
-                    "Outlet", "Clearance", "测试分类"
-                ]
-                
+            if success and categories:                
                 for category in categories:
                     category_name = category.get('name', '')
                     category_id = category.get('id')
                     
                     # 只删除测试相关的分类，避免删除系统默认分类
-                    if (category_name in test_category_names or 
-                        category.get('count', 0) == 0):  # 空分类也可以删除
-                        
+                    if category_name != "Uncategorized":  # 空分类也可以删除
                         try:
-                            # 使用DELETE请求删除分类
-                            delete_url = f"{self.wc_client.api_base}/products/categories/{category_id}"
-                            response = self.wc_client.session.delete(
-                                delete_url, 
-                                params={'force': True}
-                            )
+                            success, result  = self.wc_client.delete_category(category_id, force=True)
                             
-                            if response.status_code in [200, 204]:
+                            if success:
                                 print(f"   ✅ 删除分类: {category_name} (ID: {category_id})")
                                 deleted_categories += 1
                             else:
@@ -162,49 +138,18 @@ class TestProductSetup:
             创建结果字典
         """
         print("🛒 开始创建测试分类和商品...")
-        
-        category_data = {
-            "name": "奥特莱斯",
-            "description": "奥特莱斯商品分类"
-        }
-        success, result = self.wc_client.create_category(category_data)
-        if success:
-            print("✅ 创建分类: 奥特莱斯")
-        else:
-            print(f"❌ 创建分类失败: {result}")
 
         # 定义测试商品数据
         test_products = self._generate_test_product_data()
         
         created_count = 0
         failed_count = 0
-        
-        for product_data in test_products:
-            success, result = self.wc_client.create_product(product_data)
-            if success:
-                product_id = result.get('id')
-                product_name = result.get('name')
-                # 提取产品类型
-                product_type = 'unknown'
-                meta_data = product_data.get('meta_data', [])
-                for meta in meta_data:
-                    if meta.get('key') == 'product_type':
-                        product_type = meta.get('value', 'unknown')
-                        break
-                
-                self.created_products.append({
-                    'id': product_id,
-                    'name': product_name,
-                    'type': product_type
-                })
-                print(f"✅ 创建商品: {product_name} (ID: {product_id})")
-                created_count += 1
-            else:
-                print(f"❌ 创建商品失败: {product_data.get('name')} - {result}")
-                failed_count += 1
-            
-            # 避免API限制
-            time.sleep(0.5)
+        success, result = self.wc_client.batch_create_products(test_products)
+        if success:
+            print(f"✅ 创建商品: {len(test_products)} 个商品")
+        else:
+            print(f"❌ 创建商品失败: {result}")
+            return {"success": False, "created_count": 0, "failed_count": len(test_products)}
         
         setup_result = {
             "success": failed_count == 0,
@@ -216,8 +161,6 @@ class TestProductSetup:
         }
         
         print(f"📊 商品创建完成:")
-        print(f"   成功创建: {created_count} 个商品")
-        print(f"   创建失败: {failed_count} 个商品")
         print(f"   预期低销量商品: {setup_result['low_selling_expected']} 个")
         print(f"   预期正常商品: {setup_result['normal_selling_expected']} 个")
         
@@ -231,9 +174,10 @@ class TestProductSetup:
         # 低销量商品（应该被筛选出来）
         low_selling_products = [
             {
-                "name": "过时手机壳 iPhone X",
+                "name": "Phone case iPhone X",
                 "type": "simple",
                 "regular_price": "29.99",
+                "sale_price": "19.99",
                 "stock_quantity": 50,
                 "manage_stock": True,
                 "stock_status": "instock",
@@ -247,9 +191,10 @@ class TestProductSetup:
                 ]
             },
             {
-                "name": "老款蓝牙耳机",
-                "type": "simple", 
+                "name": "Bluetooth Headphone",
+                "type": "simple",
                 "regular_price": "89.99",
+                "sale_price": "59.99",
                 "stock_quantity": 25,
                 "manage_stock": True,
                 "stock_status": "instock",
@@ -263,12 +208,13 @@ class TestProductSetup:
                 ]
             },
             {
-                "name": "过季运动鞋 2022款",
+                "name": "Old Sneakers 2022",
                 "type": "simple",
                 "regular_price": "159.99",
+                "sale_price": "72.99",
                 "stock_quantity": 30,
                 "manage_stock": True,
-                "stock_status": "instock", 
+                "stock_status": "instock",
                 "date_created": (current_date - timedelta(days=200)).isoformat(),
                 "meta_data": [
                     {"key": "product_type", "value": "low_selling"},
@@ -279,9 +225,10 @@ class TestProductSetup:
                 ]
             },
             {
-                "name": "旧版平板保护套",
+                "name": "Tablet Case",
                 "type": "simple",
-                "regular_price": "39.99",
+                "regular_price": "38.99",
+                "sale_price": "24.99",
                 "stock_quantity": 40,
                 "manage_stock": True,
                 "stock_status": "instock",
@@ -295,9 +242,10 @@ class TestProductSetup:
                 ]
             },
             {
-                "name": "库存积压充电器",
+                "name": "Charger v11",
                 "type": "simple",
                 "regular_price": "49.99",
+                "sale_price": "34.99",
                 "stock_quantity": 60,
                 "manage_stock": True,
                 "stock_status": "instock",
@@ -315,9 +263,10 @@ class TestProductSetup:
         # 正常销量商品（不应该被筛选）
         normal_selling_products = [
             {
-                "name": "热销iPhone 15手机壳",
+                "name": "iPhone 15 Phone Case",
                 "type": "simple",
                 "regular_price": "39.99",
+                "sale_price": "36.99",  # 小折扣: 约7.5%折扣
                 "stock_quantity": 100,
                 "manage_stock": True,
                 "stock_status": "instock",
@@ -331,9 +280,10 @@ class TestProductSetup:
                 ]
             },
             {
-                "name": "新款无线充电器",
+                "name": "Wireless Charger",
                 "type": "simple",
-                "regular_price": "79.99", 
+                "regular_price": "79.99",
+                # 无折扣，保持原价
                 "stock_quantity": 80,
                 "manage_stock": True,
                 "stock_status": "instock",
@@ -347,9 +297,10 @@ class TestProductSetup:
                 ]
             },
             {
-                "name": "经典款运动鞋",
+                "name": "Nike Sneakers",
                 "type": "simple",
                 "regular_price": "199.99",
+                "sale_price": "189.99",  # 小折扣: 约5%折扣
                 "stock_quantity": 50,
                 "manage_stock": True,
                 "stock_status": "instock",
@@ -364,8 +315,37 @@ class TestProductSetup:
             }
         ]
         
+        # 干扰项
+        extra_normal_selling_products = []
+        for id in range(10,400): # 创建~400个新商品
+            regprice = 599.99+2*id # 保证价格和上面的不冲突
+            stock_quantity = random.randint(10, 200)
+            date_created = (current_date - timedelta(days=random.randint(10, 200))).isoformat()
+            sales_30_days = random.randint(11, 200) # 肯定不促销
+            total_sales = sales_30_days + random.randint(11, 200)
+            name = random.choice(["AOC", "Samsung", "LG", "Xiaomi", "Sony"]) + " " + random.choice(["Monitor", "Phone", "TV", "Laptop", "Tablet"]) + " v" + str(id)
+            extra_normal_selling_products.append({
+                "name": name,
+                "type": "simple",
+                "regular_price": str(regprice),
+                "stock_quantity": stock_quantity,
+                "manage_stock": True,
+                "stock_status": "instock",
+                "date_created": date_created,
+                "meta_data": [
+                    {"key": "product_type", "value": "low_selling"},
+                    {"key": "sales_last_30_days", "value": str(sales_30_days)},
+                    {"key": "_sales_last_30_days", "value": str(sales_30_days)},
+                    {"key": "total_sales", "value": str(total_sales)},
+                    {"key": "_total_sales", "value": str(total_sales)}
+                ]
+            })
+
         products.extend(low_selling_products)
         products.extend(normal_selling_products)
+        # products.extend(extra_normal_selling_products)
+
+        random.shuffle(products)
         
         return products
     
@@ -449,140 +429,186 @@ class TestProductSetup:
     
     def clear_mailbox(self) -> Dict:
         """
-        清空邮箱 - 删除 Sent 和 Inbox 文件夹中的所有邮件
-        
+        Clear mailbox using general email manager
+
         Returns:
-            清理结果字典
+            Dictionary with clearing results
         """
-        print("📧 开始清空邮箱...")
-        
+        print("📧 Starting mailbox clearing...")
+
         try:
-            # 从token配置文件读取邮箱配置
+            # Get email configuration from token session
             from token_key_session import all_token_key_session
-            
+
             config_path = all_token_key_session.emails_config_file
-            with open(config_path, 'r') as f:
-                config = json.load(f)
-            
-            # 连接 IMAP 服务器
-            if config.get('use_ssl', False):
-                mail = imaplib.IMAP4_SSL(config['imap_server'], config['imap_port'])
-            else:
-                mail = imaplib.IMAP4(config['imap_server'], config['imap_port'])
-                if config.get('use_starttls', False):
-                    mail.starttls()
-            
-            # 登录
-            mail.login(config['email'], config['password'])
-            
-            # 清空的文件夹列表
+
+            # Initialize email manager
+            email_manager = LocalEmailManager(config_path, verbose=True)
+
+            # Clear both INBOX and Sent folders
             folders_to_clear = ['INBOX', 'Sent']
             clear_results = {}
-            
+
             for folder in folders_to_clear:
-                print(f"🗂️ 清理文件夹: {folder}")
-                
+                print(f"🗂️ Clearing folder: {folder}")
+
                 try:
-                    # 选择文件夹
-                    status, _ = mail.select(folder)
-                    if status != "OK":
-                        print(f"   ⚠️ 无法选择文件夹 {folder}")
+                    if folder == 'INBOX':
+                        email_manager.clear_all_emails('INBOX')
+                        # Count remaining emails to verify
+                        remaining_emails = email_manager.get_all_emails('INBOX')
                         clear_results[folder] = {
-                            "success": False,
-                            "error": f"无法选择文件夹 {folder}",
-                            "deleted_count": 0
+                            "success": len(remaining_emails) == 0,
+                            "deleted_count": "cleared" if len(remaining_emails) == 0 else 0,
+                            "message": f"Folder cleared, {len(remaining_emails)} emails remaining"
                         }
-                        continue
-                    
-                    # 搜索所有邮件
-                    status, messages = mail.search(None, "ALL")
-                    if status != "OK":
-                        print(f"   ⚠️ 无法搜索文件夹 {folder} 中的邮件")
+                    else:  # Sent folder
+                        email_manager.clear_all_emails('Sent')
+                        remaining_emails = email_manager.get_all_emails('Sent')
                         clear_results[folder] = {
-                            "success": False,
-                            "error": f"无法搜索文件夹 {folder}",
-                            "deleted_count": 0
+                            "success": len(remaining_emails) == 0,
+                            "deleted_count": "cleared" if len(remaining_emails) == 0 else 0,
+                            "message": f"Folder cleared, {len(remaining_emails)} emails remaining"
                         }
-                        continue
-                    
-                    email_ids = messages[0].split()
-                    total_emails = len(email_ids)
-                    
-                    if total_emails == 0:
-                        print(f"   📭 文件夹 {folder} 已经为空")
-                        clear_results[folder] = {
-                            "success": True,
-                            "deleted_count": 0,
-                            "message": "文件夹已为空"
-                        }
-                        continue
-                    
-                    print(f"   📬 发现 {total_emails} 封邮件，开始删除...")
-                    
-                    # 标记所有邮件为删除
-                    deleted_count = 0
-                    failed_count = 0
-                    
-                    for email_id in email_ids:
-                        try:
-                            # 标记邮件为删除
-                            mail.store(email_id, '+FLAGS', '\\Deleted')
-                            deleted_count += 1
-                        except Exception as e:
-                            print(f"   ❌ 删除邮件 {email_id.decode()} 失败: {e}")
-                            failed_count += 1
-                    
-                    # 执行删除
-                    mail.expunge()
-                    
-                    print(f"   ✅ 文件夹 {folder}: 删除 {deleted_count} 封邮件，失败 {failed_count} 封")
-                    
-                    clear_results[folder] = {
-                        "success": failed_count == 0,
-                        "deleted_count": deleted_count,
-                        "failed_count": failed_count,
-                        "total_found": total_emails
-                    }
-                    
+
+                    print(f"   ✅ Folder {folder}: {clear_results[folder]['message']}")
+
                 except Exception as e:
-                    print(f"   ❌ 清理文件夹 {folder} 时出错: {e}")
+                    print(f"   ❌ Error clearing folder {folder}: {e}")
                     clear_results[folder] = {
                         "success": False,
                         "error": str(e),
                         "deleted_count": 0
                     }
-            
-            # 关闭连接
-            mail.logout()
-            
-            # 计算总结果
-            total_deleted = sum(result.get('deleted_count', 0) for result in clear_results.values())
+
+            # Calculate total results
             all_success = all(result.get('success', False) for result in clear_results.values())
-            
+
             final_result = {
                 "success": all_success,
-                "total_deleted": total_deleted,
                 "folders": clear_results,
                 "timestamp": datetime.now().isoformat()
             }
-            
-            print(f"📊 邮箱清理完成:")
-            print(f"   总共删除: {total_deleted} 封邮件")
-            
+
+            print(f"📊 Mailbox clearing complete")
+
             if all_success:
-                print("✅ 邮箱清理成功！")
+                print("✅ Mailbox clearing successful!")
             else:
-                print("⚠️ 邮箱清理部分完成，有部分文件夹清理失败")
-            
+                print("⚠️ Mailbox clearing partially completed")
+
             return final_result
-            
+
         except Exception as e:
             error_result = {
                 "success": False,
                 "error": str(e),
                 "timestamp": datetime.now().isoformat()
             }
-            print(f"❌ 邮箱清理过程中出错: {e}")
+            print(f"❌ Error during mailbox clearing: {e}")
+            return error_result
+
+    def clear_blog_posts(self) -> Dict:
+        """
+        清理博客文章
+
+        Returns:
+            清理结果字典
+        """
+        print("📝 开始清理博客文章...")
+
+        try:
+            # 从token配置文件读取配置
+            from token_key_session import all_token_key_session
+
+            site_url = all_token_key_session.woocommerce_site_url
+            consumer_key = all_token_key_session.woocommerce_api_key
+            consumer_secret = all_token_key_session.woocommerce_api_secret
+
+            wp_api_base = f"{site_url}/wp-json/wp/v2"
+            wp_auth = requests.auth.HTTPBasicAuth(consumer_key, consumer_secret)
+
+            # 获取所有文章
+            print("📄 获取所有博客文章...")
+            response = requests.get(
+                f"{wp_api_base}/posts",
+                auth=wp_auth,
+                params={'per_page': 100, 'status': 'any'}
+            )
+
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "error": f"无法获取博客文章: HTTP {response.status_code}",
+                    "deleted_count": 0,
+                    "timestamp": datetime.now().isoformat()
+                }
+
+            posts = response.json()
+            deleted_count = 0
+            failed_count = 0
+
+            # if not posts:
+            #     print("📭 没有找到博客文章需要删除")
+            #     return {
+            #         "success": True,
+            #         "deleted_count": 0,
+            #         "timestamp": datetime.now().isoformat()
+            #     }
+
+            print(f"🗑️ 准备删除 {len(posts)} 篇博客文章...")
+
+            for post in posts:
+                post_id = post.get('id')
+                post_title = post.get('title', {}).get('rendered', 'Unknown')
+
+                try:
+                    # 强制删除文章
+                    delete_response = requests.delete(
+                        f"{wp_api_base}/posts/{post_id}",
+                        auth=wp_auth,
+                        params={'force': True}
+                    )
+
+                    if delete_response.status_code in [200, 204]:
+                        print(f"   ✅ 删除文章: {post_title} (ID: {post_id})")
+                        deleted_count += 1
+                    else:
+                        print(f"   ❌ 删除失败: {post_title} - HTTP {delete_response.status_code}")
+                        failed_count += 1
+
+                except Exception as e:
+                    print(f"   ❌ 删除文章 {post_title} 时出错: {e}")
+                    failed_count += 1
+
+                time.sleep(0.3)  # 避免API限制
+
+            blog_result = {
+                "success": failed_count == 0,
+                "deleted_count": deleted_count,
+                "failed_count": failed_count,
+                "total_found": len(posts),
+                "timestamp": datetime.now().isoformat()
+            }
+
+            print(f"📊 博客清理完成:")
+            print(f"   成功删除: {deleted_count} 篇文章")
+            print(f"   删除失败: {failed_count} 篇文章")
+
+            if blog_result["success"]:
+                print("✅ 博客清理成功！")
+            else:
+                print("⚠️ 博客清理部分完成，有部分文章清理失败")
+
+            return blog_result
+
+        except Exception as e:
+            error_result = {
+                "success": False,
+                "error": str(e),
+                "timestamp": datetime.now().isoformat()
+            }
+            print(f"❌ 博客清理过程中出错: {e}")
             return error_result
 
 
@@ -607,31 +633,38 @@ def main():
     mailbox_result = setup.clear_mailbox()
     
     if not mailbox_result.get('success'):
-        print("⚠️ 邮箱清理未完全成功，但继续后续操作...")
+        print("⚠️ 邮箱清理未完全成功，后续操作失败...")
         print(f"邮箱清理详情: {mailbox_result}")
+        return False
     
-    # 等待一下，确保邮箱操作完成
-    print("⏳ 等待2秒，确保邮箱清理操作完成...")
-    time.sleep(2)
-    
-    # 2. 清理商店中的所有商品
+    # NOTE:  之前我不知道为啥清理不到...现在我知道了，woocommerce并不管理wordpress，博客是附属在wordpress上的...
+    # # 2. 清理博客文章
     print("\n" + "="*60)
-    print("第二步：清理商店中的所有现有商品")
+    print("第二步：清理博客文章 - 清理不了，跳过！")
+    print("="*60)
+
+    # blog_result = setup.clear_blog_posts()
+    blog_result = {"status":"SKIPPED!"}
+
+    # if not blog_result.get('success'):
+    #     print("⚠️ 博客清理未完全成功，但继续执行后续操作...")
+    #     print(f"博客清理详情: {blog_result}")
+
+    # 3. 清理商店中的所有商品
+    print("\n" + "="*60)
+    print("第三步：清理商店中的所有现有商品")
     print("="*60)
     
     clear_result = setup.clear_all_products()
     
     if not clear_result.get('success'):
-        print("⚠️ 商品清理未完全成功，但继续创建测试商品...")
+        print("⚠️ 商品清理未完全成功，不创建测试商品...")
         print(f"清理详情: {clear_result}")
-    
-    # 等待一下，确保删除操作完成
-    print("⏳ 等待3秒，确保清理操作完成...")
-    time.sleep(3)
+        return False
     
     # 3. 然后创建测试商品
     print("\n" + "="*60)
-    print("第三步：创建测试商品")
+    print("第四步：创建测试商品")
     print("="*60)
     
     result = setup.create_test_products()
@@ -641,18 +674,19 @@ def main():
         
         # 保存预期结果
         expected_results = setup.get_expected_results()
-        with open('expected_results.json', 'w', encoding='utf-8') as f:
+        with open(os.path.join(task_dir, 'groundtruth_workspace', 'expected_results.json'), 'w', encoding='utf-8') as f:
             json.dump(expected_results, f, indent=2, ensure_ascii=False)
-        print("📄 预期结果已保存到 expected_results.json")
+        print("📄 预期结果已保存到 groundtruth_workspace/expected_results.json")
         
-        # 保存清理结果（包括邮箱清理结果）
+        # 保存清理结果（包括邮箱、博客、商店清理结果）
         all_clear_results = {
             "mailbox_clear": mailbox_result,
+            "blog_clear": blog_result,
             "store_clear": clear_result
         }
-        with open('clear_results.json', 'w', encoding='utf-8') as f:
+        with open(os.path.join(task_dir, 'groundtruth_workspace', 'clear_results.json'), 'w', encoding='utf-8') as f:
             json.dump(all_clear_results, f, indent=2, ensure_ascii=False)
-        print("📄 清理结果（邮箱+商店）已保存到 clear_results.json")
+        print("📄 清理结果（邮箱+博客+商店）已保存到 groundtruth_workspace/clear_results.json")
         
     else:
         print("❌ 测试商品设置失败！")
@@ -677,15 +711,43 @@ def clear_store_only():
     clear_result = setup.clear_all_products()
     
     # 保存清理结果
-    with open('clear_results.json', 'w', encoding='utf-8') as f:
+    with open(os.path.join(task_dir, 'groundtruth_workspace', 'clear_results.json'), 'w', encoding='utf-8') as f:
         json.dump(clear_result, f, indent=2, ensure_ascii=False)
-    print("📄 清理结果已保存到 clear_results.json")
+    print("📄 清理结果已保存到 groundtruth_workspace/clear_results.json")
     
     if clear_result.get('success'):
         print("🎉 商店清理完成！")
         return True
     else:
         print("⚠️ 商店清理部分完成")
+        return False
+
+
+def clear_blog_only():
+    """仅清理博客 - 独立运行博客清理功能"""
+    # 从token配置文件读取配置
+    from token_key_session import all_token_key_session
+
+    site_url = all_token_key_session.woocommerce_site_url
+    consumer_key = all_token_key_session.woocommerce_api_key
+    consumer_secret = all_token_key_session.woocommerce_api_secret
+
+    print(f"🚀 连接到网站: {site_url}")
+    print("📝 开始清理博客文章...")
+
+    setup = TestProductSetup(site_url, consumer_key, consumer_secret)
+    blog_result = setup.clear_blog_posts()
+
+    # 保存博客清理结果
+    with open(os.path.join(task_dir, 'groundtruth_workspace', 'blog_clear_results.json'), 'w', encoding='utf-8') as f:
+        json.dump(blog_result, f, indent=2, ensure_ascii=False)
+    print("📄 博客清理结果已保存到 groundtruth_workspace/blog_clear_results.json")
+
+    if blog_result.get('success'):
+        print("🎉 博客清理完成！")
+        return True
+    else:
+        print("⚠️ 博客清理部分完成")
         return False
 
 
@@ -705,9 +767,9 @@ def clear_mailbox_only():
     mailbox_result = setup.clear_mailbox()
     
     # 保存邮箱清理结果
-    with open('mailbox_clear_results.json', 'w', encoding='utf-8') as f:
+    with open(os.path.join(task_dir, 'groundtruth_workspace', 'mailbox_clear_results.json'), 'w', encoding='utf-8') as f:
         json.dump(mailbox_result, f, indent=2, ensure_ascii=False)
-    print("📄 邮箱清理结果已保存到 mailbox_clear_results.json")
+    print("📄 邮箱清理结果已保存到 groundtruth_workspace/mailbox_clear_results.json")
     
     if mailbox_result.get('success'):
         print("🎉 邮箱清理完成！")
@@ -728,11 +790,15 @@ if __name__ == "__main__":
         elif sys.argv[1] == "--clear-mailbox-only":
             # 仅清理邮箱
             clear_mailbox_only()
+        elif sys.argv[1] == "--clear-blog-only":
+            # 仅清理博客
+            clear_blog_only()
         else:
             print("使用方法:")
-            print("  python setup_test_products.py                 # 完整流程（清理邮箱+商店+创建测试商品）")
-            print("  python setup_test_products.py --clear-only    # 仅清理商店")
-            print("  python setup_test_products.py --clear-mailbox-only  # 仅清理邮箱")
+            print("  python setup_test_products.py                     # 完整流程（清理邮箱+博客+商店+创建测试商品）")
+            print("  python setup_test_products.py --clear-only        # 仅清理商店")
+            print("  python setup_test_products.py --clear-mailbox-only # 仅清理邮箱")
+            print("  python setup_test_products.py --clear-blog-only   # 仅清理博客")
     else:
         # 完整流程：清理邮箱 + 清理商店 + 创建测试商品
         main()

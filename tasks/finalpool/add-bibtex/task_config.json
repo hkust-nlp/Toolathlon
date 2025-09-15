@@ -1,5 +1,17 @@
 {
-    "needed_mcp_servers": ["scholarly","playwright_with_chunk","filesystem","terminal"],
-    "needed_local_tools": ["sleep","claim_done","manage_context","history","web_search"],
+    "needed_mcp_servers": [
+        "scholarly",
+        "playwright_with_chunk",
+        "filesystem",
+        "terminal"
+    ],
+    "needed_local_tools": [
+        "sleep",
+        "claim_done",
+        "manage_context",
+        "history",
+        "web_search",
+        "handle_overlong_tool_outputs"
+    ],
     "meta": {}
 }

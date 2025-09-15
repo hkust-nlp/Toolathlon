@@ -19,7 +19,7 @@ except ImportError:
     print("警告: PyPDF2 未安装，PDF内容检测功能将不可用")
     PyPDF2 = None
 
-from utils.local_email import LocalEmailManager
+from utils.app_specific.poste.local_email_manager import LocalEmailManager
 
 
 class LocalEmailAttachmentChecker:

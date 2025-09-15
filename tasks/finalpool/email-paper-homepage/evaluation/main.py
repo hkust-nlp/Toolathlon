@@ -4,10 +4,9 @@ import json
 import yaml
 import sys
 import re
-from utils.github_tools.helper_funcs import read_file_content, get_latest_commit_sha, get_modified_files_between_commits, get_user_name, check_repo_exists
+from utils.app_specific.github.helper_funcs import read_file_content, get_latest_commit_sha, get_modified_files_between_commits, get_user_name, check_repo_exists
 
-sys.path.insert(0, str(Path(__file__).parent.parent))  # 添加任务目录到路径
-from token_key_session import all_token_key_session
+from configs.token_key_session import all_token_key_session
     
 
 def get_branch(repo_name):

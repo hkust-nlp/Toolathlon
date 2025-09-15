@@ -1,6 +1,12 @@
 {
     "id": "student_interview_001",
-    "needed_mcp_servers": ["emails", "google_calendar"],
-    "needed_local_tools": ["claim_done"],
+    "needed_mcp_servers": [
+        "emails",
+        "google_calendar"
+    ],
+    "needed_local_tools": [
+        "claim_done",
+        "handle_overlong_tool_outputs"
+    ],
     "meta": {}
 }

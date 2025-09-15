@@ -92,7 +92,7 @@ def check_sheet1(workbook_path, df1):
         print("✅ Basic Info & Holding Trend 校验通过。")
         return True
 
-def check_sheet2(workbook_path: Path, df2: pd.DataFrame) -> bool:
+def   check_sheet2(workbook_path: Path, df2: pd.DataFrame) -> bool:
     """
     验证 sheet "Key Shareholders Details" 中数据：
       - Shareholder Name, Change Type（New/Increase/Decrease/Exit）两列忽略大小写须一致
@@ -108,10 +108,10 @@ def check_sheet2(workbook_path: Path, df2: pd.DataFrame) -> bool:
     # 2. ground truth
     df_gt  = df2.copy()
 
-    # 3. 归一化字符串列到小写、去前后空
+    # 3. 归一化字符串列到小写、去前后空格，先转换为字符串类型
     for df in (df_act, df_gt):
-        df['__Name_norm']   = df['Shareholder Name'].str.strip().str.lower()
-        df['__Change_norm'] = df['Change Type (New/Increase/Decrease/Exit)'].str.strip().str.lower()
+        df['__Name_norm']   = df['Shareholder Name'].astype(str).str.strip().str.lower()
+        df['__Change_norm'] = df['Change Type (New/Increase/Decrease/Exit)'].astype(str).str.strip().str.lower()
 
     # 4. 排序数据以确保一致性 - 按 Quarter, Shareholder Name, Shares Held, Holding Value 排序
     sort_columns = ['Quarter', '__Name_norm', 'Shares Held (Million Shares)', 'Holding Value (Billion USD)']

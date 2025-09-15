@@ -1,3 +1,1 @@
-你作为WooCommerce电商平台的运营人员，需要向客户发送新品预约和折扣提醒邮件。具体包括：把计划在未来30天内发布的新商品，发送给订阅了自动预约提醒上新服务的顾客（subscription_preferences包含"new_product_alerts"），以及把折扣商品的提醒邮件发送给所有顾客。
-
-
+As an operator of the WooCommerce e-commerce platform, you need to send emails to customers about new product reservations and discount reminders. Specifically, this includes sending new products scheduled to be released within the next 30 days to customers who have subscribed to the automatic reservation reminder service (where subscription_preferences includes "new_product_alerts"), as well as sending discount product reminder emails to all customers.

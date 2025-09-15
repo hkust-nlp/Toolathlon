@@ -7,11 +7,12 @@ set -e
 
 task_dir_arg=$1 # domain/taskname
 tag=${2:-"testrun"}
-modelname=${3:-"testmodel"}
-provider=${4:-"testprovider"}
-maxstep=${5:-"testmaxstep"}
+modelname=${3:-"gpt-5-mini"}
+provider=${4:-"aihubmix"}
+maxstep=${5:-"100"}
 eval_config=${6:-"scripts/foraml_run_v0.json"}
 dump_path=${7:-"./dumps"}
+image_name=${8:-"lockon0927/mcpbench-task-image-v2:jh0913"}
 
 taskdomain=${task_dir_arg%/*}
 taskname=${task_dir_arg#*/}
@@ -56,8 +57,9 @@ except Exception as e:
 
 echo "Using container runtime: $CONTAINER_RUNTIME"
 
-# Image name
-IMAGE_NAME="lockon0927/mcpbench-task-image-v2:latest"
+# Use the image name from parameter
+IMAGE_NAME="$image_name"
+echo "Using Docker image: $IMAGE_NAME"
 
 # Generate unique container name
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
@@ -80,7 +82,7 @@ cleanup() {
     fi
     echo "Cleanup completed"
 }
-trap cleanup EXIT
+# trap cleanup EXIT
 
 # Verify task directory exists
 TASK_SOURCE="$PROJECT_ROOT/tasks/$task_dir_arg"
@@ -168,7 +170,7 @@ if [ "$CONTAINER_RUNTIME" = "podman" ]; then
         echo "Warning: Podman socket not found, Kind may not work"
         echo "Tip: Please manually run 'systemctl --user start podman.socket' or 'sudo systemctl start podman.socket'"
     fi
-    # # Set environment variable for Kind to use Podman
+    # Set environment variable for Kind to use Podman
     START_CONTAINER_ARGS+=(
         "-e" "KIND_EXPERIMENTAL_PROVIDER=podman"
     )

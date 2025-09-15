@@ -1,11 +1,20 @@
 {
     "id": "weihao_live_transactions",
-    "needed_mcp_servers": ["google-cloud", "filesystem"],
+    "needed_mcp_servers": [
+        "google-cloud",
+        "filesystem"
+    ],
     "meta": {
         "description": "Automated A/B testing system for new homepage",
         "difficulty": "medium",
         "estimated_time": "30-45 minutes",
-        "tags": ["bigquery", "excel", "cloud-logging", "data-analysis", "educational-tech"],
+        "tags": [
+            "bigquery",
+            "excel",
+            "cloud-logging",
+            "data-analysis",
+            "educational-tech"
+        ],
         "requirements": [
             "Read Excel file containing latest quiz scores",
             "Query BigQuery dataset for historical exam scores (tables exam_2501 to exam_2507)",
@@ -22,7 +31,9 @@
             "Data validation and error handling"
         ]
     },
-    "needed_local_tools": [],
+    "needed_local_tools": [
+        "handle_overlong_tool_outputs"
+    ],
     "evaluation_criteria": {
         "correctness": {
             "weight": 0.4,

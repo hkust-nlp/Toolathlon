@@ -1,5 +1,12 @@
 {
-    "needed_mcp_servers": ["filesystem"],
-    "needed_local_tools": ["python_execute", "web_search", "claim_done"],
+    "needed_mcp_servers": [
+        "filesystem"
+    ],
+    "needed_local_tools": [
+        "python_execute",
+        "web_search",
+        "claim_done",
+        "handle_overlong_tool_outputs"
+    ],
     "meta": {}
 }
