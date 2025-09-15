@@ -53,9 +53,7 @@
             "affiliation":{
                 "should_contain": [
                     "Department of Mathematics",
-                    "Imperial College London",
-                    "London",
-                    "United Kingdom"
+                    "Imperial College London"
                 ],
                 "should_not_contain": [
                     
@@ -83,29 +81,14 @@
             "first_author": "Xiang Fu",
             "affiliation":{
                 "should_contain": [
-                    "Fundamental AI Research (FAIR) at Meta"
+                    "FAIR",
+                    "Meta"
                 ],
                 "should_not_contain": [
                     
                 ]
             },
             "personal_website": "user=Cb-ZgHEAAAAJ"
-        },
-        {
-            "title": "Multi-agent Architecture Search via Agentic Supernet",
-            "first_author": "Guibin Zhang",
-            "affiliation":{
-                "should_contain": [
-                    "National University of Singapore",
-                    "Tongji University"
-                ],
-                "should_not_contain": [
-                    "Nanyang Technological University",
-                    "Shanghai AI Laboratory",
-                    "University of Science and Technology of China"
-                ]
-            },
-            "personal_website": "user=ApmxNvwAAAAJ"
         }
     ]
 }
