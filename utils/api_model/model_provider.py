@@ -544,17 +544,21 @@ API_MAPPINGS = {
     ),
     'glm-4.5': Dict(
         api_model={"ds_internal": None,
-                   "aihubmix": "zai-org/GLM-4.5"},
+                   "aihubmix": "zai-org/GLM-4.5",
+                   "openrouter": "z-ai/glm-4.5"},
         price=[0.5/1000, 2.0/1000],
         concurrency=32,
-        context_window=128000
+        context_window=128000,
+        openrouter_config={"provider": {"only": ["z-ai/fp8"]}}
     ),
     "qwen-3-coder": Dict(
         api_model={"ds_internal": None,
-                   "aihubmix": "Qwen3-Coder"},
+                   "aihubmix": "Qwen3-Coder",
+                   "openrouter": "qwen/qwen3-coder"},
         price=[0.54/1000, 2.16/1000],
         concurrency=32,
-        context_window=128000
+        context_window=128000,
+        openrouter_config={"provider": {"only": ["fireworks"]}}
     ),
     
     
