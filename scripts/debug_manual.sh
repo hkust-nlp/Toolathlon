@@ -7,7 +7,7 @@
 
 uv run demo.py \
 --eval_config scripts/model_wise/eval_claude-4-sonnet.json \
---task_dir finalpool/git-bug-hunt \
+--task_dir finalpool/canvas-test-list \
 --debug \
 --model_short_name gpt-5 \
 --provider aihubmix \
