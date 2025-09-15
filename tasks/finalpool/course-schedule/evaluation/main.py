@@ -21,6 +21,8 @@ if __name__=="__main__":
         if not local_pass:
             print("local check failed: ", local_error)
             exit(1)
+        else:
+            print("Pass all tests!")
     except Exception as e:
         print("local check error: ", e)
         exit(1)
