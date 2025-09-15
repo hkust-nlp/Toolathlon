@@ -1,0 +1,5 @@
+{
+    "needed_mcp_servers": ["canvas","emails","memory","excel"],
+    "needed_local_tools": ["claim_done"],
+    "meta": {}
+}
