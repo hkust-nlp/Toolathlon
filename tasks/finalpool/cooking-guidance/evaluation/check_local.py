@@ -222,8 +222,33 @@ def parse_shopping_list_csv(csv_file_path):
         print(f"❌ Error parsing shopping list CSV '{csv_file_path}': {e}")
     return shopping_list
 
+def clean_dish_name_suffixes(dish_name):
+    """Clean dish names by removing common suffixes like '的做法', '做法' etc."""
+    if not dish_name:
+        return dish_name
+    
+    # Common suffixes to remove
+    suffixes_to_remove = [
+        "的做法",
+        "做法", 
+        "的制作",
+        "制作",
+        "的烹饪",
+        "烹饪"
+    ]
+    
+    clean_name = dish_name.strip()
+    for suffix in suffixes_to_remove:
+        if clean_name.endswith(suffix):
+            clean_name = clean_name[:-len(suffix)].strip()
+            break  # Remove only one suffix
+    
+    return clean_name
+
 def extract_dish_names_from_cuisine_json(agent_workspace):
-    """Extracts recommended dish names from the cuisine.json file."""
+    """Extracts recommended dish names from the cuisine.json file.
+    Supports multiple JSON formats for better robustness.
+    """
     dish_names = []
     cuisine_file = os.path.join(agent_workspace, 'cuisine.json')
 
@@ -235,16 +260,120 @@ def extract_dish_names_from_cuisine_json(agent_workspace):
         with open(cuisine_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
         
-        # Extract dishes from the specific keys
+        # Strategy 1: Try the original format with recommend_cuisine1/2/3 keys
+        original_format_dishes = []
         for i in range(1, 4):
             key = f"recommend_cuisine{i}"
             dish_name = data.get(key, "").strip()
             if dish_name:
-                dish_names.append(dish_name)
+                original_format_dishes.append(dish_name)
         
-        print(f"✅ Extracted {len(dish_names)} dishes from cuisine.json")
-        for i, dish in enumerate(dish_names, 1):
-            print(f"  {i}. {dish}")
+        if original_format_dishes:
+            dish_names = original_format_dishes
+            print(f"✅ Extracted {len(dish_names)} dishes using original format (recommend_cuisine1/2/3)")
+        
+        # Strategy 2: Try recommended_dishes array format
+        elif 'recommended_dishes' in data and isinstance(data['recommended_dishes'], list):
+            for dish in data['recommended_dishes']:
+                if isinstance(dish, dict):
+                    # Try both 'name' and 'dish_name' fields
+                    dish_name = ""
+                    if 'name' in dish:
+                        dish_name = dish['name'].strip()
+                    elif 'dish_name' in dish:
+                        dish_name = dish['dish_name'].strip()
+                    
+                    if dish_name:
+                        # Clean dish name by removing common suffixes
+                        clean_dish_name = clean_dish_name_suffixes(dish_name)
+                        dish_names.append(clean_dish_name)
+            print(f"✅ Extracted {len(dish_names)} dishes using recommended_dishes array format")
+        
+        # Strategy 3: Try dishes array format
+        elif 'dishes' in data and isinstance(data['dishes'], list):
+            for dish in data['dishes']:
+                if isinstance(dish, dict):
+                    # Try both 'name' and 'dish_name' fields
+                    dish_name = ""
+                    if 'name' in dish:
+                        dish_name = dish['name'].strip()
+                    elif 'dish_name' in dish:
+                        dish_name = dish['dish_name'].strip()
+                    
+                    if dish_name:
+                        clean_dish_name = clean_dish_name_suffixes(dish_name)
+                        dish_names.append(clean_dish_name)
+                elif isinstance(dish, str):
+                    dish_name = dish.strip()
+                    if dish_name:
+                        clean_dish_name = clean_dish_name_suffixes(dish_name)
+                        dish_names.append(clean_dish_name)
+            print(f"✅ Extracted {len(dish_names)} dishes using dishes array format")
+        
+        # Strategy 4: Try direct array of dish names
+        elif isinstance(data, list):
+            for dish in data:
+                if isinstance(dish, str):
+                    dish_name = dish.strip()
+                    if dish_name:
+                        clean_dish_name = clean_dish_name_suffixes(dish_name)
+                        dish_names.append(clean_dish_name)
+                elif isinstance(dish, dict):
+                    # Try both 'name' and 'dish_name' fields
+                    dish_name = ""
+                    if 'name' in dish:
+                        dish_name = dish['name'].strip()
+                    elif 'dish_name' in dish:
+                        dish_name = dish['dish_name'].strip()
+                    
+                    if dish_name:
+                        clean_dish_name = clean_dish_name_suffixes(dish_name)
+                        dish_names.append(clean_dish_name)
+            print(f"✅ Extracted {len(dish_names)} dishes using direct array format")
+        
+        # Strategy 5: Search for any keys that might contain dish names
+        else:
+            # Look for keys that might contain dish names
+            potential_keys = ['cuisine', 'dish', 'recipe', 'food', 'meal']
+            for key in data.keys():
+                key_lower = key.lower()
+                if any(potential in key_lower for potential in potential_keys):
+                    value = data[key]
+                    if isinstance(value, str) and value.strip():
+                        clean_dish_name = clean_dish_name_suffixes(value.strip())
+                        dish_names.append(clean_dish_name)
+                    elif isinstance(value, list):
+                        for item in value:
+                            if isinstance(item, str) and item.strip():
+                                clean_dish_name = clean_dish_name_suffixes(item.strip())
+                                dish_names.append(clean_dish_name)
+                            elif isinstance(item, dict):
+                                # Try both 'name' and 'dish_name' fields
+                                dish_name = ""
+                                if 'name' in item:
+                                    dish_name = item['name'].strip()
+                                elif 'dish_name' in item:
+                                    dish_name = item['dish_name'].strip()
+                                
+                                if dish_name:
+                                    clean_dish_name = clean_dish_name_suffixes(dish_name)
+                                    dish_names.append(clean_dish_name)
+            
+            if dish_names:
+                print(f"✅ Extracted {len(dish_names)} dishes using heuristic key matching")
+            else:
+                print(f"⚠️ Could not extract dishes from cuisine.json - unknown format")
+                print(f"   Available keys: {list(data.keys())}")
+        
+        # Display extracted dishes
+        if dish_names:
+            for i, dish in enumerate(dish_names, 1):
+                print(f"  {i}. {dish}")
+        
+        # Limit to 3 dishes max (as expected by the evaluation)
+        if len(dish_names) > 3:
+            print(f"⚠️ Found {len(dish_names)} dishes, limiting to first 3")
+            dish_names = dish_names[:3]
             
     except json.JSONDecodeError:
         print(f"❌ Error: cuisine.json is not a valid JSON file.")
@@ -366,15 +495,35 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, res_log: Optio
         recipe_extractor = RecipeQuantityExtractor(dishes_path=dishes_path)
         
         # First try enhanced extraction from original recipe files
-        enhanced_required_ingredients = recipe_extractor.get_enhanced_recipe_ingredients(dish_names)
+        # Try each dish individually to check if ALL can be found
+        enhanced_success = True
+        enhanced_required_ingredients = {}
         
-        if enhanced_required_ingredients:
-            print(f"✅ Enhanced extraction found {len(enhanced_required_ingredients)} ingredients")
+        for dish_name in dish_names:
+            try:
+                # Clean dish name by removing suffixes like "的做法"
+                clean_dish_name = clean_dish_name_suffixes(dish_name)
+                single_dish_ingredients = recipe_extractor.get_enhanced_recipe_ingredients([clean_dish_name])
+                if not single_dish_ingredients:
+                    print(f"⚠️ Enhanced extraction failed for dish: {clean_dish_name} (original: {dish_name})")
+                    enhanced_success = False
+                    break
+                else:
+                    # Merge ingredients from this dish
+                    enhanced_required_ingredients.update(single_dish_ingredients)
+                    print(f"✅ Enhanced extraction found ingredients for: {clean_dish_name} (original: {dish_name})")
+            except Exception as e:
+                print(f"⚠️ Enhanced extraction error for {dish_name}: {e}")
+                enhanced_success = False
+                break
+        
+        if enhanced_success and enhanced_required_ingredients:
+            print(f"✅ Enhanced extraction successful for all {len(dish_names)} dishes, found {len(enhanced_required_ingredients)} total ingredients")
             required_ingredients = enhanced_required_ingredients
             found_recipes = dish_names  # All recipes found via enhanced extraction
         else:
-            # Fallback to MCP if enhanced extraction fails
-            print(f"⚠️ Enhanced extraction failed, falling back to MCP...")
+            # Fallback to MCP if any dish failed enhanced extraction
+            print(f"⚠️ Enhanced extraction failed for one or more dishes, falling back to MCP...")
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             required_ingredients, found_recipes, _ = loop.run_until_complete(
