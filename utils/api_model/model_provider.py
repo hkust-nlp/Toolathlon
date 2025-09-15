@@ -420,7 +420,8 @@ API_MAPPINGS = {
                    "openrouter": "openai/gpt-5"},
         price=[1.25/1000, 10/1000.0],
         concurrency=32,
-        context_window=1000000
+        context_window=1000000,
+        openrouter_config={"provider": {"only": ["openai"]}}
     ),
     'gpt-5-mini': Dict(
         api_model={"ds_internal": "",
