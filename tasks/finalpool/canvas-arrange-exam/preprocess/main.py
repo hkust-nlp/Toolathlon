@@ -26,6 +26,7 @@ async def main(agent_workspace=None, launch_time=None):
         print("🚀 开始执行Canvas考试环境预处理...")
 
         # # 0. 删除课程
+        # 不要删除课程！！！
         # print("\n📚 步骤0: 删除课程...")
         # await setup_courses_main(delete=True, agent_workspace=agent_workspace)
         
@@ -37,6 +38,8 @@ async def main(agent_workspace=None, launch_time=None):
         print("\n📢 步骤2: 发布课程...")
         # 调用publish模式，传递agent_workspace参数
         await setup_courses_main(publish=True, agent_workspace=agent_workspace)
+
+        exit(0)
         
         # 3. 注入考试通知邮件
         print("\n📧 步骤3: 注入考试通知邮件...")

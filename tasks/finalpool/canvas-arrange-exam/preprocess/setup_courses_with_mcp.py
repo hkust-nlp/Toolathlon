@@ -35,15 +35,22 @@ from typing import Dict, List, Any, Optional
 from pathlib import Path
 
 # Import Canvas configuration
-import sys
-import os
 from pathlib import Path
+import importlib
 
-# Add parent directory to path to ensure we can import token_key_session
-parent_dir = Path(__file__).parent.parent
-sys.path.insert(0, str(parent_dir))
+# Import token_key_session using relative import (when using -m)
 
-from token_key_session import all_token_key_session
+local_token_key_session_file = os.path.join(os.path.dirname(__file__),'..', "token_key_session.py")
+if os.path.exists(local_token_key_session_file):
+    spec = importlib.util.spec_from_file_location("token_key_session", local_token_key_session_file)
+    token_key_session_module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(token_key_session_module)
+    all_token_key_session = token_key_session_module.all_token_key_session
+else:
+    raise FileNotFoundError(f"Token key session file not found: {local_token_key_session_file}")
+
+# Import app_specific Canvas modules
+from utils.app_specific.canvas import CanvasAPI, AnnouncementManager
 
 ADMIN_CANVAS_API_TOKEN = all_token_key_session.admin_canvas_token
 # CANVAS_DOMAIN = all_token_key_session.canvas_domain
@@ -67,6 +74,10 @@ class CanvasCourseSetup:
             "Authorization": f"Bearer {ADMIN_CANVAS_API_TOKEN}",
             "Content-Type": "application/json"
         }
+
+        # Initialize app_specific Canvas API for reusable operations
+        self.canvas_api = CanvasAPI(self.base_url, ADMIN_CANVAS_API_TOKEN)
+        self.announcement_manager = AnnouncementManager(self.canvas_api)
         
     def load_data(self):
         """Load course and user data from JSON files"""
@@ -182,23 +193,20 @@ class CanvasCourseSetup:
     async def create_announcement(self, course_id: str, announcement: Dict[str, str]) -> bool:
         """Create a course announcement via API"""
         try:
-            async with aiohttp.ClientSession() as session:
-                url = f"{self.base_url}/api/v1/courses/{course_id}/discussion_topics"
-                announcement_data = {
-                    "title": announcement["title"],
-                    "message": announcement["content"],
-                    "is_announcement": True,
-                    "published": True
-                }
-                
-                async with session.post(url, headers=self.headers, json=announcement_data) as response:
-                    if 200 == response.status:
-                        logger.info(f"Created announcement: {announcement['title']}")
-                        return True
-                    else:
-                        error_text = await response.text()
-                        logger.error(f"Failed to create announcement: {response.status} - {error_text}")
-                        return False
+            # Use app_specific AnnouncementManager
+            result = self.announcement_manager.create_announcement(
+                course_id=int(course_id),
+                title=announcement["title"],
+                message=announcement["content"],
+                is_announcement=True
+            )
+
+            if result:
+                logger.info(f"Created announcement: {announcement['title']}")
+                return True
+            else:
+                logger.error(f"Failed to create announcement: {announcement['title']}")
+                return False
         except Exception as e:
             logger.error(f"Error creating announcement: {e}")
             return False
@@ -335,258 +343,180 @@ class CanvasCourseSetup:
             return []
     
     async def delete_announcement(self, course_id: str, announcement_id: str, announcement_title: str = "Unknown") -> bool:
-        """Delete a specific announcement using multiple methods"""
+        """Delete a specific announcement using app_specific module"""
         try:
-            async with aiohttp.ClientSession() as session:
-                # Method 1: First try to unpublish the announcement
-                url = f"{self.base_url}/api/v1/courses/{course_id}/discussion_topics/{announcement_id}"
-                unpublish_data = {
-                    "published": False
-                }
-                
-                logger.info(f"Step 1: Unpublishing announcement {announcement_title} (ID: {announcement_id})")
-                print(f"🔄 Step 1: Unpublishing announcement '{announcement_title}' (ID: {announcement_id})")
-                async with session.put(url, headers=self.headers, json=unpublish_data) as response:
-                    if 200 <= response.status < 300:
-                        logger.info(f"Successfully unpublished announcement: {announcement_title}")
-                        print(f"✅ Step 1 SUCCESS: Unpublished announcement '{announcement_title}'")
-                    else:
-                        logger.warning(f"Failed to unpublish announcement {announcement_title}: {response.status}")
-                        print(f"❌ Step 1 FAILED: Could not unpublish '{announcement_title}' - Status: {response.status}")
-                
-                # Wait a moment for the unpublish to take effect
-                await asyncio.sleep(0.5)
-                
-                # Method 2: Try direct DELETE request
-                logger.info(f"Step 2: Attempting direct DELETE for announcement {announcement_title}")
-                print(f"🔄 Step 2: Attempting direct DELETE for announcement '{announcement_title}'")
-                async with session.delete(url, headers=self.headers) as response:
-                    if 200 <= response.status < 300:
-                        print(f"✅ Step 2: DELETE request returned success status {response.status}")
-                        # Verify deletion by trying to get the announcement
-                        await asyncio.sleep(0.5)
-                        print(f"🔍 Step 2: Verifying deletion by checking if announcement still exists...")
-                        async with session.get(url, headers=self.headers) as verify_response:
-                            if verify_response.status == 404:
-                                logger.info(f"Successfully deleted announcement: {announcement_title} (ID: {announcement_id})")
-                                print(f"🎉 Step 2 COMPLETE SUCCESS: Announcement '{announcement_title}' was fully deleted! (Method: Direct DELETE)")
-                                return True
-                            else:
-                                logger.warning(f"DELETE returned success but announcement still exists: {announcement_title}")
-                                print(f"⚠️ Step 2 PARTIAL: DELETE returned success but announcement '{announcement_title}' still exists (Status: {verify_response.status})")
-                    else:
-                        logger.warning(f"Direct DELETE failed for {announcement_title}: {response.status}")
-                        print(f"❌ Step 2 FAILED: Direct DELETE failed for '{announcement_title}' - Status: {response.status}")
-                
-                # Method 3: Try changing workflow_state to deleted
-                logger.info(f"Step 3: Attempting workflow_state change for announcement {announcement_title}")
-                print(f"🔄 Step 3: Attempting workflow_state='deleted' for announcement '{announcement_title}'")
-                workflow_data = {
-                    "workflow_state": "deleted"
-                }
-                
-                async with session.put(url, headers=self.headers, json=workflow_data) as response:
-                    if 200 <= response.status < 300:
-                        print(f"✅ Step 3: Workflow state change returned success status {response.status}")
-                        # Verify deletion
-                        await asyncio.sleep(0.5)
-                        print(f"🔍 Step 3: Verifying workflow_state deletion...")
-                        async with session.get(url, headers=self.headers) as verify_response:
-                            if verify_response.status == 404:
-                                logger.info(f"Successfully deleted announcement via workflow_state: {announcement_title} (ID: {announcement_id})")
-                                print(f"🎉 Step 3 COMPLETE SUCCESS: Announcement '{announcement_title}' was fully deleted! (Method: Workflow State)")
-                                return True
-                            else:
-                                response_data = await verify_response.json()
-                                current_state = response_data.get('workflow_state', 'unknown')
-                                print(f"🔍 Step 3: Current workflow_state: {current_state}")
-                                if current_state == 'deleted':
-                                    logger.info(f"Successfully marked announcement as deleted: {announcement_title} (ID: {announcement_id})")
-                                    print(f"🎉 Step 3 SUCCESS: Announcement '{announcement_title}' marked as deleted! (Method: Workflow State)")
-                                    return True
-                                else:
-                                    print(f"⚠️ Step 3 PARTIAL: Workflow state is '{current_state}', not 'deleted'")
-                    else:
-                        logger.warning(f"Workflow state change failed for {announcement_title}: {response.status}")
-                        print(f"❌ Step 3 FAILED: Workflow state change failed for '{announcement_title}' - Status: {response.status}")
-                
-                # Method 4: Final fallback - mark as unpublished and try to hide it
-                logger.info(f"Step 4: Final fallback - marking as unpublished for announcement {announcement_title}")
-                print(f"🔄 Step 4: Final fallback - hiding announcement '{announcement_title}' (unpublish + lock + rename)")
-                fallback_data = {
-                    "published": False,
-                    "locked": True,
-                    "title": f"[DELETED] {announcement_title}"
-                }
-                
-                async with session.put(url, headers=self.headers, json=fallback_data) as response:
-                    if 200 <= response.status < 300:
-                        logger.warning(f"Could not delete announcement, marked as unpublished instead: {announcement_title}")
-                        print(f"⚠️ Step 4 FALLBACK SUCCESS: Could not delete '{announcement_title}', but successfully hid it from students")
-                        return True
-                    else:
-                        error_text = await response.text()
-                        logger.error(f"All deletion methods failed for announcement {announcement_title}: {response.status} - {error_text}")
-                        print(f"💥 Step 4 FAILED: All deletion methods failed for '{announcement_title}' - Status: {response.status}")
-                        return False
-                        
-        except Exception as e:
-            logger.error(f"Error deleting announcement {announcement_title}: {e}")
-            return False
-    
-    async def delete_all_announcements(self, course_id: str, course_name: str = "Unknown") -> bool:
-        """Delete all announcements in a course"""
-        try:
-            # Get all announcements
-            announcements = await self.get_course_announcements(course_id)
-            
-            if not announcements:
-                logger.info(f"No announcements found in course {course_name} (ID: {course_id})")
-                return True
-            
-            logger.info(f"Deleting {len(announcements)} announcements from course {course_name} (ID: {course_id})")
-            print(f"🗑️ Deleting {len(announcements)} existing announcements from course {course_name}")
-            
-            # Delete each announcement
-            success_count = 0
-            for announcement in announcements:
-                announcement_id = str(announcement.get("id", ""))
-                announcement_title = announcement.get("title", "Unknown")
-                
-                if await self.delete_announcement(course_id, announcement_id, announcement_title):
-                    success_count += 1
-                else:
-                    logger.error(f"Failed to delete announcement: {announcement_title}")
-            
-            if success_count == len(announcements):
-                logger.info(f"Successfully deleted all {len(announcements)} announcements from course {course_name}")
-                print(f"✅ Successfully deleted all {len(announcements)} announcements from course {course_name}")
+            # Use app_specific AnnouncementManager for deletion
+            success = self.announcement_manager.delete_announcement(
+                int(course_id),
+                int(announcement_id)
+            )
+
+            if success:
+                logger.info(f"Successfully deleted announcement: {announcement_title}")
+                print(f"✅ Successfully deleted announcement: {announcement_title}")
                 return True
             else:
-                logger.warning(f"Deleted {success_count}/{len(announcements)} announcements from course {course_name}")
-                print(f"⚠️ Deleted {success_count}/{len(announcements)} announcements from course {course_name}")
+                logger.warning(f"Failed to delete announcement: {announcement_title}")
+                print(f"⚠️ Could not delete announcement: {announcement_title}")
                 return False
-                
+
         except Exception as e:
-            logger.error(f"Error deleting announcements from course {course_name}: {e}")
-            print(f"💥 Error deleting announcements from course {course_name}: {e}")
+            logger.error(f"Error deleting announcement {announcement_title}: {e}")
+            print(f"💥 Error deleting announcement '{announcement_title}': {e}")
             return False
+
+    async def delete_all_announcements(self, course_id: str, course_name: str) -> int:
+        """Delete all announcements in a course"""
+        try:
+            # Get all announcements using app_specific module
+            announcements = self.announcement_manager.list_announcements(int(course_id))
+
+            if not announcements:
+                logger.info(f"No announcements found in course {course_name} (ID: {course_id})")
+                print(f"ℹ️ No announcements to delete in course {course_name} (ID: {course_id})")
+                return 0
+
+            deleted_count = 0
+            print(f"🗑️ Found {len(announcements)} announcements to delete in course {course_name} (ID: {course_id})")
+
+            for announcement in announcements:
+                announcement_id = announcement.get("id")
+                announcement_title = announcement.get("title", "Unknown")
+
+                success = await self.delete_announcement(course_id, str(announcement_id), announcement_title)
+                if success:
+                    deleted_count += 1
+
+                # Small delay to avoid overwhelming the API
+                await asyncio.sleep(0.2)
+
+            logger.info(f"Deleted {deleted_count}/{len(announcements)} announcements from course {course_name} (ID: {course_id})")
+            print(f"📊 Deleted {deleted_count}/{len(announcements)} announcements from course {course_name} (ID: {course_id})")
+            return deleted_count
+
+        except Exception as e:
+            logger.error(f"Error deleting all announcements from course {course_name} (ID: {course_id}): {e}")
+            print(f"💥 Error deleting all announcements from course {course_name} (ID: {course_id}): {e}")
+            return 0
+
+    async def enroll_teacher(self, course_id: str, teacher_email: str) -> bool:
+        """Enroll a teacher in the course using app_specific module"""
+        try:
+            # Find or create teacher user using app_specific module
+            teacher = self.canvas_api.get_or_create_user(
+                email=teacher_email,
+                account_id=1
+            )
+            # Enroll as teacher using app_specific module
+            if not teacher:
+                logger.error(f"Failed to find teacher: {teacher_email}")
+                return False
+
+            # Enroll as teacher using app_specific module
+            enrollment = self.canvas_api.add_teacher_to_course(int(course_id), int(teacher["id"]))
+
+            if enrollment:
+                logger.info(f"Enrolled teacher {teacher_email} in course {course_id}")
+                return True
+            else:
+                logger.error(f"Failed to enroll teacher {teacher_email}")
+                return False
+
+        except Exception as e:
+            logger.error(f"Error enrolling teacher: {e}")
+            raise
     
     async def find_user_by_email(self, email: str) -> Optional[Dict[str, Any]]:
-        """Find a user in Canvas by email address"""
+        """Find a user in Canvas by email address using app_specific module"""
         try:
-            async with aiohttp.ClientSession() as session:
-                # Search for user by email in the account
-                url = f"{self.base_url}/api/v1/accounts/1/users"
-                params = {"search_term": email}
-                
-                async with session.get(url, headers=self.headers, params=params) as response:
-                    if 200 == response.status:
-                        users = await response.json()
-                        # Find exact email match
-                        for user in users:
-                            if user.get("login_id") == email or user.get("email") == email:
-                                logger.info(f"Found user: {user.get('name', 'Unknown')} (ID: {user.get('id')}) for email: {email}")
-                                return user
-                        
-                        logger.warning(f"No user found with email: {email}")
-                        return None
-                    else:
-                        error_text = await response.text()
-                        logger.error(f"Failed to search for user with email {email}: {response.status} - {error_text}")
-                        return None
+            # Use app_specific module to find user
+            user = self.canvas_api.find_user_by_email(email, account_id=1)
+            if user:
+                logger.info(f"Found user: {user.get('name', 'Unknown')} (ID: {user.get('id')}) for email: {email}")
+                return user
+            else:
+                logger.warning(f"No user found with email: {email}")
+                return None
         except Exception as e:
-            logger.error(f"Error searching for user with email {email}: {e}")
+            logger.error(f"Error finding user by email {email}: {e}")
             return None
-    
+
     async def enroll_student(self, course_id: str, user_email: str, role: str = "StudentEnrollment") -> bool:
-        """Enroll a student in a course via API using email"""
+        """Enroll a student in the course using app_specific module"""
         try:
-            # Find user by email in Canvas system
+            # Find user by email
             user = await self.find_user_by_email(user_email)
             if not user:
-                logger.warning(f"User not found in Canvas: {user_email}")
+                logger.error(f"Cannot enroll student - user not found: {user_email}")
                 return False
-            
-            user_id = user.get("id")
-            if not user_id:
-                logger.error(f"User found but no ID: {user_email}")
+
+            # Enroll user using app_specific module
+            enrollment = self.canvas_api.enroll_user(
+                course_id=int(course_id),
+                user_id=user["id"],
+                role=role
+            )
+
+            if enrollment:
+                logger.info(f"Enrolled student {user_email} in course {course_id}")
+                return True
+            else:
+                logger.error(f"Failed to enroll student {user_email}")
                 return False
-            
-            async with aiohttp.ClientSession() as session:
-                url = f"{self.base_url}/api/v1/courses/{course_id}/enrollments"
-                enrollment_data = {
-                    "enrollment": {
-                        "user_id": user_id,
-                        "type": role,
-                        "enrollment_state": "active"
-                    }
-                }
-                
-                async with session.post(url, headers=self.headers, json=enrollment_data) as response:
-                    if 200 == response.status:
-                        logger.info(f"Enrolled {user_email} (ID: {user_id}) in course {course_id}")
-                        return True
-                    else:
-                        error_text = await response.text()
-                        logger.error(f"Failed to enroll {user_email}: {response.status} - {error_text}")
-                        return False
+
         except Exception as e:
-            logger.error(f"Error enrolling {user_email}: {e}")
+            logger.error(f"Error enrolling student {user_email}: {e}")
             return False
-    
-    async def enroll_teacher(self, course_id: str, teacher_email: str) -> bool:
-        """Enroll a teacher in a course via API using email"""
-        try:
-            # Find teacher by email in Canvas system
-            teacher = await self.find_user_by_email(teacher_email)
-            if not teacher:
-                logger.warning(f"Teacher not found in Canvas: {teacher_email}")
-                return False
-            
-            teacher_id = teacher.get("id")
-            if not teacher_id:
-                logger.error(f"Teacher found but no ID: {teacher_email}")
-                return False
-            
-            async with aiohttp.ClientSession() as session:
-                url = f"{self.base_url}/api/v1/courses/{course_id}/enrollments"
-                enrollment_data = {
-                    "enrollment": {
-                        "user_id": teacher_id,
-                        "type": "TeacherEnrollment",
-                        "enrollment_state": "active"
-                    }
-                }
-                
-                async with session.post(url, headers=self.headers, json=enrollment_data) as response:
-                    if 200 == response.status:
-                        logger.info(f"Enrolled teacher {teacher_email} (ID: {teacher_id}) in course {course_id}")
-                        return True
-                    else:
-                        error_text = await response.text()
-                        logger.error(f"Failed to enroll teacher {teacher_email}: {response.status} - {error_text}")
-                        return False
-        except Exception as e:
-            logger.error(f"Error enrolling teacher {teacher_email}: {e}")
-            return False
+
+    async def enroll_students(self, course_id: str, students: List[Dict[str, str]], exclude_emails: List[str] = []) -> int:
+        """Enroll multiple students in the course using app_specific module"""
+        enrolled_count = 0
+
+        for student in students:
+            student_email = student.get("email", "")
+            student_name = student.get("name", "")
+
+            # Skip excluded students
+            if student_email in exclude_emails:
+                logger.info(f"Skipping excluded student: {student_name} ({student_email})")
+                continue
+
+            try:
+                # Use app_specific module to get or create user
+                user = self.canvas_api.get_or_create_user(
+                    name=student_name,
+                    email=student_email,
+                    account_id=1
+                )
+
+                if not user:
+                    logger.error(f"Failed to find/create student: {student_name} ({student_email})")
+                    continue
+
+                # Enroll as student
+                enrollment = self.canvas_api.enroll_user(
+                    course_id=int(course_id),
+                    user_id=user["id"],
+                    role='StudentEnrollment'
+                )
+
+                if enrollment:
+                    enrolled_count += 1
+                    logger.info(f"Enrolled student {student_name} ({student_email}) in course {course_id}")
+                else:
+                    logger.error(f"Failed to enroll student {student_name} ({student_email})")
+
+            except Exception as e:
+                logger.error(f"Error enrolling student {student_name} ({student_email}): {e}")
+
+        return enrolled_count
     
     async def get_course_enrollments(self, course_id: str) -> List[Dict[str, Any]]:
-        """Get all enrollments in a course"""
+        """Get all enrollments in a course using app_specific module"""
         try:
-            async with aiohttp.ClientSession() as session:
-                url = f"{self.base_url}/api/v1/courses/{course_id}/enrollments"
-                params = {"per_page": "100"}  # Get up to 100 enrollments
-
-                async with session.get(url, headers=self.headers, params=params) as response:
-                    if 200 == response.status:
-                        enrollments = await response.json()
-                        logger.info(f"Found {len(enrollments)} enrollments in course {course_id}")
-                        return enrollments
-                    else:
-                        error_text = await response.text()
-                        logger.error(f"Failed to get enrollments for course {course_id}: {response.status} - {error_text}")
-                        return []
+            enrollments = self.canvas_api.get_course_enrollments(int(course_id))
+            logger.info(f"Found {len(enrollments)} enrollments in course {course_id}")
+            return enrollments
         except Exception as e:
             logger.error(f"Error getting enrollments for course {course_id}: {e}")
             return []
@@ -945,42 +875,30 @@ class CanvasCourseSetup:
             return False
 
     async def publish_course(self, course_id: str, course_name: str) -> bool:
-        """Publish a course to make it visible to students"""
+        """Publish a course to make it visible to students using app_specific module"""
         try:
-            async with aiohttp.ClientSession() as session:
-                url = f"{self.base_url}/api/v1/courses/{course_id}"
-                publish_data = {
-                    "course": {
-                        "event": "offer"
-                    }
-                }
-
-                async with session.put(url, headers=self.headers, json=publish_data) as response:
-                    if 200 <= response.status < 300:
-                        logger.info(f"Published course: {course_name} (ID: {course_id})")
-                        return True
-                    else:
-                        error_text = await response.text()
-                        logger.error(f"Failed to publish course {course_name}: {response.status} - {error_text}")
-                        return False
+            success = self.canvas_api.publish_course(int(course_id))
+            if success:
+                logger.info(f"Published course: {course_name} (ID: {course_id})")
+                return True
+            else:
+                logger.error(f"Failed to publish course {course_name}")
+                return False
         except Exception as e:
             logger.error(f"Error publishing course {course_name}: {e}")
             return False
-    
+
     async def get_course_status(self, course_id: str) -> Optional[str]:
-        """Get the current workflow state of a course"""
+        """Get the current workflow state of a course using app_specific module"""
         try:
-            async with aiohttp.ClientSession() as session:
-                url = f"{self.base_url}/api/v1/courses/{course_id}"
-                async with session.get(url, headers=self.headers) as response:
-                    if 200 <= response.status < 300:
-                        course_data = await response.json()
-                        workflow_state = course_data.get("workflow_state", "unknown")
-                        logger.info(f"Course {course_id} status: {workflow_state}")
-                        return workflow_state
-                    else:
-                        logger.error(f"Failed to get course status for {course_id}: {response.status}")
-                        return None
+            course = self.canvas_api.get_course(int(course_id))
+            if course:
+                workflow_state = course.get("workflow_state", "unknown")
+                logger.info(f"Course {course_id} status: {workflow_state}")
+                return workflow_state
+            else:
+                logger.error(f"Failed to get course status for {course_id}")
+                return None
         except Exception as e:
             logger.error(f"Error getting course status for {course_id}: {e}")
             return None
@@ -1301,72 +1219,67 @@ class CanvasCourseSetup:
             return False
     
     async def delete_all_courses(self) -> bool:
-        """Delete all courses from Canvas"""
+        """Delete all courses from Canvas using app_specific module"""
         try:
             logger.info("Starting deletion of all courses...")
-            
-            # Get all courses
-            courses = await self.get_all_courses()
-            #print(f"courses: {courses}")
+
+            # Get all courses using app_specific module
+            courses = self.canvas_api.list_courses(include_deleted=False, account_id=1)
+
             if not courses:
-                #print(f"courses: {courses}")
                 logger.info("No courses found to delete")
                 return True
-            
+
             # Filter out system courses (usually have specific IDs or names)
             courses_to_delete = []
             for course in courses:
                 course_id = str(course.get("id", ""))
                 course_name = course.get("name", "Unknown")
-                
-                # Skip system courses (you can customize this filter)
-                # if course_id in ["1", "2", "3"] or "System" in course_name:
-                #     logger.info(f"Skipping system course: {course_name} (ID: {course_id})")
-                #     continue
-                
+
                 courses_to_delete.append({
                     "id": course_id,
                     "name": course_name
                 })
-            
+
             if not courses_to_delete:
                 logger.info("No user-created courses found to delete")
                 return True
 
-            #print(f"courses_to_delete: {courses_to_delete}")
-            
-            logger.info(f"Found {len(courses_to_delete)} courses to delete")
-            
-            # Delete each course
-            success_count = 0
+            logger.info(f"Deleting {len(courses_to_delete)} courses...")
+            print(f"🗑️ Deleting {len(courses_to_delete)} courses...")
+
+            deleted_count = 0
             for course in courses_to_delete:
-                if await self.delete_course(course["id"], course["name"]):
-                    success_count += 1
+                course_id = course["id"]
+                course_name = course["name"]
+
+                # Use app_specific module to delete course
+                success = self.canvas_api.delete_course(int(course_id), event='delete')
+                if success:
+                    deleted_count += 1
+                    logger.info(f"Deleted course: {course_name} (ID: {course_id})")
+                    print(f"✅ Deleted course: {course_name} (ID: {course_id})")
                 else:
-                    print(f"Failed to delete course: {course['name']}")
-                    logger.error(f"Failed to delete course: {course['name']}")
-            
-            # Print summary
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            print(f"\n{'='*60}")
-            print(f"CANVAS COURSE DELETION COMPLETED - {timestamp}")
-            print(f"{'='*60}")
-            print(f"Total courses to delete: {len(courses_to_delete)}")
-            print(f"Successfully deleted: {success_count}")
-            print(f"Failed: {len(courses_to_delete) - success_count}")
-            print(f"{'='*60}")
-            
-            if success_count == len(courses_to_delete):
-                print(f"success_count: {success_count}")
-                print(f"len(courses_to_delete): {len(courses_to_delete)}")
-                print("✅ All courses deleted successfully!")
-            else:
-                print("⚠️  Some courses failed to delete. Check logs for details.")
-            
-            return success_count == len(courses_to_delete)
-            
+                    logger.error(f"Failed to delete course: {course_name} (ID: {course_id})")
+                    print(f"❌ Failed to delete course: {course_name} (ID: {course_id})")
+
+            logger.info(f"Deleted {deleted_count}/{len(courses_to_delete)} courses")
+            print(f"📊 Deleted {deleted_count}/{len(courses_to_delete)} courses")
+            return deleted_count == len(courses_to_delete)
+
         except Exception as e:
-            logger.error(f"Fatal error during course deletion: {e}")
+            logger.error(f"Error deleting all courses: {e}")
+            print(f"💥 Error deleting all courses: {e}")
+            return False
+
+    async def setup_courses(self, agent_workspace=None) -> bool:
+        """Main method to set up all courses with students and announcements"""
+        try:
+            # Implementation will be similar to run_setup method
+            # This is called from main function
+            return await self.run_setup(agent_workspace)
+        except Exception as e:
+            logger.error(f"Fatal error during course setup: {e}")
             return False
 
 async def run_with_args(delete=False, publish=False, agent_workspace=None):
