@@ -111,7 +111,9 @@ if __name__ == "__main__":
         # Write to log file if specified
         if args.res_log_file:
             try:
-                with open(args.res_log_file, 'w', encoding='utf-8') as f:
+                # Write evaluation results to a separate file, not the trajectory file
+                eval_temp_file = os.path.join(os.path.dirname(args.res_log_file), "eval_temp.txt")
+                with open(eval_temp_file, 'w', encoding='utf-8') as f:
                     f.write(f"Stock Alert Evaluation Results\n")
                     f.write(f"{'='*80}\n")
                     f.write(f"Agent Workspace: {args.agent_workspace}\n")

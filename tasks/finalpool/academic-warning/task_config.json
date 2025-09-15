@@ -1,11 +1,21 @@
 {
     "id": "weihao_academic_warning",
-    "needed_mcp_servers": ["google-cloud", "excel", "filesystem"],
+    "needed_mcp_servers": [
+        "google-cloud",
+        "excel",
+        "filesystem"
+    ],
     "meta": {
         "description": "Automated academic warning system for students with declining quiz scores",
         "difficulty": "medium",
         "estimated_time": "30-45 minutes",
-        "tags": ["bigquery", "excel", "cloud-logging", "data-analysis", "educational-tech"],
+        "tags": [
+            "bigquery",
+            "excel",
+            "cloud-logging",
+            "data-analysis",
+            "educational-tech"
+        ],
         "requirements": [
             "Read Excel file containing latest quiz scores",
             "Query BigQuery dataset for historical exam scores (tables exam_2501 to exam_2507)",
@@ -22,7 +32,10 @@
             "Data validation and error handling"
         ]
     },
-    "needed_local_tools": ["claim_done"],
+    "needed_local_tools": [
+        "claim_done",
+        "handle_overlong_tool_outputs"
+    ],
     "evaluation_criteria": {
         "correctness": {
             "weight": 0.4,

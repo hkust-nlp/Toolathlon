@@ -1,7 +1,12 @@
 {
-    "needed_mcp_servers": ["canvas", "memory"],
-    "needed_local_tools": [ "python_execute"],
-   
+    "needed_mcp_servers": [
+        "canvas",
+        "memory"
+    ],
+    "needed_local_tools": [
+        "python_execute",
+        "handle_overlong_tool_outputs"
+    ],
     "max_turns": 10,
     "meta": {}
 }

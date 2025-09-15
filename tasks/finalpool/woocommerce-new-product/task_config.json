@@ -4,5 +4,9 @@
         "filesystem",
         "emails"
     ],
-    "needed_local_tools": ["claim_done","python_execute"]
+    "needed_local_tools": [
+        "claim_done",
+        "python_execute",
+        "handle_overlong_tool_outputs"
+    ]
 }

@@ -1,0 +1,16 @@
+{
+    "needed_mcp_servers": [
+        "memory",
+        "filesystem",
+        "github",
+        "terminal",
+        "git"
+    ],
+    "needed_local_tools": [
+        "claim_done",
+        "handle_overlong_tool_outputs"
+    ],
+    "meta": {
+        "task_type": "personal_website_construct"
+    }
+}

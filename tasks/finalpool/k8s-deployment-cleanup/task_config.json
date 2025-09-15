@@ -5,7 +5,9 @@
         "pdf-tools",
         "filesystem"
     ],
-    "needed_local_tools": ["claim_done"],
-    "meta": {
-    }
+    "needed_local_tools": [
+        "claim_done",
+        "handle_overlong_tool_outputs"
+    ],
+    "meta": {}
 }

@@ -1,6 +1,16 @@
 {
-    "needed_mcp_servers": ["filesystem","terminal","huggingface"],
-    "needed_local_tools": ["claim_done","manage_context","history","python_execute"],
+    "needed_mcp_servers": [
+        "filesystem",
+        "terminal",
+        "huggingface"
+    ],
+    "needed_local_tools": [
+        "claim_done",
+        "manage_context",
+        "history",
+        "python_execute",
+        "handle_overlong_tool_outputs"
+    ],
     "meta": {
         "task_name": "Hugging Face Model Upload"
     }

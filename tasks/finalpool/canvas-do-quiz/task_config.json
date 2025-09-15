@@ -1,7 +1,12 @@
 {
-    "needed_mcp_servers": ["memory","playwright_with_chunk"],
-    "needed_local_tools": ["claim_done"],
-   
+    "needed_mcp_servers": [
+        "memory",
+        "playwright_with_chunk"
+    ],
+    "needed_local_tools": [
+        "claim_done",
+        "handle_overlong_tool_outputs"
+    ],
     "max_turns": 10,
     "meta": {}
 }

@@ -217,7 +217,7 @@ class TaskConfig:
 
         # 如果没有指定 log_file，自动生成
         if self.log_file is None:
-            self.log_file = str(task_root_path / "log.json")
+            self.log_file = str(task_root_path / "traj_log.json")
         self.log_file = os.path.abspath(self.log_file)
         
         # 如果没有指定 agent_workspace，自动生成

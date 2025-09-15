@@ -3,6 +3,9 @@
         "woocommerce",
         "filesystem"
     ],
-    "needed_local_tools": ["python_execute"],
+    "needed_local_tools": [
+        "python_execute",
+        "handle_overlong_tool_outputs"
+    ],
     "meta": {}
 }
