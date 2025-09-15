@@ -7,8 +7,7 @@
 
 uv run demo.py \
 --eval_config scripts/model_wise/eval_claude-4-sonnet.json \
---task_dir finalpool/set-conf-cr-ddl
-\ \
+--task_dir finalpool/set-conf-cr-ddl \
 --debug \
 # --model_short_name gpt-5 \
 # --provider aihubmix \

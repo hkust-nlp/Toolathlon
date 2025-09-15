@@ -1,0 +1,356 @@
+{
+  "courses": [
+    {
+      "name": "Introduction to Computer Science-3",
+      "course_code": "CS101-3",
+      "teacher": "debra_flores76@mcp.com",
+      "credits": 3,
+      "exam_type": "closed_book",
+      "exam_time": "2025-01-14 09:00",
+      "duration": "120",
+      "duration_unit": "minutes",
+      "location": "Building A Room 101",
+      "announcement": {
+        "title": "Final Exam Announcement - CS101",
+        "content": "Dear CS101 students,\n\nThis is to announce that the final exam for Introduction to Computer Science will be held on:\n\n📅 Date: January 14, 2025\n⏰ Time: 9:00 AM - 11:00 AM\n⏱️ Duration: 120 minutes\n📍 Location: Building A Room 101\n\nPlease arrive 15 minutes before the exam time. Bring your student ID and necessary writing materials.\n\nGood luck!\n\nBest regards,\nCourse Instructor"
+      },
+      "students": [
+        "rkelly27@mcp.com",
+        "drichardson@mcp.com",
+        "klee@mcp.com",
+        "elizabethr@mcp.com",
+        "gregory_scott@mcp.com",
+        "donald_roberts@mcp.com",
+        "rodriguezc39@mcp.com",
+        "robert_sanders66@mcp.com",
+        "smartinez@mcp.com",
+        "patrick.carter@mcp.com",
+        "malvarez@mcp.com",
+        "zedwards@mcp.com"
+      ]
+    },
+    {
+      "name": "Data Structures and Algorithms-3",
+      "course_code": "CS201-3",
+      "teacher": "debra_flores76@mcp.com",
+      "credits": 4,
+      "exam_type": "closed_book",
+      "exam_time": "2025-01-16 09:00",
+      "duration": "150",
+      "duration_unit": "minutes",
+      "location": "Building B Room 203",
+      "announcement": {
+        "title": "Final Exam Announcement - CS201",
+        "content": "Dear CS201 students,\n\nThis is to announce that the final exam for Data Structures and Algorithms will be held on:\n\n📅 Date: January 16, 2025\n⏰ Time: 9:00 AM - 11:30 AM\n⏱️ Duration: 150 minutes\n📍 Location: Building B Room 203\n\nPlease arrive 15 minutes before the exam time. Bring your student ID and necessary writing materials.\n\nGood luck!\n\nBest regards,\nCourse Instructor"
+      },
+      "students": [
+        "rkelly27@mcp.com",
+        "drichardson@mcp.com",
+        "klee@mcp.com",
+        "elizabethr@mcp.com",
+        "gregory_scott@mcp.com",
+        "donald_roberts@mcp.com",
+        "rodriguezc39@mcp.com",
+        "robert_sanders66@mcp.com",
+        "smartinez@mcp.com",
+        "patrick.carter@mcp.com",
+        "malvarez@mcp.com",
+        "zedwards@mcp.com"
+      ]
+    },
+    {
+      "name": "Database Systems-3",
+      "course_code": "CS301-3",
+      "teacher": "debra_flores76@mcp.com",
+      "credits": 4,
+      "exam_type": "closed_book",
+      "exam_time": "2025-01-16 14:00",
+      "duration": "150",
+      "duration_unit": "minutes",
+      "location": "Building B Room 205",
+      "announcement": {
+        "title": "Final Exam Announcement - CS301",
+        "content": "Dear CS301 students,\n\nThis is to announce that the final exam proctor will be replaced by another teacher, Professor Smith, whose email is blacksmith@mcp.com.\n\nBest regards,\nCourse Instructor"
+      },
+      "students": [
+        "rkelly27@mcp.com",
+        "drichardson@mcp.com",
+        "klee@mcp.com",
+        "elizabethr@mcp.com",
+        "gregory_scott@mcp.com",
+        "donald_roberts@mcp.com",
+        "rodriguezc39@mcp.com",
+        "robert_sanders66@mcp.com",
+        "smartinez@mcp.com",
+        "patrick.carter@mcp.com",
+        "malvarez@mcp.com",
+        "zedwards@mcp.com"
+      ]
+    },
+    {
+      "name": "Software Engineering Practice-3",
+      "course_code": "CS302-3",
+      "teacher": "debra_flores76@mcp.com",
+      "credits": 3,
+      "exam_type": "closed_book",
+      "exam_time": "2025-01-17 09:00",
+      "duration": "120",
+      "duration_unit": "minutes",
+      "location": "Building C Room 305",
+      "announcement": {
+        "title": "Final Exam Announcement - CS302",
+        "content": "Dear CS302 students,\n\nThis is to announce that the final exam for Software Engineering Practice will be held on:\n\n📅 Date: January 17, 2025\n⏰ Time: 9:00 AM - 11:00 AM\n⏱️ Duration: 120 minutes\n📍 Location: Building C Room 305\n\nPlease arrive 15 minutes before the exam time. Bring your student ID and necessary writing materials.\n\nGood luck!\n\nBest regards,\nCourse Instructor"
+      },
+      "students": [
+        "rkelly27@mcp.com",
+        "drichardson@mcp.com",
+        "klee@mcp.com",
+        "elizabethr@mcp.com",
+        "gregory_scott@mcp.com",
+        "donald_roberts@mcp.com",
+        "rodriguezc39@mcp.com",
+        "robert_sanders66@mcp.com",
+        "smartinez@mcp.com",
+        "patrick.carter@mcp.com",
+        "malvarez@mcp.com",
+        "zedwards@mcp.com"
+      ]
+    },
+    {
+      "name": "Software Engineering-3",
+      "course_code": "CS401-3",
+      "teacher": "debra_flores76@mcp.com",
+      "credits": 4,
+      "exam_type": "closed_book",
+      "exam_time": "2025-01-17 14:00",
+      "duration": "180",
+      "duration_unit": "minutes",
+      "location": "Building C Room 301",
+      "announcement": {
+        "title": "Final Exam Announcement - CS401",
+        "content": "Dear CS401 students,\n\nThis is to announce that the final exam for Software Engineering will be held on:\n\n📅 Date: January 17, 2025\n⏰ Time: 2:00 PM - 5:00 PM\n⏱️ Duration: 180 minutes\n📍 Location: Building C Room 301\n\nPlease arrive 15 minutes before the exam time. Bring your student ID and necessary writing materials.\n\nGood luck!\n\nBest regards,\nCourse Instructor"
+      },
+      "students": [
+        "rkelly27@mcp.com",
+        "drichardson@mcp.com",
+        "klee@mcp.com",
+        "elizabethr@mcp.com",
+        "gregory_scott@mcp.com",
+        "donald_roberts@mcp.com",
+        "rodriguezc39@mcp.com",
+        "robert_sanders66@mcp.com",
+        "smartinez@mcp.com",
+        "patrick.carter@mcp.com",
+        "malvarez@mcp.com",
+        "zedwards@mcp.com"
+      ]
+    },
+    {
+      "name": "Fundamentals of Artificial Intelligence-3",
+      "course_code": "AI101-3",
+      "teacher": "steven.hernandez@mcp.com",
+      "credits": 3,
+      "exam_type": "closed_book",
+      "exam_time": "2025-01-18 09:00",
+      "duration": "120",
+      "duration_unit": "minutes",
+      "location": "Building A Room 201",
+      "announcement": {
+        "title": "Final Exam Announcement - AI101",
+        "content": "Dear AI101 students,\n\nThis is to announce that the final exam for Fundamentals of Artificial Intelligence will be held on:\n\n📅 Date: January 18, 2025\n⏰ Time: 9:00 AM - 11:00 AM\n⏱️ Duration: 120 minutes\n📍 Location: Building A Room 201\n\nPlease arrive 15 minutes before the exam time. Bring your student ID and necessary writing materials.\n\nGood luck!\n\nBest regards,\nCourse Instructor"
+      },
+      "students": [
+        "rkelly27@mcp.com",
+        "drichardson@mcp.com",
+        "klee@mcp.com",
+        "elizabethr@mcp.com",
+        "gregory_scott@mcp.com",
+        "donald_roberts@mcp.com",
+        "rodriguezc39@mcp.com",
+        "robert_sanders66@mcp.com",
+        "smartinez@mcp.com",
+        "patrick.carter@mcp.com",
+        "malvarez@mcp.com",
+        "zedwards@mcp.com"
+      ]
+    },
+    {
+      "name": "Database Systems Fundamentals-3",
+      "course_code": "DB101-3",
+      "teacher": "steven.hernandez@mcp.com",
+      "credits": 2,
+      "exam_type": "closed_book",
+      "exam_time": "TBD",
+      "duration": "120",
+      "duration_unit": "minutes",
+      "location": "TBD",
+      "announcement": {
+        "title": "Final Exam Announcement - DB101",
+        "content": "Dear DB101 students,\n\nExam information is to be confirmed.\n\nGood luck!\n\nBest regards,\nCourse Instructor"
+      },
+      "students": [
+        "rkelly27@mcp.com",
+        "drichardson@mcp.com",
+        "klee@mcp.com",
+        "elizabethr@mcp.com",
+        "gregory_scott@mcp.com",
+        "donald_roberts@mcp.com",
+        "rodriguezc39@mcp.com",
+        "robert_sanders66@mcp.com",
+        "smartinez@mcp.com",
+        "patrick.carter@mcp.com",
+        "malvarez@mcp.com",
+        "zedwards@mcp.com"
+      ]
+    },
+    {
+      "name": "Network Programming-3",
+      "course_code": "NET101-3",
+      "teacher": "steven.hernandez@mcp.com",
+      "credits": 3,
+      "exam_type": "closed_book",
+      "exam_time": "2025-01-19 09:00",
+      "duration": "120",
+      "duration_unit": "minutes",
+      "location": "Building C Room 207",
+      "announcement": {
+        "title": "Final Exam Announcement - NET101 - Part 1",
+        "content": "Some exam information has been confirmed and communicated via email. Other infomation will be confirmed later."
+      },
+      "students": [
+        "rkelly27@mcp.com",
+        "drichardson@mcp.com",
+        "klee@mcp.com",
+        "elizabethr@mcp.com",
+        "gregory_scott@mcp.com",
+        "donald_roberts@mcp.com",
+        "rodriguezc39@mcp.com",
+        "robert_sanders66@mcp.com",
+        "smartinez@mcp.com",
+        "patrick.carter@mcp.com",
+        "malvarez@mcp.com",
+        "zedwards@mcp.com"
+      ]
+    },
+    {
+      "name": "English Foundation-3",
+      "course_code": "ENG101-3",
+      "teacher": "linda_nguyen30@mcp.com",
+      "credits": 1,
+      "exam_type": "closed_book",
+      "exemption_score": 90,
+      "duration": "90",
+      "duration_unit": "minutes",
+      "location": "Language Lab L101",
+      "announcement": {
+        "title": "English Foundation Assessment - ENG101",
+        "content": "Dear ENG101 students,\n\nThis is to announce that the English Foundation final assessment will be held on:\n\n📅 Date: TBD\n⏰ Time: TBD\n⏱️ Duration: 90 minutes\n📍 Location: Language Lab L101\n\nNote: Students with exemption score of 90 or above may be exempt from this assessment.\n\nPlease check with your score of English Entrance Qualification Examination.\n\nBest regards,\nCourse Instructor"
+      },
+      "students": [
+        "rkelly27@mcp.com",
+        "drichardson@mcp.com",
+        "klee@mcp.com",
+        "elizabethr@mcp.com",
+        "gregory_scott@mcp.com",
+        "donald_roberts@mcp.com",
+        "rodriguezc39@mcp.com",
+        "robert_sanders66@mcp.com",
+        "smartinez@mcp.com",
+        "patrick.carter@mcp.com",
+        "malvarez@mcp.com",
+        "zedwards@mcp.com"
+      ]
+    },
+    {
+      "name": "Natural Language Processing-3",
+      "course_code": "NLP101-3",
+      "teacher": "christopher.thompson@mcp.com",
+      "credits": 3,
+      "exam_type": "no_exam",
+      "assessment": "Assignments + Group Presentation",
+      "duration": "20",
+      "duration_unit": "minutes",
+      "location": "Building A Room 301",
+      "announcement": {
+        "title": "NLP101 Assessment Information",
+        "content": "Dear NLP101 students,\n\nThis course does not have a final exam. Instead, your assessment will be based on:\n\n📝 Assignments\n🎤 Group Presentation (20 minutes per group)\n📍 Location: Building A Room 301\n\nPlease check with your instructor for specific presentation schedules and requirements.\n\nBest regards,\nCourse Instructor"
+      },
+      "students": [
+        "rkelly27@mcp.com",
+        "drichardson@mcp.com",
+        "klee@mcp.com",
+        "elizabethr@mcp.com",
+        "gregory_scott@mcp.com",
+        "donald_roberts@mcp.com",
+        "rodriguezc39@mcp.com",
+        "robert_sanders66@mcp.com",
+        "smartinez@mcp.com",
+        "patrick.carter@mcp.com",
+        "malvarez@mcp.com",
+        "zedwards@mcp.com"
+      ]
+    },
+    {
+      "name": "Advanced Mathematics-3",
+      "course_code": "MATH201-3",
+      "teacher": "christopher.thompson@mcp.com",
+      "credits": 4,
+      "exam_type": "open_book",
+      "exam_time": "2025-01-20 09:00",
+      "duration": "150",
+      "duration_unit": "minutes",
+      "location": "Building B Room 301",
+      "announcement": {
+        "title": "Open Book Exam Announcement - MATH201",
+        "content": "Dear MATH201 students,\n\nThis is to announce that the open book exam for Advanced Mathematics will be held on:\n\n📅 Date: January 20, 2025\n⏰ Time: 9:00 AM - 11:30 AM\n⏱️ Duration: 150 minutes\n📍 Location: Building B Room 301\n\nNote: This is an OPEN BOOK exam. You may bring your textbooks and notes.\n\nPlease arrive 15 minutes before the exam time. Bring your student ID and necessary writing materials.\n\nGood luck!\n\nBest regards,\nCourse Instructor"
+      },
+      "students": [
+        "rkelly27@mcp.com",
+        "drichardson@mcp.com",
+        "klee@mcp.com",
+        "elizabethr@mcp.com",
+        "gregory_scott@mcp.com",
+        "donald_roberts@mcp.com",
+        "rodriguezc39@mcp.com",
+        "robert_sanders66@mcp.com",
+        "smartinez@mcp.com",
+        "patrick.carter@mcp.com",
+        "malvarez@mcp.com",
+        "zedwards@mcp.com"
+      ]
+    },
+    {
+      "name": "Linear Algebra-3",
+      "course_code": "MATH101-3",
+      "teacher": "christopher.thompson@mcp.com",
+      "credits": 3,
+      "exam_type": "closed_book",
+      "exam_time": "2025-01-20 14:00",
+      "duration": "120",
+      "duration_unit": "minutes",
+      "location": "Building C Room 101",
+      "announcement": {
+        "title": "Final Exam Announcement - MATH101",
+        "content": "Dear MATH101 students,\n\nThis is to announce that the final exam for Linear Algebra will be held on:\n\n📅 Date: January 20, 2025\n⏰ Time: 2:00 PM - 4:00 PM\n⏱️ Duration: 120 minutes\n📍 Location: Building C Room 101\n\nPlease arrive 15 minutes before the exam time. Bring your student ID and necessary writing materials.\n\nGood luck!\n\nBest regards,\nCourse Instructor"
+      },
+      "students": [
+        "rkelly27@mcp.com",
+        "drichardson@mcp.com",
+        "klee@mcp.com",
+        "elizabethr@mcp.com",
+        "gregory_scott@mcp.com",
+        "donald_roberts@mcp.com",
+        "rodriguezc39@mcp.com",
+        "robert_sanders66@mcp.com",
+        "smartinez@mcp.com",
+        "patrick.carter@mcp.com",
+        "malvarez@mcp.com",
+        "zedwards@mcp.com"
+      ]
+    }
+  ]
+}
+
+
+    
+    
