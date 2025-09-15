@@ -469,7 +469,7 @@ API_MAPPINGS = {
         api_model={"ds_internal": "oai-api-claude-sonnet-4-20250514",
                    "aihubmix": "claude-sonnet-4-20250514",
                    "anthropic": "claude-sonnet-4-20250514",
-                   "openrouter": "anthropic/claude-3-5-sonnet"},
+                   "openrouter": "anthropic/claude-sonnet-4"},
         price=[0.003, 0.015],
         concurrency=32,
         context_window=200000,
