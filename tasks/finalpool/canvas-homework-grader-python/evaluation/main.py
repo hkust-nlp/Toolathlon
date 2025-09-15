@@ -450,9 +450,11 @@ def main():
                 "timestamp": __import__('datetime').datetime.now().isoformat()
             }
             try:
-                with open(args.res_log_file, 'w') as f:
+                # Write evaluation results to a separate file, not the trajectory file
+                eval_temp_file = os.path.join(os.path.dirname(args.res_log_file) if args.res_log_file else ".", "eval_temp.json")
+                with open(eval_temp_file, 'w') as f:
                     json.dump(result_data, f, indent=2)
-                print(f"📝 Results logged to: {args.res_log_file}")
+                print(f"📝 Results logged to: {eval_temp_file}")
             except Exception as e:
                 print(f"⚠️  Failed to write log file: {e}")
         

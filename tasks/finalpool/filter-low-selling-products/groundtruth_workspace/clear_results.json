@@ -1,0 +1,36 @@
+{
+  "mailbox_clear": {
+    "success": true,
+    "total_deleted": 1,
+    "folders": {
+      "INBOX": {
+        "success": true,
+        "deleted_count": 0,
+        "message": "文件夹已为空"
+      },
+      "Sent": {
+        "success": true,
+        "deleted_count": 1,
+        "failed_count": 0,
+        "total_found": 1
+      }
+    },
+    "timestamp": "2025-09-15T05:45:35.622684"
+  },
+  "blog_clear": {
+    "status": "SKIPPED!"
+  },
+  "store_clear": {
+    "success": true,
+    "products": {
+      "total_found": 8,
+      "deleted": 8,
+      "failed": 0
+    },
+    "categories": {
+      "deleted": 0,
+      "failed": 0
+    },
+    "timestamp": "2025-09-15T05:45:41.966027"
+  }
+}

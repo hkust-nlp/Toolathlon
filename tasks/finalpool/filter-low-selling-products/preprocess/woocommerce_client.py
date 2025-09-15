@@ -126,15 +126,15 @@ class WooCommerceClient:
         return self._make_request('DELETE', f'products/{product_id}', params=params)
     
     def get_product_categories(self) -> Tuple[bool, List[Dict]]:
-        """获取商品分类列表"""
+        """获取 Product Categories列表"""
         return self._make_request('GET', 'products/categories')
     
     def create_category(self, category_data: Dict) -> Tuple[bool, Dict]:
-        """创建商品分类"""
+        """创建 Product Categories"""
         return self._make_request('POST', 'products/categories', data=category_data)
     
     def update_category(self, category_id: str, category_data: Dict) -> Tuple[bool, Dict]:
-        """更新商品分类"""
+        """更新 Product Categories"""
         return self._make_request('PUT', f'products/categories/{category_id}', data=category_data)
     
     def batch_update_products(self, updates: List[Dict]) -> Tuple[bool, Dict]:
@@ -143,6 +143,11 @@ class WooCommerceClient:
             "update": updates
         }
         return self._make_request('POST', 'products/batch', data=batch_data)
+    
+    def delete_category(self, category_id: str, force: bool = True) -> Tuple[bool, Dict]:
+        """删除商品分类"""
+        params = {'force': force} if force else {}
+        return self._make_request('DELETE', f'products/categories/{category_id}', params=params)
 
 
 class LowSellingProductFilter:
@@ -215,6 +220,7 @@ class LowSellingProductFilter:
                     'name': product.get('name', ''),
                     'sku': product.get('sku', ''),
                     'price': product.get('price', '0'),
+                    'sale_price': product.get('sale_price', product.get('price', '0')),
                     'stock_quantity': product.get('stock_quantity', 0),
                     'stock_status': product.get('stock_status', ''),
                     'date_created': date_created_str,
@@ -257,8 +263,8 @@ class LowSellingProductFilter:
         return analysis_result
     
     def ensure_outlet_category(self) -> bool:
-        """确保"奥特莱斯/清仓"分类存在"""
-        print("🏷️ 检查奥特莱斯/清仓分类...")
+        """确保"Outlet/Clearance"分类存在"""
+        print("🏷️ 检查Outlet/Clearance分类...")
         
         # 获取现有分类
         success, categories = self.wc_client.get_product_categories()
@@ -266,8 +272,8 @@ class LowSellingProductFilter:
             print(f"❌ 获取分类失败: {categories}")
             return False
         
-        # 查找是否已存在奥特莱斯分类
-        outlet_names = ["奥特莱斯", "清仓", "奥特莱斯/清仓", "Outlet", "Clearance", "Outlet/Clearance"]
+        # 查找是否已存在Outlet分类
+        outlet_names = ["Outlet", "Clearance", "Outlet/Clearance", "Outlet", "Clearance", "Outlet/Clearance"]
         
         for category in categories:
             if category.get('name', '') in outlet_names:
@@ -278,14 +284,14 @@ class LowSellingProductFilter:
         # 如果不存在，创建新分类
         category_data = {
             "name": "Outlet/Clearance",
-            "description": "低销量商品清仓促销分类",
+            "description": "低销量商品Clearance促销分类",
             "slug": "outlet-clearance"
         }
         
         success, new_category = self.wc_client.create_category(category_data)
         if success:
             self.outlet_category_id = new_category.get('id')
-            print(f"✅ 创建新分类: 奥特莱斯/清仓 (ID: {self.outlet_category_id})")
+            print(f"✅ 创建新分类: Outlet/Clearance (ID: {self.outlet_category_id})")
             return True
         else:
             print(f"❌ 创建分类失败: {new_category}")
@@ -293,7 +299,7 @@ class LowSellingProductFilter:
     
     def move_products_to_outlet(self, low_selling_products: List[Dict]) -> Dict:
         """
-        将低销量商品移动到奥特莱斯分类
+        将低销量商品移动到Outlet分类
         
         Args:
             low_selling_products: 低销量商品列表
@@ -303,9 +309,9 @@ class LowSellingProductFilter:
         """
         if not self.outlet_category_id:
             if not self.ensure_outlet_category():
-                return {"success": False, "error": "无法创建或找到奥特莱斯分类"}
+                return {"success": False, "error": "无法创建或找到Outlet分类"}
         
-        print(f"📦 开始移动 {len(low_selling_products)} 个商品到奥特莱斯分类...")
+        print(f"📦 开始移动 {len(low_selling_products)} 个商品到Outlet分类...")
         
         # 准备批量更新数据
         updates = []
@@ -314,11 +320,11 @@ class LowSellingProductFilter:
             if not product_id:
                 continue
             
-            # 获取现有分类，添加奥特莱斯分类
+            # 获取现有分类，添加Outlet分类
             existing_categories = product.get('categories', [])
             category_ids = [cat.get('id') for cat in existing_categories if cat.get('id')]
             
-            # 添加奥特莱斯分类ID（如果还没有）
+            # 添加Outlet分类ID（如果还没有）
             if self.outlet_category_id not in category_ids:
                 category_ids.append(self.outlet_category_id)
             
@@ -404,19 +410,20 @@ class LowSellingProductFilter:
         if low_selling_products:
             report_lines.append("## 低销量商品详情")
             report_lines.append("")
-            report_lines.append("| 商品名称 | SKU | 价格 | 库存 | 在库天数 | 30天销量 | 总销量 |")
+            report_lines.append("| 商品名称 | SKU | 价格 | 促销价 | 库存 | 在库天数 | 30天销量 | 总销量 |")
             report_lines.append("|----------|-----|------|------|----------|----------|--------|")
             
             for product in low_selling_products[:20]:  # 只显示前20个
                 name = product.get('name', '')[:30]  # 限制长度
                 sku = product.get('sku', '')
                 price = product.get('price', '0')
+                sale_price = product.get('sale_price', price)
                 stock = product.get('stock_quantity', 0)
                 days = product.get('days_in_stock', 0)
                 sales_30 = product.get('sales_30_days', 0)
                 total_sales = product.get('total_sales', 0)
                 
-                report_lines.append(f"| {name} | {sku} | ¥{price} | {stock} | {days} | {sales_30} | {total_sales} |")
+                report_lines.append(f"| {name} | {sku} | ¥{price} | ¥{sale_price} | {stock} | {days} | {sales_30} | {total_sales} |")
             
             if len(low_selling_products) > 20:
                 report_lines.append(f"| ... | ... | ... | ... | ... | ... | ... |")
@@ -427,9 +434,9 @@ class LowSellingProductFilter:
         # 移动操作结果
         if move_result:
             report_lines.append("## 分类移动结果")
-            report_lines.append(f"- 成功移动到奥特莱斯分类: {move_result.get('successful_moves', 0)} 个商品")
+            report_lines.append(f"- 成功移动到Outlet分类: {move_result.get('successful_moves', 0)} 个商品")
             report_lines.append(f"- 移动失败: {move_result.get('failed_moves', 0)} 个商品")
-            report_lines.append(f"- 奥特莱斯分类ID: {move_result.get('outlet_category_id', 'N/A')}")
+            report_lines.append(f"- Outlet分类ID: {move_result.get('outlet_category_id', 'N/A')}")
             report_lines.append("")
         
         report_lines.append("---")

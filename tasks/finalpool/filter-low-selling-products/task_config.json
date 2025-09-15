@@ -1,12 +1,6 @@
 {
-    "needed_mcp_servers": [
-        "woocommerce",
-        "filesystem",
-        "emails"
-    ],
-    "needed_local_tools": [
-        "handle_overlong_tool_outputs"
-    ],
+    "needed_mcp_servers": ["woocommerce", "filesystem", "emails"],
+    "needed_local_tools": ["claim_done","handle_overlong_tool_outputs"],
     "meta": {
         "task_type": "product_filtering",
         "requires_remote_api": true,
