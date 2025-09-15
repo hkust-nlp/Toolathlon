@@ -7,7 +7,7 @@
 
 uv run demo.py \
 --eval_config scripts/model_wise/eval_claude-4-sonnet.json \
---task_dir finalpool/woocommerce-new-product \
+--task_dir finalpool/git-bug-hunt \
 --debug \
 # --model_short_name claude-4-sonnet-0514 \
 # --provider aihubmix \
