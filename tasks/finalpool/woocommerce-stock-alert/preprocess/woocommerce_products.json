@@ -1,0 +1,186 @@
+{
+  "products": [
+    {
+      "id": 101,
+      "name": "Laptop Dell XPS 13",
+      "sku": "DELL-XPS-13",
+      "stock_quantity": 5,
+      "stock_threshold": 10,
+      "supplier": {
+        "name": "Dell China",
+        "contact": "supplier@dell.cn",
+        "supplier_id": "SUP001"
+      },
+      "price": 8999.00,
+      "category": "Electronics"
+    },
+    {
+      "id": 102,
+      "name": "iPhone 15 Pro",
+      "sku": "IPHONE-15-PRO",
+      "stock_quantity": 3,
+      "stock_threshold": 15,
+      "supplier": {
+        "name": "Apple Authorized Distributor",
+        "contact": "sales@apple-distributor.cn",
+        "supplier_id": "SUP002"
+      },
+      "price": 9999.00,
+      "category": "Electronics"
+    },
+    {
+      "id": 103,
+      "name": "Sony WH-1000XM5 Headphones",
+      "sku": "SONY-WH1000XM5",
+      "stock_quantity": 25,
+      "stock_threshold": 20,
+      "supplier": {
+        "name": "Sony Electronics",
+        "contact": "order@sony-electronics.com",
+        "supplier_id": "SUP003"
+      },
+      "price": 2499.00,
+      "category": "Audio"
+    },
+    {
+      "id": 104,
+      "name": "Samsung 65\" QLED TV",
+      "sku": "SAMSUNG-Q80B-65",
+      "stock_quantity": 2,
+      "stock_threshold": 5,
+      "supplier": {
+        "name": "Samsung Display",
+        "contact": "b2b@samsung.cn",
+        "supplier_id": "SUP004"
+      },
+      "price": 12999.00,
+      "category": "TV & Home Theater"
+    },
+    {
+      "id": 105,
+      "name": "Logitech MX Master 3S",
+      "sku": "LOGI-MX-MASTER3S",
+      "stock_quantity": 18,
+      "stock_threshold": 10,
+      "supplier": {
+        "name": "Logitech China",
+        "contact": "wholesale@logitech.cn",
+        "supplier_id": "SUP005"
+      },
+      "price": 699.00,
+      "category": "Computer Accessories"
+    },
+    {
+      "id": 106,
+      "name": "iPad Air 5th Gen",
+      "sku": "IPAD-AIR-5",
+      "stock_quantity": 7,
+      "stock_threshold": 12,
+      "supplier": {
+        "name": "Apple Authorized Distributor",
+        "contact": "sales@apple-distributor.cn",
+        "supplier_id": "SUP002"
+      },
+      "price": 5999.00,
+      "category": "Tablets"
+    },
+    {
+      "id": 107,
+      "name": "Canon EOS R6",
+      "sku": "CANON-EOS-R6",
+      "stock_quantity": 4,
+      "stock_threshold": 8,
+      "supplier": {
+        "name": "Canon Professional",
+        "contact": "pro@canon.com.cn",
+        "supplier_id": "SUP006"
+      },
+      "price": 16999.00,
+      "category": "Cameras"
+    },
+    {
+      "id": 108,
+      "name": "Microsoft Surface Pro 9",
+      "sku": "MS-SURFACE-PRO9",
+      "stock_quantity": 1,
+      "stock_threshold": 6,
+      "supplier": {
+        "name": "Microsoft China",
+        "contact": "surface@microsoft.cn",
+        "supplier_id": "SUP007"
+      },
+      "price": 8999.00,
+      "category": "Tablets"
+    },
+    {
+      "id": 201,
+      "name": "MacBook Pro 14-inch M3",
+      "sku": "MACBOOK-PRO-14-M3",
+      "stock_quantity": 3,
+      "stock_threshold": 8,
+      "supplier": {
+          "name": "Apple Corporate Sales",
+          "contact": "corporate@apple.com",
+          "supplier_id": "SUP008"
+      },
+      "price": 21999.00,
+      "category": "Laptops"
+  },
+  {
+      "id": 202,
+      "name": "Nintendo Switch OLED",
+      "sku": "NINTENDO-SWITCH-OLED",
+      "stock_quantity": 2,
+      "stock_threshold": 12,
+      "supplier": {
+          "name": "Nintendo Distribution",
+          "contact": "orders@nintendo-dist.com",
+          "supplier_id": "SUP009"
+      },
+      "price": 2299.00,
+      "category": "Gaming"
+  },
+  {
+      "id": 203,
+      "name": "Sony Alpha 7R V Camera",
+      "sku": "SONY-A7R5",
+      "stock_quantity": 15,
+      "stock_threshold": 6,
+      "supplier": {
+          "name": "Sony Professional Imaging",
+          "contact": "pro-imaging@sony.com",
+          "supplier_id": "SUP010"
+      },
+      "price": 28999.00,
+      "category": "Cameras"
+  },
+  {
+      "id": 204,
+      "name": "Bose QuietComfort Ultra",
+      "sku": "BOSE-QC-ULTRA",
+      "stock_quantity": 22,
+      "stock_threshold": 10,
+      "supplier": {
+          "name": "Bose Professional",
+          "contact": "wholesale@bose.com",
+          "supplier_id": "SUP011"
+      },
+      "price": 2799.00,
+      "category": "Audio"
+  },
+  {
+      "id": 205,
+      "name": "LG OLED 77-inch C4",
+      "sku": "LG-OLED-C4-77",
+      "stock_quantity": 8,
+      "stock_threshold": 4,
+      "supplier": {
+          "name": "LG Electronics",
+          "contact": "b2b@lg.com",
+          "supplier_id": "SUP012"
+      },
+      "price": 24999.00,
+      "category": "TV & Home Theater"
+  }
+  ]
+}

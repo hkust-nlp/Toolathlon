@@ -9,7 +9,7 @@ from utils.mcp.tool_servers import MCPServerManager, call_tool_with_retry, ToolC
 
 sys.path.insert(0, str(Path(__file__).parent.parent))  # 添加任务目录到路径
 from token_key_session import all_token_key_session
-from utils.local_email import LocalEmailManager
+from utils.app_specific.poste.local_email_manager import LocalEmailManager
 
 def clear_all_email_folders():
     """

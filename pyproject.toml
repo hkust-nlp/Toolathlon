@@ -53,6 +53,7 @@ dependencies = [
     "google-auth-oauthlib>=1.2.2",
     "google-cloud-bigquery>=3.35.1",
     "google-cloud-logging>=3.12.1",
+    "google-cloud-storage>=3.3.1",
     "gputil>=1.4.0",
     "greenlet==3.2.1",
     "griffe==1.7.3",

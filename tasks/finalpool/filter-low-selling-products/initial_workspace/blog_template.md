@@ -1,24 +1,24 @@
-# 奥特莱斯清仓促销模板
+# OutletClearance Promotion Template
 
-## 促销商品列表
+## Promotional Products List
 
-以下商品参与本次清仓活动：
+The following products are participating in this Clearance event:
 
-[商品名称1] - 原价：[原价] - 促销价：[促销价]
-[商品名称2] - 原价：[原价] - 促销价：[促销价]
-[商品名称3] - 原价：[原价] - 促销价：[促销价]
+[Product Name 1] - Original Price: [Original Price] - Promotional Price: [Promotional Price]
+[Product Name 2] - Original Price: [Original Price] - Promotional Price: [Promotional Price]
+[Product Name 3] - Original Price: [Original Price] - Promotional Price: [Promotional Price]
 
-## 活动说明
+## Event Details
 
-活动时间：即日起
-商品分类：奥特莱斯/清仓
-数量有限，售完即止
+Event Period: Starting from today
+Product Categories: Outlet/Clearance
+Limited quantity, while supplies last
 
-## 特别提醒
+## Special Reminders
 
-- 所有参与活动商品均为正品
-- 支持7天无理由退换
-- 免费配送，满99元包邮
-- 客服热线：400-1234-5678
+- All participating products are authentic
+- 7-day no-reason return and exchange supported
+- Free shipping, free shipping on orders over $99
+- Customer service hotline: 400-1234-5678
 
-快来选购您心仪的特价商品吧！
+Come and select your favorite discounted products!
