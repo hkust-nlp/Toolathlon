@@ -1,5 +1,5 @@
 {
     "needed_mcp_servers": ["filesystem","playwright_with_chunk"],
-    "needed_local_tools": ["history","claim_done"],
+    "needed_local_tools": ["history","claim_done", "manage_context", "smart_context_truncate", "search_overlong_tooloutput"],
     "meta": {}
 }
