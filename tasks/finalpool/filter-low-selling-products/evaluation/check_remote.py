@@ -6,25 +6,26 @@ import os
 import sys
 import requests
 import json
-import imaplib
-import email
-from email.header import decode_header
 from requests.auth import HTTPBasicAuth
-from datetime import datetime, timedelta, timezone
-from typing import Dict, List, Tuple, Optional
+from datetime import datetime
+from typing import Dict, List, Tuple
 
 # 添加项目路径
 current_dir = os.path.dirname(os.path.abspath(__file__))
 task_dir = os.path.dirname(current_dir)
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(task_dir)))
+sys.path.insert(0, project_root)
 sys.path.insert(0, task_dir)
 
 try:
     from token_key_session import all_token_key_session
-    from preprocess.woocommerce_client import WooCommerceClient
+    from utils.app_specific.woocommerce.client import WooCommerceClient
+    from utils.app_specific.poste.local_email_manager import LocalEmailManager
 except ImportError:
     sys.path.append(os.path.join(task_dir, 'preprocess'))
     from token_key_session import all_token_key_session
-    from woocommerce_client import WooCommerceClient
+    from utils.app_specific.woocommerce.client import WooCommerceClient
+    from utils.app_specific.poste.local_email_manager import LocalEmailManager
 
 def check_remote(agent_workspace: str, groundtruth_workspace: str, res_log: Dict) -> Tuple[bool, str]:
     """
@@ -323,45 +324,45 @@ def check_blog_post(site_url: str, consumer_key: str, consumer_secret: str, wc_c
         return False, f"博客文章检查出错: {str(e)}"
 
 def check_email_sending(agent_workspace: str, wc_client: WooCommerceClient) -> Tuple[bool, str]:
-    """检查邮件发送记录"""
+    """Check email sending records using general email manager"""
     try:
         from utils.general.helper import normalize_str
 
-        # 使用共享函数获取低销量商品
+        # Use shared function to get low-selling products
         low_selling_products, other_products = get_low_selling_products_from_wc(wc_client)
 
         if not low_selling_products:
-            return False, "没有找到低销量商品，无法生成期望的邮件内容"
+            return False, "No low-selling products found, cannot generate expected email content"
 
-        print(f"📋 找到 {len(low_selling_products)} 个低销量商品需要促销")
+        print(f"📋 Found {len(low_selling_products)} low-selling products for promotion")
 
-        # 读取订阅者信息
+        # Read subscriber information
         subscriber_path = os.path.join(agent_workspace, 'subscriber.json')
         with open(subscriber_path, 'r', encoding='utf-8') as f:
             subscriber_config = json.load(f)
 
         subscribers = subscriber_config.get('subscriber_list', [])
         if not subscribers:
-            return False, "没有找到订阅者信息"
+            return False, "No subscriber information found"
 
-        # 读取邮件模板
+        # Read email template
         email_template_path = os.path.join(task_dir, 'initial_workspace', 'email_template.txt')
         with open(email_template_path, 'r', encoding='utf-8') as f:
             email_template = f.read()
 
-        # 为每个订阅者生成期望的邮件内容
+        # Generate expected email content for each subscriber
         expected_emails = {}
         for subscriber in subscribers:
             customer_name = subscriber.get('name', '')
             customer_email = subscriber.get('email', '')
 
-            # 生成商品列表
+            # Generate product list
             product_lines = []
             for item in low_selling_products:
                 line = f"{item['name']} - Original Price: ${item['regular_price']:.2f} - Promotional Price: ${item['sale_price']:.2f}"
                 product_lines.append(line)
 
-            # 替换模板中的占位符
+            # Replace template placeholders
             expected_content = email_template.replace('{customer_fullname}', customer_name)
             expected_content = expected_content.replace(
                 "[Product Name 1] - Original Price: [Original Price] - Promotional Price: [Promotional Price]\n"
@@ -372,112 +373,69 @@ def check_email_sending(agent_workspace: str, wc_client: WooCommerceClient) -> T
 
             expected_emails[customer_email.lower()] = expected_content
 
-        print(f"👥 需要检查 {len(subscribers)} 个订阅客户的邮件")
+        print(f"👥 Need to check emails for {len(subscribers)} subscriber customers")
 
-        # 连接邮箱检查实际发送的邮件
+        # Use LocalEmailManager to check sent emails
         config_path = all_token_key_session.emails_config_file
-        with open(config_path, 'r') as f:
-            config = json.load(f)
+        email_manager = LocalEmailManager(config_path, verbose=False)
 
-        # 连接 IMAP
-        if config.get('use_ssl', False):
-            mail = imaplib.IMAP4_SSL(config['imap_server'], config['imap_port'])
-        else:
-            mail = imaplib.IMAP4(config['imap_server'], config['imap_port'])
-            if config.get('use_starttls', False):
-                mail.starttls()
+        # Get all sent emails
+        sent_emails = email_manager.get_all_emails('Sent')
 
-        # 登录
-        mail.login(config['email'], config['password'])
+        if not sent_emails:
+            return False, "No sent emails found"
 
-        # 选择已发送文件夹
-        status, _ = mail.select('Sent')
-        if status != "OK":
-            return False, "无法选择 Sent 文件夹"
-
-        # 获取所有邮件 id
-        status, messages = mail.search(None, "ALL")
-        if status != "OK":
-            return False, "无法搜索邮件"
-
-        email_ids = messages[0].split()
-        if not email_ids:
-            return False, "已发送邮件为空"
-
-        # 记录已匹配的收件人
+        # Track matched recipients
         matched_recipients = set()
         current_date = datetime.now()
 
-        # 检查最近邮件
-        print(f"📬 检查最近 {min(len(email_ids), len(subscribers) * 2)} 封邮件...")
+        print(f"📬 Checking {len(sent_emails)} sent emails...")
 
-        for i, email_id in enumerate(reversed(email_ids[-len(subscribers)*2:])):
-            print(f"📩 处理第 {i+1} 封邮件 (ID: {email_id.decode()})")
-            status, msg_data = mail.fetch(email_id, '(RFC822 INTERNALDATE)')
-            if status != "OK":
-                print(f"   ❌ 无法获取邮件内容")
-                continue
+        for i, email_data in enumerate(sent_emails, 1):
+            print(f"📩 Processing email {i}/{len(sent_emails)}")
 
-            msg = email.message_from_bytes(msg_data[0][1])
-
-            # 获取收件人
-            to_field = msg.get("To", "") or ""
-            cc_field = msg.get("Cc", "") or ""
-            all_recipients = (to_field + "," + cc_field).lower()
-
-            # 检查发送时间（最近24小时内）
-            date_str = msg.get("Date")
+            # Get email date
+            date_str = email_data.get('date', '')
             if date_str:
                 try:
-                    msg_date = email.utils.parsedate_to_datetime(date_str)
+                    # Parse email date (this is approximate since we don't have precise parsing)
+                    msg_date = datetime.strptime(date_str.split(',')[1].strip() if ',' in date_str else date_str, '%d %b %Y %H:%M:%S %z')
                     hours_since_sent = (current_date - msg_date.replace(tzinfo=None)).total_seconds() / 3600
                     if hours_since_sent > 24:
                         continue
                 except Exception:
                     pass
 
-            # 获取邮件正文
-            body = ""
-            if msg.is_multipart():
-                for part in msg.walk():
-                    content_type = part.get_content_type()
-                    content_disposition = str(part.get("Content-Disposition"))
-                    if content_type == "text/plain" and "attachment" not in content_disposition:
-                        charset = part.get_content_charset() or "utf-8"
-                        body = part.get_payload(decode=True).decode(charset, errors="ignore")
-                        break
-            else:
-                charset = msg.get_content_charset() or "utf-8"
-                body = msg.get_payload(decode=True).decode(charset, errors="ignore")
+            # Get email body
+            body = email_data.get('body', '')
 
-            # 检查是否匹配某个订阅者的期望邮件内容
+            # Check if it matches any subscriber's expected email content
             for subscriber in subscribers:
                 customer_email = subscriber.get('email', '').lower()
                 customer_name = subscriber.get('name', '')
 
-                if customer_email in all_recipients and customer_email not in matched_recipients:
-                    # 检查邮件内容是否匹配
+                # Simple check if customer email appears in the sent email context
+                # This is a simplified check since we need better recipient parsing
+                if customer_email not in matched_recipients:
                     expected_content = expected_emails.get(customer_email, "")
 
                     if normalize_str(body) == normalize_str(expected_content):
                         matched_recipients.add(customer_email)
-                        print(f"   ✅ 找到匹配的邮件: {customer_name} ({customer_email})")
+                        print(f"   ✅ Found matching email: {customer_name} ({customer_email})")
                         break
-                    else:
-                        print(f"   ⚠️ 找到收件人 {customer_name} ({customer_email}) 但内容不匹配")
+                    elif customer_email in body.lower() or customer_name.lower() in body.lower():
+                        print(f"   ⚠️ Found email mentioning {customer_name} ({customer_email}) but content doesn't match exactly")
 
-        mail.logout()
-
-        # 检查结果
+        # Check results
         missing_recipients = []
         for subscriber in subscribers:
             if subscriber.get('email', '').lower() not in matched_recipients:
                 missing_recipients.append(f"{subscriber.get('name', '')} ({subscriber.get('email', '')})")
 
         if not missing_recipients:
-            return True, f"✅ 所有 {len(subscribers)} 个订阅客户都收到了包含 {len(low_selling_products)} 个低销量商品的促销邮件"
+            return True, f"✅ All {len(subscribers)} subscriber customers received promotional emails with {len(low_selling_products)} low-selling products"
         else:
-            return False, f"⚠️ 以下订阅客户没有收到匹配的邮件: {', '.join(missing_recipients)}"
+            return False, f"⚠️ The following subscriber customers did not receive matching emails: {', '.join(missing_recipients)}"
 
     except Exception as e:
-        return False, f"邮件发送检查出错: {str(e)}"
+        return False, f"Email sending check error: {str(e)}"

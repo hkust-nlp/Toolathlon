@@ -1,21 +1,19 @@
 {
   "mailbox_clear": {
     "success": true,
-    "total_deleted": 1,
     "folders": {
       "INBOX": {
         "success": true,
-        "deleted_count": 0,
-        "message": "文件夹已为空"
+        "deleted_count": "cleared",
+        "message": "Folder cleared, 0 emails remaining"
       },
       "Sent": {
         "success": true,
-        "deleted_count": 1,
-        "failed_count": 0,
-        "total_found": 1
+        "deleted_count": "cleared",
+        "message": "Folder cleared, 0 emails remaining"
       }
     },
-    "timestamp": "2025-09-15T05:45:35.622684"
+    "timestamp": "2025-09-15T13:35:52.390051"
   },
   "blog_clear": {
     "status": "SKIPPED!"
@@ -23,14 +21,14 @@
   "store_clear": {
     "success": true,
     "products": {
-      "total_found": 8,
-      "deleted": 8,
-      "failed": 0
-    },
-    "categories": {
+      "total_found": 398,
       "deleted": 0,
       "failed": 0
     },
-    "timestamp": "2025-09-15T05:45:41.966027"
+    "categories": {
+      "deleted": 2,
+      "failed": 0
+    },
+    "timestamp": "2025-09-15T13:36:20.417254"
   }
 }

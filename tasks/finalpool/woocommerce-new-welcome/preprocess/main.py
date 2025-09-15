@@ -294,7 +294,7 @@ if __name__ == "__main__":
         print(f"✅ 找到凭证文件: {credentials_path}")
     
     # Get JSON data file path
-    json_path = os.path.join(os.path.dirname(__file__), "customers_data.json")
+    json_path = Path(os.path.join(os.path.dirname(__file__), "customers_data.json"))
     if not json_path.is_absolute():
         json_path = Path.cwd() / json_path
         

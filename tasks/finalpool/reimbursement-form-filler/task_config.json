@@ -1,12 +1,5 @@
 {
-    "needed_mcp_servers": [
-        "filesystem",
-        "excel",
-        "pdf-tools"
-    ],
-    "needed_local_tools": [
-        "claim_done",
-        "handle_overlong_tool_outputs"
-    ],
+    "needed_mcp_servers": ["filesystem", "excel", "pdf-tools", "terminal"],
+    "needed_local_tools": ["python_execute", "claim_done", "handle_overlong_tool_outputs"],
     "meta": {}
 }
