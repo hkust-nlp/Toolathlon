@@ -29,9 +29,32 @@ class AgentConfig:
         if 'agent' in data:
             data = data['agent']
         
+        # 自动注入OpenRouter配置
+        generation_data = data['generation'].copy()
+        model_data = data['model']
+        
+        # 如果使用OpenRouter provider，自动添加provider routing配置
+        if model_data.get('provider') == 'openrouter':
+            from utils.api_model.model_provider import API_MAPPINGS
+            model_short_name = model_data.get('short_name')
+            
+            if model_short_name in API_MAPPINGS:
+                mapping = API_MAPPINGS[model_short_name]
+                if 'openrouter_config' in mapping:
+                    # 自动注入完整的OpenRouter配置到extra_body
+                    openrouter_config = mapping['openrouter_config']
+                    
+                    # 合并现有的extra_body（如果有）
+                    existing_extra_body = generation_data.get('extra_body', {})
+                    if existing_extra_body:
+                        existing_extra_body.update(openrouter_config)
+                        generation_data['extra_body'] = existing_extra_body
+                    else:
+                        generation_data['extra_body'] = openrouter_config
+        
         return cls(
-            model=Model(**data['model']),
-            generation=Generation(**data['generation']),
+            model=Model(**model_data),
+            generation=Generation(**generation_data),
             tool=Tool(**data['tool'])
         )
     
@@ -47,6 +70,7 @@ class AgentConfig:
                     "temperature": self.generation.temperature,
                     "top_p": self.generation.top_p,
                     "max_tokens": self.generation.max_tokens,
+                    "extra_body": self.generation.extra_body,
                 },
                 "tool": {
                     "tool_choice": self.tool.tool_choice,
@@ -67,6 +91,7 @@ class AgentConfig:
                 "temperature": self.generation.temperature,
                 "top_p": self.generation.top_p,
                 "max_tokens": self.generation.max_tokens,
+                "extra_body": self.generation.extra_body,
             },
             "tool": {
                 "tool_choice": self.tool.tool_choice,

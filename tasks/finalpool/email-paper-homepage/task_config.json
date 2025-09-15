@@ -1,5 +1,11 @@
 {
-    "needed_mcp_servers": ["emails","github"],
-    "needed_local_tools": ["claim_done"],
+    "needed_mcp_servers": [
+        "emails",
+        "github"
+    ],
+    "needed_local_tools": [
+        "claim_done",
+        "handle_overlong_tool_outputs"
+    ],
     "meta": {}
 }

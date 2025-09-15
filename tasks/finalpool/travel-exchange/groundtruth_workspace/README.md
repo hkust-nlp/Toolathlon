@@ -1,1 +1,0 @@
-You could check the groundtruth calculation logic in `Calculation Process.xlsx`

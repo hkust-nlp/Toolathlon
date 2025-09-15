@@ -1,5 +1,14 @@
 {
-    "needed_mcp_servers": ["huggingface","terminal","filesystem"],
-    "needed_local_tools": ["claim_done","python_execute","sleep"],
+    "needed_mcp_servers": [
+        "huggingface",
+        "terminal",
+        "filesystem"
+    ],
+    "needed_local_tools": [
+        "claim_done",
+        "python_execute",
+        "sleep",
+        "handle_overlong_tool_outputs"
+    ],
     "meta": {}
 }

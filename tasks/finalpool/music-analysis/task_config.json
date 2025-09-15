@@ -1,7 +1,14 @@
 {
-    "needed_mcp_servers": [ "excel", "google_sheet", "terminal"  ],
-    "needed_local_tools": [ "python_execute", "claim_done"],
-   
+    "needed_mcp_servers": [
+        "excel",
+        "google_sheet",
+        "terminal"
+    ],
+    "needed_local_tools": [
+        "python_execute",
+        "claim_done",
+        "handle_overlong_tool_outputs"
+    ],
     "max_turns": 10,
     "meta": {}
 }

@@ -1,5 +1,14 @@
 {
-    "needed_mcp_servers": ["filesystem","memory","emails","terminal","pdf-tools"],
-    "needed_local_tools": ["claim_done"],
+    "needed_mcp_servers": [
+        "filesystem",
+        "memory",
+        "emails",
+        "terminal",
+        "pdf-tools"
+    ],
+    "needed_local_tools": [
+        "claim_done",
+        "handle_overlong_tool_outputs"
+    ],
     "meta": {}
 }

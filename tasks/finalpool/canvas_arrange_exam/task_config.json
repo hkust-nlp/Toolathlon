@@ -1,6 +1,13 @@
 {
-    "needed_mcp_servers": ["canvas","emails","memory","excel"],
-    "needed_local_tools": [],
+    "needed_mcp_servers": [
+        "canvas",
+        "emails",
+        "memory",
+        "excel"
+    ],
+    "needed_local_tools": [
+        "handle_overlong_tool_outputs"
+    ],
     "max_turns": 10,
     "meta": {}
 }
