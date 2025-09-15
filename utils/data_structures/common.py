@@ -26,6 +26,7 @@ class Generation:
     temperature: float = 0.0
     top_p: float = 1.0
     max_tokens: int = 4096
+    extra_body: Optional[Dict] = None
     
     def __post_init__(self):
         """验证生成参数的合理性"""

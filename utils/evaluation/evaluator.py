@@ -25,10 +25,7 @@ class TaskEvaluator:
         task_config = TaskConfig.from_dict(dump_line['config'])
         task_status = dump_line['status']
         # 准备评估所需的信息
-        trajectory_log_file = task_config.log_file
-        # Use a separate file for evaluation results to avoid overwriting trajectory data
-        import os
-        eval_log_file = os.path.join(os.path.dirname(trajectory_log_file), "eval_log.json")
+        res_log_file = task_config.log_file
         agent_workspace = task_config.agent_workspace
         groundtruth_workspace = task_config.evaluation.groundtruth_workspace
         eval_command = task_config.evaluation.evaluation_command
@@ -38,7 +35,7 @@ class TaskEvaluator:
         # 评估所有内容
         if eval_command is not None:
             # try:
-            args = f"--res_log_file {eval_log_file} --agent_workspace {agent_workspace} --groundtruth_workspace {groundtruth_workspace} --launch_time \"{launch_time}\""
+            args = f"--res_log_file {res_log_file} --agent_workspace {agent_workspace} --groundtruth_workspace {groundtruth_workspace} --launch_time \"{launch_time}\""
             command = f"{eval_command} {args}"
             output, error, returncode = await run_command(command, debug=True)
             print("== Evaluation STDOUT ==")

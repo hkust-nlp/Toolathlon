@@ -8,8 +8,8 @@
 uv run demo.py \
 --eval_config scripts/model_wise/eval_claude-4-sonnet.json \
 --task_dir finalpool/ipad-edu-price \
---model_short_name Kimi-K2-0905 \
---provider aihubmix \
+--model_short_name grok-code-fast-1 \
+--provider openrouter \
 --debug \
 # --model_short_name claude-4-sonnet-0514 \
 # --provider aihubmix \

@@ -8,9 +8,10 @@ TAG="firsttry"
 MODEL_NAME="${1:-gpt-5-mini}"
 DUMP_PATH="${2:-./parallel_debug_gpt5}"
 
-MODEL_PROVIDER="aihubmix"
+MODEL_PROVIDER="openrouter"
 USER_MODEL_NAME="gpt-5"
 USER_MODEL_PROVIDER="aihubmix"
+
 MAX_STEPS="100"
 MAX_TURNS="50"
 WORKERS="8"
@@ -28,8 +29,10 @@ mkdir -p $DUMP_PATH
 # Optional parameters - uncomment and modify as needed
 # TASK_LIST="filtered_tasks_parallel.txt"
 
-# Generate temporary config file
-TEMP_CONFIG="scripts/temp_parallel_config.json"
+
+# Generate temporary config file with random suffix to avoid conflicts
+RANDOM_SUFFIX=$(date +%s)_$$_$(shuf -i 1000-9999 -n 1)
+TEMP_CONFIG="scripts/temp_parallel_config_${RANDOM_SUFFIX}.json"
 cat > "$TEMP_CONFIG" <<EOF
 {
     "global_task_config":{

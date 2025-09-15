@@ -434,6 +434,7 @@ class TaskAgent:
                 max_tokens=self.agent_config.generation.max_tokens,
                 tool_choice=self.agent_config.tool.tool_choice,
                 parallel_tool_calls=self.agent_config.tool.parallel_tool_calls,
+                extra_body=self.agent_config.generation.extra_body,
             ),
         )
         

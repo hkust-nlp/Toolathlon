@@ -141,6 +141,13 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
         if model_config['use_parallel_tool_calls']:
             base_params['parallel_tool_calls'] = parallel_tool_calls
         
+        # DEBUG: Print the actual parameters being sent to OpenAI SDK
+        # print("🔍 DEBUG: OpenAI SDK call parameters:")
+        # print(f"  Model: {base_params.get('model')}")
+        # print(f"  Temperature: {base_params.get('temperature')}")
+        # print(f"  Extra Body: {base_params.get('extra_body')}")
+        # print("=" * 50)
+        
         ret = await self._get_client().chat.completions.create(**base_params)
 
         if isinstance(ret, ChatCompletion):
@@ -321,20 +328,33 @@ class CustomModelProviderLocalVLLM(ModelProvider):
                                                    openai_client=client,
                                                    debug=debug)
 
+class CustomModelProviderOpenRouter(ModelProvider):
+    def get_model(self, model_name: str | None, debug: bool = True) -> Model:
+        client = AsyncOpenAI(
+            api_key=global_configs.non_ds_key,
+            base_url="https://openrouter.ai/api/v1",
+        )
+        return OpenAIChatCompletionsModelWithRetry(model=model_name, 
+                                                   openai_client=client,
+                                                   debug=debug)
+
 model_provider_mapping = {
     "ds_internal": CustomModelProvider,
     "aihubmix": CustomModelProviderAiHubMix,
     "anthropic": CustomModelProviderAnthropic,
     "local_vllm": CustomModelProviderLocalVLLM,
+    "openrouter": CustomModelProviderOpenRouter,
 }
 
 API_MAPPINGS = {
     'deepseek-v3-0324': Dict(
         api_model={"ds_internal": "deepseek-chat",
-                   "aihubmix": "DeepSeek-V3"},
+                   "aihubmix": "DeepSeek-V3",
+                   "openrouter": "deepseek/deepseek-chat"},
         price=[0.272/1000, 1.088/1000],
         concurrency=32,
-        context_window=64000
+        context_window=64000,
+        openrouter_config={"provider": {"only": ["deepseek"]}}
     ),
     'deepseek-r1-0528': Dict(
         api_model={"ds_internal": "deepseek-reasoner",
@@ -359,10 +379,12 @@ API_MAPPINGS = {
     ),
     'gpt-4o': Dict(
         api_model={"ds_internal": "azure-gpt-4o-2024-11-20",
-                   "aihubmix": "gpt-4o-2024-11-20"},
+                   "aihubmix": "gpt-4o-2024-11-20",
+                   "openrouter": "openai/gpt-4o"},
         price=[0.005, 0.015],
         concurrency=32,
-        context_window=128000
+        context_window=128000,
+        openrouter_config={"provider": {"only": ["openai"]}}
     ),
     'gpt-4o-mini': Dict(
         api_model={"ds_internal": "azure-gpt-4o-mini-2024-07-18",
@@ -394,14 +416,16 @@ API_MAPPINGS = {
     # ),
     'gpt-5': Dict(
         api_model={"ds_internal": "",
-                   "aihubmix": "gpt-5"},
+                   "aihubmix": "gpt-5",
+                   "openrouter": "openai/gpt-5"},
         price=[1.25/1000, 10/1000.0],
         concurrency=32,
         context_window=1000000
     ),
     'gpt-5-mini': Dict(
         api_model={"ds_internal": "",
-                   "aihubmix": "gpt-5-mini"},
+                   "aihubmix": "gpt-5-mini",
+                   "openrouter": "openai/gpt-5-mini"},
         price=[0.25/1000,2/1000.0],
         concurrency=32,
         context_window=1000000
@@ -444,10 +468,12 @@ API_MAPPINGS = {
     'claude-4-sonnet-0514': Dict(
         api_model={"ds_internal": "oai-api-claude-sonnet-4-20250514",
                    "aihubmix": "claude-sonnet-4-20250514",
-                   "anthropic": "claude-sonnet-4-20250514"},
+                   "anthropic": "claude-sonnet-4-20250514",
+                   "openrouter": "anthropic/claude-3-5-sonnet"},
         price=[0.003, 0.015],
         concurrency=32,
-        context_window=200000
+        context_window=200000,
+        openrouter_config={"provider": {"only": ["anthropic"]}}
     ),
     # 'claude-4-opus-0514': Dict(
     #     api_model={"ds_internal": "oai-api-claude-opus-4-20250514",
@@ -494,7 +520,8 @@ API_MAPPINGS = {
     ),
     'grok-code-fast-1': Dict(
         api_model={"ds_internal": "grok-code-fast-1",
-                   "aihubmix": "grok-code-fast-1"},
+                   "aihubmix": "grok-code-fast-1",
+                   "openrouter": "x-ai/grok-code-fast-1"},
         price=[0.2/1000, 1.5/1000],
         concurrency=32,
         context_window=128000
@@ -508,10 +535,12 @@ API_MAPPINGS = {
     ),
     'Kimi-K2-0905': Dict(
         api_model={"ds_internal": None,
-                   "aihubmix": "Kimi-K2-0905"},
+                   "aihubmix": "Kimi-K2-0905",
+                   "openrouter": "moonshotai/kimi-k2-0905"},
         price=[0.548/1000, 2.192/1000],
         concurrency=32,
-        context_window=128000
+        context_window=128000,
+        openrouter_config={"provider": {"only": ["moonshotai"]}}
     ),
     'glm-4.5': Dict(
         api_model={"ds_internal": None,
@@ -527,6 +556,7 @@ API_MAPPINGS = {
         concurrency=32,
         context_window=128000
     ),
+    
     
 }
 
