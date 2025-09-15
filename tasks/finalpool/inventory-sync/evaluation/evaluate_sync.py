@@ -28,12 +28,12 @@ class InventorySyncValidator:
         self.agent_workspace = agent_workspace
         self.wc_client = None
         self.cities_config = {
-            "纽约": {"en": "new_york", "region": "东部"},
-            "波士顿": {"en": "boston", "region": "东部"},
-            "达拉斯": {"en": "dallas", "region": "南部"},
-            "休斯顿": {"en": "houston", "region": "南部"},
-            "LA": {"en": "los_angeles", "region": "西部"},
-            "旧金山": {"en": "san_francisco", "region": "西部"}
+            "New York": {"en": "new_york", "region": "East"},
+            "Boston": {"en": "boston", "region": "East"},
+            "Dallas": {"en": "dallas", "region": "South"},
+            "Houston": {"en": "houston", "region": "South"},
+            "LA": {"en": "los_angeles", "region": "West"},
+            "San Francisco": {"en": "san_francisco", "region": "West"}
         }
         
         # 加载WooCommerce配置

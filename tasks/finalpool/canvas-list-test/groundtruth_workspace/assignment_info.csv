@@ -1,38 +1,4 @@
 course_code,teacher,assignment_title,description,deadline,course_name,points_possible
-CS301-1,mcpcanvasadmin2@mcp.com,CS301 Database Design Project,"Design and implement a comprehensive database system for a small business. This assignment covers database modeling, normalization, SQL implementation, and optimization.
-
-Project Requirements:
-1. Create an Entity-Relationship (ER) diagram for the business scenario
-2. Normalize the database to 3NF (Third Normal Form)
-3. Write SQL scripts to create tables with proper constraints
-4. Implement complex queries including joins, subqueries, and aggregations
-5. Analyze query performance and suggest optimizations
-
-Deliverables:
-- ER diagram (PDF format)
-- Database schema with normalization explanation
-- SQL script files
-- Query implementation and performance analysis report
-
-Submission Format: ZIP file containing all deliverables, filename: StudentID_Name_CS301_DatabaseProject.zip",2025-09-22T23:59:00Z,Database Systems,100
-CS302-1,mcpcanvasadmin2@mcp.com,CS302 Software Development Team Project,"Complete a full-stack web application development project using Agile methodology. This assignment simulates real-world software development practices including version control, testing, and deployment.
-
-Project Requirements:
-1. Develop a web application with frontend and backend components
-2. Use Git for version control with proper branching strategy
-3. Implement unit tests and integration tests
-4. Apply Agile practices (sprints, user stories, retrospectives)
-5. Create comprehensive project documentation
-6. Deploy the application to a cloud platform
-
-Deliverables:
-- Source code repository (GitHub link)
-- Project documentation including architecture design
-- Test reports and coverage analysis
-- Deployment guide and live application URL
-- Sprint retrospective and team collaboration report
-
-Submission Format: Document with all links and reports, filename: StudentID_Name_CS302_TeamProject.pdf",2025-09-22T23:59:00Z,Software Engineering Practice,120
 CS401-1,mcpcanvasadmin2@mcp.com,CS401 Advanced Software Architecture Design,"Design and document a complex software architecture for a large-scale enterprise application. This assignment focuses on advanced architectural patterns, system design, and scalability considerations.
 
 Project Requirements:
@@ -52,6 +18,40 @@ Deliverables:
 - Deployment and DevOps strategy document
 
 Submission Format: Comprehensive report in PDF format, filename: StudentID_Name_CS401_ArchitectureDesign.pdf",2025-09-24T23:59:00Z,Software Engineering,150
+CS302-1,mcpcanvasadmin2@mcp.com,CS302 Software Development Team Project,"Complete a full-stack web application development project using Agile methodology. This assignment simulates real-world software development practices including version control, testing, and deployment.
+
+Project Requirements:
+1. Develop a web application with frontend and backend components
+2. Use Git for version control with proper branching strategy
+3. Implement unit tests and integration tests
+4. Apply Agile practices (sprints, user stories, retrospectives)
+5. Create comprehensive project documentation
+6. Deploy the application to a cloud platform
+
+Deliverables:
+- Source code repository (GitHub link)
+- Project documentation including architecture design
+- Test reports and coverage analysis
+- Deployment guide and live application URL
+- Sprint retrospective and team collaboration report
+
+Submission Format: Document with all links and reports, filename: StudentID_Name_CS302_TeamProject.pdf",2025-09-26T23:59:00Z,Software Engineering Practice,120
+CS301-1,mcpcanvasadmin2@mcp.com,CS301 Database Design Project,"Design and implement a comprehensive database system for a small business. This assignment covers database modeling, normalization, SQL implementation, and optimization.
+
+Project Requirements:
+1. Create an Entity-Relationship (ER) diagram for the business scenario
+2. Normalize the database to 3NF (Third Normal Form)
+3. Write SQL scripts to create tables with proper constraints
+4. Implement complex queries including joins, subqueries, and aggregations
+5. Analyze query performance and suggest optimizations
+
+Deliverables:
+- ER diagram (PDF format)
+- Database schema with normalization explanation
+- SQL script files
+- Query implementation and performance analysis report
+
+Submission Format: ZIP file containing all deliverables, filename: StudentID_Name_CS301_DatabaseProject.zip",2025-09-27T23:59:00Z,Database Systems,100
 AI101-1,mcpcanvasadmin2@mcp.com,AI101 Machine Learning Implementation Project,"Implement and evaluate machine learning algorithms for a real-world dataset. This assignment covers fundamental AI concepts, algorithm implementation, and performance analysis.
 
 Project Requirements:
@@ -75,4 +75,4 @@ Deliverables:
 - Algorithm comparison and evaluation report
 - Visualization of results and model performance
 
-Submission Format: ZIP file containing code and report, filename: StudentID_Name_AI101_MLProject.zip",2025-09-25T23:59:00Z,Fundamentals of Artificial Intelligence,130
+Submission Format: ZIP file containing code and report, filename: StudentID_Name_AI101_MLProject.zip",2025-09-29T23:59:00Z,Fundamentals of Artificial Intelligence,130
