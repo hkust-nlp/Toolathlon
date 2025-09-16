@@ -10,6 +10,8 @@ import sys
 import imaplib
 import email
 import json
+import os
+import tarfile
 from datetime import datetime
 from pathlib import Path
 from argparse import ArgumentParser
@@ -198,4 +200,25 @@ if __name__ == "__main__":
     # 运行异步主函数
     asyncio.run(main(agent_workspace=args.agent_workspace, launch_time=args.launch_time))
 
+    # 确保agent workspace存在
+    os.makedirs(args.agent_workspace, exist_ok=True)
+    dst_tar_path = os.path.join(args.agent_workspace, "files.tar.gz")
 
+    
+    # 解压缩
+    try:
+        with tarfile.open(dst_tar_path, 'r:gz') as tar:
+            print(f"正在解压缩到: {args.agent_workspace}")
+            # Use the filter parameter to avoid deprecation warning in Python 3.14+
+            tar.extractall(path=args.agent_workspace, filter='data')
+            print("解压缩完成")
+    except Exception as e:
+        print(f"解压缩失败: {e}")
+        sys.exit(1)
+    
+    # 删除压缩文件
+    try:
+        os.remove(dst_tar_path)
+        print(f"已删除原始压缩文件: {dst_tar_path}")
+    except Exception as e:
+        print(f"删除压缩文件失败: {e}")

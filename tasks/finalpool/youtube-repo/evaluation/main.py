@@ -24,14 +24,28 @@ if __name__=="__main__":
     "github.com/openai/codex"
     ]
 
-    # 直接读取文件，如果文件不存在会抛出 FileNotFoundError
-    with open(agent_needed_file, "r", encoding="utf-8") as f:
-        content = f.read()
+    # 检查文件是否存在
+    if not os.path.exists(agent_needed_file):
+        print(f"评估失败: 文件 {agent_needed_file} 不存在")
+        exit(1)
+
+    # 读取文件内容
+    try:
+        with open(agent_needed_file, "r", encoding="utf-8") as f:
+            content = f.read()
+    except Exception as e:
+        print(f"评估失败: 无法读取文件 {agent_needed_file}, 错误: {e}")
+        exit(1)
 
     # 检查每个字符串是否在内容中
     missing = [s for s in required_strings if s not in content]
     if missing:
-        raise ValueError(f"以下字符串未在md文件中找到:\n" + "\n".join(missing))
+        print(f"评估失败: 以下字符串未在md文件中找到:")
+        for item in missing:
+            print(f"  - {item}")
+        print(f"\n找到的字符串数量: {len(required_strings) - len(missing)}/{len(required_strings)}")
+        exit(1)
     else:
-        print("所有指定字符串均已包含在md文件中。")
+        print("评估成功: 所有指定字符串均已包含在md文件中。")
+        exit(0)
 

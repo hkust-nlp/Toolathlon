@@ -99,6 +99,56 @@ def generate_historical_stats_data(days_back=10, players_per_day=100):
     print(f"✅ 生成了 {len(historical_data)} 条历史统计记录")
     return historical_data
 
+def setup_or_clear_dataset(client: bigquery.Client, project_id: str):
+    """
+    Setup or clear existing game_analytics dataset
+    - If dataset exists: clear all table contents but keep the dataset and tables
+    - If dataset doesn't exist: create it (tables will be created later)
+    """
+    dataset_id = f"{project_id}.game_analytics"
+    print(f"🧹 检查并设置数据集: {dataset_id}")
+
+    try:
+        # Try to get dataset info to see if it exists
+        try:
+            dataset = client.get_dataset(dataset_id)
+            print(f"ℹ️  找到现有数据集: {dataset_id}")
+
+            # List all tables in the dataset
+            tables = list(client.list_tables(dataset_id))
+            if tables:
+                print(f"ℹ️  数据集包含 {len(tables)} 个表:")
+                for table in tables:
+                    print(f"   - {table.table_id}")
+
+                # Clear contents of all tables instead of deleting them
+                for table in tables:
+                    table_id = f"{dataset_id}.{table.table_id}"
+                    print(f"🗑️  清空表 {table.table_id} 的内容...")
+
+                    # Use DELETE query to clear table contents
+                    delete_query = f"DELETE FROM `{table_id}` WHERE true"
+                    query_job = client.query(delete_query)
+                    query_job.result()  # Wait for completion
+
+                    print(f"✅ 已清空表 {table.table_id}")
+            else:
+                print(f"ℹ️  数据集为空，无需清理")
+
+        except NotFound:
+            print(f"ℹ️  数据集 {dataset_id} 不存在，将创建新数据集")
+            # Create the dataset since it doesn't exist
+            dataset = bigquery.Dataset(dataset_id)
+            dataset.location = "US"
+            dataset.description = "Game analytics dataset for daily scoring and leaderboards"
+            client.create_dataset(dataset, timeout=30)
+            print(f"✅ 数据集 '{dataset.dataset_id}' 已成功创建")
+
+    except Exception as e:
+        print(f"❌ 数据集设置过程出错: {e}")
+        logger.exception("Dataset setup failed")
+        raise
+
 def cleanup_existing_dataset(client: bigquery.Client, project_id: str):
     """
     Clean up existing game_analytics dataset if it exists
@@ -169,28 +219,15 @@ def setup_bigquery_resources(credentials_path: str, project_id: str):
         except Exception as e:
             print(f"⚠️  列出数据集时出错: {e}")
 
-        # Clean up existing dataset first
-        cleanup_existing_dataset(client, project_id)
+        # Setup or clear existing dataset (don't delete it)
+        setup_or_clear_dataset(client, project_id)
 
-        # Create dataset
+        # Create dataset if needed (handled in setup_or_clear_dataset)
         dataset_id = f"{project_id}.game_analytics"
-        print(f"📊 创建数据集: {dataset_id}")
-        try:
-            dataset = bigquery.Dataset(dataset_id)
-            dataset.location = "US"
-            dataset.description = "Game analytics dataset for daily scoring and leaderboards"
-            client.create_dataset(dataset, timeout=30)
-            print(f"✅ 数据集 '{dataset.dataset_id}' 已成功创建。")
-        except Conflict:
-            print(f"ℹ️  数据集 '{dataset_id}' 已存在，跳过创建。")
-        except Exception as e:
-            print(f"❌ 创建数据集失败: {e}")
-            logger.exception("Dataset creation failed")
-            raise
 
-        # Create daily_scores_stream table
+        # Create daily_scores_stream table (or skip if exists)
         table_id_stream = f"{dataset_id}.daily_scores_stream"
-        print(f"🗂️  创建表: {table_id_stream}")
+        print(f"🗂️  检查并创建表: {table_id_stream}")
         schema_stream = [
             bigquery.SchemaField("player_id", "STRING", mode="REQUIRED"),
             bigquery.SchemaField("player_region", "STRING", mode="NULLABLE"),
@@ -215,9 +252,9 @@ def setup_bigquery_resources(credentials_path: str, project_id: str):
             print(f"❌ 创建表 '{table_id_stream}' 失败: {e}")
             raise
 
-        # Create player_historical_stats table
+        # Create player_historical_stats table (or skip if exists)
         table_id_stats = f"{dataset_id}.player_historical_stats"
-        print(f"🗂️  创建表: {table_id_stats}")
+        print(f"🗂️  检查并创建表: {table_id_stats}")
         schema_stats = [
             bigquery.SchemaField("player_id", "STRING", mode="REQUIRED"),
             bigquery.SchemaField("player_region", "STRING", mode="NULLABLE"),
@@ -283,30 +320,27 @@ def setup_bigquery_resources(credentials_path: str, project_id: str):
         
         print(f"📝 生成了 {len(sample_rows)} 条改进的样本记录")
 
-        # Insert sample data with detailed error handling
+        # Insert sample data using batch loading
         print(f"💾 插入样本数据到 daily_scores_stream...")
         try:
             table_ref = client.get_table(table_id_stream)
             print(f"✅ 获取到表引用: {table_ref.table_id}")
-            
-            # Insert in smaller batches to avoid timeouts
-            batch_size = 100
-            total_inserted = 0
-            for i in range(0, len(sample_rows), batch_size):
-                batch = sample_rows[i:i + batch_size]
-                print(f"   插入批次 {i//batch_size + 1}: {len(batch)} 条记录...")
-                
-                errors = client.insert_rows_json(table_ref, batch)
-                if errors:
-                    print(f"❌ 批次 {i//batch_size + 1} 插入错误: {errors}")
-                    for error in errors:
-                        logger.error(f"Insert error: {error}")
-                    raise Exception(f"批次插入失败: {errors}")
-                else:
-                    total_inserted += len(batch)
-                    print(f"   ✅ 批次 {i//batch_size + 1} 成功插入 {len(batch)} 条记录")
-            
-            print(f"🎉 成功插入总计 {total_inserted} 条样本数据到 daily_scores_stream 表")
+
+            # Use load_table_from_json instead of insert_rows_json
+            print("🔄 使用批量加载方式插入数据...")
+            job_config = bigquery.LoadJobConfig(
+                write_disposition="WRITE_TRUNCATE",  # Overwrite existing data
+                source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
+            )
+
+            load_job = client.load_table_from_json(
+                sample_rows, table_ref, job_config=job_config
+            )
+
+            print(f"   开始批量加载作业: {load_job.job_id}")
+            load_job.result()  # Wait for the job to complete
+
+            print(f"🎉 成功批量加载 {len(sample_rows)} 条样本数据到 daily_scores_stream 表")
             
             # Verify data insertion
             print("🔍 验证数据插入...")
@@ -336,28 +370,25 @@ def setup_bigquery_resources(credentials_path: str, project_id: str):
         try:
             historical_data = generate_historical_stats_data(days_back=10, players_per_day=100)
             
-            # Insert historical data
+            # Insert historical data using batch loading
             table_ref_stats = client.get_table(table_id_stats)
             print(f"💾 插入历史统计数据到 player_historical_stats...")
-            
-            # Insert in batches
-            batch_size = 100
-            total_inserted = 0
-            for i in range(0, len(historical_data), batch_size):
-                batch = historical_data[i:i + batch_size]
-                print(f"   插入历史数据批次 {i//batch_size + 1}: {len(batch)} 条记录...")
-                
-                errors = client.insert_rows_json(table_ref_stats, batch)
-                if errors:
-                    print(f"❌ 历史数据批次 {i//batch_size + 1} 插入错误: {errors}")
-                    for error in errors:
-                        logger.error(f"Historical data insert error: {error}")
-                    raise Exception(f"历史数据批次插入失败: {errors}")
-                else:
-                    total_inserted += len(batch)
-                    print(f"   ✅ 历史数据批次 {i//batch_size + 1} 成功插入 {len(batch)} 条记录")
-            
-            print(f"🎉 成功插入总计 {total_inserted} 条历史统计数据到 player_historical_stats 表")
+
+            # Use load_table_from_json instead of insert_rows_json
+            print("🔄 使用批量加载方式插入历史数据...")
+            job_config = bigquery.LoadJobConfig(
+                write_disposition="WRITE_TRUNCATE",  # Overwrite existing data
+                source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
+            )
+
+            load_job = client.load_table_from_json(
+                historical_data, table_ref_stats, job_config=job_config
+            )
+
+            print(f"   开始历史数据批量加载作业: {load_job.job_id}")
+            load_job.result()  # Wait for the job to complete
+
+            print(f"🎉 成功批量加载 {len(historical_data)} 条历史统计数据到 player_historical_stats 表")
             
             # Verify historical data insertion
             print("🔍 验证历史数据插入...")

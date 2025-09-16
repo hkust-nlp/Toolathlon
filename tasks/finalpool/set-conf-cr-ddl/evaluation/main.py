@@ -57,7 +57,7 @@ def compare_google_calendar_times(pred_google_time, groundtruth_iso_time, tolera
 async def main(args):
     xx_MCPServerManager = MCPServerManager(agent_workspace="./") # a pseudo server manager
     google_calendar_server = xx_MCPServerManager.servers['google_calendar']
-    with google_calendar_server as server:
+    async with google_calendar_server as server:
         today_file_path = Path(__file__).parent.parent / "groundtruth_workspace" / "today.txt"
         with open(today_file_path, 'r', encoding='utf-8') as f:
             today = f.read() # ISO like 2025-06-30
