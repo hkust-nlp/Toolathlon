@@ -6,11 +6,11 @@
 # multi_turn_mode 开启多轮模式，否则使用单轮模式；单轮模式下，核心任务直接作为第一轮用户输入，此后不再有模拟用户
 
 uv run demo.py \
---eval_config scripts/model_wise/eval_claude-4-sonnet.json \
---task_dir finalpool/academic-pdf-report \
+--eval_config scripts/debug_eval_config.json \
+--task_dir finalpool/machine-operating \
 --debug \
---model_short_name grok-code-fast-1 \
---provider openrouter \
+--model_short_name claude-4-sonnet-0514 \
+--provider aihubmix \
 --max_steps_under_single_turn_mode 200 \
-# --multi_turn_mode \
-# --manual \
+--multi_turn_mode \
+--manual \

@@ -18,9 +18,9 @@ def reset_store_example():
     """Store reset example"""
 
     # WooCommerce API configuration
-    SITE_URL = "https://your-store.com"
-    CONSUMER_KEY = "ck_xxxxx"
-    CONSUMER_SECRET = "cs_xxxxx"
+    SITE_URL = "http://localhost:10003/store94"
+    CONSUMER_KEY = "ck_woocommerce_token_gonzalezw840"
+    CONSUMER_SECRET = "cs_woocommerce_token_gonzalezw840"
 
     # Create client
     client = WooCommerceClient(
@@ -32,12 +32,14 @@ def reset_store_example():
     print("🚨 WARNING: About to completely reset store!")
     print("⚠️  This operation will delete all data, irreversible!")
 
-    # Confirmation prompt
-    confirm = input("\nAre you sure you want to continue? Type 'YES' to confirm: ")
+    # # Confirmation prompt
+    # confirm = input("\nAre you sure you want to continue? Type 'YES' to confirm: ")
 
-    if confirm != 'YES':
-        print("❌ Operation cancelled")
-        return
+    # if confirm != 'YES':
+    #     print("❌ Operation cancelled")
+    #     return
+
+    # confirm = 'YES'
 
     # Execute complete reset
     result = client.reset_to_empty_store(confirm=True)
@@ -51,7 +53,8 @@ def reset_store_example():
         import json
         from datetime import datetime
 
-        report_filename = f"store_reset_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        os.makedirs("./tmp", exist_ok=True)
+        report_filename = f"./tmp/store_reset_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         with open(report_filename, 'w', encoding='utf-8') as f:
             json.dump(result, f, indent=2, ensure_ascii=False)
 

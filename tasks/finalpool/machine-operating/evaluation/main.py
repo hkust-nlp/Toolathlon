@@ -116,6 +116,8 @@ def normalize_timestamp(timestamp_str: str) -> datetime:
         cleaned_timestamp = cleaned_timestamp.split('+')[0]
     elif cleaned_timestamp.endswith('Z'):
         cleaned_timestamp = cleaned_timestamp[:-1]  # 移除UTC标记'Z'
+    elif cleaned_timestamp.endswith(' UTC'):
+        cleaned_timestamp = cleaned_timestamp[:-4]  # 移除UTC标记' UTC'
     
     # 尝试不同的时间格式
     time_formats = [
