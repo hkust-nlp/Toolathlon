@@ -208,7 +208,7 @@ class NotionPageDuplicator:
 
                     # Try one more time with a direct navigation
                     print("Retrying navigation...")
-                    page.goto(source_page_url, wait_until="networkidle", timeout=60_000)
+                    page.goto(source_page_url, wait_until="load", timeout=60_000)
                     time.sleep(5)
 
                     current_url = page.url
