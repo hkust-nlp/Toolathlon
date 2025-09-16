@@ -17,23 +17,7 @@ Deliverables:
 - Security architecture and threat model
 - Deployment and DevOps strategy document
 
-Submission Format: Comprehensive report in PDF format, filename: StudentID_Name_CS401_ArchitectureDesign.pdf",2025-09-24T23:59:00Z,Software Engineering,150
-CS301-1,CS301 Database Design Project,"Design and implement a comprehensive database system for a small business. This assignment covers database modeling, normalization, SQL implementation, and optimization.
-
-Project Requirements:
-1. Create an Entity-Relationship (ER) diagram for the business scenario
-2. Normalize the database to 3NF (Third Normal Form)
-3. Write SQL scripts to create tables with proper constraints
-4. Implement complex queries including joins, subqueries, and aggregations
-5. Analyze query performance and suggest optimizations
-
-Deliverables:
-- ER diagram (PDF format)
-- Database schema with normalization explanation
-- SQL script files
-- Query implementation and performance analysis report
-
-Submission Format: ZIP file containing all deliverables, filename: StudentID_Name_CS301_DatabaseProject.zip",2025-09-27T23:59:00Z,Database Systems,100
+Submission Format: Comprehensive report in PDF format, filename: StudentID_Name_CS401_ArchitectureDesign.pdf",2025-09-25T23:59:00Z,Software Engineering,150
 CS302-1,CS302 Software Development Team Project,"Complete a full-stack web application development project using Agile methodology. This assignment simulates real-world software development practices including version control, testing, and deployment.
 
 Project Requirements:
@@ -52,6 +36,22 @@ Deliverables:
 - Sprint retrospective and team collaboration report
 
 Submission Format: Document with all links and reports, filename: StudentID_Name_CS302_TeamProject.pdf",2025-09-27T23:59:00Z,Software Engineering Practice,120
+CS301-1,CS301 Database Design Project,"Design and implement a comprehensive database system for a small business. This assignment covers database modeling, normalization, SQL implementation, and optimization.
+
+Project Requirements:
+1. Create an Entity-Relationship (ER) diagram for the business scenario
+2. Normalize the database to 3NF (Third Normal Form)
+3. Write SQL scripts to create tables with proper constraints
+4. Implement complex queries including joins, subqueries, and aggregations
+5. Analyze query performance and suggest optimizations
+
+Deliverables:
+- ER diagram (PDF format)
+- Database schema with normalization explanation
+- SQL script files
+- Query implementation and performance analysis report
+
+Submission Format: ZIP file containing all deliverables, filename: StudentID_Name_CS301_DatabaseProject.zip",2025-09-28T23:59:00Z,Database Systems,100
 AI101-1,AI101 Machine Learning Implementation Project,"Implement and evaluate machine learning algorithms for a real-world dataset. This assignment covers fundamental AI concepts, algorithm implementation, and performance analysis.
 
 Project Requirements:

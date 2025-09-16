@@ -20,7 +20,7 @@
         "allowed_attempts": 2,
         "scoring_policy": "keep_highest",
         "points_possible": 100,
-        "due_at": "2025-09-24T23:59:00Z",
+        "due_at": "2025-09-25T23:59:00Z",
         "questions": [
           {
             "question_text": "What is the primary function of an operating system?",
@@ -74,7 +74,7 @@
         "name": "CS101 Unit 2 Homework Assignment",
         "description": "Complete the exercises from Chapter 2 of the textbook, including operating system concepts and data structure implementation. Please provide handwritten solutions and scan them as PDF for submission.\n\nSpecific Requirements:\n1. Explain the three main functions of an operating system",
         "points_possible": 50,
-        "due_at": "2025-09-27T23:59:00Z",
+        "due_at": "2025-09-28T23:59:00Z",
         "submission_types": "online_text_entry",
         "published": true
       },
@@ -196,7 +196,7 @@
         "allowed_attempts": 2,
         "scoring_policy": "keep_highest",
         "points_possible": 120,
-        "due_at": "2025-09-26T23:59:00Z",
+        "due_at": "2025-09-27T23:59:00Z",
         "questions": [
           {
             "question_text": "Which SQL command is used to retrieve data from a database?",
@@ -250,7 +250,7 @@
         "name": "CS301 Database Design Project",
         "description": "Design and implement a comprehensive database system for a small business. This assignment covers database modeling, normalization, SQL implementation, and optimization.\n\nProject Requirements:\n1. Create an Entity-Relationship (ER) diagram for the business scenario\n2. Normalize the database to 3NF (Third Normal Form)\n3. Write SQL scripts to create tables with proper constraints\n4. Implement complex queries including joins, subqueries, and aggregations\n5. Analyze query performance and suggest optimizations\n\nDeliverables:\n- ER diagram (PDF format)\n- Database schema with normalization explanation\n- SQL script files\n- Query implementation and performance analysis report\n\nSubmission Format: ZIP file containing all deliverables, filename: StudentID_Name_CS301_DatabaseProject.zip",
         "points_possible": 100,
-        "due_at": "2025-09-27T23:59:00Z",
+        "due_at": "2025-09-28T23:59:00Z",
         "submission_types": [
           "online_upload",
           "online_text_entry"
@@ -387,7 +387,7 @@
         "allowed_attempts": 1,
         "scoring_policy": "keep_highest",
         "points_possible": 200,
-        "due_at": "2025-09-23T23:59:00Z",
+        "due_at": "2025-09-24T23:59:00Z",
         "questions": [
           {
             "question_text": "Which design pattern is used to ensure only one instance of a class exists?",
@@ -441,7 +441,7 @@
         "name": "CS401 Advanced Software Architecture Design",
         "description": "Design and document a complex software architecture for a large-scale enterprise application. This assignment focuses on advanced architectural patterns, system design, and scalability considerations.\n\nProject Requirements:\n1. Design a microservices-based architecture for an e-commerce platform\n2. Apply advanced design patterns (Factory, Observer, Strategy, etc.)\n3. Create detailed system architecture diagrams and documentation\n4. Address scalability, security, and performance requirements\n5. Design API specifications and data flow diagrams\n6. Propose deployment and monitoring strategies\n\nDeliverables:\n- System architecture document with detailed diagrams\n- Design pattern implementation examples\n- API specifications and documentation\n- Performance and scalability analysis\n- Security architecture and threat model\n- Deployment and DevOps strategy document\n\nSubmission Format: Comprehensive report in PDF format, filename: StudentID_Name_CS401_ArchitectureDesign.pdf",
         "points_possible": 150,
-        "due_at": "2025-09-24T23:59:00Z",
+        "due_at": "2025-09-25T23:59:00Z",
         "submission_types": [
           "online_upload",
           "online_text_entry"
@@ -658,7 +658,7 @@
         "allowed_attempts": 2,
         "scoring_policy": "keep_highest",
         "points_possible": 120,
-        "due_at": "2025-09-27T23:59:00Z",
+        "due_at": "2025-09-28T23:59:00Z",
         "questions": [
           {
             "question_text": "Which layer of the OSI model is responsible for routing?",
@@ -898,7 +898,7 @@
         "allowed_attempts": 1,
         "scoring_policy": "keep_highest",
         "points_possible": 200,
-        "due_at": "2025-09-27T23:59:00Z",
+        "due_at": "2025-09-28T23:59:00Z",
         "questions": [
           {
             "question_text": "What is the derivative of x²?",
@@ -978,7 +978,7 @@
         "allowed_attempts": 2,
         "scoring_policy": "keep_highest",
         "points_possible": 150,
-        "due_at": "2025-09-26T23:59:00Z",
+        "due_at": "2025-09-27T23:59:00Z",
         "questions": [
           {
             "question_text": "What is the result of multiplying a 2x3 matrix by a 3x2 matrix?",
