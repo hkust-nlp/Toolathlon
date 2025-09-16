@@ -23,7 +23,12 @@ if os.path.exists(CREDENTIALS_PATH):
 else:
     credentials = None
 
-def download_from_storage_bucket(bucket_name: str, file_name: str, local_path: str, project_id: str = "mcp-bench0606") -> bool:
+# 从 configs/gcp-service_account.keys.json 解析project_id
+with open(CREDENTIALS_PATH, 'r') as f:
+    service_account_info = json.load(f)
+    PROJECT_ID = service_account_info.get('project_id')
+
+def download_from_storage_bucket(bucket_name: str, file_name: str, local_path: str, project_id: str = PROJECT_ID) -> bool:
     """从Google Cloud Storage存储桶下载文件"""
     try:
         print(f"📥 Downloading {file_name} from bucket {bucket_name}...")
@@ -66,7 +71,7 @@ def download_from_storage_bucket(bucket_name: str, file_name: str, local_path: s
         print(f"❌ Error downloading {file_name}: {e}")
         return False
 
-def check_storage_bucket_exists(bucket_name: str, project_id: str = "mcp-bench0606") -> bool:
+def check_storage_bucket_exists(bucket_name: str, project_id: str = PROJECT_ID) -> bool:
     """检查Google Cloud Storage存储桶是否存在"""
     try:
         storage_client = storage.Client(project=project_id, credentials=credentials)
@@ -75,7 +80,7 @@ def check_storage_bucket_exists(bucket_name: str, project_id: str = "mcp-bench06
     except Exception:
         return False
 
-def check_file_exists_in_bucket(bucket_name: str, file_name: str, project_id: str = "mcp-bench0606") -> bool:
+def check_file_exists_in_bucket(bucket_name: str, file_name: str, project_id: str = PROJECT_ID) -> bool:
     """检查文件是否存在于Google Cloud Storage存储桶中"""
     try:
         storage_client = storage.Client(project=project_id, credentials=credentials)

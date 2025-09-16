@@ -18,9 +18,9 @@ def reset_store_example():
     """Store reset example"""
 
     # WooCommerce API configuration
-    SITE_URL = "http://localhost:10003/store94"
-    CONSUMER_KEY = "ck_woocommerce_token_gonzalezw840"
-    CONSUMER_SECRET = "cs_woocommerce_token_gonzalezw840"
+    SITE_URL = "http://localhost:10003/store84"
+    CONSUMER_KEY = "ck_woocommerce_token_benjhMtCdOGk"
+    CONSUMER_SECRET = "cs_woocommerce_token_benjhMtCdOGk"
 
     # Create client
     client = WooCommerceClient(

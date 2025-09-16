@@ -6,6 +6,8 @@ from google.cloud import storage
 from google.cloud import bigquery
 from google.cloud.exceptions import NotFound, Conflict
 from google.oauth2 import service_account
+import random
+random.seed(42)
 
 # 设置认证文件路径
 CREDENTIALS_PATH = "configs/gcp-service_account.keys.json"
@@ -13,6 +15,11 @@ if os.path.exists(CREDENTIALS_PATH):
     credentials = service_account.Credentials.from_service_account_file(CREDENTIALS_PATH)
 else:
     credentials = None
+
+# 从 configs/gcp-service_account.keys.json 解析project_id
+with open(CREDENTIALS_PATH, 'r') as f:
+    service_account_info = json.load(f)
+    PROJECT_ID = service_account_info.get('project_id')
 
 def check_gcloud_authentication():
     """检查Google Cloud CLI是否已认证"""
@@ -23,62 +30,7 @@ def check_gcloud_authentication():
     except Exception:
         return False
 
-def delete_anomaly_reports_if_exist(bucket_name="iot_anomaly_reports", file_pattern="anomaly_report", project_id="mcp-bench0606"):
-    """删除Google Cloud Storage存储桶中的异常报告文件（支持模式匹配）"""
-    print(f"🧹 Checking for existing anomaly reports: gs://{bucket_name}/{file_pattern}*.csv")
-
-    try:
-        storage_client = storage.Client(project=project_id, credentials=credentials)
-
-        try:
-            bucket = storage_client.bucket(bucket_name)
-            if not bucket.exists():
-                print(f"✅ Bucket {bucket_name} does not exist - no cleanup needed")
-                return True
-        except NotFound:
-            print(f"✅ Bucket {bucket_name} does not exist - no cleanup needed")
-            return True
-
-        # 列出所有匹配的文件
-        files_to_delete = []
-        blobs = bucket.list_blobs()
-
-        for blob in blobs:
-            # 检查是否匹配模式
-            if blob.name.startswith(file_pattern) and blob.name.endswith('.csv'):
-                files_to_delete.append(blob)
-
-        if not files_to_delete:
-            print(f"✅ No anomaly report files found matching pattern '{file_pattern}*.csv' - no cleanup needed")
-            return True
-
-        print(f"📄 Found {len(files_to_delete)} anomaly report file(s) to delete:")
-        for blob in files_to_delete:
-            print(f"   - {blob.name}")
-
-        # 删除找到的文件
-        deleted_count = 0
-        failed_count = 0
-
-        for blob in files_to_delete:
-            try:
-                print(f"🗑️  Deleting: {blob.name}")
-                blob.delete()
-                print(f"✅ Successfully deleted: {blob.name}")
-                deleted_count += 1
-            except Exception as e:
-                print(f"❌ Failed to delete {blob.name}: {e}")
-                failed_count += 1
-
-        print(f"📊 Cleanup summary: {deleted_count} deleted, {failed_count} failed")
-        return failed_count == 0
-
-    except Exception as e:
-        print(f"❌ Error checking/deleting anomaly reports: {e}")
-        return False
-
-def ensure_bucket_exists(bucket_name="iot_anomaly_reports", project_id="mcp-bench0606", location="us-central1"):
-    """确保存储桶存在，如果不存在则创建"""
+def delete_bucket(bucket_name="iot_anomaly_reports", project_id=PROJECT_ID, location="us-central1"):
     print(f"🔍 Checking if bucket exists: {bucket_name}")
 
     try:
@@ -89,30 +41,9 @@ def ensure_bucket_exists(bucket_name="iot_anomaly_reports", project_id="mcp-benc
             if bucket.exists():
                 print(f"✅ Bucket {bucket_name} already exists")
 
-                # # 删除桶中的所有对象
-                # print(f"🗑️  Deleting all objects in bucket {bucket_name}...")
-                # blobs = bucket.list_blobs()
-                # for blob in blobs:
-                #     blob.delete()
-                #     print(f"   Deleted: {blob.name}")
-
-                # 删除桶本身
                 print(f"🗑️  Deleting bucket {bucket_name}...")
                 bucket.delete()
                 print(f"✅ Successfully deleted bucket {bucket_name}")
-
-                # # 重新创建桶
-                # print(f"📦 Recreating bucket: {bucket_name}")
-                # bucket = storage_client.create_bucket(bucket_name, location=location)
-                # print(f"✅ Successfully recreated bucket: {bucket_name}")
-                # return True
-            else:
-                # # Bucket不存在，创建它
-                # print(f"📦 Creating bucket: {bucket_name}")
-                # bucket = storage_client.create_bucket(bucket_name, location=location)
-                # print(f"✅ Successfully created bucket: {bucket_name}")
-                # return True
-                pass
 
         except NotFound:
             # Bucket不存在，创建它
@@ -130,7 +61,7 @@ def ensure_bucket_exists(bucket_name="iot_anomaly_reports", project_id="mcp-benc
         print(f"❌ Error checking/creating bucket: {e}")
         return False
 
-def check_bq_dataset_exists(dataset_name="machine_operating", project_id="mcp-bench0606"):
+def check_bq_dataset_exists(dataset_name="machine_operating", project_id=PROJECT_ID):
     """检查BigQuery数据集是否存在"""
     print(f"🔍 Checking if BigQuery dataset exists: {dataset_name}")
 
@@ -150,7 +81,7 @@ def check_bq_dataset_exists(dataset_name="machine_operating", project_id="mcp-be
         print(f"❌ Error checking BigQuery dataset: {e}")
         return False
 
-def delete_bq_dataset(dataset_name="machine_operating", project_id="mcp-bench0606"):
+def delete_bq_dataset(dataset_name="machine_operating", project_id=PROJECT_ID):
     """删除BigQuery数据集"""
     print(f"🗑️  Deleting BigQuery dataset: {dataset_name}")
 
@@ -167,7 +98,7 @@ def delete_bq_dataset(dataset_name="machine_operating", project_id="mcp-bench060
         print(f"❌ Error deleting BigQuery dataset: {e}")
         return False
 
-def create_bq_dataset(dataset_name="machine_operating", project_id="mcp-bench0606", location="US"):
+def create_bq_dataset(dataset_name="machine_operating", project_id=PROJECT_ID, location="US"):
     """创建BigQuery数据集"""
     print(f"📊 Creating BigQuery dataset: {dataset_name}")
 
@@ -190,7 +121,7 @@ def create_bq_dataset(dataset_name="machine_operating", project_id="mcp-bench060
         print(f"❌ Error creating BigQuery dataset: {e}")
         return False
 
-def upload_csv_to_bq_table(csv_file_path, table_name, dataset_name="machine_operating", project_id="mcp-bench0606"):
+def upload_csv_to_bq_table(csv_file_path, table_name, dataset_name="machine_operating", project_id=PROJECT_ID):
     """上传CSV文件到BigQuery表"""
     print(f"📤 Uploading {os.path.basename(csv_file_path)} to BigQuery table: {table_name}")
 
@@ -225,7 +156,7 @@ def upload_csv_to_bq_table(csv_file_path, table_name, dataset_name="machine_oper
         print(f"❌ Error uploading CSV to BigQuery table: {e}")
         return False
 
-def manage_machine_operating_dataset(project_id="mcp-bench0606", dataset_name="machine_operating", csv_file_path=None):
+def manage_machine_operating_dataset(project_id=PROJECT_ID, dataset_name="machine_operating", csv_file_path=None):
     """管理machine_operating BigQuery数据集的完整流程"""
     print(f"📊 Managing BigQuery dataset: {dataset_name}")
 
@@ -310,7 +241,7 @@ def manage_machine_operating_dataset(project_id="mcp-bench0606", dataset_name="m
 
     return results
 
-def cleanup_preprocess_environment(workspace_dir, anomaly_report_pattern="anomaly_report"):
+def cleanup_preprocess_environment():
     """清理preprocess环境，为Machine Operating任务做准备"""
     print("🚀 Starting Machine Operating Anomaly Detection Preprocess Cleanup...")
     
@@ -321,13 +252,9 @@ def cleanup_preprocess_environment(workspace_dir, anomaly_report_pattern="anomal
     
     cleanup_results = {}
     
-    # 确保存储桶存在
-    bucket_ready = ensure_bucket_exists("iot_anomaly_reports")
+    # 确保存储桶被删除
+    bucket_ready = delete_bucket("iot_anomaly_reports")
     cleanup_results["bucket_ready"] = bucket_ready
-    
-    # 删除异常报告文件（支持模式匹配）
-    file_cleanup = delete_anomaly_reports_if_exist("iot_anomaly_reports", anomaly_report_pattern)
-    cleanup_results["file_cleanup"] = file_cleanup
 
     # 管理machine_operating BigQuery数据集
     bq_dataset_results = manage_machine_operating_dataset()
@@ -335,102 +262,27 @@ def cleanup_preprocess_environment(workspace_dir, anomaly_report_pattern="anomal
 
     return cleanup_results
 
-def verify_required_files(workspace_dir):
-    """验证任务所需的数据文件是否存在"""
-    print("🔍 Verifying required data files...")
-    
-    required_files = [
-        "live_sensor_data.csv",
-        "machine_operating_parameters.xlsx"
-    ]
-    
-    missing_files = []
-    existing_files = []
-    
-    for file_name in required_files:
-        file_path = os.path.join(workspace_dir, file_name)
-        if os.path.exists(file_path):
-            file_size = os.path.getsize(file_path)
-            existing_files.append({
-                "name": file_name,
-                "path": file_path,
-                "size_kb": file_size / 1024
-            })
-            print(f"✅ Found: {file_name} ({file_size/1024:.1f}KB)")
-        else:
-            missing_files.append(file_name)
-            print(f"❌ Missing: {file_name}")
-    
-    if missing_files:
-        print(f"\n⚠️  Warning: {len(missing_files)} required files are missing:")
-        for file_name in missing_files:
-            print(f"   - {file_name}")
-        print("\nPlease generate the required data files using the data generation scripts.")
-        return False, existing_files, missing_files
-    else:
-        print(f"\n✅ All {len(required_files)} required files are present!")
-        return True, existing_files, missing_files
-
 if __name__=="__main__":
     parser = ArgumentParser()
     parser.add_argument("--agent_workspace", required=True,
                        help="Agent workspace directory")
-    parser.add_argument("--anomaly_report_pattern", default="anomaly_report",
-                       help="Target anomaly report file pattern (default: anomaly_report, matches anomaly_report*.csv)")
-    parser.add_argument("--cleanup_files", default=True, action="store_true",
-                       help="Clean up existing anomaly report files to prevent task interference (default: enabled)")
-    parser.add_argument("--no_cleanup", action="store_true",
-                       help="Skip file cleanup (use when you want to preserve existing files)")
-    parser.add_argument("--project_id", default="mcp-bench0606",
+    parser.add_argument("--project_id", default=PROJECT_ID,
                        help="Google Cloud Project ID")
-    parser.add_argument("--verify_data", action="store_true",
-                       help="Verify required data files exist in workspace")
     parser.add_argument("--launch_time", required=False, help="Launch time")
     
     args = parser.parse_args()
     
     print("=== Machine Operating Anomaly Detection Preprocess ===")
     print(f"Agent workspace: {args.agent_workspace}")
-    print(f"Target anomaly report pattern: {args.anomaly_report_pattern}*.csv")
     print(f"Project ID: {args.project_id}")
-    print(f"Verify data files: {args.verify_data}")
     
     # 确保workspace目录存在
     os.makedirs(args.agent_workspace, exist_ok=True)
     
     # 验证数据文件（如果启用）
     data_verification_passed = True
-    existing_data_files = []
-    missing_data_files = []
     
-    if args.verify_data:
-        print(f"\n📋 Verifying data files in workspace...")
-        data_verification_passed, existing_data_files, missing_data_files = verify_required_files(args.agent_workspace)
-    
-    # 默认执行清理，除非明确指定不清理
-    should_cleanup = args.cleanup_files and not args.no_cleanup
-    
-    if should_cleanup:
-        print(f"\n🧹 Performing cleanup for anomaly reports matching pattern '{args.anomaly_report_pattern}*.csv'...")
-        cleanup_results = cleanup_preprocess_environment(args.agent_workspace, args.anomaly_report_pattern)
-        
-        if cleanup_results.get("file_cleanup", False) or cleanup_results.get("bucket_ready", False):
-            print("✅ Preprocess cleanup completed successfully!")
-        else:
-            print("⚠️  Preprocess cleanup completed with warnings.")
-    else:
-        print("ℹ️  Cleanup skipped (--no_cleanup specified).")
-        cleanup_results = {"bucket_ready": False, "file_cleanup": False}
-    
-    print(f"\n🎯 Environment prepared for anomaly detection!")
-    print(f"🔍 Ready to analyze sensor data and detect anomalies")
-    print(f"📤 Target upload location: gs://iot_anomaly_reports/{args.anomaly_report_pattern}*.csv")
-    print(f"💾 BigQuery machine_operating dataset is ready with live_sensor table")
-    
-    if data_verification_passed:
-        print("✅ All required data files are available - ready for task execution")
-    else:
-        print("⚠️  Some data files are missing - please generate them first")
-    
-    if should_cleanup:
-        print("🚨 Ready for task execution - existing anomaly reports and BigQuery dataset have been cleaned up")
+    # 默认执行清理，除非明确指定不清理    
+    cleanup_results = cleanup_preprocess_environment()
+
+    print("✅ All required data files/Bigquery States are available - ready for task execution")
