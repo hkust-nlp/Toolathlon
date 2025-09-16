@@ -1,5 +1,5 @@
 {
-    "needed_mcp_servers": ["youtube"],
-    "needed_local_tools": [],
+    "needed_mcp_servers": ["canvas"],
+    "needed_local_tools": ["handle_overlong_tool_outputs"],
     "meta": {}
 }
