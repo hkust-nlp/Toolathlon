@@ -1,5 +1,6 @@
 {
     "needed_mcp_servers": [
+        "playwright_with_chunk",
         "google_sheet",
         "arxiv_local",
         "huggingface"

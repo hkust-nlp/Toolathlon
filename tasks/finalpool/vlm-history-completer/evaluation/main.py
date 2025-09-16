@@ -19,17 +19,18 @@ from google.oauth2.credentials import Credentials
 sys.path.append(str(Path(__file__).parent.parent.parent.parent))
 import configs.token_key_session as configs
 
-# 固定的Google Drive文件夹ID
-TARGET_FOLDER_ID = "1buGDXqHfaehm-zMPHjuyEePVURkOQfhB"
-TARGET_FOLDER_URL = "https://drive.google.com/drive/u/3/folders/1buGDXqHfaehm-zMPHjuyEePVURkOQfhB?ths=true"
+from addict import Dict
+import os
 
-# Google API设置
+with open("tasks/finalpool/vlm-history-completer/files/folder_id.txt", "r") as f:
+    folder_id = f.read().strip()
+
 GOOGLE_CREDENTIALS_PATH = 'configs/google_credentials.json'
+TARGET_FOLDER_ID = folder_id  # 指定的Google Drive文件夹ID
 SCOPES = [
-    'https://www.googleapis.com/auth/spreadsheets',
-    'https://www.googleapis.com/auth/drive'
+    'https://www.googleapis.com/auth/drive',
+    'https://www.googleapis.com/auth/spreadsheets'
 ]
-
 
 def authenticate_google_services():
     """认证Google服务 - 使用OAuth2用户凭证"""
@@ -133,7 +134,6 @@ def find_spreadsheet_in_folder(spreadsheet_name: str = "VLM-History") -> str:
         
     except Exception as e:
         print(f"⚠️  自动查找表格失败: {str(e)}")
-        print(f"💡 请手动提供表格ID，或确保文件夹 {TARGET_FOLDER_URL} 中包含名为 '{spreadsheet_name}' 的Google Spreadsheet")
         raise
 
 
@@ -150,7 +150,13 @@ def read_google_sheet_as_json(spreadsheet_id: str) -> list:
         
         # 获取第一个工作表
         worksheet = spreadsheet.get_worksheet(0)
-        
+
+        # 数据不足则获取第二个
+        values = worksheet.get_all_values()
+        if len(values) < 2:
+            print("表格数据不足（需要至少包含标题行和一行数据）, 尝试获取第二个表格")
+            worksheet = spreadsheet.get_worksheet(1)
+
         # 获取所有数据
         values = worksheet.get_all_values()
         
@@ -165,7 +171,7 @@ def read_google_sheet_as_json(spreadsheet_id: str) -> list:
         source_col = -1
         
         for i, header in enumerate(headers):
-            if 'model' in header or '模型' in header:
+            if 'model' == header or '模型' == header:
                 model_col = i
             elif 'architecture' in header or '架构' in header:
                 arch_col = i
@@ -279,6 +285,7 @@ def evaluate_submission(submitted_data: list, groundtruth: list) -> dict:
         
         # 查找匹配的标准答案
         gt_match = find_matching_model(model_name, groundtruth)
+        # print(f"{model_name}: {gt_match}")
         
         if not gt_match:
             continue
@@ -288,10 +295,14 @@ def evaluate_submission(submitted_data: list, groundtruth: list) -> dict:
         # 评估架构字段
         if evaluate_field(submitted_arch, gt_match["Architecture"], "Architecture"):
             correct_architecture += 1
+        else:
+            print(f"{model_name} -- expect: {gt_match["Architecture"]}, actual: {submitted_arch}")
         
         # 评估sources字段
         if evaluate_field(submitted_sources, gt_match["Sources"], "Sources"):
             correct_sources += 1
+        else:
+            print(f"{model_name} -- expect: {gt_match["Sources"]}, actual: {submitted_sources}")
     
     return {
         "total_models": total_models,
@@ -322,7 +333,6 @@ if __name__ == "__main__":
         sys.exit(1)
     
     print(f"🎯 开始评估VLM历史表格")
-    print(f"📁 目标文件夹: {TARGET_FOLDER_URL}")
     
     # 加载标准答案
     groundtruth = load_groundtruth(str(groundtruth_file))
@@ -354,10 +364,9 @@ if __name__ == "__main__":
     print(f"   Sources正确: {result['correct_sources']}/{result['matched_models']}")
     print(f"   综合得分: {result['overall_score']:.1%}")
     
-    # 判断是否通过（60%为及格线）
-    if result['overall_score'] >= 0.6:
+    if result['overall_score'] >= 1.0:
         print(f"✅ 评估通过")
         sys.exit(0)
     else:
-        print(f"❌ 评估未通过（需要60%以上）")
+        print(f"❌ 评估未通过")
         sys.exit(1) 
