@@ -22,19 +22,8 @@ def clear_all_email_folders():
     # 初始化邮件管理器
     email_manager = LocalEmailManager(emails_config_file, verbose=True)
 
-    # 首先列出可用的邮箱文件夹
-    try:
-        available_mailboxes = email_manager.list_mailboxes()
-    except Exception as e:
-        print(f"⚠️ 无法获取邮箱文件夹列表: {e}")
-        available_mailboxes = ['INBOX'] 
-
-    # 需要清理的文件夹（只清理存在的文件夹）
-    desired_folders = ['INBOX', 'Drafts', 'Sent']
-    folders_to_clear = [folder for folder in desired_folders if folder in available_mailboxes]
-
-    if not folders_to_clear:
-        folders_to_clear = ['INBOX']  # 确保至少清理INBOX
+    # 需要清理的文件夹（尝试清理这些文件夹，如果不存在会在清理时处理错误）
+    folders_to_clear = ['INBOX', 'Drafts', 'Sent']
 
     print(f"将清理以下文件夹: {folders_to_clear}")
 
