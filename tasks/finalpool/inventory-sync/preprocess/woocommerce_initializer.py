@@ -18,7 +18,7 @@ from clear_all_products import main as clear_all_products
 from token_key_session import all_token_key_session
 
 class WooCommerceStoreInitializer:
-    """WooCommerce商店初始化器 - 从空账户开始设置6城市3区域库存系统
+    """WooCommerce商店初始化器 - 从空账户开始设置6城市3RegionInventory系统
     
     支持城市：New York、Boston(East)，Dallas、Houston(South)，LA、San Francisco(West)
     """
@@ -146,7 +146,7 @@ class WooCommerceStoreInitializer:
         print("📂 创建商品分类...")
         
         categories = [
-            {"name": "Electronic Products ", "description": "Mobile phones, computers, digital devices, etc."},
+            {"name": "Electronic Products", "description": "Mobile phones, computers, digital devices, etc."},
             {"name": "Clothing, Shoes & Accessories", "description": "Clothing, shoes, accessories, etc."},
             {"name": "Home & Living", "description": "Furniture, home appliances, household items, etc."},
             {"name": "Sports & Outdoors", "description": "Sports equipment, outdoor gear, etc."},
@@ -187,13 +187,13 @@ class WooCommerceStoreInitializer:
         
         # 分类映射
         category_mapping = {
-            "Electronic Products ": categories.get("Electronic Products "),
+            "Electronic Products": categories.get("Electronic Products"),
             "Clothing, Shoes & Accessories": categories.get("Clothing, Shoes & Accessories"), 
             "Home & Living": categories.get("Home & Living")
         }
         
         for product_id, name, category, price, description in sample_products:
-            category_id = category_mapping.get(category, categories.get("Electronic Products "))
+            category_id = category_mapping.get(category, categories.get("Electronic Products"))
             
             # 生成合理的初始库存、销量和发布时间
             import random
@@ -202,7 +202,7 @@ class WooCommerceStoreInitializer:
             initial_stock = random.randint(50, 200)
             
             # 根据商品类型设置不同的销量范围
-            if category == "Electronic Products ":
+            if category == "Electronic Products":
                 initial_sales = random.randint(100, 500)  # Electronic Products 销量高
                 # Electronic Products 近期销量也相对较高
                 sales_30_days = random.randint(int(initial_sales * 0.1), int(initial_sales * 0.3))
@@ -226,7 +226,7 @@ class WooCommerceStoreInitializer:
             publish_date_str = publish_date.strftime("%Y-%m-%dT%H:%M:%S")
             
             product_data = {
-                "name": name,
+                "name": "(Test Product) "+name,
                 "type": "simple",
                 "regular_price": str(price),
                 "description": description,
@@ -280,8 +280,8 @@ class WooCommerceStoreInitializer:
         return created_products
     
     def setup_regional_inventory_system(self, base_products: List[Dict]) -> Dict:
-        """设置区域库存系统"""
-        print("🗺️ 设置区域库存系统...")
+        """设置RegionInventory系统"""
+        print("🗺️ 设置RegionInventory系统...")
         
         if not self.wc_client:
             return {"error": "WooCommerce客户端未初始化"}
@@ -384,8 +384,8 @@ class WooCommerceStoreInitializer:
                 "count": len(successful_products)
             }
             
-            # 步骤4: 设置区域库存系统
-            print("\n📋 步骤4: 设置区域库存系统")
+            # 步骤4: 设置RegionInventory系统
+            print("\n📋 步骤4: 设置RegionInventory系统")
             regional_setup = self.setup_regional_inventory_system(successful_products)
             results["steps"]["regional_setup"] = {"success": "product_mapping" in regional_setup, "data": regional_setup}
             

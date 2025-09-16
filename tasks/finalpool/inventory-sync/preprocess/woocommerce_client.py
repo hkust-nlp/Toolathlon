@@ -237,7 +237,7 @@ class WooCommerceInventoryManager:
                     "name": f"[{region}] {product['name']}",
                     "type": "simple",
                     "regular_price": str(product.get('price', 0)),
-                    "description": f"{product.get('description', '')} - {region}区域库存",
+                    "description": f"{product.get('description', '')} - {region}RegionInventory",
                     "short_description": f"{region}区域 - {product['name']}",
                     "sku": regional_product_id,
                     "manage_stock": True,
@@ -285,10 +285,10 @@ class WooCommerceInventoryManager:
     
     def sync_regional_inventory(self, region_inventory: Dict[str, Dict[str, int]], product_mapping: Dict[str, Dict[str, str]]) -> Dict:
         """
-        同步区域库存到WooCommerce
+        同步RegionInventory到WooCommerce
         
         Args:
-            region_inventory: 区域库存数据 {"East": {"PROD001": 100}}
+            region_inventory: RegionInventory数据 {"East": {"PROD001": 100}}
             product_mapping: 商品映射 {"East": {"PROD001": "wc_product_id"}}
             
         Returns:
@@ -297,7 +297,7 @@ class WooCommerceInventoryManager:
         sync_results = {}
         
         for region, products in region_inventory.items():
-            print(f"\n📦 同步{region}区域库存...")
+            print(f"\n📦 同步{region}RegionInventory...")
             sync_results[region] = {}
             
             if region not in product_mapping:
@@ -363,7 +363,7 @@ class WooCommerceInventoryManager:
         verification_results = {}
         
         for region, products in expected_inventory.items():
-            print(f"\n🔍 验证{region}区域库存...")
+            print(f"\n🔍 验证{region}RegionInventory...")
             verification_results[region] = {}
             
             if region not in product_mapping:

@@ -5,7 +5,7 @@
    - East区域：纽约、Boston
    - South区域：Dallas、Houston
    - West区域：LA、San Francisco
-3. 生成库存同步报告，显示各区域库存更新状态
+3. 生成库存同步报告，显示各RegionInventory更新状态
 数据库的信息从 `warehouse`目录下获取,使用woocommerce mcp server来与WooCommerce交互获取数据更新，不要自己写API实现！
 
 请按照如下格式保存库存同步报告 `report.yaml`

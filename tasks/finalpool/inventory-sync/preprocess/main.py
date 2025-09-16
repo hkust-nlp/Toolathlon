@@ -8,6 +8,8 @@ import sys
 import shutil
 from argparse import ArgumentParser
 from pathlib import Path
+import random
+random.seed(42)
 
 # 添加项目路径
 current_dir = Path(__file__).parent

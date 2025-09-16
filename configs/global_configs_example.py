@@ -8,5 +8,6 @@ global_configs = Dict(
     base_url_non_ds="xxx", # 填写aihubmix的url
     ds_key="xxx", # 使用aihubmix时此项不填
     non_ds_key= "xxx", # 填写aihubmix的key
+    openrouter_key="xxx", # 填写openrouter的key
     podman_or_docker="podman", # or `docker`
 )
