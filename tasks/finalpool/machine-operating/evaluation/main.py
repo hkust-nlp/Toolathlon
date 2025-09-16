@@ -11,76 +11,78 @@ import json
 import pandas as pd
 from datetime import datetime, timedelta
 import math
-import subprocess
 import tempfile
+from google.cloud import storage
+from google.oauth2 import service_account
+from google.cloud.exceptions import NotFound
+
+# 设置认证文件路径
+CREDENTIALS_PATH = "configs/gcp-service_account.keys.json"
+if os.path.exists(CREDENTIALS_PATH):
+    credentials = service_account.Credentials.from_service_account_file(CREDENTIALS_PATH)
+else:
+    credentials = None
 
 def download_from_storage_bucket(bucket_name: str, file_name: str, local_path: str, project_id: str = "mcp-bench0606") -> bool:
     """从Google Cloud Storage存储桶下载文件"""
     try:
         print(f"📥 Downloading {file_name} from bucket {bucket_name}...")
-        result = subprocess.run([
-            'gcloud', 'storage', 'cp', 
-            f'gs://{bucket_name}/{file_name}', 
-            local_path
-        ], capture_output=True, text=True, timeout=60)
-        
-        if result.returncode == 0:
-            # 验证下载的文件
-            if os.path.exists(local_path):
-                file_size = os.path.getsize(local_path)
-                print(f"✅ Successfully downloaded {file_name} ({file_size} bytes)")
-                
-                # 检查文件是否为空
-                if file_size == 0:
-                    print(f"⚠️  Warning: Downloaded file is empty")
-                    return False
-                
-                # 检查文件开头是否像CSV
-                try:
-                    with open(local_path, 'r', encoding='utf-8') as f:
-                        first_line = f.readline().strip()
-                        if ',' in first_line or 'timestamp' in first_line.lower():
-                            print(f"✅ File appears to be CSV format")
-                        else:
-                            print(f"⚠️  Warning: File may not be CSV format")
-                            print(f"📄 First line: {first_line[:100]}...")
-                except Exception as e:
-                    print(f"⚠️  Warning: Could not read downloaded file: {e}")
-                
-                return True
-            else:
-                print(f"❌ Downloaded file not found at {local_path}")
+
+        storage_client = storage.Client(project=project_id, credentials=credentials)
+        bucket = storage_client.bucket(bucket_name)
+        blob = bucket.blob(file_name)
+
+        # 下载文件
+        blob.download_to_filename(local_path)
+
+        # 验证下载的文件
+        if os.path.exists(local_path):
+            file_size = os.path.getsize(local_path)
+            print(f"✅ Successfully downloaded {file_name} ({file_size} bytes)")
+
+            # 检查文件是否为空
+            if file_size == 0:
+                print(f"⚠️  Warning: Downloaded file is empty")
                 return False
+
+            # 检查文件开头是否像CSV
+            try:
+                with open(local_path, 'r', encoding='utf-8') as f:
+                    first_line = f.readline().strip()
+                    if ',' in first_line or 'timestamp' in first_line.lower():
+                        print(f"✅ File appears to be CSV format")
+                    else:
+                        print(f"⚠️  Warning: File may not be CSV format")
+                        print(f"📄 First line: {first_line[:100]}...")
+            except Exception as e:
+                print(f"⚠️  Warning: Could not read downloaded file: {e}")
+
+            return True
         else:
-            print(f"❌ Failed to download {file_name}")
-            print(f"❌ gcloud stderr: {result.stderr}")
-            print(f"❌ gcloud stdout: {result.stdout}")
+            print(f"❌ Downloaded file not found at {local_path}")
             return False
-            
-    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError) as e:
+
+    except Exception as e:
         print(f"❌ Error downloading {file_name}: {e}")
         return False
 
 def check_storage_bucket_exists(bucket_name: str, project_id: str = "mcp-bench0606") -> bool:
     """检查Google Cloud Storage存储桶是否存在"""
     try:
-        result = subprocess.run(
-            ['gcloud', 'storage', 'ls', f'gs://{bucket_name}'],
-            capture_output=True, text=True, timeout=30
-        )
-        return result.returncode == 0
-    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError):
+        storage_client = storage.Client(project=project_id, credentials=credentials)
+        bucket = storage_client.bucket(bucket_name)
+        return bucket.exists()
+    except Exception:
         return False
 
 def check_file_exists_in_bucket(bucket_name: str, file_name: str, project_id: str = "mcp-bench0606") -> bool:
     """检查文件是否存在于Google Cloud Storage存储桶中"""
     try:
-        result = subprocess.run(
-            ['gcloud', 'storage', 'ls', f'gs://{bucket_name}/{file_name}'],
-            capture_output=True, text=True, timeout=30
-        )
-        return result.returncode == 0
-    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError):
+        storage_client = storage.Client(project=project_id, credentials=credentials)
+        bucket = storage_client.bucket(bucket_name)
+        blob = bucket.blob(file_name)
+        return blob.exists()
+    except Exception:
         return False
 
 def load_csv_file(file_path: str, file_type: str = "CSV") -> pd.DataFrame:
@@ -420,33 +422,33 @@ def generate_validation_summary(results: dict) -> bool:
     # 判断验证是否通过
     # 要求：Precision ≥ 95%, Recall ≥ 90%, 无验证错误
     print(f"\n🏆 EVALUATION CRITERIA:")
-    print(f"   Precision requirement: ≥95% (no false positives)")
-    print(f"   Recall requirement: ≥90% (minimal false negatives)")
+    print(f"   Precision requirement: ≥100% (no false positives)")
+    print(f"   Recall requirement: ≥100% (minimal false negatives)")
     print(f"   Error requirement: 0 validation errors")
     
-    if precision >= 95.0 and recall >= 90.0 and errors == 0:
+    if precision >= 100.0 and recall >= 100.0 and errors == 0:
         print(f"\n🎉 VALIDATION PASSED!")
-        print(f"   ✅ Precision {precision:.1f}% meets requirement (≥95%)")
-        print(f"   ✅ Recall {recall:.1f}% meets requirement (≥90%)")
+        print(f"   ✅ Precision {precision:.1f}% meets requirement (≥100%)")
+        print(f"   ✅ Recall {recall:.1f}% meets requirement (≥100%)")
         print(f"   ✅ No validation errors")
         print(f"   ✅ F1 Score: {f1_score:.1f}%")
         return True
-    elif precision >= 90.0 and recall >= 85.0:
+    elif precision >= 100.0 and recall >= 100.0:
         print(f"\n⚠️ VALIDATION PARTIAL PASS")
-        if precision < 95.0:
-            print(f"   ⚠️ Precision {precision:.1f}% below optimal (≥95%)")
-        if recall < 90.0:
-            print(f"   ⚠️ Recall {recall:.1f}% below optimal (≥90%)")
+        if precision < 100.0:
+            print(f"   ⚠️ Precision {precision:.1f}% below optimal (≥100%)")
+        if recall < 100.0:
+            print(f"   ⚠️ Recall {recall:.1f}% below optimal (≥100%)")
         if errors > 0:
             print(f"   ⚠️ {errors} validation errors detected")
         print(f"   📊 F1 Score: {f1_score:.1f}%")
         return True
     else:
         print(f"\n❌ VALIDATION FAILED!")
-        if precision < 90.0:
-            print(f"   ❌ Precision {precision:.1f}% below minimum requirement (≥90%)")
-        if recall < 85.0:
-            print(f"   ❌ Recall {recall:.1f}% below minimum requirement (≥85%)")
+        if precision < 100.0:
+            print(f"   ❌ Precision {precision:.1f}% below minimum requirement (≥100%)")
+        if recall < 100.0:
+            print(f"   ❌ Recall {recall:.1f}% below minimum requirement (≥100%)")
         if errors > 0:
             print(f"   ❌ {errors} validation errors detected")
         print(f"   📊 F1 Score: {f1_score:.1f}%")
@@ -474,39 +476,33 @@ def find_anomaly_report_files(workspace_dir: str) -> list:
 def find_anomaly_report_in_bucket(bucket_name: str = "iot_anomaly_reports", file_pattern: str = "anomaly_report") -> str:
     """在GCS存储桶中查找匹配模式的异常报告文件"""
     print(f"🔍 Searching for anomaly reports in bucket: gs://{bucket_name}/{file_pattern}*.csv")
-    
+
     try:
+        storage_client = storage.Client(credentials=credentials)
+        bucket = storage_client.bucket(bucket_name)
+
         # 列出存储桶中的所有文件
-        list_result = subprocess.run([
-            'gcloud', 'storage', 'ls', f'gs://{bucket_name}/'
-        ], capture_output=True, text=True, timeout=30)
-        
-        if list_result.returncode != 0:
-            raise ValueError(f"Failed to list files in bucket {bucket_name}: {list_result.stderr}")
-        
+        blobs = bucket.list_blobs()
+
         # 查找匹配的文件
         matching_files = []
-        for line in list_result.stdout.strip().split('\n'):
-            if line.strip():
-                file_url = line.strip()
-                if file_url.startswith(f'gs://{bucket_name}/'):
-                    file_name = file_url.replace(f'gs://{bucket_name}/', '')
-                    if file_name.startswith(file_pattern) and file_name.endswith('.csv'):
-                        matching_files.append(file_name)
-        
+        for blob in blobs:
+            if blob.name.startswith(file_pattern) and blob.name.endswith('.csv'):
+                matching_files.append(blob.name)
+
         if not matching_files:
             raise ValueError(f"No anomaly report files found matching pattern '{file_pattern}*.csv' in bucket {bucket_name}")
-        
+
         print(f"📄 Found {len(matching_files)} matching file(s):")
         for i, file_name in enumerate(matching_files):
             print(f"   {i+1}. {file_name}")
-        
+
         # 使用第一个匹配的文件（通常按字母顺序排列，最新的时间戳会在最后）
         selected_file = sorted(matching_files)[-1]  # 选择最后一个（时间戳最新的）
         print(f"📄 Selected file: {selected_file}")
-        
+
         return selected_file
-        
+
     except Exception as e:
         raise ValueError(f"Error searching for anomaly reports: {e}")
 
@@ -526,17 +522,15 @@ def validate_task_completion(bucket_name: str = "iot_anomaly_reports", file_patt
     # 预览文件内容（下载前检查）
     print(f"🔍 Checking file content in bucket...")
     try:
-        preview_result = subprocess.run([
-            'gcloud', 'storage', 'cat', f'gs://{bucket_name}/{file_name}', '--range=0-500'
-        ], capture_output=True, text=True, timeout=30)
-        
-        if preview_result.returncode == 0:
-            preview_content = preview_result.stdout
-            print(f"📄 File preview (first 500 bytes): {preview_content[:200]}...")
-            if ',' not in preview_content[:100] and 'timestamp' not in preview_content.lower():
-                print(f"⚠️  Warning: File content doesn't look like CSV")
-        else:
-            print(f"⚠️  Could not preview file content: {preview_result.stderr}")
+        storage_client = storage.Client(credentials=credentials)
+        bucket = storage_client.bucket(bucket_name)
+        blob = bucket.blob(file_name)
+
+        # 下载前几百字节预览
+        preview_content = blob.download_as_text(start=0, end=500)
+        print(f"📄 File preview (first 500 bytes): {preview_content[:200]}...")
+        if ',' not in preview_content[:100] and 'timestamp' not in preview_content.lower():
+            print(f"⚠️  Warning: File content doesn't look like CSV")
     except Exception as e:
         print(f"⚠️  Could not preview file: {e}")
     

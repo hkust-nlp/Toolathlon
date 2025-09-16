@@ -419,23 +419,6 @@ def cleanup_preprocess_environment(workspace_dir, target_transaction_id="T8492XJ
     bq_dataset_results = manage_transactions_analytics_dataset(project_id)
     cleanup_results["bq_dataset_results"] = bq_dataset_results
     
-    # 保存清理结果到workspace
-    results_file = os.path.join(workspace_dir, "preprocess_cleanup_results.json")
-    with open(results_file, 'w') as f:
-        json.dump({
-            "cleanup_timestamp": subprocess.run(['date', '+%Y-%m-%d %H:%M:%S'], 
-                                              capture_output=True, text=True).stdout.strip(),
-            "target_transaction_id": target_transaction_id,
-            "bucket_ready": bucket_ready,
-            "file_cleanup_success": file_cleanup,
-            "log_bucket_results": log_bucket_results,
-            "bq_dataset_results": bq_dataset_results,
-            "cleaned_files": [f"{target_transaction_id}.json"] if file_cleanup else [],
-            "bucket_name": "mcp-fraud-investigation-archive",
-            "status": "completed"
-        }, f, indent=2)
-    
-    print(f"📋 Cleanup results saved to: {results_file}")
     return cleanup_results
 
 
@@ -476,28 +459,6 @@ if __name__=="__main__":
             print("⚠️  Preprocess cleanup completed with warnings.")
     else:
         print("ℹ️  Cleanup skipped (--no_cleanup specified).")
-    
-    # 创建最终结果文件
-    results_file = os.path.join(args.agent_workspace, "preprocess_results.json")
-    final_results = {
-        "timestamp": subprocess.run(['date', '+%Y-%m-%d %H:%M:%S'], 
-                                  capture_output=True, text=True).stdout.strip(),
-        "target_transaction_id": args.transaction_id,
-        "cleanup_performed": should_cleanup,
-        "bucket_name": "mcp-fraud-investigation-archive",
-        "log_bucket_name": "Trading_Logging",
-        "bq_dataset_name": "transactions_analytics",
-        "expected_output_file": f"{args.transaction_id}.json",
-        "status": "ready_for_investigation",
-        "task_description": "Investigate suspicious transaction and upload to archive bucket"
-    }
-    
-    # 如果执行了清理，添加详细结果
-    if should_cleanup and 'cleanup_results' in locals():
-        final_results["cleanup_details"] = cleanup_results
-        
-    with open(results_file, 'w') as f:
-        json.dump(final_results, f, indent=2)
     
     print(f"\n🎯 Environment prepared for fraud investigation!")
     print(f"🔍 Ready to investigate transaction: {args.transaction_id}")
