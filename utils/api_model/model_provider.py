@@ -31,6 +31,44 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
         self.retry_times = retry_times
         self.retry_delay = retry_delay
         self.debug = debug
+        
+    def _add_cache_control_to_messages(self, messages: list, min_cache_tokens: int = 2048) -> list:
+        """
+        为Claude模型添加cache_control breakpoints到消息中
+        根据OpenRouter文档，只有文本部分可以添加cache_control
+        """
+        if not messages:
+            return messages
+            
+        modified_messages = []
+        
+        for i, message in enumerate(messages):
+            new_message = message.copy()
+            
+            # 对system、user和tool消息添加缓存控制，且内容要足够长
+            # tool消息在多轮对话中会作为上下文重复使用，非常适合缓存
+            if message.get('role') in ['system', 'user', 'tool'] and isinstance(message.get('content'), str):
+                content_length = len(message['content'])
+                # 粗略估算token数量（约4字符=1token）
+                estimated_tokens = content_length // 4
+                
+                if estimated_tokens >= min_cache_tokens:
+                    # 将content转换为多部分格式以支持cache_control
+                    new_message['content'] = [
+                        {
+                            'type': 'text',
+                            'text': message['content'],
+                            'cache_control': {
+                                'type': 'ephemeral'
+                            }
+                        }
+                    ]
+                    # if self.debug:
+                    #     print(f"🔄 PROMPT CACHING: Added cache_control to {message.get('role')} message with ~{estimated_tokens} tokens")
+            
+            modified_messages.append(new_message)
+        
+        return modified_messages
 
     def _get_model_specific_config(self):
         """获取模型特定的配置参数"""
@@ -43,6 +81,12 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
             return {
                 'use_max_completion_tokens': True,
                 'use_parallel_tool_calls': False
+            }
+        elif 'claude' in self.model.lower():
+            return {
+                'use_max_completion_tokens': False,
+                'use_parallel_tool_calls': True,
+                'supports_prompt_caching': True,
             }
         else:
             return {
@@ -72,6 +116,13 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                     "role": "system",
                 },
             )
+        
+        # 为Claude模型添加prompt caching支持
+        model_config = self._get_model_specific_config()
+        if model_config.get('supports_prompt_caching', False):
+            # if self.debug:
+            #     print(f"🔄 PROMPT CACHING: Enabled for Claude model: {self.model}")
+            converted_messages = self._add_cache_control_to_messages(converted_messages)
         if tracing.include_data():
             span.span_data.input = converted_messages
 
@@ -107,9 +158,6 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
         stream_options = ChatCmplHelpers.get_stream_options_param(
             self._get_client(), model_settings, stream=stream
         )
-
-        # 构建模型特定的配置
-        model_config = self._get_model_specific_config()
         
         # 构建基础参数
         base_params = {
