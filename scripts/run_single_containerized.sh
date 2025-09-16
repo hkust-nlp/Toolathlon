@@ -82,7 +82,7 @@ cleanup() {
     fi
     echo "Cleanup completed"
 }
-# trap cleanup EXIT
+trap cleanup EXIT
 
 # Verify task directory exists
 TASK_SOURCE="$PROJECT_ROOT/tasks/$task_dir_arg"
@@ -97,7 +97,7 @@ echo "Preparing project files..."
 # List of files and directories to copy
 FILES_TO_COPY=(
     "configs"
-    # "deployment/k8s"
+    "deployment/k8s"
     "scripts"
     "deployment/canvas/logs"
     "global_preparation/check_installation.py"
@@ -191,9 +191,6 @@ START_CONTAINER_ARGS+=(
     
     # Mount log directory
     "-v" "$RUN_LOG_DIR:/workspace/logs"
-
-    # Mount deployment/k8s directory
-    "-v" "$PROJECT_ROOT/deployment/k8s:/workspace/deployment/k8s"
     
     # Working directory
     "-w" "/workspace"
@@ -341,7 +338,7 @@ CONTAINER_CMD="uv run demo.py --eval_config $eval_config --task_dir $task_dir_ar
 echo "Executing command: $CONTAINER_CMD"
 echo ""
 
-exit 0
+# exit 0
 
 # Execute command in container (let run_parallel.py handle container log)
 echo "Executing task..."
