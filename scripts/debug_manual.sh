@@ -12,5 +12,5 @@ uv run demo.py \
 --model_short_name claude-4-sonnet-0514 \
 --provider aihubmix \
 --max_steps_under_single_turn_mode 200 \
-# --multi_turn_mode \
-# --manual \
+--multi_turn_mode \
+--manual \

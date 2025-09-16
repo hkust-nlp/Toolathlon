@@ -43,8 +43,9 @@ import random
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional
 from pathlib import Path
+import random
+random.seed(42)
 
-# os.environ["TESSDATA_PREFIX"] = "/ssddata/xiaochen/workspace/mcpbench_dev/scripts"
 parent_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(parent_dir))
 
@@ -1150,31 +1151,7 @@ class CanvasCourseSetup:
         except Exception as e:
             logger.error(f"Error testing student token: {e}")
             return None
-    
-        """Submit an assignment as a student using student's token"""
-        try:
-            # Create student-specific headers
-            student_headers = {
-                "Authorization": f"Bearer {user_token}",
-                "Content-Type": "application/json"
-            }
-            
-            async with aiohttp.ClientSession() as session:
-                url = f"{self.base_url}/api/v1/courses/{course_id}/assignments/{assignment_id}/submissions"
-                
-                async with session.post(url, headers=student_headers, json=submission_data) as response:
-                    if 200 <= response.status < 300:
-                        submission_response = await response.json()
-                        submission_id = submission_response.get("id")
-                        logger.info(f"Submitted assignment (ID: {assignment_id}) as student - Submission ID: {submission_id}")
-                        return True
-                    else:
-                        error_text = await response.text()
-                        logger.error(f"Failed to submit assignment {assignment_id}: {response.status} - {error_text}")
-                        return False
-        except Exception as e:
-            logger.error(f"Error submitting assignment {assignment_id}: {e}")
-            return False
+
     
     async def submit_assignments_for_students(self) -> bool:
         """Submit assignments for Ryan Brown (the test student with available token)"""
