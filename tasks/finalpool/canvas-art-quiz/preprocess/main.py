@@ -61,8 +61,8 @@ class CanvasPreprocessPipeline:
         self.student_csv = current_dir / "student_list.csv"
         self.assignments_dir = current_dir / "assignments"
         
-        # Target student indices (1-based as specified: 1,3,5,10,15)
-        self.target_student_indices = [1, 3, 5, 10, 15]
+        # Target student indices
+        self.target_student_indices = [1, 2, 3, 4, 5, 6]
     
     def load_target_students(self) -> List[Tuple[str, str]]:
         """
@@ -305,7 +305,7 @@ class CanvasPreprocessPipeline:
         print(f"📊 Summary:")
         print(f"   Course: {self.course_name} (ID: {self.course_id})")
         print(f"   Students enrolled: {len(target_students)}")
-        print(f"   Assignments created: 3 (homework1, homework2, project1)")
+        print(f"   Assignments created: 2 (homework1, project1)")
         print(f"   Course status: Published")
         print(f"   Direct link: http://{all_token_key_session.canvas_admin_domain}/courses/{self.course_id}")
         

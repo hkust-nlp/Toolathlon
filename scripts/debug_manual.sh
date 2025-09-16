@@ -7,10 +7,10 @@
 
 uv run demo.py \
 --eval_config scripts/model_wise/eval_claude-4-sonnet.json \
---task_dir finalpool/inventory-sync \
+--task_dir finalpool/academic-pdf-report \
 --debug \
---model_short_name gpt-5 \
---provider aihubmix \
+--model_short_name claude-4-sonnet-0514 \
+--provider openrouter \
 --max_steps_under_single_turn_mode 200 \
---multi_turn_mode \
---manual \
+# --multi_turn_mode \
+# --manual \
