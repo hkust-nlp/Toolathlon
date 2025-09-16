@@ -1,0 +1,6 @@
+{
+    "needed_mcp_servers": ["github", "notion", "filesystem", "terminal"],
+    "needed_local_tools": ["python_execute","claim_done"],
+
+    "meta": { }
+}
