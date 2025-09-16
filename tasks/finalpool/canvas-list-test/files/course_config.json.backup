@@ -3,7 +3,7 @@
     {
       "name": "Introduction to Computer Science-1",
       "course_code": "CS101-1",
-      "teacher": "mcpcanvasadmin2@mcp.com",
+      "teacher": "stephenb@mcp.com",
       "credits": 3,
       "exam_type": "closed_book",
       "exam_time": "2025-01-14 09:00",
@@ -72,16 +72,10 @@
       },
       "assignment": {
         "name": "CS101 Unit 2 Homework Assignment",
-        "description": "Complete the exercises from Chapter 2 of the textbook, including operating system concepts and data structure implementation. Please provide handwritten solutions and scan them as PDF for submission.\n\nSpecific Requirements:\n1. Explain the three main functions of an operating system\n2. Implement a simple stack data structure\n3. Analyze time complexity\n\nSubmission Format: PDF file, filename format: StudentID_Name_CS101_Assignment2.pdf",
+        "description": "Complete the exercises from Chapter 2 of the textbook, including operating system concepts and data structure implementation. Please provide handwritten solutions and scan them as PDF for submission.\n\nSpecific Requirements:\n1. Explain the three main functions of an operating system",
         "points_possible": 50,
         "due_at": "2025-09-27T23:59:00Z",
-        "submission_types": [
-          "online_upload",
-          "online_text_entry"
-        ],
-        "allowed_extensions": [
-          "pdf"
-        ],
+        "submission_types": "online_text_entry",
         "published": true
       },
       "announcement": {
@@ -97,7 +91,7 @@
     {
       "name": "Data Structures and Algorithms-1",
       "course_code": "CS201-1",
-      "teacher": "mcpcanvasadmin2@mcp.com",
+      "teacher": "stephenb@mcp.com",
       "credits": 4,
       "exam_type": "closed_book",
       "exam_time": "2025-01-16 09:00",
@@ -114,7 +108,7 @@
         "allowed_attempts": 1,
         "scoring_policy": "keep_highest",
         "points_possible": 150,
-        "due_at": "2025-09-27T23:59:00Z",
+        "due_at": "2025-09-28T23:59:00Z",
         "questions": [
           {
             "question_text": "What is the time complexity of binary search in a sorted array?",
@@ -166,16 +160,10 @@
       },
       "assignment": {
         "name": "CS201 Algorithm Analysis Homework",
-        "description": "Complete Chapter 3 exercises on algorithm time complexity analysis. Including Big O notation analysis and sorting algorithm performance comparison. Please provide handwritten solutions and scan them as PDF for submission.\n\nAssignment Content:\n1. Analyze the time complexity of given algorithms\n2. Compare advantages and disadvantages of different sorting algorithms\n3. Design an O(log n) search algorithm\n4. Draw recursion call tree and analyze space complexity\n\nSubmission Requirements: PDF format, clear scan, filename: StudentID_Name_CS201_AlgorithmAssignment.pdf",
+        "description": "Complete Chapter 3 exercises on algorithm time complexity analysis. Including Big O notation analysis and sorting algorithm performance comparison. Please provide handwritten solutions and scan them as PDF for submission.\n\nAssignment Content:\n1. Analyze the time complexity of given algorithms\n2. Compare advantages and disadvantages of different sorting algorithms\n3. Design an O(log n) search algorithm\n4. Draw recursion call tree and analyze space complexity",
         "points_possible": 75,
-        "due_at": "2025-09-28T23:59:00Z",
-        "submission_types": [
-          "online_upload",
-          "online_text_entry"
-        ],
-        "allowed_extensions": [
-          "pdf"
-        ],
+        "due_at": "2025-09-29T23:59:00Z",
+        "submission_types": "online_text_entry",
         "published": true
       },
       "announcement": {
@@ -191,7 +179,7 @@
     {
       "name": "Database Systems-1",
       "course_code": "CS301-1",
-      "teacher": "mcpcanvasadmin2@mcp.com",
+      "teacher": "stephenb@mcp.com",
       "credits": 4,
       "exam_type": "closed_book",
       "exam_time": "2025-01-16 14:00",
@@ -287,7 +275,7 @@
     {
       "name": "Software Engineering Practice-1",
       "course_code": "CS302-1",
-      "teacher": "mcpcanvasadmin2@mcp.com",
+      "teacher": "brandonr@mcp.com",
       "credits": 3,
       "exam_type": "closed_book",
       "exam_time": "2025-01-17 09:00",
@@ -304,7 +292,7 @@
         "allowed_attempts": 2,
         "scoring_policy": "keep_highest",
         "points_possible": 100,
-        "due_at": "2025-09-24T23:59:00Z",
+        "due_at": "2025-09-25T23:59:00Z",
         "questions": [
           {
             "question_text": "Which software development methodology emphasizes iterative development and customer collaboration?",
@@ -358,7 +346,7 @@
         "name": "CS302 Software Development Team Project",
         "description": "Complete a full-stack web application development project using Agile methodology. This assignment simulates real-world software development practices including version control, testing, and deployment.\n\nProject Requirements:\n1. Develop a web application with frontend and backend components\n2. Use Git for version control with proper branching strategy\n3. Implement unit tests and integration tests\n4. Apply Agile practices (sprints, user stories, retrospectives)\n5. Create comprehensive project documentation\n6. Deploy the application to a cloud platform\n\nDeliverables:\n- Source code repository (GitHub link)\n- Project documentation including architecture design\n- Test reports and coverage analysis\n- Deployment guide and live application URL\n- Sprint retrospective and team collaboration report\n\nSubmission Format: Document with all links and reports, filename: StudentID_Name_CS302_TeamProject.pdf",
         "points_possible": 120,
-        "due_at": "2025-09-26T23:59:00Z",
+        "due_at": "2025-09-27T23:59:00Z",
         "submission_types": [
           "online_upload",
           "online_text_entry"
@@ -382,7 +370,7 @@
     {
       "name": "Software Engineering-1",
       "course_code": "CS401-1",
-      "teacher": "mcpcanvasadmin2@mcp.com",
+      "teacher": "brandonr@mcp.com",
       "credits": 4,
       "exam_type": "closed_book",
       "exam_time": "2025-01-17 14:00",
@@ -476,7 +464,7 @@
     {
       "name": "Fundamentals of Artificial Intelligence-1",
       "course_code": "AI101-1",
-      "teacher": "mcpcanvasadmin2@mcp.com",
+      "teacher": "brandonr@mcp.com",
       "credits": 3,
       "exam_type": "closed_book",
       "exam_time": "2025-01-18 09:00",
@@ -493,7 +481,7 @@
         "allowed_attempts": 2,
         "scoring_policy": "keep_highest",
         "points_possible": 150,
-        "due_at": "2025-09-26T23:59:00Z",
+        "due_at": "2025-09-27T23:59:00Z",
         "questions": [
           {
             "question_text": "Which type of machine learning uses labeled training data?",
@@ -547,7 +535,7 @@
         "name": "AI101 Machine Learning Implementation Project",
         "description": "Implement and evaluate machine learning algorithms for a real-world dataset. This assignment covers fundamental AI concepts, algorithm implementation, and performance analysis.\n\nProject Requirements:\n1. Choose a dataset from provided options (classification or regression problem)\n2. Implement at least three different machine learning algorithms from scratch\n3. Compare algorithms using appropriate evaluation metrics\n4. Perform data preprocessing and feature engineering\n5. Create visualizations to explain model behavior and results\n6. Write a comprehensive analysis report\n\nAlgorithms to implement (choose 3):\n- Linear Regression / Logistic Regression\n- Decision Trees\n- k-Nearest Neighbors (k-NN)\n- Naive Bayes\n- Support Vector Machines (SVM)\n\nDeliverables:\n- Python implementation code with documentation\n- Data analysis and preprocessing notebook\n- Algorithm comparison and evaluation report\n- Visualization of results and model performance\n\nSubmission Format: ZIP file containing code and report, filename: StudentID_Name_AI101_MLProject.zip",
         "points_possible": 130,
-        "due_at": "2025-09-29T23:59:00Z",
+        "due_at": "2025-09-30T23:59:00Z",
         "submission_types": [
           "online_upload",
           "online_text_entry"
@@ -573,7 +561,7 @@
     {
       "name": "Database Systems Fundamentals-1",
       "course_code": "DB101-1",
-      "teacher": "mcpcanvasadmin2@mcp.com",
+      "teacher": "brandonr@mcp.com",
       "credits": 2,
       "exam_type": "closed_book",
       "exam_time": "TBD",
@@ -590,7 +578,7 @@
         "allowed_attempts": 3,
         "scoring_policy": "keep_highest",
         "points_possible": 80,
-        "due_at": "2025-09-23T23:59:00Z",
+        "due_at": "2025-09-24T23:59:00Z",
         "questions": [
           {
             "question_text": "What does RDBMS stand for?",
@@ -653,7 +641,7 @@
     {
       "name": "Network Programming-1",
       "course_code": "NET101-1",
-      "teacher": "mcpcanvasadmin2@mcp.com",
+      "teacher": "richardl@mcp.com",
       "credits": 3,
       "exam_type": "closed_book",
       "exam_time": "2025-01-19 09:00",
@@ -733,7 +721,7 @@
     {
       "name": "English Foundation-1",
       "course_code": "ENG101-1",
-      "teacher": "mcpcanvasadmin2@mcp.com",
+      "teacher": "richardl@mcp.com",
       "credits": 1,
       "exam_type": "closed_book",
       "exemption_score": 90,
@@ -750,7 +738,7 @@
         "allowed_attempts": 1,
         "scoring_policy": "keep_highest",
         "points_possible": 100,
-        "due_at": "2025-09-29T23:59:00Z",
+        "due_at": "2025-09-30T23:59:00Z",
         "questions": [
           {
             "question_text": "Choose the correct sentence:",
@@ -813,7 +801,7 @@
     {
       "name": "Natural Language Processing-1",
       "course_code": "NLP101-1",
-      "teacher": "mcpcanvasadmin2@mcp.com",
+      "teacher": "richardl@mcp.com",
       "credits": 3,
       "exam_type": "no_exam",
       "assessment": "Assignments + Group Presentation",
@@ -830,7 +818,7 @@
         "allowed_attempts": 3,
         "scoring_policy": "keep_highest",
         "points_possible": 100,
-        "due_at": "2025-09-30T23:59:00Z",
+        "due_at": "2025-10-01T23:59:00Z",
         "questions": [
           {
             "question_text": "What is tokenization in NLP?",
@@ -893,7 +881,7 @@
     {
       "name": "Advanced Mathematics-1",
       "course_code": "MATH201-1",
-      "teacher": "mcpcanvasadmin2@mcp.com",
+      "teacher": "richardl@mcp.com",
       "credits": 4,
       "exam_type": "open_book",
       "exam_time": "2025-01-20 09:00",
@@ -973,7 +961,7 @@
     {
       "name": "Linear Algebra-1",
       "course_code": "MATH101-1",
-      "teacher": "mcpcanvasadmin2@mcp.com",
+      "teacher": "jenniferj31@mcp.com",
       "credits": 3,
       "exam_type": "closed_book",
       "exam_time": "2025-01-20 14:00",
@@ -1053,7 +1041,7 @@
     {
       "name": "Modern European History-1",
       "course_code": "HIST301-1",
-      "teacher": "mcpcanvasadmin2@mcp.com",
+      "teacher": "jenniferj31@mcp.com",
       "credits": 4,
       "exam_type": "open_book",
       "exam_time": "2025-01-21 09:00",
@@ -1070,7 +1058,7 @@
         "allowed_attempts": 2,
         "scoring_policy": "keep_highest",
         "points_possible": 200,
-        "due_at": "2025-09-29T23:59:00Z",
+        "due_at": "2025-09-30T23:59:00Z",
         "questions": [
           {
             "question_text": "What was the primary purpose of the 'Principle of Legitimacy' advocated by Metternich at the Congress of Vienna (1815)?",
@@ -1248,7 +1236,7 @@
     {
       "name": "Critical Thinking and Logic-1",
       "course_code": "PHIL201-1",
-      "teacher": "mcpcanvasadmin2@mcp.com",
+      "teacher": "jenniferj31@mcp.com",
       "credits": 3,
       "exam_type": "closed_book",
       "exam_time": "2025-01-22 14:00",
@@ -1265,7 +1253,7 @@
         "allowed_attempts": 1,
         "scoring_policy": "keep_highest",
         "points_possible": 180,
-        "due_at": "2025-09-27T23:59:00Z",
+        "due_at": "2025-09-28T23:59:00Z",
         "questions": [
           {
             "question_text": "Consider this argument: 'All effective leaders are good communicators. Sarah is not a good communicator. Therefore, Sarah is not an effective leader.' This argument is:",

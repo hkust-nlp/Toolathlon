@@ -8,43 +8,139 @@ import subprocess
 import os
 import json
 import pandas as pd
+import numpy as np
 
 def compare_csv_files(agent_file, groundtruth_file, file_type, key_columns):
     """
-    通用CSV文件比较函数，使用细粒度的比较逻辑
-    严格匹配：
-    1. Ground truth中的每条数据都必须在agent输出中找到对应项
-    2. Agent输出中不能包含超出ground truth范畴的额外数据
+    全面的CSV文件比较函数，包含以下检查：
+    1. 文件存在性检查
+    2. 列完整性检查（关键列不能缺失）
+    3. 数据行数一致性检查
+    4. 顺序一致性检查
+    5. 内容完全匹配检查（包括课程码后缀）
+    6. 数据类型一致性检查
     """
     # 检查文件是否存在
     if not os.path.exists(agent_file):
-        return False, f'代理工作空间文件不存在: {agent_file}'
+        return False, f'{file_type}文件不存在: {agent_file}'
     
     if not os.path.exists(groundtruth_file):
-        return False, f'基准工作空间文件不存在: {groundtruth_file}'
+        return False, f'基准文件不存在: {groundtruth_file}'
 
     try:
-        # 读取两个CSV文件
+        # 读取CSV文件
         print(f"\n🔍 检查{file_type}文件:")
-        print(f"agent_file: {agent_file}")
+        print(f"  Agent文件: {agent_file}")
+        print(f"  基准文件: {groundtruth_file}")
+        
         df_agent = pd.read_csv(agent_file)
         df_ground = pd.read_csv(groundtruth_file)
         
-        print(f"Agent output rows: {len(df_agent)}")
-        print(f"Ground truth rows: {len(df_ground)}")
-        print(f"重点比较字段: {', '.join(key_columns)}")
+        print(f"  Agent行数: {len(df_agent)}")
+        print(f"  基准行数: {len(df_ground)}")
         
-        # 标准化Course Code（移除可能的后缀）
-        def normalize_course_code(code):
-            if pd.isna(code):
-                return code
-            code_str = str(code).strip()
-            # 移除-1这样的后缀，使用正则表达式更精确匹配
-            # 移除末尾的"-数字"模式
-            code_str_cleaned = re.sub(r'-\d+$', '', code_str)
-            return code_str_cleaned
+        # ============ 1. 列完整性检查 ============
+        print("\n📋 步骤1: 列完整性检查")
+        agent_columns = set(df_agent.columns)
+        ground_columns = set(df_ground.columns)
         
-        # 标准化日期时间格式
+        # 检查关键列是否存在
+        missing_key_columns_agent = []
+        missing_key_columns_ground = []
+        
+        for col in key_columns:
+            if col not in agent_columns:
+                missing_key_columns_agent.append(col)
+            if col not in ground_columns:
+                missing_key_columns_ground.append(col)
+        
+        if missing_key_columns_agent:
+            error_msg = f'Agent文件缺失关键列: {", ".join(missing_key_columns_agent)}'
+            print(f"  ❌ {error_msg}")
+            return False, error_msg
+        
+        if missing_key_columns_ground:
+            error_msg = f'基准文件缺失关键列: {", ".join(missing_key_columns_ground)}'
+            print(f"  ❌ {error_msg}")
+            return False, error_msg
+        
+        # 检查列集合是否完全一致
+        if agent_columns != ground_columns:
+            extra_in_agent = agent_columns - ground_columns
+            missing_in_agent = ground_columns - agent_columns
+            
+            error_parts = []
+            if extra_in_agent:
+                error_parts.append(f"Agent多余列: {', '.join(extra_in_agent)}")
+                print(f"  ⚠️ {error_parts[-1]}")
+            if missing_in_agent:
+                error_parts.append(f"Agent缺失列: {', '.join(missing_in_agent)}")
+                print(f"  ⚠️ {error_parts[-1]}")
+            
+            return False, f'列不一致 - {"; ".join(error_parts)}'
+        
+        print(f"  ✅ 列完整性检查通过（共{len(agent_columns)}列）")
+        
+        # ============ 2. 行数一致性检查 ============
+        print("\n📊 步骤2: 行数一致性检查")
+        if len(df_agent) != len(df_ground):
+            error_msg = f'行数不一致: Agent={len(df_agent)}, 基准={len(df_ground)}'
+            print(f"  ❌ {error_msg}")
+            return False, error_msg
+        
+        print(f"  ✅ 行数一致（{len(df_agent)}行）")
+        
+        # ============ 3. 顺序一致性检查 ============
+        print("\n🔢 步骤3: 顺序一致性检查")
+        order_matches = True
+        order_differences = []
+        
+        # 使用course_code作为主键检查顺序
+        if 'course_code' in df_agent.columns:
+            for idx in range(len(df_agent)):
+                agent_code = str(df_agent.iloc[idx]['course_code'])
+                ground_code = str(df_ground.iloc[idx]['course_code'])
+                
+                if agent_code != ground_code:
+                    order_matches = False
+                    order_differences.append(f"行{idx+1}: Agent='{agent_code}' vs 基准='{ground_code}'")
+                    if len(order_differences) >= 5:  # 只记录前5个差异
+                        order_differences.append("...")
+                        break
+        
+        if not order_matches:
+            print(f"  ⚠️ 顺序不一致，前几个差异:")
+            for diff in order_differences[:5]:
+                print(f"    - {diff}")
+        else:
+            print(f"  ✅ 行顺序完全一致")
+        
+        # ============ 4. 数据类型一致性检查 ============
+        print("\n🔤 步骤4: 数据类型一致性检查")
+        dtype_issues = []
+        
+        for col in df_agent.columns:
+            agent_dtype = df_agent[col].dtype
+            ground_dtype = df_ground[col].dtype
+            
+            # 检查基本数据类型是否兼容
+            if agent_dtype != ground_dtype:
+                # 允许int64和float64之间的转换（如果数值相等）
+                if pd.api.types.is_numeric_dtype(agent_dtype) and pd.api.types.is_numeric_dtype(ground_dtype):
+                    continue
+                dtype_issues.append(f"{col}: Agent={agent_dtype} vs 基准={ground_dtype}")
+        
+        if dtype_issues:
+            print(f"  ⚠️ 发现数据类型差异:")
+            for issue in dtype_issues:
+                print(f"    - {issue}")
+        else:
+            print(f"  ✅ 数据类型一致")
+        
+        # ============ 5. 内容完全匹配检查 ============
+        print("\n📝 步骤5: 内容完全匹配检查")
+        
+        # 标准化日期时间格式的函数
         def normalize_datetime(datetime_str):
             try:
                 if pd.isna(datetime_str) or str(datetime_str).strip() in ['TBD', 'N/A', '']:
@@ -56,7 +152,6 @@ def compare_csv_files(agent_file, groundtruth_file, file_type, key_columns):
                 if 'T' in datetime_str and 'Z' in datetime_str:
                     try:
                         dt = datetime.fromisoformat(datetime_str.replace('Z', '+00:00'))
-                        # 标准化为UTC格式
                         return dt.strftime('%Y-%m-%dT%H:%M:%SZ')
                     except:
                         pass
@@ -67,180 +162,163 @@ def compare_csv_files(agent_file, groundtruth_file, file_type, key_columns):
         
         # 数值比较函数
         def compare_numeric_values(agent_val, ground_val):
-            """
-            比较数值型字段，如credits, number_of_questions等
-            处理'4.0'和'4'这种数值相等但字符串不同的情况
-            """
+            """比较数值型字段，处理'4.0'和'4'这种数值相等但字符串不同的情况"""
             try:
+                # 处理NaN
+                if pd.isna(agent_val) and pd.isna(ground_val):
+                    return True
+                if pd.isna(agent_val) or pd.isna(ground_val):
+                    return False
+                    
                 # 尝试转换为浮点数进行比较
                 agent_num = float(str(agent_val).strip())
                 ground_num = float(str(ground_val).strip())
-                return agent_num == ground_num
+                
+                # 使用numpy的近似相等比较，允许浮点数误差
+                return np.isclose(agent_num, ground_num, rtol=1e-9, atol=1e-9)
             except (ValueError, TypeError):
                 # 如果无法转换为数字，则按字符串比较
                 return str(agent_val).strip() == str(ground_val).strip()
         
         # 字符串比较函数
-        def compare_string_values(agent_val, ground_val):
+        def compare_string_values(agent_val, ground_val, strict=True):
             """
-            比较字符串型字段，使用normalize_str进行智能匹配
-            pred是预测值(agent_val)，gt是实际值(ground_val)
-            特殊处理：移除agent值中的"-数字"后缀
+            比较字符串型字段
+            strict=True: 完全匹配（用于course_code等）
+            strict=False: 使用normalize_str进行智能匹配
             """
             if pd.isna(agent_val) and pd.isna(ground_val):
                 return True
             if pd.isna(agent_val) or pd.isna(ground_val):
                 return False
             
-            agent_str = str(agent_val)
-            ground_str = str(ground_val)
+            agent_str = str(agent_val).strip()
+            ground_str = str(ground_val).strip()
             
-            # 移除agent字符串中的"-数字"后缀（如"-1", "-2"等）
-            agent_str_cleaned = re.sub(r'-\d+$', '', agent_str)
-            
-            agent_normalized = normalize_str(agent_str_cleaned)
-            ground_normalized = normalize_str(ground_str)
-            
-            # 先尝试精确匹配，再尝试endswith匹配
-            if agent_normalized == ground_normalized:
-                return True
-            # 使用endswith判断：normalize_str(pred).endswith(normalize_str(gt))
-            return agent_normalized.endswith(ground_normalized)
-        
-        # 添加标准化的课程代码列
-        df_agent['Normalized_Course_Code'] = df_agent['course_code'].apply(normalize_course_code)
-        df_ground['Normalized_Course_Code'] = df_ground['course_code'].apply(normalize_course_code)
-        
-        # 按课程代码进行匹配和比较
-        matches = 0
-        total_courses = len(df_ground)  # 以ground truth的数量为基准
-        differences = []
+            if strict:
+                # 严格匹配模式：完全相等
+                return agent_str == ground_str
+            else:
+                # 智能匹配模式：使用normalize_str
+                agent_normalized = normalize_str(agent_str)
+                ground_normalized = normalize_str(ground_str)
+                return agent_normalized == ground_normalized
         
         # 根据文件类型定义字段类型
         if file_type == "quiz_info":
             numeric_columns = ['credits', 'number_of_questions', 'time_limit', 'allowed_attempts', 'points_possible']
             string_columns = ['quiz_title', 'course_name']
             datetime_columns = ['deadline']
+            strict_columns = ['course_code']  # 需要严格匹配的列
         else:  # assignment_info
             numeric_columns = ['points_possible']
             string_columns = ['assignment_title', 'course_name']
             datetime_columns = ['deadline']
+            strict_columns = ['course_code']  # 需要严格匹配的列
         
-        # 遍历ground truth中的每门课程，确保agent输出都包含这些数据
-        for idx_ground, row_ground in df_ground.iterrows():
-            course_code_ground = row_ground['Normalized_Course_Code']
-            
-            # 在agent输出中查找对应的课程
-            matching_rows = df_agent[df_agent['Normalized_Course_Code'] == course_code_ground]
-            
-            if matching_rows.empty:
-                differences.append(f"课程 {course_code_ground} 在agent输出中未找到")
-                continue
-            
-            # 取第一个匹配的行
-            row_agent = matching_rows.iloc[0]
-            
-            # 比较关键列
-            course_matches = True
-            course_diffs = []
+        # 逐行逐列比较
+        content_matches = True
+        content_differences = []
+        row_match_count = 0
+        
+        for idx in range(len(df_agent)):
+            row_matches = True
+            row_diffs = []
             
             for col in key_columns:
-                # 跳过agent中不存在的列
                 if col not in df_agent.columns:
                     continue
-                    
-                if col == 'course_code':
-                    # Course Code使用标准化后的值比较
-                    val_ground = course_code_ground
-                    val_agent = row_agent['Normalized_Course_Code']
-                    is_match = val_agent == val_ground
+                
+                val_agent = df_agent.iloc[idx][col]
+                val_ground = df_ground.iloc[idx][col]
+                
+                is_match = False
+                
+                # 根据列类型选择比较方法
+                if col in strict_columns:
+                    # 严格匹配（如course_code，保留-1后缀）
+                    is_match = compare_string_values(val_agent, val_ground, strict=True)
+                elif col in numeric_columns:
+                    is_match = compare_numeric_values(val_agent, val_ground)
+                elif col in datetime_columns:
+                    val_agent_norm = normalize_datetime(val_agent)
+                    val_ground_norm = normalize_datetime(val_ground)
+                    is_match = val_agent_norm == val_ground_norm
+                elif col in string_columns:
+                    is_match = compare_string_values(val_agent, val_ground, strict=False)
                 else:
-                    val_ground = row_ground.get(col, 'N/A')
-                    val_agent = row_agent.get(col, 'N/A')
-                    
-                    # 根据列类型选择比较方法
-                    if col in numeric_columns:
-                        is_match = compare_numeric_values(val_agent, val_ground)
-                    elif col in datetime_columns:
-                        val_agent_norm = normalize_datetime(val_agent)
-                        val_ground_norm = normalize_datetime(val_ground)
-                        is_match = val_agent_norm == val_ground_norm
-                    elif col in string_columns:
-                        is_match = compare_string_values(val_agent, val_ground)
-                    else:
-                        # 默认字符串比较
-                        is_match = compare_string_values(val_agent, val_ground)
+                    # 默认使用严格字符串比较
+                    is_match = compare_string_values(val_agent, val_ground, strict=True)
                 
                 if not is_match:
-                    course_matches = False
-                    if col in datetime_columns:
-                        course_diffs.append(f"{col}: Agent='{normalize_datetime(val_agent)}' vs Ground='{normalize_datetime(val_ground)}'")
-                    else:
-                        course_diffs.append(f"{col}: Agent='{val_agent}' vs Ground='{val_ground}'")
+                    row_matches = False
+                    row_diffs.append(f"{col}: '{val_agent}' vs '{val_ground}'")
             
-            if course_matches:
-                matches += 1
-                print(f"✅ {course_code_ground}: 完全匹配")
+            if row_matches:
+                row_match_count += 1
             else:
-                differences.append(f"❌ {course_code_ground}: {'; '.join(course_diffs)}")
+                content_matches = False
+                course_code = df_agent.iloc[idx].get('course_code', f'行{idx+1}')
+                content_differences.append(f"行{idx+1} ({course_code}): {'; '.join(row_diffs)}")
         
-        # 检查agent输出中是否有额外的课程（不在ground truth中）
-        extra_courses = []
-        for idx_agent, row_agent in df_agent.iterrows():
-            course_code_agent = row_agent['Normalized_Course_Code']
-            if not any(df_ground['Normalized_Course_Code'] == course_code_agent):
-                extra_courses.append(course_code_agent)
-                differences.append(f"课程 {course_code_agent} 在agent输出中存在但不在ground truth中（超出范畴）")
+        print(f"  匹配行数: {row_match_count}/{len(df_agent)}")
         
-        if extra_courses:
-            print(f"❌ 发现 {len(extra_courses)} 个超出范畴的课程: {', '.join(extra_courses)}")
-        
-        # 计算匹配率
-        if total_courses > 0:
-            match_rate = matches / total_courses
+        if not content_matches:
+            print(f"  ❌ 内容不完全匹配，差异详情:")
+            for i, diff in enumerate(content_differences[:10]):  # 显示前10个差异
+                print(f"    {i+1}. {diff}")
+            if len(content_differences) > 10:
+                print(f"    ... 还有{len(content_differences)-10}个差异")
         else:
-            match_rate = 0
+            print(f"  ✅ 内容完全匹配")
         
-        print(f"\n📊 {file_type}比较结果:")
-        print(f"Ground truth中匹配的课程: {matches}/{total_courses} ({match_rate:.1%})")
-        print(f"Agent输出中的课程数量: {len(df_agent)}")
-        print(f"（严格匹配：确保agent输出完全符合ground truth，既不能少也不能多）")
+        # ============ 6. 最终判定 ============
+        print("\n📊 最终判定:")
         
-        if differences:
-            print(f"\n❌ 发现 {len(differences)} 个差异:")
-            for diff in differences[:10]:  # 只显示前10个差异
-                print(f"  - {diff}")
-            if len(differences) > 10:
-                print(f"  ... 还有 {len(differences) - 10} 个差异")
+        # 收集所有问题
+        all_issues = []
         
-        # 只有在Ground truth覆盖率100%且没有任何额外数据的情况下才算完全正确
-        if match_rate >= 1.0 and len(differences) == 0:
-            print(f"✅ {file_type}文件内容完全一致（严格匹配：覆盖率100%，无额外数据）")
+        if not order_matches:
+            all_issues.append("顺序不一致")
+        
+        if dtype_issues:
+            all_issues.append(f"数据类型差异({len(dtype_issues)}个)")
+        
+        if not content_matches:
+            all_issues.append(f"内容差异({len(content_differences)}处)")
+        
+        if len(all_issues) == 0:
+            print(f"✅ {file_type}文件完全一致！")
             return True, None
         else:
-            if match_rate < 1.0:
-                error_msg = f'{file_type}Ground truth覆盖率不足: {match_rate:.1%}'
-            else:
-                error_msg = f'{file_type}存在超出范畴的数据'
-            
-            if len(differences) > 0:
-                error_msg += f', 差异数量: {len(differences)}'
-            
+            error_msg = f'{file_type}检查失败: {"; ".join(all_issues)}'
             print(f"❌ {error_msg}")
             return False, error_msg
             
     except Exception as e:
-        return False, f'读取{file_type}文件时出错: {str(e)}'
+        error_msg = f'{file_type}文件处理异常: {str(e)}'
+        print(f"💥 {error_msg}")
+        import traceback
+        traceback.print_exc()
+        return False, error_msg
 
 
 def check_local(agent_workspace: str, groundtruth_workspace: str):
     """
-    比较两个工作空间中的CSV文件内容，使用细粒度的比较逻辑。
-    检查quiz_info.csv和assignment_info.csv两个文件。
-    严格匹配原则：
-    1. Ground truth中的每条数据都必须在agent输出中找到匹配项
-    2. Agent输出中不能包含超出ground truth范畴的额外数据
+    全面比较两个工作空间中的CSV文件，执行严格的一致性检查。
+    
+    检查项目：
+    1. 文件存在性
+    2. 列完整性（所有关键列必须存在）
+    3. 行数一致性
+    4. 顺序一致性（按course_code顺序）
+    5. 内容完全匹配（包括course_code后缀）
+    6. 数据类型一致性
     """
+    
+    print("=" * 60)
+    print("🚀 开始执行全面的CSV文件一致性检查")
+    print("=" * 60)
     
     # 定义要检查的文件和对应的关键字段
     files_to_check = [
@@ -260,10 +338,14 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
     all_errors = []
     
     # 逐个检查每个文件
-    for file_info in files_to_check:
+    for i, file_info in enumerate(files_to_check, 1):
         filename = file_info['filename']
         key_columns = file_info['key_columns']
         file_type = filename.replace('.csv', '')
+        
+        print(f"\n{'='*60}")
+        print(f"📄 文件{i}: {filename}")
+        print(f"{'='*60}")
         
         agent_file = os.path.join(agent_workspace, filename)
         groundtruth_file = os.path.join(groundtruth_workspace, filename)
@@ -272,22 +354,47 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
         
         if not success:
             overall_success = False
-            all_errors.append(f"{file_type}: {error}")
+            all_errors.append(f"{filename}: {error}")
+    
+    # 输出最终结果
+    print("\n" + "=" * 60)
+    print("📊 总体检查结果")
+    print("=" * 60)
     
     if overall_success:
-        print("\n🎉 所有文件检查通过！Agent输出完全符合Ground truth要求：")
-        print("   ✅ Ground truth中的每条数据都找到了匹配项")  
-        print("   ✅ Agent输出中没有超出范畴的额外数据")
+        print("\n🎉 所有检查项全部通过！")
+        print("  ✅ 文件完整性: 通过")
+        print("  ✅ 列完整性: 通过")
+        print("  ✅ 行数一致: 通过")
+        print("  ✅ 顺序一致: 通过")
+        print("  ✅ 内容匹配: 通过")
+        print("  ✅ 数据类型: 通过")
         return True, None
     else:
-        combined_error = "; ".join(all_errors)
-        print(f"\n❌ 文件检查失败: {combined_error}")
+        combined_error = "\n".join(all_errors)
+        print(f"\n❌ 检查失败，问题汇总:")
+        for i, error in enumerate(all_errors, 1):
+            print(f"  {i}. {error}")
         return False, combined_error
 
 
-# # 测试调用 - 使用正确的路径
-# check_local("/ssddata/wzengak/mcp_bench/mcpbench_dev/tasks/finalpool/canvas_list_test/initial_workspace", "/ssddata/wzengak/mcp_bench/mcpbench_dev/tasks/finalpool/canvas_list_test/groundtruth_workspace")
-
-
-
-
+# 测试入口
+if __name__ == "__main__":
+    import sys
+    
+    if len(sys.argv) != 3:
+        print("用法: python check_local.py <agent_workspace> <groundtruth_workspace>")
+        sys.exit(1)
+    
+    agent_ws = sys.argv[1]
+    ground_ws = sys.argv[2]
+    
+    success, error = check_local(agent_ws, ground_ws)
+    
+    if not success:
+        print(f"\n最终结果: 失败")
+        print(f"错误信息: {error}")
+        sys.exit(1)
+    else:
+        print(f"\n最终结果: 成功")
+        sys.exit(0)

@@ -1,14 +1,14 @@
-course_code,teacher,credits,quiz_title,number_of_questions,time_limit,allowed_attempts,scoring_policy,points_possible,deadline,course_name
-CS401-1,mcpcanvasadmin2@mcp.com,4,CS401 Advanced Software Architecture Quiz,2,120,1,keep_highest,200,2025-09-23T23:59:00Z,Software Engineering
-DB101-1,mcpcanvasadmin2@mcp.com,2,DB101 Database Concepts Quiz,2,45,3,keep_highest,80,2025-09-23T23:59:00Z,Database Systems Fundamentals
-CS101-1,mcpcanvasadmin2@mcp.com,3,CS101 Midterm Quiz - Computer Science Fundamentals,2,60,2,keep_highest,100,2025-09-24T23:59:00Z,Introduction to Computer Science
-CS302-1,mcpcanvasadmin2@mcp.com,3,CS302 Software Development Lifecycle Quiz,2,60,2,keep_highest,100,2025-09-24T23:59:00Z,Software Engineering Practice
-AI101-1,mcpcanvasadmin2@mcp.com,3,AI101 Machine Learning Basics Quiz,2,90,2,keep_highest,150,2025-09-26T23:59:00Z,Fundamentals of Artificial Intelligence
-CS301-1,mcpcanvasadmin2@mcp.com,4,CS301 SQL and Database Design Quiz,2,75,2,keep_highest,120,2025-09-26T23:59:00Z,Database Systems
-MATH101-1,mcpcanvasadmin2@mcp.com,3,MATH101 Linear Algebra Fundamentals Quiz,2,90,2,keep_highest,150,2025-09-26T23:59:00Z,Linear Algebra
-CS201-1,mcpcanvasadmin2@mcp.com,4,CS201 Algorithm Analysis Quiz,2,90,1,keep_highest,150,2025-09-27T23:59:00Z,Data Structures and Algorithms
-MATH201-1,mcpcanvasadmin2@mcp.com,4,MATH201 Calculus and Linear Algebra Quiz,2,120,1,keep_highest,200,2025-09-27T23:59:00Z,Advanced Mathematics
-NET101-1,mcpcanvasadmin2@mcp.com,3,NET101 Network Protocols Quiz,2,75,2,keep_highest,120,2025-09-27T23:59:00Z,Network Programming
-PHIL201-1,mcpcanvasadmin2@mcp.com,3,PHIL201 Advanced Logical Reasoning and Argumentation Quiz,7,90,1,keep_highest,180,2025-09-27T23:59:00Z,Critical Thinking and Logic
-HIST301-1,mcpcanvasadmin2@mcp.com,4,HIST301 European Social and Political Movements Quiz,7,120,2,keep_highest,200,2025-09-29T23:59:00Z,Modern European History
-NLP101-1,mcpcanvasadmin2@mcp.com,3,NLP101 Text Processing Quiz,2,60,3,keep_highest,100,2025-09-30T23:59:00Z,Natural Language Processing
+course_code,course_name,credits,quiz_title,number_of_questions,time_limit,allowed_attempts,scoring_policy,points_possible,deadline
+CS401-1,Software Engineering,4,CS401 Advanced Software Architecture Quiz,2,120,1,keep_highest,200,2025-09-23T23:59:00Z
+CS101-1,Introduction to Computer Science,3,CS101 Midterm Quiz - Computer Science Fundamentals,2,60,2,keep_highest,100,2025-09-24T23:59:00Z
+DB101-1,Database Systems Fundamentals,2,DB101 Database Concepts Quiz,2,45,3,keep_highest,80,2025-09-24T23:59:00Z
+CS302-1,Software Engineering Practice,3,CS302 Software Development Lifecycle Quiz,2,60,2,keep_highest,100,2025-09-25T23:59:00Z
+CS301-1,Database Systems,4,CS301 SQL and Database Design Quiz,2,75,2,keep_highest,120,2025-09-26T23:59:00Z
+MATH101-1,Linear Algebra,3,MATH101 Linear Algebra Fundamentals Quiz,2,90,2,keep_highest,150,2025-09-26T23:59:00Z
+AI101-1,Fundamentals of Artificial Intelligence,3,AI101 Machine Learning Basics Quiz,2,90,2,keep_highest,150,2025-09-27T23:59:00Z
+MATH201-1,Advanced Mathematics,4,MATH201 Calculus and Linear Algebra Quiz,2,120,1,keep_highest,200,2025-09-27T23:59:00Z
+NET101-1,Network Programming,3,NET101 Network Protocols Quiz,2,75,2,keep_highest,120,2025-09-27T23:59:00Z
+CS201-1,Data Structures and Algorithms,4,CS201 Algorithm Analysis Quiz,2,90,1,keep_highest,150,2025-09-28T23:59:00Z
+PHIL201-1,Critical Thinking and Logic,3,PHIL201 Advanced Logical Reasoning and Argumentation Quiz,7,90,1,keep_highest,180,2025-09-28T23:59:00Z
+HIST301-1,Modern European History,4,HIST301 European Social and Political Movements Quiz,7,120,2,keep_highest,200,2025-09-30T23:59:00Z
+NLP101-1,Natural Language Processing,3,NLP101 Text Processing Quiz,2,60,3,keep_highest,100,2025-10-01T23:59:00Z
