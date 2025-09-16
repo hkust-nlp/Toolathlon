@@ -133,11 +133,23 @@ def create_warehouse_database(city_name_cn, city_name_en):
 def generate_sample_products():
     """生成示例商品数据"""
     products = [
-        ("PROD001", "iPhone 15 Pro", "Electronic Products ", 999.99, "iPhone 17"),
-        ("PROD002", "MacBook Air M2", "Electronic Products ", 1299.99, "Lightweight Laptop"),
-        ("PROD003", "AirPods Pro", "Electronic Products ", 249.99, "Noise-cancelling Earbuds"),
-        ("PROD004", "iPad Air", "Electronic Products ", 599.99, "iPad Mini"),
-        ("PROD005", "Apple Watch Series 9", "Electronic Products ", 399.99, "iWatch")
+        ("PROD001", "iPhone 15 Pro", "Electronic Products", 999.99, "High quality iPhone 15 Pro"),
+        ("PROD002", "MacBook Air M2", "Electronic Products", 1299.99, "High quality MacBook Air M2"),
+        ("PROD003", "AirPods Pro", "Electronic Products", 249.99, "High quality AirPods Pro"),
+        ("PROD004", "iPad Air", "Electronic Products", 599.99, "High quality iPad Air"),
+        ("PROD005", "Apple Watch Series 9", "Electronic Products", 399.99, "High quality Apple Watch Series 9"),
+        ("PROD006", "Redmi Note 12 Pro", "Electronic Products", 1999.99, "High quality Redmi Note 12 Pro"),
+        ("PROD007", "Sony WH-1000XM5", "Electronic Products", 2499.99, "High quality Sony WH-1000XM5"),
+        ("PROD008", "Samsung 65\" QLED TV", "Electronic Products", 12999.99, "High quality Samsung 65\" QLED TV"),
+        ("PROD009", "Bose QuietComfort Ultra", "Electronic Products", 2799.99, "High quality Bose QuietComfort Ultra"),
+        ("PROD010", "LG OLED 77-inch C4", "Electronic Products", 24999.99, "High quality LG OLED 77-inch C4"),
+        ("PROD011", "Sony Alpha 7R V Camera", "Electronic Products", 28999.99, "High quality Sony Alpha 7R V Camera"),
+        ("PROD012", "Logitech MX Master 3S", "Electronic Products", 699.99, "High quality Logitech MX Master 3S"),
+        ("PROD013", "Apple Watch Series 8", "Electronic Products", 299.99, "High quality Apple Watch Series 9"),
+        ("PROD014", "MacBook Air M4", "Electronic Products", 1599.99, "High quality MacBook Air M2"),
+        ("PROD015", "AirPods Pro Max", "Electronic Products", 269.99, "High quality AirPods Pro Max"),
+        ("ProD016", "NVIDIA GeForce RTX 4090", "Electronic Products", 9999.99, "High quality NVIDIA GeForce RTX 4090"),
+        ("ProD017", "Microsoft Surface Pro 9", "Electronic Products", 8999.99, "High quality Microsoft Surface Pro 9"),
     ]
     return products
 

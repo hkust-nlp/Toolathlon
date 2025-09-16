@@ -1,33 +1,49 @@
-import os
-import shutil
-import requests
-import json
 import sys
+import os
 import asyncio
-from utils.general.helper import run_command, get_module_path
 from argparse import ArgumentParser
-from pathlib import Path
 
-sys.path.append(str(Path(__file__).parent.parent))
-from token_key_session import all_token_key_session
+sys.path.append(os.path.dirname(__file__))
+
+from utils.app_specific.googlesheet.drive_helper import (
+    get_google_service, find_folder_by_name, create_folder, 
+    clear_folder, copy_sheet_to_folder
+)
+
+GOOGLESHEET_URLS = [
+    "https://docs.google.com/spreadsheets/d/1a0zqLuJz9e1iXadU911MTrr5Jh_Vaq6zWVt6eeBYb9Q/edit?gid=1113684723#gid=1113684723"
+]
+
+FOLDER_NAME = "NHL-B2B-Analysis"
+
+async def main():
+    parser = ArgumentParser(description="GoogleSheet example preprocess")
+    parser.add_argument("--agent_workspace", required=False)
+    parser.add_argument("--launch_time", required=False)
+    args = parser.parse_args()
+
+    task_root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    os.makedirs(os.path.join(task_root_path, "files"), exist_ok=True)
+    folder_id_file = os.path.join(task_root_path, "files", "folder_id.txt")
+
+    if os.path.exists(folder_id_file):
+        os.remove(folder_id_file)
+
+    drive_service, sheets_service = get_google_service()
+
+    folder_id = find_folder_by_name(drive_service, FOLDER_NAME)
+    if not folder_id:
+        folder_id = create_folder(drive_service, FOLDER_NAME)
+
+    clear_folder(drive_service, folder_id)
+
+    for sheet_url in GOOGLESHEET_URLS:
+        copy_sheet_to_folder(drive_service, sheet_url, folder_id)
+
+    with open(folder_id_file, "w") as f:
+        f.write(folder_id)
+
+    print(f"Folder ID saved: {folder_id}")
 
 if __name__ == "__main__":
-    parser = ArgumentParser(description='Preprocess NHL back-to-back analysis task')
-    parser.add_argument("--agent_workspace", required=True, help="Path to agent workspace")
-    parser.add_argument("--launch_time", required=False, help="Launch time")
-    parser.add_argument("--credentials_file",default="configs/credentials.json")
-    
-    args = parser.parse_args()
-    
-    # 初始化 Google Sheets
-    folder_id = all_token_key_session.get("google_sheets_folder_id", "1TQpPQxIDy78GTFe9fFvVDrqHu-hHzYJX")
-    print(f"Initializing Google Sheets ...")
-    asyncio.run(run_command(
-                f"uv run -m {get_module_path('init_google_sheet')} --folder_id {folder_id} --credentials_file {args.credentials_file}", debug=True,show_output=True))
-    print("Google Sheets initialized")
-    
-    # 使用固定的initial_workspace路径，因为系统只传递agent_workspace
-    # initial_workspace = "tasks/gyy710/NHL-B2B-Analysis/initial_workspace"
-    # preprocess(initial_workspace, args.agent_workspace)
-    
-    print("Preprogress finish.")
+    asyncio.run(main())

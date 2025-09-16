@@ -138,8 +138,8 @@ class InventorySyncValidator:
             return []
     
     def aggregate_regional_inventory(self) -> Dict[str, Dict[str, Any]]:
-        """聚合区域库存数据"""
-        print("📊 聚合区域库存数据...")
+        """聚合RegionInventory数据"""
+        print("📊 聚合RegionInventory数据...")
         
         regional_inventory = {}
         
@@ -379,7 +379,7 @@ class InventorySyncValidator:
         print("=" * 50)
         
         try:
-            # 1. 聚合区域库存数据
+            # 1. 聚合RegionInventory数据
             regional_inventory = self.aggregate_regional_inventory()
             print(regional_inventory)
             

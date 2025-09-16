@@ -1,0 +1,278 @@
+{
+  "ticker": "NVDA",
+  "data_fetched_at": "2025-09-15T20:36:43.858387",
+  "quarterly_data": {
+    "2022Q4": {
+      "end_date": "2022-12-31",
+      "actual_trading_date": "2022-12-30",
+      "close_price": 14.600198745727539,
+      "volume": 310490000,
+      "high": 14.615183969836613,
+      "low": 14.21955804675958,
+      "open": 14.320462493891805,
+      "outstanding_shares": {
+        "shares_number": 24562000000,
+        "shares_millions": 24562.0,
+        "source_date": "2024-07-31",
+        "days_difference": 578
+      }
+    },
+    "2023Q1": {
+      "end_date": "2023-03-31",
+      "actual_trading_date": "2023-03-31",
+      "close_price": 27.75547981262207,
+      "volume": 433933000,
+      "high": 27.812434858242728,
+      "low": 27.08399956957691,
+      "open": 27.11897230037396,
+      "outstanding_shares": {
+        "shares_number": 24562000000,
+        "shares_millions": 24562.0,
+        "source_date": "2024-07-31",
+        "days_difference": 488
+      }
+    },
+    "2023Q2": {
+      "end_date": "2023-06-30",
+      "actual_trading_date": "2023-06-30",
+      "close_price": 42.27359390258789,
+      "volume": 501148000,
+      "high": 42.5214284776047,
+      "low": 41.47313305600103,
+      "open": 41.65201371800326,
+      "outstanding_shares": {
+        "shares_number": 24562000000,
+        "shares_millions": 24562.0,
+        "source_date": "2024-07-31",
+        "days_difference": 397
+      }
+    },
+    "2023Q3": {
+      "end_date": "2023-09-30",
+      "actual_trading_date": "2023-09-29",
+      "close_price": 43.47337341308594,
+      "volume": 397830000,
+      "high": 44.117993873277456,
+      "low": 43.28148518657967,
+      "open": 43.80117928965927,
+      "outstanding_shares": {
+        "shares_number": 24562000000,
+        "shares_millions": 24562.0,
+        "source_date": "2024-07-31",
+        "days_difference": 305
+      }
+    },
+    "2023Q4": {
+      "end_date": "2023-12-31",
+      "actual_trading_date": "2023-12-29",
+      "close_price": 49.4971809387207,
+      "volume": 389293000,
+      "high": 49.97194517562977,
+      "low": 48.726567424201626,
+      "open": 49.78803546733378,
+      "outstanding_shares": {
+        "shares_number": 24562000000,
+        "shares_millions": 24562.0,
+        "source_date": "2024-07-31",
+        "days_difference": 213
+      }
+    },
+    "2024Q1": {
+      "end_date": "2024-03-31",
+      "actual_trading_date": "2024-03-28",
+      "close_price": 90.31495666503906,
+      "volume": 435212000,
+      "high": 91.25852807692272,
+      "low": 89.15248296936366,
+      "open": 89.95911557929476,
+      "outstanding_shares": {
+        "shares_number": 24562000000,
+        "shares_millions": 24562.0,
+        "source_date": "2024-07-31",
+        "days_difference": 122
+      }
+    },
+    "2024Q2": {
+      "end_date": "2024-06-30",
+      "actual_trading_date": "2024-06-28",
+      "close_price": 123.49402618408203,
+      "volume": 315516700,
+      "high": 127.66247251115811,
+      "low": 122.70431926304767,
+      "open": 124.53364006899224,
+      "outstanding_shares": {
+        "shares_number": 24562000000,
+        "shares_millions": 24562.0,
+        "source_date": "2024-07-31",
+        "days_difference": 31
+      }
+    },
+    "2024Q3": {
+      "end_date": "2024-09-30",
+      "actual_trading_date": "2024-09-30",
+      "close_price": 121.40518951416016,
+      "volume": 226553700,
+      "high": 121.46516987339125,
+      "low": 118.11613173565692,
+      "open": 118.27608190267567,
+      "outstanding_shares": {
+        "shares_number": 24508000000,
+        "shares_millions": 24508.0,
+        "source_date": "2024-10-31",
+        "days_difference": 31
+      }
+    },
+    "2024Q4": {
+      "end_date": "2024-12-31",
+      "actual_trading_date": "2024-12-31",
+      "close_price": 134.26075744628906,
+      "volume": 155659200,
+      "high": 138.0399485497518,
+      "low": 133.80086613446198,
+      "open": 137.99994871496077,
+      "outstanding_shares": {
+        "shares_number": 24477000000,
+        "shares_millions": 24477.0,
+        "source_date": "2025-01-31",
+        "days_difference": 31
+      }
+    }
+  },
+  "balance_sheet": {
+    "available_dates": [
+      "2025-07-31",
+      "2025-04-30",
+      "2025-01-31",
+      "2024-10-31",
+      "2024-07-31",
+      "2024-04-30",
+      "2024-01-31"
+    ],
+    "ordinary_shares_data": {
+      "2025-07-31": {
+        "ordinary_shares_number": 24387557065,
+        "ordinary_shares_millions": 24387.56
+      },
+      "2025-04-30": {
+        "ordinary_shares_number": 24387557065,
+        "ordinary_shares_millions": 24387.56
+      },
+      "2025-01-31": {
+        "ordinary_shares_number": 24477000000,
+        "ordinary_shares_millions": 24477.0
+      },
+      "2024-10-31": {
+        "ordinary_shares_number": 24508000000,
+        "ordinary_shares_millions": 24508.0
+      },
+      "2024-07-31": {
+        "ordinary_shares_number": 24562000000,
+        "ordinary_shares_millions": 24562.0
+      },
+      "2024-04-30": {
+        "ordinary_shares_number": null,
+        "ordinary_shares_millions": null
+      },
+      "2024-01-31": {
+        "ordinary_shares_number": null,
+        "ordinary_shares_millions": null
+      }
+    },
+    "total_rows": 79,
+    "all_available_items": [
+      "Ordinary Shares Number",
+      "Share Issued",
+      "Net Debt",
+      "Total Debt",
+      "Tangible Book Value",
+      "Invested Capital",
+      "Working Capital",
+      "Net Tangible Assets",
+      "Capital Lease Obligations",
+      "Common Stock Equity",
+      "Total Capitalization",
+      "Total Equity Gross Minority Interest",
+      "Stockholders Equity",
+      "Gains Losses Not Affecting Retained Earnings",
+      "Other Equity Adjustments",
+      "Retained Earnings",
+      "Additional Paid In Capital",
+      "Capital Stock",
+      "Common Stock",
+      "Preferred Stock",
+      "Total Liabilities Net Minority Interest",
+      "Total Non Current Liabilities Net Minority Interest",
+      "Other Non Current Liabilities",
+      "Tradeand Other Payables Non Current",
+      "Non Current Deferred Liabilities",
+      "Non Current Deferred Revenue",
+      "Non Current Deferred Taxes Liabilities",
+      "Long Term Debt And Capital Lease Obligation",
+      "Long Term Capital Lease Obligation",
+      "Long Term Debt",
+      "Current Liabilities",
+      "Other Current Liabilities",
+      "Current Deferred Liabilities",
+      "Current Deferred Revenue",
+      "Current Debt And Capital Lease Obligation",
+      "Current Capital Lease Obligation",
+      "Current Debt",
+      "Other Current Borrowings",
+      "Current Provisions",
+      "Payables And Accrued Expenses",
+      "Current Accrued Expenses",
+      "Payables",
+      "Total Tax Payable",
+      "Accounts Payable",
+      "Total Assets",
+      "Total Non Current Assets",
+      "Other Non Current Assets",
+      "Non Current Prepaid Assets",
+      "Non Current Deferred Assets",
+      "Non Current Deferred Taxes Assets",
+      "Non Current Accounts Receivable",
+      "Investments And Advances",
+      "Other Investments",
+      "Investmentin Financial Assets",
+      "Available For Sale Securities",
+      "Goodwill And Other Intangible Assets",
+      "Other Intangible Assets",
+      "Goodwill",
+      "Net PPE",
+      "Accumulated Depreciation",
+      "Gross PPE",
+      "Construction In Progress",
+      "Other Properties",
+      "Machinery Furniture Equipment",
+      "Buildings And Improvements",
+      "Land And Improvements",
+      "Properties",
+      "Current Assets",
+      "Other Current Assets",
+      "Restricted Cash",
+      "Inventory",
+      "Finished Goods",
+      "Work In Process",
+      "Raw Materials",
+      "Receivables",
+      "Accounts Receivable",
+      "Cash Cash Equivalents And Short Term Investments",
+      "Other Short Term Investments",
+      "Cash And Cash Equivalents"
+    ]
+  },
+  "metadata": {
+    "quarters": [
+      "2022Q4",
+      "2023Q1",
+      "2023Q2",
+      "2023Q3",
+      "2023Q4",
+      "2024Q1",
+      "2024Q2",
+      "2024Q3",
+      "2024Q4"
+    ],
+    "date_range": "2022-12-31 to 2024-12-31"
+  }
+}

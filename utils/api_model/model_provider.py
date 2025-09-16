@@ -379,7 +379,7 @@ class CustomModelProviderLocalVLLM(ModelProvider):
 class CustomModelProviderOpenRouter(ModelProvider):
     def get_model(self, model_name: str | None, debug: bool = True) -> Model:
         client = AsyncOpenAI(
-            api_key=global_configs.non_ds_key,
+            api_key=global_configs.openrouter_key,
             base_url="https://openrouter.ai/api/v1",
         )
         return OpenAIChatCompletionsModelWithRetry(model=model_name, 
