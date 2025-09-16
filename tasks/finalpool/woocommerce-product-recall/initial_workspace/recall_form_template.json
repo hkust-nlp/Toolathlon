@@ -1,74 +1,74 @@
 {
-  "form_title": "产品召回信息确认表",
-  "form_description": "感谢您配合我们的产品召回工作，请填写以下信息以便我们为您处理相关事宜。",
+  "form_title": "Product Recall Information Confirmation Form",
+  "form_description": "Thank you for cooperating with our product recall process. Please fill out the following information so we can assist you accordingly.",
   "fields": [
     {
-      "name": "客户姓名",
+      "name": "Customer Name",
       "type": "text",
       "required": true,
-      "description": "请输入您的真实姓名"
+      "description": "Please enter your real name"
     },
     {
-      "name": "联系邮箱", 
+      "name": "Contact Email", 
       "type": "email",
       "required": true,
-      "description": "用于后续联系的邮箱地址"
+      "description": "Email address for further contact"
     },
     {
-      "name": "联系电话",
+      "name": "Contact Phone Number",
       "type": "text",
       "required": false,
-      "description": "备用联系方式"
+      "description": "Alternative contact number"
     },
     {
-      "name": "产品型号",
+      "name": "Product Model",
       "type": "text", 
       "required": true,
-      "description": "请确认您购买的产品型号"
+      "description": "Please confirm the model of the product you purchased"
     },
     {
-      "name": "产品ID",
+      "name": "Product ID",
       "type": "text",
       "required": true,
-      "description": "产品标识码，可在产品包装上找到"
+      "description": "Product identifier, can be found on the product packaging"
     },
     {
-      "name": "订单号",
+      "name": "Order Number",
       "type": "text",
       "required": true,
-      "description": "您的购买订单编号"
+      "description": "Your purchase order number"
     },
     {
-      "name": "购买日期",
+      "name": "Purchase Date",
       "type": "date",
       "required": true,
-      "description": "产品购买的具体日期"
+      "description": "The specific date of purchase"
     },
     {
-      "name": "产品当前状态",
+      "name": "Current Product Status",
       "type": "choice",
       "required": false,
-      "choices": ["未使用", "正常使用", "出现问题", "已丢弃"],
-      "description": "请选择产品的当前使用状态"
+      "choices": ["Not Used", "In Normal Use", "Has Issues", "Discarded"],
+      "description": "Please select the current status of the product"
     },
     {
-      "name": "退货偏好",
+      "name": "Return Preference",
       "type": "choice", 
       "required": false,
-      "choices": ["全额退款", "产品更换", "店铺积分"],
-      "description": "请选择您希望的处理方式"
+      "choices": ["Full Refund", "Product Replacement", "Store Credit"],
+      "description": "Please select your preferred resolution option"
     },
     {
-      "name": "问题描述",
+      "name": "Problem Description",
       "type": "paragraph",
       "required": false,
-      "description": "请详细描述您遇到的产品问题或其他需要说明的情况"
+      "description": "Please describe in detail the issues you encountered with the product or any other relevant information"
     },
     {
-      "name": "是否同意处理条款",
+      "name": "Agreement to Terms of Processing",
       "type": "checkbox",
       "required": true,
-      "description": "我同意按照召回处理流程进行后续操作"
+      "description": "I agree to proceed according to the recall processing procedure"
     }
   ],
   "settings": {

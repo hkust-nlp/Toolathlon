@@ -24,8 +24,8 @@ from utils.app_specific.poste.local_email_manager import LocalEmailManager
 # 导入 Google Drive helper
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
-
-
+import random
+random.seed(42)
 def clear_all_email_folders():
     """
     清理INBOX、Draft、Sent三个文件夹的邮件
@@ -263,6 +263,7 @@ def setup_recall_test_data():
         return False
 
 if __name__ == "__main__":
+    
     parser = ArgumentParser(description="预处理脚本 - 设置产品召回任务的初始环境")
     parser.add_argument("--agent_workspace", required=False, help="Agent工作空间路径")
     parser.add_argument("--setup_data", default=True, help="同时设置WooCommerce测试数据")
@@ -279,7 +280,7 @@ if __name__ == "__main__":
 
     clear_mailbox_enabled = not args.no_clear_mailbox
     clear_forms_enabled = not args.no_clear_forms
-    form_name_pattern = args.form_name_pattern or "产品召回信息确认表"
+    form_name_pattern = args.form_name_pattern or "Product Recall Information Confirmation Form"
     
     if not clear_mailbox_enabled:
         print("🔧 参数: 跳过邮箱清空操作")

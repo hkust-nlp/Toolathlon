@@ -1,63 +1,63 @@
-# 产品召回通知
+# Product Recall Notice
 
-## 紧急通知
+## Urgent Notification
 
-尊敬的 **[客户姓名]**：
+Dear **[Customer Name]**,
 
-我们发现您购买的产品存在安全隐患，出于对客户安全的考虑，决定对该产品进行主动召回。
+We have discovered a safety hazard with the product you purchased. In consideration of customer safety, we have decided to initiate a proactive recall of this product.
 
-## 产品信息
+## Product Information
 
-- **产品型号**：[产品型号]
-- **产品ID**：[产品ID]
-- **您的订单号**：[订单号]
-- **购买日期**：[购买日期]
+- **Product Model**: [Product Model]
+- **Product ID**: [Product ID]
+- **Your Order Number**: [Order Number]
+- **Purchase Date**: [Purchase Date]
 
-## 召回原因
+## Reason for Recall
 
-该产品可能存在以下安全风险：
-- [具体风险描述]
-- 为确保您的安全，请立即停止使用
+This product may pose the following safety risks:
+- [Specific risk description]
+- To ensure your safety, please stop using it immediately
 
-## 处理方案
+## Solutions
 
-我们为您提供以下处理方案：
+We offer the following options for handling the recall:
 
-1. **全额退款** - 按原价格退还全部款项
-2. **产品更换** - 免费更换为同类安全产品
-3. **店铺积分** - 转为等值店铺积分，可用于后续购买
+1. **Full Refund** – Refund the full amount at the original price
+2. **Product Replacement** – Free replacement with a safe equivalent product
+3. **Store Credit** – Convert to equivalent store credit, usable for future purchases
 
-## 申请召回处理
+## How to Apply for Recall Processing
 
-请填写召回信息确认表：**[Google Forms 链接]**
+Please fill out the recall confirmation form: **[Google Forms Link]**
 
-表单包含以下信息：
-- 客户基本信息确认
-- 产品状态说明
-- 处理方案选择
-- 其他特殊要求
+The form includes the following information:
+- Customer basic information confirmation
+- Product status description
+- Choice of solution
+- Any special requirements
 
-## 重要提醒
+## Important Reminders
 
-- **请立即停止使用**该产品
-- **保留产品包装**以便后续处理
-- **填写确认表**后我们将在3个工作日内联系您
-- 如产品已造成损失，请保留相关证据
+- **Stop using** this product immediately
+- **Keep the product packaging** for follow-up processing
+- **After filling out the form**, we will contact you within 3 business days
+- If the product has already caused damage, please keep the relevant evidence
 
-## 联系我们
+## Contact Us
 
-如有任何疑问，请立即联系我们：
+If you have any questions, please contact us immediately:
 
-- **客服热线**：400-xxx-xxxx（24小时）
-- **客服邮箱**：recall@company.com
-- **在线客服**：访问官网在线咨询
+- **Customer Service Hotline**: 400-xxx-xxxx (24 hours)
+- **Customer Service Email**: recall@company.com
+- **Online Customer Service**: Visit our official website for live chat
 
-## 致歉声明
+## Apology Statement
 
-对于此次产品质量问题给您带来的不便，我们深表歉意。客户的安全和满意是我们的首要任务，我们会持续改进产品质量管控流程。
+We sincerely apologize for the inconvenience caused by this product quality issue. Customer safety and satisfaction are our top priorities, and we will continue to improve our product quality control processes.
 
-感谢您的理解与配合！
+Thank you for your understanding and cooperation!
 
 ---
 
-**[公司名称]** 客户服务团队
+**[Company Name]** Customer Service Team
