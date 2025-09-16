@@ -1,91 +1,12 @@
 import sys
 import os
 import tarfile
-import asyncio
 from argparse import ArgumentParser
 from pathlib import Path
 
-from utils.mcp.tool_servers import MCPServerManager, call_tool_with_retry, ToolCallError
-
 sys.path.insert(0, str(Path(__file__).parent.parent))  # 添加任务目录到路径
 from token_key_session import all_token_key_session
-from utils.app_specific.poste.local_email_manager import LocalEmailManager
-
-def clear_all_email_folders():
-    """
-    清理INBOX、Draft、Sent三个文件夹的邮件
-    """
-    # 获取邮件配置文件路径
-    emails_config_file = all_token_key_session.emails_config_file
-    print(f"使用邮件配置文件: {emails_config_file}")
-
-    # 初始化邮件管理器
-    email_manager = LocalEmailManager(emails_config_file, verbose=True)
-
-    # 首先列出可用的邮箱文件夹
-    try:
-        available_mailboxes = email_manager.list_mailboxes()
-    except Exception as e:
-        print(f"⚠️ 无法获取邮箱文件夹列表: {e}")
-        available_mailboxes = ['INBOX'] 
-
-    # 需要清理的文件夹（只清理存在的文件夹）
-    desired_folders = ['INBOX', 'Drafts', 'Sent']
-    folders_to_clear = [folder for folder in desired_folders if folder in available_mailboxes]
-
-    if not folders_to_clear:
-        folders_to_clear = ['INBOX']  # 确保至少清理INBOX
-
-    print(f"将清理以下文件夹: {folders_to_clear}")
-
-    for folder in folders_to_clear:
-        try:
-            print(f"清理 {folder} 文件夹...")
-            email_manager.clear_all_emails(mailbox=folder)
-            print(f"✅ {folder} 文件夹清理完成")
-        except Exception as e:
-            print(f"⚠️ 清理 {folder} 文件夹时出错: {e}")
-
-    print("📧 所有邮箱文件夹清理完成")
-
-async def import_emails_via_mcp(backup_file: str, description: str = ""):
-    """
-    使用MCP emails server导入邮件到任务指定的邮箱账号
-    """
-    print(f"使用MCP emails server导入邮件{description}...")
-    
-    # 使用任务配置的agent_workspace
-    agent_workspace = "./"  # MCP需要一个workspace路径
-    
-    # 创建MCP服务器管理器
-    mcp_manager = MCPServerManager(agent_workspace=agent_workspace, local_token_key_session=all_token_key_session)
-    emails_server = mcp_manager.servers['emails']
-    
-    async with emails_server as server:
-        try:
-            # 使用import_emails工具导入邮件备份
-            result = await call_tool_with_retry(
-                server, 
-                "import_emails",
-                {
-                    "import_path": backup_file,
-                    "folder": "INBOX"  # 导入到收件箱
-                }
-            )
-            
-            if result.content:
-                print(f"✅ 邮件导入成功{description}: {result.content[0].text}")
-                return True
-            else:
-                print(f"❌ 邮件导入失败{description}: 无返回内容")
-                return False
-                
-        except ToolCallError as e:
-            print(f"❌ 邮件导入失败{description}: {e}")
-            return False
-        except Exception as e:
-            print(f"❌ 邮件导入时发生未知错误{description}: {e}")
-            return False
+from utils.app_specific.poste.email_import_utils import setup_email_environment
 
 if __name__=="__main__":
     parser = ArgumentParser()
@@ -119,47 +40,20 @@ if __name__=="__main__":
 
     print("Preprocessing...")
     print("使用MCP邮件导入模式")
-    
-    # 步骤0：清理邮箱
-    print("=" * 60)
-    print("第零步：清理邮箱文件夹")
-    print("=" * 60)
-    clear_all_email_folders()
-    
-    # 获取邮件配置文件路径（用于配置MCP server）
-    emails_config_file = all_token_key_session.emails_config_file
-    print(f"使用邮件配置文件: {emails_config_file}")
-    
-    # 1. 导入任务相关的邮件（从任务files目录）
+
+    # 获取任务邮件备份文件路径
     task_backup_file = Path(__file__).parent / ".." / "files" / "emails_backup.json"
+
     if not task_backup_file.exists():
         print("❌ 未找到任务邮件备份文件，请先运行转换脚本生成emails_backup.json")
         sys.exit(1)
-    
-    print("\n" + "=" * 60)
-    print("第一步：导入任务相关邮件")
-    print("=" * 60)
-    success1 = asyncio.run(import_emails_via_mcp(str(task_backup_file), "（任务邮件）"))
-    
-    if not success1:
-        print("\n❌ 任务邮件导入失败！")
+
+    # 使用工具函数设置邮件环境
+    success = setup_email_environment(
+        local_token_key_session=all_token_key_session,
+        task_backup_file=str(task_backup_file)
+    )
+
+    if not success:
+        print("\n❌ 邮件环境设置失败！")
         sys.exit(1)
-    
-    # 2. 导入干扰邮件（从development/examples目录）
-    # interference_backup_file = Path(__file__).parent.parent.parent.parent.parent / "development" / "examples" / "emails" / "corrected_email_backup.json"
-    # if interference_backup_file.exists():
-    #     print("\n" + "=" * 60)
-    #     print("第二步：导入干扰邮件")
-    #     print("=" * 60)
-    #     success2 = asyncio.run(import_emails_via_mcp(str(interference_backup_file), "（干扰邮件）"))
-        
-    #     if not success2:
-    #         print("\n⚠️ 干扰邮件导入失败，但继续执行...")
-    #     else:
-    #         print("✅ 干扰邮件导入成功")
-    # else:
-    #     print(f"\n⚠️ 未找到干扰邮件文件: {interference_backup_file}")
-    
-    print("\n" + "=" * 60)
-    print("✅ 邮件导入完成！已构建初始邮件状态！")
-    print("=" * 60)
