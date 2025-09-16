@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import os
 import sys
 import json
@@ -7,122 +8,142 @@ import pandas as pd
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional
 from io import StringIO
+import gspread
+from googleapiclient.discovery import build
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
 
-def check_google_sheet_direct(agent_workspace: str, groundtruth_workspace: str) -> Tuple[bool, str]:
-    """
-    Direct Google Sheet checking without downloading content
-    
-    Check methods:
-    1. Sheet accessibility verification - verify if Sheet is publicly accessible
-    2. Sheet structure verification - check column structure via API metadata
-    3. Sheet data volume verification - check if row count is reasonable
-    4. Sheet permission verification - verify if set to public
-    
-    Args:
-        agent_workspace: agent workspace path
-        groundtruth_workspace: groundtruth workspace path
-    
-    Returns:
-        tuple: (whether check passed, check information)
-    """
-    
+def authenticate_google_services():
+    """认证Google服务 - 使用OAuth2用户凭证"""
     try:
-        # 1. Find Agent created Google Sheet
-        agent_sheet_url = find_agent_sheet_url(agent_workspace)
-        if not agent_sheet_url:
-            return False, "❌ Agent created Google Sheet link not found"
-        
-        print(f"🔍 Found Google Sheet: {agent_sheet_url}")
-        
-        # 2. Extract Sheet ID
-        sheet_id = extract_sheet_id(agent_sheet_url)
-        if not sheet_id:
-            return False, f"❌ Cannot extract Sheet ID from URL: {agent_sheet_url}"
-        
-        # 3. Check method sequence
-        # Simplified check - only verify Sheet existence
-        try:
-            accessibility_pass, accessibility_msg = check_sheet_accessibility(sheet_id, agent_sheet_url)
-            
-            # Special handling: permission restricted but Sheet exists is also considered success
-            if not accessibility_pass and any(keyword in accessibility_msg for keyword in ["permission", "401", "403"]):
-                sheet_exists = True
-                final_msg = "Sheet exists but permission restricted - Agent successfully created Sheet, permission issue is expected"
-                status = "✅"
-            elif accessibility_pass:
-                sheet_exists = True
-                final_msg = f"Sheet exists and accessible - {accessibility_msg}"
-                status = "✅"
-            else:
-                sheet_exists = False
-                final_msg = f"Sheet does not exist or cannot be verified - {accessibility_msg}"
-                status = "❌"
-            
-            results = [f"{status} Sheet existence check: {final_msg}"]
-            all_passed = sheet_exists
-            
-        except Exception as e:
-            results = [f"❌ Sheet existence check: Check failed - {str(e)}"]
-            all_passed = False
-        
-        # 4. Generate final result
-        final_message = [
-            f"🔍 Google Sheet existence check result (ID: {sheet_id}):",
-            "",
-            *results,
-            "",
-            "📝 Note: Due to permission restrictions, only check if Sheet was created, do not verify specific content"
-        ]
-        
-        if all_passed:
-            final_message.insert(1, "🎉 Check passed - Agent successfully created Google Sheet!")
-        else:
-            final_message.insert(1, "❌ Check failed - Agent created Google Sheet not found")
-        
-        return all_passed, "\n".join(final_message)
-        
-    except Exception as e:
-        return False, f"Google Sheet direct check error: {str(e)}"
+        print("正在认证Google服务...")
 
-def find_agent_sheet_url(agent_workspace: str) -> Optional[str]:
+        # Get credentials path - search upward from current directory
+        current_path = Path(__file__).parent
+        credentials_path = None
+
+        # Try different levels of upward search
+        for levels in range(1, 7):  # Maximum 6 levels up
+            test_root = current_path
+            for _ in range(levels):
+                test_root = test_root.parent
+
+            test_path = test_root / "configs" / "google_credentials.json"
+            if test_path.exists():
+                credentials_path = str(test_path)
+                print(f"🔍 Found credentials file: {test_path} ({levels} levels up)")
+                break
+
+        if not credentials_path:
+            # Default path if not found
+            default_path = current_path.parent.parent.parent.parent / "configs" / "google_credentials.json"
+            credentials_path = str(default_path)
+            print(f"⚠️ Using default credentials path: {default_path}")
+
+        # 读取OAuth2凭证文件
+        with open(credentials_path, 'r') as f:
+            creds_data = json.load(f)
+
+        SCOPES = [
+            'https://www.googleapis.com/auth/drive',
+            'https://www.googleapis.com/auth/spreadsheets'
+        ]
+
+        # 创建OAuth2凭证对象
+        credentials = Credentials(
+            token=creds_data.get('token'),
+            refresh_token=creds_data.get('refresh_token'),
+            token_uri=creds_data.get('token_uri'),
+            client_id=creds_data.get('client_id'),
+            client_secret=creds_data.get('client_secret'),
+            scopes=creds_data.get('scopes', SCOPES)
+        )
+
+        # 如果token过期，自动刷新
+        if credentials.expired and credentials.refresh_token:
+            credentials.refresh(Request())
+
+            # 更新保存的token
+            creds_data['token'] = credentials.token
+            with open(credentials_path, 'w') as f:
+                json.dump(creds_data, f, indent=2)
+            print("✓ Token已刷新并保存")
+
+        # 初始化gspread客户端
+        gc = gspread.authorize(credentials)
+
+        # 初始化Google Drive API客户端
+        drive_service = build('drive', 'v3', credentials=credentials)
+
+        print("✓ Google服务认证成功")
+        return gc, drive_service
+
+    except FileNotFoundError:
+        raise Exception(f"错误：找不到凭证文件 '{credentials_path}'")
+    except json.JSONDecodeError:
+        raise Exception(f"错误：凭证文件格式错误 '{credentials_path}'")
+    except Exception as e:
+        raise Exception(f"Google服务认证失败: {e}")
+
+def find_spreadsheet_in_folder(agent_workspace: str, spreadsheet_name: str = "NHL-B2B-Analysis") -> str:
     """
-    Read Google Sheet URL from google_sheet_url.json file in Agent workspace
+    在agent工作空间指定的文件夹中查找Spreadsheet文件
+    首先尝试从folder_id.txt读取文件夹ID，如果不存在则从google_sheet_url.json读取URL
+    返回找到的表格的ID
     """
     workspace_path = Path(agent_workspace)
-    
-    # Find google_sheet_url.json file
-    json_file_path = workspace_path / "google_sheet_url.json"
-    
+
+    # 方法1: 尝试从folder_id.txt读取文件夹ID
+    folder_id_path = "tasks/finalpool/NHL-B2B-Analysis/files/folder_id.txt"
+    target_folder_id = None
+
     try:
-        if json_file_path.exists():
-            # Read JSON file
-            with open(json_file_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-            
-            # Extract URL
-            sheet_url = data.get('google_sheet_url')
-            
-            if sheet_url and isinstance(sheet_url, str):
-                # Validate URL format
-                if 'docs.google.com/spreadsheets' in sheet_url:
-                    print(f"✅ Sheet URL read from JSON file: {sheet_url}")
-                    return sheet_url
-                else:
-                    print(f"⚠️ Incorrect URL format in JSON file: {sheet_url}")
-                    return None
-            else:
-                print(f"⚠️ Valid google_sheet_url field not found in JSON file")
-                return None
-        else:
-            print(f"❌ google_sheet_url.json file not found: {json_file_path}")
-            return None
-            
-    except json.JSONDecodeError as e:
-        print(f"❌ JSON file format error: {e}")
-        return None
+        with open(folder_id_path, 'r') as f:
+            target_folder_id = f.read().strip()
+        print(f"🔍 从folder_id.txt读取到文件夹ID: {target_folder_id}")
     except Exception as e:
-        print(f"❌ Failed to read JSON file: {e}")
-        return None
+        print(f"⚠️ 读取folder_id.txt失败: {e}")
+
+    if target_folder_id:
+        # 使用文件夹ID搜索
+        try:
+            gc, drive_service = authenticate_google_services()
+
+            # 查询文件夹中指定名称的Spreadsheet文件
+            query = f"'{target_folder_id}' in parents and name='{spreadsheet_name}' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false"
+            results = drive_service.files().list(
+                q=query,
+                fields="files(id, name, mimeType)"
+            ).execute()
+
+            files = results.get('files', [])
+            if not files:
+                # 如果没找到指定名称的文件，尝试查找任何spreadsheet文件
+                print(f"⚠️ 未找到名为 '{spreadsheet_name}' 的表格，尝试查找文件夹中的任何Spreadsheet文件...")
+                fallback_query = f"'{target_folder_id}' in parents and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false"
+                fallback_results = drive_service.files().list(
+                    q=fallback_query,
+                    fields="files(id, name, mimeType)"
+                ).execute()
+
+                fallback_files = fallback_results.get('files', [])
+                if not fallback_files:
+                    print(f"⚠️ 文件夹中没有找到任何Google Spreadsheet文件，回退到URL方法")
+                else:
+                    # 返回第一个找到的表格
+                    spreadsheet = fallback_files[0]
+                    spreadsheet_id = spreadsheet['id']
+                    print(f"✅ 找到表格: {spreadsheet['name']} (ID: {spreadsheet_id})")
+                    return spreadsheet_id
+            else:
+                # 返回指定名称的表格ID
+                spreadsheet = files[0]
+                spreadsheet_id = spreadsheet['id']
+                print(f"✅ 找到表格: {spreadsheet['name']} (ID: {spreadsheet_id})")
+                return spreadsheet_id
+
+        except Exception as e:
+            print(f"⚠️ 通过文件夹ID查找表格失败: {str(e)}，尝试URL方法")
 
 def extract_sheet_id(url: str) -> Optional[str]:
     """Extract Sheet ID from Google Sheets URL"""
@@ -130,238 +151,203 @@ def extract_sheet_id(url: str) -> Optional[str]:
         r'/spreadsheets/d/([a-zA-Z0-9-_]+)',
         r'spreadsheets/d/([a-zA-Z0-9-_]+)'
     ]
-    
+
     for pattern in patterns:
         match = re.search(pattern, url)
         if match:
             return match.group(1)
-    
+
     return None
 
-def check_sheet_accessibility(sheet_id: str, sheet_url: str) -> Tuple[bool, str]:
-    """Check if Sheet is accessible"""
-    # Method 1: Use authenticated access (recommended)
+def check_sheet_accessibility_gspread(sheet_id: str) -> Tuple[bool, str]:
+    """Check if Sheet is accessible using gspread"""
     try:
-        # Adjust relative path for importing auth module
-        import sys
-        from pathlib import Path
-        evaluation_dir = Path(__file__).parent
-        sys.path.append(str(evaluation_dir))
-        
-        from google_auth_helper import check_sheet_with_auth
-        auth_success, auth_msg = check_sheet_with_auth(sheet_url)
-        if auth_success:
-            return True, f"Sheet authenticated access successful - {auth_msg}"
-    except ImportError:
-        print("⚠️ Authentication module not available, using public access check")
-    except Exception as e:
-        print(f"⚠️ Authentication access check failed: {e}, using public access check")
-    
-    # Method 2: Fallback to public access check
-    try:
-        # Try to access CSV export link
-        csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
-        
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        }
-        
-        response = requests.get(csv_url, headers=headers, timeout=10)
-        
-        if response.status_code == 200:
-            content = response.text.strip()
-            if content and not content.startswith('<!DOCTYPE'):
-                return True, "Sheet can be normally accessed and export data"
-            else:
-                return False, "Sheet access returned non-data content"
-        elif response.status_code in [401, 403]:
-            # Permission restricted, check if Sheet exists
-            edit_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/edit"
-            response2 = requests.get(edit_url, headers=headers, timeout=10, allow_redirects=False)
-            
-            if response2.status_code in [200, 302]:
-                return True, "Sheet exists but permission restricted - this indicates Agent created Sheet but may not have set public permissions"
-            else:
-                return False, f"Sheet does not exist or cannot be accessed - HTTP {response2.status_code}"
-        elif response.status_code == 404:
-            return False, "Sheet does not exist or URL is invalid"
+        gc, drive_service = authenticate_google_services()
+
+        # Try to open the spreadsheet
+        spreadsheet = gc.open_by_key(sheet_id)
+
+        # Get basic info
+        title = spreadsheet.title
+        worksheet_count = len(spreadsheet.worksheets())
+
+        return True, f"Sheet accessible: '{title}' ({worksheet_count} worksheets)"
+
+    except gspread.SpreadsheetNotFound:
+        return False, "Sheet does not exist or is not accessible"
+    except gspread.APIError as e:
+        if 'PERMISSION_DENIED' in str(e) or '403' in str(e):
+            return False, "Insufficient permissions - need Sheet access permission"
+        elif '404' in str(e):
+            return False, "Sheet does not exist"
         else:
-            return False, f"Access failed - HTTP {response.status_code}"
-            
-    except requests.Timeout:
-        return False, "Access timeout"
+            return False, f"API error: {e}"
     except Exception as e:
         return False, f"Access exception: {str(e)}"
 
-def check_sheet_permissions(sheet_id: str, sheet_url: str) -> Tuple[bool, str]:
-    """Check Sheet permission settings"""
+def check_sheet_structure_gspread(sheet_id: str) -> Tuple[bool, str]:
+    """Check Sheet structure using gspread"""
     try:
-        # Try unauthenticated access to verify public permissions
-        csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
-        
-        # Use simplest request headers to simulate anonymous access
-        headers = {'User-Agent': 'curl/7.68.0'}
-        
-        response = requests.get(csv_url, headers=headers, timeout=10)
-        
-        if response.status_code == 200:
-            content = response.text.strip()
-            if content and len(content) > 100:  # Has actual content
-                return True, "Sheet is correctly set to public access"
-            else:
-                return False, "Sheet is accessible but content is empty or too little"
-        elif response.status_code in [401, 403]:
-            # Permission restricted, but this is not necessarily a failure - Agent may have created Sheet but forgot to set permissions
-            return True, "⚠️ Sheet permission restricted - Agent created Sheet but did not set it to public access\n💡 Suggestion: Please manually set Sheet to public access, or guide Agent to provide manual setup instructions"
-        else:
-            return False, f"Permission check failed - HTTP {response.status_code}"
-            
-    except Exception as e:
-        return False, f"Permission check exception: {str(e)}"
+        gc, drive_service = authenticate_google_services()
+        spreadsheet = gc.open_by_key(sheet_id)
 
-def check_sheet_structure_via_api(sheet_id: str, sheet_url: str) -> Tuple[bool, str]:
-    """Check Sheet structure via API (without downloading full content)"""
-    try:
-        # Only get first few rows to check structure
-        csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
-        
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            'Range': 'bytes=0-1024'  # Only get first 1KB of data
+        # Get the first worksheet
+        worksheet = spreadsheet.get_worksheet(0)
+        if not worksheet:
+            return False, "No worksheets found in spreadsheet"
+
+        # Get header row
+        try:
+            header_values = worksheet.row_values(1)
+        except Exception as e:
+            return False, f"Failed to read header row: {e}"
+
+        if not header_values:
+            return False, "Header row is empty"
+
+        # Clean and normalize headers
+        headers = [str(header).strip().lower() for header in header_values]
+
+        # Check required columns for NHL B2B analysis
+        expected_columns = ['team', 'ha', 'ah', 'hh', 'aa', 'total']
+
+        # Flexible column name matching
+        column_variants = {
+            'team': ['team', 'teams', 'teamname', 'team name'],
+            'ha': ['ha', 'home-away', 'homeaway', 'home away'],
+            'ah': ['ah', 'away-home', 'awayhome', 'away home'],
+            'hh': ['hh', 'home-home', 'homehome', 'home home'],
+            'aa': ['aa', 'away-away', 'awayaway', 'away away'],
+            'total': ['total', 'sum', 'count']
         }
-        
-        response = requests.get(csv_url, headers=headers, timeout=10)
-        
-        if response.status_code in [200, 206]:  # 200 or Partial Content
-            content = response.text
-            
-            # Parse CSV header
-            lines = content.split('\n')
-            if lines:
-                header_line = lines[0].strip()
-                columns = [col.strip().strip('"') for col in header_line.split(',')]
-                
-                # Check required columns
-                expected_columns = ['Team', 'HA', 'AH', 'HH', 'AA', 'Total']
-                
-                # Flexible column name matching
-                column_variants = {
-                    'Team': ['Team', 'team', 'TEAM', 'Teams', 'TeamName'],
-                    'HA': ['HA', 'Home-Away', 'HomeAway'],
-                    'AH': ['AH', 'Away-Home', 'AwayHome'],
-                    'HH': ['HH', 'Home-Home', 'HomeHome'],
-                    'AA': ['AA', 'Away-Away', 'AwayAway'],
-                    'Total': ['Total', 'TOTAL', 'Sum']
-                }
-                
-                matched_columns = []
-                for expected_col in expected_columns:
-                    for actual_col in columns:
-                        if actual_col in column_variants[expected_col]:
-                            matched_columns.append(expected_col)
-                            break
-                
-                if len(matched_columns) == len(expected_columns):
-                    return True, f"Column structure correct: {columns}"
-                else:
-                    missing = [col for col in expected_columns if col not in matched_columns]
-                    return False, f"Missing required columns: {missing}, actual columns: {columns}"
-            else:
-                return False, "Unable to parse header"
-        elif response.status_code in [401, 403]:
-            # Permission restricted, but this indicates Sheet exists
-            return True, "⚠️ Unable to check structure (permission restricted) - but Sheet exists, need to set public access to verify structure"
+
+        matched_columns = []
+        for expected_col in expected_columns:
+            for actual_col in headers:
+                if any(variant in actual_col for variant in column_variants[expected_col]):
+                    matched_columns.append(expected_col)
+                    break
+
+        if len(matched_columns) == len(expected_columns):
+            return True, f"Column structure correct: {header_values}"
         else:
-            return False, f"Failed to get header - HTTP {response.status_code}"
-            
+            missing = [col for col in expected_columns if col not in matched_columns]
+            return False, f"Missing required columns: {missing}, actual columns: {header_values}"
+
     except Exception as e:
         return False, f"Structure check exception: {str(e)}"
 
-def check_sheet_data_volume(sheet_id: str, sheet_url: str) -> Tuple[bool, str]:
-    """Check Sheet data volume (estimate row count)"""
+def check_sheet_data_volume_gspread(sheet_id: str) -> Tuple[bool, str]:
+    """Check Sheet data volume using gspread"""
     try:
-        # Get file size via HTTP HEAD request
-        csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
-        
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        response = requests.head(csv_url, headers=headers, timeout=10)
-        
-        if response.status_code == 200:
-            content_length = response.headers.get('Content-Length')
-            
-            if content_length:
-                size_bytes = int(content_length)
-                
-                # Estimate row count (assuming average 50 bytes per row)
-                estimated_rows = max(1, size_bytes // 50)
-                
-                if estimated_rows >= 30:  # NHL has 32 teams, allow 30+ rows
-                    return True, f"Data volume reasonable: approximately {estimated_rows} rows ({size_bytes} bytes)"
-                else:
-                    return False, f"Data volume too little: approximately {estimated_rows} rows ({size_bytes} bytes), expected 30+ rows"
-            else:
-                # If unable to get size, try partial download to estimate
-                response = requests.get(csv_url, headers={'Range': 'bytes=0-2048'}, timeout=10)
-                if response.status_code in [200, 206]:
-                    sample_content = response.text
-                    line_count = len(sample_content.split('\n'))
-                    
-                    if line_count >= 10:  # At least 10 rows in sample
-                        return True, f"Data volume check passed: {line_count} rows in sample"
-                    else:
-                        return False, f"Data volume too little: only {line_count} rows in sample"
-                else:
-                    return False, "Unable to check data volume"
-        elif response.status_code in [401, 403]:
-            # Permission restricted, unable to check data volume, but this is not a failure
-            return True, "⚠️ Unable to check data volume (permission restricted) - but Sheet exists"
+        gc, drive_service = authenticate_google_services()
+        spreadsheet = gc.open_by_key(sheet_id)
+
+        # Get the first worksheet
+        worksheet = spreadsheet.get_worksheet(0)
+        if not worksheet:
+            return False, "No worksheets found in spreadsheet"
+
+        # Get all values to count rows
+        all_values = worksheet.get_all_values()
+
+        if not all_values:
+            return False, "Sheet is empty"
+
+        # Count data rows (excluding header)
+        data_rows = len(all_values) - 1  # Subtract header row
+
+        if data_rows >= 30:  # NHL has 32 teams, allow 30+ rows
+            return True, f"Data volume reasonable: {data_rows} data rows (plus 1 header row)"
         else:
-            return False, f"Data volume check failed - HTTP {response.status_code}"
-            
+            return False, f"Data volume too little: {data_rows} data rows, expected 30+ rows"
+
     except Exception as e:
         return False, f"Data volume check exception: {str(e)}"
 
-def check_sheet_title(sheet_id: str, sheet_url: str) -> Tuple[bool, str]:
-    """Check Sheet title"""
+def check_google_sheet_direct(agent_workspace: str, groundtruth_workspace: str) -> Tuple[bool, str]:
+    """
+    Direct Google Sheet checking using gspread and Google Drive API
+
+    Check methods:
+    1. Sheet accessibility verification - verify if Sheet is accessible via API
+    2. Sheet structure verification - check column structure via gspread
+    3. Sheet data volume verification - check if row count is reasonable
+    4. Sheet content verification - verify data structure matches expected format
+
+    Args:
+        agent_workspace: agent workspace path
+        groundtruth_workspace: groundtruth workspace path
+
+    Returns:
+        tuple: (whether check passed, check information)
+    """
+
     try:
-        # Get title via HTML page (without downloading data)
-        view_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/edit"
-        
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        }
-        
-        response = requests.get(view_url, headers=headers, timeout=10, allow_redirects=True)
-        
-        if response.status_code == 200:
-            content = response.text[:5000]  # Only get first 5KB HTML
-            
-            # Extract title from HTML
-            title_patterns = [
-                r'<title>([^<]+) - Google .*</title>',
-                r'"title":"([^"]*back.*to.*back[^"]*)"',
-                r'"title":"([^"]*)"'
-            ]
-            
-            for pattern in title_patterns:
-                match = re.search(pattern, content)
-                if match:
-                    title = match.group(1).strip()
-                    
-                    # Check if title contains expected keywords
-                    expected_keywords = ['back-to-back', 'B2B', 'Back', 'NHL']
-                    
-                    if any(keyword.lower() in title.lower() for keyword in expected_keywords):
-                        return True, f"Title meets requirements: '{title}'"
-                    else:
-                        return True, f"Title is set: '{title}' (although does not contain expected keywords)"
-            
-            return False, "Unable to extract title from page"
+        # 1. Find Agent created Google Sheet using multiple methods
+        spreadsheet_id = find_spreadsheet_in_folder(agent_workspace)
+        if not spreadsheet_id:
+            return False, "❌ Agent created Google Sheet not found"
+
+        print(f"🔍 Found Google Sheet ID: {spreadsheet_id}")
+
+        # 2. Check method sequence using gspread
+        try:
+            accessibility_pass, accessibility_msg = check_sheet_accessibility_gspread(spreadsheet_id)
+
+            if accessibility_pass:
+                sheet_exists = True
+                final_msg = f"Sheet exists and accessible - {accessibility_msg}"
+                status = "✅"
+
+                # Additional checks if accessible
+                structure_pass, structure_msg = check_sheet_structure_gspread(spreadsheet_id)
+                volume_pass, volume_msg = check_sheet_data_volume_gspread(spreadsheet_id)
+
+                results = [
+                    f"{status} Sheet existence check: {final_msg}",
+                    f"{'✅' if structure_pass else '❌'} Sheet structure check: {structure_msg}",
+                    f"{'✅' if volume_pass else '❌'} Sheet data volume check: {volume_msg}"
+                ]
+
+                all_passed = sheet_exists and structure_pass and volume_pass
+            else:
+                # Special handling: permission restricted but attempt to verify existence
+                if any(keyword in accessibility_msg for keyword in ["permission", "401", "403"]):
+                    sheet_exists = True
+                    final_msg = "Sheet exists but permission restricted - Agent successfully created Sheet, permission issue is expected"
+                    status = "✅"
+                    results = [f"{status} Sheet existence check: {final_msg}"]
+                    all_passed = sheet_exists
+                else:
+                    sheet_exists = False
+                    final_msg = f"Sheet does not exist or cannot be verified - {accessibility_msg}"
+                    status = "❌"
+                    results = [f"{status} Sheet existence check: {final_msg}"]
+                    all_passed = False
+
+        except Exception as e:
+            results = [f"❌ Sheet existence check: Check failed - {str(e)}"]
+            all_passed = False
+
+        # 4. Generate final result
+        final_message = [
+            f"🔍 Google Sheet check result (ID: {spreadsheet_id}):",
+            "",
+            *results,
+            "",
+            "📝 Note: Using Google API for comprehensive sheet verification"
+        ]
+
+        if all_passed:
+            final_message.insert(1, "🎉 Check passed - Agent successfully created and populated Google Sheet!")
         else:
-            return False, f"Unable to access Sheet page - HTTP {response.status_code}"
-            
+            final_message.insert(1, "❌ Check failed - Agent created Google Sheet verification failed")
+
+        return all_passed, "\n".join(final_message)
+
     except Exception as e:
-        return False, f"Title check exception: {str(e)}"
+        return False, f"Google Sheet direct check error: {str(e)}"
 
 if __name__ == "__main__":
     if len(sys.argv) >= 3:
