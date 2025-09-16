@@ -72,6 +72,55 @@ class LocalEmailManager:
             raise RuntimeError(f"IMAP 登录失败：{e}")
         return mail
 
+    def list_mailboxes(self) -> List[str]:
+        """列出所有可用的邮箱文件夹"""
+        mail = self.connect_imap()
+        try:
+            typ, mailboxes = mail.list()
+            if typ != 'OK':
+                raise RuntimeError("无法获取邮箱列表")
+
+            mailbox_names = []
+            for mailbox in mailboxes:
+                # 解析mailbox字符串，提取文件夹名称
+                # 格式通常是: (\\HasNoChildren) "." "INBOX"
+                mailbox_str = mailbox.decode() if isinstance(mailbox, bytes) else str(mailbox)
+                self._log(f"调试: 原始邮箱信息: {mailbox_str}")
+
+                # 尝试多种解析方式
+                if '"' in mailbox_str:
+                    # 方式1: 使用引号分割
+                    parts = mailbox_str.split('"')
+                    if len(parts) >= 3:
+                        # 通常最后一个引号内是文件夹名
+                        for i in range(len(parts)-1, 0, -1):
+                            if parts[i-1] == '"' or (i == len(parts)-1 and parts[i].strip()):
+                                name = parts[i] if i == len(parts)-1 else parts[i-1]
+                                if name and name not in ['.', '']:
+                                    mailbox_names.append(name)
+                                    break
+                else:
+                    # 方式2: 简单分割，取最后一个非空部分
+                    parts = mailbox_str.split()
+                    if parts:
+                        name = parts[-1]
+                        if name and name not in ['.', '']:
+                            mailbox_names.append(name)
+
+            # 去重并确保INBOX总是存在
+            mailbox_names = list(set(mailbox_names))
+            if 'INBOX' not in mailbox_names:
+                mailbox_names.append('INBOX')
+
+            self._log(f"📁 可用邮箱文件夹: {mailbox_names}")
+            return mailbox_names
+        finally:
+            try:
+                mail.close()
+            except Exception:
+                pass
+            mail.logout()
+
     def clear_all_emails(self, mailbox: str = 'INBOX') -> None:
         """清空某个邮箱（默认 INBOX）"""
         mail = self.connect_imap()
