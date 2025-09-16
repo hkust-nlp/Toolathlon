@@ -186,10 +186,10 @@ class NotionPageDuplicator:
                 print(f"Navigating to source page: {source_page_url}")
                 initial_url = page.url if hasattr(page, 'url') else None
                 page.goto(source_page_url, wait_until="load", timeout=60_000)
-
+                
                 # Wait for navigation to complete and verify we actually navigated
                 time.sleep(3)
-                page.wait_for_load_state("networkidle", timeout=15_000)
+                page.wait_for_load_state("load", timeout=15_000)
 
                 # Verify we navigated to the correct page
                 current_url = page.url
@@ -270,7 +270,6 @@ class NotionPageDuplicator:
                 is_valid, error_msg = self.protector.validate_move_operation(
                     duplicated_page_id,
                     original_page_id,  # source parent (where it was duplicated)
-                    self.extract_page_id_from_url(f"notion.so/{target_parent_title}")  # approximate target
                 )
                 if not is_valid:
                     print(f"ERROR: {error_msg}")

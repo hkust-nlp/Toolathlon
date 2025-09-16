@@ -149,7 +149,7 @@ class NotionPageProtector:
 
         return True, ""
 
-    def validate_move_operation(self, page_id: str, source_parent_id: str, target_parent_id: str) -> Tuple[bool, str]:
+    def validate_move_operation(self, page_id: str, source_parent_id: str) -> Tuple[bool, str]:
         """
         Validate a move operation on a page.
 
