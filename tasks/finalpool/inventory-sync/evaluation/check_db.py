@@ -200,8 +200,8 @@ class DatabaseChecker:
         return export_summary
     
     def aggregate_regional_inventory(self) -> Dict[str, Dict[str, Any]]:
-        """聚合区域库存数据"""
-        print("📊 聚合区域库存数据...")
+        """聚合RegionInventory数据"""
+        print("📊 聚合RegionInventory数据...")
         
         regional_inventory = {}
         
@@ -244,7 +244,7 @@ class DatabaseChecker:
     def print_inventory_summary(self, regional_inventory: Dict[str, Dict[str, Any]]):
         """打印库存摘要"""
         print("\n" + "="*70)
-        print("📊 区域库存数据摘要")
+        print("📊 RegionInventory数据摘要")
         print("="*70)
         
         total_products = 0
@@ -331,7 +331,7 @@ class DatabaseChecker:
             for city_cn, city_config in self.cities_config.items():
                 self.check_database_tables(city_config["en"])
             
-            # 3. 聚合区域库存数据
+            # 3. 聚合RegionInventory数据
             regional_inventory = self.aggregate_regional_inventory()
             
             if not regional_inventory:

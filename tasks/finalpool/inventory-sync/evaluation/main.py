@@ -101,13 +101,13 @@ def run_complete_evaluation(agent_workspace: str) -> tuple[bool, str]:
     results = []
     
     # Step 1: Check report file generation and format
-    # print("\\n📊 STEP 1: Checking Report File...")
+    # print("\n📊 STEP 1: Checking Report File...")
     # report_success, report_msg = check_report_file(agent_workspace)
     # results.append(("Report File", report_success, report_msg))
     # print(report_msg)
     
     # Step 2: Check inventory synchronization
-    print("\\n🔄 STEP 2: Checking Inventory Synchronization...")
+    print("\n🔄 STEP 2: Checking Inventory Synchronization...")
     sync_success, sync_msg = check_inventory_sync(agent_workspace)
     results.append(("Inventory Sync", sync_success, sync_msg))
     print(sync_msg)
@@ -118,7 +118,7 @@ def run_complete_evaluation(agent_workspace: str) -> tuple[bool, str]:
     
     # Summary
     summary = []
-    summary.append("\\n" + "=" * 80)
+    summary.append("\n" + "=" * 80)
     summary.append("EVALUATION SUMMARY")
     summary.append("=" * 80)
     
@@ -129,16 +129,16 @@ def run_complete_evaluation(agent_workspace: str) -> tuple[bool, str]:
             summary.append(f"  Details: {message}")
     
     overall_pass = passed_count == total_count
-    final_message = f"\\nOverall: {passed_count}/{total_count} tests passed"
+    final_message = f"\nOverall: {passed_count}/{total_count} tests passed"
     
     if overall_pass:
         summary.append(final_message + " - ✅ ALL TESTS PASSED!")
-        summary.append("\\n🎉 Inventory sync evaluation completed successfully!")
+        summary.append("\n🎉 Inventory sync evaluation completed successfully!")
     else:
         summary.append(final_message + " - ❌ SOME TESTS FAILED")
-        summary.append("\\n❌ Please review the failed tests above")
+        summary.append("\n❌ Please review the failed tests above")
     
-    return overall_pass, "\\n".join(summary)
+    return overall_pass, "\n".join(summary)
 
 if __name__ == "__main__":
     parser = ArgumentParser()
@@ -151,16 +151,16 @@ if __name__ == "__main__":
     try:
         success, message = run_complete_evaluation(args.agent_workspace)
         
-        print("\\n" + "="*80)
+        print("\n" + "="*80)
         print("FINAL EVALUATION RESULT")
         print("="*80)
         print(message)
         
         if success:
-            print("\\n✅ EVALUATION PASSED")
+            print("\n✅ EVALUATION PASSED")
             sys.exit(0)
         else:
-            print("\\n❌ EVALUATION FAILED")
+            print("\n❌ EVALUATION FAILED")
             sys.exit(1)
             
     except Exception as e:
