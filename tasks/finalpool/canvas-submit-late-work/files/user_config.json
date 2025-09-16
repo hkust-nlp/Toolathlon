@@ -1,0 +1,193 @@
+{
+  "students": [
+    {
+      "id": 4,
+      "name": "Elizabeth Ruiz",
+      "email": "elizabethr@mcp.com",
+      "assignment_scores": {
+        "Assignment 1: Classic Film Analysis": 85,
+        "Assignment 2: Film History and Evolution": 92,
+        "Assignment 3: Genre Analysis": 78,
+        "Assignment 4: Cinematography and Visual Storytelling": 88,
+        "Assignment 5: International Cinema": 0,
+        "Assignment 6: Contemporary Cinema Trends": 0
+      },
+      "completion_rate": "4/6",
+      "average_score": 60.5
+    },
+    {
+      "id": 5,
+      "name": "Gregory Scott",
+      "email": "gregory_scott@mcp.com",
+      "assignment_scores": {
+        "Assignment 1: Classic Film Analysis": 100,
+        "Assignment 2: Film History and Evolution": 95,
+        "Assignment 3: Genre Analysis": 90,
+        "Assignment 4: Cinematography and Visual Storytelling": 87,
+        "Assignment 5: International Cinema": 93,
+        "Assignment 6: Contemporary Cinema Trends": 89
+      },
+      "completion_rate": "6/6",
+      "average_score": 92.3
+    },
+    {
+      "id": 6,
+      "name": "Donald Roberts",
+      "email": "donald_roberts@mcp.com",
+      "assignment_scores": {
+        "Assignment 1: Classic Film Analysis": 72,
+        "Assignment 2: Film History and Evolution": 0,
+        "Assignment 3: Genre Analysis": 85,
+        "Assignment 4: Cinematography and Visual Storytelling": 79,
+        "Assignment 5: International Cinema": 0,
+        "Assignment 6: Contemporary Cinema Trends": 82
+      },
+      "completion_rate": "4/6",
+      "average_score": 54.7
+    },
+    {
+      "id": 7,
+      "name": "Carol Rodriguez",
+      "email": "rodriguezc39@mcp.com",
+      "assignment_scores": {
+        "Assignment 1: Classic Film Analysis": 88,
+        "Assignment 2: Film History and Evolution": 91,
+        "Assignment 3: Genre Analysis": 86,
+        "Assignment 4: Cinematography and Visual Storytelling": 0,
+        "Assignment 5: International Cinema": 89,
+        "Assignment 6: Contemporary Cinema Trends": 0
+      },
+      "completion_rate": "4/6",
+      "average_score": 62.3
+    },
+    {
+      "id": 8,
+      "name": "Robert Sanders",
+      "email": "robert_sanders66@mcp.com",
+      "assignment_scores": {
+        "Assignment 1: Classic Film Analysis": 76,
+        "Assignment 2: Film History and Evolution": 83,
+        "Assignment 3: Genre Analysis": 77,
+        "Assignment 4: Cinematography and Visual Storytelling": 81,
+        "Assignment 5: International Cinema": 85,
+        "Assignment 6: Contemporary Cinema Trends": 0
+      },
+      "completion_rate": "5/6",
+      "average_score": 67.0
+    },
+    {
+      "id": 9,
+      "name": "Susan Martinez",
+      "email": "smartinez@mcp.com",
+      "assignment_scores": {
+        "Assignment 1: Classic Film Analysis": 94,
+        "Assignment 2: Film History and Evolution": 89,
+        "Assignment 3: Genre Analysis": 92,
+        "Assignment 4: Cinematography and Visual Storytelling": 96,
+        "Assignment 5: International Cinema": 88,
+        "Assignment 6: Contemporary Cinema Trends": 91
+      },
+      "completion_rate": "6/6",
+      "average_score": 91.7
+    },
+    {
+      "id": 10,
+      "name": "Patrick Carter",
+      "email": "patrick.carter@mcp.com",
+      "assignment_scores": {
+        "Assignment 1: Classic Film Analysis": 0,
+        "Assignment 2: Film History and Evolution": 74,
+        "Assignment 3: Genre Analysis": 0,
+        "Assignment 4: Cinematography and Visual Storytelling": 68,
+        "Assignment 5: International Cinema": 0,
+        "Assignment 6: Contemporary Cinema Trends": 75
+      },
+      "completion_rate": "3/6",
+      "average_score": 36.2
+    },
+    {
+      "id": 11,
+      "name": "Maria Alvarez",
+      "email": "malvarez@mcp.com",
+      "assignment_scores": {
+        "Assignment 1: Classic Film Analysis": 89,
+        "Assignment 2: Film History and Evolution": 86,
+        "Assignment 3: Genre Analysis": 91,
+        "Assignment 4: Cinematography and Visual Storytelling": 84,
+        "Assignment 5: International Cinema": 87,
+        "Assignment 6: Contemporary Cinema Trends": 90
+      },
+      "completion_rate": "6/6",
+      "average_score": 87.8
+    },
+    {
+      "id": 12,
+      "name": "Zachary Edwards",
+      "email": "zedwards@mcp.com",
+      "assignment_scores": {
+        "Assignment 1: Classic Film Analysis": 65,
+        "Assignment 2: Film History and Evolution": 0,
+        "Assignment 3: Genre Analysis": 71,
+        "Assignment 4: Cinematography and Visual Storytelling": 0,
+        "Assignment 5: International Cinema": 78,
+        "Assignment 6: Contemporary Cinema Trends": 0
+      },
+      "completion_rate": "3/6",
+      "average_score": 35.7
+    },
+    {
+      "id": 13,
+      "name": "Debra Flores",
+      "email": "debra_flores76@mcp.com",
+      "assignment_scores": {
+        "Assignment 1: Classic Film Analysis": 80,
+        "Assignment 2: Film History and Evolution": 77,
+        "Assignment 3: Genre Analysis": 0,
+        "Assignment 4: Cinematography and Visual Storytelling": 85,
+        "Assignment 5: International Cinema": 0,
+        "Assignment 6: Contemporary Cinema Trends": 88
+      },
+      "completion_rate": "4/6",
+      "average_score": 55.0
+    }
+  ],
+  "course_info": {
+    "name": "Cinema Culture Appreciation",
+    "code": "FILM101",
+    "total_assignments": 6,
+    "assignment_names": [
+      "Assignment 1: Classic Film Analysis",
+      "Assignment 2: Film History and Evolution", 
+      "Assignment 3: Genre Analysis",
+      "Assignment 4: Cinematography and Visual Storytelling",
+      "Assignment 5: International Cinema",
+      "Assignment 6: Contemporary Cinema Trends"
+    ],
+    "due_dates": [
+      "2025-01-15",
+      "2025-01-22",
+      "2025-01-29", 
+      "2025-02-05",
+      "2025-02-12",
+      "2025-02-19"
+    ]
+  },
+  "statistics": {
+    "total_students": 10,
+    "students_with_incomplete_assignments": [
+      "elizabethr@mcp.com",
+      "donald_roberts@mcp.com", 
+      "rodriguezc39@mcp.com",
+      "robert_sanders66@mcp.com",
+      "patrick.carter@mcp.com",
+      "zedwards@mcp.com",
+      "debra_flores76@mcp.com"
+    ],
+    "fully_completed_students": [
+      "gregory_scott@mcp.com",
+      "smartinez@mcp.com", 
+      "malvarez@mcp.com"
+    ],
+    "class_average": 64.3
+  }
+}

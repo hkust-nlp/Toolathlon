@@ -1,0 +1,1 @@
+我好朋友亚历克斯和我都想参加新生欢迎派对，并全天参与。请帮我根据我记忆中的内容为我们俩填写问卷。任何没有提及的内容都应默认为否。链接是 https://docs.google.com/forms/d/e/1FAIpQLScVy8ARgPhrWsDPGItxgbWZDHN5n-IeV8YhkwdSRxEctpJ_ig/viewform?usp=dialog.

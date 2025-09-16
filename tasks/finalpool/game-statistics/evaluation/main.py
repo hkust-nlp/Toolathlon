@@ -2,7 +2,54 @@ from argparse import ArgumentParser
 import asyncio
 from google.cloud import bigquery
 from google.cloud.exceptions import NotFound
+from google.oauth2 import service_account
 from datetime import datetime
+from pathlib import Path
+import json
+
+def get_project_id_from_key(credentials_path: str) -> str | None:
+    """从服务账号密钥文件中读取项目ID"""
+    try:
+        with open(credentials_path, 'r') as f:
+            data = json.load(f)
+            return data.get("project_id")
+    except (FileNotFoundError, json.JSONDecodeError):
+        return None
+
+def setup_bigquery_client(credentials_file: str = None):
+    """设置 BigQuery 客户端"""
+    if credentials_file:
+        credentials_path = Path(credentials_file)
+
+        # Make sure the path is absolute
+        if not credentials_path.is_absolute():
+            credentials_path = Path.cwd() / credentials_path
+
+        if not credentials_path.exists():
+            print(f"❌ 错误：凭证文件不存在: {credentials_path}")
+            raise FileNotFoundError(f"凭证文件不存在: {credentials_path}")
+
+        print(f"✅ 使用凭证文件: {credentials_path}")
+
+        project_id = get_project_id_from_key(str(credentials_path))
+        if not project_id:
+            print(f"❌ 无法从凭证文件中读取项目ID")
+            raise ValueError("无法从凭证文件中读取项目ID")
+
+        credentials = service_account.Credentials.from_service_account_file(str(credentials_path))
+        client = bigquery.Client(credentials=credentials, project=project_id)
+        print(f"✅ 连接到 BigQuery 项目: {project_id}")
+        return client
+    else:
+        # Try to use default credentials (for local development or if ADC is set up)
+        try:
+            client = bigquery.Client()
+            print("✅ 使用默认凭证连接 BigQuery")
+            return client
+        except Exception as e:
+            print(f"❌ 无法连接 BigQuery：{e}")
+            print("请提供凭证文件或设置 Application Default Credentials")
+            raise
 
 async def verify_daily_leaderboard(client: bigquery.Client, today_str: str):
     """
@@ -364,8 +411,12 @@ async def main(args):
     """主评估函数"""
     print("🎯 开始验证游戏统计任务...")
 
-    # Initialize BigQuery client
-    client = bigquery.Client()
+    # Setup BigQuery client with credentials
+    try:
+        client = setup_bigquery_client(args.credentials_file)
+    except Exception as e:
+        print(f"❌ BigQuery 客户端设置失败: {e}")
+        return 1
 
     # Use launch_time parameter if provided, otherwise use current date
     if args.launch_time:
@@ -432,9 +483,10 @@ async def main(args):
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--agent_workspace", required=False)
-    parser.add_argument("--groundtruth_workspace", required=False) 
+    parser.add_argument("--groundtruth_workspace", required=False)
     parser.add_argument("--res_log_file", required=False)
     parser.add_argument("--launch_time", required=False, help="Launch time")
+    parser.add_argument("--credentials_file", default="configs/gcp-service_account.keys.json", help="Path to Google Cloud service account credentials file")
     args = parser.parse_args()
 
     exit_code = asyncio.run(main(args))
