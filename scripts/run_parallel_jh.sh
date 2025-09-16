@@ -27,7 +27,7 @@ IMAGE_NAME="lockon0927/mcpbench-task-image-v2:jh0913"  # Docker image to use
 mkdir -p $DUMP_PATH
 
 # Optional parameters - uncomment and modify as needed
-TASK_LIST="filtered_tasks_parallel.txt"
+# TASK_LIST="filtered_tasks_parallel.txt"
 
 
 # Generate temporary config file with random suffix to avoid conflicts

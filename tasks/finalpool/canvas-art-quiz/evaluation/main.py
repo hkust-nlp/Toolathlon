@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 import sys
 from argparse import ArgumentParser
 from pathlib import Path
+from utils.general.helper import normalize_str
 
 # Add parent directory to path to import canvas_api and token config
 parent_dir = Path(__file__).parent.parent
@@ -27,7 +28,7 @@ def load_expected_questions():
             'question_text': "What best describes Caravaggio's chiaroscuro's impact on Baroque painting?",
             'options': [
                 "It stayed only in Italy and didn't spread to other European countries.",
-                "It created a dramatic light and shadow effect, emphasizing the mystery and emotional tension of religious themes.",
+                "It created a dramatic light-and-shadow effect, emphasizing religious themes' mystery and emotional tension.",
                 "It mainly influenced the development of still-life and landscape painting.",
                 "It continued the High Renaissance's soft transitional light-and-dark handling."
             ],
@@ -116,9 +117,9 @@ def find_ah101_course(canvas):
     courses = canvas.list_courses()
     
     for course in courses:
-        name = course.get('name', '').lower()
-        code = course.get('course_code', '').lower()
-        
+        name = normalize_str(course.get('name', ''))
+        code = normalize_str(course.get('course_code', ''))
+
         # Check for Art History or AH101
         if 'art history' in name or 'ah101' in code or 'ah101' in name:
             print(f"📍 Found Art History course: {course.get('name')} (ID: {course.get('id')})")
@@ -133,10 +134,12 @@ def verify_quiz_questions(quiz_info, expected_questions):
     Returns: (bool, str) - (is_valid, error_message)
     """
     # Check quiz name
-    quiz_title = quiz_info.get('title', '').strip()
-    expected_title = "Classic Art History Questions"
+    quiz_title_raw = quiz_info.get('title', '').strip()
+    expected_title_raw = "Classic Art History Questions"
+    quiz_title = normalize_str(quiz_title_raw)
+    expected_title = normalize_str(expected_title_raw)
     if quiz_title != expected_title:
-        return False, f"Quiz title mismatch: expected '{expected_title}', got '{quiz_title}'"
+        return False, f"Quiz title mismatch: expected '{expected_title_raw}', got '{quiz_title_raw}'"
     
     questions = quiz_info.get('questions', [])
     
@@ -155,18 +158,31 @@ def verify_quiz_questions(quiz_info, expected_questions):
             return False, f"Question {i+1} should be worth 1 point, got {question_points} points"
         
         # Check question text similarity
-        actual_text = actual_question.get('question_text', '').strip()
-        expected_text = expected_question['question_text'].strip()
-        
+        actual_text_raw = actual_question.get('question_text', '').strip()
+        expected_text_raw = expected_question['question_text'].strip()
+        actual_text = normalize_str(actual_text_raw)
+        expected_text = normalize_str(expected_text_raw)
+
         # Simple similarity check (can be improved with more sophisticated matching)
         if not (expected_text in actual_text or actual_text in expected_text):
-            return False, f"Question {i+1} text mismatch:\nExpected: {expected_text}\nActual: {actual_text}"
+            return False, f"Question {i+1} text mismatch:\nExpected: {expected_text_raw}\nActual: {actual_text_raw}"
         
         # Check options
         actual_answers = actual_question.get('answers', [])
         if len(actual_answers) != len(expected_question['options']):
             return False, f"Question {i+1} option count mismatch: expected {len(expected_question['options'])}, got {len(actual_answers)}"
-        
+
+        # Check option text content
+        for j, (actual_answer, expected_option) in enumerate(zip(actual_answers, expected_question['options'])):
+            actual_option_text_raw = actual_answer.get('text', '').strip()
+            expected_option_text_raw = expected_option.strip()
+            actual_option_text = normalize_str(actual_option_text_raw)
+            expected_option_text = normalize_str(expected_option_text_raw)
+
+            # Check if option text matches (using similarity check)
+            if not (expected_option_text in actual_option_text or actual_option_text in expected_option_text):
+                return False, f"Question {i+1} option {j+1} text mismatch:\nExpected: {expected_option_text_raw}\nActual: {actual_option_text_raw}"
+
         # Check correct answer
         correct_answers = [ans for ans in actual_answers if ans.get('is_correct', False)]
         if len(correct_answers) != 1:
