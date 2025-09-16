@@ -29,6 +29,12 @@ from typing import Optional, Tuple
 from notion_client import Client
 from playwright.sync_api import Browser, Page, sync_playwright, TimeoutError as PlaywrightTimeoutError
 
+# Import the protection module
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from notion_page_protector import NotionPageProtector
+
 # Selectors for Notion UI elements (same as in the original code)
 PAGE_MENU_BUTTON_SELECTOR = '[data-testid="more-button"], div.notion-topbar-more-button, [aria-label="More"], button[aria-label="More"]'
 DUPLICATE_MENU_ITEM_SELECTOR = 'text="Duplicate"'
@@ -41,7 +47,7 @@ class NotionPageDuplicator:
     def __init__(self, notion_key: str, browser: str = "firefox", headless: bool = True, state_path: str = "./configs/notion_state.json"):
         """
         Initialize the duplicator.
-        
+
         Args:
             notion_key: Notion API integration token
             browser: Browser to use ("firefox" or "chromium")
@@ -52,7 +58,10 @@ class NotionPageDuplicator:
         self.headless = headless
         self.state_file = Path(state_path)
         self.duplicated_page_id = None  # Store the duplicated page ID
-        
+
+        # Initialize the protector
+        self.protector = NotionPageProtector()
+
         if not self.state_file.exists():
             raise FileNotFoundError(
                 f"Authentication state file '{self.state_file}' not found. "
@@ -123,6 +132,22 @@ class NotionPageDuplicator:
     def rename_page_via_api(self, page_id: str, new_title: str) -> bool:
         """Rename a Notion page using the API."""
         try:
+            # First, get the current title for validation
+            try:
+                page = self.notion_client.pages.retrieve(page_id=page_id)
+                props = page.get("properties", {})
+                title_prop = props.get("title", {}).get("title") or props.get("Name", {}).get("title")
+                current_title = "".join(t.get("plain_text", "") for t in title_prop).strip() if title_prop else "Untitled"
+            except:
+                current_title = "Unknown"
+
+            # Validate the rename operation with protector
+            is_valid, error_msg = self.protector.validate_rename_operation(page_id, current_title, new_title)
+            if not is_valid:
+                print(f"ERROR: {error_msg}")
+                raise Exception(error_msg)
+
+            # Proceed with rename
             self.notion_client.pages.update(
                 page_id=page_id,
                 properties={"title": {"title": [{"text": {"content": new_title}}]}},
@@ -151,13 +176,52 @@ class NotionPageDuplicator:
                 browser: Browser = browser_type.launch(headless=self.headless)
                 context = browser.new_context(storage_state=str(self.state_file))
                 page = context.new_page()
-                
+
+                # Validate we're not duplicating FROM a protected page
+                is_valid, error_msg = self.protector.validate_url_operation(source_page_url, "duplicate from")
+                if not is_valid:
+                    # It's OK to duplicate FROM a child of a protected page, just warn
+                    print(f"WARNING: Duplicating from what might be related to a protected page: {source_page_url}")
+
                 print(f"Navigating to source page: {source_page_url}")
+                initial_url = page.url if hasattr(page, 'url') else None
                 page.goto(source_page_url, wait_until="load", timeout=60_000)
-                
+
+                # Wait for navigation to complete and verify we actually navigated
+                time.sleep(3)
+                page.wait_for_load_state("networkidle", timeout=15_000)
+
+                # Verify we navigated to the correct page
+                current_url = page.url
+                print(f"Current URL after navigation: {current_url}")
+
+                # Extract the page ID from where we wanted to go
+                target_page_id = self.extract_page_id_from_url(source_page_url)
+                # Extract the page ID from where we actually are
+                current_page_id = self.extract_page_id_from_url(current_url)
+
+                # Check if we're on the right page
+                if current_page_id != target_page_id:
+                    print(f"WARNING: Navigation verification failed!")
+                    print(f"Expected to be on page: {target_page_id}")
+                    print(f"Actually on page: {current_page_id}")
+
+                    # Try one more time with a direct navigation
+                    print("Retrying navigation...")
+                    page.goto(source_page_url, wait_until="networkidle", timeout=60_000)
+                    time.sleep(5)
+
+                    current_url = page.url
+                    current_page_id = self.extract_page_id_from_url(current_url)
+
+                    if current_page_id != target_page_id:
+                        raise Exception(f"Failed to navigate to target page. Expected: {target_page_id}, Current: {current_page_id}")
+
+                print(f"Successfully verified navigation to target page: {current_page_id}")
+
                 # Save updated auth state
                 context.storage_state(path=str(self.state_file))
-                
+
                 # Step 1: Duplicate the page
                 print("Opening page menu...")
                 page.wait_for_selector(PAGE_MENU_BUTTON_SELECTOR, state="visible", timeout=30_000)
@@ -169,19 +233,49 @@ class NotionPageDuplicator:
                 
                 # Wait for duplication to complete (URL will change)
                 original_url = page.url
+                original_page_id = self.extract_page_id_from_url(original_url)
+                print(f"Original page ID before duplication: {original_page_id}")
                 print("Waiting for duplication to complete...")
+
+                # Wait for URL to change
                 page.wait_for_url(lambda url: url != original_url, timeout=180_000)
-                
+
                 # Wait for page to fully load
                 time.sleep(5)
                 duplicated_url = page.url
                 print(f"Page duplicated successfully: {duplicated_url}")
-                
-                # Extract and store the duplicated page ID
+
+                # Extract and verify the duplicated page ID
                 duplicated_page_id = self.extract_page_id_from_url(duplicated_url)
+
+                # CRITICAL: Verify we got a NEW page ID, not the original
+                if duplicated_page_id == original_page_id:
+                    print(f"ERROR: Duplicated page ID same as original: {duplicated_page_id}")
+                    # Try to extract from URL fragment if present
+                    if '#' in duplicated_url:
+                        fragment = duplicated_url.split('#')[-1]
+                        if len(fragment) == 32:
+                            # Format fragment as UUID
+                            duplicated_page_id = f"{fragment[:8]}-{fragment[8:12]}-{fragment[12:16]}-{fragment[16:20]}-{fragment[20:]}"
+                            print(f"Extracted page ID from URL fragment: {duplicated_page_id}")
+                        else:
+                            raise Exception("Failed to get new page ID after duplication - still on original page")
+                    else:
+                        raise Exception("Failed to get new page ID after duplication - no fragment in URL")
+
                 self.duplicated_page_id = duplicated_page_id
                 print(f"Duplicated page ID: {duplicated_page_id}")
-                
+
+                # Validate that we're not moving a protected page
+                is_valid, error_msg = self.protector.validate_move_operation(
+                    duplicated_page_id,
+                    original_page_id,  # source parent (where it was duplicated)
+                    self.extract_page_id_from_url(f"notion.so/{target_parent_title}")  # approximate target
+                )
+                if not is_valid:
+                    print(f"ERROR: {error_msg}")
+                    raise Exception(error_msg)
+
                 # Step 2: Move the duplicated page to target parent
                 print(f"Moving duplicated page to target parent: {target_parent_title}")
                 
@@ -210,11 +304,25 @@ class NotionPageDuplicator:
                 
                 # Give Notion time to process the move
                 time.sleep(3)
-                
+
                 # Step 3: Rename the duplicated page to remove any (1), (2) suffix
                 print(f"Renaming duplicated page to original name: {original_child_name}")
                 self.rename_page_via_api(duplicated_page_id, original_child_name)
-                
+
+                # Final validation: Check integrity of protected pages
+                for protected_id, expected_title in self.protector.PROTECTED_PAGES.items():
+                    try:
+                        page_info = self.notion_client.pages.retrieve(page_id=protected_id)
+                        props = page_info.get("properties", {})
+                        title_prop = props.get("title", {}).get("title") or props.get("Name", {}).get("title")
+                        current_title = "".join(t.get("plain_text", "") for t in title_prop).strip() if title_prop else "Unknown"
+
+                        is_valid, warning = self.protector.verify_page_integrity(protected_id, current_title)
+                        if not is_valid:
+                            print(f"CRITICAL: {warning}")
+                    except Exception as e:
+                        print(f"WARNING: Could not verify protected page {protected_id}: {e}")
+
                 # Save final auth state
                 context.storage_state(path=str(self.state_file))
                 
