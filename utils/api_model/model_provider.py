@@ -413,10 +413,12 @@ API_MAPPINGS = {
     ),
     'deepseek-v3.1': Dict(
         api_model={"ds_internal": "",
-                   "aihubmix": "DeepSeek-V3.1"},
+                   "aihubmix": "DeepSeek-V3.1",
+                   "openrouter": "deepseek/deepseek-chat-v3.1"},
         price=[0.56/1000, 1.68/1000],
         concurrency=32,
-        context_window=128000
+        context_window=128000,
+        openrouter_config={"provider": {"only": ["sambanova/fp8"]}}
     ),
     'deepseek-v3.1-think': Dict(
         api_model={"ds_internal": "",
