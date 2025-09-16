@@ -6,11 +6,11 @@
 # multi_turn_mode 开启多轮模式，否则使用单轮模式；单轮模式下，核心任务直接作为第一轮用户输入，此后不再有模拟用户
 
 uv run demo.py \
---eval_config scripts/foraml_run_v0.json \
---task_dir finalpool/canvas-arrange-exam \
+--eval_config scripts/model_wise/eval_claude-4-sonnet.json \
+--task_dir finalpool/academic-pdf-report \
 --debug \
---model_short_name gpt-5 \
---provider aihubmix \
+--model_short_name claude-4-sonnet-0514 \
+--provider openrouter \
 --max_steps_under_single_turn_mode 200 \
---multi_turn_mode \
---manual \
+# --multi_turn_mode \
+# --manual \

@@ -21,13 +21,14 @@ async def main():
     notion_source_page_url = all_token_key_session.source_notion_page_url
     notion_eval_page_url = all_token_key_session.eval_notion_page_url
     notion_integration_key = all_token_key_session.notion_integration_key
+    notion_integration_key_eval_only = all_token_key_session.notion_integration_key_eval
 
     print_color(f"Removing old page {args.needed_subpage_name} from {notion_eval_page_url}","cyan")
     await run_command(
         f"uv run -m utils.app_specific.notion.notion_remove_page "
         f"--url {notion_eval_page_url} "
         f"--name \"{args.needed_subpage_name}\" "
-        f"--token {notion_integration_key} "
+        f"--token {notion_integration_key_eval_only} "
         f"--no-confirm",
         debug=True,
         show_output=True

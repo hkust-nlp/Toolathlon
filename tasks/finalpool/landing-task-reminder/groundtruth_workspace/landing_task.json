@@ -1,0 +1,364 @@
+{
+  "employees": [
+    {
+      "name": "Dorothy Edwards",
+      "email": "dorothy.edwards@mcp.com",
+      "employee_id": 9001,
+      "landing_date_offset_days": 0,
+      "group": "Backend",
+      "report_to_id": 8001,
+      "landing_task_assigned": false,
+      "public_tasks": [
+        {"task_id": 10001, "task_name": "Onboarding Training", "ddl_offset_days": 7, "finished_flag": false},
+        {"task_id": 10002, "task_name": "Security Training", "ddl_offset_days": 7, "finished_flag": false},
+        {"task_id": 10003, "task_name": "Confidentiality Training", "ddl_offset_days": 7, "finished_flag": false},
+        {"task_id": 10004, "task_name": "Company Culture", "ddl_offset_days": 7, "finished_flag": false},
+        {"task_id": 10005, "task_name": "Company Strategy", "ddl_offset_days": 7, "finished_flag": false}
+      ],
+      "group_tasks": [
+        {"task_id": 10006, "task_name": "Backend Development Process", "ddl_offset_days": 30, "finished_flag": false},
+        {"task_id": 10007, "task_name": "Backend Development Standards", "ddl_offset_days": 30, "finished_flag": false},
+        {"task_id": 10008, "task_name": "Backend Development Environment", "ddl_offset_days": 30, "finished_flag": false}
+      ]
+    },
+    {
+      "name": "Anthony Young",
+      "email": "anthony.young28@mcp.com",
+      "employee_id": 9002,
+      "landing_date_offset_days": 0,
+      "group": "Frontend",
+      "report_to_id": 8002,
+      "landing_task_assigned": false,
+      "public_tasks": [
+        {"task_id": 10009, "task_name": "Onboarding Training", "ddl_offset_days": 7, "finished_flag": false},
+        {"task_id": 10010, "task_name": "Security Training", "ddl_offset_days": 7, "finished_flag": false},
+        {"task_id": 10011, "task_name": "Confidentiality Training", "ddl_offset_days": 7, "finished_flag": false},
+        {"task_id": 10012, "task_name": "Company Culture", "ddl_offset_days": 7, "finished_flag": false},
+        {"task_id": 10013, "task_name": "Company Strategy", "ddl_offset_days": 7, "finished_flag": false}
+      ],
+      "group_tasks": [
+        {"task_id": 10014, "task_name": "Frontend Development Process", "ddl_offset_days": 45, "finished_flag": false},
+        {"task_id": 10015, "task_name": "Frontend Development Standards", "ddl_offset_days": 45, "finished_flag": false},
+        {"task_id": 10016, "task_name": "Frontend Development Environment", "ddl_offset_days": 45, "finished_flag": false}
+      ]
+    },
+    {
+      "name": "Maria Hernandez",
+      "email": "hernandezm@mcp.com",
+      "employee_id": 9003,
+      "landing_date_offset_days": 0,
+      "group": "Testing",
+      "report_to_id": 8003,
+      "landing_task_assigned": false,
+      "public_tasks": [
+        {"task_id": 10017, "task_name": "Onboarding Training", "ddl_offset_days": 7, "finished_flag": false},
+        {"task_id": 10018, "task_name": "Security Training", "ddl_offset_days": 7, "finished_flag": false},
+        {"task_id": 10019, "task_name": "Confidentiality Training", "ddl_offset_days": 7, "finished_flag": false},
+        {"task_id": 10020, "task_name": "Company Culture", "ddl_offset_days": 7, "finished_flag": false},
+        {"task_id": 10021, "task_name": "Company Strategy", "ddl_offset_days": 7, "finished_flag": false}
+      ],
+      "group_tasks": [
+        {"task_id": 10022, "task_name": "Testing Development Process", "ddl_offset_days": 60, "finished_flag": false},
+        {"task_id": 10023, "task_name": "Testing Development Standards", "ddl_offset_days": 60, "finished_flag": false},
+        {"task_id": 10024, "task_name": "Testing Development Environment", "ddl_offset_days": 60, "finished_flag": false}
+      ]
+    },
+    {
+      "name": "Frank Allen",
+      "email": "franka73@mcp.com",
+      "employee_id": 6001,
+      "landing_date_offset_days": -60,
+      "group": "Backend",
+      "report_to_id": 8001,
+      "landing_task_assigned": true,
+      "public_tasks": [
+        { "task_id": 10025, "task_name": "Onboarding Training", "ddl_offset_days": 7, "finished_flag": true },
+        { "task_id": 10026, "task_name": "Security Training", "ddl_offset_days": 7, "finished_flag": true },
+        { "task_id": 10027, "task_name": "Confidentiality Training", "ddl_offset_days": 7, "finished_flag": true },
+        { "task_id": 10028, "task_name": "Company Culture", "ddl_offset_days": 7, "finished_flag": false },
+        { "task_id": 10029, "task_name": "Company Strategy", "ddl_offset_days": 7, "finished_flag": false }
+      ],
+      "group_tasks": [
+        { "task_id": 10030, "task_name": "Backend Development Process", "ddl_offset_days": 30, "finished_flag": true },
+        { "task_id": 10031, "task_name": "Backend Development Standards", "ddl_offset_days": 30, "finished_flag": true },
+        { "task_id": 10032, "task_name": "Backend Development Environment", "ddl_offset_days": 30, "finished_flag": false }
+      ]
+    },
+    {
+      "name": "George Morris",
+      "email": "morrisg31@mcp.com",
+      "employee_id": 6002,
+      "landing_date_offset_days": -40,
+      "group": "Frontend",
+      "report_to_id": 8002,
+      "landing_task_assigned": true,
+      "public_tasks": [
+        { "task_id": 10033, "task_name": "Onboarding Training", "ddl_offset_days": 7, "finished_flag": true },
+        { "task_id": 10034, "task_name": "Security Training", "ddl_offset_days": 7, "finished_flag": true },
+        { "task_id": 10035, "task_name": "Confidentiality Training", "ddl_offset_days": 7, "finished_flag": false },
+        { "task_id": 10036, "task_name": "Company Culture", "ddl_offset_days": 7, "finished_flag": true },
+        { "task_id": 10037, "task_name": "Company Strategy", "ddl_offset_days": 7, "finished_flag": true }
+      ],
+      "group_tasks": [
+        { "task_id": 10038, "task_name": "Frontend Development Process", "ddl_offset_days": 45, "finished_flag": false },
+        { "task_id": 10039, "task_name": "Frontend Development Standards", "ddl_offset_days": 45, "finished_flag": false },
+        { "task_id": 10040, "task_name": "Frontend Development Environment", "ddl_offset_days": 45, "finished_flag": true }
+      ]
+    },
+    {
+      "name": "Debra Chavez",
+      "email": "debrac99@mcp.com",
+      "employee_id": 6003,
+      "landing_date_offset_days": -75,
+      "group": "Testing",
+      "report_to_id": 8003,
+      "landing_task_assigned": true,
+      "public_tasks": [
+        { "task_id": 10041, "task_name": "Onboarding Training", "ddl_offset_days": 7, "finished_flag": true },
+        { "task_id": 10042, "task_name": "Security Training", "ddl_offset_days": 7, "finished_flag": false },
+        { "task_id": 10043, "task_name": "Confidentiality Training", "ddl_offset_days": 7, "finished_flag": false },
+        { "task_id": 10044, "task_name": "Company Culture", "ddl_offset_days": 7, "finished_flag": true },
+        { "task_id": 10045, "task_name": "Company Strategy", "ddl_offset_days": 7, "finished_flag": true }
+      ],
+      "group_tasks": [
+        { "task_id": 10046, "task_name": "Testing Development Process", "ddl_offset_days": 60, "finished_flag": false },
+        { "task_id": 10047, "task_name": "Testing Development Standards", "ddl_offset_days": 60, "finished_flag": true },
+        { "task_id": 10048, "task_name": "Testing Development Environment", "ddl_offset_days": 60, "finished_flag": true }
+      ]
+    },
+    {
+      "name": "Stephen Sanchez",
+      "email": "stephens@mcp.com",
+      "employee_id": 6004,
+      "landing_date_offset_days": -90,
+      "group": "Data",
+      "report_to_id": 8004,
+      "landing_task_assigned": true,
+      "public_tasks": [
+        { "task_id": 10049, "task_name": "Onboarding Training", "ddl_offset_days": 7, "finished_flag": true },
+        { "task_id": 10050, "task_name": "Security Training", "ddl_offset_days": 7, "finished_flag": true },
+        { "task_id": 10051, "task_name": "Confidentiality Training", "ddl_offset_days": 7, "finished_flag": false },
+        { "task_id": 10052, "task_name": "Company Culture", "ddl_offset_days": 7, "finished_flag": false },
+        { "task_id": 10053, "task_name": "Company Strategy", "ddl_offset_days": 7, "finished_flag": false }
+      ],
+      "group_tasks": [
+        { "task_id": 10054, "task_name": "Data Development Process", "ddl_offset_days": 75, "finished_flag": true },
+        { "task_id": 10055, "task_name": "Data Development Standards", "ddl_offset_days": 75, "finished_flag": true },
+        { "task_id": 10056, "task_name": "Data Development Environment", "ddl_offset_days": 75, "finished_flag": false }
+      ]
+    },
+    {
+      "name": "Emily Ruiz",
+      "email": "emily_ruiz@mcp.com",
+      "employee_id": 6005,
+      "landing_date_offset_days": -455,
+      "group": "Backend",
+      "report_to_id": 8001,
+      "landing_task_assigned": true,
+      "public_tasks": [],
+      "group_tasks": []
+    },
+    {
+      "name": "Paul Hall",
+      "email": "phall62@mcp.com",
+      "employee_id": 6006,
+      "landing_date_offset_days": -380,
+      "group": "Frontend",
+      "report_to_id": 8002,
+      "landing_task_assigned": true,
+      "public_tasks": [],
+      "group_tasks": []
+    },
+    { 
+        "name": "Christina Perez", 
+        "email": "perezc37@mcp.com", 
+        "employee_id": 6008, 
+        "landing_date_offset_days": -675, 
+        "group": "Data", 
+        "report_to_id": 8004,
+        "public_tasks": [],
+        "landing_task_assigned": true,
+        "group_tasks": []
+    },
+    { 
+        "name": "Andrew Roberts", 
+        "email": "robertsa@mcp.com", 
+        "employee_id": 6009, 
+        "landing_date_offset_days": -512, 
+        "group": "Backend", 
+        "report_to_id": 8001,
+        "public_tasks": [],
+        "landing_task_assigned": true,
+        "group_tasks": []
+    },
+    { 
+        "name": "Raymond Morales", 
+        "email": "raymond.morales61@mcp.com", 
+        "employee_id": 6010, 
+        "landing_date_offset_days": -972, 
+        "group": "Frontend", 
+        "report_to_id": 8002,
+        "public_tasks": [],
+        "landing_task_assigned": true,
+        "group_tasks": [] 
+    },
+    { 
+        "name": "James Cox", 
+        "email": "jcox18@mcp.com", 
+        "employee_id": 6011, 
+        "landing_date_offset_days": -430, 
+        "group": "Testing", 
+        "report_to_id": 8003,
+        "public_tasks": [],
+        "landing_task_assigned": true,
+        "group_tasks": [] 
+    },
+    { 
+        "name": "Matthew Clark", 
+        "email": "matthewc@mcp.com", 
+        "employee_id": 6012, 
+        "landing_date_offset_days": -888, 
+        "group": "Data", 
+        "report_to_id": 8004,
+        "public_tasks": [],
+        "landing_task_assigned": true,
+        "group_tasks": [] 
+    },
+    { 
+        "name": "Debra Brooks", 
+        "email": "debra.brooks@mcp.com", 
+        "employee_id": 6013, 
+        "landing_date_offset_days": -399, 
+        "group": "Backend", 
+        "report_to_id": 8001,
+        "public_tasks": [],
+        "landing_task_assigned": true,
+        "group_tasks": [] 
+    },
+    { 
+        "name": "Emily Edwards", 
+        "email": "edwardse@mcp.com", 
+        "employee_id": 6014, 
+        "landing_date_offset_days": -777, 
+        "group": "Frontend", 
+        "report_to_id": 8002,
+        "public_tasks": [],
+        "landing_task_assigned": true,
+        "group_tasks": [] 
+    },
+    { 
+        "name": "Marie Wilson", 
+        "email": "marie.wilson@mcp.com", 
+        "employee_id": 6016, 
+        "landing_date_offset_days": -640, 
+        "group": "Data", 
+        "report_to_id": 8004,
+        "public_tasks": [],
+        "landing_task_assigned": true,
+        "group_tasks": [] 
+    },
+    { 
+        "name": "Tyler Gray", 
+        "email": "tgray@mcp.com", 
+        "employee_id": 6017, 
+        "landing_date_offset_days": -701, 
+        "group": "Backend", 
+        "report_to_id": 8001,
+        "public_tasks": [],
+        "landing_task_assigned": true,
+        "group_tasks": [] 
+    },
+    { 
+        "name": "Virginia Brown", 
+        "email": "virginiab@mcp.com", 
+        "employee_id": 6018, 
+        "landing_date_offset_days": -850, 
+        "group": "Frontend", 
+        "report_to_id": 8002,
+        "public_tasks": [],
+        "landing_task_assigned": true,
+        "group_tasks": [] 
+    },
+    { 
+        "name": "Robert Mitchell", 
+        "email": "robert_mitchell55@mcp.com", 
+        "employee_id": 6019, 
+        "landing_date_offset_days": -915, 
+        "group": "Testing", 
+        "report_to_id": 8003,
+        "public_tasks": [],
+        "landing_task_assigned": true,
+        "group_tasks": [] 
+    },
+    { 
+        "name": "Mary Evans",
+        "email": "mevans@mcp.com", 
+        "employee_id": 6020, 
+        "landing_date_offset_days": -600, 
+        "group": "Data", 
+        "report_to_id": 8004, 
+        "public_tasks": [], 
+        "landing_task_assigned": true,
+        "group_tasks": []
+    }
+  ]
+  ,
+  "bosses": [
+    {
+      "name": "Laura Green",
+      "email": "greenl@mcp.com",
+      "employee_id": 7001,
+      "landing_date_offset_days": -1500,
+      "public_tasks": [],
+      "landing_task_assigned": true,
+      "group_tasks": []
+    }
+  ]
+  ,
+  "managers": [
+    {
+      "name": "Jennifer Baker",
+      "email": "jennifer.baker@mcp.com",
+      "employee_id": 8001,
+      "group": "Backend",
+      "landing_date_offset_days": -1000,
+      "report_to_id": 7001,
+      "public_tasks": [],
+      "landing_task_assigned": true,
+      "group_tasks": []
+    },
+    {
+      "name": "Victoria Jackson",
+      "email": "jacksonv8@mcp.com",
+      "employee_id": 8002,
+      "group": "Frontend",
+      "landing_date_offset_days": -995,
+      "report_to_id": 7001,
+      "public_tasks": [],
+      "landing_task_assigned": true,
+      "group_tasks": []
+    },
+    {
+      "name": "Debra Rogers",
+      "email": "drogers@mcp.com",
+      "employee_id": 8003,
+      "group": "Testing",
+      "landing_date_offset_days": -1003,
+      "report_to_id": 7001,
+      "public_tasks": [],
+      "landing_task_assigned": true,
+      "group_tasks": []
+    },
+    {
+      "name": "Marie Green",
+      "email": "greenm@mcp.com",
+      "employee_id": 8004,
+      "group": "Data",
+      "landing_date_offset_days": -990,
+      "report_to_id": 7001,
+      "public_tasks": [],
+      "landing_task_assigned": true,
+      "group_tasks": []
+    }
+  ]
+}
