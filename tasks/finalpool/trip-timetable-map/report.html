@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .svg-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="svg-container">
+        <svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+            <!-- 背景网格 -->
+            <defs>
+                <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
+                    <path d="M 50 0 L 0 0 0 50" fill="none" stroke="#e0e0e0" stroke-width="1"/>
+                </pattern>
+            </defs>
+            <rect width="800" height="600" fill="url(#grid)"/>
+            
+            <!-- 标题区域 -->
+            <rect x="0" y="0" width="800" height="80" fill="#2c3e50" opacity="0.9"/>
+            <text x="400" y="45" text-anchor="middle" font-size="24" fill="white" font-weight="bold">Yunnan Dali–Lijiang 3-Day Itinerary Map</text>
+            
+            <!-- 第1天路线段 -->
+            <g id="day1">
+                <rect x="0" y="80" width="800" height="160" fill="#e3f2fd" opacity="0.3"/>
+                <rect x="0" y="80" width="80" height="160" fill="#2196f3" opacity="0.8"/>
+                <text x="40" y="120" text-anchor="middle" font-size="16" font-weight="bold" fill="white">Day 1</text>
+                <text x="40" y="140" text-anchor="middle" font-size="12" fill="white">Dali</text>
+                <text x="40" y="155" text-anchor="middle" font-size="12" fill="white">Old Town Tour</text>
+                
+                <!-- 起点：大理古城 -->
+                <circle cx="150" cy="160" r="12" fill="#4caf50" stroke="white" stroke-width="3"/>
+                <text x="150" y="185" text-anchor="middle" font-size="12" font-weight="bold">Dali Old Town</text>
+                <text x="150" y="200" text-anchor="middle" font-size="10" fill="gray">Old Town Walk / 2h</text>
+                
+                <!-- 连接线到洱海 -->
+                <line x1="162" y1="160" x2="340" y2="160" stroke="#2196f3" stroke-width="4"/>
+                <polygon points="330,155 345,160 330,165" fill="#2196f3"/>
+                <rect x="230" y="140" width="60" height="18" fill="white" opacity="0.9" rx="5"/>
+                <text x="260" y="153" text-anchor="middle" font-size="11" font-weight="bold">15km / 30min</text>
+                
+                <!-- 中转点：洱海 -->
+                <circle cx="350" cy="160" r="10" fill="#2196f3" stroke="white" stroke-width="2"/>
+                <text x="350" y="185" text-anchor="middle" font-size="12" font-weight="bold">Erhai Lake</text>
+                <text x="350" y="200" text-anchor="middle" font-size="10" fill="gray">Lake Cycling / 3h</text>
+                
+                <!-- 连接线到住宿点 -->
+                <line x1="360" y1="160" x2="540" y2="160" stroke="#2196f3" stroke-width="4"/>
+                <polygon points="530,155 545,160 530,165" fill="#2196f3"/>
+                <rect x="430" y="140" width="60" height="18" fill="white" opacity="0.9" rx="5"/>
+                <text x="460" y="153" text-anchor="middle" font-size="11" font-weight="bold">25km / 45min</text>
+                
+                <!-- 终点/住宿点：双廊 -->
+                <circle cx="550" cy="160" r="12" fill="#f44336" stroke="white" stroke-width="3"/>
+                <rect x="535" y="145" width="30" height="30" fill="none" stroke="#333" stroke-width="2"/>
+                <text x="550" y="185" text-anchor="middle" font-size="12" font-weight="bold">Shuanglang Ancient Town</text>
+                <text x="550" y="200" text-anchor="middle" font-size="10" fill="gray">Lodging</text>
+            </g>
+            
+            <!-- 第2天路线段 -->
+            <g id="day2">
+                <rect x="0" y="240" width="800" height="160" fill="#e8f5e8" opacity="0.3"/>
+                <rect x="0" y="240" width="80" height="160" fill="#4caf50" opacity="0.8"/>
+                <text x="40" y="280" text-anchor="middle" font-size="16" font-weight="bold" fill="white">Day 2</text>
+                <text x="40" y="300" text-anchor="middle" font-size="12" fill="white">Dali</text>
+                <text x="40" y="315" text-anchor="middle" font-size="12" fill="white">→ Lijiang</text>
+                
+                <!-- 跨日连接线 -->
+                <line x1="550" y1="240" x2="550" y2="255" stroke="#999" stroke-width="2" stroke-dasharray="5,5"/>
+                
+                <!-- 起点：双廊（昨日终点） -->
+                <circle cx="150" cy="320" r="12" fill="#4caf50" stroke="white" stroke-width="3"/>
+                <text x="150" y="345" text-anchor="middle" font-size="12" font-weight="bold">Shuanglang Ancient Town</text>
+                <text x="150" y="360" text-anchor="middle" font-size="10" fill="gray">Start</text>
+                
+                <!-- 连接线到丽江 -->
+                <line x1="162" y1="320" x2="540" y2="320" stroke="#4caf50" stroke-width="4"/>
+                <polygon points="530,315 545,320 530,325" fill="#4caf50"/>
+                <rect x="330" y="300" width="80" height="18" fill="white" opacity="0.9" rx="5"/>
+                <text x="370" y="313" text-anchor="middle" font-size="11" font-weight="bold">120km / 2.5h</text>
+                
+                <!-- 终点/住宿点：丽江古城 -->
+                <circle cx="550" cy="320" r="12" fill="#f44336" stroke="white" stroke-width="3"/>
+                <rect x="535" y="305" width="30" height="30" fill="none" stroke="#333" stroke-width="2"/>
+                <text x="550" y="345" text-anchor="middle" font-size="12" font-weight="bold">Lijiang Old Town</text>
+                <text x="550" y="360" text-anchor="middle" font-size="10" fill="gray">Lodging</text>
+            </g>
+            
+            <!-- 第3天路线段 -->
+            <g id="day3">
+                <rect x="0" y="400" width="800" height="160" fill="#fff3e0" opacity="0.3"/>
+                <rect x="0" y="400" width="80" height="160" fill="#ff9800" opacity="0.8"/>
+                <text x="40" y="440" text-anchor="middle" font-size="16" font-weight="bold" fill="white">Day 3</text>
+                <text x="40" y="460" text-anchor="middle" font-size="12" fill="white">Lijiang</text>
+                <text x="40" y="475" text-anchor="middle" font-size="12" fill="white">Local Tour</text>
+                
+                <!-- 跨日连接线 -->
+                <line x1="550" y1="400" x2="550" y2="415" stroke="#999" stroke-width="2" stroke-dasharray="5,5"/>
+                
+                <!-- 起点：丽江古城 -->
+                <circle cx="150" cy="480" r="12" fill="#4caf50" stroke="white" stroke-width="3"/>
+                <text x="150" y="505" text-anchor="middle" font-size="12" font-weight="bold">Lijiang Old Town</text>
+                <text x="150" y="520" text-anchor="middle" font-size="10" fill="gray">Start</text>
+                
+                <!-- 连接线到玉龙雪山 -->
+                <line x1="162" y1="480" x2="340" y2="480" stroke="#ff9800" stroke-width="4"/>
+                <polygon points="330,475 345,480 330,485" fill="#ff9800"/>
+                <rect x="230" y="460" width="60" height="18" fill="white" opacity="0.9" rx="5"/>
+                <text x="260" y="473" text-anchor="middle" font-size="11" font-weight="bold">25km / 1h</text>
+                
+                <!-- 中转点：玉龙雪山 -->
+                <circle cx="350" cy="480" r="10" fill="#ff9800" stroke="white" stroke-width="2"/>
+                <text x="350" y="505" text-anchor="middle" font-size="12" font-weight="bold">Yulong Snow Mountain</text>
+                <text x="350" y="520" text-anchor="middle" font-size="10" fill="gray">Sightseeing / 4h</text>
+                
+                <!-- 返程线（虚线） -->
+                <line x1="340" y1="490" x2="162" y2="490" stroke="#ff9800" stroke-width="3" stroke-dasharray="8,4"/>
+                <polygon points="172,485 157,490 172,495" fill="#ff9800"/>
+                <rect x="230" y="495" width="60" height="18" fill="white" opacity="0.9" rx="5"/>
+                <text x="260" y="508" text-anchor="middle" font-size="11" font-weight="bold">Return / 1h</text>
+            </g>
+            
+            <!-- 图例 -->
+            <g id="legend">
+                <rect x="600" y="420" width="180" height="140" fill="white" stroke="#ccc" stroke-width="1" rx="5"/>
+                <text x="690" y="440" text-anchor="middle" font-size="14" font-weight="bold">Legend</text>
+                
+                <!-- 地点类型 -->
+                <circle cx="615" cy="460" r="8" fill="#4caf50" stroke="white" stroke-width="2"/>
+                <text x="635" y="465" font-size="12">Start</text>
+                
+                <circle cx="615" cy="480" r="6" fill="#2196f3" stroke="white" stroke-width="1"/>
+                <text x="635" y="485" font-size="12">Transfer</text>
+                
+                <circle cx="615" cy="500" r="8" fill="#f44336" stroke="white" stroke-width="2"/>
+                <rect x="607" y="492" width="16" height="16" fill="none" stroke="#333" stroke-width="1"/>
+                <text x="635" y="505" font-size="12">Lodging</text>
+                
+                <!-- 线条类型 -->
+                <line x1="615" y1="520" x2="645" y2="520" stroke="#333" stroke-width="3"/>
+                <text x="655" y="525" font-size="12">Driving Route</text>
+                
+                <line x1="615" y1="540" x2="645" y2="540" stroke="#333" stroke-width="2" stroke-dasharray="5,3"/>
+                <text x="655" y="545" font-size="12">Return Route</text>
+            </g>
+        </svg>
+    </div>
+</body>
+</html>

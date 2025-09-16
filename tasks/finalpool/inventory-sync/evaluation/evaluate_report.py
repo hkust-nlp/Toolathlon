@@ -22,26 +22,26 @@ class ReportValidator:
     def __init__(self):
         """初始化验证器"""
         self.cities_config = {
-            "纽约": {"en": "new_york", "region": "东部"},
-            "波士顿": {"en": "boston", "region": "东部"},
-            "达拉斯": {"en": "dallas", "region": "南部"},
-            "休斯顿": {"en": "houston", "region": "南部"},
-            "LA": {"en": "los_angeles", "region": "西部"},
-            "旧金山": {"en": "san_francisco", "region": "西部"}
+            "New York": {"en": "new_york", "region": "East"},
+            "Boston": {"en": "boston", "region": "East"},
+            "Dallas": {"en": "dallas", "region": "South"},
+            "Houston": {"en": "houston", "region": "South"},
+            "LA": {"en": "los_angeles", "region": "West"},
+            "San Francisco": {"en": "san_francisco", "region": "West"}
         }
         
         self.required_fields = {
             "report_metadata": ["report_id", "timestamp", "execution_duration", "sync_type"],
             "summary_statistics": ["total_processed", "success_count", "failed_count", "success_rate"],
             "inventory_data": ["total_local_quantity", "total_online_quantity", "quantity_discrepancies", "total_quantity_synced"],
-            "regional_breakdown": ["东部", "南部", "西部"],
+            "regional_breakdown": ["East", "South", "West"],
             "validation_data": ["checksum", "key_metrics_hash"]
         }
         
         self.required_cities = {
-            "东部": ["纽约", "波士顿"],
-            "南部": ["达拉斯", "休斯顿"],
-            "西部": ["LA", "旧金山"]
+            "East": ["New York", "Boston"],
+            "South": ["Dallas", "Houston"],
+            "West": ["LA", "San Francisco"]
         }
         
         # 容差设置
@@ -68,9 +68,9 @@ class ReportValidator:
         database_data = {
             "cities": {},
             "regions": {
-                "东部": {"products": {}, "cities": []},
-                "南部": {"products": {}, "cities": []},
-                "西部": {"products": {}, "cities": []}
+                "East": {"products": {}, "cities": []},
+                "South": {"products": {}, "cities": []},
+                "West": {"products": {}, "cities": []}
             },
             "totals": {
                 "total_products": 0,
@@ -334,7 +334,7 @@ class ReportValidator:
                     })
             
             # 验证区域数据
-            for region in ["东部", "南部", "西部"]:
+            for region in ["East", "South", "West"]:
                 if region in regional and region in db_regions:
                     report_region = regional[region]
                     db_region = db_regions[region]

@@ -1,7 +1,7 @@
 {
   "timestamp": "2025-09-11T19:29:56.401226",
-  "store_url": "http://localhost:10003/store84",
-  "expected_results_file": "/ssddata/wzengak/mcp_bench/mcpbench_dev/tasks/finalpool/update-photo-task/groundtruth_workspace/expected_results.json",
+  "store_url": "http://localhost:10003/store85",
+  "expected_results_file": "",
   "summary": {
     "total_products_checked": 3,
     "successful_updates": 1,

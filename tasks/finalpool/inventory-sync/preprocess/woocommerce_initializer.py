@@ -20,7 +20,7 @@ from token_key_session import all_token_key_session
 class WooCommerceStoreInitializer:
     """WooCommerce商店初始化器 - 从空账户开始设置6城市3区域库存系统
     
-    支持城市：纽约、波士顿(东部)，达拉斯、休斯顿(南部)，LA、旧金山(西部)
+    支持城市：New York、Boston(East)，Dallas、Houston(South)，LA、San Francisco(West)
     """
     
     def __init__(self):
@@ -146,11 +146,11 @@ class WooCommerceStoreInitializer:
         print("📂 创建商品分类...")
         
         categories = [
-            {"name": "电子产品", "description": "手机、电脑、数码设备等"},
-            {"name": "服装鞋帽", "description": "服装、鞋子、配饰等"},
-            {"name": "家居用品", "description": "家具、家电、生活用品等"},
-            {"name": "运动户外", "description": "运动器材、户外用品等"},
-            {"name": "美妆护肤", "description": "化妆品、护肤品、个护用品等"}
+            {"name": "Electronic Products ", "description": "Mobile phones, computers, digital devices, etc."},
+            {"name": "Clothing, Shoes & Accessories", "description": "Clothing, shoes, accessories, etc."},
+            {"name": "Home & Living", "description": "Furniture, home appliances, household items, etc."},
+            {"name": "Sports & Outdoors", "description": "Sports equipment, outdoor gear, etc."},
+            {"name": "Beauty & Personal Care", "description": "Cosmetics, skincare, personal care products, etc."}
         ]
         
         created_categories = {}
@@ -187,13 +187,13 @@ class WooCommerceStoreInitializer:
         
         # 分类映射
         category_mapping = {
-            "电子产品": categories.get("电子产品"),
-            "服装鞋帽": categories.get("服装鞋帽"), 
-            "家居用品": categories.get("家居用品")
+            "Electronic Products ": categories.get("Electronic Products "),
+            "Clothing, Shoes & Accessories": categories.get("Clothing, Shoes & Accessories"), 
+            "Home & Living": categories.get("Home & Living")
         }
         
         for product_id, name, category, price, description in sample_products:
-            category_id = category_mapping.get(category, categories.get("电子产品"))
+            category_id = category_mapping.get(category, categories.get("Electronic Products "))
             
             # 生成合理的初始库存、销量和发布时间
             import random
@@ -202,13 +202,13 @@ class WooCommerceStoreInitializer:
             initial_stock = random.randint(50, 200)
             
             # 根据商品类型设置不同的销量范围
-            if category == "电子产品":
-                initial_sales = random.randint(100, 500)  # 电子产品销量高
-                # 电子产品近期销量也相对较高
+            if category == "Electronic Products ":
+                initial_sales = random.randint(100, 500)  # Electronic Products 销量高
+                # Electronic Products 近期销量也相对较高
                 sales_30_days = random.randint(int(initial_sales * 0.1), int(initial_sales * 0.3))
-                # 电子产品较新，发布时间在最近6个月内
+                # Electronic Products 较新，发布时间在最近6个月内
                 days_ago = random.randint(30, 180)
-            elif category == "服装鞋帽":
+            elif category == "Clothing, Shoes & Accessories":
                 initial_sales = random.randint(80, 300)   # 服装销量中等
                 # 服装30天销量波动较大（季节性）
                 sales_30_days = random.randint(int(initial_sales * 0.05), int(initial_sales * 0.4))
@@ -230,7 +230,7 @@ class WooCommerceStoreInitializer:
                 "type": "simple",
                 "regular_price": str(price),
                 "description": description,
-                "short_description": f"高品质{name}，现货供应",
+                "short_description": f"High quality {name}, in stock",
                 "sku": product_id,
                 "manage_stock": True,
                 "stock_quantity": initial_stock,
@@ -300,8 +300,8 @@ class WooCommerceStoreInitializer:
                     'id': product['original_id'],
                     'name': product['name'],
                     'price': product['price'],
-                    'description': f"区域库存商品 - {product['name']}",
-                    'category': product.get('category', '未分类')
+                    'description': f"Regional inventory product - {product['name']}",
+                    'category': product.get('category', 'Uncategorized')
                 })
         
         if products_for_regions:
@@ -445,7 +445,7 @@ class WooCommerceStoreInitializer:
 def main():
     """主函数 - 交互式初始化"""
     print("🛒 WooCommerce 6城市库存系统初始化器")
-    print("支持城市：纽约、波士顿(东部)，达拉斯、休斯顿(南部)，LA、旧金山(西部)")
+    print("支持城市：New York、Boston(East)，Dallas、Houston(South)，LA、San Francisco(West)")
     print("=" * 60)
     
     # 清理原有商品

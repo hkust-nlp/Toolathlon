@@ -183,7 +183,7 @@ case "$COMMAND" in
     perform_cleanup
     start_container
     sleep 30
-    configure_dovecot
+    # configure_dovecot
     create_accounts
     ;;
   stop)
@@ -195,7 +195,7 @@ case "$COMMAND" in
     perform_cleanup
     start_container
     sleep 30
-    configure_dovecot
+    # configure_dovecot
     create_accounts
     ;;
   clean)
@@ -203,7 +203,7 @@ case "$COMMAND" in
     perform_cleanup
     ;;
   config)
-    configure_dovecot
+    # configure_dovecot
     ;;
   *)
     echo "How to use: $0 {start|stop|restart|clean|config}"
