@@ -12,27 +12,27 @@ sys.path.append(initial_workspace_dir)
 
 # 城市和区域映射
 CITY_REGION_MAPPING = {
-    # 东部区域
-    "纽约": "东部",
-    "波士顿": "东部", 
+    # East区域
+    "New York": "East",
+    "Boston": "East", 
     
-    # 南部区域
-    "达拉斯": "南部",
-    "休斯顿": "南部",
+    # South区域
+    "Dallas": "South",
+    "Houston": "South",
     
-    # 西部区域
-    "LA": "西部",
-    "旧金山": "西部"
+    # West区域
+    "LA": "West",
+    "San Francisco": "West"
 }
 
 # 英文城市名映射（用于数据库文件名）
 CITY_NAME_MAPPING = {
-    "纽约": "new_york",
-    "波士顿": "boston",
-    "达拉斯": "dallas",
-    "休斯顿": "houston",
+    "New York": "new_york",
+    "Boston": "boston",
+    "Dallas": "dallas",
+    "Houston": "houston",
     "LA": "los_angeles",
-    "旧金山": "san_francisco"
+    "San Francisco": "san_francisco"
 }
 
 # 动态获取数据库文件夹路径
@@ -79,7 +79,7 @@ def create_warehouse_database(city_name_cn, city_name_en):
             category TEXT,
             price DECIMAL(10,2),
             description TEXT,
-            publish_date TIMESTAMP,  -- 商品发布时间
+            publish_date TIMESTAMP,  -- Released Time
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
@@ -91,9 +91,9 @@ def create_warehouse_database(city_name_cn, city_name_en):
             product_id TEXT NOT NULL,
             warehouse_id INTEGER NOT NULL,
             quantity INTEGER NOT NULL DEFAULT 0,
-            total_sales INTEGER NOT NULL DEFAULT 0,  -- 总销量
-            monthly_sales INTEGER NOT NULL DEFAULT 0,  -- 月销量
-            sales_last_30_days INTEGER NOT NULL DEFAULT 0,  -- 过去30天销量
+            total_sales INTEGER NOT NULL DEFAULT 0,  -- Total Sales
+            monthly_sales INTEGER NOT NULL DEFAULT 0,  -- Monthly Sales
+            sales_last_30_days INTEGER NOT NULL DEFAULT 0,  -- Sales Last 30 Days
             last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             sync_status TEXT DEFAULT 'pending',  -- pending, synced, failed
             sync_timestamp TIMESTAMP,
@@ -133,11 +133,11 @@ def create_warehouse_database(city_name_cn, city_name_en):
 def generate_sample_products():
     """生成示例商品数据"""
     products = [
-        ("PROD001", "iPhone 15 Pro", "电子产品", 999.99, "最新款iPhone"),
-        ("PROD002", "MacBook Air M2", "电子产品", 1299.99, "轻薄笔记本电脑"),
-        ("PROD003", "AirPods Pro", "电子产品", 249.99, "降噪耳机"),
-        ("PROD004", "iPad Air", "电子产品", 599.99, "平板电脑"),
-        ("PROD005", "Apple Watch Series 9", "电子产品", 399.99, "智能手表")
+        ("PROD001", "iPhone 15 Pro", "Electronic Products ", 999.99, "iPhone 17"),
+        ("PROD002", "MacBook Air M2", "Electronic Products ", 1299.99, "Lightweight Laptop"),
+        ("PROD003", "AirPods Pro", "Electronic Products ", 249.99, "Noise-cancelling Earbuds"),
+        ("PROD004", "iPad Air", "Electronic Products ", 599.99, "iPad Mini"),
+        ("PROD005", "Apple Watch Series 9", "Electronic Products ", 399.99, "iWatch")
     ]
     return products
 
@@ -157,9 +157,9 @@ def populate_database_with_sample_data(city_name_cn, city_name_en):
     # 为每个商品生成随机库存
     for product_id, _, _, _, _ in products:
         # 根据城市规模生成不同的库存数量
-        if city_name_cn in ["纽约", "LA", "达拉斯", "休斯顿"]:  # 大城市
+        if city_name_cn in ["New York", "LA", "Dallas", "Houston"]:  # 大城市
             base_quantity = random.randint(200, 800)
-        elif city_name_cn in ["波士顿", "旧金山"]:  # 中等城市
+        elif city_name_cn in ["Boston", "San Francisco"]:  # 中等城市
             base_quantity = random.randint(150, 600)
         else:  # 其他城市
             base_quantity = random.randint(100, 400)

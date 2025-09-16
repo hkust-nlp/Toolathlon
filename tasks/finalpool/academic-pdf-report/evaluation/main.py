@@ -30,7 +30,7 @@ def check_filled_excel(excel_path, expected_data):
     try:
         df = pd.read_excel(excel_path)
         
-        required_columns = ["Title", "First Author", "Affiliation", "Personal Website"]
+        required_columns = ["Title", "First Author", "Affiliation", "Google Scholar Profile"]
         missing_columns = [col for col in required_columns if col not in df.columns]
         if missing_columns:
             print(f"✗ Excel file missing required columns: {', '.join(missing_columns)}")
@@ -84,17 +84,17 @@ def check_filled_excel(excel_path, expected_data):
                         else:
                             print(f"  ✓ Affiliation filled: {row['Affiliation']}")
 
-                    # Check personal website (containment check)
-                    if pd.isna(row["Personal Website"]) or not str(row["Personal Website"]).strip():
-                        print(f"  ✗ Personal website not filled")
+                    # Check Google Scholar Profile (containment check)
+                    if pd.isna(row["Google Scholar Profile"]) or not str(row["Google Scholar Profile"]).strip():
+                        print(f"  ✗ Google Scholar Profile not filled")
                         is_row_perfect = False
-                    elif not compare_websites(row["Personal Website"], paper["personal_website"]):
-                        print(f"  ✗ Personal website does not match")
+                    elif not compare_websites(row["Google Scholar Profile"], paper["personal_website"]):
+                        print(f"  ✗ Google Scholar Profile does not match")
                         print(f"    Expected: {paper['personal_website']}")
-                        print(f"    Actual: {row['Personal Website']}")
+                        print(f"    Actual: {row['Google Scholar Profile']}")
                         is_row_perfect = False
                     else:
-                        print(f"  ✓ Personal website matches: {row['Personal Website']}")
+                        print(f"  ✓ Google Scholar Profile matches: {row['Google Scholar Profile']}")
                     
                     if is_row_perfect:
                         filled_count += 1

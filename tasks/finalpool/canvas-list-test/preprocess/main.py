@@ -52,6 +52,8 @@ def update_course_due_dates():
         
         updated_courses = 0
         
+        random.seed(42)
+
         # 遍历所有课程
         for course in config_data.get('courses', []):
             course_name = course.get('name', 'Unknown')

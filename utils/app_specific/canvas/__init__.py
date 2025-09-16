@@ -12,13 +12,16 @@ Based on the implementation from tasks/prepare/canvas-notification-python/
 
 from .api_client import (
     CanvasAPI,
-    CanvasCourseManager, 
+    CanvasCourseManager,
     CanvasAssignmentManager,
     CanvasTokenManager,
     CourseInitializer,
     # Backward compatibility
     CanvasAPIClient
 )
+
+from .announcement_manager import AnnouncementManager
+from .quiz_manager import QuizManager
 
 from .preprocess_pipeline import (
     CanvasPreprocessUtils,
@@ -54,25 +57,29 @@ __all__ = [
     'CanvasAssignmentManager',
     'CanvasTokenManager',
     'CourseInitializer',
-    
+
+    # New managers
+    'AnnouncementManager',
+    'QuizManager',
+
     # Preprocessing utilities
     'CanvasPreprocessUtils',
     'create_canvas_utils',
-    
+
     # Evaluation classes
     'CanvasEvaluationUtils',
     'create_canvas_evaluator',
-    'CanvasEvaluator', 
+    'CanvasEvaluator',
     'CanvasNotificationEvaluator',
     'run_canvas_notification_evaluation',
-    
+
     # Management tools (if available)
     'tools' if _has_tools else None,
-    
+
     # Backward compatibility aliases
     'CanvasAPIClient',
     'CanvasPreprocessPipeline',
-    'CanvasNotificationPreprocessPipeline', 
+    'CanvasNotificationPreprocessPipeline',
     'CanvasPreprocessPipelineBase',
     'CanvasEvaluatorBase',
     'run_basic_canvas_evaluation'
