@@ -279,9 +279,9 @@ class WooCommerceClient:
 def test_client():
     """测试客户端功能"""
     # 这里需要实际的WooCommerce站点信息
-    site_url = "http://localhost:10003/store85"
-    consumer_key = "ck_woocommerce_token_newpr0d1ct5ty"
-    consumer_secret = "cs_woocommerce_token_newpr0d1ct5ty"
+    site_url = "http://localhost:10003/store97"
+    consumer_key = "ck_woocommerce_token_walkers147a"
+    consumer_secret = "cs_woocommerce_token_walkers147a"
     
     client = WooCommerceClient(site_url, consumer_key, consumer_secret)
     

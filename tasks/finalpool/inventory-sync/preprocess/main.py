@@ -172,46 +172,11 @@ if __name__ == "__main__":
     print("🎯 库存同步任务 - 预处理")
     print("=" * 60)
     
-    # # 步骤1: 复制初始文件到工作空间
-    # print("\n📋 步骤1: 复制初始文件到工作空间")
-    # success1 = copy_initial_files_to_workspace(args.agent_workspace)
-    success1 = True
-    # # 步骤2: 创建WooCommerce配置文件
-    # print("\n📋 步骤2: 创建WooCommerce配置文件")
-    # success2 = create_woocommerce_config()
-    success2 = True
-    # 步骤3: 设置WooCommerce商店
-    # print("\n📋 步骤3: 初始化WooCommerce商店")
-    # if args.setup_wc:
-    #     success3 = setup_woocommerce_store()
-    # else:
-    #     print("⏭️ 跳过WooCommerce商店设置 (使用 --setup_wc 启用)")
-    #     success3 = True
-    
-    # # 步骤4: 设置仓库数据库
-    # print("\n📋 步骤4: 初始化仓库数据库")
-    # if args.setup_db:
-    #     success4 = setup_warehouse_databases()
-    # else:
-    #     print("⏭️ 跳过仓库数据库设置 (使用 --setup_db 启用)")
-    #     success4 = True
-    
-    # # 默认都执行WooCommerce和数据库设置
-    # if not args.setup_wc and not args.setup_db:
-    #     print("\n🔄 执行完整初始化流程...")
-    #     success3 = setup_woocommerce_store()
-    #     success4 = setup_warehouse_databases()
-    success3 = setup_woocommerce_store()
-    success4 = setup_warehouse_databases()
-    # print("\n" + "=" * 60)
-    # print("📊 预处理结果汇总")
-    # print("=" * 60)
-    # print(f"✅ 文件复制: {'成功' if success1 else '失败'}")
-    # print(f"✅ 配置文件: {'成功' if success2 else '失败'}")
-    # print(f"✅ WooCommerce: {'成功' if success3 else '失败'}")
-    # print(f"✅ 数据库设置: {'成功' if success4 else '失败'}")
-    success1 = copy_initial_files_to_workspace(args.agent_workspace)
-    if success1 and success2 and success3 and success4:
+    success_setup_store = setup_woocommerce_store()
+    success_setup_warehouse = setup_warehouse_databases()
+    success_copy_file = copy_initial_files_to_workspace(args.agent_workspace)
+
+    if success_setup_store and success_setup_warehouse and success_copy_file:
         print("\n🎉 预处理完成！库存同步系统已准备就绪")
         print("📝 下一步可以运行库存同步程序进行测试")
         exit(0)

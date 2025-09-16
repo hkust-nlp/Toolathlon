@@ -327,12 +327,12 @@ class CanvasAPI:
             
         return None
     
-    def get_or_create_user(self, name: str, email: str, account_id: int = 1) -> Optional[Dict]:
+    def get_or_create_user(self, email: str, name: str = None, account_id: int = 1) -> Optional[Dict]:
         """
         Get user by email (all users should already exist, no creation needed)
         
         Args:
-            name: User's full name
+            name: User's full name (optional)
             email: User's email address
             account_id: Account ID
             
@@ -351,12 +351,12 @@ class CanvasAPI:
     def enroll_user(self, course_id: int, user_id: int, role: str = 'StudentEnrollment') -> Optional[Dict]:
         """
         Enroll a user in a course
-        
+
         Args:
             course_id: Course ID
             user_id: User ID to enroll
             role: Enrollment role (default: 'StudentEnrollment')
-            
+
         Returns:
             Enrollment data or None if error
         """
@@ -367,8 +367,13 @@ class CanvasAPI:
                 'enrollment_state': 'active'
             }
         }
-        
+
         result = self._make_request('POST', f'courses/{course_id}/enrollments', enrollment_data)
+
+        # If we get a success response (even if empty), treat it as successful
+        if result and (result.get('success') or result.get('id')):
+            return result
+
         return result
     
     def get_course_enrollments(self, course_id: int) -> List[Dict]:

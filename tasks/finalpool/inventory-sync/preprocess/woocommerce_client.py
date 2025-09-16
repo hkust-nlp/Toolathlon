@@ -178,9 +178,9 @@ class WooCommerceInventoryManager:
     def __init__(self, wc_client: WooCommerceClient):
         self.wc_client = wc_client
         self.region_prefixes = {
-            "东部": "EAST",
-            "南部": "SOUTH", 
-            "西部": "WEST"
+            "East": "EAST",
+            "South": "SOUTH", 
+            "West": "WEST"
         }
     
     def initialize_regional_products(self, products: List[Dict]) -> Dict[str, List[Dict]]:
@@ -207,29 +207,29 @@ class WooCommerceInventoryManager:
                 import random
                 from datetime import datetime, timedelta
                 
-                if region == "东部":
-                    initial_stock = random.randint(100, 300)  # 东部库存较多
-                    initial_sales = random.randint(50, 150)   # 东部销量较高
-                    # 东部市场活跃，30天销量相对较高
+                if region == "East":
+                    initial_stock = random.randint(100, 300)  # East库存较多
+                    initial_sales = random.randint(50, 150)   # East销量较高
+                    # East市场活跃，30天销量相对较高
                     sales_30_days = random.randint(int(initial_sales * 0.15), int(initial_sales * 0.35))
-                    # 东部市场发展较早，商品发布时间相对较早
+                    # East市场发展较早，Released Time相对较早
                     days_ago = random.randint(180, 500)
-                elif region == "南部":
-                    initial_stock = random.randint(80, 250)   # 南部库存中等
-                    initial_sales = random.randint(30, 100)   # 南部销量中等
-                    # 南部市场稳定，30天销量中等
+                elif region == "South":
+                    initial_stock = random.randint(80, 250)   # South库存中等
+                    initial_sales = random.randint(30, 100)   # South销量中等
+                    # South市场稳定，30天销量中等
                     sales_30_days = random.randint(int(initial_sales * 0.1), int(initial_sales * 0.3))
-                    # 南部市场发展中等
+                    # South市场发展中等
                     days_ago = random.randint(120, 400)
-                else:  # 西部
-                    initial_stock = random.randint(60, 200)   # 西部库存相对较少
-                    initial_sales = random.randint(20, 80)    # 西部销量相对较少
-                    # 西部新兴市场，30天销量增长快
+                else:  # West
+                    initial_stock = random.randint(60, 200)   # West库存相对较少
+                    initial_sales = random.randint(20, 80)    # West销量相对较少
+                    # West新兴市场，30天销量增长快
                     sales_30_days = random.randint(int(initial_sales * 0.2), int(initial_sales * 0.4))
-                    # 西部市场较新，商品发布时间相对较晚
+                    # West市场较新，Released Time相对较晚
                     days_ago = random.randint(60, 300)
                 
-                # 计算区域商品发布时间
+                # 计算区域Released Time
                 regional_publish_date = datetime.now() - timedelta(days=days_ago)
                 regional_publish_str = regional_publish_date.strftime("%Y-%m-%dT%H:%M:%S")
                 
@@ -243,10 +243,10 @@ class WooCommerceInventoryManager:
                     "manage_stock": True,
                     "stock_quantity": initial_stock,
                     "stock_status": "instock",
-                    "date_created": regional_publish_str,  # 设置区域商品发布时间
+                    "date_created": regional_publish_str,  # 设置区域Released Time
                     "status": "publish",  # 确保商品已发布
                     "categories": [
-                        {"name": product.get('category', '未分类')}
+                        {"name": product.get('category', 'Uncategorized')}
                     ],
                     "meta_data": [
                         {"key": "region", "value": region},
@@ -288,8 +288,8 @@ class WooCommerceInventoryManager:
         同步区域库存到WooCommerce
         
         Args:
-            region_inventory: 区域库存数据 {"东部": {"PROD001": 100}}
-            product_mapping: 商品映射 {"东部": {"PROD001": "wc_product_id"}}
+            region_inventory: 区域库存数据 {"East": {"PROD001": 100}}
+            product_mapping: 商品映射 {"East": {"PROD001": "wc_product_id"}}
             
         Returns:
             同步结果
