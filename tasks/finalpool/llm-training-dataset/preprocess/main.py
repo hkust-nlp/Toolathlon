@@ -1,83 +1,49 @@
-from argparse import ArgumentParser
+import sys
 import os
-from googleapiclient.discovery import build
-from google.oauth2.credentials import Credentials
+import asyncio
+from argparse import ArgumentParser
 
-GOOGLE_CREDENTIALS_PATH = 'configs/google_credentials.json'
-TARGET_FOLDER_ID = "1wemPliO93NsmMIIbfxI5YfREQeSI7zyC"  # 指定的Google Drive文件夹ID
-SCOPES = [
-    'https://www.googleapis.com/auth/drive',
-    'https://www.googleapis.com/auth/spreadsheets'
+sys.path.append(os.path.dirname(__file__))
+
+from utils.app_specific.googlesheet.drive_helper import (
+    get_google_service, find_folder_by_name, create_folder, 
+    clear_folder, copy_sheet_to_folder
+)
+
+GOOGLESHEET_URLS = [
+    "https://docs.google.com/spreadsheets/d/1QS43S-zMg0JozNfBOwBQOKsYwTsMLBDSMj5Jrdk1BdE/edit?gid=0#gid=0"
 ]
 
-def delete_ptdata_sheet_if_exists(folder_id, creds, spreadsheet_name="LLM Pre-training Data", sheet_name="ptdata"):
-    """
-    删除指定Google Sheet文件中的ptdata工作表
-    """
-    drive_service = build('drive', 'v3', credentials=creds)
-    sheets_service = build('sheets', 'v4', credentials=creds)
-    
-    # 1. 查找文件夹下名为"LLM Pre-training Data"的表格文件
-    query = (
-        f"'{folder_id}' in parents and "
-        f"mimeType = 'application/vnd.google-apps.spreadsheet' and "
-        f"name = '{spreadsheet_name}' and trashed = false"
-    )
-    results = drive_service.files().list(q=query, fields="files(id, name)").execute()
-    files = results.get('files', [])
-    if not files:
-        print(f"未找到名为 {spreadsheet_name} 的Google Sheet文件。")
-        return
-    
-    file_id = files[0]['id']
-    print(f"找到文件: {spreadsheet_name} (ID: {file_id})")
-    
-    # 2. 获取所有工作表信息
-    try:
-        sheet_metadata = sheets_service.spreadsheets().get(spreadsheetId=file_id).execute()
-        sheets = sheet_metadata.get('sheets', [])
-        
-        # 3. 查找ptdata工作表
-        ptdata_sheet_id = None
-        for sheet in sheets:
-            if sheet['properties']['title'] == sheet_name:
-                ptdata_sheet_id = sheet['properties']['sheetId']
-                break
-        
-        if ptdata_sheet_id is None:
-            print(f"未找到名为 {sheet_name} 的工作表，无需删除。")
-            return
-        
-        # 4. 删除ptdata工作表
-        request = {
-            'requests': [{
-                'deleteSheet': {
-                    'sheetId': ptdata_sheet_id
-                }
-            }]
-        }
-        
-        sheets_service.spreadsheets().batchUpdate(
-            spreadsheetId=file_id,
-            body=request
-        ).execute()
-        
-        print(f"已删除工作表: {sheet_name}")
-        
-    except Exception as e:
-        print(f"删除工作表时出错: {e}")
+FOLDER_NAME = "llm-training-dataset"
 
-if __name__=="__main__":
-    parser = ArgumentParser()
+async def main():
+    parser = ArgumentParser(description="GoogleSheet example preprocess")
     parser.add_argument("--agent_workspace", required=False)
-    parser.add_argument("--launch_time", required=False, help="Launch time")
+    parser.add_argument("--launch_time", required=False)
     args = parser.parse_args()
 
-    # 1. 加载Google凭证
-    if not os.path.exists(GOOGLE_CREDENTIALS_PATH):
-        print(f"Google credentials not found at {GOOGLE_CREDENTIALS_PATH}")
-        exit(1)
-    creds = Credentials.from_authorized_user_file(GOOGLE_CREDENTIALS_PATH, SCOPES)
+    task_root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    os.makedirs(os.path.join(task_root_path, "files"), exist_ok=True)
+    folder_id_file = os.path.join(task_root_path, "files", "folder_id.txt")
 
-    # 2. 调用删除ptdata工作表的函数
-    delete_ptdata_sheet_if_exists(TARGET_FOLDER_ID, creds)
+    if os.path.exists(folder_id_file):
+        os.remove(folder_id_file)
+
+    drive_service, sheets_service = get_google_service()
+
+    folder_id = find_folder_by_name(drive_service, FOLDER_NAME)
+    if not folder_id:
+        folder_id = create_folder(drive_service, FOLDER_NAME)
+
+    clear_folder(drive_service, folder_id)
+
+    for sheet_url in GOOGLESHEET_URLS:
+        copy_sheet_to_folder(drive_service, sheet_url, folder_id)
+
+    with open(folder_id_file, "w") as f:
+        f.write(folder_id)
+
+    print(f"Folder ID saved: {folder_id}")
+
+if __name__ == "__main__":
+    asyncio.run(main())

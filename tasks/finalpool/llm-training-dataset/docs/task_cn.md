@@ -1,1 +1,0 @@
-我最近在学习大语言模型，我决定自己小规模训练一个decoder-only的语言模型。第一步我需要准备预训练数据，因此我需要你帮忙整理llama, gpt-neo用到的预训练数据放在我的名为ptdata的新sheet里（spreadsheet的文件名为LLM Pre-training Data,不需要新建），按照数据量倒序排列，列名为name, use in llm (取值应该只包含llama和gpt-neo，如果被两个模型都使用了则应该为gpt-neo或llama), size, link。其中link以huggingface的链接优先，若huggingface没有该数据集则尝试提供其他链接。

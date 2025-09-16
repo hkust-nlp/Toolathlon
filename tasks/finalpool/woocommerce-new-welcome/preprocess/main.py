@@ -52,6 +52,108 @@ def read_json_data(json_path: str):
         print(f"❌ 读取JSON数据文件时出错: {e}")
         return []
 
+def wait_for_table_availability(client: bigquery.Client, table_id: str, max_wait_time: int = 30):
+    """
+    Wait for BigQuery table to become fully available after creation
+    """
+    import time
+
+    print(f"⏳ 等待表 {table_id} 完全可用...")
+    start_time = time.time()
+
+    while time.time() - start_time < max_wait_time:
+        try:
+            # Try to get the table - this verifies it's fully available
+            table = client.get_table(table_id)
+            # Also try a simple query to make sure it's really ready
+            query = f"SELECT COUNT(*) as row_count FROM `{table_id}` LIMIT 1"
+            query_job = client.query(query)
+            list(query_job.result())
+            print(f"✅ 表 {table_id} 已完全可用")
+            return table
+        except Exception as e:
+            print(f"   表仍不可用: {e}")
+            time.sleep(2)
+
+    print(f"⚠️  等待表可用超时 ({max_wait_time}秒)")
+    return None
+
+def wait_for_dataset_deletion(client: bigquery.Client, dataset_id: str, max_wait_time: int = 30):
+    """
+    Wait for BigQuery dataset deletion to complete
+    """
+    import time
+
+    print(f"⏳ 等待数据集 {dataset_id} 完全删除...")
+    start_time = time.time()
+
+    while time.time() - start_time < max_wait_time:
+        try:
+            # Try to get the dataset - if it still exists, deletion isn't complete
+            client.get_dataset(dataset_id)
+            print(f"   数据集仍然存在，继续等待...")
+            time.sleep(2)
+        except NotFound:
+            # Dataset is truly gone
+            print(f"✅ 数据集 {dataset_id} 已完全删除")
+            return True
+        except Exception as e:
+            print(f"⚠️  检查数据集状态时出错: {e}")
+            time.sleep(2)
+
+    print(f"⚠️  等待超时 ({max_wait_time}秒)，继续执行...")
+    return False
+
+def setup_or_clear_dataset(client: bigquery.Client, project_id: str):
+    """
+    Setup or clear existing woocommerce_crm dataset
+    - If dataset exists: clear all table contents but keep the dataset and tables
+    - If dataset doesn't exist: create it (tables will be created later)
+    """
+    dataset_id = f"{project_id}.woocommerce_crm"
+    print(f"🧹 检查并设置数据集: {dataset_id}")
+
+    try:
+        # Try to get dataset info to see if it exists
+        try:
+            dataset = client.get_dataset(dataset_id)
+            print(f"ℹ️  找到现有数据集: {dataset_id}")
+
+            # List all tables in the dataset
+            tables = list(client.list_tables(dataset_id))
+            if tables:
+                print(f"ℹ️  数据集包含 {len(tables)} 个表:")
+                for table in tables:
+                    print(f"   - {table.table_id}")
+
+                # Clear contents of all tables instead of deleting them
+                for table in tables:
+                    table_id = f"{dataset_id}.{table.table_id}"
+                    print(f"🗑️  清空表 {table.table_id} 的内容...")
+
+                    # Use DELETE query to clear table contents
+                    delete_query = f"DELETE FROM `{table_id}` WHERE true"
+                    query_job = client.query(delete_query)
+                    query_job.result()  # Wait for completion
+
+                    print(f"✅ 已清空表 {table.table_id}")
+            else:
+                print(f"ℹ️  数据集为空，无需清理")
+
+        except NotFound:
+            print(f"ℹ️  数据集 {dataset_id} 不存在，将创建新数据集")
+            # Create the dataset since it doesn't exist
+            dataset = bigquery.Dataset(dataset_id)
+            dataset.location = "US"
+            dataset.description = "WooCommerce CRM dataset for customer management and welcome emails"
+            client.create_dataset(dataset, timeout=30)
+            print(f"✅ 数据集 '{dataset.dataset_id}' 已成功创建")
+
+    except Exception as e:
+        print(f"❌ 数据集设置过程出错: {e}")
+        logger.exception("Dataset setup failed")
+        raise
+
 def cleanup_existing_dataset(client: bigquery.Client, project_id: str):
     """
     Clean up existing woocommerce_crm dataset if it exists
@@ -84,9 +186,8 @@ def cleanup_existing_dataset(client: bigquery.Client, project_id: str):
         )
         print(f"✅ 已成功清理数据集 '{dataset_id}' 及其所有内容")
         
-        # Wait a moment for deletion to propagate
-        import time
-        time.sleep(2)
+        # Wait for deletion to propagate - BigQuery deletion is asynchronous
+        wait_for_dataset_deletion(client, dataset_id)
         
     except NotFound:
         print(f"ℹ️  数据集 {dataset_id} 不存在，无需清理")
@@ -122,28 +223,15 @@ def setup_bigquery_resources(credentials_path: str, project_id: str, json_data: 
         except Exception as e:
             print(f"⚠️  列出数据集时出错: {e}")
 
-        # Clean up existing dataset first
-        cleanup_existing_dataset(client, project_id)
+        # Setup or clear existing dataset (don't delete it)
+        setup_or_clear_dataset(client, project_id)
 
-        # Create dataset
+        # Create dataset if needed (handled in setup_or_clear_dataset)
         dataset_id = f"{project_id}.woocommerce_crm"
-        print(f"📊 创建数据集: {dataset_id}")
-        try:
-            dataset = bigquery.Dataset(dataset_id)
-            dataset.location = "US"
-            dataset.description = "WooCommerce CRM dataset for customer management and welcome emails"
-            client.create_dataset(dataset, timeout=30)
-            print(f"✅ 数据集 '{dataset.dataset_id}' 已成功创建。")
-        except Conflict:
-            print(f"ℹ️  数据集 '{dataset_id}' 已存在，跳过创建。")
-        except Exception as e:
-            print(f"❌ 创建数据集失败: {e}")
-            logger.exception("Dataset creation failed")
-            raise
 
-        # Create customers table
+        # Create customers table (or skip if exists)
         table_id_customers = f"{dataset_id}.customers"
-        print(f"🗂️  创建表: {table_id_customers}")
+        print(f"🗂️  检查并创建表: {table_id_customers}")
         schema_customers = [
             bigquery.SchemaField("id", "INTEGER", mode="REQUIRED"),
             bigquery.SchemaField("woocommerce_id", "INTEGER", mode="REQUIRED"),
@@ -168,13 +256,22 @@ def setup_bigquery_resources(credentials_path: str, project_id: str, json_data: 
             print(f"❌ 创建表 '{table_id_customers}' 失败: {e}")
             raise
 
+        # Get table reference for data insertion
+        print(f"📋 获取表引用...")
+        table_ref = client.get_table(table_id_customers)
+        print(f"✅ 获取到表引用: {table_ref.table_id}")
+
         # Insert JSON data into BigQuery
         if json_data:
             print(f"💾 插入 {len(json_data)} 条客户数据到 BigQuery...")
             try:
-                table_ref = client.get_table(table_id_customers)
-                print(f"✅ 获取到表引用: {table_ref.table_id}")
-                
+                # Use the table reference we already verified is available
+                print(f"✅ 使用已验证的表引用: {table_ref.table_id}")
+
+                # **ALTERNATIVE APPROACH: Use load_table_from_json instead of insert_rows_json**
+                # This bypasses potential caching issues with streaming inserts
+                print("🔄 尝试使用批量加载而非流式插入...")
+
                 # Convert JSON data for BigQuery
                 bigquery_rows = []
                 for customer in json_data:
@@ -190,7 +287,7 @@ def setup_bigquery_resources(credentials_path: str, project_id: str, json_data: 
                                 return datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S').isoformat()
                         except ValueError:
                             return None
-                    
+
                     bigquery_row = {
                         "id": customer['id'],
                         "woocommerce_id": customer['woocommerce_id'],
@@ -206,25 +303,21 @@ def setup_bigquery_resources(credentials_path: str, project_id: str, json_data: 
                         "metadata": customer['metadata']
                     }
                     bigquery_rows.append(bigquery_row)
-                
-                # Insert data in batches
-                batch_size = 100
-                total_inserted = 0
-                for i in range(0, len(bigquery_rows), batch_size):
-                    batch = bigquery_rows[i:i + batch_size]
-                    print(f"   插入批次 {i//batch_size + 1}: {len(batch)} 条记录...")
-                    
-                    errors = client.insert_rows_json(table_ref, batch)
-                    if errors:
-                        print(f"❌ 批次 {i//batch_size + 1} 插入错误: {errors}")
-                        for error in errors:
-                            logger.error(f"Insert error: {error}")
-                        raise Exception(f"批次插入失败: {errors}")
-                    else:
-                        total_inserted += len(batch)
-                        print(f"   ✅ 批次 {i//batch_size + 1} 成功插入 {len(batch)} 条记录")
-                
-                print(f"🎉 成功插入总计 {total_inserted} 条客户数据到 customers 表")
+
+                # Use load_table_from_json instead of insert_rows_json
+                job_config = bigquery.LoadJobConfig(
+                    write_disposition="WRITE_TRUNCATE",  # Overwrite existing data
+                    source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
+                )
+
+                load_job = client.load_table_from_json(
+                    bigquery_rows, table_ref, job_config=job_config
+                )
+
+                print(f"   开始批量加载作业: {load_job.job_id}")
+                load_job.result()  # Wait for the job to complete
+
+                print(f"🎉 成功批量加载 {len(bigquery_rows)} 条客户数据到 customers 表")
                 
                 # Verify data insertion
                 print("🔍 验证数据插入...")
