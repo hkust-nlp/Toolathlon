@@ -1,5 +1,4 @@
 我是XXX University教务员admin3，学校通知已经将新学期的课程安排发送至我的邮箱中（邮件subject为 Course Schedule Notification ），我需要你帮我从附件提供的总课表中找出我需要负责的课程，并在canvas为任课老师创建对应的课程。具体要求如下：
-- Canvas上的课程名为课程科目-上课时间，如Art Appreciation-Wednesday 1,2,3。
 - 在Canvas将对应老师设置为这门课的教师，教师的邮箱保存在本地工作空间下
 - 为每门课程发布一个公告，内容包括：上课教师和上课时间
 - 如果一个老师带了同一门课程，应在Canvas中为这些相同的课程设置资源共享
