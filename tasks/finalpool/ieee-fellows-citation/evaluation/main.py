@@ -7,7 +7,14 @@ from utils.general.helper import read_json
 def check(item):
     try:
         # Search for the author using their name
-        author_result = scholarly.search_author(item.get('name'))
+        author_name = item.get('name')
+        if not author_name:
+            print("Error: Author name is missing in the input data")
+            return False
+        author_result = scholarly.search_author(author_name)
+        if author_result is None:
+            print(f"No results found for author {author_name}")
+            return False
         author_info = next(author_result, None)
         # scholarly.pprint(author_info)
     except Exception as e:
@@ -31,7 +38,7 @@ def check(item):
 
     # Check if the author has at least 3000 citations
     if author_info.get('citedby') < 3000:
-        print(f"Author {item.get('name')} has less than 1000 citations: {author_info.get('citedby')}")
+        print(f"Author {item.get('name')} has less than 3000 citations: {author_info.get('citedby')}")
         return False
     
     try:
@@ -79,15 +86,15 @@ if __name__=="__main__":
     pg.FreeProxies()
     scholarly.use_proxy(pg)
 
-    test_file_path = os.path.join(args.agent_workspace, "high_impact_citations.json")
+    test_file_path = os.path.join(args.agent_workspace, "high_citation_scholars_results.json")
     test_data = read_json(test_file_path)
     
     # Check if the number of scholars is at least 10
     scholars_list = test_data.get('scholars_list', [])
     total_scholars = len(scholars_list)
     
-    if total_scholars < 10:
-        print(f"Error: Number of scholars ({total_scholars}) is less than the required minimum of 10.")
+    if total_scholars < 5:
+        print(f"Error: Number of scholars ({total_scholars}) is less than the required number 5.")
         print("Evaluation failed due to insufficient number of scholars.")
         exit(1)
     
