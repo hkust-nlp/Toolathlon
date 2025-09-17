@@ -1,0 +1,20 @@
+{
+  "responseId": "ACYDBNhFWC76Tg4FLGDLzvYPZSxiG19iqmrFaIPokdVif3DJCbAmVijROESWu7zpsp-UtD4",
+  "createTime": "2025-09-17T10:04:35.822Z",
+  "lastSubmittedTime": "2025-09-17T10:04:35.822314Z",
+  "answers": {
+    "How anxious are you feeling?": "2",
+    "Student ID": "14124",
+    "Dietary Restrictions": "Vegan",
+    "Highest Education": "bachelor",
+    "Do you want to attend the morning session or the afternoon session?": [
+      "Morning",
+      "Afternoon"
+    ],
+    "Are you good at these activities?": "basketball",
+    "Phone": "3123",
+    "Address": "11",
+    "Name": "ad",
+    "Email": "ss"
+  }
+}
