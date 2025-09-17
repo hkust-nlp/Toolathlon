@@ -1,21 +1,13 @@
 from argparse import ArgumentParser
 import asyncio
 from pathlib import Path
-import sys
-import os
-
-# 添加项目根目录到Python路径
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
-sys.path.insert(0, project_root)
-
 from utils.general.helper import read_json
-from utils.mcp.tool_servers import MCPServerManager, call_tool_with_retry, ToolCallError
+from utils.mcp.tool_servers import MCPServerManager, call_tool_with_retry
 import json
 import itertools
-import time
 from typing import Dict, List, Tuple, Optional
+from utils.general.helper import normalize_str
 
-# 定义UPenn校园的六个关键地点
 UPENN_LOCATIONS = {
     "Penn Bookstore": "Penn Bookstore, 3601 Walnut St, Philadelphia, PA 19104",
     "University of Pennsylvania School of Engineering and Applied Science": "University of Pennsylvania School of Engineering and Applied Science, 220 S 33rd St, Philadelphia, PA 19104",
@@ -25,82 +17,43 @@ UPENN_LOCATIONS = {
     "College Hall": "College Hall, Philadelphia, PA 19104"
 }
 
-# 地点的简称映射（优化后的匹配系统）
-LOCATION_ALIASES = {
-    "Penn Bookstore": ["bookstore", "书店"],
-    "University of Pennsylvania School of Engineering and Applied Science": ["computer", "eniac", "计算机", "electronic", "numerical", "engineering", "工程", "moore", "moore school", "school of engineering"],
-    "Penn Museum": ["museum", "博物馆", "penn museum", "archaeology", "anthropology"],
-    "Benjamin Franklin Statue": ["franklin", "富兰克林", "benjamin", "statue", "雕像"],
-    "Fisher Fine Arts Library": ["library", "图书馆", "fisher fine arts library", "art", "architecture", "fisher"],
-    "College Hall": ["college", "hall", "college hall", "building", "architecture"]
-}
-
-# 严格模式配置
-STRICT_MODE_CONFIG = {
-    "efficiency_threshold": 1.10,      # 严格阈值：允许10%偏差
-    "fallback_threshold": 1.15,        # 容错阈值：允许15%偏差  
-    "min_locations_required": 5,       # 必须包含所有5个目的地
-    "max_evaluation_time": 30.0,       # 最大评估时间30秒
-    "max_api_calls": 50,               # 最大API调用次数
-    "scoring_weights": {
-        "route_efficiency": 0.70,       # 路线效率权重提高到70%
-        "location_coverage": 0.20,      # 地点覆盖20%
-        "json_structure": 0.10          # JSON结构10%
-    }
-}
-
 async def get_walking_time(server, origin: str, destination: str) -> Optional[Tuple[int, str]]:
-    """获取两个地点之间的步行时间和距离
-    
-    Google Maps API直接返回步行时间和距离，无需额外的步速计算
-    API使用标准步行速度（约4.8 km/h）进行计算
-    """
+    """Get walking time and distance between two locations using Google Maps API."""
     try:
         res = await call_tool_with_retry(server, "maps_directions", {
             "origin": origin,
             "destination": destination,
-            "mode": "walking"  # 使用walking模式，Google Maps自动计算最优步行路线
+            "mode": "walking"
         })
-        
+
         if not res.content[0].text.strip():
             print(f"Empty response for {origin} -> {destination}")
             return None
-        
+
         try:
             result = json.loads(res.content[0].text)
         except json.JSONDecodeError as e:
-            print(f"JSON解析错误: {e}, 原始内容: {res.content[0].text}")
+            print(f"JSON decode error: {e}")
             return None
-        
-        # Google Maps API响应结构：
-        # {
-        #   "routes": [{
-        #     "duration": {"value": 480, "text": "8 mins"},  # 步行时间
-        #     "distance": {"value": 339, "text": "0.2 mi"}   # 步行距离
-        #   }]
-        # }
+
         if result.get("routes") and len(result["routes"]) > 0:
             route = result["routes"][0]
-            duration = route["duration"]["value"]  # 秒为单位的步行时间
-            distance = route["distance"]["text"]   # 距离文本（如"0.2 mi"）
+            duration = route["duration"]["value"]  # Duration in seconds
+            distance = route["distance"]["text"]   # Distance text (e.g., "0.2 mi")
             return duration, distance
         else:
-            print(f"获取路线失败: {origin} -> {destination}")
+            print(f"Failed to get route: {origin} -> {destination}")
             return None
     except Exception as e:
-        print(f"获取步行时间时出错: {e}")
+        print(f"Error getting walking time: {e}")
         return None
 
 async def build_distance_matrix(server) -> Dict[str, Dict[str, Tuple[int, str]]]:
-    """构建所有地点之间的距离矩阵
-    
-    使用Google Maps API获取真实的步行时间和距离数据
-    总共需要进行 6×6-6 = 30次API调用（排除自环）
-    """
+    """Build distance matrix for all UPenn locations using Google Maps API."""
     locations = list(UPENN_LOCATIONS.keys())
     distance_matrix = {}
     api_call_count = 0
-    
+
     for origin in locations:
         distance_matrix[origin] = {}
         for destination in locations:
@@ -109,427 +62,255 @@ async def build_distance_matrix(server) -> Dict[str, Dict[str, Tuple[int, str]]]
             else:
                 result = await get_walking_time(server, UPENN_LOCATIONS[origin], UPENN_LOCATIONS[destination])
                 api_call_count += 1
-                if result:
+                if result is not None:
                     distance_matrix[origin][destination] = result
                 else:
-                    # 如果API调用失败，设置默认值
-                    distance_matrix[origin][destination] = (999999, "Unknown")
-    
-    print(f"距离矩阵构建完成，共进行{api_call_count}次API调用")
+                    raise Exception(f"Failed to get walking time: {origin} -> {destination}")
+
+    print(f"Distance matrix built with {api_call_count} API calls")
     return distance_matrix
 
 def find_optimal_route(distance_matrix: Dict[str, Dict[str, Tuple[int, str]]]) -> Tuple[List[str], float]:
-    """使用TSP算法找到最优路线
-    
-    严格模式下的优化：
-    - 确保找到真正的最优解
-    - 提供详细的搜索过程信息
-    """
+    """Find optimal route using TSP algorithm."""
     start_location = "Penn Bookstore"
     destinations = [
-        "University of Pennsylvania School of Engineering and Applied Science", 
-        "Penn Museum", 
-        "Benjamin Franklin Statue", 
-        "Fisher Fine Arts Library", 
+        "University of Pennsylvania School of Engineering and Applied Science",
+        "Penn Museum",
+        "Benjamin Franklin Statue",
+        "Fisher Fine Arts Library",
         "College Hall"
     ]
-    
-    print(f"计算最优路线，起点: {start_location}")
-    print(f"目的地数量: {len(destinations)}")
-    
+
+    print(f"Calculating optimal route from: {start_location}")
+    print(f"Number of destinations: {len(destinations)}")
+
     min_time = float('inf')
     best_route = []
     total_permutations = 0
-    
-    # 遍历所有可能的访问顺序 (5! = 120种排列)
+
     for perm in itertools.permutations(destinations):
         total_permutations += 1
         current_location = start_location
         total_time = 0
         route = [start_location]
-        
-        # 计算当前排列的总时间
+
         for next_location in perm:
             if current_location not in distance_matrix or next_location not in distance_matrix[current_location]:
-                print(f"警告: 距离矩阵中缺少 {current_location} -> {next_location}")
+                print(f"Warning: Missing distance data for {current_location} -> {next_location}")
                 total_time = float('inf')
                 break
-                
+
             time, _ = distance_matrix[current_location][next_location]
             total_time += time
             route.append(next_location)
             current_location = next_location
-        
-        # 更新最优路线
+
         if total_time < min_time:
             min_time = total_time
             best_route = route
-            print(f"发现更优路线: {' -> '.join(route)}, 时间: {min_time}秒 ({min_time//60}分{min_time%60}秒)")
-    
-    print(f"TSP搜索完成，尝试了{total_permutations}种排列")
+            print(f"Better route found: {' -> '.join(route)}, time: {min_time}s ({min_time//60}m{min_time%60}s)")
+
+    print(f"TSP search completed, tried {total_permutations} permutations")
     return best_route, min_time
 
-def check_json_structure_strict(json_data) -> Tuple[bool, Dict]:
-    """严格模式的JSON结构检查
-    
-    只检查关键字段，忽略description等文本内容
-    重点验证：location, route_plan, total_distance, total_time
-    """
-    validation_result = {
-        "structure_valid": False,
-        "errors": [],
-        "warnings": [],
-        "checked_fields": []
-    }
-    
-    # 基础结构检查
-    if not isinstance(json_data, list):
-        validation_result["errors"].append("JSON数据必须为数组格式")
-        return False, validation_result
-    
-    if len(json_data) == 0:
-        validation_result["errors"].append("JSON数组不能为空")
-        return False, validation_result
-    
-    # 检查每个元素的关键字段
-    for i, item in enumerate(json_data):
-        # 关键字段检查（严格模式只检查核心字段）
-        critical_fields = ['destinations', 'route_plan', 'total_distance', 'total_time']
-        
-        for field in critical_fields:
-            if field not in item:
-                validation_result["errors"].append(f"第{i+1}个元素缺少关键字段: {field}")
-                return False, validation_result
-            validation_result["checked_fields"].append(f"item[{i}].{field}")
-        
-        # destinations结构检查
-        if not isinstance(item['destinations'], list) or len(item['destinations']) != 1:
-            validation_result["errors"].append(f"第{i+1}个元素的destinations必须包含1个目的地")
-            return False, validation_result
-        
-        # destinations关键字段检查
-        dest = item['destinations'][0]
-        critical_dest_fields = ['order', 'name', 'location']  # 移除description检查
-        
-        for field in critical_dest_fields:
-            if field not in dest:
-                validation_result["errors"].append(f"第{i+1}个元素的目的地缺少关键字段: {field}")
-                return False, validation_result
-            validation_result["checked_fields"].append(f"item[{i}].destinations[0].{field}")
-        
-        # route_plan结构检查
-        if not isinstance(item['route_plan'], list):
-            validation_result["errors"].append(f"第{i+1}个元素的route_plan必须为列表")
-            return False, validation_result
-        
-        # route_plan内容检查（如果有route_plan）
-        if item['route_plan']:  # 允许空的route_plan
-            critical_route_fields = ['from', 'to', 'distance', 'estimated_time']  # 移除directions检查
-            for j, route in enumerate(item['route_plan']):
-                for field in critical_route_fields:
-                    if field not in route:
-                        validation_result["errors"].append(f"第{i+1}个元素的第{j+1}个路线缺少关键字段: {field}")
-                        return False, validation_result
-                    validation_result["checked_fields"].append(f"item[{i}].route_plan[{j}].{field}")
-        
-        # 对于description等文本字段，只做存在性检查，不强制要求
-        if 'description' not in dest:
-            validation_result["warnings"].append(f"第{i+1}个元素的目的地缺少description字段（可选）")
-    
-    validation_result["structure_valid"] = True
-    print(f"JSON结构验证通过，检查了{len(validation_result['checked_fields'])}个关键字段")
-    
-    return True, validation_result
-
-def check_required_locations_strict(json_data) -> Tuple[bool, Dict]:
-    """严格模式的地点检查
-    
-    必须包含所有5个必需地点，使用改进的匹配算法
-    """
-    location_result = {
-        "locations_valid": False,
-        "found_locations": [],
-        "missing_locations": [],
-        "match_details": []
-    }
-    
-    # 收集所有目的地名称
-    all_destinations = []
-    for item in json_data:
-        dest = item['destinations'][0]
-        dest_name = dest['name'].strip().lower()
-        all_destinations.append((dest_name, dest.get('location', '')))
-    
-    # 必需地点列表
-    required_locations = [
-        "University of Pennsylvania School of Engineering and Applied Science",
-        "Penn Museum", 
-        "Benjamin Franklin Statue",
-        "Fisher Fine Arts Library",
-        "College Hall"
-    ]
-    
-    # 改进的地点匹配算法
-    for location_name in required_locations:
-        found = False
-        match_info = {"required": location_name, "matched": None, "method": None}
-        
-        for dest_name, dest_location in all_destinations:
-            # 1. 直接名称匹配
-            if location_name.lower() in dest_name or dest_name in location_name.lower():
-                found = True
-                match_info["matched"] = dest_name
-                match_info["method"] = "direct_name_match"
-                break
-            
-            # 2. 别名匹配
-            if location_name in LOCATION_ALIASES:
-                for alias in LOCATION_ALIASES[location_name]:
-                    if alias.lower() in dest_name:
-                        found = True
-                        match_info["matched"] = dest_name
-                        match_info["method"] = f"alias_match({alias})"
-                        break
-                if found:
-                    break
-            
-            # 3. 地址匹配（如果提供了location信息）
-            if dest_location and location_name in UPENN_LOCATIONS:
-                expected_location = UPENN_LOCATIONS[location_name].lower()
-                if any(word in dest_location.lower() for word in expected_location.split() if len(word) > 3):
-                    found = True
-                    match_info["matched"] = dest_name
-                    match_info["method"] = "location_match"
-                    break
-        
-        location_result["match_details"].append(match_info)
-        
-        if found:
-            location_result["found_locations"].append(location_name)
-        else:
-            location_result["missing_locations"].append(location_name)
-    
-    # 严格模式要求所有地点都找到
-    all_found = len(location_result["missing_locations"]) == 0
-    location_result["locations_valid"] = all_found
-    
-    if all_found:
-        print(f"地点验证通过，找到所有{len(location_result['found_locations'])}个必需地点")
-    else:
-        print(f"地点验证失败，缺少地点: {location_result['missing_locations']}")
-    
-    return all_found, location_result
-
-def extract_agent_route(json_data) -> List[str]:
-    """从agent输出中提取路线顺序"""
-    all_destinations = []
-    for item in json_data:
-        dest = item['destinations'][0]
-        all_destinations.append(dest)
-    
-    # 按order字段排序
-    all_destinations.sort(key=lambda x: x.get('order', 0))
-    
-    agent_route = ["Penn Bookstore"]  # 起点
-    
-    for dest in all_destinations:
-        dest_name = dest['name'].lower().strip()
-        
-        # 匹配到标准地点名称
-        matched_location = None
-        
-        # 直接匹配
-        for location_name in UPENN_LOCATIONS.keys():
-            if location_name == "Penn Bookstore":
-                continue
-            if location_name.lower() in dest_name or dest_name in location_name.lower():
-                matched_location = location_name
-                break
-        
-        # 别名匹配
-        if not matched_location:
-            for location_name, aliases in LOCATION_ALIASES.items():
-                if location_name == "Penn Bookstore":
-                    continue
-                if any(alias.lower() in dest_name for alias in aliases):
-                    matched_location = location_name
-                    break
-        
-        if matched_location:
-            agent_route.append(matched_location)
-            print(f"地点匹配: {dest['name']} -> {matched_location}")
-        else:
-            print(f"警告: 无法匹配地点: {dest['name']}")
-            agent_route.append(dest['name'])  # 使用原始名称
-    
-    return agent_route
-
-def calculate_route_efficiency_strict(agent_route: List[str], optimal_route: List[str], 
-                                    distance_matrix: Dict[str, Dict[str, Tuple[int, str]]]) -> Dict:
-    """严格模式的路线效率计算"""
-    def calculate_total_time(route):
-        total_time = 0
-        route_details = []
-        for i in range(len(route) - 1):
-            if route[i] in distance_matrix and route[i+1] in distance_matrix[route[i]]:
-                time, distance = distance_matrix[route[i]][route[i+1]]
-                total_time += time
-                route_details.append({
-                    "from": route[i],
-                    "to": route[i+1], 
-                    "time": time,
-                    "distance": distance
-                })
-            else:
-                print(f"警告: 缺少路径数据 {route[i]} -> {route[i+1]}")
-                total_time += 600  # 默认10分钟
-                route_details.append({
-                    "from": route[i],
-                    "to": route[i+1],
-                    "time": 600,
-                    "distance": "Unknown"
-                })
-        return total_time, route_details
-    
-    agent_time, agent_details = calculate_total_time(agent_route)
-    optimal_time, optimal_details = calculate_total_time(optimal_route)
-    
-    efficiency = agent_time / optimal_time if optimal_time > 0 else float('inf')
-    
-    efficiency_result = {
-        "efficiency": efficiency,
-        "agent_time": agent_time,
-        "optimal_time": optimal_time,
-        "agent_route": agent_route,
-        "optimal_route": optimal_route,
-        "agent_details": agent_details,
-        "optimal_details": optimal_details,
-        "time_difference": agent_time - optimal_time,
-        "percentage_over_optimal": (efficiency - 1.0) * 100
-    }
-    
-    return efficiency_result
 
 async def main(args):
-    """严格模式的主评估函数"""
-    start_time = time.time()
-    
-    print("=" * 80)
-    print("UPenn Campus Route Evaluation - 严格模式")
-    print("=" * 80)
-    print(f"效率阈值: {STRICT_MODE_CONFIG['efficiency_threshold']} (允许{(STRICT_MODE_CONFIG['efficiency_threshold']-1)*100:.0f}%偏差)")
-    print(f"容错阈值: {STRICT_MODE_CONFIG['fallback_threshold']} (允许{(STRICT_MODE_CONFIG['fallback_threshold']-1)*100:.0f}%偏差)")
-    print(f"最大评估时间: {STRICT_MODE_CONFIG['max_evaluation_time']}秒")
-    print("-" * 80)
-    
-    # 检查JSON文件是否存在
-    json_file = Path(args.agent_workspace) / "upenn_route_plan.json"
-    if not json_file.exists():
-        print(f"❌ 文件不存在: {json_file}")
-        return False
-    
-    try:
-        # 1. 读取和基础验证
-        print("\n🔍 Step 1: 读取和解析JSON文件")
-        json_data = read_json(json_file)
-        print(f"✅ 成功读取JSON文件，包含{len(json_data)}个路线项目")
-        
-        # 2. 严格的结构检查
-        print("\n🔍 Step 2: 严格结构验证")
-        structure_valid, structure_result = check_json_structure_strict(json_data)
-        if not structure_valid:
-            print("❌ JSON结构验证失败:")
-            for error in structure_result["errors"]:
-                print(f"   • {error}")
-            return False
-        print("✅ JSON结构验证通过")
-        
-        # 3. 严格的地点检查
-        print("\n🔍 Step 3: 严格地点验证")
-        locations_valid, location_result = check_required_locations_strict(json_data)
-        if not locations_valid:
-            print("❌ 地点验证失败:")
-            for missing in location_result["missing_locations"]:
-                print(f"   • 缺少地点: {missing}")
-            return False
-        print("✅ 地点验证通过")
-        
-        # 4. 连接Google Maps API并构建距离矩阵
-        print("\n🔍 Step 4: 构建距离矩阵")
-        xx_MCPServerManager = MCPServerManager(agent_workspace="./")
-        google_map_server = xx_MCPServerManager.servers['google_map']
-        
-        async with google_map_server as server:
-            try:
-                distance_matrix = await build_distance_matrix(server)
-                print("✅ 距离矩阵构建完成")
-                
-                # 5. 计算最优路线
-                print("\n🔍 Step 5: TSP最优路线计算")
-                optimal_route, optimal_time = find_optimal_route(distance_matrix)
-                print(f"✅ 最优路线: {' -> '.join(optimal_route)}")
-                print(f"✅ 最优时间: {optimal_time//60}分{optimal_time%60}秒")
-                
-                # 6. 提取Agent路线
-                print("\n🔍 Step 6: Agent路线提取")
-                agent_route = extract_agent_route(json_data)
-                print(f"✅ Agent路线: {' -> '.join(agent_route)}")
-                
-                # 7. 严格效率评估
-                print("\n🔍 Step 7: 严格效率评估")
-                efficiency_result = calculate_route_efficiency_strict(agent_route, optimal_route, distance_matrix)
-                
-                efficiency = efficiency_result["efficiency"]
-                agent_time = efficiency_result["agent_time"]
-                
-                print(f"Agent路线时间: {agent_time//60}分{agent_time%60}秒")
-                print(f"路线效率比值: {efficiency:.3f}")
-                print(f"超出最优时间: {efficiency_result['percentage_over_optimal']:.1f}%")
-                
-                # 8. 严格模式判定
-                print("\n🏆 Step 8: 严格模式最终判定")
-                
-                primary_threshold = STRICT_MODE_CONFIG["efficiency_threshold"]
-                fallback_threshold = STRICT_MODE_CONFIG["fallback_threshold"]
-                
-                # 执行时间检查
-                execution_time = time.time() - start_time
-                time_limit_passed = execution_time <= STRICT_MODE_CONFIG["max_evaluation_time"]
-                
-                print(f"执行时间: {execution_time:.2f}秒 (限制: {STRICT_MODE_CONFIG['max_evaluation_time']}秒)")
-                
-                # 多层判定
-                if efficiency <= primary_threshold and time_limit_passed:
-                    print(f"🎉 严格模式评估: 优秀 (效率 {efficiency:.3f} ≤ {primary_threshold})")
-                    result = True
-                elif efficiency <= fallback_threshold and time_limit_passed:
-                    print(f"✅ 严格模式评估: 通过 (效率 {efficiency:.3f} ≤ {fallback_threshold})")
-                    result = True
-                else:
-                    if not time_limit_passed:
-                        print(f"❌ 严格模式评估: 失败 (执行时间超限: {execution_time:.2f}s > {STRICT_MODE_CONFIG['max_evaluation_time']}s)")
-                    else:
-                        print(f"❌ 严格模式评估: 失败 (效率 {efficiency:.3f} > {fallback_threshold})")
-                    result = False
-                
-                # 详细评估报告
-                print("\n📊 详细评估报告:")
-                print("-" * 50)
-                print(f"结构验证: ✅ 通过")
-                print(f"地点覆盖: ✅ {len(location_result['found_locations'])}/5 个地点")
-                print(f"路线效率: {'✅' if efficiency <= fallback_threshold else '❌'} {efficiency:.3f}")
-                print(f"执行时间: {'✅' if time_limit_passed else '❌'} {execution_time:.2f}s")
-                print(f"总体评估: {'✅ 通过' if result else '❌ 失败'}")
-                
-                return result
-                
-            except ToolCallError as e:
-                print(f"❌ Google Maps API调用错误: {e}")
+    """Evaluate UPenn campus route planning task."""
+
+    server_manager = MCPServerManager(agent_workspace="./")
+    server = server_manager.servers['google_map']
+
+    async with server as server_instance:
+        try:
+            agent_workspace = Path(args.agent_workspace)
+            route_plan_file = agent_workspace / "upenn_route_plan.json"
+
+            if not route_plan_file.exists():
+                print(f"Route plan file not found: {route_plan_file}")
                 return False
-                
-    except Exception as e:
-        print(f"❌ 评估过程中出错: {e}")
+
+            try:
+                agent_plan = read_json(str(route_plan_file))
+            except Exception as e:
+                print(f"Failed to read route plan file: {e}")
+                return False
+
+            if not validate_route_plan_format(agent_plan):
+                return False
+
+            print("Building UPenn campus distance matrix...")
+            distance_matrix = await build_distance_matrix(server_instance)
+
+            optimal_route, optimal_time = find_optimal_route(distance_matrix)
+            print(f"Optimal route: {' -> '.join(optimal_route)}")
+            print(f"Optimal time: {optimal_time}s ({optimal_time//60}m{optimal_time%60}s)")
+
+            if not validate_route_content(agent_plan, optimal_route, optimal_time, distance_matrix):
+                return False
+
+            print("All validations passed")
+            return True
+
+        except Exception as e:
+            print(f"Error during evaluation: {e}")
+            return False
+
+
+def validate_route_plan_format(plan: dict) -> bool:
+    """Validate route plan file format."""
+
+    required_keys = ["road_plan", "total_distance", "total_time"]
+    if not all(key in plan for key in required_keys):
+        print("Missing required top-level keys")
         return False
+
+    road_plan = plan["road_plan"]
+    if not isinstance(road_plan, list) or len(road_plan) == 0:
+        print("road_plan is not a non-empty array")
+        return False
+
+    required_segment_keys = ["from", "to", "distance", "estimated_time", "directions"]
+    for i, segment in enumerate(road_plan):
+        if not isinstance(segment, dict):
+            print(f"Segment {i} is not a dictionary")
+            return False
+
+        if not all(key in segment for key in required_segment_keys):
+            print(f"Segment {i} missing required keys")
+            return False
+
+    print("Route plan format validation passed")
+    return True
+
+
+def validate_route_content(plan: dict, optimal_route: List[str], optimal_time: float, distance_matrix: Dict[str, Dict[str, Tuple[int, str]]]) -> bool:
+    """Validate route plan content using keyword matching."""
+
+    # Keywords for each attraction
+    KEYWORDS = {
+        "Penn Bookstore": ["bookstore"],
+        "University of Pennsylvania School of Engineering and Applied Science": ["eniac", "engineering", "school of engineering", "computer"],
+        "Penn Museum": ["museum", "penn museum"],
+        "Benjamin Franklin Statue": ["statue", "benjamin franklin", "franklin",],
+        "Fisher Fine Arts Library": ["library", "fisher", "fine arts",],
+        "College Hall": ["college hall", "hall",]
+    }
+
+    def location_matches_keywords(location_name: str, required_attraction: str) -> bool:
+        """Check if location name contains keywords for required attraction."""
+        location_lower = normalize_str(location_name)
+        keywords = KEYWORDS[required_attraction]
+        return any(keyword.lower() in location_lower for keyword in keywords)
+
+    def find_matching_attraction(location_name: str) -> str:
+        """Find which required attraction this location matches."""
+        location_lower = location_name.lower()
+
+        # Special case: College Hall & Benjamin Franklin Statue combined
+        if "college hall" in location_lower and ("statue" in location_lower or "franklin" in location_lower):
+            return "College Hall & Benjamin Franklin Statue"
+
+        for attraction in KEYWORDS.keys():
+            if location_matches_keywords(location_name, attraction):
+                return attraction
+        return None
+
+    road_plan = plan["road_plan"]
+
+    # Check if route starts from a location that matches Penn Bookstore
+    start_location = road_plan[0]["from"]
+    if not location_matches_keywords(start_location, "Penn Bookstore"):
+        print(f"Route must start from Penn Bookstore or equivalent. Got: {start_location}")
+        return False
+
+    # Extract and map all locations in the route
+    route_locations = []
+    mapped_locations = []
+
+    current_location = start_location
+    current_mapped = find_matching_attraction(current_location)
+    if not current_mapped:
+        print(f"Cannot map start location: {current_location}")
+        return False
+
+    route_locations.append(current_location)
+    mapped_locations.append(current_mapped)
+
+    for segment in road_plan:
+        from_mapped = find_matching_attraction(segment["from"])
+        if not from_mapped:
+            print(f"Cannot map location: {segment['from']}")
+            return False
+
+        if from_mapped != current_mapped:
+            print(f"Route discontinuity: {segment['from']} != {current_location}")
+            return False
+
+        next_location = segment["to"]
+        next_mapped = find_matching_attraction(next_location)
+        if not next_mapped:
+            print(f"Cannot map location: {next_location}")
+            return False
+
+        route_locations.append(next_location)
+        mapped_locations.append(next_mapped)
+        current_location = next_location
+        current_mapped = next_mapped
+
+    # Convert mapped locations to actual attractions visited
+    actual_visited = set()
+    for mapped in mapped_locations[1:]:  # Exclude start location
+        if mapped == "College Hall & Benjamin Franklin Statue":
+            actual_visited.add("College Hall")
+            actual_visited.add("Benjamin Franklin Statue")
+        else:
+            actual_visited.add(mapped)
+
+    required_attractions = set(KEYWORDS.keys()) - {"Penn Bookstore"}  # Exclude start location
+    visited_attractions = actual_visited
+
+    missing_attractions = required_attractions - visited_attractions
+    if missing_attractions:
+        print(f"Missing attractions: {missing_attractions}")
+        print(f"Visited: {visited_attractions}")
+        return False
+
+    extra_attractions = visited_attractions - required_attractions
+    if extra_attractions:
+        print(f"Extra attractions: {extra_attractions}")
+        return False
+
+    # For time calculation, try to map to canonical names or find closest matches
+    agent_total_time = 0
+    for i, segment in enumerate(road_plan):
+        from_loc = mapped_locations[i]
+        to_loc = mapped_locations[i + 1]
+
+        # Handle combined College Hall & Benjamin Franklin Statue
+        if from_loc == "College Hall & Benjamin Franklin Statue":
+            from_loc = "College Hall"  # Use College Hall as representative
+        if to_loc == "College Hall & Benjamin Franklin Statue":
+            to_loc = "College Hall"
+
+        if from_loc not in distance_matrix or to_loc not in distance_matrix[from_loc]:
+            print(f"Unknown route segment: {from_loc} -> {to_loc}")
+            return False
+
+        time, _ = distance_matrix[from_loc][to_loc]
+        agent_total_time += time
+
+    reasonable_threshold = optimal_time * 1.2
+
+    if agent_total_time > reasonable_threshold:
+        print(f"Route too inefficient: agent={agent_total_time}s, optimal={optimal_time}s, threshold={reasonable_threshold}s")
+        return False
+
+    print(f"Route validation passed: agent_time={agent_total_time}s, optimal_time={optimal_time}s")
+    print(f"Original route: {' -> '.join(route_locations)}")
+    print(f"Mapped route: {' -> '.join(mapped_locations)}")
+
+    return True
+
 
 if __name__ == "__main__":
     parser = ArgumentParser()
@@ -541,8 +322,8 @@ if __name__ == "__main__":
 
     result = asyncio.run(main(args))
     if not result:
-        print("\n❌ 严格模式评估: 未通过")
+        print("\nEvaluation failed")
         exit(1)
     else:
-        print("\n✅ 严格模式评估: 通过")
+        print("\nEvaluation passed")
         exit(0)
