@@ -396,6 +396,26 @@ class CustomModelProviderQwenOfficial(ModelProvider):
                                                    openai_client=client,
                                                    debug=debug)
 
+class CustomModelProviderKimiOfficial(ModelProvider):
+    def get_model(self, model_name: str | None, debug: bool = True) -> Model:
+        client = AsyncOpenAI(
+            api_key=global_configs.kimi_official_key,
+            base_url="https://api.moonshot.cn/v1",
+        )
+        return OpenAIChatCompletionsModelWithRetry(model=model_name, 
+                                                   openai_client=client,
+                                                   debug=debug)
+
+class CustomModelProviderDeepSeekOfficial(ModelProvider):
+    def get_model(self, model_name: str | None, debug: bool = True) -> Model:
+        client = AsyncOpenAI(
+            api_key=global_configs.deepseek_official_key,
+            base_url="https://api.deepseek.com/v1",
+        )
+        return OpenAIChatCompletionsModelWithRetry(model=model_name, 
+                                                   openai_client=client,
+                                                   debug=debug)
+
 model_provider_mapping = {
     "ds_internal": CustomModelProvider,
     "aihubmix": CustomModelProviderAiHubMix,
@@ -403,6 +423,8 @@ model_provider_mapping = {
     "local_vllm": CustomModelProviderLocalVLLM,
     "openrouter": CustomModelProviderOpenRouter,
     "qwen_official": CustomModelProviderQwenOfficial,
+    "kimi_official": CustomModelProviderKimiOfficial,
+    "deepseek_official": CustomModelProviderDeepSeekOfficial,
 }
 
 API_MAPPINGS = {
@@ -425,7 +447,8 @@ API_MAPPINGS = {
     'deepseek-v3.1': Dict(
         api_model={"ds_internal": "",
                    "aihubmix": "DeepSeek-V3.1",
-                   "openrouter": "deepseek/deepseek-chat-v3.1"},
+                   "openrouter": "deepseek/deepseek-chat-v3.1",
+                   "deepseek_official": "deepseek-chat"}, # 2025/9/18, this model may become other model later
         price=[0.56/1000, 1.68/1000],
         concurrency=32,
         context_window=128000,
@@ -433,7 +456,8 @@ API_MAPPINGS = {
     ),
     'deepseek-v3.1-think': Dict(
         api_model={"ds_internal": "",
-                   "aihubmix": "DeepSeek-V3.1-Think"},
+                   "aihubmix": "DeepSeek-V3.1-Think",
+                   "deepseek_official": "deepseek-reasoner"}, # 2025/9/18, this model may become other model later
         price=[0.56/1000, 1.68/1000],
         concurrency=32,
         context_window=128000
@@ -454,27 +478,6 @@ API_MAPPINGS = {
         concurrency=32,
         context_window=128000
     ),
-    # 'gpt-4.1-0414': Dict(
-    #     api_model={"ds_internal": "azure-gpt-4.1-2025-04-14",
-    #                "aihubmix": "gpt-4.1"},
-    #     price=[0.002, 0.008],
-    #     concurrency=32,
-    #     context_window=1000000
-    # ),
-    # 'gpt-4.1-mini-0414': Dict(
-    #     api_model={"ds_internal": "azure-gpt-4.1-mini-2025-04-14",
-    #                "aihubmix": "gpt-4.1-mini"},
-    #     price=[0.0004, 0.0016],
-    #     concurrency=32,
-    #     context_window=1000000
-    # ),
-    # 'gpt-4.1-nano-0414': Dict(
-    #     api_model={"ds_internal": "azure-gpt-4.1-nano-2025-04-14",
-    #                "aihubmix": "gpt-4.1-nano"},
-    #     price=[0.0001, 0.0004],
-    #     concurrency=32,
-    #     context_window=1000000
-    # ),
     'gpt-5': Dict(
         api_model={"ds_internal": "",
                    "aihubmix": "gpt-5",
@@ -520,13 +523,6 @@ API_MAPPINGS = {
         concurrency=32,
         context_window=200000
     ),
-    # 'claude-3.7-sonnet': Dict(
-    #     api_model={"ds_internal": "cloudsway-claude-3-7-sonnet-20250219",
-    #                "aihubmix": "claude-3-7-sonnet-20250219"},
-    #     price=[0.003, 0.015],
-    #     concurrency=32,
-    #     context_window=200000
-    # ),
     'claude-4-sonnet-0514': Dict(
         api_model={"ds_internal": "oai-api-claude-sonnet-4-20250514",
                    "aihubmix": "claude-sonnet-4-20250514",
@@ -537,13 +533,6 @@ API_MAPPINGS = {
         context_window=200000,
         openrouter_config={"provider": {"only": ["anthropic"]}}
     ),
-    # 'claude-4-opus-0514': Dict(
-    #     api_model={"ds_internal": "oai-api-claude-opus-4-20250514",
-    #                "aihubmix": "claude-opus-4-20250514"},
-    #     price=[0.015, 0.075],
-    #     concurrency=32,
-    #     context_window=200000
-    # ),
     'claude-4.1-opus-0805': Dict(
         api_model={"ds_internal": "",
                    "aihubmix": "claude-opus-4-1-20250805",
@@ -598,7 +587,8 @@ API_MAPPINGS = {
     'Kimi-K2-0905': Dict(
         api_model={"ds_internal": None,
                    "aihubmix": "Kimi-K2-0905",
-                   "openrouter": "moonshotai/kimi-k2-0905"},
+                   "openrouter": "moonshotai/kimi-k2-0905",
+                   "kimi_official": "kimi-k2-0905-preview"},
         price=[0.548/1000, 2.192/1000],
         concurrency=32,
         context_window=128000,

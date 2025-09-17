@@ -142,7 +142,7 @@ def check_paper_repositories_codeurl(args):
 
 def get_config():
     task_id = "email-paper-homepage"
-    config_path = "configs/github_repos.json"
+    config_path = "请在这里修改！！！"
     with open(config_path, 'r') as f:
         data = json.load(f)
     task_config = data.get(task_id)
