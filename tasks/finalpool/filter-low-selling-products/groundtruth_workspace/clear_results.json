@@ -13,7 +13,7 @@
         "message": "Folder cleared, 0 emails remaining"
       }
     },
-    "timestamp": "2025-09-15T13:35:52.390051"
+    "timestamp": "2025-09-17T20:49:08.648707"
   },
   "blog_clear": {
     "status": "SKIPPED!"
@@ -21,14 +21,14 @@
   "store_clear": {
     "success": true,
     "products": {
-      "total_found": 398,
+      "total_found": 0,
       "deleted": 0,
       "failed": 0
     },
     "categories": {
-      "deleted": 2,
+      "deleted": 0,
       "failed": 0
     },
-    "timestamp": "2025-09-15T13:36:20.417254"
+    "timestamp": "2025-09-17T20:49:09.375583"
   }
 }

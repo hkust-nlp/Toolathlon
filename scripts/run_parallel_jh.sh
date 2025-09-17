@@ -8,7 +8,7 @@ TAG="firsttry"
 MODEL_NAME="${1:-gpt-5-mini}"
 DUMP_PATH="${2:-./parallel_debug_gpt5}"
 
-MODEL_PROVIDER="openrouter"
+MODEL_PROVIDER="${3:-openrouter}"
 USER_MODEL_NAME="gpt-5"
 USER_MODEL_PROVIDER="aihubmix"
 

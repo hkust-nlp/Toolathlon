@@ -1,19 +1,16 @@
 {
-  "时间戳记": "2025-08-28 19:04:54 Thursday",
   "Name": "Alex Wang",
   "Email": "mcptest0808@gmail.com",
-  "Adress": "Building 1, Unit 2, Haidian Road Community",
-  "Do you want to attend the morning session or the afternoon session?": "Morning, Afternoon",
+  "Address": "Building 1, Unit 2, Haidian Road Community",
+  "Do you want to attend the morning session or the afternoon session?": [
+    "Morning",
+    "Afternoon"
+  ],
   "Dietary Restrictions": "None",
   "Phone": "13812345688",
-  "How anxious are you feeling?": "0",
-  "Are you  good at these activities? [swimming]": "Yes",
-  "Are you  good at these activities? [running]": "No",
-  "Are you  good at these activities? [basketball]": "Yes",
-  "Are you  good at these activities? [football]": "No",
-  "Birthday": "2002-1-1",
-  "Highest Education": "bachelor",
+  "How anxious are you feeling?": null,
+  "Are you good at these activities?": null,
   "Student ID": "2201210808",
-  "第 15 列": "",
-  "Are you  good at these activities? [Computer programming]": "Yes"
+  "Birthday": "2002-01-01",
+  "Highest degree earned": "bachelor"
 }

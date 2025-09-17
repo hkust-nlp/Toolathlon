@@ -125,6 +125,7 @@ def check_product_removal(wc_client: WooCommerceClient) -> Tuple[bool, str]:
         all_products = wc_client.get_all_products()
         
         # 查找召回相关的产品
+        print(all_products)
         recalled_products = []
         for product in all_products:
             product_name = product.get('name', '').lower()
@@ -161,6 +162,7 @@ def check_product_removal(wc_client: WooCommerceClient) -> Tuple[bool, str]:
             visibility = product['catalog_visibility']
             
             # 产品必须被下架（状态为draft或private，或目录可见性为hidden）
+            print(product)
             if status in ['draft', 'private'] or visibility == 'hidden':
                 properly_removed += 1
         

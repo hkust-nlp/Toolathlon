@@ -129,8 +129,8 @@ def verify_content_against_groundtruth(parquet_data, groundtruth_data, sample_si
     
     # 要求至少80%的样本能匹配到ground truth
     match_ratio = matched_count / min(sample_size, len(parquet_data))
-    if match_ratio < 0.8:
-        return False, f"Only {matched_count}/{min(sample_size, len(parquet_data))} samples matched ground truth (< 80%)"
+    if match_ratio < 1.0:
+        return False, f"Only {matched_count}/{min(sample_size, len(parquet_data))} samples matched ground truth (< 100%)"
     
     return True, None
 
@@ -168,8 +168,8 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
     if not (expected_rows - tolerance <= len(df) <= expected_rows + tolerance):
         return False, f"verl_deepscaler.parquet has {len(df)} rows, expected around {expected_rows} (±{tolerance})"
     
-    # 检查数据质量 - 抽样验证前1000行的格式和内容
-    sample_size = min(1000, len(df))
+    # 不再抽样检查，改为检查全部数据
+    sample_size = min(1000000, len(df))
     
     for i in range(sample_size):
         row = df.iloc[i]

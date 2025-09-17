@@ -38,35 +38,6 @@ def _get_bigquery_client() -> bigquery.Client:
             
             return bigquery.Client(credentials=credentials, project=project_id)
         
-        # Fallback: Try to use OAuth2 credentials if service account not available
-        oauth_path = "configs/google_credentials.json"
-        if os.path.exists(oauth_path):
-            print(f"Using OAuth2 credentials from: {oauth_path}")
-            from google.oauth2.credentials import Credentials as OAuthCredentials
-            
-            with open(oauth_path, 'r') as f:
-                oauth_info = json.load(f)
-            
-            # For OAuth2, we need to get project_id from another source
-            # Try service account file first, or use a fallback
-            project_id = "mcp-bench0606"  # Fallback project ID
-            if os.path.exists(service_account_path):
-                with open(service_account_path, 'r') as f:
-                    service_account_info = json.load(f)
-                    project_id = service_account_info.get('project_id', project_id)
-            
-            # Create OAuth2 credentials
-            oauth_creds = OAuthCredentials(
-                token=oauth_info.get('token'),
-                refresh_token=oauth_info.get('refresh_token'),
-                token_uri=oauth_info.get('token_uri'),
-                client_id=oauth_info.get('client_id'),
-                client_secret=oauth_info.get('client_secret'),
-                scopes=['https://www.googleapis.com/auth/bigquery']
-            )
-            
-            return bigquery.Client(credentials=oauth_creds, project=project_id)
-        
         # Last resort: try default credentials without specifying project
         print("Warning: No credentials file found, trying default credentials")
         return bigquery.Client()  # Let it determine project automatically

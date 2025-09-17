@@ -1,1 +1,1 @@
-游戏日终结算时间已到，我们需要处理 `daily_scores_stream` 表中的当日玩家得分数据。第一，生成当日最终排行榜，选取分数最高的100名玩家，并将结果存入一个按当天日期命名的独立表 leaderboard_YYYYMMDD 中(必须包含player_id,total_score和rank三个字段)。第二，为了进行长期的玩家行为分析，请将当日所有玩家的统计数据更新到 player_historical_stats 总表中，为每位玩家插入一条包含其ID、当日日期、当日总分和当日游戏局数的新记录。
+游戏日终结算时间已到，我们需要处理 `daily_scores_stream` 表中的当日玩家得分数据。第一，生成当日最终排行榜，选取分数最高的100名玩家，并将结果存入一个按当天日期命名的独立表 `leaderboard_YYYYMMDD` 中(必须包含player_id,total_score和rank三个字段)。第二，为了进行长期的玩家行为分析，请将当日所有玩家的统计数据更新到 `player_historical_stats` 总表中(按照时间顺序排列)，为每位玩家插入一条包含其ID、当日日期、当日总分和当日游戏局数的新记录。

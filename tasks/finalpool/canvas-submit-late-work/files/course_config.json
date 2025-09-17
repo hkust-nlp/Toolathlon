@@ -1,0 +1,152 @@
+{
+  "courses": [
+    {
+      "name": "Cinema Culture Appreciation",
+      "course_code": "FILM101",
+      "teacher": "mcpcanvasadmin2@mcp.com",
+      "credits": 2,
+      "exam_type": "no_exam",
+      "assessment": "Assignment-based Assessment",
+      "duration": "N/A",
+      "duration_unit": "N/A",
+      "location": "Online Learning",
+      "assignments": [
+        {
+          "name": "Assignment 1: Classic Film Analysis",
+          "description": "Watch 'The Shawshank Redemption' and answer questions about its themes and cinematography. What is the central theme of 'The Shawshank Redemption'?",     
+          "points_possible": 100,
+          "due_at": "2025-01-15T23:59:00Z",
+          "submission_types": ["online_text_entry", "online_upload"],
+          "allowed_extensions": ["md"],
+          "published": true
+        
+        },
+        {
+          "name": "Assignment 2: Film History and Evolution",
+          "description": "Study the development of cinema from silent films to modern blockbusters. Who is considered the pioneer of modern filmmaking techniques? The upload file should be named as StudentID_FILM101_Assignment2.md",
+          "points_possible": 100,
+          "due_at": "2025-01-22T23:59:00Z",
+          "submission_types": ["online_upload"],
+          "allowed_extensions": ["md"],
+          "published": true
+        },
+        {
+          "name": "Assignment 3: Genre Analysis",
+          "description": "Explore different film genres and their unique characteristics. What is a defining characteristic of Film Noir?",
+          "points_possible": 100,
+          "due_at": "2025-01-29T23:59:00Z",
+          "submission_types": ["online_text_entry", "online_upload"],
+          "allowed_extensions": ["md"],
+          "published": true
+        },
+        {
+          "name": "Assignment 4: Cinematography and Visual Storytelling",
+          "description": "Analyze how camera work and visual elements enhance storytelling. What cinematographic technique is used to create psychological tension? The upload file should be named as StudentID_FILM101_Assignment4.md",
+          "points_possible": 100,
+          "due_at": "2025-02-05T23:59:00Z",
+          "submission_types": ["online_upload"],
+          "allowed_extensions": ["md"],
+          "published": true
+        },
+        {
+          "name": "Assignment 5: International Cinema",
+          "description": "Explore cinema from different cultures and countries. Which film movement emphasized realism and everyday life?",
+          "points_possible": 100,
+          "due_at": "2025-02-12T23:59:00Z",
+          "submission_types": ["online_text_entry", "online_upload"],
+          "allowed_extensions": ["md"],
+          "published": true
+        },
+        {
+          "name": "Assignment 6: Contemporary Cinema Trends",
+          "description": "Analyze current trends in modern filmmaking and digital cinema. How has streaming technology impacted modern cinema? The upload file should be named as StudentID_FILM101_Assignment6.md",
+          "points_possible": 100,
+          "due_at": "2025-02-19T23:59:00Z",
+          "submission_types": ["online_upload"],
+          "allowed_extensions": ["md"],
+          "published": true
+        }
+      ],
+      "announcement": {
+        "title": "Cinema Culture Appreciation Course Announcement",
+        "content": "Dear Students,\n\nWelcome to Cinema Culture Appreciation! This course will assess your learning through 6 assignments:\n\n📚 Assignment 1: Classic Film Analysis (Due: Jan 15)\n📚 Assignment 2: Film History and Evolution (Due: Jan 22)\n📚 Assignment 3: Genre Analysis (Due: Jan 29)\n📚 Assignment 4: Cinematography and Visual Storytelling (Due: Feb 5)\n📚 Assignment 5: International Cinema (Due: Feb 12)\n📚 Assignment 6: Contemporary Cinema Trends (Due: Feb 19)\n\nPlease complete all assignments on time.\n\nHappy learning!\n\nCourse Instructor"
+      },
+      "students": [
+        "elizabethr@mcp.com",
+        "gregory_scott@mcp.com",
+        "donald_roberts@mcp.com",
+        "rodriguezc39@mcp.com",
+        "robert_sanders66@mcp.com",
+        "smartinez@mcp.com",
+        "patrick.carter@mcp.com",
+        "malvarez@mcp.com",
+        "zedwards@mcp.com",
+        "debra_flores76@mcp.com"
+      ]
+    },
+
+    {
+      "name": "Introduction to Computer Science-5",
+      "course_code": "CS101-5",
+      "teacher": "mcpcanvasadmin2@mcp.com",
+      "credits": 3,
+      "exam_type": "closed_book",
+      "exam_time": "2025-01-14 09:00",
+      "duration": "120",
+      "duration_unit": "minutes",
+      "location": "Building A Room 101",
+      "quiz": {
+        "title": "CS101 Midterm Quiz - Computer Science Fundamentals",
+        "description": "This quiz covers fundamental concepts in computer science including basic programming concepts, computer architecture, and problem-solving approaches.",
+        "quiz_type": "assignment",
+        "time_limit": 60,
+        "shuffle_answers": true,
+        "show_correct_answers": false,
+        "allowed_attempts": 2,
+        "scoring_policy": "keep_highest",
+        "points_possible": 100,
+        "due_at": "2025-08-20T23:59:00Z",
+        "questions": [
+          {
+            "question_text": "What is the primary function of an operating system?",
+            "question_type": "multiple_choice_question",
+            "points_possible": 50,
+            "answers": [
+              {"answer_text": "To manage computer hardware and software resources", "answer_weight": 100},
+              {"answer_text": "To create graphical user interfaces", "answer_weight": 0},
+              {"answer_text": "To compile source code", "answer_weight": 0},
+              {"answer_text": "To browse the internet", "answer_weight": 0}
+            ]
+          },
+          {
+            "question_text": "Which data structure follows the Last-In-First-Out (LIFO) principle?",
+            "question_type": "multiple_choice_question",
+            "points_possible": 50,
+            "answers": [
+              {"answer_text": "Queue", "answer_weight": 0},
+              {"answer_text": "Stack", "answer_weight": 100},
+              {"answer_text": "Array", "answer_weight": 0},
+              {"answer_text": "Linked List", "answer_weight": 0}
+            ]
+          }
+        ]
+      },
+      "assignment": {
+        "name": "CS101 Unit 2 Homework Assignment",
+        "description": "Complete the exercises from Chapter 2 of the textbook, including operating system concepts and data structure implementation. Please provide handwritten solutions and scan them as PDF for submission.\n\nSpecific Requirements:\n1. Explain the three main functions of an operating system\n2. Implement a simple stack data structure\n3. Analyze time complexity\n\nSubmission Format: PDF file, filename format: StudentID_Name_CS101_Assignment2.md",
+        "points_possible": 50,
+        "due_at": "2025-08-25T23:59:00Z",
+        "submission_types": ["online_upload", "online_text_entry"],
+        "allowed_extensions": ["md"],
+        "published": true
+      },
+      "announcement": {
+        "title": "Final Exam Announcement - CS101",
+        "content": "Dear CS101 students,\n\nThis is to announce that the final exam for Introduction to Computer Science will be held on:\n\n📅 Date: January 14, 2025\n⏰ Time: 9:00 AM - 11:00 AM\n⏱️ Duration: 120 minutes\n📍 Location: Building A Room 101\n\nPlease arrive 15 minutes before the exam time. Bring your student ID and necessary writing materials.\n\nGood luck!\n\nBest regards,\nCourse Instructor"
+      },
+      "students": [
+        "zedwards@mcp.com"
+      ]
+    }
+  ]
+}

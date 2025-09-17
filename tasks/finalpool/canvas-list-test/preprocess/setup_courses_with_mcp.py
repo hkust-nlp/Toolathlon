@@ -43,14 +43,31 @@ import random
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional
 from pathlib import Path
+import random
+random.seed(42)
 
-# os.environ["TESSDATA_PREFIX"] = "/ssddata/xiaochen/workspace/mcpbench_dev/scripts"
 parent_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(parent_dir))
 
-from token_key_session import all_token_key_session
-# Import Canvas configuration
-# from tasks.xiaochen.canvas_list_test.token_key_session import all_token_key_session
+# Add the project root to sys.path for utils imports
+project_root = Path(__file__).parent.parent.parent.parent.parent
+sys.path.insert(0, str(project_root))
+
+# Import token_key_session using relative import
+import importlib
+local_token_key_session_file = os.path.join(os.path.dirname(__file__), '..', "token_key_session.py")
+if os.path.exists(local_token_key_session_file):
+    spec = importlib.util.spec_from_file_location("token_key_session", local_token_key_session_file)
+    token_key_session_module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(token_key_session_module)
+    all_token_key_session = token_key_session_module.all_token_key_session
+else:
+    raise FileNotFoundError(f"Token key session file not found: {local_token_key_session_file}")
+
+# Import app_specific Canvas modules and tools
+from utils.app_specific.canvas import CanvasAPI, AnnouncementManager, QuizManager
+from utils.app_specific.canvas.tools import delete_all_courses as tool_delete_all_courses
+
 CANVAS_API_TOKEN = all_token_key_session.admin_canvas_token
 CANVAS_DOMAIN = all_token_key_session.canvas_domain
 CANVAS_USER_NAME = all_token_key_session.canvas_user_name
@@ -74,6 +91,11 @@ class CanvasCourseSetup:
             "Authorization": f"Bearer {CANVAS_API_TOKEN}",
             "Content-Type": "application/json"
         }
+        
+        # Initialize app_specific Canvas API for reusable operations
+        self.canvas_api = CanvasAPI(self.base_url, CANVAS_API_TOKEN)
+        self.announcement_manager = AnnouncementManager(self.canvas_api)
+        self.quiz_manager = QuizManager(self.canvas_api)
         
     def load_data(self):
         """Load course and user data from JSON files"""
@@ -230,63 +252,53 @@ class CanvasCourseSetup:
             return False
 
     async def create_quiz(self, course_id: str, quiz_info: Dict[str, Any]) -> bool:
-        """Create a course quiz via API"""
+        """Create a course quiz using app_specific module"""
         try:
-            async with aiohttp.ClientSession() as session:
-                url = f"{self.base_url}/api/v1/courses/{course_id}/quizzes"
+            # Use app_specific QuizManager for quiz creation
+            quiz_data = self.quiz_manager.create_quiz(
+                course_id=int(course_id),
+                title=quiz_info["title"],
+                description=quiz_info["description"],
+                quiz_type=quiz_info["quiz_type"],
+                time_limit=quiz_info["time_limit"],
+                shuffle_answers=quiz_info["shuffle_answers"],
+                allowed_attempts=quiz_info["allowed_attempts"],
+                scoring_policy=quiz_info["scoring_policy"],
+                due_at=quiz_info.get("due_at"),
+                published=False,  # Will publish separately
+                points_possible=quiz_info["points_possible"]
+            )
+            
+            if quiz_data:
+                quiz_id = quiz_data.get("id")
+                logger.info(f"Created quiz: {quiz_info['title']} (ID: {quiz_id}) in course {course_id}")
+                print(f"📝 Created quiz: {quiz_info['title']} (ID: {quiz_id}) in course {course_id}")
                 
-                # Prepare quiz data with all available parameters
-                quiz_data = {
-                    "quiz": {
-                        "title": quiz_info["title"],
-                        "description": quiz_info["description"],
-                        "quiz_type": quiz_info["quiz_type"],
-                        "time_limit": quiz_info["time_limit"],
-                        "shuffle_answers": quiz_info["shuffle_answers"],
-                        "show_correct_answers": quiz_info["show_correct_answers"],
-                        "allowed_attempts": quiz_info["allowed_attempts"],
-                        "scoring_policy": quiz_info["scoring_policy"],
-                        "points_possible": quiz_info["points_possible"]
-                    }
-                }
-                
-                # Add optional parameters if they exist
-                if "due_at" in quiz_info and quiz_info["due_at"]:
-                    quiz_data["quiz"]["due_at"] = quiz_info["due_at"]
-                
-                async with session.post(url, headers=self.headers, json=quiz_data) as response:
-                    if 200 == response.status:
-                        quiz_response = await response.json()
-                        quiz_id = quiz_response.get("id")
-                        logger.info(f"Created quiz: {quiz_info['title']} (ID: {quiz_id}) in course {course_id}")
-                        print(f"📝 Created quiz: {quiz_info['title']} (ID: {quiz_id}) in course {course_id}")
-                        
-                        # Create quiz questions if provided
-                        if "questions" in quiz_info and quiz_info["questions"]:
-                            logger.info(f"Creating {len(quiz_info['questions'])} questions for quiz: {quiz_info['title']}")
-                            print(f"📋 Creating {len(quiz_info['questions'])} questions for quiz: {quiz_info['title']}")
-                            questions_created = 0
-                            for question_data in quiz_info["questions"]:
-                                if await self.create_quiz_question(course_id, str(quiz_id), question_data):
-                                    questions_created += 1
-                                else:
-                                    logger.warning(f"Failed to create question: {question_data.get('question_text', 'Unknown')[:50]}...")
-                            
-                            logger.info(f"Created {questions_created}/{len(quiz_info['questions'])} questions for quiz: {quiz_info['title']}")
-                            print(f"✅ Created {questions_created}/{len(quiz_info['questions'])} questions for quiz: {quiz_info['title']}")
-                        
-                        # Publish the quiz
-                        if await self.publish_quiz(course_id, quiz_id, quiz_info["title"]):
-                            logger.info(f"Published quiz: {quiz_info['title']} (ID: {quiz_id})")
-                            print(f"🔔 Published quiz: {quiz_info['title']} (ID: {quiz_id})")
+                # Create quiz questions if provided
+                if "questions" in quiz_info and quiz_info["questions"]:
+                    logger.info(f"Creating {len(quiz_info['questions'])} questions for quiz: {quiz_info['title']}")
+                    print(f"📋 Creating {len(quiz_info['questions'])} questions for quiz: {quiz_info['title']}")
+                    questions_created = 0
+                    for question_data in quiz_info["questions"]:
+                        if await self.create_quiz_question(course_id, str(quiz_id), question_data):
+                            questions_created += 1
                         else:
-                            logger.warning(f"Failed to publish quiz: {quiz_info['title']} (ID: {quiz_id})")
-                        
-                        return True
-                    else:
-                        error_text = await response.text()
-                        logger.error(f"Failed to create quiz {quiz_info['title']}: {response.status} - {error_text}")
-                        return False
+                            logger.warning(f"Failed to create question: {question_data.get('question_text', 'Unknown')[:50]}...")
+                    
+                    logger.info(f"Created {questions_created}/{len(quiz_info['questions'])} questions for quiz: {quiz_info['title']}")
+                    print(f"✅ Created {questions_created}/{len(quiz_info['questions'])} questions for quiz: {quiz_info['title']}")
+                
+                # Publish the quiz
+                if self.quiz_manager.publish_quiz(int(course_id), quiz_id):
+                    logger.info(f"Published quiz: {quiz_info['title']} (ID: {quiz_id})")
+                    print(f"🔔 Published quiz: {quiz_info['title']} (ID: {quiz_id})")
+                else:
+                    logger.warning(f"Failed to publish quiz: {quiz_info['title']} (ID: {quiz_id})")
+                
+                return True
+            else:
+                logger.error(f"Failed to create quiz {quiz_info['title']}")
+                return False
         except Exception as e:
             logger.error(f"Error creating quiz {quiz_info['title']}: {e}")
             return False
@@ -358,54 +370,42 @@ class CanvasCourseSetup:
             return False
     
     async def delete_quiz(self, course_id: str, quiz_id: str, quiz_title: str = "Unknown") -> bool:
-        """Delete a quiz from a course"""
+        """Delete a quiz from a course using app_specific module"""
         try:
-            async with aiohttp.ClientSession() as session:
-                url = f"{self.base_url}/api/v1/courses/{course_id}/quizzes/{quiz_id}"
-                
-                async with session.delete(url, headers=self.headers) as response:
-                    if 200 <= response.status < 300:
-                        logger.info(f"Deleted quiz: {quiz_title} (ID: {quiz_id}) from course {course_id}")
-                        return True
-                    else:
-                        error_text = await response.text()
-                        logger.error(f"Failed to delete quiz {quiz_title}: {response.status} - {error_text}")
-                        return False
+            success = self.quiz_manager.delete_quiz(int(course_id), int(quiz_id))
+            if success:
+                logger.info(f"Deleted quiz: {quiz_title} (ID: {quiz_id}) from course {course_id}")
+                return True
+            else:
+                logger.error(f"Failed to delete quiz {quiz_title}")
+                return False
         except Exception as e:
             logger.error(f"Error deleting quiz {quiz_title}: {e}")
             return False
 
     async def delete_all_quizzes_in_course(self, course_id: str, course_name: str = "Unknown") -> bool:
-        """Delete all quizzes in a course"""
+        """Delete all quizzes in a course using app_specific module"""
         try:
-            async with aiohttp.ClientSession() as session:
-                url = f"{self.base_url}/api/v1/courses/{course_id}/quizzes"
+            # Get all quizzes using app_specific module
+            quizzes = self.quiz_manager.list_quizzes(int(course_id))
+            
+            if not quizzes:
+                logger.info(f"No quizzes found in course: {course_name}")
+                return True
+            
+            logger.info(f"Found {len(quizzes)} quizzes to delete in course: {course_name}")
+            
+            # Delete each quiz
+            success_count = 0
+            for quiz in quizzes:
+                quiz_id = str(quiz.get("id"))
+                quiz_title = quiz.get("title", "Unknown")
                 
-                async with session.get(url, headers=self.headers) as response:
-                    if 200 == response.status:
-                        quizzes = await response.json()
-                        
-                        if not quizzes:
-                            logger.info(f"No quizzes found in course: {course_name}")
-                            return True
-                        
-                        logger.info(f"Found {len(quizzes)} quizzes to delete in course: {course_name}")
-                        
-                        # Delete each quiz
-                        success_count = 0
-                        for quiz in quizzes:
-                            quiz_id = str(quiz.get("id"))
-                            quiz_title = quiz.get("title", "Unknown")
-                            
-                            if await self.delete_quiz(course_id, quiz_id, quiz_title):
-                                success_count += 1
-                        
-                        logger.info(f"Deleted {success_count}/{len(quizzes)} quizzes from course: {course_name}")
-                        return success_count == len(quizzes)
-                    else:
-                        error_text = await response.text()
-                        logger.error(f"Failed to get quizzes for course {course_name}: {response.status} - {error_text}")
-                        return False
+                if await self.delete_quiz(course_id, quiz_id, quiz_title):
+                    success_count += 1
+            
+            logger.info(f"Deleted {success_count}/{len(quizzes)} quizzes from course: {course_name}")
+            return success_count == len(quizzes)
         except Exception as e:
             logger.error(f"Error deleting quizzes from course {course_name}: {e}")
             return False
@@ -437,25 +437,22 @@ class CanvasCourseSetup:
             return False
     
     async def create_announcement(self, course_id: str, announcement: Dict[str, str]) -> bool:
-        """Create a course announcement via API"""
+        """Create a course announcement via app_specific module"""
         try:
-            async with aiohttp.ClientSession() as session:
-                url = f"{self.base_url}/api/v1/courses/{course_id}/discussion_topics"
-                announcement_data = {
-                    "title": announcement["title"],
-                    "message": announcement["content"],
-                    "is_announcement": True,
-                    "published": True
-                }
-                
-                async with session.post(url, headers=self.headers, json=announcement_data) as response:
-                    if 200 == response.status:
-                        logger.info(f"Created announcement: {announcement['title']}")
-                        return True
-                    else:
-                        error_text = await response.text()
-                        logger.error(f"Failed to create announcement: {response.status} - {error_text}")
-                        return False
+            # Use app_specific AnnouncementManager
+            result = self.announcement_manager.create_announcement(
+                course_id=int(course_id),
+                title=announcement["title"],
+                message=announcement["content"],
+                is_announcement=True
+            )
+
+            if result:
+                logger.info(f"Created announcement: {announcement['title']}")
+                return True
+            else:
+                logger.error(f"Failed to create announcement: {announcement['title']}")
+                return False
         except Exception as e:
             logger.error(f"Error creating announcement: {e}")
             return False
@@ -481,186 +478,144 @@ class CanvasCourseSetup:
             return []
     
     async def delete_announcement(self, course_id: str, announcement_id: str, announcement_title: str = "Unknown") -> bool:
-        """Delete a specific announcement"""
+        """Delete a specific announcement using app_specific module"""
         try:
-            async with aiohttp.ClientSession() as session:
-                url = f"{self.base_url}/api/v1/courses/{course_id}/discussion_topics/{announcement_id}"
-                
-                # Try to delete the announcement
-                async with session.delete(url, headers=self.headers) as response:
-                    if 200 <= response.status < 300:
-                        logger.info(f"Deleted announcement: {announcement_title} (ID: {announcement_id}) from course {course_id}")
-                        print(f"🗑️ Deleted announcement: {announcement_title} (ID: {announcement_id})")
-                        return True
-                    else:
-                        # If delete fails, try to unpublish as fallback
-                        unpublish_data = {"published": False}
-                        async with session.put(url, headers=self.headers, json=unpublish_data) as fallback_response:
-                            if 200 <= fallback_response.status < 300:
-                                logger.warning(f"Could not delete announcement {announcement_title}, unpublished instead")
-                                print(f"⚠️ Could not delete announcement {announcement_title}, unpublished instead")
-                                return True
-                            else:
-                                error_text = await response.text()
-                                logger.error(f"Failed to delete announcement {announcement_title}: {response.status} - {error_text}")
-                                return False
+            # Use app_specific AnnouncementManager for deletion
+            success = self.announcement_manager.delete_announcement(
+                int(course_id),
+                int(announcement_id)
+            )
+
+            if success:
+                logger.info(f"Deleted announcement: {announcement_title} (ID: {announcement_id}) from course {course_id}")
+                print(f"🗑️ Deleted announcement: {announcement_title} (ID: {announcement_id})")
+                return True
+            else:
+                logger.warning(f"Could not delete announcement {announcement_title}")
+                print(f"⚠️ Could not delete announcement {announcement_title}")
+                return False
+
         except Exception as e:
             logger.error(f"Error deleting announcement {announcement_title}: {e}")
+            print(f"💥 Error deleting announcement '{announcement_title}': {e}")
             return False
     
     async def delete_all_announcements_in_course(self, course_id: str, course_name: str = "Unknown") -> bool:
-        """Delete all announcements in a course"""
+        """Delete all announcements in a course using app_specific module"""
         try:
-            async with aiohttp.ClientSession() as session:
-                # Get all announcements
-                announcements = await self.get_course_announcements(course_id)
+            # Get all announcements using app_specific module
+            announcements = self.announcement_manager.list_announcements(int(course_id))
+            
+            if not announcements:
+                logger.info(f"No announcements found in course: {course_name}")
+                print(f"ℹ️ No announcements found in course: {course_name}")
+                return True
+            
+            logger.info(f"Found {len(announcements)} announcements to delete in course: {course_name}")
+            print(f"🗑️ Found {len(announcements)} announcements to delete in course: {course_name}")
+            
+            # Delete each announcement
+            success_count = 0
+            for announcement in announcements:
+                announcement_id = str(announcement.get("id"))
+                announcement_title = announcement.get("title", "Unknown")
                 
-                if not announcements:
-                    logger.info(f"No announcements found in course: {course_name}")
-                    print(f"ℹ️ No announcements found in course: {course_name}")
-                    return True
-                
-                logger.info(f"Found {len(announcements)} announcements to delete in course: {course_name}")
-                print(f"🗑️ Found {len(announcements)} announcements to delete in course: {course_name}")
-                
-                # Delete each announcement
-                success_count = 0
-                for announcement in announcements:
-                    announcement_id = str(announcement.get("id"))
-                    announcement_title = announcement.get("title", "Unknown")
+                if await self.delete_announcement(course_id, announcement_id, announcement_title):
+                    success_count += 1
                     
-                    if await self.delete_announcement(course_id, announcement_id, announcement_title):
-                        success_count += 1
-                
-                logger.info(f"Deleted {success_count}/{len(announcements)} announcements from course: {course_name}")
-                print(f"✅ Deleted {success_count}/{len(announcements)} announcements from course: {course_name}")
-                return success_count == len(announcements)
+                # Small delay to avoid overwhelming the API
+                await asyncio.sleep(0.2)
+            
+            logger.info(f"Deleted {success_count}/{len(announcements)} announcements from course: {course_name}")
+            print(f"✅ Deleted {success_count}/{len(announcements)} announcements from course: {course_name}")
+            return success_count == len(announcements)
         except Exception as e:
             logger.error(f"Error deleting announcements from course {course_name}: {e}")
             return False
     
     async def find_user_by_email(self, email: str) -> Optional[Dict[str, Any]]:
-        """Find a user in Canvas by email address"""
+        """Find a user in Canvas by email address using app_specific module"""
         try:
-            async with aiohttp.ClientSession() as session:
-                # Search for user by email in the account
-                url = f"{self.base_url}/api/v1/accounts/1/users"
-                params = {"search_term": email}
-                
-                async with session.get(url, headers=self.headers, params=params) as response:
-                    if 200 == response.status:
-                        users = await response.json()
-                        # Find exact email match
-                        for user in users:
-                            if user.get("login_id") == email or user.get("email") == email:
-                                logger.info(f"Found user: {user.get('name', 'Unknown')} (ID: {user.get('id')}) for email: {email}")
-                                print(f"👥 Found user: {user.get('name', 'Unknown')} (ID: {user.get('id')}) for email: {email}")
-                                return user
-                        
-                        logger.warning(f"No user found with email: {email}")
-                        return None
-                    else:
-                        error_text = await response.text()
-                        logger.error(f"Failed to search for user with email {email}: {response.status} - {error_text}")
-                        return None
+            # Use app_specific module to find user
+            user = self.canvas_api.find_user_by_email(email, account_id=1)
+            if user:
+                logger.info(f"Found user: {user.get('name', 'Unknown')} (ID: {user.get('id')}) for email: {email}")
+                print(f"👥 Found user: {user.get('name', 'Unknown')} (ID: {user.get('id')}) for email: {email}")
+                return user
+            else:
+                logger.warning(f"No user found with email: {email}")
+                return None
         except Exception as e:
-            logger.error(f"Error searching for user with email {email}: {e}")
+            logger.error(f"Error finding user by email {email}: {e}")
             return None
     
     async def enroll_student(self, course_id: str, user_email: str, role: str = "StudentEnrollment") -> bool:
-        """Enroll a student in a course via API using email"""
+        """Enroll a student in a course using app_specific module"""
         try:
-            # Find user by email in Canvas system
+            # Find user by email
             user = await self.find_user_by_email(user_email)
             if not user:
-                logger.warning(f"User not found in Canvas: {user_email}")
+                logger.error(f"Cannot enroll student - user not found: {user_email}")
                 return False
-            
-            user_id = user.get("id")
-            if not user_id:
-                logger.error(f"User found but no ID: {user_email}")
+
+            # Enroll user using app_specific module
+            enrollment = self.canvas_api.enroll_user(
+                course_id=int(course_id),
+                user_id=user["id"],
+                role=role
+            )
+
+            if enrollment:
+                logger.info(f"Enrolled {user_email} (ID: {user['id']}) in course {course_id}")
+                print(f"🎓 Enrolled {user_email} (ID: {user['id']}) in course {course_id}")
+                return True
+            else:
+                logger.error(f"Failed to enroll student {user_email}")
                 return False
-            
-            async with aiohttp.ClientSession() as session:
-                url = f"{self.base_url}/api/v1/courses/{course_id}/enrollments"
-                enrollment_data = {
-                    "enrollment": {
-                        "user_id": user_id,
-                        "type": role,
-                        "enrollment_state": "active"
-                    }
-                }
-                
-                async with session.post(url, headers=self.headers, json=enrollment_data) as response:
-                    if 200 == response.status:
-                        logger.info(f"Enrolled {user_email} (ID: {user_id}) in course {course_id}")
-                        print(f"🎓 Enrolled {user_email} (ID: {user_id}) in course {course_id}")
-                        return True
-                    else:
-                        error_text = await response.text()
-                        logger.error(f"Failed to enroll {user_email}: {response.status} - {error_text}")
-                        return False
+
         except Exception as e:
-            logger.error(f"Error enrolling {user_email}: {e}")
+            logger.error(f"Error enrolling student {user_email}: {e}")
             return False
     
     async def enroll_teacher(self, course_id: str, teacher_email: str) -> bool:
-        """Enroll a teacher in a course via API using email"""
+        """Enroll a teacher in the course using app_specific module"""
         try:
-            # Find teacher by email in Canvas system
-            teacher = await self.find_user_by_email(teacher_email)
+            # Find or create teacher user using app_specific module
+            teacher = self.canvas_api.get_or_create_user(
+                email=teacher_email,
+                account_id=1
+            )
+            
             if not teacher:
-                logger.warning(f"Teacher not found in Canvas: {teacher_email}")
+                logger.error(f"Failed to find teacher: {teacher_email}")
                 return False
-            
-            teacher_id = teacher.get("id")
-            if not teacher_id:
-                logger.error(f"Teacher found but no ID: {teacher_email}")
+
+            # Enroll as teacher using app_specific module
+            enrollment = self.canvas_api.add_teacher_to_course(int(course_id), int(teacher["id"]))
+
+            if enrollment:
+                logger.info(f"Enrolled teacher {teacher_email} (ID: {teacher['id']}) in course {course_id}")
+                print(f"👨‍🏫 Enrolled teacher {teacher_email} (ID: {teacher['id']}) in course {course_id}")
+                return True
+            else:
+                logger.error(f"Failed to enroll teacher {teacher_email}")
                 return False
-            
-            async with aiohttp.ClientSession() as session:
-                url = f"{self.base_url}/api/v1/courses/{course_id}/enrollments"
-                enrollment_data = {
-                    "enrollment": {
-                        "user_id": teacher_id,
-                        "type": "TeacherEnrollment",
-                        "enrollment_state": "active"
-                    }
-                }
-                
-                async with session.post(url, headers=self.headers, json=enrollment_data) as response:
-                    if 200 == response.status:
-                        logger.info(f"Enrolled teacher {teacher_email} (ID: {teacher_id}) in course {course_id}")
-                        print(f"👨‍🏫 Enrolled teacher {teacher_email} (ID: {teacher_id}) in course {course_id}")
-                        return True
-                    else:
-                        error_text = await response.text()
-                        logger.error(f"Failed to enroll teacher {teacher_email}: {response.status} - {error_text}")
-                        return False
+
         except Exception as e:
-            logger.error(f"Error enrolling teacher {teacher_email}: {e}")
+            logger.error(f"Error enrolling teacher: {e}")
             return False
     
     async def publish_course(self, course_id: str, course_name: str) -> bool:
-        """Publish a course to make it visible to students"""
+        """Publish a course to make it visible to students using app_specific module"""
         try:
-            async with aiohttp.ClientSession() as session:
-                url = f"{self.base_url}/api/v1/courses/{course_id}"
-                publish_data = {
-                    "course": {
-                        "event": "offer"
-                    }
-                }
-                
-                async with session.put(url, headers=self.headers, json=publish_data) as response:
-                    if 200 <= response.status < 300:
-                        logger.info(f"Published course: {course_name} (ID: {course_id})")
-                        print(f"🌐 Published course: {course_name} (ID: {course_id})")
-                        return True
-                    else:
-                        error_text = await response.text()
-                        logger.error(f"Failed to publish course {course_name}: {response.status} - {error_text}")
-                        return False
+            success = self.canvas_api.publish_course(int(course_id))
+            if success:
+                logger.info(f"Published course: {course_name} (ID: {course_id})")
+                print(f"🌐 Published course: {course_name} (ID: {course_id})")
+                return True
+            else:
+                logger.error(f"Failed to publish course {course_name}")
+                return False
         except Exception as e:
             logger.error(f"Error publishing course {course_name}: {e}")
             return False
@@ -925,39 +880,45 @@ class CanvasCourseSetup:
             return False
     
     async def create_assignment(self, course_id: str, assignment_info: Dict[str, Any]) -> bool:
-        """Create a course assignment via API"""
+        """Create a course assignment using app_specific module"""
         try:
-            async with aiohttp.ClientSession() as session:
-                url = f"{self.base_url}/api/v1/courses/{course_id}/assignments"
-                
-                # Prepare assignment data
-                assignment_data = {
-                    "assignment": {
-                        "name": assignment_info["name"],
-                        "description": assignment_info["description"],
-                        "points_possible": assignment_info["points_possible"],
-                        "submission_types": assignment_info["submission_types"],
-                        "published": assignment_info.get("published", True)
-                    }
-                }
-                
-                # Add optional parameters
-                if "due_at" in assignment_info and assignment_info["due_at"]:
-                    assignment_data["assignment"]["due_at"] = assignment_info["due_at"]
-                
-                if "allowed_extensions" in assignment_info and assignment_info["allowed_extensions"]:
-                    assignment_data["assignment"]["allowed_extensions"] = assignment_info["allowed_extensions"]
-                
-                async with session.post(url, headers=self.headers, json=assignment_data) as response:
-                    if 200 <= response.status < 300:
-                        assignment_response = await response.json()
-                        assignment_id = assignment_response.get("id")
-                        logger.info(f"Created assignment: {assignment_info['name']} (ID: {assignment_id}) in course {course_id}")
-                        return True
-                    else:
-                        error_text = await response.text()
-                        logger.error(f"Failed to create assignment {assignment_info['name']}: {response.status} - {error_text}")
-                        return False
+            # Handle submission_types - convert string to list if needed
+            submission_types = assignment_info.get("submission_types")
+            if submission_types:
+                if isinstance(submission_types, str):
+                    submission_types = [submission_types]
+            else:
+                # Default to online_text_entry if not specified
+                submission_types = ["online_text_entry"]
+            
+            # Handle allowed_extensions - convert string to list if needed
+            allowed_extensions = assignment_info.get("allowed_extensions")
+            if allowed_extensions and isinstance(allowed_extensions, str):
+                allowed_extensions = [allowed_extensions]
+            
+            # Log what we're sending
+            logger.info(f"Creating assignment with submission_types: {submission_types}, allowed_extensions: {allowed_extensions}")
+            
+            # Use app_specific CanvasAPI for assignment creation
+            result = self.canvas_api.create_assignment(
+                course_id=int(course_id),
+                name=assignment_info["name"],
+                description=assignment_info["description"],
+                points_possible=assignment_info["points_possible"],
+                due_at=assignment_info.get("due_at"),
+                published=assignment_info.get("published", True),
+                submission_types=submission_types,
+                allowed_extensions=allowed_extensions
+            )
+            
+            if result:
+                assignment_id = result.get("id")
+                logger.info(f"Created assignment: {assignment_info['name']} (ID: {assignment_id}) in course {course_id}")
+                logger.info(f"Assignment created with submission_types: {result.get('submission_types', 'unknown')}")
+                return True
+            else:
+                logger.error(f"Failed to create assignment {assignment_info['name']}")
+                return False
         except Exception as e:
             logger.error(f"Error creating assignment {assignment_info['name']}: {e}")
             return False
@@ -989,7 +950,8 @@ class CanvasCourseSetup:
             return False
 
     async def delete_assignment(self, course_id: str, assignment_id: str, assignment_name: str = "Unknown") -> bool:
-        """Delete an assignment from a course"""
+        """Delete an assignment from a course using Canvas API"""
+        # Note: api_client.py doesn't have a delete assignment method, keeping async HTTP call
         try:
             async with aiohttp.ClientSession() as session:
                 url = f"{self.base_url}/api/v1/courses/{course_id}/assignments/{assignment_id}"
@@ -1007,36 +969,28 @@ class CanvasCourseSetup:
             return False
 
     async def delete_all_assignments_in_course(self, course_id: str, course_name: str = "Unknown") -> bool:
-        """Delete all assignments in a course"""
+        """Delete all assignments in a course using app_specific module to list"""
         try:
-            async with aiohttp.ClientSession() as session:
-                url = f"{self.base_url}/api/v1/courses/{course_id}/assignments"
+            # Get all assignments using app_specific module
+            assignments = self.canvas_api.list_assignments(int(course_id))
+                        
+            if not assignments:
+                logger.info(f"No assignments found in course: {course_name}")
+                return True
+            
+            logger.info(f"Found {len(assignments)} assignments to delete in course: {course_name}")
+            
+            # Delete each assignment
+            success_count = 0
+            for assignment in assignments:
+                assignment_id = str(assignment.get("id"))
+                assignment_name = assignment.get("name", "Unknown")
                 
-                async with session.get(url, headers=self.headers) as response:
-                    if 200 == response.status:
-                        assignments = await response.json()
-                        
-                        if not assignments:
-                            logger.info(f"No assignments found in course: {course_name}")
-                            return True
-                        
-                        logger.info(f"Found {len(assignments)} assignments to delete in course: {course_name}")
-                        
-                        # Delete each assignment
-                        success_count = 0
-                        for assignment in assignments:
-                            assignment_id = str(assignment.get("id"))
-                            assignment_name = assignment.get("name", "Unknown")
-                            
-                            if await self.delete_assignment(course_id, assignment_id, assignment_name):
-                                success_count += 1
-                        
-                        logger.info(f"Deleted {success_count}/{len(assignments)} assignments from course: {course_name}")
-                        return success_count == len(assignments)
-                    else:
-                        error_text = await response.text()
-                        logger.error(f"Failed to get assignments for course {course_name}: {response.status} - {error_text}")
-                        return False
+                if await self.delete_assignment(course_id, assignment_id, assignment_name):
+                    success_count += 1
+            
+            logger.info(f"Deleted {success_count}/{len(assignments)} assignments from course: {course_name}")
+            return success_count == len(assignments)
         except Exception as e:
             logger.error(f"Error deleting assignments from course {course_name}: {e}")
             return False
@@ -1065,6 +1019,49 @@ class CanvasCourseSetup:
             logger.error(f"Error getting assignment ID for {assignment_name} in course {course_id}: {e}")
             return None
 
+    async def check_assignment_status(self, course_id: str, assignment_id: str, student_token: str) -> Dict[str, Any]:
+        """Check assignment status and student's ability to submit"""
+        try:
+            student_headers = {
+                "Authorization": f"Bearer {student_token}",
+                "Content-Type": "application/json"
+            }
+            
+            async with aiohttp.ClientSession() as session:
+                # First, get assignment details
+                url = f"{self.base_url}/api/v1/courses/{course_id}/assignments/{assignment_id}"
+                
+                async with session.get(url, headers=student_headers) as response:
+                    if 200 == response.status:
+                        assignment_data = await response.json()
+                        
+                        # Check important fields
+                        status_info = {
+                            "name": assignment_data.get("name"),
+                            "published": assignment_data.get("published"),
+                            "locked": assignment_data.get("locked_for_user", False),
+                            "submission_types": assignment_data.get("submission_types", ""),
+                            "due_at": assignment_data.get("due_at"),
+                            "lock_at": assignment_data.get("lock_at"),
+                            "unlock_at": assignment_data.get("unlock_at"),
+                            "has_submitted_submissions": assignment_data.get("has_submitted_submissions", False)
+                        }
+                        
+                        # Check if student can submit
+                        if assignment_data.get("locked_for_user"):
+                            lock_info = assignment_data.get("lock_info", {})
+                            lock_explanation = assignment_data.get("lock_explanation", "Unknown reason")
+                            status_info["lock_reason"] = lock_explanation
+                        
+                        return status_info
+                    else:
+                        error_text = await response.text()
+                        logger.error(f"Failed to get assignment status: {response.status} - {error_text}")
+                        return {"error": f"Failed to get assignment: {response.status}"}
+        except Exception as e:
+            logger.error(f"Error checking assignment status: {e}")
+            return {"error": str(e)}
+    
     async def submit_assignment_as_student(self, course_id: str, assignment_id: str, user_token: str, submission_data: Dict[str, Any]) -> bool:
         """Submit an assignment as a student using student's token"""
         try:
@@ -1091,20 +1088,132 @@ class CanvasCourseSetup:
             logger.error(f"Error submitting assignment {assignment_id}: {e}")
             return False
     
+    async def check_student_enrollment(self, course_id: str, student_email: str) -> bool:
+        """Check if a student is enrolled in a course"""
+        try:
+            async with aiohttp.ClientSession() as session:
+                url = f"{self.base_url}/api/v1/courses/{course_id}/enrollments"
+                params = {"type[]": "StudentEnrollment"}
+                
+                async with session.get(url, headers=self.headers, params=params) as response:
+                    if 200 == response.status:
+                        enrollments = await response.json()
+                        
+                        # Check if student is enrolled
+                        for enrollment in enrollments:
+                            user = enrollment.get("user", {})
+                            if user.get("login_id") == student_email or user.get("email") == student_email:
+                                state = enrollment.get("enrollment_state")
+                                if state == "active":
+                                    return True
+                                else:
+                                    logger.info(f"Student {student_email} enrollment state: {state}")
+                        
+                        return False
+                    else:
+                        error_text = await response.text()
+                        logger.error(f"Failed to check enrollments: {response.status} - {error_text}")
+                        return False
+        except Exception as e:
+            logger.error(f"Error checking student enrollment: {e}")
+            return False
+    
+    async def test_student_token(self, student_token: str) -> Optional[Dict[str, Any]]:
+        """Test if a student token is valid and get user info"""
+        try:
+            student_headers = {
+                "Authorization": f"Bearer {student_token}",
+                "Content-Type": "application/json"
+            }
+            
+            async with aiohttp.ClientSession() as session:
+                # First get basic user info
+                url = f"{self.base_url}/api/v1/users/self"
+                
+                async with session.get(url, headers=student_headers) as response:
+                    if 200 == response.status:
+                        user_info = await response.json()
+                        logger.info(f"Token valid for user: {user_info.get('name', 'Unknown')}")
+                        
+                        # Get profile for more complete info
+                        profile_url = f"{self.base_url}/api/v1/users/self/profile"
+                        async with session.get(profile_url, headers=student_headers) as profile_response:
+                            if 200 == profile_response.status:
+                                profile_info = await profile_response.json()
+                                # Merge profile info into user info
+                                user_info.update(profile_info)
+                        
+                        return user_info
+                    else:
+                        error_text = await response.text()
+                        logger.error(f"Token validation failed: {response.status} - {error_text}")
+                        return None
+        except Exception as e:
+            logger.error(f"Error testing student token: {e}")
+            return None
+
+    
     async def submit_assignments_for_students(self) -> bool:
-        """Submit assignments for all students in CS101 and CS201 courses"""
+        """Submit assignments for Ryan Brown (the test student with available token)"""
         try:
             logger.info("Starting assignment submissions for students...")
             print("📝 Starting assignment submissions for students...")
             
-            # Student tokens mapping (based on canvas_users.json)
-            student_tokens = {
-                CANVAS_USER_NAME: CANVAS_USER_TOKEN,
-             
-            }
+            # Only submit for Ryan Brown who has a token available
+            # Using the CANVAS_USER_NAME and CANVAS_USER_TOKEN from config
             
             # Target courses to submit assignments for
             target_courses = ["CS101-1", "CS201-1"]
+            
+            # Use the configured user token for Ryan
+            student_email = CANVAS_USER_NAME  # This should be ryan.brown93@mcp.com
+            student_token = CANVAS_USER_TOKEN  # Ryan's personal token
+            
+            # Debug: Log the token being used (first and last few characters only for security)
+            token_preview = f"{student_token[:10]}...{student_token[-4:]}" if len(student_token) > 14 else "[SHORT_TOKEN]"
+            logger.info(f"Using token for {student_email}: {token_preview}")
+            print(f"🔑 Using token for {student_email}: {token_preview}")
+            
+            # Test the student token first
+            print(f"\n🔍 Testing student token validity...")
+            user_info = await self.test_student_token(student_token)
+            if not user_info:
+                print(f"❌ Token is invalid or expired for {student_email}")
+                print(f"   Please ensure CANVAS_USER_TOKEN is set to Ryan's personal token")
+                print(f"   The token should be generated by Ryan after logging into Canvas")
+                return False
+            
+            # Try different fields to get the actual email
+            actual_email = (
+                user_info.get('primary_email') or 
+                user_info.get('login_id') or 
+                user_info.get('email') or 
+                user_info.get('sis_login_id') or
+                ''
+            )
+            
+            # If we still don't have an email, show all available fields for debugging
+            if not actual_email:
+                print(f"⚠️ Could not determine email from token. User info fields:")
+                for key, value in user_info.items():
+                    if value and not key.startswith('_'):
+                        print(f"   {key}: {value}")
+                
+                # Try to use the name as fallback
+                if user_info.get('name'):
+                    print(f"\n🔄 Token belongs to: {user_info.get('name')}")
+                    print(f"   Continuing with original email: {student_email}")
+                    actual_email = student_email  # Use the configured email
+                else:
+                    print(f"❌ Cannot determine user identity from token")
+                    return False
+            
+            if actual_email and actual_email != student_email:
+                print(f"⚠️ Token belongs to {actual_email}, not {student_email}")
+                print(f"   Using token for {actual_email} instead")
+                student_email = actual_email
+            elif actual_email:
+                print(f"✅ Token validated for {student_email}")
             
             success_count = 0
             total_submissions = 0
@@ -1123,6 +1232,26 @@ class CanvasCourseSetup:
                     logger.error(f"Course not found: {course_info['name']}")
                     continue
                 
+                # Verify Ryan's enrollment in this course
+                print(f"\n🔍 Checking enrollment status in {course_info['name']}...")
+                enrollment_status = await self.check_student_enrollment(course_id, student_email)
+                if not enrollment_status:
+                    logger.warning(f"{student_email} is not actively enrolled in {course_info['name']}")
+                    print(f"⚠️ {student_email} is not actively enrolled in {course_info['name']}")
+                    print(f"   Attempting to enroll {student_email}...")
+                    
+                    # Try to enroll Ryan in the course
+                    if await self.enroll_student(course_id, student_email):
+                        print(f"   ✅ Successfully enrolled {student_email}")
+                        # Wait a moment for enrollment to take effect
+                        await asyncio.sleep(2)
+                    else:
+                        print(f"   ❌ Failed to enroll {student_email}")
+                        print(f"   Skipping assignment submission for this course")
+                        continue
+                else:
+                    print(f"✅ {student_email} is actively enrolled")
+                
                 # Get assignment ID
                 if "assignment" not in course_info:
                     logger.warning(f"No assignment found in course: {course_info['name']}")
@@ -1134,56 +1263,95 @@ class CanvasCourseSetup:
                     logger.error(f"Assignment not found: {assignment_name} in course {course_info['name']}")
                     continue
                 
-                # Submit for each student in this course
-                for student_email in course_info.get("students", []):
-                    if student_email not in student_tokens:
-                        logger.warning(f"No token found for student: {student_email}")
-                        continue
-                    
-                    total_submissions += 1
-                    student_token = student_tokens[student_email]
-                    
-                    # Prepare submission data with custom submission time
-                    # Set submission time to a few days before the assignment due date
-                    
-                    # Generate a random submission time (1-5 days ago)
-                    days_ago = random.randint(1, 5)
-                    hours_ago = random.randint(1, 23)
-                    minutes_ago = random.randint(1, 59)
-                    submitted_time = datetime.utcnow() - timedelta(days=days_ago, hours=hours_ago, minutes=minutes_ago)
-                    submitted_at = submitted_time.strftime("%Y-%m-%dT%H:%M:%SZ")
-                    
-                    submission_data = {
-                        "submission": {
-                            "submission_type": "online_text_entry",
-                            "body": f"<p>Assignment submission for {assignment_name}</p><p>Student: {student_email}</p><p>Course: {course_info['name']}</p><p>Submitted at: {submitted_at}</p><p>This is a sample submission demonstrating the assignment submission functionality.</p><p>Content: I have completed the required tasks as specified in the assignment description.</p>",
-                            "submitted_at": submitted_at
-                        }
+                # Check assignment status before attempting submission
+                print(f"\n🔍 Checking assignment status...")
+                assignment_status = await self.check_assignment_status(course_id, assignment_id, student_token)
+                
+                if "error" in assignment_status:
+                    print(f"❌ Error checking assignment: {assignment_status['error']}")
+                    continue
+                
+                print(f"   Assignment: {assignment_status.get('name', 'Unknown')}")
+                print(f"   Published: {assignment_status.get('published', False)}")
+                print(f"   Locked: {assignment_status.get('locked', False)}")
+                print(f"   Submission types: {assignment_status.get('submission_types', [])}")
+                
+                if not assignment_status.get('published'):
+                    print(f"❌ Assignment is not published - cannot submit")
+                    continue
+                
+                if assignment_status.get('locked'):
+                    print(f"🔒 Assignment is locked: {assignment_status.get('lock_reason', 'Unknown reason')}")
+                    continue
+                
+                if 'online_text_entry' not in assignment_status.get('submission_types', []):
+                    print(f"⚠️ Assignment doesn't accept online text entries")
+                    print(f"   Accepted types: {assignment_status.get('submission_types', [])}")
+                    # Try to submit anyway, in case the API is flexible
+                
+                # Check if Ryan is in the course config (optional - might not be needed if enrolled)
+                if student_email not in course_info.get("students", []):
+                    logger.info(f"Note: {student_email} not in course config, but checking actual enrollment...")
+                    print(f"ℹ️ Note: {student_email} not in course config, but may still be enrolled")
+                
+                total_submissions += 1
+                
+                # Generate a random submission time (1-5 days ago)
+                days_ago = random.randint(1, 5)
+                hours_ago = random.randint(1, 23)
+                minutes_ago = random.randint(1, 59)
+                submitted_time = datetime.utcnow() - timedelta(days=days_ago, hours=hours_ago, minutes=minutes_ago)
+                submitted_at = submitted_time.strftime("%Y-%m-%dT%H:%M:%SZ")
+                
+                submission_data = {
+                    "submission": {
+                        "submission_type": "online_text_entry",
+                        "body": f"<p>Assignment submission for {assignment_name}</p><p>Student: {student_email}</p><p>Course: {course_info['name']}</p><p>This is a sample submission demonstrating the assignment submission functionality.</p><p>Content: I have completed the required tasks as specified in the assignment description.</p>"
                     }
+                }
+                # Note: Removed submitted_at as it might cause issues
+                
+                print(f"\n📤 Submitting {assignment_name} for {student_email}...")
+                
+                # Submit assignment as Ryan
+                if await self.submit_assignment_as_student(course_id, assignment_id, student_token, submission_data):
+                    success_count += 1
+                    logger.info(f"✅ Successfully submitted {assignment_name} for {student_email} at {submitted_at}")
+                    print(f"✅ Successfully submitted {assignment_name} for {student_email} at {submitted_at}")
+                else:
+                    logger.error(f"❌ Failed to submit {assignment_name} for {student_email}")
+                    print(f"❌ Failed to submit {assignment_name} for {student_email}")
                     
-                    # Submit assignment
-                    if await self.submit_assignment_as_student(course_id, assignment_id, student_token, submission_data):
-                        success_count += 1
-                        logger.info(f"✅ Successfully submitted {assignment_name} for {student_email} at {submitted_at}")
-                        print(f"✅ Successfully submitted {assignment_name} for {student_email} at {submitted_at}")
-                    else:
-                        logger.error(f"❌ Failed to submit {assignment_name} for {student_email}")
-                        print(f"❌ Failed to submit {assignment_name} for {student_email}")
+                    # Additional debugging: Try to get the assignment with admin token to compare
+                    print(f"\n🔍 Debugging with admin token...")
+                    admin_headers = self.headers  # Use admin headers
+                    async with aiohttp.ClientSession() as session:
+                        url = f"{self.base_url}/api/v1/courses/{course_id}/assignments/{assignment_id}"
+                        async with session.get(url, headers=admin_headers) as response:
+                            if 200 == response.status:
+                                admin_assignment = await response.json()
+                                print(f"   Assignment from admin view:")
+                                print(f"   - Published: {admin_assignment.get('published')}")
+                                print(f"   - Submission types: {admin_assignment.get('submission_types')}")
+                                print(f"   - Submissions: {admin_assignment.get('has_submitted_submissions')}")
             
             # Print summary
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             print(f"\n{'='*60}")
-            print(f"ASSIGNMENT SUBMISSIONS COMPLETED - {timestamp}")
+            print(f"ASSIGNMENT SUBMISSION SUMMARY - {timestamp}")
             print(f"{'='*60}")
-            print(f"Total submissions attempted: {total_submissions}")
+            print(f"Student: {student_email}")
+            print(f"Total assignments to submit: {total_submissions}")
             print(f"Successfully submitted: {success_count}")
             print(f"Failed: {total_submissions - success_count}")
             print(f"{'='*60}")
             
             if success_count == total_submissions:
-                print("✅ All assignments submitted successfully!")
+                print("✅ All assignments submitted successfully for Ryan!")
+            elif success_count > 0:
+                print("⚠️ Some assignments were submitted successfully.")
             else:
-                print("⚠️  Some assignment submissions failed. Check logs for details.")
+                print("❌ No assignments were submitted. Check if Ryan is enrolled in CS101-1 or CS201-1.")
             
             return success_count == total_submissions
             
@@ -1192,66 +1360,17 @@ class CanvasCourseSetup:
             return False
     
     async def delete_all_courses(self) -> bool:
-        """Delete all courses from Canvas"""
+        """Delete all courses from Canvas using app_specific tools module"""
         try:
             logger.info("Starting deletion of all courses...")
             print("🗑️ Starting deletion of all courses...")
             
-            # Get all courses
-            courses = await self.get_all_courses()
-            if not courses:
-                logger.info("No courses found to delete")
-                print("ℹ️ No courses found to delete")
-                return True
+            # Use the delete_all_courses function from tools module
+            # Note: This is a synchronous function, so we don't need await
+            tool_delete_all_courses(self.base_url, CANVAS_API_TOKEN)
             
-            # Filter out system courses (usually have specific IDs or names)
-            courses_to_delete = []
-            for course in courses:
-                course_id = str(course.get("id", ""))
-                course_name = course.get("name", "Unknown")
-                
-                # Skip system courses (you can customize this filter)
-                # if course_id in ["1", "2", "3"] or "System" in course_name:
-                #     logger.info(f"Skipping system course: {course_name} (ID: {course_id})")
-                #     continue
-                
-                courses_to_delete.append({
-                    "id": course_id,
-                    "name": course_name
-                })
-            
-            if not courses_to_delete:
-                logger.info("No user-created courses found to delete")
-                print("ℹ️ No user-created courses found to delete")
-                return True
-            
-            logger.info(f"Found {len(courses_to_delete)} courses to delete")
-            print(f"🔍 Found {len(courses_to_delete)} courses to delete")
-            
-            # Delete each course
-            success_count = 0
-            for course in courses_to_delete:
-                if await self.delete_course(course["id"], course["name"]):
-                    success_count += 1
-                else:
-                    logger.error(f"Failed to delete course: {course['name']}")
-            
-            # Print summary
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            print(f"\n{'='*60}")
-            print(f"CANVAS COURSE DELETION COMPLETED - {timestamp}")
-            print(f"{'='*60}")
-            print(f"Total courses to delete: {len(courses_to_delete)}")
-            print(f"Successfully deleted: {success_count}")
-            print(f"Failed: {len(courses_to_delete) - success_count}")
-            print(f"{'='*60}")
-            
-            if success_count == len(courses_to_delete):
-                print("✅ All courses deleted successfully!")
-            else:
-                print("⚠️  Some courses failed to delete. Check logs for details.")
-            
-            return success_count == len(courses_to_delete)
+            # The tool function already handles all output and statistics
+            return True
             
         except Exception as e:
             logger.error(f"Fatal error during course deletion: {e}")

@@ -1,5 +1,4 @@
 {
-    "id": "weihao_machine_operating",
     "needed_mcp_servers": [
         "google-cloud",
         "filesystem",

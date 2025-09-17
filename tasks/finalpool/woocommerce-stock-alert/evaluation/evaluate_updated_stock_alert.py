@@ -9,8 +9,28 @@ This script validates:
 import json
 import os
 import sys
+import imaplib
+import email
+from datetime import datetime, timedelta
 from typing import Dict, List, Tuple, Any
 from pathlib import Path
+from email.header import decode_header
+
+# Add project root to Python path for Google Sheets API access
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = Path(current_dir).parent.parent.parent.parent
+sys.path.insert(0, str(project_root))
+
+# Add task directory for token access
+task_dir = Path(current_dir).parent
+sys.path.insert(0, str(task_dir))
+
+try:
+    from utils.app_specific.googlesheet.drive_helper import get_google_service
+    from token_key_session import all_token_key_session
+except ImportError:
+    get_google_service = None
+    all_token_key_session = None
 
 class StockAlertEvaluator:
     """Evaluator for stock alert system validation"""
@@ -36,7 +56,50 @@ class StockAlertEvaluator:
                 "sku": "NINTENDO-SWITCH-OLED",
                 "stock_quantity": 2,
                 "stock_threshold": 12
-            }
+            },
+            {
+                "id": 101,
+                "name": "Laptop Dell XPS 13",
+                "sku": "DELL-XPS-13",
+                "stock_quantity": 5,
+                "stock_threshold": 10
+            },
+            {
+                "id": 102,
+                "name": "iPhone 15 Pro",
+                "sku": "IPHONE-15-PRO",
+                "stock_quantity": 3,
+                "stock_threshold": 15
+            },
+            {
+                "id": 104,
+                "name": "Samsung 65\" QLED TV",
+                "sku": "SAMSUNG-Q80B-65",
+                "stock_quantity": 2,
+                "stock_threshold": 5
+            },
+            {
+                "id": 106,
+                "name": "iPad Air 5th Gen",
+                "sku": "IPAD-AIR-5",
+                "stock_quantity": 7,
+                "stock_threshold": 12
+            },
+            {
+                "id": 107,
+                "name": "Canon EOS R6",
+                "sku": "CANON-EOS-R6",
+                "stock_quantity": 4,
+                "stock_threshold": 8
+            },
+            {
+                "id": 108,
+                "name": "Microsoft Surface Pro 9",
+                "sku": "MS-SURFACE-PRO9",
+                "stock_quantity": 1,
+                "stock_threshold": 6
+            },
+
         ]
 
     def load_woocommerce_products(self) -> List[Dict]:
@@ -60,31 +123,91 @@ class StockAlertEvaluator:
         ]
         return original_low_stock
 
+    def get_spreadsheet_id(self) -> str:
+        """Get the spreadsheet ID from files/sheet_id.txt"""
+        try:
+            sheet_id_file = self.task_dir / "files" / "sheet_id.txt"
+            if sheet_id_file.exists():
+                with open(sheet_id_file, 'r') as f:
+                    return f.read().strip()
+        except Exception:
+            pass
+        return None
+
+    def read_sheet_data(self, spreadsheet_id: str, range_name: str = "stock_sheet!A:H") -> List[List[str]]:
+        """Read data from Google Sheets"""
+        try:
+            if not get_google_service:
+                raise ImportError("Google Sheets service not available")
+            
+            drive_service, sheets_service = get_google_service()
+            
+            result = sheets_service.spreadsheets().values().get(
+                spreadsheetId=spreadsheet_id,
+                range=range_name
+            ).execute()
+            
+            values = result.get('values', [])
+            return values
+            
+        except Exception as e:
+            print(f"Error reading sheet data: {e}")
+            return []
+
+    def parse_sheet_records(self, raw_data: List[List[str]]) -> List[Dict]:
+        """Parse raw sheet data into structured records"""
+        if not raw_data or len(raw_data) < 2:
+            return []
+        
+        headers = raw_data[0]
+        records = []
+        
+        for row in raw_data[1:]:
+            # Pad row to match headers length
+            padded_row = row + [''] * (len(headers) - len(row))
+            record = dict(zip(headers, padded_row))
+            records.append(record)
+        
+        return records
+
     def validate_google_sheets_updates(self) -> Tuple[bool, str]:
         """
-        Validate Google Sheets updates:
+        Validate Google Sheets updates by connecting to real Google Sheets:
         1. Check new products added (MacBook Pro M3, Nintendo Switch OLED)
-        2. Verify data inserted after original 6 records
-        3. Ensure original data unchanged
+        2. Verify data inserted correctly
+        3. Ensure required columns exist
         """
         try:
-            # Check for Google Sheets update record
-            sheets_update_file = os.path.join(self.agent_workspace, "google_sheets_updates.json")
-            if not os.path.exists(sheets_update_file):
-                return False, "Google Sheets update record not found"
+            # Get spreadsheet ID
+            spreadsheet_id = self.get_spreadsheet_id()
+            if not spreadsheet_id:
+                return False, "Spreadsheet ID not found in files/sheet_id.txt"
 
-            with open(sheets_update_file, 'r', encoding='utf-8') as f:
-                sheets_data = json.load(f)
+            print(f"Validating Google Sheets: {spreadsheet_id}")
 
-            # Validate sheet name
-            sheet_name = sheets_data.get("sheet_name", "")
-            if sheet_name != "stock_sheet":
-                return False, f"Wrong sheet name. Expected 'stock_sheet', got '{sheet_name}'"
+            # Read data from Google Sheets
+            raw_data = self.read_sheet_data(spreadsheet_id)
+            if not raw_data:
+                return False, "Could not read data from Google Sheets or sheet is empty"
 
-            # Get all records
-            records = sheets_data.get("records", [])
+            # Parse records
+            records = self.parse_sheet_records(raw_data)
             if len(records) < 8:  # Should have original 6 + new 2
                 return False, f"Insufficient records. Expected at least 8, got {len(records)}"
+
+            # Verify required columns exist
+            if not raw_data[0]:
+                return False, "No headers found in sheet"
+            
+            headers = raw_data[0]
+            required_columns = [
+                "Product ID", "Product Name", "SKU", "Current Stock",
+                "Safety Threshold", "Supplier Name", "Supplier ID", "Supplier Contact"
+            ]
+            
+            missing_columns = [col for col in required_columns if col not in headers]
+            if missing_columns:
+                return False, f"Missing required columns: {missing_columns}"
 
             # Check new products are present
             record_skus = {record.get("SKU", "") for record in records}
@@ -94,18 +217,8 @@ class StockAlertEvaluator:
             if missing_skus:
                 return False, f"Missing new products in sheet: {missing_skus}"
 
-            # Verify data columns are correct
-            required_columns = [
-                "Product ID", "Product Name", "SKU", "Current Stock",
-                "Safety Threshold", "Supplier Name", "Supplier ID", "Supplier Contact"
-            ]
-
-            for record in records:
-                missing_columns = [col for col in required_columns if col not in record]
-                if missing_columns:
-                    return False, f"Missing columns in record: {missing_columns}"
-
-            # Check that new products have correct data
+            # Validate new products data
+            validation_errors = []
             for expected_product in self.expected_new_products:
                 found_record = None
                 for record in records:
@@ -114,99 +227,200 @@ class StockAlertEvaluator:
                         break
 
                 if not found_record:
-                    return False, f"Product {expected_product['name']} not found in sheets"
+                    validation_errors.append(f"Product {expected_product['name']} not found")
+                    continue
 
                 # Validate data accuracy
                 if found_record.get("Product Name") != expected_product["name"]:
-                    return False, f"Product name mismatch for {expected_product['sku']}"
+                    validation_errors.append(f"Product name mismatch for {expected_product['sku']}: expected '{expected_product['name']}', got '{found_record.get('Product Name')}'")
 
                 if str(found_record.get("Current Stock")) != str(expected_product["stock_quantity"]):
-                    return False, f"Stock quantity mismatch for {expected_product['sku']}"
+                    validation_errors.append(f"Stock quantity mismatch for {expected_product['sku']}: expected {expected_product['stock_quantity']}, got {found_record.get('Current Stock')}")
 
                 if str(found_record.get("Safety Threshold")) != str(expected_product["stock_threshold"]):
-                    return False, f"Threshold mismatch for {expected_product['sku']}"
+                    validation_errors.append(f"Threshold mismatch for {expected_product['sku']}: expected {expected_product['stock_threshold']}, got {found_record.get('Safety Threshold')}")
 
-            return True, f"Google Sheets correctly updated with {len(records)} records including 2 new low-stock products"
+            if validation_errors:
+                return False, f"Data validation errors: {'; '.join(validation_errors)}"
+
+            # Check that records have non-empty required fields
+            for i, record in enumerate(records):
+                row_number = i + 2  # +2 because row 1 is headers and we're 0-indexed
+                for col in ["Product ID", "Product Name", "SKU"]:
+                    if not record.get(col, "").strip():
+                        validation_errors.append(f"Empty {col} in row {row_number}")
+
+            if validation_errors:
+                return False, f"Data completeness errors: {'; '.join(validation_errors)}"
+
+            return True, f"Google Sheets correctly updated with {len(records)} records including {len(self.expected_new_products)} new low-stock products"
 
         except Exception as e:
             return False, f"Google Sheets validation error: {str(e)}"
 
     def validate_email_notifications(self) -> Tuple[bool, str]:
         """
-        Validate email notifications:
-        1. Two emails sent to purchasing manager (laura_thompson@mcp.com)
-        2. One each for MacBook Pro M3 and Nintendo Switch OLED
+        Validate email notifications by checking real email server Sent folder:
+        1. Emails sent to purchasing manager (laura_thompson@mcp.com)
+        2. For new low-stock products
         3. Emails follow the template format
         """
         try:
-            # Check email outbox/log
-            email_log_file = os.path.join(self.agent_workspace, "sent_emails.json")
-            if not os.path.exists(email_log_file):
-                # Try alternative file names
-                for alt_name in ["email_log.json", "outbox.json", "email_outbox.json"]:
-                    alt_path = os.path.join(self.agent_workspace, alt_name)
-                    if os.path.exists(alt_path):
-                        email_log_file = alt_path
-                        break
+            # Load email configuration
+            if not all_token_key_session:
+                return False, "Email configuration not available"
+            
+            config_path = all_token_key_session.emails_config_file
+            with open(config_path, 'r') as f:
+                config = json.load(f)
+
+            # Connect to IMAP server to check Sent folder
+            if config.get('use_ssl', False):
+                mail = imaplib.IMAP4_SSL(config['imap_server'], config['imap_port'])
+            else:
+                mail = imaplib.IMAP4(config['imap_server'], config['imap_port'])
+                if config.get('use_starttls', False):
+                    mail.starttls()
+
+            # Login
+            mail.login(config['email'], config['password'])
+
+            # Select Sent folder
+            status, _ = mail.select('Sent')
+            if status != "OK":
+                return False, "Cannot access Sent email folder"
+
+            # Search for recent emails (last hour)
+            since_date = (datetime.now() - timedelta(hours=1)).strftime("%d-%b-%Y")
+            status, messages = mail.search(None, f'(SINCE "{since_date}")')
+
+            if status != "OK":
+                return False, "Cannot search emails"
+
+            email_ids = messages[0].split()
+            if not email_ids:
+                return False, "No recent emails found in Sent folder"
+
+            # Check stock alert emails
+            stock_alert_emails = []
+            manager_emails = []
+
+            for email_id in reversed(email_ids[-20:]):  # Check last 20 emails
+                status, msg_data = mail.fetch(email_id, '(RFC822)')
+                if status != "OK":
+                    continue
+
+                msg = email.message_from_bytes(msg_data[0][1])
+
+                # Get recipients
+                to_field = msg.get("To", "") or ""
+                cc_field = msg.get("Cc", "") or ""
+                all_recipients = (to_field + "," + cc_field).lower()
+
+                # Get email subject
+                subject = ""
+                if msg["Subject"]:
+                    subject_parts = decode_header(msg["Subject"])
+                    subject = "".join([
+                        part.decode(encoding or 'utf-8') if isinstance(part, bytes) else part
+                        for part, encoding in subject_parts
+                    ])
+
+                # Check if it's a stock alert email
+                stock_alert_keywords = ['stock alert', '[stock alert]', 'low stock', 'safety threshold']
+                is_stock_alert = any(keyword in subject.lower() for keyword in stock_alert_keywords)
+
+                if is_stock_alert:
+                    stock_alert_emails.append(msg)
+                    
+                    # Check if sent to purchasing manager
+                    if self.purchasing_manager_email.lower() in all_recipients:
+                        manager_emails.append(msg)
+
+            mail.logout()
+
+            if not stock_alert_emails:
+                return False, "No stock alert emails found in Sent folder"
+
+            if not manager_emails:
+                return False, f"No stock alert emails sent to purchasing manager ({self.purchasing_manager_email})"
+
+            # First check: email count must match expected product count
+            expected_count = len(self.expected_new_products)
+            if len(manager_emails) != expected_count:
+                return False, f"Expected {expected_count} emails to {self.purchasing_manager_email}, found {len(manager_emails)}"
+
+            # Validate email content and extract SKUs
+            email_skus = set()
+            validation_errors = []
+
+            for msg in manager_emails:
+                # Get subject
+                subject = ""
+                if msg["Subject"]:
+                    subject_parts = decode_header(msg["Subject"])
+                    subject = "".join([
+                        part.decode(encoding or 'utf-8') if isinstance(part, bytes) else part
+                        for part, encoding in subject_parts
+                    ])
+
+                # Get body
+                body = ""
+                if msg.is_multipart():
+                    for part in msg.walk():
+                        if part.get_content_type() == "text/plain":
+                            body = part.get_payload(decode=True).decode('utf-8', errors='ignore')
+                            break
                 else:
-                    return False, "Email log/outbox file not found"
+                    body = msg.get_payload(decode=True).decode('utf-8', errors='ignore')
 
-            with open(email_log_file, 'r', encoding='utf-8') as f:
-                email_data = json.load(f)
-
-            # Get sent emails
-            emails = email_data.get("sent_emails", email_data.get("emails", []))
-            if not emails:
-                return False, "No emails found in log"
-
-            # Filter emails to purchasing manager
-            manager_emails = [
-                email for email in emails
-                if email.get("recipient") == self.purchasing_manager_email or
-                   email.get("to") == self.purchasing_manager_email
-            ]
-
-            if len(manager_emails) != 2:
-                return False, f"Expected 2 emails to {self.purchasing_manager_email}, found {len(manager_emails)}"
-
-            # Check emails correspond to the new low-stock products
-            email_products = set()
-            for email in manager_emails:
-                subject = email.get("subject", "")
-                body = email.get("body", "")
-
-                # Check if email mentions one of the expected products
-                found_product = None
+                # Extract SKU from this email
+                found_sku = None
+                email_content = (subject + " " + body).upper()
+                
                 for product in self.expected_new_products:
-                    if (product["name"] in subject or product["name"] in body or
-                        product["sku"] in subject or product["sku"] in body):
-                        found_product = product["name"]
+                    # Check for exact SKU match (case insensitive)
+                    if product["sku"].upper() in email_content:
+                        found_sku = product["sku"]
                         break
 
-                if not found_product:
-                    return False, f"Email does not reference expected low-stock products: {subject}"
-
-                email_products.add(found_product)
+                if found_sku:
+                    email_skus.add(found_sku)
+                else:
+                    validation_errors.append(f"Email does not contain any expected product SKU: {subject}")
 
                 # Validate email format follows template
                 if "[Stock Alert]" not in subject:
-                    return False, f"Email subject doesn't follow template format: {subject}"
+                    validation_errors.append(f"Email subject doesn't follow template format: {subject}")
 
                 if "Dear Purchasing Manager" not in body:
-                    return False, "Email body doesn't follow template format (missing greeting)"
+                    validation_errors.append("Email body doesn't follow template format (missing greeting)")
 
                 if "stock level is below the safety threshold" not in body:
-                    return False, "Email body doesn't follow template format (missing alert text)"
+                    validation_errors.append("Email body doesn't follow template format (missing alert text)")
 
                 if "google_sheets_link" in body or "{google_sheets_link}" in body:
-                    return False, "Email template placeholder not replaced"
+                    validation_errors.append("Email template placeholder not replaced")
 
-            # Ensure we have emails for both expected products
-            expected_names = {p["name"] for p in self.expected_new_products}
-            if email_products != expected_names:
-                return False, f"Missing emails for products: {expected_names - email_products}"
+            if validation_errors:
+                return False, f"Email validation errors: {'; '.join(validation_errors)}"
 
-            return True, f"Successfully sent 2 emails to {self.purchasing_manager_email} for new low-stock products"
+            # Check that all expected SKUs are present in emails
+            expected_skus = {p["sku"] for p in self.expected_new_products}
+            missing_skus = expected_skus - email_skus
+            extra_skus = email_skus - expected_skus
+
+            if missing_skus:
+                return False, f"Missing emails for products with SKUs: {missing_skus}"
+
+            if extra_skus:
+                return False, f"Found unexpected product SKUs in emails: {extra_skus}"
+
+            # Ensure no duplicate SKUs (each product should have exactly one email)
+            if len(email_skus) != len(expected_skus):
+                return False, f"SKU count mismatch: expected {len(expected_skus)}, found {len(email_skus)}"
+
+            return True, f"Successfully found {len(manager_emails)} stock alert emails to {self.purchasing_manager_email} with all expected SKUs: {sorted(email_skus)}"
 
         except Exception as e:
             return False, f"Email validation error: {str(e)}"
