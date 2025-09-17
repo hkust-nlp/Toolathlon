@@ -14,6 +14,8 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+podman_or_docker=$(uv run python -c "import sys; sys.path.append('configs'); from global_configs import global_configs; print(global_configs.podman_or_docker)")
+
 # 打印带颜色的信息
 log_info() {
     echo -e "${GREEN}[INFO]${NC} $1"
@@ -101,8 +103,8 @@ create_cluster() {
     
     log_info "Create cluster: $cluster_name"
     
-    # 使用 podman 作为 provider 创建集群
-    if KIND_EXPERIMENTAL_PROVIDER=podman kind create cluster --name "$cluster_name" --kubeconfig "$config_path"; then
+    # 使用 podman/docker 作为 provider 创建集群
+    if KIND_EXPERIMENTAL_PROVIDER=$podman_or_docker kind create cluster --name "$cluster_name" --kubeconfig "$config_path"; then
         log_info "Cluster $cluster_name created successfully"
         return 0
     else
@@ -277,7 +279,7 @@ main() {
 
 # 检查依赖
 check_dependencies() {
-    local deps=("kind" "kubectl" "podman")
+    local deps=("kind" "kubectl" "$podman_or_docker")
     local missing=()
     
     for cmd in "${deps[@]}"; do
