@@ -420,6 +420,9 @@ async def main(args):
 
     # Use launch_time parameter if provided, otherwise use current date
     if args.launch_time:
+        # 2025-09-17 01:59:33 Wednesday 格式
+        # 先去掉最后那个单词
+        args.launch_time = " ".join(args.launch_time.split(" ")[:-1])
         try:
             # Parse launch_time (assuming it's in YYYY-MM-DD format)
             launch_datetime = datetime.strptime(args.launch_time, '%Y-%m-%d')
