@@ -3,6 +3,14 @@ import re
 from pathlib import Path
 from typing import List, Tuple, Set
 
+from configs.token_key_session import all_token_key_session
+GITHUB_REPO_NAME = "LUFFY"
+GITHUB_TOKEN = all_token_key_session.github_token
+GITHUB_NEEDED_FILE="README.md"
+BRANCH = "dev"
+
+from utils.app_specific.github.helper_funcs import read_file_content, get_user_name
+
 def parse_todo_line(line: str) -> Tuple[str, int, str]:
     """
     解析 TODO 行，提取文件路径、行号和注释内容
@@ -19,51 +27,49 @@ def parse_todo_line(line: str) -> Tuple[str, int, str]:
     
     return file_path, line_number, todo_content
 
-def extract_todos_from_readme(file_path: str) -> List[Tuple[str, int, str]]:
+def extract_todos_from_readme(file_path: str=None, from_remote_repo:bool=False) -> List[Tuple[str, int, str]]:
     """从README.md文件中提取"### 📝 Complete TODO List"部分的所有TODO项目"""
     todos = []
     
-    try:
+    if from_remote_repo:
+        user_name = get_user_name(GITHUB_TOKEN)
+        github_repo_full = f"{user_name}/{GITHUB_REPO_NAME}"
+        print(f"Reading file {GITHUB_NEEDED_FILE} from remote repo {github_repo_full} on branch {BRANCH}")
+        content = read_file_content(GITHUB_TOKEN, github_repo_full, GITHUB_NEEDED_FILE, BRANCH)
+    else:
         with open(file_path, 'r', encoding='utf-8') as f:
             content = f.read()
-            
-        lines = content.strip().split('\n')
         
-        # 查找"### 📝 Complete TODO List"部分
-        todo_section_started = False
-        todo_section_ended = False
+    lines = content.strip().split('\n')
+    
+    # 查找"### 📝 Complete TODO List"部分
+    todo_section_started = False
+    todo_section_ended = False
+    
+    for i, line in enumerate(lines, 1):
+        line_stripped = line.strip()
         
-        for i, line in enumerate(lines, 1):
-            line_stripped = line.strip()
+        # 检测TODO列表开始
+        if '### 📝 Complete TODO List' in line or '### Complete TODO List' in line or '📝 Complete TODO List' in line:
+            todo_section_started = True
+            continue
+        
+        # 如果还没开始TODO部分，跳过
+        if not todo_section_started:
+            continue
             
-            # 检测TODO列表开始
-            if '### 📝 Complete TODO List' in line or '### Complete TODO List' in line or '📝 Complete TODO List' in line:
-                todo_section_started = True
-                continue
+        # 检测TODO部分结束（遇到下一个section或文件结束）
+        if line_stripped.startswith('##') and 'TODO' not in line_stripped:
+            todo_section_ended = True
+            break
             
-            # 如果还没开始TODO部分，跳过
-            if not todo_section_started:
-                continue
-                
-            # 检测TODO部分结束（遇到下一个section或文件结束）
-            if line_stripped.startswith('##') and 'TODO' not in line_stripped:
-                todo_section_ended = True
-                break
-                
-            # 解析TODO行
-            if line_stripped.startswith('- [ ]'):
-                file_path_todo, line_num, todo_content = parse_todo_line(line_stripped)
-                if file_path_todo is not None:
-                    todos.append((file_path_todo, line_num, todo_content))
-                else:
-                    print(f"警告: 第 {i} 行格式不正确: {line_stripped}")
-                    
-    except FileNotFoundError:
-        print(f"错误: 找不到文件 {file_path}")
-        return []
-    except Exception as e:
-        print(f"错误: 读取文件时出错: {e}")
-        return []
+        # 解析TODO行
+        if line_stripped.startswith('- [ ]'):
+            file_path_todo, line_num, todo_content = parse_todo_line(line_stripped)
+            if file_path_todo is not None:
+                todos.append((file_path_todo, line_num, todo_content))
+            else:
+                print(f"警告: 第 {i} 行格式不正确: {line_stripped}")
         
     return todos
 
@@ -161,22 +167,15 @@ def compare_todos(submission_todos: List[Tuple[str, int, str]],
     
     return f1_score, metrics
 
-def evaluate_readme_todos(submission_path: str, groundtruth_path: str) -> Tuple[bool, str]:
+def evaluate_readme_todos(groundtruth_path: str) -> Tuple[bool, str]:
     """评估README.md文件中的TODO列表更新"""
     
-    # 检查文件是否存在
-    if not Path(submission_path).exists():
-        return False, f"提交文件不存在: {submission_path}"
-    
-    if not Path(groundtruth_path).exists():
-        return False, f"标准答案文件不存在: {groundtruth_path}"
-    
     # 提取 TODO 项目
-    submission_todos = extract_todos_from_readme(submission_path)
-    groundtruth_todos = extract_todos_from_groundtruth(groundtruth_path)
+    submission_todos = extract_todos_from_readme(file_path=None, from_remote_repo=True)
+    groundtruth_todos = extract_todos_from_groundtruth(file_path=groundtruth_path)
     
     if not submission_todos:
-        return False, "提交的README.md文件中没有找到有效的TODO项目"
+        return False, "remote repo的README.md文件中没有找到有效的TODO项目"
     
     if not groundtruth_todos:
         return False, "标准答案README.md文件中没有找到TODO项目"
@@ -184,11 +183,11 @@ def evaluate_readme_todos(submission_path: str, groundtruth_path: str) -> Tuple[
     # 比较 TODO 项目
     f1_score, metrics = compare_todos(submission_todos, groundtruth_todos)
     
-    # 评估标准：F1分数 >= 0.9 且精确率 >= 0.9 且召回率 >= 0.9 且顺序正确
+    # 评估标准：F1分数 >= 1.0 且精确率 >= 1.0 且召回率 >= 1.0 且顺序正确
     # (更高的标准，因为这是测试TODO列表的精确更新)
-    success = (metrics['f1_score'] >= 0.9 and 
-               metrics['precision'] >= 0.9 and 
-               metrics['recall'] >= 0.9 and
+    success = (metrics['f1_score'] >= 1.0 and 
+               metrics['precision'] >= 1.0 and 
+               metrics['recall'] >= 1.0 and
                metrics['order_valid'])
     
     # 构建详细的反馈信息
@@ -226,7 +225,7 @@ def evaluate_readme_todos(submission_path: str, groundtruth_path: str) -> Tuple[
         feedback.append(f"\n✅ 评估通过: agent成功更新了README.md中的TODO列表")
     else:
         feedback.append(f"\n❌ 评估失败: README.md中的TODO列表更新不够准确")
-        feedback.append(f"   需要: F1≥0.9, 精确率≥0.9, 召回率≥0.9, 顺序正确")
+        feedback.append(f"   需要: F1≥1.0, 精确率≥1.0, 召回率≥1.0, 顺序正确")
     
     return success, "\n".join(feedback)
 
@@ -239,17 +238,17 @@ def main():
     parser.add_argument("--launch_time", required=False, help="Launch time")
     args = parser.parse_args()
     
-    success, feedback = evaluate_readme_todos(args.agent_workspace + "/README.md", args.groundtruth_workspace + "/README.md")
+    success, feedback = evaluate_readme_todos(args.groundtruth_workspace + "/README.md")
     
     if args.verbose or not success:
         print(feedback)
         print()
     
     if success:
-        print("✅ 任务完成: README.md中的TODO列表已正确更新")
+        print("✅ 任务完成: remote repo README.md中的TODO列表已正确更新")
         return 0
     else:
-        print("❌ 任务失败: README.md中的TODO列表更新不正确")
+        print("❌ 任务失败: remote repo README.md中的TODO列表更新不正确")
         return 1
 
 if __name__ == "__main__":

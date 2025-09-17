@@ -17,6 +17,14 @@ def github_headers(token: str) -> Dict[str, str]:
     }
 
 
+def github_get_repo(token: str, owner: str, repo_name: str) -> Dict[str, Any]:
+    """Get a repository."""
+    url = f"{GITHUB_API}/repos/{owner}/{repo_name}"
+    r = requests.get(url, headers=github_headers(token))
+    if r.status_code != 200:
+        raise RuntimeError(f"Failed to fetch repo {owner}/{repo_name}: {r.status_code} {r.text}")
+    return r.json()
+
 def github_get_login(token: str) -> str:
     """Get the authenticated user's login name."""
     url = f"{GITHUB_API}/user"

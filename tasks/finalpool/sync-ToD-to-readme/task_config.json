@@ -1,6 +1,5 @@
 {
     "needed_mcp_servers": [
-        "terminal",
         "git",
         "github"
     ],
