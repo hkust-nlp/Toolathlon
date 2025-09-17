@@ -1,6 +1,6 @@
 {
     "needed_mcp_servers": ["woocommerce"],
-    "needed_local_tools": ["manage_context", "history", "python_execute", "handle_overlong_tool_outputs"],
+    "needed_local_tools": ["claim_done", "python_execute", "handle_overlong_tool_outputs"],
     "meta": {
         "description": "根据上周销量数据更新 WooCommerce 商品主图，将销量最高的规格图片设为商品主图",
         "category": "ecommerce_automation",

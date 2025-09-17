@@ -4,8 +4,7 @@
         "woocommerce"
     ],
     "needed_local_tools": [
-        "manage_context",
-        "history",
+        "claim_done",
         "python_execute",
         "handle_overlong_tool_outputs"
     ]

@@ -1,0 +1,5 @@
+{
+    "conflict_groups": [
+        ["set-conf-cr-ddl", "student-interview"]
+    ]
+}

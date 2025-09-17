@@ -1,6 +1,6 @@
 {
     "needed_mcp_servers": [
-        "gmail",
+        "emails",
         "google_calendar"
     ],
     "needed_local_tools": [

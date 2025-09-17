@@ -22,12 +22,12 @@ MAX_TOKENS="8192"
 USER_TEMPERATURE="1.0"
 USER_TOP_P="1.0"
 USER_MAX_TOKENS="1024"
-IMAGE_NAME="lockon0927/mcpbench-task-image-v2:jh0913"  # Docker image to use
+IMAGE_NAME="lockon0927/mcpbench-task-image-v2:jl0918"  # Docker image to use
 
 mkdir -p $DUMP_PATH
 
 # Optional parameters - uncomment and modify as needed
-# TASK_LIST="filtered_tasks_parallel.txt"
+TASK_LIST="filtered_tasks_parallel_09180355.txt"
 
 
 # Generate temporary config file with random suffix to avoid conflicts
@@ -116,7 +116,7 @@ echo "✅ Run logs saved to: $DUMP_PATH/run_all.log"
 
 # 3. Create eval_res_all.jsonl by aggregating all eval_res.json files
 echo "📝 Creating eval_res_all.jsonl..."
-find "$DUMP_PATH" -name "eval_res.json" -type f -exec cat {} \; > "$DUMP_PATH/eval_res_all.jsonl" 2>/dev/null
+find "$DUMP_PATH" -name "eval_res.json" -type f -exec sh -c 'jq -c . "$1"' _ {} \; > "$DUMP_PATH/eval_res_all.jsonl" 2>/dev/null
 echo "✅ Evaluation results saved to: $DUMP_PATH/eval_res_all.jsonl"
 
 # 4. Create traj_log_all.jsonl by aggregating all traj_log.json files
