@@ -531,17 +531,17 @@ def create_order_data():
         customer = customers[i]
         product = random.choice(products)
         
-        # 随机订单日期（1-7天前）
-        order_days_ago = random.randint(1, 7)
+        # 随机订单日期（2-6天前）, 这里设一个2-6天的范围，减少7天和1天的edge case
+        order_days_ago = random.randint(2, 6)
         order_date = now - timedelta(days=order_days_ago)
         
         # 混合送达状态：70%已送达，30%处理中/已发货
         if i < 14:  # 前14个已送达（70%）
             status = "completed"
-            date_completed = order_date + timedelta(days=random.randint(2, 5))
-            # 确保完成日期在7天内
-            if (now - date_completed).days > 7:
-                date_completed = now - timedelta(days=random.randint(1, 6))
+            # 用了1-order_days_ago-1天完成订单
+            time_to_complete = random.randint(1,order_days_ago-1)
+            # 所以订单完成时间就是订单日期加上用了多少天完成订单
+            date_completed = order_date + timedelta(time_to_complete)
         else:  # 后6个未送达（30%）
             status = random.choice(["processing", "on-hold"])
             date_completed = None
