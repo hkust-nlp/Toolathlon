@@ -4,124 +4,18 @@ import requests
 import argparse
 from typing import Dict, List, Optional, Any, Tuple
 import re
+from configs.token_key_session import all_token_key_session
+from utils.general.helper import normalize_str
 
-current_file_path = os.path.abspath(__file__)
-current_dir = os.path.dirname(current_file_path)
-parent_dir = os.path.dirname(current_dir)
-grandparent_dir = os.path.dirname(parent_dir)
-sys.path.insert(0, os.path.dirname(os.path.dirname(grandparent_dir)))
-print(f"Added directory to sys.path: {grandparent_dir}")
+NOTION_TOKEN = all_token_key_session.notion_integration_key
+file_path = os.path.abspath(__file__)
+allowed_page_id_file = os.path.join(os.path.dirname(file_path), "..","files", "duplicated_page_id.txt")
+assert os.path.exists(allowed_page_id_file), "duplicated_page_id.txt not found"
+with open(allowed_page_id_file, "r") as f:
+    allowed_page_ids = f.read()
+TARGET_PAGE_ID = allowed_page_ids
 
-# --- Configuration ---
-import configs.token_key_session as configs
-NOTION_TOKEN = configs.all_token_key_session.notion_integration_key
-
-class NotionClient:
-    def __init__(self, token: str):
-        self.token = token
-        self.headers = {
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json",
-            "Notion-Version": "2022-06-28"
-        }
-        self.base_url = "https://api.notion.com/v1"
-
-    def _get_page_title(self, page: Dict) -> str:
-        """Extract title from a page object"""
-        # Match the original logic exactly
-        if 'properties' in page and 'title' in page['properties']:
-            title_prop = page['properties']['title']
-            if title_prop['type'] == 'title':
-                title_parts = title_prop['title']
-                return ''.join([part.get('text', {}).get('content', '') for part in title_parts])
-        return ""
-
-    def find_page_by_title(self, target_title: str, partial_match: bool = True) -> List[Dict]:
-        """Find page by title - returns list like original"""
-        url = f"{self.base_url}/search"
-        payload = {
-            "filter": {
-                "value": "page",
-                "property": "object"
-            },
-            "sort": {
-                "direction": "descending",
-                "timestamp": "last_edited_time"
-            }
-        }
-
-        try:
-            response = requests.post(url, headers=self.headers, json=payload)
-            response.raise_for_status()
-        except requests.exceptions.RequestException as e:
-            raise Exception(f"Failed to get workspace pages: {e}")
-
-        data = response.json()
-        matching_pages = []
-
-        for page in data.get('results', []):
-            page_title = self._get_page_title(page)
-
-            # Check title match
-            if partial_match:
-                if target_title.lower() in page_title.lower():
-                    matching_pages.append({
-                        'id': page['id'],
-                        'title': page_title,
-                        'url': page.get('url', ''),
-                        'last_edited_time': page.get('last_edited_time', '')
-                    })
-            else:
-                if target_title.lower() == page_title.lower():
-                    matching_pages.append({
-                        'id': page['id'],
-                        'title': page_title,
-                        'url': page.get('url', ''),
-                        'last_edited_time': page.get('last_edited_time', '')
-                    })
-
-        return matching_pages
-
-    def get_page_content_as_text(self, page_id: str) -> str:
-        """Get page content as plain text - matches original exactly"""
-        url = f"https://api.notion.com/v1/blocks/{page_id}/children"
-
-        try:
-            response = requests.get(url, headers=self.headers)
-            response.raise_for_status()
-        except requests.exceptions.RequestException as e:
-            raise Exception(f"Failed to get Notion page blocks: {e}")
-
-        blocks = response.json()
-        content_parts = []
-
-        for block in blocks.get('results', []):
-            block_type = block.get('type', '')
-
-            if block_type in ['paragraph', 'heading_1', 'heading_2', 'heading_3', 'bulleted_list_item', 'numbered_list_item']:
-                rich_text = block[block_type].get('rich_text', [])
-                content = ''.join([text.get('text', {}).get('content', '') for text in rich_text])
-                if content.strip():
-                    # Add heading markers
-                    if block_type == 'heading_1':
-                        content_parts.append(f"# {content}")
-                    elif block_type == 'heading_2':
-                        content_parts.append(f"## {content}")
-                    elif block_type == 'heading_3':
-                        content_parts.append(f"### {content}")
-                    else:
-                        content_parts.append(content)
-
-            elif block_type == 'bookmark':
-                url = block['bookmark'].get('url', '')
-                caption = block['bookmark'].get('caption', [])
-                caption_text = ''.join([text.get('text', {}).get('content', '') for text in caption])
-                if caption_text.strip():
-                    content_parts.append(f"[{caption_text}]({url})")
-                elif url.strip():
-                    content_parts.append(f"Link: {url}")
-
-        return '\n\n'.join(content_parts)
+from utils.app_specific.notion.ops import get_page_by_id,get_page_content_as_text
 
 def extract_text_from_notion_page(notion_page_content: str) -> Dict[str, str]:
     """Extract information from different sections - exactly matches original"""
@@ -187,8 +81,10 @@ def check_about_me_section(content: str) -> Tuple[bool, List[str]]:
 
     missing_info = []
     for info in required_info:
-        if info.lower() not in content.lower():
+        if normalize_str(info) not in normalize_str(content):
             missing_info.append(info)
+    
+    print("Missing info in About Me section: ", missing_info)
 
     return len(missing_info) == 0, missing_info
 
@@ -205,8 +101,10 @@ def check_paintings_section(content: str) -> Tuple[bool, List[str]]:
 
     missing_paintings = []
     for painting in required_paintings:
-        if painting.lower() not in content.lower():
+        if normalize_str(painting) not in normalize_str(content):
             missing_paintings.append(painting)
+
+    print("Missing paintings: ", missing_paintings)
 
     return len(missing_paintings) == 0, missing_paintings
 
@@ -247,8 +145,10 @@ def check_workshop_section(content: str) -> Tuple[bool, List[str]]:
 
     missing_workshops = []
     for workshop in required_workshops:
-        if workshop.lower() not in content.lower():
+        if normalize_str(workshop) not in normalize_str(content):
             missing_workshops.append(workshop)
+
+    print("Missing workshops: ", missing_workshops)
 
     return len(missing_workshops) == 0, missing_workshops
 
@@ -304,8 +204,10 @@ def check_prizes_section(content: str) -> Tuple[bool, List[str]]:
 
     missing_prizes = []
     for prize in required_prizes:
-        if prize.lower() not in content.lower():
+        if normalize_str(prize) not in normalize_str(content):
             missing_prizes.append(prize)
+    
+    print("Missing prizes: ", missing_prizes)
 
     return len(missing_prizes) == 0, missing_prizes
 
@@ -331,7 +233,7 @@ def check_exhibitions_section(content: str) -> Tuple[bool, List[str]]:
         '2014', 'Without Pier Gallery', 'VIC',
 
         # 2013
-        '2013', 'Leiper Creek Gallery', 'Franklin', 'TN',
+        '2013', "Leiper's Creek Gallery", 'Franklin', 'TN',
 
         # 2012
         '2012', 'David Sumner Gallery', 'Adelaide', 'SA',
@@ -400,41 +302,28 @@ def check_exhibitions_section(content: str) -> Tuple[bool, List[str]]:
 
     missing_exhibitions = []
     for exhibition in required_exhibitions:
-        if exhibition.lower() not in content.lower():
+        if normalize_str(exhibition) not in normalize_str(content):
             missing_exhibitions.append(exhibition)
+
+    print("Missing exhibitions: ", missing_exhibitions)
 
     return len(missing_exhibitions) == 0, missing_exhibitions
 
 def check_remote(agent_workspace: str, groundtruth_workspace: str) -> Tuple[bool, str]:
     """Check if the notion page has been updated correctly"""
-    notion_token = NOTION_TOKEN
 
-    if not notion_token:
-        return False, "No Notion token provided"
+    target_page = get_page_by_id(TARGET_PAGE_ID, NOTION_TOKEN)
+    print(f"Found page: (ID: {target_page['id']})")
 
-    try:
-        client = NotionClient(notion_token)
+    # Get page content
+    print("Extracting page content...")
+    notion_content = get_page_content_as_text(target_page['id'], NOTION_TOKEN)
 
-        # Find the Colley Whisson page
-        print("Searching for 'Colley Whisson' page in Notion...")
-        matching_pages = client.find_page_by_title("Colley Whisson", partial_match=True)
-        if not matching_pages:
-            return False, "No page found with title containing 'Colley Whisson'"
+    if not notion_content.strip():
+        return False, "No content found in the Notion page"
 
-        target_page = matching_pages[0]  # Use first matching page
-        print(f"Found page: {target_page['title']} (ID: {target_page['id']})")
+    print(f"Successfully extracted {len(notion_content)} characters from Notion page")
 
-        # Get page content
-        print("Extracting page content...")
-        notion_content = client.get_page_content_as_text(target_page['id'])
-
-        if not notion_content.strip():
-            return False, "No content found in the Notion page"
-
-        print(f"Successfully extracted {len(notion_content)} characters from Notion page")
-
-    except Exception as e:
-        return False, f"Failed to get Notion page content: {str(e)}"
 
     # Extract different sections
     sections = extract_text_from_notion_page(notion_content)
@@ -462,10 +351,10 @@ def check_remote(agent_workspace: str, groundtruth_workspace: str) -> Tuple[bool
     if not prizes_ok:
         results.append(f"Prizes section missing: {', '.join(prizes_missing)}")
 
-    # Check Exhibitions (commented out like original)
-    # exhibitions_ok, exhibitions_missing = check_exhibitions_section(sections['exhibitions'])
-    # if not exhibitions_ok:
-    #     results.append(f"Exhibitions section missing: {', '.join(exhibitions_missing)}")
+    # Check Exhibitions
+    exhibitions_ok, exhibitions_missing = check_exhibitions_section(sections['exhibitions'])
+    if not exhibitions_ok:
+        results.append(f"Exhibitions section missing: {', '.join(exhibitions_missing)}")
 
     if results:
         return False, " | ".join(results)
