@@ -1,4 +1,0 @@
-{
-  "pass": false,
-  "failure": "The number of universities in the needed info and groundtruth info is not the same\nFailed to pass tests!"
-}

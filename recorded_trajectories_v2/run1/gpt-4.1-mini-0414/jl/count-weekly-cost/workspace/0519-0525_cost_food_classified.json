@@ -1,9 +1,0 @@
-[
-  {"date": "5/19", "food": 33.33, "traffic": 33.33, "others": 33.34},
-  {"date": "5/20", "food": 40.00, "traffic": 40.00, "others": 40.00},
-  {"date": "5/21", "food": 23.33, "traffic": 23.33, "others": 23.34},
-  {"date": "5/22", "food": 16.67, "traffic": 16.67, "others": 16.66},
-  {"date": "5/23", "food": 0, "traffic": 0, "others": 0},
-  {"date": "5/24", "food": 30.00, "traffic": 30.00, "others": 30.00},
-  {"date": "5/25", "food": 33.33, "traffic": 33.33, "others": 33.34}
-]

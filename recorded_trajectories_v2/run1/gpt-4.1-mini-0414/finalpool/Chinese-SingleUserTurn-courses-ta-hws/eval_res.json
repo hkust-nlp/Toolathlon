@@ -1,4 +1,0 @@
-{
-  "pass": false,
-  "failure": "local check failed:  Expected exactly 27 C files, but found 4\n"
-}
