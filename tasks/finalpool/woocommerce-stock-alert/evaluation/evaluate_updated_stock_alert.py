@@ -345,8 +345,13 @@ class StockAlertEvaluator:
             if not manager_emails:
                 return False, f"No stock alert emails sent to purchasing manager ({self.purchasing_manager_email})"
 
-            # Validate email content and products
-            email_products = set()
+            # First check: email count must match expected product count
+            expected_count = len(self.expected_new_products)
+            if len(manager_emails) != expected_count:
+                return False, f"Expected {expected_count} emails to {self.purchasing_manager_email}, found {len(manager_emails)}"
+
+            # Validate email content and extract SKUs
+            email_skus = set()
             validation_errors = []
 
             for msg in manager_emails:
@@ -369,16 +374,20 @@ class StockAlertEvaluator:
                 else:
                     body = msg.get_payload(decode=True).decode('utf-8', errors='ignore')
 
-                # Check if email mentions one of the expected low-stock products
-                found_product = None
+                # Extract SKU from this email
+                found_sku = None
+                email_content = (subject + " " + body).upper()
+                
                 for product in self.expected_new_products:
-                    if (product["name"] in subject or product["name"] in body or
-                        product["sku"] in subject or product["sku"] in body):
-                        found_product = product["name"]
+                    # Check for exact SKU match (case insensitive)
+                    if product["sku"].upper() in email_content:
+                        found_sku = product["sku"]
                         break
 
-                if found_product:
-                    email_products.add(found_product)
+                if found_sku:
+                    email_skus.add(found_sku)
+                else:
+                    validation_errors.append(f"Email does not contain any expected product SKU: {subject}")
 
                 # Validate email format follows template
                 if "[Stock Alert]" not in subject:
@@ -396,16 +405,22 @@ class StockAlertEvaluator:
             if validation_errors:
                 return False, f"Email validation errors: {'; '.join(validation_errors)}"
 
-            # Check that we have emails for the expected new low-stock products
-            expected_names = {p["name"] for p in self.expected_new_products}
-            if not email_products:
-                return False, "No emails found referencing the expected new low-stock products"
+            # Check that all expected SKUs are present in emails
+            expected_skus = {p["sku"] for p in self.expected_new_products}
+            missing_skus = expected_skus - email_skus
+            extra_skus = email_skus - expected_skus
 
-            # At least some of the expected products should be mentioned
-            if not email_products.intersection(expected_names):
-                return False, f"No emails found for expected products: {expected_names}"
+            if missing_skus:
+                return False, f"Missing emails for products with SKUs: {missing_skus}"
 
-            return True, f"Successfully found {len(manager_emails)} stock alert emails to {self.purchasing_manager_email} mentioning {len(email_products)} products"
+            if extra_skus:
+                return False, f"Found unexpected product SKUs in emails: {extra_skus}"
+
+            # Ensure no duplicate SKUs (each product should have exactly one email)
+            if len(email_skus) != len(expected_skus):
+                return False, f"SKU count mismatch: expected {len(expected_skus)}, found {len(email_skus)}"
+
+            return True, f"Successfully found {len(manager_emails)} stock alert emails to {self.purchasing_manager_email} with all expected SKUs: {sorted(email_skus)}"
 
         except Exception as e:
             return False, f"Email validation error: {str(e)}"
