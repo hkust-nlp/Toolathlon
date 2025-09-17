@@ -268,10 +268,6 @@ def get_credentials():
     if not creds.valid:
         if creds.expired and creds.refresh_token:
             creds.refresh(Request())
-            
-            # 可选：将刷新后的 token 保存回文件
-            with open(GOOGLE_CREDENTIAL_FILE, 'w') as f:
-                f.write(creds.to_json())
     
     return creds
 
