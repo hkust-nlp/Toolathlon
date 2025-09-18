@@ -2,7 +2,8 @@
     "needed_mcp_servers": [
         "filesystem",
         "rail_12306",
-        "terminal"
+        "terminal",
+        "fetch"
     ],
     "needed_local_tools": [
         "web_search",

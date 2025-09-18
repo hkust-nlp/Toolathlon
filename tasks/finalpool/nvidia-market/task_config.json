@@ -4,7 +4,8 @@
         "filesystem",
         "terminal",
         "playwright_with_chunk",
-        "excel"
+        "excel",
+        "fetch"
     ],
     "needed_local_tools": [
         "claim_done",

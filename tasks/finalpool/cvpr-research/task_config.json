@@ -1,6 +1,7 @@
 {
     "needed_mcp_servers": [
-        "filesystem"
+        "filesystem",
+        "fetch"
     ],
     "needed_local_tools": [
         "python_execute",

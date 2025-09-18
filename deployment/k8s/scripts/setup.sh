@@ -3,7 +3,7 @@
 # 设置变量
 k8sconfig_path_dir=deployment/k8s/configs
 cluster_prefix="cluster"
-cluster_count=1
+cluster_count=10
 batch_size=3  # 每批创建3个集群
 batch_delay=5  # 批次之间等待30秒
 

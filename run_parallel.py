@@ -12,6 +12,7 @@ from typing import List, Optional, Dict
 import time
 from datetime import datetime
 from pathlib import Path
+import random
 
 
 async def run_command_async(command: str, log_file: str, timeout_seconds: int = 1800, scheduler: 'AsyncTaskScheduler' = None):
@@ -137,6 +138,10 @@ class AsyncTaskScheduler:
         self.timeout_tasks = 0
         self.total_tasks = 0
         self.start_time = time.time()
+
+        self.correct_tasks = 0
+        self.incorrect_tasks = 0
+        self.unknown_but_finished_tasks = 0
 
         # 任务结果
         self.task_results = TaskResult()
@@ -274,14 +279,28 @@ class AsyncTaskScheduler:
             self.completed_tasks += 1
             elapsed = (datetime.now() - task_start).total_seconds()
             
-            print(f"\n✅ [{datetime.now().strftime('%H:%M:%S')}] SUCCESS: {task_dir_arg}")
+            print(f"\n🔚 [{datetime.now().strftime('%H:%M:%S')}] SUCCESS: {task_dir_arg}")
             print(f"   ⏱️ Time: {elapsed:.1f}s | Progress: {self.completed_tasks}/{self.total_tasks}")
             
+            eval_res_file = os.path.join(dump_path, tasks_folder, task_name, "eval_res.json")
+            # 如果存在该路径则读出
+            eval_res = read_json(eval_res_file).get('pass', False) if os.path.exists(eval_res_file) else None
+            
+            if eval_res is None: 
+                self.unknown_but_finished_tasks += 1
+                eval_res_emoji = "❓"
+            else: eval_res_emoji = "✅" if eval_res else "❌"
+            self.correct_tasks += 1 if eval_res else 0
+            self.incorrect_tasks += 1 if not eval_res else 0
+            print(f"   🔍 Eval res: {eval_res_emoji} | Eval log: {eval_res_file}")
+
             return {
                 'task': task_dir_arg, 
                 'status': 'success', 
                 'elapsed': elapsed,
                 'log_file': log_file,
+                'eval_res_file': eval_res_file,
+                'eval_res': eval_res,
                 'tag': tag,
                 'model_short_name': model_short_name
             }
@@ -331,9 +350,61 @@ class AsyncTaskScheduler:
         print(f"  Completed: {self.completed_tasks}")
         print(f"  Failed: {self.failed_tasks} (including {self.timeout_tasks} timeouts)")
         print(f"  Remaining: {self.total_tasks - self.completed_tasks - self.failed_tasks}")
+        print(f"  Correct: {self.correct_tasks}")
+        print(f"  Incorrect: {self.incorrect_tasks}")
+        print(f"  Unknown but finished: {self.unknown_but_finished_tasks}")
         print(f"  Elapsed time: {elapsed_total:.1f}s")
         print(f"  Max concurrent workers: {self.max_workers}")
         print(f"{'='*60}\n")
+
+def filter_tasks_with_existing_results(all_task_dir_args: List[str], dump_path: str = "dumps") -> tuple[List[str], List[str]]:
+    """
+    过滤已有eval_res.json且traj_log.json状态为success的任务
+    返回 (待执行的任务列表, 已完成的任务列表)
+    """
+    tasks_to_execute = []
+    tasks_already_completed = []
+
+    for task_dir_arg in all_task_dir_args:
+        # 解析路径
+        parts = task_dir_arg.split('/')
+        if len(parts) >= 2:
+            tasks_folder = parts[0]
+            task_name = parts[1]
+        else:
+            tasks_folder = ""
+            task_name = task_dir_arg
+
+        # 构建文件路径
+        task_dir = os.path.join(dump_path, tasks_folder, task_name)
+        eval_res_path = os.path.join(task_dir, "eval_res.json")
+        traj_log_path = os.path.join(task_dir, "traj_log.json")
+
+        # 检查eval_res.json是否存在
+        if not os.path.exists(eval_res_path):
+            tasks_to_execute.append(task_dir_arg)
+            continue
+
+        # 检查traj_log.json是否存在且状态为success
+        if os.path.exists(traj_log_path):
+            try:
+                with open(traj_log_path, 'r') as f:
+                    log_data = json.load(f)
+                task_status = log_data.get('status', 'unknown')
+
+                if task_status == 'success':
+                    tasks_already_completed.append(task_dir_arg)
+                else:
+                    # 状态不是success，需要重新执行
+                    tasks_to_execute.append(task_dir_arg)
+            except (json.JSONDecodeError, Exception):
+                # traj_log.json读取失败，需要重新执行
+                tasks_to_execute.append(task_dir_arg)
+        else:
+            # traj_log.json不存在，需要重新执行
+            tasks_to_execute.append(task_dir_arg)
+
+    return tasks_to_execute, tasks_already_completed
 
 def analyze_results(all_task_dir_args: List[str], model_short_name: str, tag: str, dump_path: str = "dumps") -> TaskResult:
     """
@@ -455,6 +526,60 @@ async def main():
     if not all_task_dir_args:
         print("No tasks found!")
         return
+
+    # 使用dump_path参数，如果没有提供则使用默认值
+    dump_path = args.dump_path if args.dump_path else "dumps"
+
+    # 过滤已有eval_res.json的任务
+    tasks_to_execute, tasks_already_completed = filter_tasks_with_existing_results(all_task_dir_args, dump_path)
+
+    # 显示过滤结果
+    print(f"\n{'='*60}")
+    print(f"TASK FILTERING RESULTS")
+    print(f"{'='*60}")
+    print(f"  Original tasks: {len(all_task_dir_args)}")
+    print(f"  Tasks with successful completion (SKIP): {len(tasks_already_completed)}")
+    print(f"  Tasks to execute: {len(tasks_to_execute)}")
+
+    if tasks_already_completed:
+        print(f"\n📋 Tasks being SKIPPED (have eval_res.json + traj_log.json with status='success'):")
+        for task in tasks_already_completed:
+            eval_path = os.path.join(dump_path, *task.split('/'), "eval_res.json")
+            traj_path = os.path.join(dump_path, *task.split('/'), "traj_log.json")
+            print(f"  ✓ {task}")
+
+    if tasks_to_execute:
+        print(f"\n🚀 Tasks to be EXECUTED:")
+        for task in tasks_to_execute:
+            task_dir = os.path.join(dump_path, *task.split('/'))
+            eval_path = os.path.join(task_dir, "eval_res.json")
+            traj_path = os.path.join(task_dir, "traj_log.json")
+
+            reason = ""
+            if not os.path.exists(eval_path):
+                reason = "missing eval_res.json"
+            elif not os.path.exists(traj_path):
+                reason = "missing traj_log.json"
+            else:
+                try:
+                    with open(traj_path, 'r') as f:
+                        log_data = json.load(f)
+                    status = log_data.get('status', 'unknown')
+                    reason = f"traj_log.json status='{status}' (not 'success')"
+                except:
+                    reason = "invalid traj_log.json"
+
+            print(f"  ○ {task} ({reason})")
+    else:
+        print(f"\n🎉 All tasks already completed! Nothing to execute.")
+        return
+    print(f"{'='*60}\n")
+
+    # 更新任务列表为需要执行的任务
+    all_task_dir_args = tasks_to_execute
+
+    print(f"Shuffling tasks...")
+    random.shuffle(all_task_dir_args)
     
     # 读取任务冲突信息
     task_conflict_info = None

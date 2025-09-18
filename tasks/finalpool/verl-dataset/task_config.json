@@ -1,7 +1,8 @@
 {
     "needed_mcp_servers": [
         "huggingface",
-        "filesystem"
+        "filesystem",
+        "fetch"
     ],
     "needed_local_tools": [
         "python_execute",

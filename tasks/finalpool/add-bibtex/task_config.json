@@ -3,7 +3,8 @@
         "scholarly",
         "playwright_with_chunk",
         "filesystem",
-        "terminal"
+        "terminal",
+        "fetch"
     ],
     "needed_local_tools": [
         "sleep",

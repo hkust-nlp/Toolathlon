@@ -234,34 +234,70 @@ class NotionPageDuplicator:
                 # Wait for duplication to complete (URL will change)
                 original_url = page.url
                 original_page_id = self.extract_page_id_from_url(original_url)
+                source_parent_id = self.extract_page_id_from_url(source_page_url)
                 print(f"Original page ID before duplication: {original_page_id}")
+                print(f"Source parent ID: {source_parent_id}")
                 print("Waiting for duplication to complete...")
 
-                # Wait for URL to change
+                # Wait for URL to change from the original page
                 page.wait_for_url(lambda url: url != original_url, timeout=180_000)
 
-                # Wait for page to fully load
-                time.sleep(5)
+                # Keep checking until we get to a page that is neither the original nor the source parent
+                max_attempts = 10
+                attempt = 0
+                duplicated_page_id = None
+
+                while attempt < max_attempts:
+                    attempt += 1
+                    time.sleep(2)  # Give Notion time to process
+
+                    current_url = page.url
+                    print(f"Attempt {attempt}: Current URL: {current_url}")
+
+                    # Try to extract page ID from current URL
+                    current_page_id = self.extract_page_id_from_url(current_url)
+
+                    # Also check if there's a page ID in the URL fragment
+                    fragment_page_id = None
+                    if '#' in current_url:
+                        fragment = current_url.split('#')[-1]
+                        # Remove any query parameters from fragment
+                        fragment = fragment.split('?')[0].split('&')[0]
+                        # Extract alphanumeric characters from fragment
+                        compact = "".join(c for c in fragment if c.isalnum())
+                        if len(compact) >= 32:
+                            # Take last 32 characters and format as UUID
+                            compact = compact[-32:]
+                            fragment_page_id = f"{compact[:8]}-{compact[8:12]}-{compact[12:16]}-{compact[16:20]}-{compact[20:]}"
+                            print(f"Found page ID in fragment: {fragment_page_id}")
+
+                    # Check if we have a valid new page ID
+                    candidate_page_id = None
+                    if current_page_id != original_page_id and current_page_id != source_parent_id:
+                        candidate_page_id = current_page_id
+                        print(f"Found new page ID in main URL: {candidate_page_id}")
+                    elif fragment_page_id and fragment_page_id != original_page_id and fragment_page_id != source_parent_id:
+                        candidate_page_id = fragment_page_id
+                        print(f"Found new page ID in fragment: {candidate_page_id}")
+
+                    if candidate_page_id:
+                        # Verify this page actually exists by calling the API
+                        try:
+                            page_info = self.notion_client.pages.retrieve(page_id=candidate_page_id)
+                            if page_info:
+                                duplicated_page_id = candidate_page_id
+                                print(f"✅ Confirmed duplicated page ID: {duplicated_page_id}")
+                                break
+                        except Exception as e:
+                            print(f"Page ID {candidate_page_id} verification failed: {e}")
+
+                    print(f"Still waiting for valid duplicate page... (current: {current_page_id}, fragment: {fragment_page_id})")
+
+                if not duplicated_page_id:
+                    raise Exception(f"Failed to find valid duplicated page after {max_attempts} attempts")
+
                 duplicated_url = page.url
                 print(f"Page duplicated successfully: {duplicated_url}")
-
-                # Extract and verify the duplicated page ID
-                duplicated_page_id = self.extract_page_id_from_url(duplicated_url)
-
-                # CRITICAL: Verify we got a NEW page ID, not the original
-                if duplicated_page_id == original_page_id:
-                    print(f"ERROR: Duplicated page ID same as original: {duplicated_page_id}")
-                    # Try to extract from URL fragment if present
-                    if '#' in duplicated_url:
-                        fragment = duplicated_url.split('#')[-1]
-                        if len(fragment) == 32:
-                            # Format fragment as UUID
-                            duplicated_page_id = f"{fragment[:8]}-{fragment[8:12]}-{fragment[12:16]}-{fragment[16:20]}-{fragment[20:]}"
-                            print(f"Extracted page ID from URL fragment: {duplicated_page_id}")
-                        else:
-                            raise Exception("Failed to get new page ID after duplication - still on original page")
-                    else:
-                        raise Exception("Failed to get new page ID after duplication - no fragment in URL")
 
                 self.duplicated_page_id = duplicated_page_id
                 print(f"Duplicated page ID: {duplicated_page_id}")
@@ -275,9 +311,34 @@ class NotionPageDuplicator:
                     print(f"ERROR: {error_msg}")
                     raise Exception(error_msg)
 
+                # CRITICAL: Before moving, ensure we're on the duplicated page
+                duplicated_page_url = f"https://www.notion.so/{duplicated_page_id.replace('-', '')}"
+                current_url = page.url
+                current_page_id = self.extract_page_id_from_url(current_url)
+
+                if current_page_id != duplicated_page_id:
+                    print(f"⚠️ Not on duplicated page (current: {current_page_id}, expected: {duplicated_page_id})")
+                    print(f"Navigating to duplicated page: {duplicated_page_url}")
+
+                    # Navigate to the duplicated page
+                    page.goto(duplicated_page_url, wait_until="load", timeout=60_000)
+                    time.sleep(3)
+                    page.wait_for_load_state("load", timeout=15_000)
+
+                    # Verify we're now on the correct page
+                    current_url = page.url
+                    current_page_id = self.extract_page_id_from_url(current_url)
+
+                    if current_page_id != duplicated_page_id:
+                        raise Exception(f"Failed to navigate to duplicated page. Expected: {duplicated_page_id}, Current: {current_page_id}")
+
+                    print(f"✅ Successfully navigated to duplicated page: {duplicated_page_id}")
+                else:
+                    print(f"✅ Already on duplicated page: {duplicated_page_id}")
+
                 # Step 2: Move the duplicated page to target parent
                 print(f"Moving duplicated page to target parent: {target_parent_title}")
-                
+
                 # Open page menu again
                 page.wait_for_selector(PAGE_MENU_BUTTON_SELECTOR, state="visible", timeout=30_000)
                 page.click(PAGE_MENU_BUTTON_SELECTOR)

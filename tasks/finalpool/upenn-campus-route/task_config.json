@@ -2,7 +2,8 @@
     "needed_mcp_servers": [
         "filesystem",
         "terminal",
-        "google_map"
+        "google_map",
+        "fetch"
     ],
     "needed_local_tools": [
         "claim_done",

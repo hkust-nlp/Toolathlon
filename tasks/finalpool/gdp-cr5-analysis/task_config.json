@@ -1,6 +1,18 @@
 {
-    "needed_mcp_servers": ["google_sheet", "filesystem", "terminal", "playwright_with_chunk"],
-    "needed_local_tools": ["claim_done", "manage_context", "history", "web_search", "handle_overlong_tool_outputs"],
+    "needed_mcp_servers": [
+        "google_sheet",
+        "filesystem",
+        "terminal",
+        "playwright_with_chunk",
+        "fetch"
+    ],
+    "needed_local_tools": [
+        "claim_done",
+        "manage_context",
+        "history",
+        "web_search",
+        "handle_overlong_tool_outputs"
+    ],
     "max_turns": 5,
     "meta": {
         "description": "2022年全球GDP数据按地区分析CR5集中度指标任务",

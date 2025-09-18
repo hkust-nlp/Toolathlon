@@ -40,26 +40,8 @@ if not USE_DRIVE_HELPER:
     def get_google_service():
         """获取Google服务"""
         try:
-            # 查找凭证文件的可能路径
-            possible_paths = [
-                GOOGLE_CREDENTIALS_PATH,
-                f"../{GOOGLE_CREDENTIALS_PATH}",
-                f"../../{GOOGLE_CREDENTIALS_PATH}",
-                f"../../../{GOOGLE_CREDENTIALS_PATH}",
-                f"../../../../{GOOGLE_CREDENTIALS_PATH}"
-            ]
-            
-            credentials_path = None
-            for path in possible_paths:
-                if os.path.exists(path):
-                    credentials_path = path
-                    break
-                    
-            if not credentials_path:
-                raise Exception(f"找不到凭证文件，查找路径: {possible_paths}")
-            
             # 读取OAuth2凭证文件
-            with open(credentials_path, 'r') as f:
+            with open(GOOGLE_CREDENTIALS_PATH, 'r') as f:
                 creds_data = json.load(f)
             
             # 创建OAuth2凭证对象
@@ -75,11 +57,6 @@ if not USE_DRIVE_HELPER:
             # 如果token过期，自动刷新
             if credentials.expired and credentials.refresh_token:
                 credentials.refresh(Request())
-                
-                # 更新保存的token
-                creds_data['token'] = credentials.token
-                with open(credentials_path, 'w') as f:
-                    json.dump(creds_data, f, indent=2)
             
             # 初始化服务
             drive_service = build('drive', 'v3', credentials=credentials)

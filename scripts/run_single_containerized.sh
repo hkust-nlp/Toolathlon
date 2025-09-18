@@ -338,8 +338,6 @@ CONTAINER_CMD="uv run demo.py --eval_config $eval_config --task_dir $task_dir_ar
 echo "Executing command: $CONTAINER_CMD"
 echo ""
 
-# exit 0
-
 # Execute command in container (let run_parallel.py handle container log)
 echo "Executing task..."
 $CONTAINER_RUNTIME exec "$CONTAINER_NAME" bash -c "$CONTAINER_CMD"

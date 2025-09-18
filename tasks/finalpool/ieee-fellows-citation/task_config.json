@@ -3,7 +3,8 @@
         "filesystem",
         "playwright_with_chunk",
         "gmail",
-        "terminal"
+        "terminal",
+        "fetch"
     ],
     "needed_local_tools": [
         "web_search",

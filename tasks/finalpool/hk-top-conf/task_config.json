@@ -2,7 +2,8 @@
     "needed_mcp_servers": [
         "filesystem",
         "terminal",
-        "playwright_with_chunk"
+        "playwright_with_chunk",
+        "fetch"
     ],
     "needed_local_tools": [
         "claim_done",

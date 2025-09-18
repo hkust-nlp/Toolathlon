@@ -2,7 +2,8 @@
     "needed_mcp_servers": [
         "filesystem",
         "playwright_with_chunk",
-        "excel"
+        "excel",
+        "fetch"
     ],
     "needed_local_tools": [
         "claim_done",

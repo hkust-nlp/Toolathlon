@@ -3,7 +3,8 @@
         "filesystem",
         "memory",
         "excel",
-        "pdf-tools"
+        "pdf-tools",
+        "fetch"
     ],
     "needed_local_tools": [
         "claim_done",

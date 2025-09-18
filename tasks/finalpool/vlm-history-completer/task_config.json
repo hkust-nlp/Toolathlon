@@ -3,7 +3,8 @@
         "playwright_with_chunk",
         "google_sheet",
         "arxiv_local",
-        "huggingface"
+        "huggingface",
+        "fetch"
     ],
     "needed_local_tools": [
         "claim_done",

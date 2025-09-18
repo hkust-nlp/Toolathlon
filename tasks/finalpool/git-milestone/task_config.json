@@ -1,7 +1,8 @@
 {
     "needed_mcp_servers": [
         "filesystem",
-        "terminal"
+        "terminal",
+        "fetch"
     ],
     "needed_local_tools": [
         "claim_done",

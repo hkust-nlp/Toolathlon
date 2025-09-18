@@ -3,7 +3,8 @@
         "filesystem",
         "playwright_with_chunk",
         "google_sheet",
-        "terminal"
+        "terminal",
+        "fetch"
     ],
     "needed_local_tools": [
         "claim_done",
@@ -11,6 +12,5 @@
         "web_search",
         "handle_overlong_tool_outputs"
     ],
-    "meta": {},
-    "max_turns": 100
+    "meta": {}
 }

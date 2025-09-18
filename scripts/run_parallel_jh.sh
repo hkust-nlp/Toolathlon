@@ -2,7 +2,7 @@
 
 # Configuration Variables - Modify as needed
 TASKS_FOLDER="finalpool"
-TAG="firsttry"
+TAG="09180355_subset"
 
 # Parse input arguments for model_name and dump_path
 MODEL_NAME="${1:-gpt-5-mini}"
@@ -14,15 +14,15 @@ USER_MODEL_PROVIDER="aihubmix"
 
 MAX_STEPS="100"
 MAX_TURNS="50"
-WORKERS="8"
-TIMEOUT="1800"
+WORKERS="10"
+TIMEOUT="2400"
 TEMPERATURE="0.6"
 TOP_P="1"
 MAX_TOKENS="8192"
 USER_TEMPERATURE="1.0"
 USER_TOP_P="1.0"
 USER_MAX_TOKENS="1024"
-IMAGE_NAME="lockon0927/mcpbench-task-image-v2:jl0918"  # Docker image to use
+IMAGE_NAME="lockon0927/mcpbench-task-image-v2:jl0918beta"  # Docker image to use
 
 mkdir -p $DUMP_PATH
 

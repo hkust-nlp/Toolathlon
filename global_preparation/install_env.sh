@@ -66,7 +66,7 @@ uv tool install git+https://github.com/jkawamoto/mcp-youtube-transcript@28081729
 uv tool install mcp-google-sheets@0.4.1
 uv tool install google-cloud-mcp@1.0.0
 uv tool install emails-mcp@0.1.12
-uv tool install git+https://github.com/lockon-n/mcp-snowflake-server@75c03ca0b3cee2da831e2bc1b3b7a150e4c2999a
+uv tool install git+https://github.com/lockon-n/mcp-snowflake-server@bca38f3ef5305ac53b9935bd09edbfac442b6a36
 uv tool install git+https://github.com/lockon-n/mcp-scholarly@82a6ca268ae0d2e10664be396e1a0ea7aba23229
 
 # local servers
