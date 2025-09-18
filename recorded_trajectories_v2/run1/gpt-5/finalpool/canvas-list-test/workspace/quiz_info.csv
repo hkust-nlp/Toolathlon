@@ -1,2 +1,0 @@
-course_code,teacher,quiz_title,number_of_questions,time_limit,allowed_attempts,scoring_policy,points_possible,deadline,course_name
-CS201-1,mcpcanvasadmin2@mcp.com,CS201 Algorithm Analysis Quiz,2,90,1,keep_highest,150,2025-01-12T23:59:00Z,Data Structures and Algorithms

@@ -1,8 +1,0 @@
-Prescription_ID,Patient_Name,SSN,Phone,Doctor,Medication,Quantity,Price,Payment_Method
-RX001,Emily Johnson,123-45-6789,(555) 123-4567,Dr. Smith,Amoxicillin,2 bottles,$45.60,Insurance Card 1234567890123456
-RX002,Michael Davis,987-65-4321,555-987-6543,Dr. Wilson,Cold Medicine,3 boxes,$28.50,Cash
-RX003,Sarah Brown,456-78-9012,(555) 246-8101,Dr. Martinez,Vitamin C,1 bottle,$15.80,Credit Card 4111-1111-1111-1111
-RX004,Robert Garcia,789-01-2345,555-999-8888,Dr. Thompson,Blood Pressure Med,1 box,$89.20,Insurance
-RX005,Jennifer Wilson,345-67-8901,(555) 135-7911,Dr. Davis,Stomach Medicine,2 boxes,$56.40,Debit Card
-Customer Service,1-800-PHARMACY,,,,,,
-Emergency Contact,(555) 777-9999,,,,,, 

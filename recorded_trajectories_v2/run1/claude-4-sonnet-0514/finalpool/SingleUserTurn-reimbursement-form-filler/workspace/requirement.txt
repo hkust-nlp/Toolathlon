@@ -1,3 +1,0 @@
-- All amounts must be accurate to 2 decimal places
-- Months must be in chronological order
-- Total amount must be the exact sum of all monthly amounts

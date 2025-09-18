@@ -1,6 +1,0 @@
-Sales_Date,Salesperson,Customer_Name,Customer_Phone,Product,Sales_Amount,Customer_Email,Payment_Method
-2024-11-01,John Doe,Michael Johnson,(555) 123-4567,Laptop,$5999.00,michael.johnson@email.com,Credit Card 4111-1111-1111-1111
-2024-11-02,Jane Smith,Sarah Davis,555-987-6543,Phone,$3299.00,sarah.davis@email.com,Debit Card 6222-0212-3456-7890
-2024-11-03,Bob Wilson,Robert Brown,(555) 246-8101,Tablet,$2899.00,robert.brown@email.com,Credit Card 5555-5555-5555-4444
-2024-11-04,Lisa Garcia,Jennifer Wilson,555-999-8888,Headphones,$599.00,jennifer.wilson@email.com,Cash
-2024-11-05,Tom Lee,David Garcia,(555) 135-7911,Keyboard,$299.00,david.garcia@gmail.com,PayPal 
