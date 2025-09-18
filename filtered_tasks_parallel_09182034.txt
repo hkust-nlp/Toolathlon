@@ -90,3 +90,4 @@ excel-market-research
 gdp-cr5-analysis
 canvas-notification-python
 add-bibtex
+course-assistant

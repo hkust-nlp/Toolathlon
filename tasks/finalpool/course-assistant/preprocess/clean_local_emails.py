@@ -6,7 +6,9 @@
 
 import imaplib
 import email
-from typing import Dict, Tuple
+import os
+import json
+from typing import Dict, Tuple, List, Union
 
 def clean_local_emails(email_config: Dict[str, str]) -> Tuple[bool, int]:
     """
@@ -132,14 +134,20 @@ def clean_multiple_accounts(email_configs: list) -> bool:
     return all_success
 
 if __name__ == "__main__":
-    # 测试用例
-    test_config = {
-        "email": "virginia_diaz@mcp.com",
-        "password": "virginia_85W",
-        "imap_server": "localhost",
-        "imap_port": 1143,
-        "use_ssl": False
-    }
-    
-    success, deleted = clean_local_emails(test_config)
-    print(f"测试结果: 成功={success}, 删除={deleted}")
+    # 从相对路径读取配置: tasks/finalpool/course-assistant/emails_config.json
+    try:
+        current_dir = os.path.dirname(__file__)
+        config_path = os.path.abspath(os.path.join(current_dir, '..', 'emails_all_config.json'))
+        with open(config_path, 'r', encoding='utf-8') as f:
+            raw_config: Union[Dict[str, str], List[Dict[str, str]]] = json.load(f)
+
+        # 仅支持从列表批量清理
+        if not isinstance(raw_config, list):
+            print(f"运行结果: 成功=False, 消息=配置应为JSON数组(list)，实际为{type(raw_config).__name__}, 配置文件={config_path}")
+        else:
+            all_success = clean_multiple_accounts(raw_config)
+            # 统一输出
+            print(f"运行结果: 成功={all_success}, 清理账户数={len(raw_config)}, 配置文件={config_path}")
+    except Exception as e:
+        # 使用统一输出
+        print(f"运行结果: 成功=False, 消息=读取配置失败: {e}")

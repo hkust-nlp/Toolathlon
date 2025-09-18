@@ -7,101 +7,14 @@ import os
 import sys
 from argparse import ArgumentParser
 
-# 添加项目根目录到Python路径
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
-
-# 尝试使用现有的drive_helper，如果失败则使用自定义实现
-try:
-    from utils.app_specific.googlesheet.drive_helper import (
-        get_google_service, find_folder_by_name, create_folder, 
-        clear_folder
-    )
-    USE_DRIVE_HELPER = True
-    print("使用现有的drive_helper模块")
-except ImportError as e:
-    print(f"⚠️ 无法导入drive_helper: {e}")
-    USE_DRIVE_HELPER = False
-
-# 如果无法使用drive_helper，使用自定义实现
-if not USE_DRIVE_HELPER:
-    import json
-    import gspread
-    from google.auth.transport.requests import Request
-    from google.oauth2.credentials import Credentials
-    from googleapiclient.discovery import build
-    
-    # Google Sheets配置
-    GOOGLE_CREDENTIALS_PATH = 'configs/google_credentials.json'
-    SCOPES = [
-        'https://www.googleapis.com/auth/spreadsheets',
-        'https://www.googleapis.com/auth/drive'
-    ]
-    
-    def get_google_service():
-        """获取Google服务"""
-        try:
-            # 读取OAuth2凭证文件
-            with open(GOOGLE_CREDENTIALS_PATH, 'r') as f:
-                creds_data = json.load(f)
-            
-            # 创建OAuth2凭证对象
-            credentials = Credentials(
-                token=creds_data.get('token'),
-                refresh_token=creds_data.get('refresh_token'),
-                token_uri=creds_data.get('token_uri'),
-                client_id=creds_data.get('client_id'),
-                client_secret=creds_data.get('client_secret'),
-                scopes=creds_data.get('scopes', SCOPES)
-            )
-            
-            # 如果token过期，自动刷新
-            if credentials.expired and credentials.refresh_token:
-                credentials.refresh(Request())
-            
-            # 初始化服务
-            drive_service = build('drive', 'v3', credentials=credentials)
-            sheets_service = build('sheets', 'v4', credentials=credentials)
-            
-            return drive_service, sheets_service
-            
-        except Exception as e:
-            raise Exception(f"Google服务认证失败: {e}")
-    
-    def find_folder_by_name(drive_service, folder_name):
-        """查找指定名称的文件夹"""
-        results = drive_service.files().list(
-            q=f"name='{folder_name}' and mimeType='application/vnd.google-apps.folder' and trashed=false",
-            fields="files(id, name)"
-        ).execute()
-        
-        files = results.get('files', [])
-        return files[0]['id'] if files else None
-
-    def create_folder(drive_service, folder_name):
-        """创建新文件夹"""
-        folder_metadata = {
-            'name': folder_name,
-            'mimeType': 'application/vnd.google-apps.folder'
-        }
-        
-        folder = drive_service.files().create(body=folder_metadata, fields='id').execute()
-        return folder.get('id')
-
-    def clear_folder(drive_service, folder_id):
-        """清理文件夹内的所有文件"""
-        results = drive_service.files().list(
-            q=f"'{folder_id}' in parents and trashed=false",
-            fields="files(id, name)"
-        ).execute()
-        
-        for file in results.get('files', []):
-            try:
-                drive_service.files().delete(fileId=file['id']).execute()
-            except Exception as e:
-                print(f"警告：无法删除文件 {file.get('name', file['id'])}: {e}")
-
 # 任务配置
 FOLDER_NAME = "InvestmentAnalysisWorkspace"
+
+from utils.app_specific.googlesheet.drive_helper import (
+    get_google_service, find_folder_by_name, create_folder, 
+    clear_folder
+)
+
 
 def main():
     """主函数 - 模仿googlesheet-example的实现"""

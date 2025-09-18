@@ -1,0 +1,26 @@
+{
+  "imap_server": "localhost",
+  "imap_port": 1143,
+  "use_ssl": false,
+  "negative_accounts": [
+    { "email": "john_reed@mcp.com", "password": "JR0223@fTRgi" },
+    { "email": "diaza48@mcp.com", "password": "AD0120#OSuSL" },
+    { "email": "matthew.bailey32@mcp.com", "password": "MB0403!ZgB27" },
+    { "email": "ryang13@mcp.com", "password": "RG0813!cFTd6" },
+    { "email": "pwatson23@mcp.com", "password": "patrpD$ajw6P" },
+    { "email": "kimberly.murphy@mcp.com", "password": "kimberly2000$" },
+    { "email": "edward.ruiz@mcp.com", "password": "ER0815#uvaLx" },
+    { "email": "shirley_edwards@mcp.com", "password": "shirley_73al" },
+    { "email": "murphyc@mcp.com", "password": "catherine1984%" },
+    { "email": "sandra.miller@mcp.com", "password": "SM1212!VJy6B" },
+    { "email": "carterc23@mcp.com", "password": "carol_22FZ0P" },
+    { "email": "castilloj@mcp.com", "password": "jennifer1993!" },
+    { "email": "moorea@mcp.com", "password": "moore$a6457i" }
+  ],
+  "positive_accounts": [
+    { "email": "smorgan@mcp.com", "password": "Msteb9yvjMIY" },
+    { "email": "calvarez@mcp.com", "password": "alvarez@c241" },
+    { "email": "michelle_brooks26@mcp.com", "password": "michoNZZe@Li" }
+    
+  ]
+}

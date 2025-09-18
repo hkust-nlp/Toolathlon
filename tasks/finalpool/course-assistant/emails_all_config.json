@@ -1,0 +1,190 @@
+[
+    {
+        "email": "virginia_diaz@mcp.com",
+        "password": "virginia_85W", 
+        "name": "NLP Course Assistant",
+        "imap_server": "localhost",
+        "imap_port": 1143,
+        "smtp_server": "localhost",
+        "smtp_port": 1587,
+        "use_ssl": false,
+        "use_starttls": false
+    },
+    {
+        "email": "john_reed@mcp.com",
+        "password": "JR0223@fTRgi", 
+        "name": "John Reed",
+        "imap_server": "localhost",
+        "imap_port": 1143,
+        "smtp_server": "localhost",
+        "smtp_port": 1587,
+        "use_ssl": false,
+        "use_starttls": false
+    },
+    {
+        "email": "diaza48@mcp.com",
+        "password": "AD0120#OSuSL", 
+        "name": "Andrew Diaz",
+        "imap_server": "localhost",
+        "imap_port": 1143,
+        "smtp_server": "localhost",
+        "smtp_port": 1587,
+        "use_ssl": false,
+        "use_starttls": false
+    },
+    {
+        "email": "matthew.bailey32@mcp.com",
+        "password": "MB0403!ZgB27", 
+        "name": "Matthew Bailey",
+        "imap_server": "localhost",
+        "imap_port": 1143,
+        "smtp_server": "localhost",
+        "smtp_port": 1587,
+        "use_ssl": false,
+        "use_starttls": false
+    },
+    {
+        "email": "ryang13@mcp.com",
+        "password": "RG0813!cFTd6", 
+        "name": "Ryan Gomez",
+        "imap_server": "localhost",
+        "imap_port": 1143,
+        "smtp_server": "localhost",
+        "smtp_port": 1587,
+        "use_ssl": false,
+        "use_starttls": false
+    },
+    {
+        "email": "pwatson23@mcp.com",
+        "password": "patrpD$ajw6P", 
+        "name": "Patricia Watson",
+        "imap_server": "localhost",
+        "imap_port": 1143,
+        "smtp_server": "localhost",
+        "smtp_port": 1587,
+        "use_ssl": false,
+        "use_starttls": false
+    },
+    {
+        "email": "kimberly.murphy@mcp.com",
+        "password": "kimberly2000$", 
+        "name": "Kimberly Murphy",
+        "imap_server": "localhost",
+        "imap_port": 1143,
+        "smtp_server": "localhost",
+        "smtp_port": 1587,
+        "use_ssl": false,
+        "use_starttls": false
+    },
+    {
+        "email": "edward.ruiz@mcp.com",
+        "password": "ER0815#uvaLx", 
+        "name": "Edward Ruiz",
+        "imap_server": "localhost",
+        "imap_port": 1143,
+        "smtp_server": "localhost",
+        "smtp_port": 1587,
+        "use_ssl": false,
+        "use_starttls": false
+    },
+    {
+        "email": "shirley_edwards@mcp.com",
+        "password": "shirley_73al", 
+        "name": "Shirley Edwards",
+        "imap_server": "localhost",
+        "imap_port": 1143,
+        "smtp_server": "localhost",
+        "smtp_port": 1587,
+        "use_ssl": false,
+        "use_starttls": false
+    },
+    {
+        "email": "murphyc@mcp.com",
+        "password": "catherine1984%", 
+        "name": "Catherine Murphy",
+        "imap_server": "localhost",
+        "imap_port": 1143,
+        "smtp_server": "localhost",
+        "smtp_port": 1587,
+        "use_ssl": false,
+        "use_starttls": false
+    },
+    {
+        "email": "sandra.miller@mcp.com",
+        "password": "SM1212!VJy6B", 
+        "name": "Sandra Miller",
+        "imap_server": "localhost",
+        "imap_port": 1143,
+        "smtp_server": "localhost",
+        "smtp_port": 1587,
+        "use_ssl": false,
+        "use_starttls": false
+    },
+    {
+        "email": "carterc23@mcp.com",
+        "password": "carol_22FZ0P", 
+        "name": "Carol Carter",
+        "imap_server": "localhost",
+        "imap_port": 1143,
+        "smtp_server": "localhost",
+        "smtp_port": 1587,
+        "use_ssl": false,
+        "use_starttls": false
+    },
+    {
+        "email": "michelle_brooks26@mcp.com",
+        "password": "michoNZZe@Li", 
+        "name": "Michelle Brooks",
+        "imap_server": "localhost",
+        "imap_port": 1143,
+        "smtp_server": "localhost",
+        "smtp_port": 1587,
+        "use_ssl": false,
+        "use_starttls": false
+    },
+    {
+        "email": "smorgan@mcp.com",
+        "password": "Msteb9yvjMIY", 
+        "name": "Steven Morgan",
+        "imap_server": "localhost",
+        "imap_port": 1143,
+        "smtp_server": "localhost",
+        "smtp_port": 1587,
+        "use_ssl": false,
+        "use_starttls": false
+
+    },
+    {
+        "email": "calvarez@mcp.com",
+        "password": "alvarez@c241", 
+        "name": "Carolyn Alvarez",
+        "imap_server": "localhost",
+        "imap_port": 1143,
+        "smtp_server": "localhost",
+        "smtp_port": 1587,
+        "use_ssl": false,
+        "use_starttls": false
+    },
+    {
+        "email": "castilloj@mcp.com",
+        "password": "jennifer1993!", 
+        "name": "Jennifer Castillo",
+        "imap_server": "localhost",
+        "imap_port": 1143,
+        "smtp_server": "localhost",
+        "smtp_port": 1587,
+        "use_ssl": false,
+        "use_starttls": false
+    },
+    {
+        "email": "moorea@mcp.com",
+        "password": "moore$a6457i", 
+        "name": "Andrew Moore",
+        "imap_server": "localhost",
+        "imap_port": 1143,
+        "smtp_server": "localhost",
+        "smtp_port": 1587,
+        "use_ssl": false,
+        "use_starttls": false
+    }
+]

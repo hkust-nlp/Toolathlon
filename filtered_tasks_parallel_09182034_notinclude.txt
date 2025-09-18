@@ -1,7 +1,6 @@
 email-paper-homepage
 latex-prompt-table
 mrbeast-analysis [ongoing/suspend cuz ytb]
-course-assistant
 woocommerce-customer-survey
 update-material-inventory
 woocommerce-update-cover

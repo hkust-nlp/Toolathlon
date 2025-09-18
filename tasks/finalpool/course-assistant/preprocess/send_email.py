@@ -255,7 +255,7 @@ def load_emails_from_jsonl(file_path, placeholder_file_path, verbose=True):
     # 相对于send_email.py文件的位置：../groundtruth_workspace/today.txt
     script_dir = Path(__file__).parent.parent
     today_file_path = script_dir / 'groundtruth_workspace' / 'today.txt'
-    # today_file_path.parent.mkdir(parents=True, exist_ok=True)
+    today_file_path.parent.mkdir(parents=True, exist_ok=True)
     with open(today_file_path, 'w', encoding='utf-8') as f:
         f.write(today)
     _log(f"✅ 已保存today时间到: {today_file_path}")
