@@ -15,22 +15,14 @@ async def my_execute_function_tool_calls(
     config: RunConfig,
 ) -> list[FunctionToolResult]:
     async def run_single_tool(
-        func_tool: FunctionTool, tool_call: ResponseFunctionToolCall
+        func_tool: FunctionTool = None, tool_call: ResponseFunctionToolCall = None
     ) -> Any:
+        if func_tool is None:
+            return f"Tool {tool_call.name} not found in agent {agent.name}"
         with function_span(func_tool.name) as span_fn:
             if config.trace_include_sensitive_data:
                 span_fn.span_data.input = tool_call.arguments
             try:
-                # basially, if the tool has an explicitly stated argument named like `path`
-                # we can identify it and stop it before the tool is actually called
-                # however, if we cannot do this
-                # e.g. the argument is a python code, and the code tries to acces some other files
-                # then it is very hard to detect such behaviour
-                # and we may need system level sandbox technique to avoid that
-                # which is hard on my dev machine
-
-                # we can also have other techniques, see https://www.notion.so/hkust-nlp/Sandbox-20839bdc1c6b8014936ef7c11c57b189
-                # however, on my dev machine, this is hard to implement as I donot have sudo previlige ...
                 _, _, result = await asyncio.gather(
                     hooks.on_tool_start(context_wrapper, agent, func_tool),
                     (
@@ -55,10 +47,6 @@ async def my_execute_function_tool_calls(
                         data={"tool_name": func_tool.name, "error": str(e)},
                     )
                 )
-                # fix: instead of raising an error and destory the whole dialogue, we choose to return this error as a result
-                # if isinstance(e, AgentsException):
-                #     raise e
-                # raise UserError(f"Error running tool {func_tool.name}: {e}") from e
                 return f"Error running tool {func_tool.name}: {e}"
             if config.trace_include_sensitive_data:
                 span_fn.span_data.output = result
@@ -84,5 +72,101 @@ async def my_execute_function_tool_calls(
         for tool_run, result in zip(tool_runs, results)
     ]
 
+
+@classmethod
+def my_process_model_response(
+    cls,
+    *,
+    agent: Agent[Any],
+    all_tools: list[Tool],
+    response: ModelResponse,
+    output_schema: AgentOutputSchemaBase | None,
+    handoffs: list[Handoff],
+) -> ProcessedResponse:
+    items: list[RunItem] = []
+
+    run_handoffs = []
+    functions = []
+    computer_actions = []
+    tools_used: list[str] = []
+    handoff_map = {handoff.tool_name: handoff for handoff in handoffs}
+    function_map = {tool.name: tool for tool in all_tools if isinstance(tool, FunctionTool)}
+    computer_tool = next((tool for tool in all_tools if isinstance(tool, ComputerTool)), None)
+
+    for output in response.output:
+        if isinstance(output, ResponseOutputMessage):
+            items.append(MessageOutputItem(raw_item=output, agent=agent))
+        elif isinstance(output, ResponseFileSearchToolCall):
+            items.append(ToolCallItem(raw_item=output, agent=agent))
+            tools_used.append("file_search")
+        elif isinstance(output, ResponseFunctionWebSearch):
+            items.append(ToolCallItem(raw_item=output, agent=agent))
+            tools_used.append("web_search")
+        elif isinstance(output, ResponseReasoningItem):
+            items.append(ReasoningItem(raw_item=output, agent=agent))
+        elif isinstance(output, ResponseComputerToolCall):
+            items.append(ToolCallItem(raw_item=output, agent=agent))
+            tools_used.append("computer_use")
+            if not computer_tool:
+                _error_tracing.attach_error_to_current_span(
+                    SpanError(
+                        message="Computer tool not found",
+                        data={},
+                    )
+                )
+                raise ModelBehaviorError(
+                    "Model produced computer action without a computer tool."
+                )
+            computer_actions.append(
+                ToolRunComputerAction(tool_call=output, computer_tool=computer_tool)
+            )
+        elif not isinstance(output, ResponseFunctionToolCall):
+            logger.warning(f"Unexpected output type, ignoring: {type(output)}")
+            continue
+
+        # At this point we know it's a function tool call
+        if not isinstance(output, ResponseFunctionToolCall):
+            continue
+
+        tools_used.append(output.name)
+
+        # Handoffs
+        if output.name in handoff_map:
+            items.append(HandoffCallItem(raw_item=output, agent=agent))
+            handoff = ToolRunHandoff(
+                tool_call=output,
+                handoff=handoff_map[output.name],
+            )
+            run_handoffs.append(handoff)
+        # Regular function tool call
+        else:
+            if output.name not in function_map:
+                # add not found tool call processing here
+                logger.warning(f"Tool {output.name} not found in agent {agent.name}")
+                items.append(ToolCallItem(raw_item=output, agent=agent))
+                functions.append(
+                        ToolRunFunction(
+                            tool_call=output,
+                            function_tool=None,
+                        )
+                    )
+                continue            
+            items.append(ToolCallItem(raw_item=output, agent=agent))
+            functions.append(
+                ToolRunFunction(
+                    tool_call=output,
+                    function_tool=function_map[output.name],
+                )
+            )
+
+    return ProcessedResponse(
+        new_items=items,
+        handoffs=run_handoffs,
+        functions=functions,
+        computer_actions=computer_actions,
+        tools_used=tools_used,
+    )
+
 # 替换方法
+RunImpl.process_model_response = my_process_model_response
 RunImpl.execute_function_tool_calls = my_execute_function_tool_calls
