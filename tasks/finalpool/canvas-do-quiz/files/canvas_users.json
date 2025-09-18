@@ -1,11 +1,11 @@
 [
   {
-    "id": 7,
-    "first_name": "Carol",
-    "last_name": "Rodriguez",
-    "full_name": "Carol Rodriguez",
-    "email": "rodriguezc39@mcp.com",
-    "password": "carol_94biV9"
+    "id": 197,
+    "first_name": "Michael",
+    "last_name": "Bennett",
+    "full_name": "Michael Bennett",
+    "email": "stepheng@mcp.com",
+    "password": "michael_51aU"
   },
   {
     "id": 8,
@@ -38,14 +38,6 @@
     "full_name": "Maria Alvarez",
     "email": "malvarez@mcp.com",
     "password": "Malvarez696h"
-  },
-  {
-    "id": 12,
-    "first_name": "Zachary",
-    "last_name": "Edwards",
-    "full_name": "Zachary Edwards",
-    "email": "zedwards@mcp.com",
-    "password": "Zedwards5385"
   },
   {
     "id": 13,

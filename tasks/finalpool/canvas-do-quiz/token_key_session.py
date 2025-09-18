@@ -4,8 +4,7 @@ import os
 all_token_key_session = Dict( 
 
  # use local deployed ones, or set up your own token to control
-    canvas_api_token = "canvas_token_carol_94biV9",
-    canvas_domain = "localhost:20001",
+    canvas_api_token = "canvas_token_Gsteqwb9GHRe",
     admin_canvas_token = "mcpcanvasadmintoken2",
    
 )

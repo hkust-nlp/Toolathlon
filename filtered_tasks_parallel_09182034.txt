@@ -58,7 +58,6 @@ course-schedule
 upenn-campus-route
 k8s-deployment-cleanup
 language-school
-canvas-submit-late-work
 find-alita-paper
 excel-data-transformation
 music-analysis
@@ -91,3 +90,4 @@ gdp-cr5-analysis
 canvas-notification-python
 add-bibtex
 course-assistant
+notion-find-job

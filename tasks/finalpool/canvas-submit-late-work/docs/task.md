@@ -2,7 +2,7 @@ My name is Zachary Edwards, and I’m a forgetful person. I often complete my as
 
 My personal information can be found in memory.
 
-The instructor has published a submission record sheet named Cinema_Culture_Grade_Summary.xlsx. Please help me identify which assignments have not been submitted yet. Then, use the Playwright tool to submit the missing assignments via the server at localhost:10001.
+The instructor has published a submission record sheet named Cinema_Culture_Grade_Summary.xlsx. Please help me identify which assignments have not been submitted yet. Then, submit the missing assignments on canvas.
 
 You only need to submit the assignments that are missing — no need to take action on those that are already submitted.
 

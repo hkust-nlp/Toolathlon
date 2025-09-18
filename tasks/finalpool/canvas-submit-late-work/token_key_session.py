@@ -14,7 +14,6 @@ all_token_key_session = Dict(
 
  # use local deployed ones, or set up your own token to control
     canvas_api_token = "canvas_token_Zedwards5385",
-    canvas_domain = "localhost:20001",
     admin_canvas_token = "mcpcanvasadmintoken2",
     emails_config_file = emails_config_file,
     admin_email_address = "mcpcanvasadmin2@mcp.com",

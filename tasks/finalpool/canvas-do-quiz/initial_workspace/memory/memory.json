@@ -6,7 +6,7 @@
         "Student ID: 2201210606",
         "Email: rodriguezc39@mcp.com",
         "Address: Building 1, Unit 1, Haidian Road Community",
-        "Phone: 13812345678",
+        "Phone: 138115678",
         "Major: Computer Science and Technology",
         "Hobbies: Programming, Reading, Basketball",
         "Graduation year: 2024",
@@ -21,8 +21,6 @@
         "Personality: Lively",
         "Swimming ability: Cannot swim",
         "Birthday: 2000-01-01",
-        "Score for the entrance English exam: 95",
-        "Canvas Password: carol_94biV9",
-        "Canvas token: canvas_token_carol_94biV9"
+        "Score for the entrance English exam: 95"
     ]
 }

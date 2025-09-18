@@ -43,11 +43,12 @@ if parent_dir not in sys.path:
     print(f"Added parent directory to sys.path: {parent_dir}")
 
 # Import Canvas configuration
-from token_key_session import all_token_key_session
-CANVAS_API_TOKEN = all_token_key_session.admin_canvas_token
-CANVAS_DOMAIN = all_token_key_session.canvas_domain
-os.environ["CANVAS_API_TOKEN"] = CANVAS_API_TOKEN
-os.environ["CANVAS_DOMAIN"] = CANVAS_DOMAIN
+from token_key_session import all_token_key_session as local_all_token_key_session
+from configs.token_key_session import all_token_key_session as global_all_token_key_session
+CANVAS_API_TOKEN = local_all_token_key_session.admin_canvas_token
+CANVAS_DOMAIN = global_all_token_key_session.canvas_domain
+# os.environ["CANVAS_API_TOKEN"] = CANVAS_API_TOKEN
+# os.environ["CANVAS_DOMAIN"] = CANVAS_DOMAIN
 
 # Configure logging
 logging.basicConfig(

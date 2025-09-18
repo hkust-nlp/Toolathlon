@@ -6,11 +6,12 @@ update-material-inventory
 woocommerce-update-cover
 paper-checker
 nvidia-stock-analysis
-canvas-do-quiz
-notion-find-job
+canvas-do-quiz [fix by wc]
 task-tracker
 cvpr-research
 ieee-fellows-citation [suspend bcz of scholarly issue]
 woocommerce-new-welcome
 youtube-repo [suspend cuz ytb]
 identify-all-songs [suspend ucz ytb]
+canvas-submit-late-work [let me test again on the new canvas server]
+a fan's task
