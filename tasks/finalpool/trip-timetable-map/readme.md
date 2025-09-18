@@ -1,8 +1,0 @@
-这个youtube视频是不含原生字幕的，所以mcp工具获取的是youtube自己识别的字幕，有一些单词不是很准确。尤其是地名是冰岛语不是英语，所以字幕里的地名都是错的。字幕文件保存在 groundtruth_workspace/video_subtitle.txt
-
-只寻找前四天的行程。找答案的过程是先用claude4总结路线，然后再看视频，大部分出现过的地方在图中会标明地点。
-但是也有一些有歧义的地方，比如黄金圈 golden circle。所以只查看具体的每个stop地点。
-
-以及本来是要用google-map差距离的。但是参考 iceland_trip_report.html 文件内容， 高地路线只能估算，因为这些路线不在常规导航系统中。所以不再使用google-map算距离和时间。
-
-还有模版问题，发现模型并不难很好的follow模版report.html，并经常有多余的信息写在html上（无法百分百保证答案的正确性）。所以也不再使用html模版，而是只看md文件。

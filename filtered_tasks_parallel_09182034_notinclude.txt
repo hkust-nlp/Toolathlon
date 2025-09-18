@@ -1,0 +1,17 @@
+email-paper-homepage
+latex-prompt-table
+mrbeast-analysis [ongoing/suspend cuz ytb]
+course-assistant
+woocommerce-customer-survey
+update-material-inventory
+woocommerce-update-cover
+paper-checker
+nvidia-stock-analysis
+canvas-do-quiz
+notion-find-job
+task-tracker
+cvpr-research
+ieee-fellows-citation [suspend bcz of scholarly issue]
+woocommerce-new-welcome
+youtube-repo [suspend cuz ytb]
+identify-all-songs [suspend ucz ytb]

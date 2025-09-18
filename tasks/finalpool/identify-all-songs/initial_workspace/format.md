@@ -1,11 +1,7 @@
-```markdown
-# [此处替换为视频标题] - list
+# [Replace with Video Title] - list
 
 ```yaml
-- Song1: [识别出的歌曲1名称]
-- Song2: [识别出的歌曲2名称]
-
-# ... 以此格式继续添加所有识别出的歌曲
-```
-
+- Song1: [Identified Song 1 Name]
+- Song2: [Identified Song 2 Name]
+# ... Continue adding all identified songs in this format
 ```
