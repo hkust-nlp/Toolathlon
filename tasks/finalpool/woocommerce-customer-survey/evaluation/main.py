@@ -826,11 +826,11 @@ def check_google_forms_from_file(agent_workspace: str) -> Tuple[bool, str]:
 
 
 def check_email_sending(expected_data: Dict[str, Any]) -> Tuple[bool, str]:
-    """检查是否向预期的客户发送了邮件"""
+    """检查是否向预期的客户发送了邮件（使用通用邮件验证函数）"""
     try:
         if not all_token_key_session:
             return False, "无法获取邮件配置"
-        
+
         # 读取邮件配置
         try:
             email_config = read_json(all_token_key_session.emails_config_file)
@@ -838,203 +838,64 @@ def check_email_sending(expected_data: Dict[str, Any]) -> Tuple[bool, str]:
                 return False, "无法读取邮件配置文件"
         except Exception as e:
             return False, f"无法读取邮件配置文件: {e}"
-        
-        # 连接 IMAP 服务器
-        try:
-            if email_config.get('use_ssl', False):
-                mail = imaplib.IMAP4_SSL(email_config['imap_server'], email_config['imap_port'])
-            else:
-                mail = imaplib.IMAP4(email_config['imap_server'], email_config['imap_port'])
-                if email_config.get('use_starttls', False):
-                    mail.starttls()
-            
-            # 登录
-            mail.login(email_config['email'], email_config['password'])
-            print(f"✅ 成功连接到邮箱: {email_config['email']}")
-        except Exception as e:
-            return False, f"无法连接到邮箱服务器: {e}"
-        
-        # 选择已发送文件夹
-        status, _ = mail.select('Sent')
-        if status != "OK":
-            mail.logout()
-            return False, "无法选择 Sent 文件夹"
-        
-        # 获取所有邮件 ID
-        status, messages = mail.search(None, "ALL")
-        if status != "OK":
-            mail.logout()
-            return False, "无法搜索邮件"
-        
-        email_ids = messages[0].split()
-        if not email_ids:
-            mail.logout()
-            return False, "已发送邮件为空"
-        
-        print(f"📬 找到 {len(email_ids)} 封已发送邮件")
-        
+
         # 获取预期的客户邮箱列表
-        expected_emails = set(expected_data.get("expected_emails", []))
+        expected_emails = expected_data.get("expected_emails", [])
         if not expected_emails:
-            mail.logout()
             return False, "没有预期的客户邮箱"
-        
+
         print(f"🎯 预期收件人: {len(expected_emails)} 个")
         for email_addr in expected_emails:
             print(f"   📧 {email_addr}")
-        
-        # 记录实际发送的邮件收件人和表单信息
-        found_recipients = set()
-        form_links_found = []
-        valid_forms_count = 0
-        
-        # 获取Google认证信息
-        google_creds_success, google_credentials = get_google_credentials()
-        if not google_creds_success:
-            print("⚠️ 无法获取Google认证信息，将跳过表单内容验证")
-        
-        # 检查最近的邮件（倒序检查最新的邮件）
-        recent_email_count = min(len(email_ids), len(expected_emails) * 3)  # 检查足够数量的邮件
-        print(f"🔍 检查最近 {recent_email_count} 封邮件...")
-        
-        for i, email_id in enumerate(reversed(email_ids[-recent_email_count:])):
-            print(f"📩 处理第 {i+1}/{recent_email_count} 封邮件 (ID: {email_id.decode()})")
-            
-            try:
-                status, msg_data = mail.fetch(email_id, '(RFC822 INTERNALDATE)')
-                if status != "OK":
-                    print(f"   ❌ 无法获取邮件内容")
-                    continue
-                
-                msg = email.message_from_bytes(msg_data[0][1])
-                
-                # 获取收件人信息
-                to_field = msg.get("To", "") or ""
-                cc_field = msg.get("Cc", "") or ""
-                bcc_field = msg.get("Bcc", "") or ""
-                all_recipients = (to_field + "," + cc_field + "," + bcc_field).lower()
-                
-                print(f"   📨 收件人字段: To='{to_field}', Cc='{cc_field}'")
-                
-                # 获取邮件正文内容
-                email_body = ""
-                if msg.is_multipart():
-                    for part in msg.walk():
-                        content_type = part.get_content_type()
-                        content_disposition = str(part.get("Content-Disposition"))
-                        if content_type in ["text/plain", "text/html"] and "attachment" not in content_disposition:
-                            charset = part.get_content_charset() or "utf-8"
-                            try:
-                                body_content = part.get_payload(decode=True).decode(charset, errors="ignore")
-                                email_body += body_content + "\n"
-                            except Exception:
-                                continue
-                else:
-                    charset = msg.get_content_charset() or "utf-8"
-                    try:
-                        email_body = msg.get_payload(decode=True).decode(charset, errors="ignore")
-                    except Exception:
-                        email_body = ""
-                
-                # 检查是否匹配预期的收件人
-                recipient_matched = False
-                for expected_email in expected_emails:
-                    if expected_email.lower() in all_recipients:
-                        found_recipients.add(expected_email.lower())
-                        recipient_matched = True
-                        print(f"   ✅ 找到预期收件人: {expected_email}")
-                
-                # 如果是发送给预期收件人的邮件，检查Google Forms链接
-                if recipient_matched and email_body:
-                    print(f"   🔗 检查邮件中的Google Forms链接...")
-                    # 显示邮件内容的一部分用于调试
-                    email_preview = email_body[:200].replace('\n', ' ').replace('\r', ' ')
-                    print(f"   📝 邮件内容预览: {email_preview}...")
-                    
-                    form_links = extract_google_forms_links(email_body)
-                    
-                    if form_links:
-                        print(f"   📋 邮件中找到 {len(form_links)} 个Google Forms链接")
-                        for link in form_links:
-                            print(f"      📝 {link}")
-                            form_links_found.append(link)
-                            # 简化：仅记录找到的链接，不在此处验证内容
-                            valid_forms_count += 1
-                    else:
-                        print(f"   ⚠️ 邮件中未找到Google Forms链接")
-                    
-            except Exception as e:
-                print(f"   ❌ 处理邮件时出错: {e}")
-                continue
-        
-        mail.logout()
-        
-        # 检查结果
-        expected_emails_lower = {email.lower() for email in expected_emails}
-        missing_recipients = expected_emails_lower - found_recipients
-        extra_recipients = found_recipients - expected_emails_lower
-        
-        print(f"\n📊 邮件发送检查结果:")
-        print(f"   🎯 预期收件人: {len(expected_emails_lower)} 个")
-        print(f"   ✅ 找到收件人: {len(found_recipients)} 个")
-        print(f"   ❌ 缺少收件人: {len(missing_recipients)} 个")
-        print(f"   ⚠️ 额外收件人: {len(extra_recipients)} 个")
-        
-        print(f"\n📋 Google Forms检查结果:")
-        print(f"   🔗 找到Forms链接: {len(set(form_links_found))} 个")
-        print(f"   ✅ 有效表单: {valid_forms_count} 个")
-        
-        if form_links_found:
-            unique_links = list(set(form_links_found))
-            print(f"   表单链接列表:")
-            for i, link in enumerate(unique_links, 1):
-                print(f"      {i}. {link}")
-        
-        if missing_recipients:
-            print(f"   缺少的收件人: {', '.join(missing_recipients)}")
-        
-        if extra_recipients:
-            print(f"   额外的收件人: {', '.join(extra_recipients)}")
-        
-        # 判断是否通过检查
-        # 首先检查收件人是否正确
-        recipient_errors = []
-        if missing_recipients and extra_recipients:
-            recipient_errors.append(f"既有缺少的收件人({len(missing_recipients)}个)，又有额外的收件人({len(extra_recipients)}个)")
-        elif missing_recipients:
-            recipient_errors.append(f"缺少 {len(missing_recipients)} 个预期收件人: {', '.join(missing_recipients)}")
-        elif extra_recipients:
-            recipient_errors.append(f"发送给了 {len(extra_recipients)} 个额外收件人: {', '.join(extra_recipients)}")
-        elif len(found_recipients) == 0:
-            recipient_errors.append("没有向任何预期收件人发送邮件")
-        
-        # 检查Google Forms
-        form_errors = []
-        if len(found_recipients) > 0:  # 只有当有收件人时才检查表单
-            if len(form_links_found) == 0:
-                form_errors.append("邮件中未包含Google Forms链接")
-            # 注释掉严格的表单内容验证，因为权限问题可能导致无法访问表单
-            # elif google_creds_success and valid_forms_count == 0:
-            #     form_errors.append("找到Forms链接但表单内容验证失败")
-        
-        # 汇总错误
-        all_errors = recipient_errors + form_errors
-        if all_errors:
-            return False, "; ".join(all_errors)
-        else:
-            success_msg = f"准确向所有 {len(expected_emails)} 个预期收件人发送了邮件，无遗漏无冗余"
-            if form_links_found:
-                if google_creds_success and valid_forms_count > 0:
-                    success_msg += f"，包含 {valid_forms_count} 个有效的Google Forms"
-                else:
-                    success_msg += f"，包含 {len(set(form_links_found))} 个Google Forms链接"
-                    if google_creds_success:
-                        success_msg += "（注：由于权限限制无法验证表单内容，但链接存在且格式正确）"
+
+        # 定义Google Forms链接提取函数
+        def extract_google_forms_links(email_body: str) -> List[str]:
+            google_forms_patterns = [
+                r'https://docs\.google\.com/forms/d/([a-zA-Z0-9-_]{10,})[^\s]*',
+                r'https://forms\.gle/([a-zA-Z0-9-_]{8,})[^\s]*',
+                r'(https://docs\.google\.com/forms/d/[a-zA-Z0-9-_]{10,}[^\s]*)',
+                r'(https://forms\.gle/[a-zA-Z0-9-_]{8,}[^\s]*)',
+                r'https://docs\.google\.com/forms/[^\s]+',
+                r'https://forms\.gle/[^\s]+',
+            ]
+            return extract_url_patterns_from_email(email_body, google_forms_patterns)
+
+        # 定义内容验证函数
+        def validate_google_forms_content(email_body: str) -> bool:
+            return len(extract_google_forms_links(email_body)) > 0
+
+        # 导入通用邮件验证函数
+        sys.path.insert(0, os.path.join(os.path.dirname(current_dir), "..", "..", ".."))
+        from utils.app_specific.poste.checks import verify_emails_sent_to_recipients, extract_url_patterns_from_email
+
+        # 使用通用函数验证邮件发送
+        success, result = verify_emails_sent_to_recipients(
+            sender_config=email_config,
+            expected_recipients=expected_emails,
+            content_extractor=extract_google_forms_links,
+            content_validator=validate_google_forms_content
+        )
+
+        # 处理结果
+        if success:
+            forms_count = len(result.get("extracted_contents", []))
+            success_msg = f"准确向所有 {result['expected_count']} 个预期收件人发送了邮件，无遗漏无冗余"
+            if forms_count > 0:
+                success_msg += f"，包含 {forms_count} 个Google Forms链接"
             return True, success_msg
-    
+        else:
+            error_msg = result.get("error", "未知错误")
+            if "found_recipients" in result:
+                missing = result.get("missing_recipients", [])
+                extra = result.get("extra_recipients", [])
+                if missing:
+                    error_msg += f"，缺少收件人: {', '.join(missing)}"
+                if extra:
+                    error_msg += f"，额外收件人: {', '.join(extra)}"
+            return False, error_msg
+
     except Exception as e:
         return False, f"邮件发送检查出错: {e}"
-
 
 def run_complete_evaluation(agent_workspace: str, groundtruth_workspace: str, res_log: Dict) -> Tuple[bool, str]:
     """Run complete evaluation workflow"""
@@ -1129,13 +990,6 @@ def main(args):
         print("="*80)
         print(message)
         
-        # Save report
-
-        # if args.agent_workspace:
-        #     report_file = os.path.join(args.agent_workspace, "evaluation_report.txt")
-        #     with open(report_file, 'w', encoding='utf-8') as f:
-        #         f.write(message)
-        #     print(f"\n📄 评估报告已保存到: {report_file}")
         
         if success:
             print("\n✅ EVALUATION PASSED")

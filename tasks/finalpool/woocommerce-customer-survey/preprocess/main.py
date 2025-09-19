@@ -21,8 +21,16 @@ current_dir = Path(__file__).parent
 task_dir = current_dir.parent
 sys.path.insert(0, str(task_dir))
 
-# 导入 WooCommerce 客户端
-from preprocess.woocommerce_client import WooCommerceClient
+# 导入 WooCommerce 通用模块
+import sys
+from pathlib import Path
+project_root = Path(__file__).parent.parent.parent.parent
+sys.path.insert(0, str(project_root))
+from utils.app_specific.woocommerce import (
+    setup_customer_survey_environment,
+    OrderManager,
+    create_customer_survey_orders
+)
 
 # 导入 Google Drive helper
 from google.oauth2.credentials import Credentials
@@ -323,351 +331,75 @@ def clear_google_forms(form_name_pattern: str = None) -> Dict:
 
 
 class WooCommerceOrderManager:
-    """WooCommerce 订单管理器"""
-    
+    """WooCommerce 订单管理器 - 使用通用客户端和工具"""
+
     def __init__(self, site_url: str, consumer_key: str, consumer_secret: str):
         """
         初始化 WooCommerce 订单管理器
-        
+
         Args:
             site_url: WooCommerce网站URL
             consumer_key: WooCommerce API消费者密钥
             consumer_secret: WooCommerce API消费者密钥
         """
-        self.wc_client = WooCommerceClient(site_url, consumer_key, consumer_secret)
+        self.order_manager = OrderManager(site_url, consumer_key, consumer_secret)
         self.created_orders = []
     
     def delete_existing_orders(self):
         """删除现有的所有订单，确保创建订单前有干净的环境"""
         print("🗑️ 删除现有订单...")
-        
+
         try:
-            page = 1
-            per_page = 50
-            total_deleted = 0
-            start_time = time.time()
-            
-            while True:
-                # 获取订单列表
-                success, orders = self.wc_client._make_request('GET', 'orders', params={"page": page, "per_page": per_page})
-                if not success:
-                    print(f"⚠️ 获取订单失败: {orders}")
-                    break
+            # 使用通用订单管理器的批量删除功能
+            result = self.order_manager.clear_all_orders(confirm=True)
 
-                if not orders or len(orders) == 0:
-                    # 没有更多订单
-                    break
-
-                print(f"   📋 第 {page} 页，找到 {len(orders)} 个订单")
-                
-                for i, order in enumerate(orders, 1):
-                    order_id = order['id']
-                    order_status = order.get('status', 'unknown')
-                    success, response = self.wc_client.delete_order(order_id)
-                    if success:
-                        total_deleted += 1
-                        print(f"   ✅ 删除订单 #{order_id} ({order_status}) [{i}/{len(orders)}]")
-                    else:
-                        print(f"   ❌ 删除订单 #{order_id} 失败: {response}")
-                    
-                    # 添加短暂延迟避免API限制
-                    time.sleep(0.3)
-
-                page += 1
-                
-                # 安全检查：避免无限循环
-                if page > 50:  # 最多处理50页，每页50个订单 = 2500个订单
-                    print("⚠️ 达到最大页数限制，停止删除")
-                    break
-
-            elapsed_time = time.time() - start_time
-            if total_deleted > 0:
-                print(f"✅ 成功删除 {total_deleted} 个现有订单 (用时: {elapsed_time:.1f} 秒)")
+            if result['success']:
+                deleted_count = result.get('deleted_count', 0)
+                print(f"✅ 成功删除 {deleted_count} 个现有订单")
             else:
-                print("ℹ️ 没有找到需要删除的订单")
-                
+                error_msg = result.get('error', '未知错误')
+                print(f"❌ 删除订单失败: {error_msg}")
+
         except Exception as e:
             print(f"❌ 删除订单过程中出错: {e}")
     
     def upload_orders_to_woocommerce(self, orders_data):
         """将订单数据上传到 WooCommerce"""
         print("📤 开始上传订单到 WooCommerce...")
-        
-        successful_orders = 0
-        failed_orders = 0
-        
-        for order in orders_data:
-            # 计算订单总价
-            item_total = float(order["product_price"]) * order["quantity"]
-            
-            # 构造 WooCommerce 订单数据格式
-            order_data = {
-                "status": order["status"],  # 使用原始订单的状态（completed/processing/shipped）
-                "customer_id": 1,  # 默认客户ID
-                "payment_method": "bacs",
-                "payment_method_title": "Direct Bank Transfer",
-                "total": str(item_total),
-                "billing": {
-                    "first_name": order["customer_name"].split()[0] if " " in order["customer_name"] else order["customer_name"],
-                    "last_name": order["customer_name"].split()[-1] if " " in order["customer_name"] else "",
-                    "email": order["customer_email"]
-                },
-                "line_items": [
-                    {
-                        "product_id": 1,  # 虚拟产品ID
-                        "name": order["product_name"],
-                        "quantity": order["quantity"],
-                        "price": str(order["product_price"]),
-                        "total": str(float(order["product_price"]) * order["quantity"]),
-                        "subtotal": str(float(order["product_price"]) * order["quantity"])
-                    }
-                ],
-                "meta_data": [
-                    {"key": "test_order", "value": "true"},
-                    {"key": "original_order_id", "value": str(order["order_id"])},
-                    {"key": "original_date_created", "value": order["date_created"]},
-                    {"key": "original_date_completed", "value": order["date_completed"] or ""},
-                    {"key": "period", "value": order["period"]},
-                    {"key": "customer_survey_target", "value": "true"}
-                ]
-            }
 
-            # 调用 create_order 上传订单
-            success, response = self.wc_client.create_order(order_data)
+        # 使用通用订单管理器的上传功能
+        upload_result = self.order_manager.upload_orders(
+            orders_data,
+            virtual_product_id=1,
+            batch_delay=0.8
+        )
 
-            if success:
-                wc_order_id = response.get('id')
-                successful_orders += 1
-                print(f"✅ 订单 #{wc_order_id} 创建成功 - {order['customer_name']} ({order['status']}) - ${item_total:.2f}")
-                
-                self.created_orders.append({
-                    'original_order_id': order['order_id'],
-                    'wc_order_id': wc_order_id,
-                    'customer_email': order['customer_email'],
-                    'status': order['status'],
-                    'period': order['period']
-                })
-            else:
-                failed_orders += 1
-                print(f"❌ 创建订单失败: {order['customer_name']} - {response}")
-            
-            # 添加延迟避免API限制
-            time.sleep(0.8)
-        
-        # 统计订单状态分布
-        status_counts = {}
-        for order in self.created_orders:
-            status = order['status']
-            status_counts[status] = status_counts.get(status, 0) + 1
-        
-        print(f"\n📊 订单上传完成:")
-        print(f"   ✅ 成功创建: {successful_orders} 个订单")
-        print(f"   ❌ 创建失败: {failed_orders} 个订单")
-        
-        if status_counts:
-            print(f"\n📈 WooCommerce 订单状态分布:")
-            for status, count in sorted(status_counts.items()):
-                print(f"   {status}: {count} 个")
-        
+        # 保持与原接口的兼容性
+        self.created_orders = upload_result.get('created_orders', [])
+
+        successful_orders = upload_result.get('successful_orders', 0)
+        failed_orders = upload_result.get('failed_orders', 0)
+
         return successful_orders, failed_orders
 
 
 def create_order_data():
     """
     创建20个最近的订单（混合送达状态）：70%已完成，30%处理中
+    使用通用订单生成器
     """
     print("📦 生成订单数据...")
-    
-    # 设置随机种子（基于当前时间，确保每次运行都不同）
-    import time
-    random.seed(int(time.time()))
-    print("  🎲 使用随机种子生成订单数据")
-    
-    # 客户数据
-    customers = [
-        {"name": "Nancy Hill", "email": "nancy.hill@mcp.com"},
-        {"name": "Cynthia Mendoza", "email": "cynthia.mendoza@mcp.com"},
-        {"name": "Eric Jackson", "email": "ejackson@mcp.com"},
-        {"name": "Amanda Evans", "email": "aevans@mcp.com"},
-        {"name": "Kathleen Jones", "email": "kathleen.jones@mcp.com"},
-        {"name": "Henry Howard", "email": "henry_howard51@mcp.com"},
-        {"name": "Frances Miller", "email": "frances.miller@mcp.com"},
-        {"name": "Jessica Patel", "email": "jessicap@mcp.com"},
-        {"name": "Ryan Myers", "email": "rmyers81@mcp.com"},
-        {"name": "Zachary Baker", "email": "zachary.baker53@mcp.com"},
-        {"name": "Pamela Brooks", "email": "pbrooks@mcp.com"},
-        {"name": "Eric Torres", "email": "etorres4@mcp.com"},
-        {"name": "Tyler Perez", "email": "tyler_perez28@mcp.com"},
-        {"name": "Janet Brown", "email": "brownj@mcp.com"},
-        {"name": "Amanda Wilson", "email": "wilsona@mcp.com"},
-        {"name": "Dorothy Adams", "email": "dorothya69@mcp.com"},
-        {"name": "Aaron Clark", "email": "aaron.clark@mcp.com"},
-        {"name": "Deborah Rodriguez", "email": "drodriguez@mcp.com"},
-        {"name": "David Lopez", "email": "davidl35@mcp.com"},
-        {"name": "Karen White", "email": "karen.white66@mcp.com"},
-        {"name": "Alexander Williams", "email": "alexander_williams@mcp.com"},
-    ]
-    
-    # 产品数据
-    products = [
-        {"name": "Wireless Bluetooth Earphones", "price": 299.00},
-        {"name": "Smart Watch", "price": 899.00},
-        {"name": "Portable Power Bank", "price": 129.00},
-        {"name": "Wireless Charger", "price": 89.00},
-        {"name": "Phone Stand", "price": 39.00},
-        {"name": "Cable Set", "price": 49.00},
-        {"name": "Bluetooth Speaker", "price": 199.00},
-        {"name": "Car Charger", "price": 59.00},
-        {"name": "Phone Case", "price": 29.00},
-        {"name": "Screen Protector", "price": 19.00},
-    ]
-    
-    orders = []
-    now = datetime.now()
-    
-    # 创建7天内的10个订单（混合送达状态）
-    print("  创建最近的20个订单（混合送达状态）...")
-    for i in range(20):
-        customer = customers[i]
-        product = random.choice(products)
-        
-        # 随机订单日期（1-7天前）
-        order_days_ago = random.randint(1, 7)
-        order_date = now - timedelta(days=order_days_ago)
-        
-        # 混合送达状态：70%已送达，30%处理中/已发货
-        if i < 14:  # 前14个已送达（70%）
-            status = "completed"
-            date_completed = order_date + timedelta(days=random.randint(2, 5))
-            # 确保完成日期在7天内
-            if (now - date_completed).days > 7:
-                date_completed = now - timedelta(days=random.randint(1, 6))
-        else:  # 后6个未送达（30%）
-            status = random.choice(["processing", "on-hold"])
-            date_completed = None
-        
-        order = {
-            "order_id": 100 + i,
-            "order_number": f"{100 + i}",
-            "customer_email": customer["email"],
-            "customer_name": customer["name"],
-            "status": status,
-            "date_created": order_date.strftime('%Y-%m-%dT%H:%M:%S'),
-            "date_completed": date_completed.strftime('%Y-%m-%dT%H:%M:%S') if date_completed else None,
-            "product_name": product["name"],
-            "product_price": product["price"],
-            "quantity": random.randint(1, 3),
-            "period": "recent_7_days"
-        }
-        orders.append(order)
-    
-    # 打乱订单顺序，增加随机性
-    print("  🔀 打乱订单顺序...")
-    random.shuffle(orders)
-    
-    # # 创建7天前的10个订单（都是已完成状态）
-    # print("  创建7天前的订单（已完成状态）...")
-    # for i in range(10):
-    #     customer = customers[i + 10]
-    #     product = random.choice(products)
-        
-    #     # 8-20天前的订单
-    #     order_days_ago = random.randint(8, 20)
-    #     order_date = now - timedelta(days=order_days_ago)
-    #     date_completed = order_date + timedelta(days=random.randint(3, 7))
-        
-    #     order = {
-    #         "order_id": 200 + i,
-    #         "order_number": f"{200 + i}",
-    #         "customer_email": customer["email"],
-    #         "customer_name": customer["name"],
-    #         "status": "completed",
-    #         "date_created": order_date.strftime('%Y-%m-%dT%H:%M:%S'),
-    #         "date_completed": date_completed.strftime('%Y-%m-%dT%H:%M:%S'),
-    #         "product_name": product["name"],
-    #         "product_price": product["price"],
-    #         "quantity": random.randint(1, 3),
-    #         "period": "before_7_days"
-    #     }
-    #     orders.append(order)
-    
-    return orders
 
+    # 使用通用订单生成器
+    all_orders, completed_orders = create_customer_survey_orders()
 
-def create_email_template():
-    """创建邮件模板"""
-    print("📧 创建邮件模板...")
-    
-    email_template = {
-        "subject": "感谢您的购买！请分享您的购物体验 - {customer_name}",
-        "body_template": """亲爱的 {customer_name}，
+    print(f"Created {len(all_orders)} orders")
+    print(f"   - Completed orders: {len(completed_orders)}")
+    print(f"   - Other status orders: {len(all_orders) - len(completed_orders)}")
 
-感谢您在我们商店购买 {product_name}！
+    return all_orders
 
-您的订单 #{order_number} 已于 {completion_date} 成功完成。为了不断改善我们的服务质量，我们诚挚邀请您花几分钟时间分享您的购物体验。
-
-请点击以下链接填写简短的反馈问卷：
-{survey_link}
-
-您的意见对我们非常重要，将帮助我们为您和其他客户提供更好的服务。
-
-产品详情：
-- 产品名称：{product_name}
-- 订单金额：¥{product_price}
-- 购买数量：{quantity}
-
-如果您对产品或服务有任何问题，请随时联系我们的客服团队。
-
-再次感谢您的支持！
-
-此致
-客户服务团队
-在线商城""",
-        "content_type": "text/plain",
-        "from_name": "在线商城客服",
-        "reply_to": "support@mcp.com"
-    }
-    
-    return email_template
-
-
-def copy_initial_files_to_workspace(agent_workspace: str):
-    """
-    将初始文件复制到agent工作空间
-    
-    Args:
-        agent_workspace: Agent工作空间路径
-    """
-    print(f"🚀 设置初始工作环境到: {agent_workspace}")
-    
-    # 确保工作空间目录存在
-    os.makedirs(agent_workspace, exist_ok=True)
-    
-    # 定义需要复制的文件
-    files_dir = task_dir / "files"
-    files_to_copy = [
-        "email_config_template.json"
-    ]
-    
-    copied_count = 0
-    for filename in files_to_copy:
-        source_path = files_dir / filename
-        dest_path = Path(agent_workspace) / filename
-        
-        if source_path.exists():
-            try:
-                shutil.copy2(source_path, dest_path)
-                print(f"✅ 复制文件: {filename}")
-                copied_count += 1
-            except Exception as e:
-                print(f"❌ 复制文件失败 {filename}: {e}")
-        else:
-            print(f"⚠️  源文件不存在: {filename}")
-    
-    return copied_count >= 0  # 即使没有文件也算成功
-
-
-def setup_task_data(upload_to_woocommerce=True):
+def setup_task_data():
     """
     设置任务数据文件
     
@@ -682,7 +414,7 @@ def setup_task_data(upload_to_woocommerce=True):
     # 保存完整订单数据到本地 JSON 文件
     with open(current_dir / "completed_orders.json", 'w', encoding='utf-8') as f:
         json.dump(orders, f, ensure_ascii=False, indent=2)
-    print(f"✅ 创建完整订单数据: {len(orders)} 个订单")
+    print(f"✅ Created complete order data: {len(orders)} orders")
     
     # 过滤出已完成的订单并保存到 groundtruth_workspace
     completed_orders = [order for order in orders if order["status"] == "completed"]
@@ -692,7 +424,7 @@ def setup_task_data(upload_to_woocommerce=True):
     expected_orders_file = groundtruth_dir / "expected_orders.json"
     with open(expected_orders_file, 'w', encoding='utf-8') as f:
         json.dump(completed_orders, f, ensure_ascii=False, indent=2)
-    print(f"✅ 保存已完成订单到 groundtruth: {len(completed_orders)} 个订单")
+    print(f"✅ Saved completed orders to groundtruth: {len(completed_orders)} orders")
     
     # 统计
     all_orders = orders
@@ -706,50 +438,45 @@ def setup_task_data(upload_to_woocommerce=True):
         status = order["status"]
         status_summary[status] = status_summary.get(status, 0) + 1
     
-    print(f"   - 总订单数: {len(all_orders)} 个")
-    print(f"   - 已完成订单: {len(completed_orders)} 个 ({len(completed_orders)/len(all_orders)*100:.0f}%)")
-    print(f"   - 处理中订单: {len(processing_orders)} 个")
-    print(f"   - 等待中订单: {len(onhold_orders)} 个")
+    print(f"   - Total orders: {len(all_orders)}")
+    print(f"   - Completed orders: {len(completed_orders)} ({len(completed_orders)/len(all_orders)*100:.0f}%)")
+    print(f"   - Processing orders: {len(processing_orders)}")
+    print(f"   - Onhold orders: {len(onhold_orders)}")
     
     print(f"\n📈 订单状态详情:")
     for status, count in sorted(status_summary.items()):
-        print(f"   {status}: {count} 个")
+        print(f"   {status}: {count}")
     
     # 上传订单到 WooCommerce
     upload_success = False
-    if upload_to_woocommerce:
-        try:
-            # 导入配置
-            from token_key_session import all_token_key_session
+
+    try:
+        # 导入配置
+        from token_key_session import all_token_key_session
+        
+        # 初始化 WooCommerce 订单管理器
+        order_manager = WooCommerceOrderManager(
+            all_token_key_session.woocommerce_site_url,
+            all_token_key_session.woocommerce_api_key,
+            all_token_key_session.woocommerce_api_secret
+        )
+        
+        # 删除现有订单
+        order_manager.delete_existing_orders()
+        
+        # 上传新订单
+        successful_count, failed_count = order_manager.upload_orders_to_woocommerce(orders)
+        
+        if failed_count == 0:
+            upload_success = True
+            print("✅ All orders successfully uploaded to WooCommerce")
+        else:
+            print(f"⚠️ Some orders failed to upload (success: {successful_count}, failed: {failed_count})")
             
-            # 初始化 WooCommerce 订单管理器
-            order_manager = WooCommerceOrderManager(
-                all_token_key_session.woocommerce_site_url,
-                all_token_key_session.woocommerce_api_key,
-                all_token_key_session.woocommerce_api_secret
-            )
-            
-            # 删除现有订单
-            order_manager.delete_existing_orders()
-            
-            # 上传新订单
-            successful_count, failed_count = order_manager.upload_orders_to_woocommerce(orders)
-            
-            if failed_count == 0:
-                upload_success = True
-                print("✅ 所有订单已成功上传到 WooCommerce")
-            else:
-                print(f"⚠️ 部分订单上传失败 (成功: {successful_count}, 失败: {failed_count})")
-                
-        except Exception as e:
-            print(f"❌ 上传订单到 WooCommerce 时出错: {e}")
-            print("💡 将继续使用本地 JSON 文件作为数据源")
-    
-    # 创建邮件模板
-    email_template = create_email_template()
-    with open(current_dir / "email_template.json", 'w', encoding='utf-8') as f:
-        json.dump(email_template, f, ensure_ascii=False, indent=2)
-    print("✅ 创建邮件模板")
+    except Exception as e:
+        print(f"❌ Error uploading orders to WooCommerce: {e}")
+        print("💡 Will continue using local JSON file as data source")
+        return False
     
     return True
 
@@ -757,124 +484,72 @@ def setup_task_data(upload_to_woocommerce=True):
 def main():
     """主预处理函数"""
     
-    parser = ArgumentParser(description="预处理脚本 - 设置WooCommerce客户调研任务的初始环境")
-    parser.add_argument("--agent_workspace", required=True, help="Agent工作空间路径")
+    parser = ArgumentParser(description="Preprocess script - Set up the initial environment for the WooCommerce customer survey task")
+    parser.add_argument("--agent_workspace", required=False, help="Agent工作空间路径")
     parser.add_argument("--launch_time", required=False, help="Launch time")
-    parser.add_argument("--no-upload", action="store_true", help="不上传订单到 WooCommerce，仅创建本地文件")
-    parser.add_argument("--no-clear-mailbox", action="store_true", help="不清空邮箱")
-    parser.add_argument("--no-clear-forms", action="store_true", help="不清空Google Forms")
-    parser.add_argument("--form-name-pattern", type=str, help="要删除的Google Forms名称模式（如果指定，只删除匹配的表单）")
     args = parser.parse_args()
     
     print("=" * 60)
-    print("🎯 WooCommerce客户调研任务 - 预处理")
+    print("WooCommerce customer survey task - Preprocess")
     print("=" * 60)
-    
-    upload_to_woocommerce = not args.no_upload
-    clear_mailbox_enabled = not args.no_clear_mailbox
-    clear_forms_enabled = not args.no_clear_forms
-    form_name_pattern = args.form_name_pattern
-    
-    if not upload_to_woocommerce:
-        print("🔧 参数: 仅创建本地文件，不上传到 WooCommerce")
-    if not clear_mailbox_enabled:
-        print("🔧 参数: 跳过邮箱清空操作")
-    if not clear_forms_enabled:
-        print("🔧 参数: 跳过Google Forms清空操作")
-    if form_name_pattern:
-        print(f"🔧 参数: 只删除包含 '{form_name_pattern}' 的Google Forms")
     
     try:
         # 第一步：清空邮箱（如果启用）
-        if clear_mailbox_enabled:
-            print("\n" + "="*60)
-            print("第一步：清空邮箱")
-            print("="*60)
-            
-            mailbox_result = clear_mailbox()
-            
-            if not mailbox_result.get('success'):
-                print("⚠️ 邮箱清理未完全成功，但继续后续操作...")
-                print(f"邮箱清理详情: {mailbox_result}")
-            
-            # 等待一下，确保邮箱操作完成
-            print("⏳ 等待2秒，确保邮箱清理操作完成...")
-            time.sleep(2)
-        else:
-            print("\n🔧 跳过邮箱清空操作")
+        
+        print("\n" + "="*60)
+        print("First Step: Clear mailbox")
+        print("="*60)
+        
+        mailbox_result = clear_mailbox()
+        
+        if not mailbox_result.get('success'):
+            print("Mailbox cleanup not fully successful, but continue with subsequent operations...")
+            print(f"Mailbox cleanup details: {mailbox_result}")
+        
+        # 等待一下，确保邮箱操作完成
+        print("Wait 2 seconds to ensure mailbox cleanup operation is complete...")
+        time.sleep(2)
         
         # 第二步：清空Google Forms（如果启用）
         forms_result = None
-        if clear_forms_enabled:
-            print("\n" + "="*60)
-            print("第二步：清空Google Forms")
-            print("="*60)
-            form_name_pattern = "Customer Shopping Experience Feedback Survey"
-            forms_result = clear_google_forms(form_name_pattern)
-            
-            if not forms_result.get('success'):
-                print("⚠️ Google Forms清理未完全成功，但继续后续操作...")
-                print(f"Google Forms清理详情: {forms_result}")
-            
-            # 等待一下，确保Google Forms操作完成
-            print("⏳ 等待2秒，确保Google Forms清理操作完成...")
-            time.sleep(2)
-        else:
-            print("\n🔧 跳过Google Forms清空操作")
+
+        print("\n" + "="*60)
+        print("Second Step: Clear Google Forms")
+        print("="*60)
+        form_name_pattern = "Customer Shopping Experience Feedback Survey"
+        forms_result = clear_google_forms(form_name_pattern)
+        
+        if not forms_result.get('success'):
+            print("Google Forms cleanup not fully successful, but continue with subsequent operations...")
+            print(f"Google Forms cleanup details: {forms_result}")
+        
+        # 等待一下，确保Google Forms操作完成
+        print("Wait 2 seconds to ensure Google Forms cleanup operation is complete...")
+        time.sleep(2)
+        
         
         # 第三步：设置任务数据文件
         print("\n" + "="*60)
-        print("第三步：设置任务数据")
+        print("Third Step: Set task data")
         print("="*60)
         
-        success1 = setup_task_data(upload_to_woocommerce=upload_to_woocommerce)
+        success1 = setup_task_data()
         
-        # 第四步：复制初始文件到工作空间
-        print("\n" + "="*60)
-        print("第四步：复制文件到工作空间")
-        print("="*60)
+   
         
-        success2 = copy_initial_files_to_workspace(args.agent_workspace)
         
-        if success1 and success2:
-            print("\n🎉 预处理完成！任务环境已准备就绪")
-            print("\n📝 任务数据摘要：")
-            step_num = 1
-            if clear_mailbox_enabled:
-                print(f"{step_num}. ✅ 清空了邮箱（INBOX 和 Sent 文件夹）")
-                step_num += 1
-            if clear_forms_enabled:
-                if forms_result and forms_result.get('success'):
-                    deleted_count = forms_result.get('deleted_count', 0)
-                    found_count = forms_result.get('found_count', 0)
-                    if form_name_pattern:
-                        print(f"{step_num}. ✅ 清空了匹配 '{form_name_pattern}' 的Google Forms（找到 {found_count} 个，删除 {deleted_count} 个）")
-                    else:
-                        print(f"{step_num}. ✅ 清空了所有Google Forms（找到 {found_count} 个，删除 {deleted_count} 个）")
+        if success1:
+            print("\n🎉 Preprocessing completed! Task environment is ready")
+            if forms_result and forms_result.get('success'):
+                deleted_count = forms_result.get('deleted_count', 0)
+                found_count = forms_result.get('found_count', 0)
+                if form_name_pattern:
+                    print(f"Cleared Google Forms matching '{form_name_pattern}' (found {found_count} deleted {deleted_count} )")
                 else:
-                    print(f"{step_num}. ⚠️ Google Forms清理部分完成")
-                step_num += 1
-            print(f"{step_num}. ✅ 创建了20个最近订单（70%已完成 + 30%处理中）")
-            step_num += 1
-            print(f"{step_num}. ✅ 订单包含混合送达状态（completed/processing/on-hold）")
-            step_num += 1
-            if upload_to_woocommerce:
-                print(f"{step_num}. ✅ 订单已上传到 WooCommerce 并创建了本地备份")
-            else:
-                print(f"{step_num}. ✅ 订单已保存到本地 JSON 文件")
-            step_num += 1
-            print(f"{step_num}. ✅ 创建了邮件模板，支持动态参数填充")
-            step_num += 1
-            print(f"{step_num}. ✅ 配置文件已复制到工作空间")
-            step_num += 1
-            print(f"{step_num}. ✅ 已完成订单已保存到 groundtruth_workspace")
-            print("\n🎯 任务目标：")
-            print("- 查询已送达订单的客户")
-            print("- 创建客户体验问卷（Google Forms）")
-            print("- 向已送达订单的客户发送问卷邮件")
+                    print(f"Cleared all Google Forms (found {found_count} deleted {deleted_count} )")
             return True
         else:
-            print("\n⚠️  预处理部分完成，请检查错误信息")
+            print("\n Preprocessing partially completed, please check the error information")
             return False
         
     except Exception as e:
