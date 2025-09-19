@@ -323,13 +323,13 @@ class AsyncTaskScheduler:
         self._archive_previous_results(dump_path, tasks_folder, task_name)
 
         # Updated to use container log path in dump_path structure
-        log_file = os.path.join(dump_path, tasks_folder, task_name, "container.log")
+        log_file = os.path.join(dump_path, tasks_folder, task_name, "run.log")
+        container_log_file = os.path.join(dump_path, tasks_folder, task_name, "container.log")
         
         task_start = datetime.now()
-        lock_status = "with lock" if has_lock else "no lock"
         
         print(f"\n🚀 [{task_start.strftime('%H:%M:%S')}] STARTING: {task_dir_arg}")
-        print(f"   📝 Log: {log_file}")
+        print(f"   📝 Log: {log_file}\n     Container log: {container_log_file}")
         if has_lock:
             print(f"   🔒 Running with conflict lock")
         
@@ -352,7 +352,7 @@ class AsyncTaskScheduler:
             else: eval_res_emoji = "✅" if eval_res else "❌"
             self.correct_tasks += 1 if eval_res else 0
             self.incorrect_tasks += 1 if not eval_res else 0
-            print(f"   🔍 Eval res: {eval_res_emoji} | Eval log: {eval_res_file}")
+            print(f"   🔍 Eval res: {eval_res_emoji}\n     Eval log: {eval_res_file}\n     Run log: {log_file}")
 
             return {
                 'task': task_dir_arg, 
