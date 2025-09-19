@@ -1,42 +1,49 @@
-#!/usr/bin/env python3
-"""
-GDP CR5分析任务预处理脚本
-为Agent准备初始工作环境
-"""
-
-import os
-import shutil
-import argparse
 import sys
+import os
 import asyncio
-from utils.general.helper import run_command, get_module_path
-from pathlib import Path
+from argparse import ArgumentParser
 
-sys.path.append(str(Path(__file__).parent.parent))
-from token_key_session import all_token_key_session
+sys.path.append(os.path.dirname(__file__))
 
-def main():
-    """
-    命令行调用的主函数 - 支持系统的参数格式
-    """
-    parser = argparse.ArgumentParser(description='GDP CR5分析任务预处理')
-    parser.add_argument('--agent_workspace', required=True, help='Agent工作区路径')
-    parser.add_argument('--launch_time', help='启动时间（可选）')
-    parser.add_argument("--credentials_file",default="configs/credentials.json")
+from utils.app_specific.googlesheet.drive_helper import (
+    get_google_service, find_folder_by_name, create_folder, 
+    clear_folder, copy_sheet_to_folder
+)
+
+GOOGLESHEET_URLS = [
+    "https://docs.google.com/spreadsheets/d/1l_XCK3ebOsKESX-SRamka0Z_O2K5Y2REqo6OHh4C93c",
+]
+
+FOLDER_NAME = "gdp-cr5-analysis"
+
+async def main():
+    parser = ArgumentParser(description="GoogleSheet example preprocess")
+    parser.add_argument("--agent_workspace", required=False)
+    parser.add_argument("--launch_time", required=False)
     args = parser.parse_args()
-    
-    # 初始化 Google Sheets
-    folder_id = all_token_key_session.get("google_sheets_folder_id", "1Xi5bBHdiyGxYDBud5GqkWYo-DOPkWkZl")
-    print(f"Initializing Google Sheets ...")
-    asyncio.run(run_command(
-                f"uv run -m {get_module_path('init_google_sheet')} --folder_id {folder_id} --credentials_file {args.credentials_file}", debug=True,show_output=True))
-    print("Google Sheets initialized")
-    
-    # 调用preprocess函数
-    # 注意：initial_workspace在这里设为None，因为我们只需要agent_workspace
-    #preprocess(None, args.agent_workspace)
-    
-    print("Preprogress finish.")
+
+    task_root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    os.makedirs(os.path.join(task_root_path, "files"), exist_ok=True)
+    folder_id_file = os.path.join(task_root_path, "files", "folder_id.txt")
+
+    if os.path.exists(folder_id_file):
+        os.remove(folder_id_file)
+
+    drive_service, sheets_service = get_google_service()
+
+    folder_id = find_folder_by_name(drive_service, FOLDER_NAME)
+    if not folder_id:
+        folder_id = create_folder(drive_service, FOLDER_NAME)
+
+    clear_folder(drive_service, folder_id)
+
+    for sheet_url in GOOGLESHEET_URLS:
+        copy_sheet_to_folder(drive_service, sheet_url, folder_id)
+
+    with open(folder_id_file, "w") as f:
+        f.write(folder_id)
+
+    print(f"Folder ID saved: {folder_id}")
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
