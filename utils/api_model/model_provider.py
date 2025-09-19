@@ -36,35 +36,56 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
         """
         为Claude模型添加cache_control breakpoints到消息中
         根据OpenRouter文档，只有文本部分可以添加cache_control
+        Anthropic限制最多4个cache control breakpoints
         """
         if not messages:
             return messages
-            
-        modified_messages = []
+        
+        # 收集所有符合条件的消息及其token数
+        cacheable_messages = []
         
         for i, message in enumerate(messages):
-            new_message = message.copy()
-            
-            # 对system、user和tool消息添加缓存控制，且内容要足够长
-            # tool消息在多轮对话中会作为上下文重复使用，非常适合缓存
+            # 对system、user和tool消息添加缓存控制
             if message.get('role') in ['system', 'user', 'tool'] and isinstance(message.get('content'), str):
                 content_length = len(message['content'])
                 # 粗略估算token数量（约4字符=1token）
                 estimated_tokens = content_length // 4
                 
                 if estimated_tokens >= min_cache_tokens:
-                    # 将content转换为多部分格式以支持cache_control
-                    new_message['content'] = [
-                        {
-                            'type': 'text',
-                            'text': message['content'],
-                            'cache_control': {
-                                'type': 'ephemeral'
-                            }
+                    cacheable_messages.append({
+                        'index': i,
+                        'tokens': estimated_tokens,
+                        'role': message.get('role')
+                    })
+        
+        # 按token数降序排序，取前4个
+        cacheable_messages.sort(key=lambda x: x['tokens'], reverse=True)
+        top_cacheable = cacheable_messages[:4]
+        
+        # 创建需要添加cache_control的索引集合
+        cache_indices = {item['index'] for item in top_cacheable}
+        
+        # 构建修改后的消息列表
+        modified_messages = []
+        
+        for i, message in enumerate(messages):
+            new_message = message.copy()
+            
+            # 只有在cache_indices中的消息才添加cache_control
+            if i in cache_indices:
+                new_message['content'] = [
+                    {
+                        'type': 'text',
+                        'text': message['content'],
+                        'cache_control': {
+                            'type': 'ephemeral'
                         }
-                    ]
-                    # if self.debug:
-                    #     print(f"🔄 PROMPT CACHING: Added cache_control to {message.get('role')} message with ~{estimated_tokens} tokens")
+                    }
+                ]
+                # if self.debug:
+                #     # 获取对应的token数用于调试输出
+                #     tokens = next(item['tokens'] for item in top_cacheable if item['index'] == i)
+                #     print(f"🔄 PROMPT CACHING: Added cache_control to {message.get('role')} message with ~{tokens} tokens")
             
             modified_messages.append(new_message)
         

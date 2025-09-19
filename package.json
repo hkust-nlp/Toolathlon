@@ -28,7 +28,7 @@
     "@sylphlab/tools-pdf-mcp": "^0.5.1",
     "@tokenizin/mcp-npx-fetch": "^1.0.0",
     "12306-mcp": "github:lockon-n/12306-mcp#3a2ae5ef6031fc1016f40c8714f6a505fb5aa167",
-    "canvas-mcp-server": "github:lockon-n/mcp-canvas-lms#eb0fd096526768732d573aa172f179730776ff82",
+    "canvas-mcp-server": "github:lockon-n/mcp-canvas-lms#2de1f8963ab52c07302ff25b1a8a2fce0ac998a9",
     "edgeone-pages-mcp": "^0.0.6",
     "firecrawl-mcp": "^1.11.0",
     "hyperbrowser-mcp": "^1.0.25",

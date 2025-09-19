@@ -7,7 +7,15 @@ import re
 from utils.app_specific.github.helper_funcs import read_file_content, get_latest_commit_sha, get_modified_files_between_commits, get_user_name, check_repo_exists
 
 from configs.token_key_session import all_token_key_session
-    
+
+UPSTREAM_GIT_REPOS = [
+    "lockon-n/My-Homepage",
+    "lockon-n/optimizing-llms-contextual-reasoning",
+    "lockon-n/llm-adaptive-learning",
+    "lockon-n/ipsum-lorem-all-you-need",
+    "lockon-n/enhancing-llms",
+]
+
 
 def get_branch(repo_name):
     if "My-Homepage" not in repo_name:
@@ -46,21 +54,23 @@ def check_acceptance(args):
             if match:
                 venue_data = match.group(2).lower()
             else:
-                print(f"File {file} does not contain a valid 'venue' line.")
+                print(f"× File {file} does not contain a valid 'venue' line.")
                 exit(1)
 
         if not venue_data:
-            print(f"File {file} does not contain 'venue' information.")
+            print(f"× File {file} does not contain 'venue' information.")
             exit(1)
 
         print(f"File {file} venue: {venue_data}")
         
         if "preprint" in venue_data or "under review" in venue_data:
-            print(f"File {file} contains 'preprint' or 'under review'.")
+            print(f"× File {file} contains 'preprint' or 'under review'.")
             exit(1)
         if venue.lower() not in venue_data:
-            print(f"File {file} does not contain the expected venue '{venue}'.")
+            print(f"× File {file} does not contain the expected venue '{venue}'.")
             exit(1)
+        
+        print(f"√ File {file} contains the expected venue information for '{venue}'.")
 
     print("All acceptance status checked successfully. Test passed.")
 
@@ -140,19 +150,9 @@ def check_paper_repositories_codeurl(args):
     
     print("All paper repository codeurl checks passed.")
 
-def get_config():
-    task_id = "email-paper-homepage"
-    config_path = "请在这里修改！！！"
-    with open(config_path, 'r') as f:
-        data = json.load(f)
-    task_config = data.get(task_id)
-    if task_config:
-        return task_config
-    raise ValueError(f"Task ID {task_id} not found in config.")
 
 def check_modified_files(args):
-    task_config = get_config()
-    for repo in task_config.get("upstream_repos"):
+    for repo in UPSTREAM_GIT_REPOS:
         repo_name = repo.split('/')[-1]
         local_repo = f"{args.user_name}/{repo_name}"
         if not check_repo_exists(args.github_token, local_repo):
@@ -187,7 +187,7 @@ def main(args):
     check_paper_repositories_codeurl(args)
     check_modified_files(args)
 
-    print("所有检查通过。")
+    print("All checks passed.")
     
 if __name__ == "__main__":
     parser = ArgumentParser()

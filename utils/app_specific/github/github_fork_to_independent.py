@@ -7,7 +7,7 @@ from argparse import ArgumentParser
 import requests
 
 from utils.general.helper import run_command, print_color
-
+from configs.token_key_session import all_token_key_session
 
 GITHUB_API = "https://api.github.com"
 
@@ -86,14 +86,12 @@ async def git_mirror_push(token: str, local_dir: str, dst_full_name: str) -> Non
 
 async def main():
     parser = ArgumentParser()
-    parser.add_argument("--token", required=True, help="GitHub token with delete_repo and repo scopes")
     parser.add_argument("--repo_name", required=True, help="The forked repository name under your account")
     parser.add_argument("--tmp_dir", required=True, help="Temporary directory to hold the mirror clone")
     parser.add_argument("--private", action="store_true", help="Create the new repo as private")
-    parser.add_argument("--first_commit_msg", default="first commit", help="Fallback first commit message if needed")
     args = parser.parse_args()
 
-    token = args.token
+    token = all_token_key_session.github_token
     repo_name = args.repo_name
     tmp_dir = args.tmp_dir
     private_flag = bool(args.private)

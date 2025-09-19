@@ -628,5 +628,14 @@ async def fork_repo(source_repo, target_repo, fork_default_branch_only, readonly
     await run_command(command, debug=True, show_output=True)
     print_color(f"Forked repo {source_repo} to {target_repo} successfully","green")
 
+async def forked_repo_to_independent(repo_name,tmp_dir,private):
+    command = f"uv run -m utils.app_specific.github.github_fork_to_independent "
+    command += f"--repo_name {repo_name} "
+    command += f"--tmp_dir \"{tmp_dir}\""
+    if private:
+        command += " --private"
+    await run_command(command, debug=True, show_output=True)
+    print_color(f"Forked repo {repo_name} to independent repo successfully","green")
+
 if __name__=="__main__":
     pass
