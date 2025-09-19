@@ -1,10 +1,10 @@
 {
     "needed_mcp_servers": [
         "filesystem",
-        "fetch"
+        "fetch",
+        "playwright_with_chunk"
     ],
     "needed_local_tools": [
-        "python_execute",
         "web_search",
         "claim_done",
         "handle_overlong_tool_outputs"

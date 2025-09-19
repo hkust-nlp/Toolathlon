@@ -203,7 +203,7 @@ class NotionPageDuplicator:
             print("❌ Page refresh failed")
             return False
 
-    def duplicate_page_with_playwright(self, source_page_url: str, target_parent_title: str, original_child_name: str) -> Optional[str]:
+    def duplicate_page_with_playwright(self, parent_of_source_page_url: str, source_page_url: str, target_parent_title: str, original_child_name: str) -> Optional[str]:
         """
         Duplicate a page using Playwright automation and move it to target parent.
         
@@ -279,7 +279,7 @@ class NotionPageDuplicator:
                 # Wait for duplication to complete (URL will change)
                 original_url = page.url
                 original_page_id = self.extract_page_id_from_url(original_url)
-                source_parent_id = self.extract_page_id_from_url(source_page_url)
+                source_parent_id = self.extract_page_id_from_url(parent_of_source_page_url)
                 print(f"Original page ID before duplication: {original_page_id}")
                 print(f"Source parent ID: {source_parent_id}")
                 print("Waiting for duplication to complete...")
@@ -481,7 +481,7 @@ class NotionPageDuplicator:
             print(f"Target parent title: {target_parent_title}")
             
             # Duplicate the child page and move it to target parent
-            duplicated_url = self.duplicate_page_with_playwright(child_page_url, target_parent_title, child_name)
+            duplicated_url = self.duplicate_page_with_playwright(source_parent_url, child_page_url, target_parent_title, child_name)
             
             if duplicated_url:
                 print(f"Success! Duplicated page URL: {duplicated_url}")
