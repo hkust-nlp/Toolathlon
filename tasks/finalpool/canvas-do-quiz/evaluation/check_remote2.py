@@ -8,11 +8,10 @@ Uses the same API format as the setup script.
 import requests
 import json
 import os
-import sys
 import asyncio
 import aiohttp
+import sys
 from typing import Dict, List, Tuple, Any
-# --- Add the current directory ---
 current_file_path = os.path.abspath(__file__)
 current_dir = os.path.dirname(current_file_path)
 parent_dir = os.path.dirname(current_dir)
@@ -106,49 +105,31 @@ async def get_my_quiz_scores(base_url: str, api_token: str, course_id: int) -> D
                     # Get my submissions for this quiz
                     submission_url = f"{base_url}/api/v1/courses/{course_id}/quizzes/{quiz_id}/submissions/self"
                     
-                    # Remove debug print
                     async with session.get(submission_url, headers=headers) as sub_response:
                         if sub_response.status == 200:
-                            response_data = await sub_response.json()
-                            quiz_submissions = response_data.get('quiz_submissions', [])
+                            submission = await sub_response.json()
+                            score = submission.get('score')
                             
-                            if quiz_submissions:
-                                # Get the latest submission
-                                submission = quiz_submissions[0]
-                                score = submission.get('score')
-                                quiz_points_possible = submission.get('quiz_points_possible', points_possible)
-                                
-                                # Check if submitted (response status 200 means submission exists)
-                                is_submitted = True
-                                display_score = score if score is not None else 0
-                                
-                                # Calculate if full score for the calling function
+                            # Handle None/null scores properly
+                            if score is None:
+                                # No score recorded yet
                                 is_full_score = False
-                                if score is not None and quiz_points_possible is not None and quiz_points_possible > 0:
-                                    score_float = float(score)
-                                    points_possible_float = float(quiz_points_possible)
-                                    is_full_score = abs(score_float - points_possible_float) < 1e-6
-                                
-                                quiz_scores[quiz_title] = {
-                                    'score': display_score,
-                                    'points_possible': quiz_points_possible,
-                                    'is_submitted': is_submitted,
-                                    'is_full_score': is_full_score,
-                                    'submission_id': submission.get('id'),
-                                    'attempt': submission.get('attempt', 0),
-                                    'has_score': score is not None
-                                }
+                                display_score = 0
                             else:
-                                # No submissions found
-                                quiz_scores[quiz_title] = {
-                                    'score': 0,
-                                    'points_possible': points_possible,
-                                    'is_submitted': False,
-                                    'is_full_score': False,
-                                    'submission_id': None,
-                                    'attempt': 0,
-                                    'has_score': False
-                                }
+                                # Use float conversion and precision comparison for accuracy
+                                score = float(score) if score is not None else 0.0
+                                points_possible_float = float(points_possible) if points_possible is not None else 0.0
+                                is_full_score = abs(score - points_possible_float) < 1e-6 and points_possible_float > 0
+                                display_score = score
+                            
+                            quiz_scores[quiz_title] = {
+                                'score': display_score,
+                                'points_possible': points_possible,
+                                'is_full_score': is_full_score,
+                                'submission_id': submission.get('id'),
+                                'attempt': submission.get('attempt', 0),
+                                'has_score': score is not None
+                            }
                         else:
                             # No submission found or other error
                             error_text = await sub_response.text() if sub_response.status != 404 else "No submission found"
@@ -156,7 +137,6 @@ async def get_my_quiz_scores(base_url: str, api_token: str, course_id: int) -> D
                             quiz_scores[quiz_title] = {
                                 'score': 0,
                                 'points_possible': points_possible,
-                                'is_submitted': False,
                                 'is_full_score': False,
                                 'submission_id': None,
                                 'attempt': 0,
@@ -193,7 +173,7 @@ async def check_all_quizzes_full_score() -> Tuple[bool, str]:
     
     print(f"Checking quiz scores for student: {student_name} ({student_email})")
     
-    # Get user's coursesf
+    # Get user's courses
     courses = await get_user_courses(base_url, api_token)
     if not courses:
         return False, "Failed to fetch courses from Canvas API or no active courses found"
@@ -227,8 +207,7 @@ async def check_all_quizzes_full_score() -> Tuple[bool, str]:
                 'score': score_info['score'],
                 'points_possible': score_info['points_possible'],
                 'is_full_score': is_full_score,
-                'attempt': score_info.get('attempt', 0),
-                'has_score': score_info.get('has_score', True)
+                'attempt': score_info.get('attempt', 0)
             })
             
             if is_full_score:
