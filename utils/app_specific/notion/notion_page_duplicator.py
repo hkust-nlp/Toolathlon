@@ -158,6 +158,51 @@ class NotionPageDuplicator:
             print(f"Failed to rename page via API: {e}")
             return False
 
+    def clear_modal_overlay(self, page: Page, timeout: int = 10_000) -> bool:
+        """尝试清除modal overlay的综合策略"""
+        modal_selector = "div.notion-modal-underlay"
+
+        # 策略1: 等待10秒看是否自动消失
+        try:
+            page.wait_for_selector(modal_selector, state="detached", timeout=timeout)
+            print("✅ Modal overlay cleared automatically")
+            return True
+        except:
+            print("⚠️ Modal overlay still present after 10s")
+
+        # 策略2: 按ESC键尝试关闭
+        try:
+            page.keyboard.press("Escape")
+            time.sleep(1)
+            page.wait_for_selector(modal_selector, state="detached", timeout=2_000)
+            print("✅ Modal cleared by ESC key")
+            return True
+        except:
+            print("❌ ESC key didn't work")
+
+        # 策略3: 点击modal外部区域
+        try:
+            # 点击页面左上角空白区域
+            page.click("body", position={"x": 50, "y": 50}, timeout=2_000)
+            time.sleep(1)
+            page.wait_for_selector(modal_selector, state="detached", timeout=2_000)
+            print("✅ Modal cleared by clicking outside")
+            return True
+        except:
+            print("❌ Clicking outside didn't work")
+
+        # 策略4: 刷新页面（最后手段）
+        try:
+            print("🔄 Refreshing page as last resort...")
+            current_url = page.url
+            page.goto(current_url, wait_until="load", timeout=30_000)
+            time.sleep(3)
+            print("✅ Page refreshed successfully")
+            return True
+        except:
+            print("❌ Page refresh failed")
+            return False
+
     def duplicate_page_with_playwright(self, source_page_url: str, target_parent_title: str, original_child_name: str) -> Optional[str]:
         """
         Duplicate a page using Playwright automation and move it to target parent.
@@ -338,6 +383,10 @@ class NotionPageDuplicator:
 
                 # Step 2: Move the duplicated page to target parent
                 print(f"Moving duplicated page to target parent: {target_parent_title}")
+
+                # 清理modal状态
+                if not self.clear_modal_overlay(page):
+                    raise Exception("Failed to clear modal overlay after all attempts")
 
                 # Open page menu again
                 page.wait_for_selector(PAGE_MENU_BUTTON_SELECTOR, state="visible", timeout=30_000)

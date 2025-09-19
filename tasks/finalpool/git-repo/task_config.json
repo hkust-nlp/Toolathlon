@@ -2,8 +2,6 @@
     "needed_mcp_servers": [
         "github",
         "filesystem",
-        "fetch",
-        "playwright_with_chunk",
         "pdf-tools"
     ],
     "needed_local_tools": [

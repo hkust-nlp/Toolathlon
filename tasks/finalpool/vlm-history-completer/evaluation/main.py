@@ -31,6 +31,8 @@ SCOPES = [
     'https://www.googleapis.com/auth/drive',
     'https://www.googleapis.com/auth/spreadsheets'
 ]
+SPREADSHEET_NAME = "Directory of Generative AI"
+WORKSHEET_NAME = "Text and Image"
 
 def authenticate_google_services():
     """认证Google服务 - 使用OAuth2用户凭证"""
@@ -88,7 +90,7 @@ def normalize_text(text: str) -> str:
     return text.strip().lower() if text else ""
 
 
-def find_spreadsheet_in_folder(spreadsheet_name: str = "VLM-History") -> str:
+def find_spreadsheet_in_folder(spreadsheet_name: str = SPREADSHEET_NAME) -> str:
     """
     在目标文件夹中查找指定名称的Spreadsheet文件
     返回找到的表格的ID
@@ -137,7 +139,7 @@ def find_spreadsheet_in_folder(spreadsheet_name: str = "VLM-History") -> str:
         raise
 
 
-def read_google_sheet_as_json(spreadsheet_id: str) -> list:
+def read_google_sheet_as_json(spreadsheet_id: str,worksheet_name: str = WORKSHEET_NAME) -> list:
     """
     使用gspread库读取Google Sheets并转换为JSON
     """
@@ -148,14 +150,8 @@ def read_google_sheet_as_json(spreadsheet_id: str) -> list:
         gc, drive_service = authenticate_google_services()
         spreadsheet = gc.open_by_key(spreadsheet_id)
         
-        # 获取第一个工作表
-        worksheet = spreadsheet.get_worksheet(0)
-
-        # 数据不足则获取第二个
-        values = worksheet.get_all_values()
-        if len(values) < 2:
-            print("表格数据不足（需要至少包含标题行和一行数据）, 尝试获取第二个表格")
-            worksheet = spreadsheet.get_worksheet(1)
+        # 按名称获取指定工作表
+        worksheet = spreadsheet.worksheet(worksheet_name)
 
         # 获取所有数据
         values = worksheet.get_all_values()
@@ -342,7 +338,7 @@ if __name__ == "__main__":
     
     try:
         # 从文件夹中自动查找表格
-        spreadsheet_id = find_spreadsheet_in_folder()
+        spreadsheet_id = find_spreadsheet_in_folder(SPREADSHEET_NAME)
         
         # 读取提交的数据
         submitted_data = read_google_sheet_as_json(spreadsheet_id)

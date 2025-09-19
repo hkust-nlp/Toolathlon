@@ -192,6 +192,7 @@ setup_helm() {
   return 0
 }
 
+
 # 部署 Redis with Helm
 deploy_redis_helm() {
   local config_path=$1
@@ -209,16 +210,22 @@ deploy_redis_helm() {
   # 记录开始时间
   start_time=$(date +%s)
 
+  # 添加--set参数覆盖镜像仓库为bitnamilegacy
   if helm install "$helm_release_name" "$helm_repo_name/$helm_chart_name" \
     --namespace "$namespace" \
     --version "$initial_version" \
     --values "$values_file" \
+    --set image.repository=bitnamilegacy/redis \
+    --set sentinel.image.repository=bitnamilegacy/redis-sentinel \
+    --set metrics.image.repository=bitnamilegacy/redis-exporter \
+    --set volumePermissions.image.repository=bitnamilegacy/os-shell \
+    --set sysctl.image.repository=bitnamilegacy/os-shell \
     --wait \
     --timeout 5m; then
     log_info "Redis deployed successfully with version $initial_version"
   else
     log_error "Failed to deploy Redis"
-    # log_info "========== 开始详细调试信息 =========="
+    log_info "========== 开始详细调试信息 =========="
     
     # # 检查Pod状态
     # log_info "检查Pod状态："

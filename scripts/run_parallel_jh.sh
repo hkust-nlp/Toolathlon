@@ -2,7 +2,7 @@
 
 # Configuration Variables - Modify as needed
 TASKS_FOLDER="finalpool"
-TAG="09180355_subset"
+TAG="subset"
 
 # Parse input arguments for model_name and dump_path
 MODEL_NAME="${1:-gpt-5-mini}"
@@ -22,12 +22,12 @@ MAX_TOKENS="8192"
 USER_TEMPERATURE="1.0"
 USER_TOP_P="1.0"
 USER_MAX_TOKENS="1024"
-IMAGE_NAME="lockon0927/mcpbench-task-image-v2:jl0918gamma"  # Docker image to use
+IMAGE_NAME="lockon0927/mcpbench-task-image-v2:jl0919alpha"  # Docker image to use
 
 mkdir -p $DUMP_PATH
 
 # Optional parameters - uncomment and modify as needed
-TASK_LIST="filtered_tasks_parallel_09180355.txt"
+TASK_LIST="filtered_tasks_parallel_09182034.txt"
 
 
 # Generate temporary config file with random suffix to avoid conflicts

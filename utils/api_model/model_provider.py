@@ -428,22 +428,22 @@ model_provider_mapping = {
 }
 
 API_MAPPINGS = {
-    'deepseek-v3-0324': Dict(
-        api_model={"ds_internal": "deepseek-chat",
-                   "aihubmix": "DeepSeek-V3",
-                   "openrouter": "deepseek/deepseek-chat"},
-        price=[0.272/1000, 1.088/1000],
-        concurrency=32,
-        context_window=64000,
-        openrouter_config={"provider": {"only": ["deepseek"]}}
-    ),
-    'deepseek-r1-0528': Dict(
-        api_model={"ds_internal": "deepseek-reasoner",
-                   "aihubmix": "DeepSeek-R1"},
-        price=[0.546/1000, 2.184/1000],
-        concurrency=32,
-        context_window=64000
-    ),
+    # 'deepseek-v3-0324': Dict(
+    #     api_model={"ds_internal": "deepseek-chat",
+    #                "aihubmix": "DeepSeek-V3",
+    #                "openrouter": "deepseek/deepseek-chat"},
+    #     price=[0.272/1000, 1.088/1000],
+    #     concurrency=32,
+    #     context_window=64000,
+    #     openrouter_config={"provider": {"only": ["deepseek"]}}
+    # ),
+    # 'deepseek-r1-0528': Dict(
+    #     api_model={"ds_internal": "deepseek-reasoner",
+    #                "aihubmix": "DeepSeek-R1"},
+    #     price=[0.546/1000, 2.184/1000],
+    #     concurrency=32,
+    #     context_window=64000
+    # ),
     'deepseek-v3.1': Dict(
         api_model={"ds_internal": "",
                    "aihubmix": "DeepSeek-V3.1",
@@ -462,22 +462,22 @@ API_MAPPINGS = {
         concurrency=32,
         context_window=128000
     ),
-    'gpt-4o': Dict(
-        api_model={"ds_internal": "azure-gpt-4o-2024-11-20",
-                   "aihubmix": "gpt-4o-2024-11-20",
-                   "openrouter": "openai/gpt-4o"},
-        price=[0.005, 0.015],
-        concurrency=32,
-        context_window=128000,
-        openrouter_config={"provider": {"only": ["openai"]}}
-    ),
-    'gpt-4o-mini': Dict(
-        api_model={"ds_internal": "azure-gpt-4o-mini-2024-07-18",
-                   "aihubmix": "gpt-4o-mini"},
-        price=[0.00015, 0.0006],
-        concurrency=32,
-        context_window=128000
-    ),
+    # 'gpt-4o': Dict(
+    #     api_model={"ds_internal": "azure-gpt-4o-2024-11-20",
+    #                "aihubmix": "gpt-4o-2024-11-20",
+    #                "openrouter": "openai/gpt-4o"},
+    #     price=[0.005, 0.015],
+    #     concurrency=32,
+    #     context_window=128000,
+    #     openrouter_config={"provider": {"only": ["openai"]}}
+    # ),
+    # 'gpt-4o-mini': Dict(
+    #     api_model={"ds_internal": "azure-gpt-4o-mini-2024-07-18",
+    #                "aihubmix": "gpt-4o-mini"},
+    #     price=[0.00015, 0.0006],
+    #     concurrency=32,
+    #     context_window=128000
+    # ),
     'gpt-5': Dict(
         api_model={"ds_internal": "",
                    "aihubmix": "gpt-5",
@@ -495,13 +495,13 @@ API_MAPPINGS = {
         concurrency=32,
         context_window=1000000
     ),
-    'gpt-5-nano': Dict(
-        api_model={"ds_internal": "",
-                   "aihubmix": "gpt-5-nano"},
-        price=[0.05/1000, 0.4/1000],
-        concurrency=32,
-        context_window=1000000
-    ),
+    # 'gpt-5-nano': Dict(
+    #     api_model={"ds_internal": "",
+    #                "aihubmix": "gpt-5-nano"},
+    #     price=[0.05/1000, 0.4/1000],
+    #     concurrency=32,
+    #     context_window=1000000
+    # ),
     'o4-mini': Dict(
         api_model={"ds_internal": "azure-o4-mini-2025-04-16",
                    "aihubmix": "o4-mini"},
@@ -543,31 +543,39 @@ API_MAPPINGS = {
     ),
     'gemini-2.5-pro': Dict(
         api_model={"ds_internal": "cloudsway-gemini-2.5-pro",
-                   "aihubmix": "gemini-2.5-pro"},
+                   "aihubmix": "gemini-2.5-pro",
+                   "openrouter": "google/gemini-2.5-pro"},
         price=[0.00125, 0.010],
         concurrency=32,
         context_window=1000000
     ),
     'gemini-2.5-flash': Dict(
         api_model={"ds_internal": "cloudsway-gemini-2.5-flash",
-                   "aihubmix": "gemini-2.5-flash"},
+                   "aihubmix": "gemini-2.5-flash",
+                   "openrouter": "google/gemini-2.5-flash"},
         price=[0.00015, 0.0035],
         concurrency=32,
         context_window=1000000
     ),
-    'grok-3-beta': Dict(
-        api_model={"ds_internal": "grok-3-beta",
-                   "aihubmix": "grok-3-beta"},
-        price=[0.003, 0.015],
+    # 'grok-3-beta': Dict(
+    #     api_model={"ds_internal": "grok-3-beta",
+    #                "aihubmix": "grok-3-beta"},
+    #     price=[0.003, 0.015],
+    #     concurrency=32,
+    #     context_window=128000
+    # ),
+    # 'grok-3-mini-beta': Dict(
+    #     api_model={"ds_internal": "grok-3-mini-beta",
+    #                "aihubmix": "grok-3-mini-beta"},
+    #     price=[0.0003, 0.0005],
+    #     concurrency=32,
+    #     context_window=128000
+    # ),
+    'grok-4': Dict(
+        api_model={"openrouter": "x-ai/grok-4"},
+        price=[3/1000, 15/1000],
         concurrency=32,
-        context_window=128000
-    ),
-    'grok-3-mini-beta': Dict(
-        api_model={"ds_internal": "grok-3-mini-beta",
-                   "aihubmix": "grok-3-mini-beta"},
-        price=[0.0003, 0.0005],
-        concurrency=32,
-        context_window=128000
+        context_window=256000
     ),
     'grok-code-fast-1': Dict(
         api_model={"ds_internal": "grok-code-fast-1",
@@ -577,13 +585,13 @@ API_MAPPINGS = {
         concurrency=32,
         context_window=128000
     ),    
-    'kimi-k2-instruct': Dict(
-        api_model={"ds_internal": None,
-                   "aihubmix": "moonshotai/kimi-k2-instruct"},
-        price=[0.62/1000, 2.48/1000],
-        concurrency=32,
-        context_window=128000
-    ),
+    # 'kimi-k2-instruct': Dict(
+    #     api_model={"ds_internal": None,
+    #                "aihubmix": "moonshotai/kimi-k2-instruct"},
+    #     price=[0.62/1000, 2.48/1000],
+    #     concurrency=32,
+    #     context_window=128000
+    # ),
     'Kimi-K2-0905': Dict(
         api_model={"ds_internal": None,
                    "aihubmix": "Kimi-K2-0905",

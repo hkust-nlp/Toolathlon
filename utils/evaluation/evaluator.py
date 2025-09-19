@@ -32,7 +32,14 @@ class TaskEvaluator:
         launch_time = task_config.launch_time
         print(f"launch time in eval is {launch_time}")
 
-        # 评估所有内容
+        # 先检查任务状态：只有 SUCCESS 才有可能通过；否则直接返回 pass = None
+        if task_status != TaskStatus.SUCCESS.value:
+            return {
+                "pass": None,
+                "details": f"Task status: {task_status}, only SUCCESS counts as pass; pass is null"
+            }
+
+        # 评估所有内容（仅在任务状态为 SUCCESS 时进行）
         if eval_command is not None:
             # try:
             args = f"--res_log_file {res_log_file} --agent_workspace {agent_workspace} --groundtruth_workspace {groundtruth_workspace} --launch_time \"{launch_time}\""
@@ -44,21 +51,15 @@ class TaskEvaluator:
             print(error)
             if returncode != 0:
                 return {
-                    "pass": False, 
+                    "pass": False,
                     "failure": output,
                 }
-
-        if task_status != TaskStatus.SUCCESS.value:
-            return {
-                "pass": True, 
-                # 原因是模型可能前面已经做对，但花了一些时间在检查，导致超过轮数限制了
-                "details": f"Task status: {task_status}, but all evaluation checks passed, so we consider it passed"
-            }
-        else:
-            return {
-                "pass": True,
-                "details": "All evaluation checks passed, and task status is success"
-            }
+                
+        # 最后就是成功了
+        return {
+            "pass": True,
+            "details": "All evaluation checks passed, and task status is success"
+        }
     
     @staticmethod
     async def evaluate_from_log_file(log_file_path: str, allow_resume: bool = False) -> Dict[str, Any]:

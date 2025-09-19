@@ -32,10 +32,6 @@ def main():
                 f"uv run -m {get_module_path('init_google_sheet')} --folder_id {folder_id} --credentials_file {args.credentials_file}", debug=True,show_output=True))
     print("Google Sheets initialized")
     
-    # 调用preprocess函数
-    # 注意：initial_workspace在这里设为None，因为我们只需要agent_workspace
-    #preprocess(None, args.agent_workspace)
-    
     print("Preprogress finish.")
 
 if __name__ == "__main__":

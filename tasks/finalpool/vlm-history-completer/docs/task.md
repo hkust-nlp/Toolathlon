@@ -1,6 +1,5 @@
-Please help me organize and complete the development history of Vision Language Models (VLMs) in a Google Sheet.
-The spreadsheet at this link, https://docs.google.com/spreadsheets/d/1gc6yse74XCwBx028HV_cvdxwXkmXejVjkO-Mz2uwE0k/edit?gid=528700476#gid=528700476, contains a history of VLMs, but it is missing the "Architecture" and "Sources" columns.
-I need you to copy this spreadsheet to the target work folder `vlm-history-completer`, name the new spreadsheet `VLM-History`, research the models listed, and then populate the following columns in the newly created sheet:
+Please help me organize and complete the development history of Vision Language Models (VLMs) in the `Text and Image` worksheet of `Directory of Generative AI` spreadsheet. It misses the "Architecture" and "Sources" columns.
+So I need you to research the models listed, and then populate the following columns in the same worksheet:
 - **Architecture column:** Fill in a description of each model's technical architecture. You can refer to the `Architecture.txt` file in the workspace for the specific types of descriptions required.
 - **Sources column:** The requirements for filling this column are outlined in the `Order.txt` file in the workspace.
 - If any information is not publicly available, please enter "unavailable".

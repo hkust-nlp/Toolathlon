@@ -6,6 +6,7 @@ import json
 import signal
 import sys
 import psutil
+import shutil
 from utils.general.helper import read_json
 import subprocess
 from typing import List, Optional, Dict
@@ -244,14 +245,70 @@ class AsyncTaskScheduler:
                     provider, maxstep, timeout, has_lock=False, eval_config=eval_config, dump_path=dump_path, image_name=image_name
                 )
     
-    async def _execute_task(self, task_dir_arg: str, tag: str, 
-                           model_short_name: str, provider: str, 
+    def _archive_previous_results(self, dump_path: str, tasks_folder: str, task_name: str):
+        """将之前的运行结果归档到 legacy_results"""
+        task_result_dir = os.path.join(dump_path, tasks_folder, task_name)
+
+        if not os.path.exists(task_result_dir):
+            return  # 没有之前的结果，直接返回
+
+        # 获取目录中所有文件和子目录（除了 legacy_results）
+        items_to_archive = []
+        try:
+            for item in os.listdir(task_result_dir):
+                if item != "legacy_results":  # 排除 legacy_results 目录
+                    items_to_archive.append(item)
+        except OSError:
+            return  # 目录读取失败
+
+        if not items_to_archive:
+            return  # 没有文件需要归档
+
+        # 如果只有 container.log，直接删除，不进行归档
+        if len(items_to_archive) == 1 and items_to_archive[0] == "container.log":
+            try:
+                container_log_path = os.path.join(task_result_dir, "container.log")
+                os.remove(container_log_path)
+                print(f"  🗑️ Removed incomplete container.log")
+            except Exception as e:
+                print(f"  ⚠️ Failed to remove container.log: {e}")
+            return
+
+        # 创建 legacy_results 目录
+        legacy_dir = os.path.join(task_result_dir, "legacy_results")
+        os.makedirs(legacy_dir, exist_ok=True)
+
+        # 找到下一个运行编号
+        run_number = 1
+        while os.path.exists(os.path.join(legacy_dir, f"run{run_number}")):
+            run_number += 1
+
+        # 创建本次归档目录
+        archive_dir = os.path.join(legacy_dir, f"run{run_number}")
+        os.makedirs(archive_dir, exist_ok=True)
+
+        # 移动所有文件到归档目录
+        archived_count = 0
+        for item in items_to_archive:
+            item_path = os.path.join(task_result_dir, item)
+            try:
+                archive_path = os.path.join(archive_dir, item)
+                shutil.move(item_path, archive_path)
+                archived_count += 1
+            except Exception as e:
+                print(f"  ⚠️ Failed to archive {item}: {e}")
+
+        if archived_count > 0:
+            print(f"  📦 Archived {archived_count} items to legacy_results/run{run_number}")
+
+    async def _execute_task(self, task_dir_arg: str, tag: str,
+                           model_short_name: str, provider: str,
                            maxstep: str, timeout: int, has_lock: bool, eval_config: str = "scripts/foraml_run_v0.json",
                            dump_path: str = "./dumps", image_name: str = "lockon0927/mcpbench-task-image-v2:latest"):
         """实际执行任务"""
         command = f"bash scripts/run_single_containerized.sh " \
                  f"{task_dir_arg} {tag} {model_short_name} {provider} {maxstep} {eval_config} {dump_path} {image_name}"
-        
+
         # 构建日志文件路径
         # task_dir_arg 格式: tasks_folder/task
         parts = task_dir_arg.split('/')
@@ -261,7 +318,10 @@ class AsyncTaskScheduler:
         else:
             tasks_folder = ""
             task_name = task_dir_arg
-        
+
+        # 归档之前的结果文件
+        self._archive_previous_results(dump_path, tasks_folder, task_name)
+
         # Updated to use container log path in dump_path structure
         log_file = os.path.join(dump_path, tasks_folder, task_name, "container.log")
         
@@ -309,14 +369,22 @@ class AsyncTaskScheduler:
             self.timeout_tasks += 1
             self.failed_tasks += 1
             elapsed = (datetime.now() - task_start).total_seconds()
-            
+
+            # 更新状态为 timeout
+            from utils.status_manager import TaskStatusManager
+            try:
+                status_manager = TaskStatusManager(os.path.join(dump_path, tasks_folder, task_name))
+                status_manager.update_running("timeout")
+            except Exception:
+                pass  # 如果状态更新失败，不影响主要逻辑
+
             print(f"\n⏰ [{datetime.now().strftime('%H:%M:%S')}] TIMEOUT: {task_dir_arg}")
             print(f"   ⚠️ Killed after {elapsed:.1f}s (limit: {timeout}s) | Progress: {self.completed_tasks + self.failed_tasks}/{self.total_tasks}")
-            
+
             return {
-                'task': task_dir_arg, 
-                'status': 'timeout', 
-                'elapsed': elapsed, 
+                'task': task_dir_arg,
+                'status': 'timeout',
+                'elapsed': elapsed,
                 'error': str(e),
                 'log_file': log_file,
                 'tag': tag,
@@ -359,7 +427,9 @@ class AsyncTaskScheduler:
 
 def filter_tasks_with_existing_results(all_task_dir_args: List[str], dump_path: str = "dumps") -> tuple[List[str], List[str]]:
     """
-    过滤已有eval_res.json且traj_log.json状态为success的任务
+    过滤已有完整结果的任务
+    优先检查 status.json，如果不存在则回退到原有逻辑
+    排除超时和超过轮数限制的任务
     返回 (待执行的任务列表, 已完成的任务列表)
     """
     tasks_to_execute = []
@@ -377,8 +447,51 @@ def filter_tasks_with_existing_results(all_task_dir_args: List[str], dump_path: 
 
         # 构建文件路径
         task_dir = os.path.join(dump_path, tasks_folder, task_name)
+        status_file = os.path.join(task_dir, "status.json")
+
+        # 优先检查 status.json
+        if os.path.exists(status_file):
+            try:
+                with open(status_file, 'r', encoding='utf-8') as f:
+                    status_data = json.load(f)
+
+                running_status = status_data.get('running', None)
+
+                # 如果是超时或超过轮数限制，跳过执行（视为已完成）
+                if running_status in ['timeout', 'max_turn_exceeded']:
+                    tasks_already_completed.append(task_dir_arg)
+                    continue
+
+                # 如果预处理成功 + 运行完成 + 有评估结果，则跳过
+                if (status_data.get('preprocess') == 'done' and
+                    running_status == 'done' and
+                    status_data.get('evaluation') is not None):
+                    tasks_already_completed.append(task_dir_arg)
+                    continue
+                else:
+                    # 状态不完整，需要重新执行
+                    tasks_to_execute.append(task_dir_arg)
+                    continue
+            except:
+                # status.json 读取失败，回退到原有逻辑
+                pass
+
+        # 回退到原有逻辑：检查 eval_res.json 和 traj_log.json
         eval_res_path = os.path.join(task_dir, "eval_res.json")
         traj_log_path = os.path.join(task_dir, "traj_log.json")
+        run_log_path = os.path.join(task_dir, "run.log")
+
+        # 检查是否是超时或超过轮数限制（原有逻辑）
+        if os.path.exists(run_log_path):
+            try:
+                with open(run_log_path, 'r') as f:
+                    run_log_content = f.read()
+                if "raise MaxTurnsExceeded(" in run_log_content:
+                    # 超过轮数限制，跳过执行
+                    tasks_already_completed.append(task_dir_arg)
+                    continue
+            except:
+                pass
 
         # 检查eval_res.json是否存在
         if not os.path.exists(eval_res_path):
@@ -638,7 +751,7 @@ async def main():
     # 定期打印进度的任务
     async def progress_reporter():
         while scheduler.completed_tasks + scheduler.failed_tasks < scheduler.total_tasks:
-            await asyncio.sleep(30)  # 每30秒报告一次进度
+            await asyncio.sleep(60)  # 每60秒报告一次进度
             scheduler.print_progress()
     
     # 启动进度报告器

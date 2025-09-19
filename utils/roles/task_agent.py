@@ -21,6 +21,8 @@ from agents import (
     ItemHelpers
 )
 
+from agents.exceptions import MaxTurnsExceeded
+
 from utils.roles.context_managed_runner import ContextManagedRunner
 from utils.api_model.model_provider import ContextTooLongError
 
@@ -48,6 +50,7 @@ from utils.aux_tools.web_search import tool_web_search
 from utils.aux_tools.overlong_tool_manager import overlong_tool_tools
 
 from utils.general.helper import print_color
+from utils.status_manager import TaskStatusManager
 
 local_tool_mappings = {
     "ai_webpage_summary": tool_ai_webpage_summary,
@@ -143,6 +146,9 @@ class TaskAgent:
         # 保存第一轮用户输入，用于上下文重置
         self.first_user_input = None
         self.cumulative_inner_steps = 0  # 累积的inner steps计数
+
+        # 初始化状态管理器
+        self.status_manager = TaskStatusManager(task_config.task_root)
 
     
 
@@ -638,7 +644,10 @@ class TaskAgent:
                         
                         # 成功完成，跳出循环
                         break
-                        
+                    except MaxTurnsExceeded as e:
+                        self._debug_print(f"[THIS IS A TAG FOR MAX TURNS EXCEEDED] Max turns exceeded: {e}")
+                        self.task_status = TaskStatus.MAX_TURNS_REACHED
+                        break
                     except ContextTooLongError as e:
                         self._debug_print(f"Context too long detected: {e}")
                         
@@ -877,10 +886,17 @@ class TaskAgent:
             # 设置日志文件路径
             self.task_config.log_file = os.path.join(self.task_config.task_root, "traj_log.json")
             self.task_config.agent_workspace = os.path.join(self.task_config.task_root, "workspace")
-            
+
+            # 开始预处理
+            self.status_manager.update_preprocess("running")
+
             # 初始化工作区（如果允许恢复且有检查点，则跳过重新初始化）
             if not await self.initialize_workspace():
+                self.status_manager.update_preprocess("fail")
                 return TaskStatus.FAILED
+
+            # 预处理成功
+            self.status_manager.update_preprocess("done")
             
             # 在这里读取预处理后task-specific的token_key_session.py，并赋值给task_config.local_token_key_session
             self.task_config.load_local_token_key_session()
@@ -897,7 +913,10 @@ class TaskAgent:
             # 切换工作目录为agent_workspace
             os.chdir(self.task_config.agent_workspace)
             self._debug_print(f"Switched working directory to {self.task_config.agent_workspace}")
-            
+
+            # 开始运行任务
+            self.status_manager.update_running("running")
+
             # 运行交互循环
             await self.run_interaction_loop(os.path.abspath(self.task_config.task_root))
 
@@ -908,6 +927,9 @@ class TaskAgent:
             # 如果没有设置其他状态，则为成功
             if self.task_status not in [TaskStatus.MAX_TURNS_REACHED, TaskStatus.INTERRUPTED]:
                 self.task_status = TaskStatus.SUCCESS
+                self.status_manager.update_running("done")
+            elif self.task_status == TaskStatus.MAX_TURNS_REACHED:
+                self.status_manager.update_running("max_turn_exceeded")
             
             # 任务完成，删除检查点
             if self.task_status == TaskStatus.SUCCESS:
@@ -923,6 +945,8 @@ class TaskAgent:
             if self.debug:
                 traceback.print_exc()
             self.task_status = TaskStatus.FAILED
+            # 运行阶段失败（预处理已经成功了，否则不会到这里）
+            self.status_manager.update_running("fail")
             
         finally:
             # 切换回原工作目录，in all cases

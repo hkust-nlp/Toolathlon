@@ -96,6 +96,14 @@ async def main():
     if not eval_res.get('pass', False):
         print(f"Failure Reason: {eval_res.get('failure', 'Unknown')}")
 
+    # 更新评估状态
+    try:
+        from utils.status_manager import TaskStatusManager
+        status_manager = TaskStatusManager(task_config.task_root)
+        status_manager.update_evaluation("pass" if eval_res.get('pass', False) else "fail")
+    except Exception as e:
+        print(f"Warning: Failed to update evaluation status: {e}")
+
     return 0 if eval_res.get("pass", False) else 1
 
 if __name__ == "__main__":

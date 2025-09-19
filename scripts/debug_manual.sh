@@ -7,9 +7,9 @@
 
 uv run demo.py \
 --eval_config scripts/model_wise/eval_claude-4-sonnet.json \
---task_dir  finalpool/canvas-submit-late-work \
+--task_dir  finalpool/k8s-redis-helm-upgrade \
 --debug \
---model_short_name claude-4-sonnet-0514 \
+--model_short_name grok-code-fast-1 \
 --provider openrouter \
 --max_steps_under_single_turn_mode 200 \
 --multi_turn_mode \
