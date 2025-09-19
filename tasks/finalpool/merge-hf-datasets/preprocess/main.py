@@ -1,6 +1,4 @@
 from argparse import ArgumentParser
-from pathlib import Path
-from configs.token_key_session import all_token_key_session
 
 if __name__=="__main__":
     parser = ArgumentParser()
@@ -8,9 +6,7 @@ if __name__=="__main__":
     parser.add_argument("--launch_time", nargs='*', required=False, help="Launch time (can contain spaces)")
     args = parser.parse_args()
 
-    hf_token = all_token_key_session.huggingface_token
-    
-    with open(Path(args.agent_workspace)/"hf_token.txt", "w") as f:
-        f.write(hf_token)
+    # do not need to give model the hf token anymore as I have all switch three datasets to publib under my own account
+    pass
 
     

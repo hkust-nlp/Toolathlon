@@ -1,5 +1,6 @@
 {
     "conflict_groups": [
-        ["set-conf-cr-ddl", "student-interview"]
+        ["set-conf-cr-ddl", "student-interview"],
+        ["huggingface-upload","dataset-license-issue"]
     ]
 }

@@ -111,3 +111,6 @@ if __name__ == "__main__":
     remote_cleanup(hf_token)
     
     print("\nPreprocessing complete. The environment is ready for the agent.")
+
+    with open(os.path.join(args.agent_workspace, "hf_token.txt"), "w") as f:
+        f.write(hf_token)

@@ -1,20 +1,20 @@
-## 统一格式描述
+## Unified Format Description
 
-每条数据包含以下字段：
-- `conversation_id`: 格式为`{source}_{index}`，source为数据集名称，index为从0开始的在原始数据集中的序号
-- `messages`: 消息列表，每条消息包含：
-  - `role`: 可选值：`system`/`user`/`assistant`/`tool`
-  - `content`: 消息内容
-  - `tool_calls`: (仅assistant角色) 工具调用列表，每个包含`id`(格式为`tool_call_{n}`, n从0开始在整段对话内依次递增)、`name`、`arguments`
-  - `tool_call_id`: (仅tool角色) 对应的工具调用ID
-- `tools`: 工具定义列表
+Each data entry contains the following fields:
+- `conversation_id`: Format as `{source}_{index}`, where source is the dataset name and index is the sequential number starting from 0 in the original dataset
+- `messages`: List of messages, each message contains:
+  - `role`: Possible values: `system`/`user`/`assistant`/`tool`
+  - `content`: Message content
+  - `tool_calls`: (assistant role only) List of tool calls, each containing `id` (format: `tool_call_{n}`, where n increments sequentially from 0 throughout the entire conversation), `name`, `arguments`
+  - `tool_call_id`: (tool role only) Corresponding tool call ID
+- `tools`: List of tool definitions
 
-## 注意事项
-- 如果system只包含了工具集与应该怎样使用工具的指导，则该数据集请去除system，只保留从user开始的对话和工具集
-- 如果assistant只调用了工具，则其content为null
-- 请不要添加原数据中不存在的工具返回结果或assistant回复
+## Important Notes
+- If the system message only contains the toolset and instructions on how to use tools, please remove the system message from that dataset and keep only the conversation starting from user and the toolset
+- If assistant only made tool calls, its content should be null
+- Do not add tool return results or assistant replies that do not exist in the original data
 
-## 统一格式JSON样本
+## Unified Format JSON Sample
 
 ```json
 {
