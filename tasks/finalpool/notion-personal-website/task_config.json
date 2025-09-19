@@ -6,7 +6,6 @@
     ],
     "needed_local_tools": [
         "claim_done",
-        "web_search",
         "handle_overlong_tool_outputs"
     ],
     "meta": {

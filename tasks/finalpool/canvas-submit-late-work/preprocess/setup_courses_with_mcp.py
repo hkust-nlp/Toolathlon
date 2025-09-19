@@ -442,7 +442,7 @@ class CanvasCourseSetup:
         try:
             async with aiohttp.ClientSession() as session:
                 list_url = f"{self.base_url}/api/v1/courses/{course_id}/discussion_topics"
-                params = {"only_announcements": True}
+                params = {"only_announcements": "true"}
                 async with session.get(list_url, headers=self.headers, params=params) as response:
                     if 200 != response.status:
                         error_text = await response.text()

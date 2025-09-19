@@ -95,12 +95,12 @@ if __name__ == "__main__":
 
     print(f"admin3负责的课程共{len(admin3_courses)}门：")
     for c in admin3_courses:
-        print(f"- {c['course_name']}-{c['class_time']} (教师: {c['instructor']})")
+        print(f"- {c['course_name']} (教师: {c['instructor']})")
 
     all_ok = True
     for c in admin3_courses:
         instructor = c["instructor"]
-        course_full_name = f"{c['course_name']}-{c['class_time']}"
+        course_full_name = f"{c['course_name']}"
         if instructor not in teacher_keys:
             print(f"❌ 未找到教师 {instructor} 的token，无法检查课程 {course_full_name}")
             all_ok = False
@@ -125,7 +125,7 @@ if __name__ == "__main__":
     unpublished_courses = []
     for c in admin3_courses:
         instructor = c["instructor"]
-        course_full_name = f"{c['course_name']}-{c['class_time']}"
+        course_full_name = f"{c['course_name']}"
         if instructor not in teacher_keys:
             continue  # 已在上面报错
         teacher_token = teacher_keys[instructor]

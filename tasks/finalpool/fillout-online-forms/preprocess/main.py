@@ -7,118 +7,311 @@ import json
 import sys
 from pathlib import Path
 from datetime import datetime
+import os
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from token_key_session import all_token_key_session
+from utils.app_specific.google_form.ops import clear_google_forms
 
-SPREADSHEET_ID = '11laynQ5hFs8jP1BsqaczAJY6yWiNEDalZB4WqxdoE8g'
+GOOGLE_CREDENTIAL_FILE = "configs/google_credentials.json"
+GOOGLE_FORM_NAME = "Freshmen Welcome Party"
 
-def update_groundtruth_timestamps(launch_time):
-    """更新groundtruth_workspace中JSON文件的时间戳"""
-    print("正在更新groundtruth文件的时间戳...")
-
-    timestamp = launch_time
+def create_google_form(service, form_name):
+    """Create a new Google Form with specified questions"""
     
-    # 获取groundtruth_workspace目录路径
-    current_dir = Path(__file__).parent.parent
-    groundtruth_dir = current_dir / "groundtruth_workspace"
+    # Create the form structure
+    form = {
+        "info": {
+            "title": form_name,
+            "documentTitle": form_name
+        }
+    }
     
-    # 更新所有JSON文件的时间戳
-    json_files = ["mcp_response.json", "alex_response.json"]
+    # Create the form
+    result = service.forms().create(body=form).execute()
+    form_id = result["formId"]
     
-    for json_file in json_files:
-        file_path = groundtruth_dir / json_file
-        if file_path.exists():
-            try:
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                
-                # 更新时间戳记字段
-                data["时间戳记"] = timestamp
-                
-                with open(file_path, 'w', encoding='utf-8') as f:
-                    json.dump(data, f, ensure_ascii=False, indent=2)
-                
-                print(f"✔ 已更新 {json_file} 的时间戳为: {timestamp}")
-                
-            except Exception as e:
-                print(f"更新 {json_file} 时出错: {e}")
-        else:
-            print(f"文件不存在: {json_file}")
+    # Define all the questions
+    requests = []
+    
+    # Question 1: Name (Required, Text)
+    requests.append({
+        "createItem": {
+            "item": {
+                "title": "Name",
+                "questionItem": {
+                    "question": {
+                        "required": True,
+                        "textQuestion": {}
+                    }
+                }
+            },
+            "location": {"index": 0}
+        }
+    })
+    
+    # Question 2: Email (Required, Text)
+    requests.append({
+        "createItem": {
+            "item": {
+                "title": "Email",
+                "questionItem": {
+                    "question": {
+                        "required": True,
+                        "textQuestion": {}
+                    }
+                }
+            },
+            "location": {"index": 1}
+        }
+    })
+    
+    # Question 3: Address (Required, Text)
+    requests.append({
+        "createItem": {
+            "item": {
+                "title": "Address",
+                "questionItem": {
+                    "question": {
+                        "required": True,
+                        "textQuestion": {}
+                    }
+                }
+            },
+            "location": {"index": 2}
+        }
+    })
+    
+    # Question 4: Session preference (Required, Multiple Choice)
+    requests.append({
+        "createItem": {
+            "item": {
+                "title": "Do you want to attend the morning session or the afternoon session?",
+                "questionItem": {
+                    "question": {
+                        "required": True,
+                        "choiceQuestion": {
+                            "type": "CHECKBOX",
+                            "options": [
+                                {"value": "Morning"},
+                                {"value": "Afternoon"}
+                            ]
+                        }
+                    }
+                }
+            },
+            "location": {"index": 3}
+        }
+    })
+    
+    # Question 5: Dietary Restrictions (Required, Multiple Choice)
+    requests.append({
+        "createItem": {
+            "item": {
+                "title": "Dietary Restrictions",
+                "questionItem": {
+                    "question": {
+                        "required": True,
+                        "choiceQuestion": {
+                            "type": "RADIO",
+                            "options": [
+                                {"value": "None"},
+                                {"value": "Vegan"},
+                                {"value": "Kosher"},
+                                {"value": "No Seafood"},
+                                {"value": "No Spicy Food"}
+                            ]
+                        }
+                    }
+                }
+            },
+            "location": {"index": 4}
+        }
+    })
+    
+    # Question 6: Phone (Optional, Text)
+    requests.append({
+        "createItem": {
+            "item": {
+                "title": "Phone",
+                "questionItem": {
+                    "question": {
+                        "required": False,
+                        "textQuestion": {}
+                    }
+                }
+            },
+            "location": {"index": 5}
+        }
+    })
+    
+    # Question 7: Anxiety level (Required, Multiple Choice)
+    requests.append({
+        "createItem": {
+            "item": {
+                "title": "How anxious are you feeling?",
+                "questionItem": {
+                    "question": {
+                        "required": True,
+                        "choiceQuestion": {
+                            "type": "RADIO",
+                            "options": [
+                                {"value": "1"},
+                                {"value": "2"},
+                                {"value": "3"},
+                                {"value": "4"},
+                                {"value": "5"}
+                            ]
+                        }
+                    }
+                }
+            },
+            "location": {"index": 6}
+        }
+    })
+    
+    # Question 8: Activities (Required, Multiple Choice - assuming single choice based on context)
+    requests.append({
+        "createItem": {
+            "item": {
+                "title": "Are you good at these activities?",
+                "questionItem": {
+                    "question": {
+                        "required": True,
+                        "choiceQuestion": {
+                            "type": "RADIO",
+                            "options": [
+                                {"value": "swimming"},
+                                {"value": "running"},
+                                {"value": "basketball"},
+                                {"value": "football"},
+                                {"value": "Computer programming"}
+                            ]
+                        }
+                    }
+                }
+            },
+            "location": {"index": 7}
+        }
+    })
+    
+    # Question 9: Student ID (Required, Text)
+    requests.append({
+        "createItem": {
+            "item": {
+                "title": "Student ID",
+                "questionItem": {
+                    "question": {
+                        "required": True,
+                        "textQuestion": {}
+                    }
+                }
+            },
+            "location": {"index": 8}
+        }
+    })
+    
+    # Question 10: Birthday (Optional, Date)
+    requests.append({
+        "createItem": {
+            "item": {
+                "title": "Birthday",
+                "questionItem": {
+                    "question": {
+                        "required": False,
+                        "dateQuestion": {
+                            "includeTime": False,
+                            "includeYear": True
+                        }
+                    }
+                }
+            },
+            "location": {"index": 9}
+        }
+    })
+    
+    # Question 11: Highest degree earned (Required, Multiple Choice)
+    requests.append({
+        "createItem": {
+            "item": {
+                "title": "Highest degree earned",
+                "questionItem": {
+                    "question": {
+                        "required": True,
+                        "choiceQuestion": {
+                            "type": "RADIO",
+                            "options": [
+                                {"value": "bachelor"},
+                                {"value": "master"},
+                                {"value": "doctor"}
+                            ]
+                        }
+                    }
+                }
+            },
+            "location": {"index": 10}
+        }
+    })
+    
+    # Execute batch update to add all questions
+    service.forms().batchUpdate(
+        formId=form_id,
+        body={"requests": requests}
+    ).execute()
+    
+    return form_id
 
-def _load_credentials(credentials_file):
-    """从指定的凭证文件中加载Google凭证"""
-    try:
-        with open(credentials_file, 'r') as f:
-            credentials_info = json.load(f)
-        return credentials_info
-    except Exception as e:
-        print(f"加载凭证失败: {e}")
-        return None
-
-def _get_service(credentials_file):
-    """从指定的凭证文件创建Google Sheets API服务对象"""
-    try:
-        credentials_info = _load_credentials(credentials_file)
-        if not credentials_info:
-            return None
-            
-        creds = Credentials.from_authorized_user_info(credentials_info, scopes=credentials_info["scopes"])
-        
+def get_credentials():
+    """Get Google API credentials from the existing token file"""
+    # 直接从你的文件读取 credentials
+    creds = Credentials.from_authorized_user_file(GOOGLE_CREDENTIAL_FILE)
+    
+    # 如果 token 过期，刷新它
+    if not creds.valid:
         if creds.expired and creds.refresh_token:
             creds.refresh(Request())
-        
-        service = build("sheets", "v4", credentials=creds)
-        return service
-    except Exception as e:
-        print(f"创建服务失败: {e}")
-        return None
-
-def clear_google_sheet_data(credentials_file):
-    """清空Google表格中所有的数据（保留表头）"""
-    print("正在执行 '清空数据' 操作...")
-    service = _get_service(credentials_file)
-    if not service:
-        return
-
-    try:
-        sheet = service.spreadsheets()
-        meta = sheet.get(spreadsheetId=SPREADSHEET_ID).execute()
-        sheet_name = meta["sheets"][0]["properties"]["title"]
-        
-        clear_range = f"{sheet_name}!A2:Z"
-        print(f"即将清空范围: '{clear_range}'...")
-
-        request_body = {}
-        sheet.values().clear(
-            spreadsheetId=SPREADSHEET_ID,
-            range=clear_range,
-            body=request_body
-        ).execute()
-
-        print("✔ 数据已成功清空！")
-        
-    except HttpError as err:
-        print(f"API 调用失败: {err}")
-        print("请检查表格ID和用户凭证是否正确，以及该用户是否有权限访问该表格。")
-    except Exception as e:
-        print(f"发生了一个错误: {e}")
+    
+    return creds
 
 if __name__=="__main__":
     parser = ArgumentParser()
     parser.add_argument("--agent_workspace", required=False)
     parser.add_argument("--launch_time", required=True, help="Launch time")
-    parser.add_argument("--credentials_file", required=False)
     args = parser.parse_args()
 
-    credentials_file = args.credentials_file
-    if not credentials_file:
-        credentials_file = all_token_key_session.get("google_oauth2_credentials_path", "configs/google_credentials.json")
-    print("Preprocess...")
+    # Get credentials
+    creds = get_credentials()
+    service = build('forms', 'v1', credentials=creds)
     
-    # 更新groundtruth文件的时间戳
-    update_groundtruth_timestamps(args.launch_time)
+    # Part 0: Delete existing forms with the same name
+    clear_google_forms(GOOGLE_FORM_NAME)
     
-    print("Clearing Google Sheet Data...")
-    clear_google_sheet_data(credentials_file)
-    print("Google Sheet Data Cleared.")
+    # Part 1: Create the new form
+    form_id = create_google_form(service, GOOGLE_FORM_NAME)
+    
+    # Generate URLs
+    form_public_url = f"https://docs.google.com/forms/d/{form_id}/viewform"
+    form_drive_url = f"https://docs.google.com/forms/d/{form_id}/edit"
+    
+    # Part 2: Save the public form link
+    if args.agent_workspace:
+        agent_workspace_path = Path(args.agent_workspace)
+        agent_workspace_path.mkdir(parents=True, exist_ok=True)
+        
+        with open(agent_workspace_path / "form_link_for_public.txt", "w") as f:
+            f.write(form_public_url)
+        print(f"Public form link saved to: {agent_workspace_path / 'form_link_for_public.txt'}")
+    
+    # Part 3: Save the drive edit link
+    # groundtruth_workspace是本文件的dir/../groundtruth_workspace
+    file_path = os.path.dirname(__file__)
+    groundtruth_workspace_path = Path(os.path.join(file_path, "..", "groundtruth_workspace"))
+    groundtruth_workspace_path.mkdir(parents=True, exist_ok=True)
+    
+    with open(groundtruth_workspace_path / "form_link_for_drive.txt", "w") as f:
+        f.write(form_drive_url)
+    print(f"Drive edit link saved to: {groundtruth_workspace_path / 'form_link_for_drive.txt'}")
+    
+    # Print the links for confirmation
+    print(f"\nForm created successfully!")
+    print(f"Public form URL: {form_public_url}")
+    print(f"Drive edit URL: {form_drive_url}")
+    print(f"Launch time: {args.launch_time}")

@@ -31,7 +31,7 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
         self.retry_times = retry_times
         self.retry_delay = retry_delay
         self.debug = debug
-        
+
     def _add_cache_control_to_messages(self, messages: list, min_cache_tokens: int = 2048) -> list:
         """
         为Claude模型添加cache_control breakpoints到消息中
@@ -386,12 +386,23 @@ class CustomModelProviderOpenRouter(ModelProvider):
                                                    openai_client=client,
                                                    debug=debug)
 
+class CustomModelProviderQwenOfficial(ModelProvider):
+    def get_model(self, model_name: str | None, debug: bool = True) -> Model:
+        client = AsyncOpenAI(
+            api_key=global_configs.qwen_official_key,
+            base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+        )
+        return OpenAIChatCompletionsModelWithRetry(model=model_name, 
+                                                   openai_client=client,
+                                                   debug=debug)
+
 model_provider_mapping = {
     "ds_internal": CustomModelProvider,
     "aihubmix": CustomModelProviderAiHubMix,
     "anthropic": CustomModelProviderAnthropic,
     "local_vllm": CustomModelProviderLocalVLLM,
     "openrouter": CustomModelProviderOpenRouter,
+    "qwen_official": CustomModelProviderQwenOfficial,
 }
 
 API_MAPPINGS = {
@@ -413,10 +424,12 @@ API_MAPPINGS = {
     ),
     'deepseek-v3.1': Dict(
         api_model={"ds_internal": "",
-                   "aihubmix": "DeepSeek-V3.1"},
+                   "aihubmix": "DeepSeek-V3.1",
+                   "openrouter": "deepseek/deepseek-chat-v3.1"},
         price=[0.56/1000, 1.68/1000],
         concurrency=32,
-        context_window=128000
+        context_window=128000,
+        openrouter_config={"provider": {"only": ["sambanova/fp8"]}}
     ),
     'deepseek-v3.1-think': Dict(
         api_model={"ds_internal": "",
@@ -603,7 +616,8 @@ API_MAPPINGS = {
     "qwen-3-coder": Dict(
         api_model={"ds_internal": None,
                    "aihubmix": "Qwen3-Coder",
-                   "openrouter": "qwen/qwen3-coder"},
+                   "openrouter": "qwen/qwen3-coder",
+                   "qwen_official": "qwen3-coder-plus"},
         price=[0.54/1000, 2.16/1000],
         concurrency=32,
         context_window=128000,

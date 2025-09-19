@@ -83,11 +83,15 @@ def check_remote_config_yaml(github_token, repo_name, person_info):
         "github": "Vicent0205"
     }
     
+    assert 'author' in config, "Missing author field in remote _config.yaml"
+
+    author_config = config['author']
+
     for field, expected_value in required_fields.items():
-        if field not in config:
+        if field not in author_config:
             return False, f"Missing field '{field}' in remote _config.yaml"
         
-        actual_value = config[field]
+        actual_value = author_config[field]
         if field == "github":
             # GitHub字段可能包含完整URL或用户名
             if expected_value not in str(actual_value):

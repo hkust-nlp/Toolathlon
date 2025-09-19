@@ -98,7 +98,7 @@
       "quiz": {
         "title": "CS101 Midterm Quiz - Computer Science Fundamentals",
         "description": "This quiz covers fundamental concepts in computer science including basic programming concepts, computer architecture, and problem-solving approaches.",
-        "quiz_type": "Graded Quiz",
+        "quiz_type": "assignment",
         "time_limit": 60,
         "shuffle_answers": true,
         "show_correct_answers": false,

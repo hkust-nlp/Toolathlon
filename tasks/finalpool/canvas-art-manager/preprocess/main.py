@@ -13,15 +13,45 @@ import email
 import requests
 import sys
 import tarfile
+import subprocess
+import json
+import asyncio
 
 # Import Canvas utility components
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent.parent.parent))
 from utils.app_specific.canvas import CanvasAPI
 
-def delete_course_schedule_notifications(imap_server, imap_port, email_user=None, email_pass=None, mailbox="INBOX"):
+def run_command(command, description="", check=True, shell=True):
+    """Run a command and handle output"""
+    print(f"🔧 {description}")
+    print(f"   Command: {command}")
+
+    try:
+        result = subprocess.run(
+            command,
+            shell=shell,
+            check=check,
+            capture_output=True,
+            text=True
+        )
+        if result.stdout:
+            print(f"   Output: {result.stdout.strip()}")
+        return result
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Command failed: {e}")
+        if e.stdout:
+            print(f"   Stdout: {e.stdout}")
+        if e.stderr:
+            print(f"   Stderr: {e.stderr}")
+        if check:
+            raise
+        return e
+
+
+def clear_inbox(imap_server, imap_port, email_user=None, email_pass=None, mailbox="INBOX"):
     """
-    检查收件邮箱中是否包含主题为'Course Schedule Notification'的邮件，有的话全部删除。
+    清空整个收件箱。
 
     :param imap_server: IMAP服务器地址
     :param imap_port: IMAP服务器端口（通常为993）
@@ -30,35 +60,39 @@ def delete_course_schedule_notifications(imap_server, imap_port, email_user=None
     :param mailbox: 要操作的邮箱文件夹，默认INBOX
     """
     try:
-        # 连接到IMAP服务器
-        mail = imaplib.IMAP4(imap_server, imap_port)
-        # mail = imaplib.IMAP4_SSL(imap_server, imap_port)
-        mail.login(email_user, email_pass)
-        mail.select(mailbox)
+        # Add the utils path for import
+        script_dir = Path(__file__).parent
+        task_dir = script_dir.parent
+        finalpool_dir = task_dir.parent
+        tasks_dir = finalpool_dir.parent
+        mcpbench_root = tasks_dir.parent
+        utils_dir = mcpbench_root / "utils"
 
-        # 搜索主题为指定内容的邮件
-        typ, data = mail.search(None, '(SUBJECT "Course Schedule Notification")')
-        if typ != 'OK':
-            print("搜索邮件失败")
-            mail.logout()
-            return
+        sys.path.insert(0, str(utils_dir))
+        from app_specific.poste.ops import clear_folder
 
-        msg_ids = data[0].split()
-        if not msg_ids:
-            print("没有找到主题为'Course Schedule Notification'的邮件。")
-            mail.logout()
-            return
+        # Prepare IMAP configuration for clear_folder function
+        imap_config = {
+            "email": email_user,
+            "password": email_pass,
+            "imap_server": imap_server,
+            "imap_port": imap_port,
+            "use_ssl": False,  # Canvas Art Manager uses non-SSL
+            "use_starttls": False
+        }
 
-        print(f"找到{len(msg_ids)}封待删除邮件。正在删除...")
+        print(f"🔧 Clearing inbox for: {email_user}")
 
-        for msg_id in msg_ids:
-            mail.store(msg_id, '+FLAGS', '\\Deleted')
+        # Clear the INBOX folder
+        clear_folder(mailbox, imap_config)
 
-        mail.expunge()
-        print("删除完成。")
-        mail.logout()
+        print("✅ Inbox clearing completed successfully")
+        return True
+
     except Exception as e:
-        print(f"删除邮件时发生错误: {e}")
+        print(f"❌ Failed to clear inbox: {e}")
+        print("💡 Continuing with preprocessing anyway...")
+        return False
 
 def send_email(to_email, subject, body, from_email, smtp_server, smtp_port, attachments=None, use_auth=False, smtp_user=None, smtp_pass=None):
     # 创建一个带附件的邮件对象
@@ -129,9 +163,188 @@ def parse_course_schedule_md(md_path):
                 if len(parts) >= 3:
                     course_name = parts[0]
                     class_time = parts[2]
-                    full_name = f"{course_name}-{class_time}"
+                    full_name = course_name
                     courses.append(full_name)
     return courses
+
+async def delete_all_courses_via_mcp(target_course_names):
+    """
+    Delete specified courses using MCP canvas server
+
+    This function will:
+    1. Connect to canvas MCP server
+    2. List all courses in the account
+    3. Delete only the courses whose names match target_course_names
+
+    :param target_course_names: List of course names to delete (required).
+    """
+    print(f"🗑️ Starting to delete {len(target_course_names)} specified courses via Canvas MCP...")
+
+    try:
+        # Add the utils path for MCPServerManager import
+        script_dir = Path(__file__).parent
+        task_dir = script_dir.parent  # canvas-art-manager
+        finalpool_dir = task_dir.parent  # finalpool
+        tasks_dir = finalpool_dir.parent  # tasks
+        mcpbench_root = tasks_dir.parent  # mcpbench_dev
+
+        sys.path.insert(0, str(mcpbench_root))
+        from utils.mcp.tool_servers import MCPServerManager
+
+        print(f"🚀 Attempting to connect to Canvas MCP server...")
+
+        # Load local token_key_session from task directory
+        local_token_key_session = None
+        token_key_session_path = task_dir / "token_key_session.py"
+
+        if token_key_session_path.exists():
+            print(f"🔑 Loading task-specific token configuration from {token_key_session_path}")
+            import importlib.util
+            spec = importlib.util.spec_from_file_location("token_key_session", token_key_session_path)
+            token_key_session_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(token_key_session_module)
+            local_token_key_session = token_key_session_module.all_token_key_session
+        else:
+            print("⚠️  No task-specific token configuration found, using global defaults")
+
+        # Set up temporary workspace
+        workspace = script_dir / "temp_workspace"
+        workspace.mkdir(exist_ok=True)
+
+        # Initialize MCP Server Manager with local token configuration
+        server_manager = MCPServerManager(
+            agent_workspace=str(workspace),
+            config_dir=str(mcpbench_root / "configs" / "mcp_servers"),
+            debug=False,
+            local_token_key_session=local_token_key_session
+        )
+
+        # Connect to canvas server specifically
+        await server_manager.connect_servers(["canvas"])
+        connected_names = server_manager.get_connected_server_names()
+
+        if "canvas" not in connected_names:
+            print("❌ Failed to connect to canvas MCP server")
+            return False
+
+        print(f"✅ Connected to canvas MCP server")
+
+        canvas_server = server_manager.connected_servers["canvas"]
+
+        # First, try to get all courses from account (admin view)
+        print("🔍 Fetching all courses from account...")
+        try:
+            account_courses_result = await canvas_server.call_tool("canvas_list_account_courses", {"account_id": 1})
+            courses = []
+
+            # Parse the result to extract courses
+            if hasattr(account_courses_result, 'content'):
+                for content in account_courses_result.content:
+                    if hasattr(content, 'text'):
+                        try:
+                            courses = json.loads(content.text)
+                        except:
+                            print(f"Could not parse account courses: {content.text}")
+
+            # If account courses didn't work, try user courses
+            if not courses:
+                print("🔍 Trying to fetch user courses...")
+                user_courses_result = await canvas_server.call_tool("canvas_list_courses", {})
+                if hasattr(user_courses_result, 'content'):
+                    for content in user_courses_result.content:
+                        if hasattr(content, 'text'):
+                            try:
+                                courses = json.loads(content.text)
+                            except:
+                                print(f"Could not parse user courses: {content.text}")
+
+        except Exception as e:
+            print(f"❌ Error fetching courses: {e}")
+            courses = []
+
+        if not courses:
+            print("⚠️  No courses found to delete")
+            await server_manager.disconnect_servers()
+            return True
+
+        print(f"📚 Found {len(courses)} total courses")
+        print(f"🎯 Target courses to delete: {target_course_names}")
+
+        # Filter courses to only include target courses
+        courses_to_delete = []
+        for course in courses:
+            course_name = course.get('name', f'Course {course.get("id")}')
+            if course_name in target_course_names:
+                courses_to_delete.append(course)
+                print(f"📚 Found target course to delete: {course_name}")
+            else:
+                print(f"⏩ Skipping course: {course_name} (not in target list)")
+
+        if not courses_to_delete:
+            print("⚠️  No matching courses found to delete")
+            await server_manager.disconnect_servers()
+            return True
+
+        print(f"📚 Will delete {len(courses_to_delete)} courses")
+
+        # Delete each course
+        deleted_count = 0
+        failed_count = 0
+
+        for course in courses_to_delete:
+            course_id = course.get('id')
+            course_name = course.get('name', f'Course {course_id}')
+
+            print(f"🗑️ Deleting course {course_id}: {course_name}")
+
+            try:
+                delete_result = await canvas_server.call_tool("canvas_delete_course", {"course_id": course_id})
+
+                # Check if deletion was successful
+                success = False
+                if hasattr(delete_result, 'content'):
+                    for content in delete_result.content:
+                        if hasattr(content, 'text'):
+                            print(f"   📄 {content.text}")
+                            if "deleted" in content.text.lower() or "concluded" in content.text.lower():
+                                success = True
+                        else:
+                            print(f"   📄 {content}")
+
+                if success:
+                    print(f"   ✅ Successfully deleted course {course_id}")
+                    deleted_count += 1
+                else:
+                    print(f"   ⚠️ Deletion status unclear for course {course_id}")
+                    deleted_count += 1  # Assume success if no error
+
+            except Exception as e:
+                print(f"   ❌ Failed to delete course {course_id}: {e}")
+                failed_count += 1
+
+        # Cleanup
+        await server_manager.disconnect_servers()
+
+        print(f"\n📊 Deletion Summary:")
+        print(f"   ✅ Successfully deleted: {deleted_count} courses")
+        print(f"   ❌ Failed to delete: {failed_count} courses")
+        print(f"   📚 Total processed: {len(courses)} courses")
+
+        if failed_count == 0:
+            print("✅ All courses deleted successfully")
+            return True
+        else:
+            print(f"⚠️ {failed_count} courses failed to delete")
+            return False
+
+    except ImportError as ie:
+        print(f"❌ Could not import MCP utilities: {ie}")
+        return False
+    except Exception as e:
+        print(f"❌ Error during course deletion: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
 
 # 管理员身份批量删除其他老师的课程
 if __name__ == "__main__":
@@ -172,58 +385,69 @@ if __name__ == "__main__":
 
     imap_server = "localhost"
     imap_port = 1143
-
     to_email = "mcpcanvasadmin3@mcp.com"  # 收件人邮箱
-    subject = "Course Schedule Notification"
-    body = """Dear Academic Administrators,
-I hope this email finds you well. I am writing to inform you that the new academic course schedule for the coming academic year has been finalized and is now ready for your review and implementation.
-XXX University
-"""
-    from_email = "coxw@mcp.com"  # 发件人邮箱
-    smtp_server = "localhost"       # SMTP服务器地址
-    smtp_port = 1587                # SMTP端口
 
-    delete_course_schedule_notifications(imap_server, imap_port, to_email, "mcpcanvasadminpass3")
+    # 清空整个收件箱
+    clear_inbox(
+        imap_server=imap_server,
+        imap_port=imap_port,
+        email_user=to_email,
+        email_pass="mcpcanvasadminpass3"
+    )
 
-    # 添加附件路径列表
-    attachments = [os.path.join(os.path.dirname(__file__), "course_schedule.md")]
+    # 生成邮件并导入到收件箱
+    try:
+        print("📧 Generating inbox emails...")
+        # 运行generate_inbox.py
+        generate_script = os.path.join(os.path.dirname(__file__), "generate_inbox.py")
+        result = run_command(
+            f"python {generate_script}",
+            "Generating inbox with course notifications and fake emails"
+        )
+        print("✅ Email generation completed")
 
-    # 非认证模式调用（不传递用户名和密码）
-    send_email(to_email, subject, body, from_email, smtp_server, smtp_port, attachments)
+        print("📨 Importing emails to MCP server...")
+        # 运行import_emails.py
+        import_script = os.path.join(os.path.dirname(__file__), "import_emails.py")
+        result = run_command(
+            f"python {import_script} --target-folder INBOX --preserve-folders",
+            "Importing emails to MCP server",
+            check=False  # Don't fail if import has issues
+        )
 
-    # ========== Canvas课程删除操作（管理员身份，删除的课程老师不是管理员自身） ==========
-    canvas_url = args.canvas_url or os.environ.get("CANVAS_URL") or "http://localhost:10001"
-    from pathlib import Path
-    parent_dir = Path(__file__).parent.parent
-    sys.path.append(str(parent_dir))
-    from token_key_session import all_token_key_session
-    canvas_token = all_token_key_session.canvas_api_token
-    course_md_path = os.path.join(os.path.dirname(__file__), "course_schedule.md")
-    course_names = parse_course_schedule_md(course_md_path)
-    all_canvas_tokens = all_token_key_session.all_canvas_teacher_tokens
-
-    for canvas_token in all_canvas_tokens:
-        if not course_names:
-            print("未找到任何课程需要删除。")
+        if result and hasattr(result, 'returncode') and result.returncode == 0:
+            print("✅ Email import completed successfully")
         else:
-            print(f"待删除课程名列表（管理员操作，删除的课程老师不是管理员自身）: {course_names}")
-            
-            # 使用Canvas utility组件
-            canvas_api = CanvasAPI(canvas_url, canvas_token)
-            all_canvas_courses = canvas_api.list_courses()
-            
-            # 课程名到id映射
-            name2id = {c["name"]: c["id"] for c in all_canvas_courses}
-            deleted_any = False
-            for cname in course_names:
-                if cname in name2id:
-                    print(f"管理员身份：Canvas中存在课程: {cname}（该课程的老师不是管理员自身），准备删除...")
-                    
-                    # 使用Canvas utility组件删除课程
-                    success = canvas_api.delete_course(name2id[cname], event='delete')
-                    if success:
-                        deleted_any = True
-                else:
-                    print(f"教师身份：Canvas中未找到课程: {cname}，跳过。")
-            if not deleted_any:
-                print("没有需要删除的Canvas课程（管理员操作）。")
+            print("⚠️ Email import completed with warnings")
+
+    except Exception as e:
+        print(f"❌ Error in email generation/import: {e}")
+        print("💡 Continuing with preprocessing anyway...")
+
+    # ========== Canvas课程删除操作（使用MCP方法） ==========
+    print("🗑️ Starting Canvas course cleanup using MCP...")
+
+    # 获取需要删除的课程列表
+    course_schedule_path = os.path.join(os.path.dirname(__file__), "course_schedule.md")
+    target_courses = parse_course_schedule_md(course_schedule_path)
+
+    if not target_courses:
+        print(f"❌ Error: No courses found in course_schedule.md at {course_schedule_path}")
+        print("Cannot proceed with course deletion without a valid course schedule.")
+        sys.exit(1)
+
+    print(f"📋 Found {len(target_courses)} courses to delete from course_schedule.md:")
+    for course in target_courses:
+        print(f"   - {course}")
+
+    try:
+        # Run the MCP deletion function with target courses
+        success = asyncio.run(delete_all_courses_via_mcp(target_courses))
+        if success:
+            print("✅ MCP course deletion completed successfully")
+        else:
+            print("⚠️ MCP course deletion completed with some issues")
+    except Exception as e:
+        print(f"❌ Error during MCP course deletion: {e}")
+        import traceback
+        traceback.print_exc()

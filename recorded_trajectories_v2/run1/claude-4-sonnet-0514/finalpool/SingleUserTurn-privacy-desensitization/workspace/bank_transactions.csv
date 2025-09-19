@@ -1,8 +1,0 @@
-Transaction_Date,Account_Number,Cardholder_Name,Amount,Merchant,Notes
-2024-12-01,4111111111111111,John Smith,$1580.00,New York Electronics,Purchase electronics
-2024-12-02,5555555555554444,Lisa Johnson,$2300.50,LA Restaurant,Business dining
-2024-12-03,6222021234567890,Mike Wilson,$450.00,Chicago Supermarket,Groceries
-2024-12-04,3782822463100054,Sarah Davis,$12000.00,Denver Auto Shop,Vehicle repair
-2024-12-05,4012888888881881,Tom Brown,$280.00,Boston Bookstore,Book purchase
-Customer Service,1-800-123-4567,,,,,
-Emergency Contact,(555) 987-6543,,,,, 

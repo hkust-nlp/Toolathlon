@@ -12,6 +12,8 @@ import random
 from pathlib import Path
 from argparse import ArgumentParser
 from datetime import datetime, timedelta
+import random
+random.seed(42)
 # 添加当前目录到Python路径，确保能正确导入模块
 current_dir = Path(__file__).parent
 sys.path.insert(0, str(current_dir))

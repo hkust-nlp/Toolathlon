@@ -5,6 +5,7 @@ from pathlib import Path
 from utils.general.helper import read_json
 from datetime import datetime, timedelta
 import json
+from utils.general.helper import normalize_str
 
 def resolve_returned_result(res_str: str):
     """
@@ -201,16 +202,15 @@ async def get_resolved_tickets(server, date, from_station_telecode, to_station_t
 
 def is_beijing_nan_station(station_name):
     """检查是否为北京南站（支持中英文）"""
-    return station_name in ["北京南", "Beijingnan Railway Station"]
+    return "北京南" in station_name or "beijingnan" in normalize_str(station_name)
 
 def is_shanghai_hongqiao_station(station_name):
     """检查是否为上海虹桥站（支持中英文）"""
-    return station_name in ["上海虹桥", "Shanghai Hongqiao Railway Station"]
+    return "上海虹桥" in station_name or "shanghaihongqiao" in normalize_str(station_name)
 
 def is_qufu_station(station_name):
     """检查是否为曲阜相关车站（支持中英文）"""
     chinese_stations = ["曲阜", "曲阜东", "曲阜南"]
-    english_stations = ["Qufu Railway Station", "Qufudong Railway Station", "Qufunan Railway Station"]
     
     # 检查中文站名（包含关系）
     for cn_station in chinese_stations:
@@ -218,7 +218,7 @@ def is_qufu_station(station_name):
             return True
     
     # 检查英文站名（精确匹配）
-    return station_name in english_stations
+    return any(cand in normalize_str(station_name) for cand in ['qufurailway','qufustation','qufudong','qufunan'])
 
 def is_station_name_match(chinese_name, target_name):
     """检查中文站名与目标站名（可能是英文）是否匹配"""

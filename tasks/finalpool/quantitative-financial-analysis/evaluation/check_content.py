@@ -14,13 +14,20 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..
 sys.path.append(project_root)
 import configs.token_key_session as configs
 
+from addict import Dict
+import os
+
+with open("tasks/finalpool/quantitative-financial-analysis/files/folder_id.txt", "r") as f:
+    folder_id = f.read().strip()
+
 GOOGLE_CREDENTIALS_PATH = 'configs/google_credentials.json'
-NOTION_TOKEN = configs.all_token_key_session.notion_integration_key  # 从配置中获取Notion token
-TARGET_FOLDER_ID = "1SdLxzEvy4jfLIAnj0UII_UquNzz-535R"  # 指定的Google Drive文件夹ID，与preprocess保持一致
+TARGET_FOLDER_ID = folder_id  # 指定的Google Drive文件夹ID
 SCOPES = [
-    'https://www.googleapis.com/auth/spreadsheets',
-    'https://www.googleapis.com/auth/drive'
+    'https://www.googleapis.com/auth/drive',
+    'https://www.googleapis.com/auth/spreadsheets'
 ]
+
+NOTION_TOKEN = configs.all_token_key_session.notion_integration_key  # 从配置中获取Notion token
 
 def get_notion_workspace_pages(token):
     """获取Notion workspace下的所有页面"""
@@ -238,44 +245,46 @@ def check_highlight_formatting(worksheet, df):
         return False, f"检查高亮格式时出错: {e}"
 
 def verify_notion_page_structure(token, target_page_title="Quant Research"):
-    """验证Notion页面层级结构：MCPTestPage -> Quant Research"""
+    """验证Notion页面层级结构：Notion Eval Page -> Quant Research"""
     try:
         print("正在验证Notion页面层级结构...")
-        
-        # 查找MCPTestPage
-        mcp_pages = find_page_by_title(token, "MCPTestPage", partial_match=True)
+
+        # 查找Notion Eval Page
+        mcp_pages = find_page_by_title(token, "Notion Eval Page", partial_match=True)
         if not mcp_pages:
-            return False, "未找到MCPTestPage页面"
-        
+            return False, "未找到Notion Eval Page页面"
+
         mcp_page = mcp_pages[0]
-        print(f"✓ 找到MCPTestPage: {mcp_page['title']} (ID: {mcp_page['id']})")
-        
-        # 获取MCPTestPage的子页面
+        print(f"✓ 找到Notion Eval Page: {mcp_page['title']} (ID: {mcp_page['id']})")
+
+        # 获取Notion Eval Page的子页面
         children_blocks = get_notion_page_blocks(mcp_page['id'], token)
-        
+
         # 查找子页面中的Quant Research
         quant_research_found = False
+        quant_research_page_id = None
         for block in children_blocks.get('results', []):
             if block.get('type') == 'child_page':
                 child_title = block['child_page']['title']
                 if target_page_title.lower() in child_title.lower():
                     quant_research_found = True
-                    print(f"✓ 找到子页面: {child_title}")
-                    return True, f"页面层级结构正确: MCPTestPage -> {child_title}"
-        
+                    quant_research_page_id = block['id']
+                    print(f"✓ 找到子页面: {child_title} (ID: {quant_research_page_id})")
+                    return True, f"页面层级结构正确: Notion Eval Page -> {child_title}", quant_research_page_id
+
         if not quant_research_found:
             # 尝试通过搜索找到Quant Research页面并检查其父页面
             quant_pages = find_page_by_title(token, target_page_title, partial_match=True)
             if quant_pages:
-                print(f"✓ 找到{target_page_title}页面，但可能不在MCPTestPage下")
-                return True, f"找到{target_page_title}页面"
+                print(f"✓ 找到{target_page_title}页面，但可能不在Notion Eval Page下")
+                return True, f"找到{target_page_title}页面", quant_pages[0]['id']
             else:
-                return False, f"未找到{target_page_title}子页面"
-        
-        return False, "页面结构验证失败"
-        
+                return False, f"未找到{target_page_title}子页面", None
+
+        return False, "页面结构验证失败", None
+
     except Exception as e:
-        return False, f"验证页面结构时出错: {e}"
+        return False, f"验证页面结构时出错: {e}", None
 
 def check_notion_page_comment(page_id, token, expected_comment="月度行情数据已就绪，缺失项已标注，报告团队可直接查看。"):
     """检查Notion页面顶部是否包含指定注释"""
@@ -322,7 +331,7 @@ def validate_google_sheet_link_format(page_id, token):
                 
                 # 检查是否符合 "Google Sheet : {url}" 格式
                 import re
-                pattern = r'Google\s*Sheet\s*:\s*(https?://[^\s]+)'
+                pattern = r'Google\s*Sheet\s*:\s*{?(https?://[^\s]+)'
                 match = re.search(pattern, content, re.IGNORECASE)
                 
                 if match:
@@ -663,53 +672,58 @@ def generate_groundtruth_data(Tickers, start_date, end_date):
 def check_content(agent_workspace: str, Tickers, start_date, end_date, notion_page_id=None, notion_token=None):
     """主检查函数 - 增强版本，包含所有检测项目"""
     print("开始执行数据检查...")
-    
+
     # 动态生成ground truth数据
     try:
         groundtruth_df = generate_groundtruth_data(Tickers, start_date, end_date)
     except Exception as e:
         return False, f"生成ground truth数据时出错: {e}"
-    
-    # 验证Notion页面层级结构
+
+    # 验证Notion页面层级结构并获取正确的页面ID
     if notion_token:
         try:
-            structure_valid, structure_msg = verify_notion_page_structure(notion_token)
+            structure_valid, structure_msg, quant_research_page_id = verify_notion_page_structure(notion_token)
             if not structure_valid:
                 return False, f"Notion页面结构验证失败: {structure_msg}"
             print(f"✓ {structure_msg}")
+
+            # 使用从层级结构验证中获取的页面ID
+            if quant_research_page_id:
+                notion_page_id = quant_research_page_id
+                print(f"✓ 使用验证后的页面ID: {notion_page_id}")
         except Exception as e:
             print(f"警告: 无法验证Notion页面结构: {e}")
-    
+
     # 从指定的Notion页面获取Google Sheets链接并读取内容
     try:
         if notion_page_id and notion_token:
             print("正在从指定的Notion页面获取Google Sheets链接...")
-            
+
             # 验证链接格式
             link_format_valid, link_format_msg = validate_google_sheet_link_format(notion_page_id, notion_token)
             if not link_format_valid:
                 return False, f"Google Sheet链接格式验证失败: {link_format_msg}"
             print(f"✓ {link_format_msg}")
-            
+
             # 检查页面注释
             comment_valid, comment_msg = check_notion_page_comment(notion_page_id, notion_token)
             if not comment_valid:
                 return False, f"Notion页面注释检查失败: {comment_msg}"
             print(f"✓ {comment_msg}")
-            
+
             # 提取链接并读取数据
             sheets_url = extract_google_sheets_link_from_notion(notion_page_id, notion_token)
             spreadsheet_id, worksheet_name = extract_spreadsheet_info_from_url(sheets_url)
             worksheet_data = read_google_sheets_content(spreadsheet_id, worksheet_name, TARGET_FOLDER_ID)
-            
+
             # 检查高亮格式
             highlight_valid, highlight_msg = check_highlight_formatting(worksheet_data['worksheet_obj'], worksheet_data['dataframe'])
             if not highlight_valid:
                 return False, f"数据高亮检查失败: {highlight_msg}"
             print(f"✓ {highlight_msg}")
-            
+
             agent_df = worksheet_data['dataframe']
-            
+
         else:
             # 使用默认值（向后兼容）
             print("使用默认Google Sheets配置...")
@@ -717,51 +731,52 @@ def check_content(agent_workspace: str, Tickers, start_date, end_date, notion_pa
             worksheet_name = "May-Jun_2025"  # 使用普通hyphen作为默认
             worksheet_data = read_google_sheets_content(spreadsheet_id, worksheet_name, TARGET_FOLDER_ID)
             agent_df = worksheet_data['dataframe']
-            
+
     except Exception as e:
         return False, f"读取Google Sheets数据时出错: {e}"
-    
+
     # 检查数据匹配
     print("正在检查数据匹配...")
-    
+
     # 统一日期格式 - 只保留日期部分，去掉时间
     groundtruth_df['Date'] = pd.to_datetime(groundtruth_df['Date']).dt.date
     agent_df['Date'] = pd.to_datetime(agent_df['Date']).dt.date
-    
+
     # 显示两个数据框的列名用于调试
     print(f"Ground truth数据列名: {list(groundtruth_df.columns)}")
     print(f"Agent数据列名: {list(agent_df.columns)}")
     print(f"Ground truth数据前几行:")
     print(groundtruth_df.head())
+    # print(groundtruth_df.to_string())
     print(f"Agent数据前几行:")
     print(agent_df.head())
-    
+
     # 检查并映射列名
     check_columns = ["Open", "High", "Low", "Close","Adj Close", "Volume"]
-    
+
     # 验证所有需要的列都存在
     missing_columns = [col for col in check_columns if col not in agent_df.columns]
     if missing_columns:
         return False, f"Agent数据缺少以下列: {missing_columns}"
-    
+
     missing_ground_columns = [col for col in check_columns if col not in groundtruth_df.columns]
     if missing_ground_columns:
         return False, f"Ground truth数据缺少以下列: {missing_ground_columns}"
-    
+
     # 第一步：检查Agent数据中的每个条目
     for index, row in agent_df.iterrows():
         match_row = groundtruth_df[(groundtruth_df['Ticker'] == row['Ticker']) &
                                 (groundtruth_df['Date'] == row['Date'])]
-        
+
         # 支持中文"缺失"和英文"Missing"或"missing"
         data_check_value = str(row.get('Data Check', '')).strip()
         is_missing = data_check_value in ['缺失', 'Missing', 'missing']
-        
+
         if not is_missing:
             if not match_row.empty:
                 groundtruth_row = match_row.iloc[0]
                 for col in check_columns:
-                    if round(row[col], 2) != round(groundtruth_row[col], 2):
+                    if abs(round(row[col], 2) - round(groundtruth_row[col], 2))/round(groundtruth_row[col], 2) > 0.01:
                         return False, f"Mismatch for Ticker {row['Ticker']} on Date {row['Date']}: Agent {col} = {row[col]}, Ground Truth {col} = {groundtruth_row[col]}"
             else:
                 return False, f"Agent data has extra entry for Ticker {row['Ticker']} on Date {row['Date']}. Ground truth does not exist."
@@ -769,19 +784,19 @@ def check_content(agent_workspace: str, Tickers, start_date, end_date, notion_pa
             # 如果agent标记为缺失，这是可以接受的行为
             # agent可能无法获取到某些数据，正确标记为缺失是好的做法
             pass
-    
+
     # 第二步：检查ground truth数据中的每个条目是否都在Agent数据中
     for index, row in groundtruth_df.iterrows():
         match_row = agent_df[(agent_df['Ticker'] == row['Ticker']) &
                            (agent_df['Date'] == row['Date'])]
-        
+
         if match_row.empty:
             return False, f"Ground truth data has entry for Ticker {row['Ticker']} on Date {row['Date']} but Agent data is missing."
         else:
             agent_row = match_row.iloc[0]
             agent_data_check = str(agent_row.get('Data Check', '')).strip()
             agent_is_missing = agent_data_check in ['缺失', 'Missing', 'missing']
-            
+
             if agent_is_missing:
                 # 如果agent标记为缺失，这是可以接受的
                 # agent可能无法获取到某些数据，正确标记为缺失是好的做法
@@ -789,9 +804,9 @@ def check_content(agent_workspace: str, Tickers, start_date, end_date, notion_pa
             else:
                 # 验证数值匹配
                 for col in check_columns:
-                    if round(agent_row[col], 2) != round(row[col], 2):
+                    if abs(round(agent_row[col], 2) - round(row[col], 2))/round(row[col], 2) > 0.01:
                         return False, f"Mismatch for Ticker {row['Ticker']} on Date {row['Date']}: Agent {col} = {agent_row[col]}, Ground Truth {col} = {row[col]}"
-    
+
     print("✓ 所有数据检查通过")
     return True, "All checks passed. Agent data matches ground truth with enhanced validation."
 

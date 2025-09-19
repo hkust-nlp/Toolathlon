@@ -8,8 +8,8 @@ from agents.tool import FunctionTool, RunContextWrapper
 
 OVERLONG_DIR_NAME = '.overlong_tool_outputs'
 SEARCH_PAGE_SIZE = 10
-VIEW_PAGE_SIZE = 5000
-MAX_VIEW_PAGE_SIZE = 20000
+VIEW_PAGE_SIZE = 10000
+MAX_VIEW_PAGE_SIZE = 100000
 CONTEXT_SIZE = 1000  # Characters of context around each match
 
 # Global storage for search sessions

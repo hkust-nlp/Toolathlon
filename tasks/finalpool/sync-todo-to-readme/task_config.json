@@ -1,0 +1,12 @@
+{
+    "needed_mcp_servers": [
+        "git",
+        "github"
+    ],
+    "needed_local_tools": [
+        "claim_done",
+        "python_execute",
+        "handle_overlong_tool_outputs"
+    ],
+    "meta": {}
+}

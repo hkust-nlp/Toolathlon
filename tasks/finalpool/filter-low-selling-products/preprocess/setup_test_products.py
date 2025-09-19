@@ -343,7 +343,7 @@ class TestProductSetup:
 
         products.extend(low_selling_products)
         products.extend(normal_selling_products)
-        # products.extend(extra_normal_selling_products)
+        products.extend(extra_normal_selling_products)
 
         random.shuffle(products)
         

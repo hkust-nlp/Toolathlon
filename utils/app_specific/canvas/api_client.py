@@ -489,7 +489,8 @@ class CanvasAPI:
     # Assignment Methods
     def create_assignment(self, course_id: int, name: str, description: str = "", 
                          points_possible: int = 100, due_at: str = None, 
-                         published: bool = True) -> Optional[Dict]:
+                         published: bool = True, submission_types: list = None,
+                         allowed_extensions: list = None) -> Optional[Dict]:
         """
         Create an assignment
         
@@ -500,6 +501,8 @@ class CanvasAPI:
             points_possible: Points possible
             due_at: Due date in ISO format
             published: Whether to publish immediately
+            submission_types: List of submission types (e.g., ['online_text_entry', 'online_upload'])
+            allowed_extensions: List of allowed file extensions for uploads
             
         Returns:
             Assignment data or None if error
@@ -515,6 +518,12 @@ class CanvasAPI:
         
         if due_at:
             assignment_data['assignment']['due_at'] = due_at
+        
+        if submission_types:
+            assignment_data['assignment']['submission_types'] = submission_types
+        
+        if allowed_extensions:
+            assignment_data['assignment']['allowed_extensions'] = allowed_extensions
         
         result = self._make_request('POST', f'courses/{course_id}/assignments', assignment_data)
         return result

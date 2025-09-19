@@ -1,9 +1,0 @@
-{
-  "0519": {"food": 33.33, "traffic": 33.33, "others": 33.34, "total": 100},
-  "0520": {"food": 40.00, "traffic": 40.00, "others": 40.00, "total": 120},
-  "0521": {"food": 23.33, "traffic": 23.33, "others": 23.34, "total": 70},
-  "0522": {"food": 16.67, "traffic": 16.67, "others": 16.66, "total": 50},
-  "0523": {"food": 0, "traffic": 0, "others": 0, "total": 0},
-  "0524": {"food": 30.00, "traffic": 30.00, "others": 30.00, "total": 90},
-  "0525": {"food": 33.33, "traffic": 33.33, "others": 33.34, "total": 100}
-}

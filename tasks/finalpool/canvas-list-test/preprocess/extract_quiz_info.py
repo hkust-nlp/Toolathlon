@@ -31,7 +31,7 @@ def parse_quiz_data(json_file_path, output_csv_path):
             continue
         course_name = course.get('name', '')
         course_name = course_name.strip('-')[:-2]
-        teacher = course.get('teacher', '')
+        
         credits = course.get('credits', '')
         
         # Extract quiz info
@@ -56,7 +56,7 @@ def parse_quiz_data(json_file_path, output_csv_path):
         
         quiz_data.append({
             'course_code': course_code,
-            'teacher': teacher,
+            
             'credits': credits,
             'quiz_title': quiz_title,
             'number_of_questions': number_of_questions,
@@ -74,9 +74,9 @@ def parse_quiz_data(json_file_path, output_csv_path):
     
     # Write to CSV
     fieldnames = [
-        'course_code', 'teacher', 'credits', 'quiz_title', 'number_of_questions',
+        'course_code' , 'course_name',   'credits', 'quiz_title', 'number_of_questions',
         'time_limit', 'allowed_attempts', 'scoring_policy', 'points_possible',
-        'deadline', 'course_name'
+        'deadline', 
     ]
     
     with open(output_csv_path, 'w', newline='', encoding='utf-8') as csvfile:
@@ -115,7 +115,6 @@ def parse_assign_data(json_file_path, output_csv_path):
             continue
         course_name = course.get('name', '')
         course_name = course_name.strip('-')[:-2]
-        teacher = course.get('teacher', '')
        
         
         # Extract quiz info
@@ -137,16 +136,17 @@ def parse_assign_data(json_file_path, output_csv_path):
         
         assign_data.append({
             'course_code': course_code,
-            'teacher': teacher,
+            'course_name': course_name,
             
             'assignment_title': assign_title,
             'description': description,
             
            
-            'deadline': deadline,
-            'course_name': course_name,
+            'deadline': deadline,  # Keep original string format
+            'deadline_parsed': deadline_dt,  # Add parsed version for sorting
+            
              'points_possible': points_possible,
-             'deadline_parsed': deadline_dt
+            
             
         })
     
@@ -155,7 +155,7 @@ def parse_assign_data(json_file_path, output_csv_path):
     
     # Write to CSV
     fieldnames = [
-        'course_code', 'teacher',  'assignment_title', 'description',
+        'course_code',  'assignment_title', 'description',
         'deadline', 'course_name', 'points_possible'
        
     ]
@@ -177,16 +177,17 @@ def parse_assign_data(json_file_path, output_csv_path):
 
 def main():
     """Main function to run the script."""
-    json_file_path = "/ssddata/wzengak/mcp_bench/mcpbench_dev/tasks/finalpool/canvas_list_test/files/course_config.json"
-    output_csv_path = "/ssddata/wzengak/mcp_bench/mcpbench_dev/tasks/finalpool/canvas_list_test/groundtruth_workspace/quiz_info.csv"
-    output_csv_path2 = "/ssddata/wzengak/mcp_bench/mcpbench_dev/tasks/finalpool/canvas_list_test/groundtruth_workspace/assignment_info.csv"
+
+    script_dir = Path(__file__).parent.parent
+    json_file_path = script_dir / 'files' / 'course_config.json'
+    output_csv_path = script_dir / 'groundtruth_workspace' / 'quiz_info.csv'
+    output_csv_path2 = script_dir / 'groundtruth_workspace' / 'assignment_info.csv'
     
     # Check if input file exists
     if not Path(json_file_path).exists():
         print(f"Error: Input file not found: {json_file_path}")
         return
-    quiz_count = parse_quiz_data(json_file_path, output_csv_path)
-    assign_count = parse_assign_data(json_file_path, output_csv_path2)
+    
     try:
         quiz_count = parse_quiz_data(json_file_path, output_csv_path)
         assign_count = parse_assign_data(json_file_path, output_csv_path2)

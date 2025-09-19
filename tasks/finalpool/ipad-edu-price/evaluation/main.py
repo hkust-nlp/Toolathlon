@@ -88,10 +88,11 @@ def extract_price_from_text(text, currency_identifiers, price_range=(100, 20000)
 async def get_real_time_price(region_info, playwright_server):
     """Get real-time price"""
     region = region_info['region']
+    region_en = region_info['region_en']
     currency = region_info['currency']
     identifiers = region_info['identifiers']
     
-    print(f"Getting real-time price for {region}...")
+    print(f"Getting real-time price for {region_en}...")
     
     # Define price ranges
     if currency == 'CNY':
@@ -357,7 +358,7 @@ def evaluate_result(agent_result, real_time_prices, exchange_rates):
     real_time_data = real_time_prices[agent_region]
     if not real_time_data.get('success'):
         print(f"Warning: Could not get real-time price for {agent_region}")
-        return True, "Cannot verify due to real-time price unavailable, assuming correct"
+        return False, "Cannot verify due to real-time price unavailable, assuming incorrect"
     
     # Find actual cheapest region
     valid_prices = {}
@@ -366,7 +367,7 @@ def evaluate_result(agent_result, real_time_prices, exchange_rates):
             valid_prices[region] = data['cny_price']
     
     if not valid_prices:
-        return True, "Cannot verify due to no real-time prices available, assuming correct"
+        return False, "Cannot verify due to no real-time prices available, assuming incorrect"
     
     actual_cheapest_region = min(valid_prices.items(), key=lambda x: x[1])
     actual_cheapest_region_name = actual_cheapest_region[0]
@@ -417,10 +418,18 @@ async def main():
     
     print("Real-time price summary:")
     for region, data in real_time_prices.items():
+        # this is ugly but i just insert a maping here
+        cn2en_mapping = {
+            '香港': 'Hong Kong',
+            '中国大陆': 'China',
+            '新加坡': 'Singapore',
+            '美国': 'United States'
+        }   
+        region_en = cn2en_mapping.get(region, region)
         if data.get('success'):
-            print(f"  ✓ {region}: {data['currency']} {data['total_price']:.2f} (≈ ¥{data['cny_price']:.2f})")
+            print(f"  ✓ {region_en}: {data['currency']} {data['total_price']:.2f} (≈ ¥{data['cny_price']:.2f})")
         else:
-            print(f"  ✗ {region}: Failed to get price")
+            print(f"  ✗ {region_en}: Failed to get price")
     
     # Step 4: Compare and judge
     print("🔍 Step 4: Evaluating result...")

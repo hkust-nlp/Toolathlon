@@ -31,51 +31,67 @@ def get_notion_workspace_pages(token):
         raise Exception(f"Failed to get workspace pages: {e}")
 
 
-def find_page_by_title(token, target_title, partial_match=True):
-    """Find page by title"""
+def get_page_title(page: Dict) -> str:
+    """Extract title from a page object"""
+    if 'properties' in page and 'title' in page['properties']:
+        title_prop = page['properties']['title']
+        if title_prop['type'] == 'title':
+            title_parts = title_prop['title']
+            return ''.join([part.get('text', {}).get('content', '') for part in title_parts])
+    return ""
+
+
+def find_page_by_title(token: str, target_title: str, partial_match: bool = True) -> List[Dict]:
+    """Find page by title - returns list with consistent structure"""
+    url = "https://api.notion.com/v1/search"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+        "Notion-Version": "2022-06-28"
+    }
+
+    payload = {
+        "filter": {
+            "value": "page",
+            "property": "object"
+        },
+        "sort": {
+            "direction": "descending",
+            "timestamp": "last_edited_time"
+        }
+    }
+
     try:
-        pages_data = get_notion_workspace_pages(token)
-        matching_pages = []
-        print(f"----- Searching for page: '{target_title}' (partial_match={partial_match}) -----")
-        print(f"Found {len(pages_data.get('results', []))} total pages")
+        response = requests.post(url, headers=headers, json=payload)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        raise Exception(f"Failed to get workspace pages: {e}")
 
-        for page in pages_data.get('results', []):
-            page_title = ""
+    data = response.json()
+    matching_pages = []
 
-            # Get page title
-            if 'properties' in page and 'title' in page['properties']:
-                title_prop = page['properties']['title']
-                if title_prop['type'] == 'title':
-                    title_parts = title_prop['title']
-                    page_title = ''.join([part.get('text', {}).get('content', '') for part in title_parts])
+    for page in data.get('results', []):
+        page_title = get_page_title(page)
 
-            # Print each page for debugging
-            print(f"Checking page: '{page_title}' (ID: {page['id']})")
+        # Check title match
+        if partial_match:
+            if target_title.lower() in page_title.lower():
+                matching_pages.append({
+                    'id': page['id'],
+                    'title': page_title,
+                    'url': page.get('url', ''),
+                    'last_edited_time': page.get('last_edited_time', '')
+                })
+        else:
+            if target_title.lower() == page_title.lower():
+                matching_pages.append({
+                    'id': page['id'],
+                    'title': page_title,
+                    'url': page.get('url', ''),
+                    'last_edited_time': page.get('last_edited_time', '')
+                })
 
-            # Check title match
-            if partial_match:
-                if target_title.lower() in page_title.lower():
-                    print(f"✅ MATCH FOUND: '{page_title}'")
-                    matching_pages.append({
-                        'id': page['id'],
-                        'title': page_title,
-                        'url': page.get('url', ''),
-                        'last_edited_time': page.get('last_edited_time', '')
-                    })
-            else:
-                if target_title.lower() == page_title.lower():
-                    print(f"✅ EXACT MATCH FOUND: '{page_title}'")
-                    matching_pages.append({
-                        'id': page['id'],
-                        'title': page_title,
-                        'url': page.get('url', ''),
-                        'last_edited_time': page.get('last_edited_time', '')
-                    })
-
-        print(f"----- Search completed. Found {len(matching_pages)} matching pages -----")
-        return matching_pages
-    except Exception as e:
-        raise Exception(f"Failed to find page: {e}")
+    return matching_pages
 
 
 def find_database_by_title(token, target_title, partial_match=True):
@@ -242,3 +258,67 @@ def get_database_entries(database_id, token):
         return response.json()
     except requests.exceptions.RequestException as e:
         raise Exception(f"Failed to get database entries: {e}")
+
+
+def get_page_by_id(page_id: str, token: str) -> Dict:
+    """Get a Notion page by its ID"""
+    url = f"https://api.notion.com/v1/pages/{page_id}"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+        "Notion-Version": "2022-06-28"
+    }
+
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        raise Exception(f"Failed to get page: {e}")
+
+
+def get_page_content_as_text(page_id: str, token: str) -> str:
+    """Get page content as plain text with markdown-style formatting"""
+    url = f"https://api.notion.com/v1/blocks/{page_id}/children"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+        "Notion-Version": "2022-06-28"
+    }
+
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        raise Exception(f"Failed to get Notion page blocks: {e}")
+
+    blocks = response.json()
+    content_parts = []
+
+    for block in blocks.get('results', []):
+        block_type = block.get('type', '')
+
+        if block_type in ['paragraph', 'heading_1', 'heading_2', 'heading_3', 'bulleted_list_item', 'numbered_list_item']:
+            rich_text = block[block_type].get('rich_text', [])
+            content = ''.join([text.get('text', {}).get('content', '') for text in rich_text])
+            if content.strip():
+                # Add heading markers
+                if block_type == 'heading_1':
+                    content_parts.append(f"# {content}")
+                elif block_type == 'heading_2':
+                    content_parts.append(f"## {content}")
+                elif block_type == 'heading_3':
+                    content_parts.append(f"### {content}")
+                else:
+                    content_parts.append(content)
+
+        elif block_type == 'bookmark':
+            url = block['bookmark'].get('url', '')
+            caption = block['bookmark'].get('caption', [])
+            caption_text = ''.join([text.get('text', {}).get('content', '') for text in caption])
+            if caption_text.strip():
+                content_parts.append(f"[{caption_text}]({url})")
+            elif url.strip():
+                content_parts.append(f"Link: {url}")
+
+    return '\n\n'.join(content_parts)

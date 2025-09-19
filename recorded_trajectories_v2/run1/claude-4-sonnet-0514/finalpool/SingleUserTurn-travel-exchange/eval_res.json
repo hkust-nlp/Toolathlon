@@ -1,4 +1,0 @@
-{
-  "pass": false,
-  "failure": "USD_to_CNY: PASS (diff: 0.00, tolerance: 0.1)\nEUR_to_CNY: PASS (diff: 0.00, tolerance: 0.1)\nTRY_to_CNY: PASS (diff: 0.00, tolerance: 0.1)\nSGD_to_CNY: PASS (diff: 0.00, tolerance: 0.1)\nAndrew_Expenses: PASS (diff: 1.41, tolerance: 1307.010429)\nLau_Expenses: PASS (diff: 0.04, tolerance: 2310.753)\nChen_Expenses: PASS (diff: 0.62, tolerance: 732.8715755000001)\nDiana_Expenses: PASS (diff: 0.77, tolerance: 1851.082764)\nElena_Expenses: PASS (diff: 0.57, tolerance: 810.417809)\nFrank_Expenses: PASS (diff: 28.31, tolerance: 1362.598134)\nGrace_Expenses: FAIL (diff: 109559.28, tolerance: 12256.02165)\nTotal_Cost: FAIL (diff: 109590.98, tolerance: 20630.755360000003)\n"
-}

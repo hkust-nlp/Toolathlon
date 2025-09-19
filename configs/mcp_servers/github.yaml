@@ -22,7 +22,7 @@
 type: stdio
 name: github
 params:
-  command: ${local_binary_paths}/github-mcp-server
+  command: ${local_binary_paths}/github-mcp-server # this is built by go on linux
   args:
     - "stdio"
   env:

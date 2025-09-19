@@ -1,4 +1,0 @@
-{
-  "pass": false,
-  "failure": "Downloading repository: mcptester0606/MyAwesomeModel-TestRepo\nDownload directory: /ssddata/mcpbench/zhaojian/mcpbench_dev/tmp\nGroundtruth directory: /ssddata/mcpbench/zhaojian/mcpbench_dev/tasks/finalpool/huggingface-upload/groundtruth_workspace\n✅ Repository downloaded successfully\n=== Repository Verification Results ===\n❌ README.md: Content differs\n✅ config.json: Content matches\n✅ pytorch_model.bin: Content matches\n✅ figures/fig1.png: Content matches\n✅ figures/fig2.png: Content matches\n✅ figures/fig3.png: Content matches\n\n=== Overall Result: ❌ FAIL ===\n1\n"
-}

@@ -1,5 +1,6 @@
 import requests
 from requests.auth import HTTPBasicAuth
+from requests_oauthlib import OAuth1
 import time
 from typing import Dict, List, Optional, Tuple, Any
 
@@ -22,6 +23,8 @@ class WooCommerceClient:
         self.site_url = site_url.rstrip('/')
         self.api_base = f"{self.site_url}/wp-json/wc/{version}"
         self.wp_api_base = f"{self.site_url}/wp-json/wp/v2"
+        self.consumer_key = consumer_key
+        self.consumer_secret = consumer_secret
         self.auth = HTTPBasicAuth(consumer_key, consumer_secret)
         self.session = requests.Session()
         self.session.auth = self.auth
@@ -77,15 +80,18 @@ class WooCommerceClient:
         url = f"{self.wp_api_base}/{endpoint.lstrip('/')}"
         headers = {"Content-Type": "application/json"}
 
+        # Use OAuth1 authentication for WordPress REST API as well
+        auth = OAuth1(self.consumer_key, self.consumer_secret)
+
         response = None
         if method.upper() == 'GET':
-            response = self.session.get(url, params=params, headers=headers)
+            response = self.session.get(url, params=params, headers=headers, auth=auth)
         elif method.upper() == 'POST':
-            response = self.session.post(url, json=data, params=params, headers=headers)
+            response = self.session.post(url, json=data, params=params, headers=headers, auth=auth)
         elif method.upper() == 'PUT':
-            response = self.session.put(url, json=data, params=params, headers=headers)
+            response = self.session.put(url, json=data, params=params, headers=headers, auth=auth)
         elif method.upper() == 'DELETE':
-            response = self.session.delete(url, params=params, headers=headers)
+            response = self.session.delete(url, params=params, headers=headers, auth=auth)
         else:
             return False, {"error": f"Unsupported HTTP method: {method}"}
 
@@ -295,9 +301,9 @@ class WooCommerceClient:
         """Get customers list"""
         return self._make_request('GET', 'customers', params={'per_page': per_page})
 
-    def delete_customer(self, customer_id: str, force: bool = True, reassign: int = 1) -> Tuple[bool, Dict]:
+    def delete_customer(self, customer_id: str, force: bool = True) -> Tuple[bool, Dict]:
         """Delete customer"""
-        params = {'force': force, 'reassign': reassign} if force else {}
+        params = {'force': force} if force else {}
         return self._make_request('DELETE', f'customers/{customer_id}', params=params)
 
     def batch_delete_customers(self, customer_ids: List[int], batch_size: int = 20) -> Tuple[bool, Dict]:
@@ -373,7 +379,7 @@ class WooCommerceClient:
         return True, {"deleted": deleted_count}
 
     # WordPress posts operations
-    def get_posts(self, page: int = 1, per_page: int = 100, status: str = 'any') -> Tuple[bool, List[Dict]]:
+    def get_posts(self, page: int = 1, per_page: int = 100, status: str = 'publish') -> Tuple[bool, List[Dict]]:
         """Get posts list"""
         params = {'page': page, 'per_page': per_page, 'status': status}
         return self._make_wp_request('GET', 'posts', params=params)
