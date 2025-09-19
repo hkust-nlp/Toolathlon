@@ -7,10 +7,10 @@
 
 uv run demo.py \
 --eval_config scripts/model_wise/eval_claude-4-sonnet.json \
---task_dir finalpool/notion-hr \
+--task_dir finalpool/woocommerce-customer-survey \
 --debug \
---model_short_name gpt-5 \
---provider aihubmix \
---max_steps_under_single_turn_mode 200 \
---multi_turn_mode \
---manual \
+# --model_short_name gpt-5 \
+# --provider aihubmix \
+# --max_steps_under_single_turn_mode 200 \
+# --multi_turn_mode \
+# --manual \
