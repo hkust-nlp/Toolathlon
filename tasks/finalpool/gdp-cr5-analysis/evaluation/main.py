@@ -334,7 +334,22 @@ def compare_cr5_data(agent_data: List[Dict[str, str]], standard_data: List[Dict[
     
     if errors:
         return errors, comparison_results
-    
+
+    # 验证CR5降序排列
+    agent_cr5_values = []
+    for agent_row in agent_data:
+        cr5_value = parse_percentage_value(agent_row.get(actual_mapping['CR5_Ratio'], 0))
+        agent_cr5_values.append(cr5_value)
+
+    # 检查是否按CR5降序排列
+    is_descending = all(agent_cr5_values[i] >= agent_cr5_values[i+1] for i in range(len(agent_cr5_values)-1))
+    if not is_descending:
+        errors.append("数据未按CR5指数降序排列")
+        # 显示当前排序状态
+        cr5_order_info = [f"{agent_data[i].get(actual_mapping['Region'], 'Unknown')}: {agent_cr5_values[i]:.2f}%"
+                         for i in range(len(agent_cr5_values))]
+        errors.append(f"当前CR5排序: {' > '.join(cr5_order_info)}")
+
     # 对每个地区进行比较
     for agent_row in agent_data:
         region = agent_row.get(actual_mapping['Region'], '').strip()
@@ -388,13 +403,13 @@ def compare_cr5_data(agent_data: List[Dict[str, str]], standard_data: List[Dict[
             
             # 比较数值 (允许小误差)
             tolerance = 0.01  # 1%的误差容忍度
-            
-            if abs(agent_top5_gdp - std_top5_gdp) > std_top5_gdp * tolerance*0.0001:
+
+            if abs(agent_top5_gdp - std_top5_gdp) > std_top5_gdp * tolerance:
                 diff = ((agent_top5_gdp - std_top5_gdp) / std_top5_gdp) * 100
                 region_comparison["errors"].append(f"Top5 GDP差异: {diff:.4f}%")
                 region_comparison["differences"]["top5_gdp"] = diff
-            
-            if abs(agent_region_gdp - std_region_gdp) > std_region_gdp * tolerance*0.0001:
+
+            if abs(agent_region_gdp - std_region_gdp) > std_region_gdp * tolerance:
                 diff = ((agent_region_gdp - std_region_gdp) / std_region_gdp) * 100
                 region_comparison["errors"].append(f"地区总GDP差异: {diff:.4f}%")
                 region_comparison["differences"]["region_gdp"] = diff
@@ -509,13 +524,25 @@ def generate_evaluation_report(cr5_rows: List[Dict[str, str]], errors: List[str]
 
 def main():
     parser = argparse.ArgumentParser(description='GDP CR5分析任务评估')
-    parser.add_argument('--res_log_file', help='结果日志文件路径（可选）')
-    parser.add_argument('--agent_workspace', required=True, help='Agent工作区路径')
-    parser.add_argument('--groundtruth_workspace', required=True, help='标准答案工作区路径')
-    parser.add_argument('--launch_time', help='启动时间（可选）')
-    parser.add_argument('--folder_id', default="1Xi5bBHdiyGxYDBud5GqkWYo-DOPkWkZl", help='Google Sheets文件夹ID')
-    parser.add_argument('--credentials_file', default="configs/credentials.json", help='Google认证文件路径')
+    parser.add_argument('--res_log_file', help='Result log file path')
+    parser.add_argument('--agent_workspace', required=True, help='Agent Workspace')
+    parser.add_argument('--groundtruth_workspace', required=True, help='Groundtruth Workspace')
+    parser.add_argument('--launch_time', help='launch time')
+    parser.add_argument('--credentials_file', default="configs/google_credentials.json", help='Google credentials file path')
     args = parser.parse_args()
+
+    # 直接从files/folder_id.txt读取folder_id
+    task_root = Path(__file__).parent.parent
+    folder_id_file = task_root / "files" / "folder_id.txt"
+
+    if folder_id_file.exists():
+        with open(folder_id_file, 'r', encoding='utf-8') as f:
+            folder_id = f.read().strip()
+        print(f"从 {folder_id_file} 读取folder_id: {folder_id}")
+    else:
+        raise FileNotFoundError(f"必需的folder_id文件不存在: {folder_id_file}")
+
+    args.folder_id = folder_id
     
     SPREADSHEET_NAME = "GDP CR5 Analysis"
     TARGET_SHEET_NAME = "gdp_cr5_analysis"
