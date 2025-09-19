@@ -6,3 +6,6 @@ prompt 中明确表示，其他没有提交的作业不用她管，所以在chec
  此外还有一个考察点放置了其他人的作业（id不一样，文件内容也包含名字），在/ssddata/xiaochen/workspace/mcpbench_dev/tasks/xiaochen/canvas_collect_work_data/initial_workspace/homeworks/films 路径下，看agent是否会混淆。
 
 还有请假条，需要agent自行找到并发送给excel中提供的助教邮箱
+
+9.19
+initial_workspace 中把原有的多个文件压缩成包了，但是要注意git可能对此无法监控更改。

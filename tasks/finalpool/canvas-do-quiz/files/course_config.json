@@ -6,7 +6,7 @@
       "teacher": "mcpcanvasadmin2@mcp.com",
       "credits": 3,
       "exam_type": "closed_book",
-      "exam_time": "2025-09-20 09:00",
+      "exam_time": "2025-09-21 09:00",
       "duration": "120",
       "duration_unit": "minutes",
       "location": "Building A Room 101",
@@ -20,7 +20,7 @@
         "allowed_attempts": 2,
         "scoring_policy": "keep_highest",
         "points_possible": 100,
-        "due_at": "2025-09-20T23:59:00Z",
+        "due_at": "2025-09-21T23:59:00Z",
         "questions": [
           {
             "question_text": "What is the primary function of an operating system?",
@@ -88,7 +88,7 @@
       "teacher": "mcpcanvasadmin2@mcp.com",
       "credits": 4,
       "exam_type": "closed_book",
-      "exam_time": "2025-09-20 09:00",
+      "exam_time": "2025-09-21 09:00",
       "duration": "150",
       "duration_unit": "minutes",
       "location": "Building B Room 203",
@@ -102,7 +102,7 @@
         "allowed_attempts": 1,
         "scoring_policy": "keep_highest",
         "points_possible": 150,
-        "due_at": "2025-09-20T23:59:00Z",
+        "due_at": "2025-09-21T23:59:00Z",
         "questions": [
           {
             "question_text": "What is the time complexity of binary search in a sorted array?",
@@ -169,7 +169,7 @@
       "teacher": "mcpcanvasadmin2@mcp.com",
       "credits": 4,
       "exam_type": "closed_book",
-      "exam_time": "2025-09-20 14:00",
+      "exam_time": "2025-09-21 14:00",
       "duration": "150",
       "duration_unit": "minutes",
       "location": "Building B Room 205",
@@ -183,7 +183,7 @@
         "allowed_attempts": 2,
         "scoring_policy": "keep_highest",
         "points_possible": 120,
-        "due_at": "2025-09-20T23:59:00Z",
+        "due_at": "2025-09-21T23:59:00Z",
         "questions": [
           {
             "question_text": "Which SQL command is used to retrieve data from a database?",
@@ -251,7 +251,7 @@
       "teacher": "mcpcanvasadmin2@mcp.com",
       "credits": 3,
       "exam_type": "closed_book",
-      "exam_time": "2025-09-20 09:00",
+      "exam_time": "2025-09-21 09:00",
       "duration": "120",
       "duration_unit": "minutes",
       "location": "Building C Room 305",
@@ -265,7 +265,7 @@
         "allowed_attempts": 2,
         "scoring_policy": "keep_highest",
         "points_possible": 100,
-        "due_at": "2025-09-20T23:59:00Z",
+        "due_at": "2025-09-21T23:59:00Z",
         "questions": [
           {
             "question_text": "Which software development methodology emphasizes iterative development and customer collaboration?",
@@ -332,7 +332,7 @@
       "teacher": "mcpcanvasadmin2@mcp.com",
       "credits": 4,
       "exam_type": "closed_book",
-      "exam_time": "2025-09-20 14:00",
+      "exam_time": "2025-09-21 14:00",
       "duration": "180",
       "duration_unit": "minutes",
       "location": "Building C Room 301",
@@ -346,7 +346,7 @@
         "allowed_attempts": 1,
         "scoring_policy": "keep_highest",
         "points_possible": 200,
-        "due_at": "2025-09-20T23:59:00Z",
+        "due_at": "2025-09-21T23:59:00Z",
         "questions": [
           {
             "question_text": "Which design pattern is used to ensure only one instance of a class exists?",
@@ -414,7 +414,7 @@
       "teacher": "mcpcanvasadmin2@mcp.com",
       "credits": 3,
       "exam_type": "closed_book",
-      "exam_time": "2025-09-20 09:00",
+      "exam_time": "2025-09-21 09:00",
       "duration": "120",
       "duration_unit": "minutes",
       "location": "Building A Room 201",
@@ -428,7 +428,7 @@
         "allowed_attempts": 2,
         "scoring_policy": "keep_highest",
         "points_possible": 150,
-        "due_at": "2025-09-20T23:59:00Z",
+        "due_at": "2025-09-21T23:59:00Z",
         "questions": [
           {
             "question_text": "Which type of machine learning uses labeled training data?",
@@ -509,7 +509,7 @@
         "allowed_attempts": 3,
         "scoring_policy": "keep_highest",
         "points_possible": 80,
-        "due_at": "2025-09-20T23:59:00Z",
+        "due_at": "2025-09-21T23:59:00Z",
         "questions": [
           {
             "question_text": "What does RDBMS stand for?",
@@ -577,7 +577,7 @@
       "teacher": "mcpcanvasadmin2@mcp.com",
       "credits": 3,
       "exam_type": "closed_book",
-      "exam_time": "2025-09-20 09:00",
+      "exam_time": "2025-09-21 09:00",
       "duration": "120",
       "duration_unit": "minutes",
       "location": "Building C Room 207",
@@ -591,7 +591,7 @@
         "allowed_attempts": 2,
         "scoring_policy": "keep_highest",
         "points_possible": 120,
-        "due_at": "2025-09-20T23:59:00Z",
+        "due_at": "2025-09-21T23:59:00Z",
         "questions": [
           {
             "question_text": "Which layer of the OSI model is responsible for routing?",
@@ -672,7 +672,7 @@
         "allowed_attempts": 1,
         "scoring_policy": "keep_highest",
         "points_possible": 100,
-        "due_at": "2025-09-20T23:59:00Z",
+        "due_at": "2025-09-21T23:59:00Z",
         "questions": [
           {
             "question_text": "Choose the correct sentence:",
@@ -754,7 +754,7 @@
         "allowed_attempts": 3,
         "scoring_policy": "keep_highest",
         "points_possible": 100,
-        "due_at": "2025-09-20T23:59:00Z",
+        "due_at": "2025-09-21T23:59:00Z",
         "questions": [
           {
             "question_text": "What is tokenization in NLP?",
@@ -821,7 +821,7 @@
       "teacher": "mcpcanvasadmin2@mcp.com",
       "credits": 4,
       "exam_type": "open_book",
-      "exam_time": "2025-09-20 09:00",
+      "exam_time": "2025-09-21 09:00",
       "duration": "150",
       "duration_unit": "minutes",
       "location": "Building B Room 301",
@@ -835,7 +835,7 @@
         "allowed_attempts": 1,
         "scoring_policy": "keep_highest",
         "points_possible": 200,
-        "due_at": "2025-09-20T23:59:00Z",
+        "due_at": "2025-09-21T23:59:00Z",
         "questions": [
           {
             "question_text": "What is the derivative of x²?",
@@ -903,7 +903,7 @@
       "teacher": "mcpcanvasadmin2@mcp.com",
       "credits": 3,
       "exam_type": "closed_book",
-      "exam_time": "2025-09-20 14:00",
+      "exam_time": "2025-09-21 14:00",
       "duration": "120",
       "duration_unit": "minutes",
       "location": "Building C Room 101",
@@ -917,7 +917,7 @@
         "allowed_attempts": 2,
         "scoring_policy": "keep_highest",
         "points_possible": 150,
-        "due_at": "2025-09-20T23:59:00Z",
+        "due_at": "2025-09-21T23:59:00Z",
         "questions": [
           {
             "question_text": "What is the result of multiplying a 2x3 matrix by a 3x2 matrix?",
@@ -984,7 +984,7 @@
       "teacher": "mcpcanvasadmin2@mcp.com",
       "credits": 4,
       "exam_type": "open_book",
-      "exam_time": "2025-09-20 09:00",
+      "exam_time": "2025-09-21 09:00",
       "duration": "180",
       "duration_unit": "minutes",
       "location": "Building D Room 401",
@@ -998,7 +998,7 @@
         "allowed_attempts": 2,
         "scoring_policy": "keep_highest",
         "points_possible": 200,
-        "due_at": "2025-09-20T23:59:00Z",
+        "due_at": "2025-09-21T23:59:00Z",
         "questions": [
           {
             "question_text": "What was the primary purpose of the 'Principle of Legitimacy' advocated by Metternich at the Congress of Vienna (1815)?",
@@ -1181,7 +1181,7 @@
       "teacher": "mcpcanvasadmin2@mcp.com",
       "credits": 3,
       "exam_type": "closed_book",
-      "exam_time": "2025-09-20 14:00",
+      "exam_time": "2025-09-21 14:00",
       "duration": "150",
       "duration_unit": "minutes",
       "location": "Building D Room 203",
@@ -1195,7 +1195,7 @@
         "allowed_attempts": 1,
         "scoring_policy": "keep_highest",
         "points_possible": 180,
-        "due_at": "2025-09-20T23:59:00Z",
+        "due_at": "2025-09-21T23:59:00Z",
         "questions": [
           {
             "question_text": "Consider this argument: 'All effective leaders are good communicators. Sarah is not a good communicator. Therefore, Sarah is not an effective leader.' This argument is:",

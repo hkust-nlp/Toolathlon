@@ -1,5 +1,5 @@
 {
-    "needed_mcp_servers": ["canvas","memory","filesystem" ,"excel" , "emails"],
+    "needed_mcp_servers": ["canvas","memory","filesystem"  , "emails"],
     "needed_local_tools": ["claim_done", "python_execute"],
     "meta": {}
 }

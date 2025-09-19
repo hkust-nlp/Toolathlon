@@ -202,23 +202,48 @@ if __name__ == "__main__":
 
     # 确保agent workspace存在
     os.makedirs(args.agent_workspace, exist_ok=True)
+    
+    # 检查源文件是否存在且不为空
+    initial_workspace_dir = os.path.join(os.path.dirname(__file__), '..', 'initial_workspace')
+    src_tar_path = os.path.join(initial_workspace_dir, "files.tar.gz")
     dst_tar_path = os.path.join(args.agent_workspace, "files.tar.gz")
+    
+    if not os.path.exists(src_tar_path):
+        print(f"⚠️ 源文件不存在: {src_tar_path}")
+        print("跳过解压缩步骤")
+    elif os.path.getsize(src_tar_path) == 0:
+        print(f"⚠️ 源文件为空: {src_tar_path}")
+        print("跳过解压缩步骤")
+    else:
+        # 复制文件到目标位置
+        try:
+            import shutil
+            shutil.copy2(src_tar_path, dst_tar_path)
+            print(f"已复制文件到: {dst_tar_path}")
+        except Exception as e:
+            print(f"复制文件失败: {e}")
+            sys.exit(1)
+        
+        # 解压缩
+        try:
+            with tarfile.open(dst_tar_path, 'r:gz') as tar:
+                print(f"正在解压缩到: {args.agent_workspace}")
+                # 兼容旧版Python：无filter参数时回退
+                try:
+                    tar.extractall(path=args.agent_workspace, filter='data')
+                except TypeError:
+                    # Python 3.7等版本不支持filter参数
+                    tar.extractall(path=args.agent_workspace)
+                print("解压缩完成")
+        except Exception as e:
+            print(f"解压缩失败: {e}")
+            sys.exit(1)
+        
+        # 删除压缩文件
+        try:
+            os.remove(dst_tar_path)
+            print(f"已删除原始压缩文件: {dst_tar_path}")
+        except Exception as e:
+            print(f"删除压缩文件失败: {e}")
 
-    
-    # 解压缩
-    try:
-        with tarfile.open(dst_tar_path, 'r:gz') as tar:
-            print(f"正在解压缩到: {args.agent_workspace}")
-            # Use the filter parameter to avoid deprecation warning in Python 3.14+
-            tar.extractall(path=args.agent_workspace, filter='data')
-            print("解压缩完成")
-    except Exception as e:
-        print(f"解压缩失败: {e}")
-        sys.exit(1)
-    
-    # 删除压缩文件
-    try:
-        os.remove(dst_tar_path)
-        print(f"已删除原始压缩文件: {dst_tar_path}")
-    except Exception as e:
-        print(f"删除压缩文件失败: {e}")
+            

@@ -35,17 +35,12 @@ from datetime import datetime
 from typing import Dict, List, Any, Optional
 from pathlib import Path
 
-parent_dir = Path(__file__).parent.parent
-sys.path.insert(0, str(parent_dir))
+# Add parent directory to Python path to import token_key_session
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from token_key_session import all_token_key_session
-
-# Import Canvas configuration
 from token_key_session import all_token_key_session
 CANVAS_API_TOKEN = all_token_key_session.admin_canvas_token
-CANVAS_DOMAIN = all_token_key_session.canvas_domain
-os.environ["CANVAS_API_TOKEN"] = CANVAS_API_TOKEN
-os.environ["CANVAS_DOMAIN"] = CANVAS_DOMAIN
 
 # Configure logging
 logging.basicConfig(
