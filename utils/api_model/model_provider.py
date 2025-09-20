@@ -271,7 +271,8 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                         'content too long',
                         'message too long',
                         'prompt is too long',
-                        'maximum number of tokens'
+                        'maximum number of tokens',
+                        'This model\'s maximum prompt length is' # for xAI model
                     ]):
                         context_too_long = True
                         
@@ -288,6 +289,11 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                         
                         # 模式3: "maximum length 10485760, but got a string with length 30893644"
                         match = re.search(r'maximum length (\d+).*length (\d+)', error_str)
+                        if match:
+                            max_tokens, current_tokens = int(match.group(1)), int(match.group(2))
+                        
+                        # 模式4：xAI
+                        match = re.search(r'This model\'s maximum prompt length is (\d+).*request contains (\d+)', error_str)
                         if match:
                             max_tokens, current_tokens = int(match.group(1)), int(match.group(2))
                 
@@ -320,7 +326,7 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                         'token limit exceeded',
                         'exceeds maximum',
                         'exceeds the maximum',
-                        'prompt is too long'
+                        'prompt is too long',
                     ]):
                         context_too_long = True
                 
@@ -638,6 +644,13 @@ API_MAPPINGS = {
                    "openrouter": "qwen/qwen3-coder",
                    "qwen_official": "qwen3-coder-plus"},
         price=[0.54/1000, 2.16/1000],
+        concurrency=32,
+        context_window=128000,
+        openrouter_config={"provider": {"only": ["fireworks"]}}
+    ),
+    "qwen-3-max": Dict(
+        api_model={"qwen_official": "qwen3-max-preview"},
+        price=[1.2/1000, 6/1000],
         concurrency=32,
         context_window=128000,
         openrouter_config={"provider": {"only": ["fireworks"]}}
