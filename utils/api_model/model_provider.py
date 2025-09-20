@@ -511,7 +511,7 @@ API_MAPPINGS = {
                    "openrouter": "openai/gpt-5"},
         price=[1.25/1000, 10/1000.0],
         concurrency=32,
-        context_window=1000000,
+        context_window=400000,
         openrouter_config={"provider": {"only": ["openai"]}}
     ),
     'gpt-5-mini': Dict(
@@ -520,7 +520,7 @@ API_MAPPINGS = {
                    "openrouter": "openai/gpt-5-mini"},
         price=[0.25/1000,2/1000.0],
         concurrency=32,
-        context_window=1000000
+        context_window=400000
     ),
     # 'gpt-5-nano': Dict(
     #     api_model={"ds_internal": "",
@@ -557,12 +557,13 @@ API_MAPPINGS = {
                    "openrouter": "anthropic/claude-sonnet-4"},
         price=[0.003, 0.015],
         concurrency=32,
-        context_window=200000,
+        context_window=1000000,
         openrouter_config={"provider": {"only": ["anthropic"]}}
     ),
     'claude-4.1-opus-0805': Dict(
         api_model={"ds_internal": "",
                    "aihubmix": "claude-opus-4-1-20250805",
+                   "openrouter": "anthropic/claude-opus-4.1",
                    "anthropic": "claude-opus-4-1-20250805"},
         price=[16.5/1000, 82.5/1000],
         concurrency=32,
@@ -610,7 +611,7 @@ API_MAPPINGS = {
                    "openrouter": "x-ai/grok-code-fast-1"},
         price=[0.2/1000, 1.5/1000],
         concurrency=32,
-        context_window=128000
+        context_window=256000
     ),    
     # 'kimi-k2-instruct': Dict(
     #     api_model={"ds_internal": None,
@@ -626,7 +627,7 @@ API_MAPPINGS = {
                    "kimi_official": "kimi-k2-0905-preview"},
         price=[0.548/1000, 2.192/1000],
         concurrency=32,
-        context_window=128000,
+        context_window=256000,
         openrouter_config={"provider": {"only": ["moonshotai"]}}
     ),
     'glm-4.5': Dict(
@@ -645,15 +646,15 @@ API_MAPPINGS = {
                    "qwen_official": "qwen3-coder-plus"},
         price=[0.54/1000, 2.16/1000],
         concurrency=32,
-        context_window=128000,
-        openrouter_config={"provider": {"only": ["fireworks"]}}
+        context_window=256000,
     ),
     "qwen-3-max": Dict(
-        api_model={"qwen_official": "qwen3-max-preview"},
+        api_model={
+            "qwen_official": "qwen3-max-preview",
+            "openrouter": "qwen/qwen3-max"},
         price=[1.2/1000, 6/1000],
         concurrency=32,
-        context_window=128000,
-        openrouter_config={"provider": {"only": ["fireworks"]}}
+        context_window=256000,
     ),
     
     
