@@ -66,11 +66,11 @@ def extract_task_information_from_database(database_entries: List[Dict]) -> List
     return tasks
 
 
-def compare_with_local_excel(notion_tasks: List[Dict]) -> Tuple[bool, List[str]]:
+def compare_with_local_excel(notion_tasks: List[Dict], groundtruth_workspace) -> Tuple[bool, List[str]]:
     """Compare Notion database with local Excel file"""
     try:
         import pandas as pd
-        excel_path = "tasks/finalpool/task-tracker/groundtruth_workspace/notion_table_after.xlsx"
+        excel_path = f"{groundtruth_workspace}/notion_table_after.xlsx"
 
         # Read Excel file
         df_excel = pd.read_excel(excel_path)
@@ -122,7 +122,7 @@ def compare_with_local_excel(notion_tasks: List[Dict]) -> Tuple[bool, List[str]]
         return False, [f"Error comparing with Excel: {str(e)}"]
 
 
-def check_notion_database() -> Tuple[bool, str]:
+def check_notion_database(groundtruth_workspace) -> Tuple[bool, str]:
     """Check Notion database in Task Tracker page under Notion Eval Page"""
     try:
         # Get Notion token
@@ -241,7 +241,7 @@ def check_notion_database() -> Tuple[bool, str]:
 
         # Compare with local Excel
         print("\n🔍 Comparing with local Excel file...")
-        comparison_success, comparison_issues = compare_with_local_excel(notion_tasks)
+        comparison_success, comparison_issues = compare_with_local_excel(notion_tasks, groundtruth_workspace)
 
         if not comparison_success:
             error_msg = f"❌ Database comparison failed:\n\n"
@@ -267,7 +267,7 @@ def check_notion_database() -> Tuple[bool, str]:
         return False, f"❌ Failed to check Notion database: {str(e)}"
 
 
-def check_github_finalpool_tasks() -> Tuple[bool, str]:
+def check_github_finalpool_tasks(groundtruth_workspace) -> Tuple[bool, str]:
     """Check GitHub finalpool branch contains only implemented tasks with required files"""
     try:
         from utils.general.helper import fork_repo, run_command, print_color
@@ -326,7 +326,7 @@ def check_github_finalpool_tasks() -> Tuple[bool, str]:
 
         # Read local Excel to get implemented tasks
         import pandas as pd
-        excel_path = "tasks/finalpool/task-tracker/groundtruth_workspace/notion_table_after.xlsx"
+        excel_path = f"{groundtruth_workspace}/notion_table_after.xlsx"
         df_excel = pd.read_excel(excel_path)
 
         # Get implemented tasks from Excel
@@ -403,7 +403,7 @@ def check_github_finalpool_tasks() -> Tuple[bool, str]:
         return False, f"❌ Error checking GitHub finalpool tasks: {str(e)}"
 
 
-def run_complete_evaluation(agent_workspace):
+def run_complete_evaluation(agent_workspace, groundtruth_workspace):
     """Run the complete evaluation workflow with new logic"""
 
     print("🚀 Starting Complete Task Tracker Evaluation")
@@ -415,7 +415,7 @@ def run_complete_evaluation(agent_workspace):
     # Step 1: Check Notion Database vs Excel File
     print("\n📊 STEP 1: Checking Notion Database vs Local Excel File...")
     try:
-        notion_success, notion_message = check_notion_database()
+        notion_success, notion_message = check_notion_database(groundtruth_workspace)
         print(notion_message)
         results.append(f"Notion Database Check: {'✅ PASSED' if notion_success else '❌ FAILED'}")
         if not notion_success:
@@ -430,7 +430,7 @@ def run_complete_evaluation(agent_workspace):
     # Step 2: Check GitHub Finalpool Tasks
     print("\n🐙 STEP 2: Checking GitHub Finalpool Tasks...")
     try:
-        github_success, github_message = check_github_finalpool_tasks()
+        github_success, github_message = check_github_finalpool_tasks(groundtruth_workspace)
         print(github_message)
         results.append(f"GitHub Finalpool Check: {'✅ PASSED' if github_success else '❌ FAILED'}")
         if not github_success:
@@ -491,7 +491,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     try:
-        success, message = run_complete_evaluation(args.agent_workspace)
+        success, message = run_complete_evaluation(args.agent_workspace, args.groundtruth_workspace)
 
         print("\n" + "="*80)
         print("FINAL EVALUATION RESULT")
