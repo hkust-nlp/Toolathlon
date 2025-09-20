@@ -5,20 +5,10 @@ from pathlib import Path
 import sys
 from typing import Dict, List, Tuple
 
-from .check_github_groundtruth import get_github_ground_truth
-from .check_content import check_prompt_tasks, get_db_id_by_title
-from .groundtruth_parser import parse_groundtruth_table, get_expected_task_counts
-from notion_client import Client
-import sys
-from pathlib import Path
-sys.path.append(str(Path(__file__).resolve().parent.parent))
-import token_key_session as configs
+import configs.token_key_session as configs
 
 # Import Notion utility functions
-from utils.app_specific.notion.ops import (
-    find_database_in_page,
-    get_database_entries
-)
+from notion_client import Client
 
 
 def extract_task_information_from_database(database_entries: List[Dict]) -> List[Dict]:
@@ -27,10 +17,9 @@ def extract_task_information_from_database(database_entries: List[Dict]) -> List
 
     for entry in database_entries:
         task_info = {
-            'task_name': '',
-            'task_status': '',
-            'implementor': '',
-            'comment': ''
+            'Task Name': '',
+            'Task Status': '',
+            'Implementor': ''
         }
 
         # Extract properties
@@ -38,302 +27,265 @@ def extract_task_information_from_database(database_entries: List[Dict]) -> List
 
         for prop_name, prop_data in properties.items():
             prop_type = prop_data.get('type', '')
-            prop_name_lower = prop_name.lower().strip()
+            prop_name_clean = prop_name.strip()
 
             if prop_type == 'title':
                 # Usually the task name
                 title_parts = prop_data.get('title', [])
                 text = ''.join([part.get('text', {}).get('content', '') for part in title_parts])
                 text = text.strip()
-                if 'task name' in prop_name_lower or 'name' in prop_name_lower or prop_name_lower == 'title':
-                    task_info['task_name'] = text
+                if prop_name_clean == 'Task Name' or 'task' in prop_name_clean.lower():
+                    task_info['Task Name'] = text
 
             elif prop_type == 'rich_text':
                 rich_text = prop_data.get('rich_text', [])
                 text = ''.join([part.get('text', {}).get('content', '') for part in rich_text])
                 text = text.strip()
 
-                if 'task name' in prop_name_lower or 'name' in prop_name_lower:
-                    task_info['task_name'] = text
-                elif 'implementor' in prop_name_lower:
-                    task_info['implementor'] = text
-                elif 'comment' in prop_name_lower:
-                    task_info['comment'] = text
+                if prop_name_clean == 'Task Name':
+                    task_info['Task Name'] = text
 
             elif prop_type == 'select':
                 select_value = prop_data.get('select', {})
                 if select_value:
                     text = select_value.get('name', '').strip()
-                    if 'status' in prop_name_lower or 'task status' in prop_name_lower:
-                        task_info['task_status'] = text
-                    elif 'implementor' in prop_name_lower:
-                        task_info['implementor'] = text
+                    if prop_name_clean == 'Task Status':
+                        task_info['Task Status'] = text
+            elif prop_type == 'multi_select':
+                select_value = prop_data.get('multi_select', {})[0]
+                if select_value:
+                    text = select_value.get('name', '').strip()
+                    if prop_name_clean == 'Implementor':
+                        task_info['Implementor'] = text
 
-            # For text property types
-            elif prop_type == 'text':
-                text_value = prop_data.get('text', {})
-                if isinstance(text_value, list):
-                    text = ''.join([part.get('text', {}).get('content', '') for part in text_value])
-                else:
-                    text = str(text_value).strip()
-
-                if 'implementor' in prop_name_lower:
-                    task_info['implementor'] = text
-                elif 'comment' in prop_name_lower:
-                    task_info['comment'] = text
 
         # Only add if we have essential information (at least task name)
-        if task_info['task_name']:
+        if task_info['Task Name']:
             tasks.append(task_info)
 
     return tasks
 
 
-def check_tasks_match_expected(actual_tasks: List[Dict]) -> Tuple[bool, List[str]]:
-    """Check if tasks match the expected groundtruth data"""
+def compare_with_local_excel(notion_tasks: List[Dict]) -> Tuple[bool, List[str]]:
+    """Compare Notion database with local Excel file"""
     try:
-        expected_tasks = parse_groundtruth_table()
-        expected_counts = get_expected_task_counts()
+        import pandas as pd
+        excel_path = "tasks/finalpool/task-tracker/groundtruth_workspace/notion_table_after.xlsx"
+
+        # Read Excel file
+        df_excel = pd.read_excel(excel_path)
+
+        # Convert to list of dictionaries
+        excel_tasks = df_excel.to_dict('records')
+
+        issues = []
+
+        # Check column names
+        expected_columns = set(df_excel.columns)
+        if len(notion_tasks) > 0:
+            notion_columns = set(notion_tasks[0].keys())
+            if expected_columns != notion_columns:
+                issues.append(f"Column mismatch. Expected: {expected_columns}, Got: {notion_columns}")
+
+        # Check shape (number of rows)
+        if len(notion_tasks) != len(excel_tasks):
+            issues.append(f"Row count mismatch. Expected: {len(excel_tasks)}, Got: {len(notion_tasks)}")
+
+        # Create lookup dictionaries for comparison
+        notion_lookup = {task['Task Name'].strip().lower(): task for task in notion_tasks if task['Task Name']}
+        excel_lookup = {str(task['Task Name']).strip().lower(): task for task in excel_tasks if pd.notna(task['Task Name'])}
+
+        # Check that all Excel rows are found in Notion
+        for excel_task_name, excel_task in excel_lookup.items():
+            if excel_task_name not in notion_lookup:
+                issues.append(f"Excel task '{excel_task['Task Name']}' not found in Notion database")
+                continue
+
+            notion_task = notion_lookup[excel_task_name]
+
+            # Compare each field
+            for col in expected_columns:
+                excel_val = str(excel_task.get(col, '')).strip() if pd.notna(excel_task.get(col)) else ''
+                notion_val = str(notion_task.get(col, '')).strip()
+
+                if excel_val != notion_val:
+                    issues.append(f"Task '{excel_task['Task Name']}', column '{col}': Excel='{excel_val}', Notion='{notion_val}'")
+
+        # Check for extra tasks in Notion
+        for notion_task_name in notion_lookup:
+            if notion_task_name not in excel_lookup:
+                issues.append(f"Extra task in Notion: '{notion_lookup[notion_task_name]['Task Name']}'")
+
+        return len(issues) == 0, issues
+
     except Exception as e:
-        return False, [f"Failed to load groundtruth data: {str(e)}"]
-
-    issues = []
-
-    # Check total number of tasks
-    if len(actual_tasks) != expected_counts['total_tasks']:
-        issues.append(f"Expected {expected_counts['total_tasks']} tasks, but found {len(actual_tasks)}")
-
-    # Create lookup dictionaries for efficient comparison
-    expected_tasks_dict = {task['task_name'].lower().strip(): task for task in expected_tasks}
-    actual_tasks_dict = {task['task_name'].lower().strip(): task for task in actual_tasks}
-
-    # Create status mapping: groundtruth -> notion
-    # Completed -> implemented, Incomplete -> implementing
-    status_mapping = {
-        'completed': 'implemented',
-        'incomplete': 'implementing'
-    }
-
-    # Check each expected task
-    for expected_task in expected_tasks:
-        expected_name = expected_task['task_name'].lower().strip()
-
-        if expected_name not in actual_tasks_dict:
-            issues.append(f"Missing task: '{expected_task['task_name']}'")
-            continue
-
-        actual_task = actual_tasks_dict[expected_name]
-
-        # Check task status with proper mapping
-        expected_status_raw = expected_task['task_status'].lower().strip()
-        expected_status_mapped = status_mapping.get(expected_status_raw, expected_status_raw)
-        actual_status = actual_task['task_status'].lower().strip()
-
-        if expected_status_mapped != actual_status:
-            issues.append(f"Task '{expected_task['task_name']}': status mismatch. Expected '{expected_status_mapped}' (from groundtruth '{expected_task['task_status']}'), got '{actual_task['task_status']}'")
-
-        # Check implementor
-        expected_implementor = expected_task['implementor'].strip()
-        actual_implementor = actual_task['implementor'].strip()
-        if expected_implementor != actual_implementor:
-            issues.append(f"Task '{expected_task['task_name']}': implementor mismatch. Expected '{expected_implementor}', got '{actual_implementor}'")
-
-        # Check comment (more flexible matching - just check if key content is present)
-        expected_comment = expected_task['comment'].strip()
-        actual_comment = actual_task['comment'].strip()
-        # For comments, we'll be more lenient and just check if they're not empty
-        if not actual_comment and expected_comment:
-            issues.append(f"Task '{expected_task['task_name']}': missing comment. Expected some comment content.")
-
-    # Check for extra tasks
-    expected_names = set(task['task_name'].lower().strip() for task in expected_tasks)
-    for actual_task in actual_tasks:
-        actual_name = actual_task['task_name'].lower().strip()
-        if actual_name not in expected_names:
-            issues.append(f"Unexpected task found: '{actual_task['task_name']}'")
-
-    # Summary statistics check with status mapping
-    actual_implemented = len([t for t in actual_tasks if t['task_status'].lower().strip() == 'implemented'])
-    actual_implementing = len([t for t in actual_tasks if t['task_status'].lower().strip() == 'implementing'])
-
-    if actual_implemented != expected_counts['completed_tasks']:
-        issues.append(f"Expected {expected_counts['completed_tasks']} implemented tasks, but found {actual_implemented}")
-
-    if actual_implementing != expected_counts['incomplete_tasks']:
-        issues.append(f"Expected {expected_counts['incomplete_tasks']} implementing tasks, but found {actual_implementing}")
-
-    return len(issues) == 0, issues
+        return False, [f"Error comparing with Excel: {str(e)}"]
 
 
-def check_notion_task_table_content() -> Tuple[bool, str]:
-    """
-    Enhanced Notion check: verify that the Task Tracker page contains the correct task table content
-    Similar to notion-hr's deep validation approach
-    """
+def check_notion_database() -> Tuple[bool, str]:
+    """Check Notion database in Task Tracker page under Notion Eval Page"""
     try:
-        # Get the duplicated page ID from preprocessing
-        task_root_path = Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        duplicated_page_id_file = task_root_path / "files" / "duplicated_page_id.txt"
-
-        if not duplicated_page_id_file.exists():
-            return False, "❌ duplicated_page_id.txt not found - preprocessing may not have completed"
-
-        with open(duplicated_page_id_file, "r") as f:
-            target_page_id = f.read().strip()
-
-        if not target_page_id:
-            return False, "❌ Empty page ID in duplicated_page_id.txt"
-
         # Get Notion token
         notion_token = configs.all_token_key_session.notion_integration_key
         if not notion_token:
             return False, "❌ No Notion token provided"
 
-        print(f"🔍 Checking Task Tracker page content (ID: {target_page_id})")
+        from notion_client import Client
+        client = Client(auth=notion_token)
 
-        # Look for a task database within the Task Tracker page
-        # Try different possible database names
-        possible_db_names = [
-            "Task Status Table",
-            "Complete Task Status Table",
-            "Tasks",
-            "Task Tracker",
-            "BenchTasksCollv2",
-            "Task Status",
-            "Project Tasks"
-        ]
+        print("🔍 Searching for 'Notion Eval Page'...")
+
+        # Search for the parent page "Notion Eval Page"
+        search_response = client.search(
+            query="Notion Eval Page",
+            filter={"property": "object", "value": "page"}
+        )
+
+        notion_eval_page = None
+        for result in search_response.get('results', []):
+            if result.get('object') == 'page':
+                # Check if this is the right page
+                title = ''
+                if 'properties' in result and 'title' in result['properties']:
+                    title_parts = result['properties']['title'].get('title', [])
+                    title = ''.join([part.get('text', {}).get('content', '') for part in title_parts])
+                elif 'title' in result:
+                    title_parts = result.get('title', [])
+                    title = ''.join([part.get('text', {}).get('content', '') for part in title_parts])
+
+                if title.strip() == "Notion Eval Page":
+                    notion_eval_page = result
+                    break
+
+        if not notion_eval_page:
+            return False, "❌ Could not find 'Notion Eval Page'"
+
+        print(f"✅ Found 'Notion Eval Page' (ID: {notion_eval_page['id']})")
+
+        # Search for "Task Tracker" page within the Notion Eval Page
+        print("🔍 Searching for 'Task Tracker' page...")
+
+        # Get children of Notion Eval Page
+        children_response = client.blocks.children.list(block_id=notion_eval_page['id'])
+
+        task_tracker_page = None
+        for child in children_response.get('results', []):
+            if child.get('type') == 'child_page':
+                child_title = child.get('child_page', {}).get('title', '')
+                if child_title.strip() == "Task Tracker":
+                    task_tracker_page = child
+                    break
+
+        if not task_tracker_page:
+            return False, "❌ Could not find 'Task Tracker' page under 'Notion Eval Page'"
+
+        print(f"✅ Found 'Task Tracker' page (ID: {task_tracker_page['id']})")
+
+        # Look for database in Task Tracker page
+        print("🔍 Searching for database in Task Tracker page...")
+
+        task_tracker_children = client.blocks.children.list(block_id=task_tracker_page['id'])
 
         task_database = None
-        for db_name in possible_db_names:
-            print(f"🔍 Searching for '{db_name}' database...")
-            try:
-                task_database = find_database_in_page(target_page_id, notion_token, db_name)
-                if task_database:
-                    print(f"✅ Found task database: '{task_database['title']}' (ID: {task_database['id']})")
-                    break
-            except Exception as e:
-                print(f"   Could not find '{db_name}': {str(e)}")
-                continue
+        for child in task_tracker_children.get('results', []):
+            if child.get('type') == 'child_database':
+                task_database = child
+                break
 
         if not task_database:
-            return False, f"❌ No task database found within the Task Tracker page. Searched for: {possible_db_names}"
+            return False, "❌ No database found in Task Tracker page"
 
-        # Get database entries
-        print("📊 Retrieving task database entries...")
-        task_entries = get_database_entries(task_database['id'], notion_token)
-        entries_list = task_entries.get('results', [])
-        print(f"📈 Found {len(entries_list)} task entries in database")
+        database_id = task_database['id']
+        print(f"✅ Found database in Task Tracker page (ID: {database_id})")
+
+        # Get database entries with pagination
+        print("📊 Retrieving database entries...")
+        all_entries = []
+        has_more = True
+        start_cursor = None
+        page_count = 0
+
+        while has_more:
+            page_count += 1
+            print(f"   📄 Fetching page {page_count}...")
+
+            if start_cursor:
+                database_response = client.databases.query(
+                    database_id=database_id,
+                    start_cursor=start_cursor
+                )
+            else:
+                database_response = client.databases.query(database_id=database_id)
+
+            page_entries = database_response.get('results', [])
+            all_entries.extend(page_entries)
+
+            has_more = database_response.get('has_more', False)
+            start_cursor = database_response.get('next_cursor')
+
+            print(f"   📊 Page {page_count}: {len(page_entries)} entries")
+
+        print(f"📈 Total entries retrieved: {len(all_entries)} across {page_count} pages")
+
+        entries_list = all_entries
 
         # Extract task information
         print("🔍 Extracting task information...")
-        actual_tasks = extract_task_information_from_database(entries_list)
-        print(f"✅ Extracted {len(actual_tasks)} tasks from database")
+        notion_tasks = extract_task_information_from_database(entries_list)
+        print(f"✅ Extracted {len(notion_tasks)} tasks from database")
 
         # Debug: Show first few tasks
-        print("\n=== Sample of Actual Tasks from Notion ===")
-        for i, task in enumerate(actual_tasks[:3]):
-            comment_preview = task['comment'][:50] + "..." if len(task['comment']) > 50 else task['comment']
-            print(f"{i+1}. Name: '{task['task_name']}', Status: '{task['task_status']}', Implementor: '{task['implementor']}', Comment: '{comment_preview}'")
+        print("\n=== Sample of Tasks from Notion Database ===")
+        for i, task in enumerate(notion_tasks[:3]):
+            print(f"{i+1}. Task Name: '{task['Task Name']}', Task Status: '{task['Task Status']}', Implementor: '{task['Implementor']}'")
 
-        # Validate against groundtruth
-        print("\n🔍 Validating against groundtruth data...")
-        tasks_match, task_issues = check_tasks_match_expected(actual_tasks)
+        # Compare with local Excel
+        print("\n🔍 Comparing with local Excel file...")
+        comparison_success, comparison_issues = compare_with_local_excel(notion_tasks)
 
-        if not tasks_match:
-            error_msg = f"❌ Task table content does not match expected groundtruth data:\n\n"
-            error_msg += f"Found {len(actual_tasks)} tasks, expected 125 tasks.\n\n"
+        if not comparison_success:
+            error_msg = f"❌ Database comparison failed:\n\n"
+            error_msg += f"Found {len(notion_tasks)} tasks in Notion database.\n\n"
             error_msg += "Issues found:\n"
-            for issue in task_issues[:10]:  # Show first 10 issues
+            for issue in comparison_issues[:10]:  # Show first 10 issues
                 error_msg += f"  • {issue}\n"
-            if len(task_issues) > 10:
-                error_msg += f"  • ... and {len(task_issues) - 10} more issues\n"
+            if len(comparison_issues) > 10:
+                error_msg += f"  • ... and {len(comparison_issues) - 10} more issues\n"
             return False, error_msg
 
         # Success!
-        success_msg = f"✅ Notion task table validation passed!\n"
-        success_msg += f"   • Found correct task database: '{task_database['title']}'\n"
-        success_msg += f"   • Verified all 125 tasks are present\n"
-        success_msg += f"   • All task names, statuses, implementors match groundtruth\n"
-        success_msg += f"   • Task distribution: {len([t for t in actual_tasks if t['task_status'].lower() == 'implemented'])} implemented, "
-        success_msg += f"{len([t for t in actual_tasks if t['task_status'].lower() == 'implementing'])} implementing"
+        success_msg = f"✅ Notion database validation passed!\n"
+        success_msg += f"   • Found 'Task Tracker' page under 'Notion Eval Page'\n"
+        success_msg += f"   • Database contains {len(notion_tasks)} tasks\n"
+        success_msg += f"   • All columns match Excel file (Task Name, Task Status, Implementor)\n"
+        success_msg += f"   • All rows from Excel found in Notion database\n"
+        success_msg += f"   • No extra or missing tasks detected"
 
         return True, success_msg
 
     except Exception as e:
-        return False, f"❌ Failed to check task table content: {str(e)}"
+        return False, f"❌ Failed to check Notion database: {str(e)}"
 
 
-def check_notion_page_setup():
-    """Check if the Notion page was properly duplicated and set up"""
+def check_github_finalpool_tasks() -> Tuple[bool, str]:
+    """Check GitHub finalpool branch contains only implemented tasks with required files"""
     try:
-        # Read the task state from preprocessing
-        task_root_path = Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        task_state_file = task_root_path / "groundtruth_workspace" / "task_state.json"
+        from utils.general.helper import fork_repo, run_command, print_color
+        from configs.token_key_session import all_token_key_session
+        from utils.app_specific.github.api import (
+            github_get_login, github_delete_repo,
+            github_create_user_repo, github_get_latest_commit
+        )
+        github_token = all_token_key_session.github_token
 
-        if not task_state_file.exists():
-            return False, "❌ Task state file not found - preprocessing may not have completed"
-
-        with open(task_state_file, "r", encoding="utf-8") as f:
-            task_state = json.load(f)
-
-        # Check if Notion page information exists
-        if "notion_page_id" not in task_state:
-            return False, "❌ Notion page ID not found in task state"
-
-        if "notion_subpage_name" not in task_state:
-            return False, "❌ Notion subpage name not found in task state"
-
-        notion_page_id = task_state["notion_page_id"]
-        notion_subpage_name = task_state["notion_subpage_name"]
-
-        if not notion_page_id or not notion_subpage_name:
-            return False, "❌ Notion page ID or subpage name is empty"
-
-        # Initialize Notion client to verify the page exists and is accessible
-        NOTION_TOKEN = configs.all_token_key_session.notion_integration_key
-        client = Client(auth=NOTION_TOKEN)
-
-        try:
-            # Try to retrieve the page to verify it exists
-            page_response = client.pages.retrieve(page_id=notion_page_id)
-            if not page_response:
-                return False, f"❌ Could not retrieve duplicated Notion page with ID: {notion_page_id}"
-
-            print(f"✅ Notion page successfully duplicated and accessible")
-            print(f"   Page ID: {notion_page_id}")
-            print(f"   Page Name: {notion_subpage_name}")
-
-            return True, "✅ Notion page setup completed successfully"
-
-        except Exception as e:
-            return False, f"❌ Error accessing duplicated Notion page: {str(e)}"
-
-    except Exception as e:
-        return False, f"❌ Error checking Notion page setup: {str(e)}"
-
-
-def check_github_finalpool_branch():
-    """Check if GitHub finalpool branch exists and contains all implemented tasks"""
-    try:
-        # Read the task state from preprocessing
-        task_root_path = Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        task_state_file = task_root_path / "groundtruth_workspace" / "task_state.json"
-
-        if not task_state_file.exists():
-            return False, "❌ Task state file not found - preprocessing may not have completed"
-
-        with open(task_state_file, "r", encoding="utf-8") as f:
-            task_state = json.load(f)
-
-        if "github_repo" not in task_state:
-            return False, "❌ GitHub repository information not found in task state"
-
-        github_repo = task_state["github_repo"]
+        # Resolve dynamic namespaces/logins
+        github_owner = github_get_login(github_token)
+        github_repo = f"{github_owner}/BenchTasksCollv3"
 
         # Get GitHub token and check the repository
         github_token = configs.all_token_key_session.github_token
 
-        # Use GitHub API to check if finalpool branch exists
+        # Use GitHub API to check the repository
         import requests
         headers = {
             'Authorization': f'token {github_token}',
@@ -351,9 +303,11 @@ def check_github_finalpool_branch():
         finalpool_branch_exists = any(branch['name'] == 'finalpool' for branch in branches)
 
         if not finalpool_branch_exists:
-            return False, "'finalpool' branch does not exist in the repository"
+            return False, "❌ 'finalpool' branch does not exist in the repository"
 
-        # Check if tasks/finalpool directory exists and contains implemented tasks
+        print(f"✅ Found 'finalpool' branch in repository: {github_repo}")
+
+        # Check if tasks/finalpool directory exists
         contents_url = f"https://api.github.com/repos/{github_repo}/contents/tasks/finalpool?ref=finalpool"
         response = requests.get(contents_url, headers=headers)
 
@@ -366,176 +320,166 @@ def check_github_finalpool_branch():
         if not isinstance(finalpool_contents, list):
             return False, "❌ tasks/finalpool is not a directory"
 
-        # Count tasks in finalpool directory
+        # Get list of tasks in finalpool
         finalpool_tasks = [item['name'] for item in finalpool_contents if item['type'] == 'dir']
+        print(f"📁 Found {len(finalpool_tasks)} task directories in tasks/finalpool")
 
-        print(f"✅ Found 'finalpool' branch in repository: {github_repo}")
-        print(f"✅ Found tasks/finalpool directory with {len(finalpool_tasks)} tasks")
-        print(f"   Tasks: {finalpool_tasks}")
+        # Read local Excel to get implemented tasks
+        import pandas as pd
+        excel_path = "tasks/finalpool/task-tracker/groundtruth_workspace/notion_table_after.xlsx"
+        df_excel = pd.read_excel(excel_path)
 
-        # Verify that these are actually implemented tasks (have proper structure)
-        implemented_tasks_count = 0
+        # Get implemented tasks from Excel
+        implemented_tasks = set()
+        for _, row in df_excel.iterrows():
+            if pd.notna(row['Task Status']) and str(row['Task Status']).strip().lower() == 'implemented':
+                if pd.notna(row['Task Name']):
+                    implemented_tasks.add(str(row['Task Name']).strip())
+
+        print(f"📋 Expected {len(implemented_tasks)} implemented tasks from Excel")
+        print(f"   Implemented tasks: {sorted(list(implemented_tasks))}")
+
+        issues = []
+
+        # Check that all implemented tasks are in finalpool
+        finalpool_tasks_set = set(finalpool_tasks)
+        for implemented_task in implemented_tasks:
+            if implemented_task not in finalpool_tasks_set:
+                issues.append(f"Implemented task '{implemented_task}' missing from tasks/finalpool")
+
+        # Check that no extra tasks are in finalpool
+        for finalpool_task in finalpool_tasks:
+            if finalpool_task not in implemented_tasks:
+                issues.append(f"Task '{finalpool_task}' in finalpool but not marked as implemented in Excel")
+
+        # Check required files for each task in finalpool
+        valid_tasks_count = 0
         for task_name in finalpool_tasks:
-            task_contents_url = f"https://api.github.com/repos/{github_repo}/contents/tasks/finalpool/{task_name}?ref=finalpool"
-            task_response = requests.get(task_contents_url, headers=headers)
+            print(f"🔍 Checking task: {task_name}")
 
-            if task_response.status_code == 200:
-                task_contents = task_response.json()
-                if isinstance(task_contents, list):
-                    # Check for required files that indicate a complete implementation
-                    file_names = [item['name'] for item in task_contents]
-                    has_task_config = 'task_config.json' in file_names
-                    has_docs = any(item['name'] == 'docs' and item['type'] == 'dir' for item in task_contents)
-                    has_evaluation = any(item['name'] == 'evaluation' and item['type'] == 'dir' for item in task_contents)
+            # Check for docs/task.md
+            docs_task_url = f"https://api.github.com/repos/{github_repo}/contents/tasks/finalpool/{task_name}/docs/task.md?ref=finalpool"
+            docs_response = requests.get(docs_task_url, headers=headers)
+            has_docs_task = docs_response.status_code == 200
 
-                    if has_task_config and has_docs and has_evaluation:
-                        implemented_tasks_count += 1
+            # Check for evaluation/main.py
+            eval_main_url = f"https://api.github.com/repos/{github_repo}/contents/tasks/finalpool/{task_name}/evaluation/main.py?ref=finalpool"
+            eval_response = requests.get(eval_main_url, headers=headers)
+            has_eval_main = eval_response.status_code == 200
 
-        print(f"✅ Found {implemented_tasks_count} properly implemented tasks in finalpool")
+            if not has_docs_task:
+                issues.append(f"Task '{task_name}': missing docs/task.md")
+            if not has_eval_main:
+                issues.append(f"Task '{task_name}': missing evaluation/main.py")
 
-        if implemented_tasks_count == 0:
-            return False, "❌ No properly implemented tasks found in tasks/finalpool"
+            if has_docs_task and has_eval_main:
+                valid_tasks_count += 1
+                print(f"  ✅ Valid task structure")
+            else:
+                print(f"  ❌ Missing required files")
 
-        return True, f"✅ GitHub finalpool branch setup completed successfully with {implemented_tasks_count} implemented tasks"
+        if len(issues) > 0:
+            error_msg = f"❌ GitHub finalpool validation failed:\n\n"
+            error_msg += f"Found {len(finalpool_tasks)} tasks in finalpool, expected {len(implemented_tasks)} implemented tasks.\n\n"
+            error_msg += "Issues found:\n"
+            for issue in issues[:15]:  # Show first 15 issues
+                error_msg += f"  • {issue}\n"
+            if len(issues) > 15:
+                error_msg += f"  • ... and {len(issues) - 15} more issues\n"
+            return False, error_msg
 
-    except Exception as e:
-        return False, f"❌ Error checking GitHub finalpool branch: {str(e)}"
+        # Success!
+        success_msg = f"✅ GitHub finalpool validation passed!\n"
+        success_msg += f"   • Found 'finalpool' branch\n"
+        success_msg += f"   • tasks/finalpool contains exactly {len(implemented_tasks)} implemented tasks\n"
+        success_msg += f"   • All {valid_tasks_count} tasks have required files:\n"
+        success_msg += f"     - docs/task.md\n"
+        success_msg += f"     - evaluation/main.py\n"
+        success_msg += f"   • No extra or missing tasks detected"
 
-
-def get_notion_tasks_data():
-    """Get tasks data from Notion databases"""
-    try:
-        # Initialize Notion client
-        NOTION_TOKEN = configs.all_token_key_session.notion_integration_key
-        client = Client(auth=NOTION_TOKEN)
-
-        # Get database IDs
-        PROMPT_PAGE_TITLE = "Prompt"
-        IMPLEMENTATION_PAGE_TITLE = "Implementation"
-        FINALPOOL_PAGE_TITLE = "Finalpool"
-
-        db_ids = {
-            PROMPT_PAGE_TITLE: get_db_id_by_title(client, PROMPT_PAGE_TITLE),
-            IMPLEMENTATION_PAGE_TITLE: get_db_id_by_title(client, IMPLEMENTATION_PAGE_TITLE),
-            FINALPOOL_PAGE_TITLE: get_db_id_by_title(client, FINALPOOL_PAGE_TITLE),
-        }
-
-        # Check if all database IDs were found
-        if not all(db_ids.values()):
-            return None, "Could not find all required Notion databases"
-
-        # Query all tasks from Prompt database
-        prompt_response = client.databases.query(database_id=db_ids[PROMPT_PAGE_TITLE])
-        notion_tasks = []
-
-        for page in prompt_response.get("results", []):
-            try:
-                task_data = {
-                    "prompt_id": page["properties"]["prompt_id"]["title"][0]["text"]["content"],
-                    "prompt_title": page["properties"]["prompt_title"]["rich_text"][0]["text"]["content"],
-                    "status": page["properties"]["status"]["select"]["name"]
-                }
-                notion_tasks.append(task_data)
-            except (KeyError, IndexError) as e:
-                print(f"Warning: Could not parse task data from page: {e}")
-                continue
-
-        # Query finalpool tasks
-        finalpool_response = client.databases.query(database_id=db_ids[FINALPOOL_PAGE_TITLE])
-        finalpool_tasks = []
-
-        for page in finalpool_response.get("results", []):
-            try:
-                task_id = page["properties"]["prompt_id"]["title"][0]["text"]["content"]
-                finalpool_tasks.append(task_id)
-            except (KeyError, IndexError):
-                continue
-
-        return (notion_tasks, finalpool_tasks), None
+        return True, success_msg
 
     except Exception as e:
-        return None, f"Error accessing Notion: {str(e)}"
+        return False, f"❌ Error checking GitHub finalpool tasks: {str(e)}"
 
 
 def run_complete_evaluation(agent_workspace):
-    """Run the complete evaluation workflow"""
+    """Run the complete evaluation workflow with new logic"""
 
     print("🚀 Starting Complete Task Tracker Evaluation")
     print("=" * 80)
 
-    # Step 1: Check Notion page setup
-    print("\n📝 STEP 1: Checking Notion Page Setup...")
-    # try:
-    #     notion_success, notion_message = check_notion_page_setup()
-    #     print(notion_message)
-    #     if not notion_success:
-    #         return False, f"❌ Notion page setup check failed: {notion_message}"
-    # except Exception as e:
-    #     return False, f"❌ Notion page setup error: {str(e)}"
+    all_success = True
+    results = []
 
-    # Step 2: Check Notion task table content (ENHANCED)
-    # print("\n📊 STEP 2: Checking Notion Task Table Content...")
-    # try:
-    #     task_table_success, task_table_message = check_notion_task_table_content()
-    #     print(task_table_message)
-    #     if not task_table_success:
-    #         return False, f"❌ Notion task table validation failed: {task_table_message}"
-    # except Exception as e:
-    #     return False, f"❌ Notion task table validation error: {str(e)}"
-
-    # Step 3: Check GitHub finalpool branch setup
-    print("\n🐙 STEP 3: Checking GitHub Finalpool Branch Setup...")
+    # Step 1: Check Notion Database vs Excel File
+    print("\n📊 STEP 1: Checking Notion Database vs Local Excel File...")
     try:
-        github_success, github_message = check_github_finalpool_branch()
+        notion_success, notion_message = check_notion_database()
+        print(notion_message)
+        results.append(f"Notion Database Check: {'✅ PASSED' if notion_success else '❌ FAILED'}")
+        if not notion_success:
+            all_success = False
+            print(f"❌ Notion database check failed")
+    except Exception as e:
+        all_success = False
+        error_msg = f"❌ Notion database error: {str(e)}"
+        print(error_msg)
+        results.append(f"Notion Database Check: ❌ FAILED - {str(e)}")
+
+    # Step 2: Check GitHub Finalpool Tasks
+    print("\n🐙 STEP 2: Checking GitHub Finalpool Tasks...")
+    try:
+        github_success, github_message = check_github_finalpool_tasks()
         print(github_message)
+        results.append(f"GitHub Finalpool Check: {'✅ PASSED' if github_success else '❌ FAILED'}")
         if not github_success:
-            return False, f"❌ GitHub finalpool branch check failed: {github_message}"
+            all_success = False
+            print(f"❌ GitHub finalpool check failed")
     except Exception as e:
-        return False, f"❌ GitHub finalpool branch error: {str(e)}"
+        all_success = False
+        error_msg = f"❌ GitHub finalpool error: {str(e)}"
+        print(error_msg)
+        results.append(f"GitHub Finalpool Check: ❌ FAILED - {str(e)}")
 
-    # Step 4: Get GitHub ground truth
-    print("\n🔍 STEP 4: Getting GitHub Ground Truth...")
-    try:
-        github_ground_truth = get_github_ground_truth()
-        if "error" in github_ground_truth:
-            return False, f"❌ Failed to get GitHub ground truth: {github_ground_truth['error']}"
-        print("✅ GitHub ground truth obtained successfully")
-    except Exception as e:
-        return False, f"❌ GitHub analysis error: {str(e)}"
+    # Generate final report
+    print("\n" + "="*80)
+    print("EVALUATION SUMMARY")
+    print("="*80)
 
-    # Step 5: Get Notion data (legacy check)
-    # print("\n📊 STEP 5: Getting Legacy Notion Database Content...")
-    # try:
-    #     notion_data, error = get_notion_tasks_data()
-    #     if error:
-    #         print(f"⚠️  Legacy Notion data check failed (this is expected): {error}")
-    #         # Don't fail the evaluation for legacy data
-    #         notion_tasks, finalpool_tasks = [], []
-    #     else:
-    #         notion_tasks, finalpool_tasks = notion_data
-    #         print(f"✅ Found {len(notion_tasks)} tasks in legacy Notion databases")
-    #         print(f"✅ Found {len(finalpool_tasks)} tasks in legacy finalpool")
-    # except Exception as e:
-    #     print(f"⚠️  Legacy Notion analysis failed (this is expected): {str(e)}")
-    #     notion_tasks, finalpool_tasks = [], []
+    for result in results:
+        print(f"  {result}")
 
-    # Final success
-    success_report = [
-        "",
-        "🎉" * 20,
-        "COMPLETE EVALUATION SUCCESS!",
-        "🎉" * 20,
-        "",
-        "All checks passed:",
-        "✅ Notion page setup verified",
-        "✅ Notion task table content validated (125 tasks)",
-        "✅ GitHub finalpool branch verified",
-        "✅ GitHub ground truth obtained",
-        "",
-        "The task tracker agent performed correctly!"
-    ]
-
-    return True, "\n".join(success_report)
+    if all_success:
+        success_report = [
+            "",
+            "🎉" * 20,
+            "COMPLETE EVALUATION SUCCESS!",
+            "🎉" * 20,
+            "",
+            "All checks passed:",
+            "✅ Notion database structure and content validated",
+            "✅ All Excel data found in Notion database",
+            "✅ Column names and shapes match perfectly (Task Name, Task Status, Implementor)",
+            "✅ GitHub finalpool branch contains only implemented tasks",
+            "✅ All required files (docs/task.md, evaluation/main.py) present",
+            "✅ No extra or missing tasks detected",
+            "",
+            "The task tracker agent performed correctly!"
+        ]
+        return True, "\n".join(success_report)
+    else:
+        failure_report = [
+            "",
+            "❌" * 20,
+            "EVALUATION FAILED!",
+            "❌" * 20,
+            "",
+            "One or more checks failed. See details above.",
+            "",
+            "The task tracker agent did not complete all requirements successfully."
+        ]
+        return False, "\n".join(failure_report)
 
 
 if __name__ == "__main__":
