@@ -40,7 +40,6 @@ def setup_woocommerce_test_data():
 if __name__ == "__main__":
     parser = ArgumentParser(description="预处理脚本 - 设置低销量产品筛选任务的初始环境")
     parser.add_argument("--agent_workspace", required=True, help="Agent工作空间路径")
-    # parser.add_argument("--setup_wc", action="store_true", help="同时设置WooCommerce测试数据")
     parser.add_argument("--launch_time", required=False, help="Launch time")
 
     args = parser.parse_args()
