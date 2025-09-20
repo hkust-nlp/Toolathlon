@@ -2,9 +2,9 @@
   "task_description": "原材料库存自动管理任务 - 验证用groundtruth",
   "test_orders_summary": {
     "total_quantities_ordered": {
-      "TABLE_001": 10,
-      "DESK_001": 7,
-      "CHAIR_001": 9
+      "CHAIR_001": 5,
+      "DESK_001": 6,
+      "TABLE_001": 7
     }
   },
   "initial_inventories": {
@@ -45,62 +45,62 @@
     }
   },
   "expected_material_consumption": {
-    "WOOD_OAK": 72.5,
-    "SCREW_M8": 120,
-    "GLUE_WOOD": 3.9,
-    "FINISH_VARNISH": 6.8,
-    "WOOD_PINE": 21.0,
-    "METAL_LEG": 28,
-    "SCREW_M6": 184,
-    "FINISH_PAINT": 2.1
+    "WOOD_OAK": 47.5,
+    "SCREW_M6": 136,
+    "GLUE_WOOD": 2.6,
+    "FINISH_VARNISH": 4.5,
+    "WOOD_PINE": 18.0,
+    "METAL_LEG": 24,
+    "FINISH_PAINT": 1.7999999999999998,
+    "SCREW_M8": 84
   },
   "expected_final_inventories": {
     "woocommerce_inventory": {
-      "CHAIR_001": 52,
-      "TABLE_001": 27,
-      "DESK_001": 18
+      "CHAIR_001": 58,
+      "TABLE_001": 30,
+      "DESK_001": 19
     },
     "google_sheets_material_inventory": {
-      "WOOD_OAK": 177.5,
-      "SCREW_M6": 416,
-      "SCREW_M8": 330,
-      "GLUE_WOOD": 11.1,
-      "FINISH_VARNISH": 18.2,
-      "WOOD_PINE": 79.0,
-      "METAL_LEG": 72,
-      "FINISH_PAINT": 7.9
+      "WOOD_OAK": 202.5,
+      "SCREW_M6": 464,
+      "SCREW_M8": 366,
+      "GLUE_WOOD": 12.4,
+      "FINISH_VARNISH": 20.5,
+      "WOOD_PINE": 82.0,
+      "METAL_LEG": 76,
+      "FINISH_PAINT": 8.2
     }
   },
   "calculation_details": {
     "product_inventory": {},
     "material_consumption": {
-      "TABLE_001_consumption": {
-        "WOOD_OAK": "10 × 5.0 = 50.0",
-        "SCREW_M8": "10 × 12 = 120",
-        "GLUE_WOOD": "10 × 0.3 = 3.0",
-        "FINISH_VARNISH": "10 × 0.5 = 5.0"
+      "CHAIR_001_consumption": {
+        "WOOD_OAK": "5 × 2.5 = 12.5",
+        "SCREW_M6": "5 × 8 = 40",
+        "GLUE_WOOD": "5 × 0.1 = 0.5",
+        "FINISH_VARNISH": "5 × 0.2 = 1.0"
       },
       "DESK_001_consumption": {
-        "WOOD_PINE": "7 × 3.0 = 21.0",
-        "METAL_LEG": "7 × 4 = 28",
-        "SCREW_M6": "7 × 16 = 112",
-        "FINISH_PAINT": "7 × 0.3 = 2.1"
+        "WOOD_PINE": "6 × 3.0 = 18.0",
+        "METAL_LEG": "6 × 4 = 24",
+        "SCREW_M6": "6 × 16 = 96",
+        "FINISH_PAINT": "6 × 0.3 = 1.7999999999999998"
       },
-      "CHAIR_001_consumption": {
-        "WOOD_OAK": "9 × 2.5 = 22.5",
-        "SCREW_M6": "9 × 8 = 72",
-        "GLUE_WOOD": "9 × 0.1 = 0.9",
-        "FINISH_VARNISH": "9 × 0.2 = 1.8"
+      "TABLE_001_consumption": {
+        "WOOD_OAK": "7 × 5.0 = 35.0",
+        "SCREW_M8": "7 × 12 = 84",
+        "GLUE_WOOD": "7 × 0.3 = 2.1",
+        "FINISH_VARNISH": "7 × 0.5 = 3.5"
       },
       "material_inventory_deduction": {
-        "WOOD_OAK": "250.0 - 72.5 = 177.5",
-        "SCREW_M6": "600 - 184 = 416",
-        "SCREW_M8": "450 - 120 = 330",
-        "GLUE_WOOD": "15.0 - 3.9 = 11.1",
-        "FINISH_VARNISH": "25.0 - 6.8 = 18.2",
-        "WOOD_PINE": "100.0 - 21.0 = 79.0",
-        "METAL_LEG": "100 - 28 = 72",
-        "FINISH_PAINT": "10.0 - 2.1 = 7.9"
+        "WOOD_OAK": "250.0 - 47.5 = 202.5",
+        "SCREW_M6": "600 - 136 = 464",
+        "SCREW_M8": "450 - 84 = 366",
+        "GLUE_WOOD": "15.0 - 2.6 = 12.4",
+        "FINISH_VARNISH": "25.0 - 4.5 = 20.5",
+        "WOOD_PINE": "100.0 - 18.0 = 82.0",
+        "METAL_LEG": "100 - 24 = 76",
+        "FINISH_PAINT": "10.0 - 1.7999999999999998 = 8.2"
       }
     }
   },

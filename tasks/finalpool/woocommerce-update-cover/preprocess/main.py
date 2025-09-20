@@ -127,77 +127,36 @@ def clear_store_only():
         traceback.print_exc()
         return False
 
-def copy_initial_files_to_workspace(agent_workspace: str):
-    """
-    将初始文件复制到agent工作空间
-    
-    Args:
-        agent_workspace: Agent工作空间路径
-    """
-    print(f"🚀 设置初始工作环境到: {agent_workspace}")
-    
-    # 确保工作空间目录存在
-    os.makedirs(agent_workspace, exist_ok=True)
-    
-    # 对于update-photo-task，主要是确保配置文件可用
-    print("✅ 工作空间准备完成")
-    return True
 
 if __name__ == "__main__":
     parser = ArgumentParser(description="预处理脚本 - 设置更新商品主图任务的初始环境")
-    parser.add_argument("--agent_workspace", required=True, help="Agent工作空间路径")
+    parser.add_argument("--agent_workspace", required=False, help="Agent工作空间路径")
     parser.add_argument("--launch_time", required=False, help="Launch time")
-    parser.add_argument("--clear_only", action="store_true", help="仅清理商店数据，不创建测试数据")
     
     args = parser.parse_args()
-    
+
     print("=" * 60)
     print("🎯 更新商品主图任务 - 预处理")
     print("=" * 60)
-    
-    # 步骤1: 设置工作空间
-    print("\n📋 步骤1: 设置工作空间")
-    success1 = copy_initial_files_to_workspace(args.agent_workspace)
-    
-    if args.clear_only:
-        # 仅清理模式
-        print("\n📋 步骤2: 清理商店数据")
-        success2 = clear_store_only()
-        success3 = True  # 跳过测试数据创建
-        
-        print("\n" + "=" * 60)
-        print("📊 预处理结果汇总")
-        print("=" * 60)
-        print(f"✅ 工作空间设置: {'成功' if success1 else '失败'}")
-        print(f"✅ 商店清理: {'成功' if success2 else '失败'}")
-        print("⏭️ 测试数据创建: 已跳过")
-        
-        if success1 and success2:
-            print("\n🧹 商店清理完成！")
-            exit(0)
-        else:
-            print("\n⚠️ 清理过程中出现问题，请检查错误信息")
-            exit(1)
+
+    # 完整设置模式
+    print("\n📋 步骤2: 设置测试商品和数据")
+    success = setup_test_products()
+
+    print("\n" + "=" * 60)
+    print("📊 预处理结果汇总")
+    print("=" * 60)
+    print(f"✅ 测试数据设置: {'成功' if success else '失败'}")
+
+    if success:
+        print("\n🎉 预处理完成！更新商品主图系统已准备就绪")
+        print("📝 下一步可以运行主图更新程序进行测试")
+        print("\n📊 创建的测试数据包括:")
+        print("   - 可变商品（彩虹运动鞋）")
+        print("   - 多个颜色规格的变体")
+        print("   - 模拟的上周销量数据")
+        print("   - 预期的主图更新结果")
+        exit(0)
     else:
-        # 完整设置模式
-        print("\n📋 步骤2: 设置测试商品和数据")
-        success2 = setup_test_products()
-        
-        print("\n" + "=" * 60)
-        print("📊 预处理结果汇总")
-        print("=" * 60)
-        print(f"✅ 工作空间设置: {'成功' if success1 else '失败'}")
-        print(f"✅ 测试数据设置: {'成功' if success2 else '失败'}")
-        
-        if success1 and success2:
-            print("\n🎉 预处理完成！更新商品主图系统已准备就绪")
-            print("📝 下一步可以运行主图更新程序进行测试")
-            print("\n📊 创建的测试数据包括:")
-            print("   - 可变商品（彩虹运动鞋）")
-            print("   - 多个颜色规格的变体")
-            print("   - 模拟的上周销量数据")
-            print("   - 预期的主图更新结果")
-            exit(0)
-        else:
-            print("\n⚠️ 预处理部分完成，请检查错误信息")
-            exit(1)
+        print("\n⚠️ 预处理部分完成，请检查错误信息")
+        exit(1)
