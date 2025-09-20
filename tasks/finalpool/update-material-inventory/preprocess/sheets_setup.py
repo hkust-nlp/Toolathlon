@@ -195,7 +195,7 @@ class GoogleSheetsClient:
             self.logger.error(f"移动文件时发生未预期错误: {e}")
             return False
     
-    def create_test_spreadsheet(self, title: str = "原材料库存管理测试") -> Optional[str]:
+    def create_test_spreadsheet(self, title: str = "Material Inventory Management Test") -> Optional[str]:
         """
         创建测试电子表格
         
@@ -276,21 +276,21 @@ class GoogleSheetsClient:
             self.logger.error("服务未初始化")
             return False
         
-        # BOM数据
+        # BOM data
         bom_data = [
-            ['产品SKU', '产品名称', '原材料ID', '原材料名称', '单位用量', '单位'],
-            ['CHAIR_001', '经典木椅', 'WOOD_OAK', '橡木板材', '2.5', '平方米'],
-            ['CHAIR_001', '经典木椅', 'SCREW_M6', 'M6螺丝', '8', '个'],
-            ['CHAIR_001', '经典木椅', 'GLUE_WOOD', '木工胶水', '0.1', '升'],
-            ['CHAIR_001', '经典木椅', 'FINISH_VARNISH', '清漆', '0.2', '升'],
-            ['TABLE_001', '橡木餐桌', 'WOOD_OAK', '橡木板材', '5.0', '平方米'],
-            ['TABLE_001', '橡木餐桌', 'SCREW_M8', 'M8螺丝', '12', '个'],
-            ['TABLE_001', '橡木餐桌', 'GLUE_WOOD', '木工胶水', '0.3', '升'],
-            ['TABLE_001', '橡木餐桌', 'FINISH_VARNISH', '清漆', '0.5', '升'],
-            ['DESK_001', '办公桌', 'WOOD_PINE', '松木板材', '3.0', '平方米'],
-            ['DESK_001', '办公桌', 'METAL_LEG', '金属桌腿', '4', '个'],
-            ['DESK_001', '办公桌', 'SCREW_M6', 'M6螺丝', '16', '个'],
-            ['DESK_001', '办公桌', 'FINISH_PAINT', '油漆', '0.3', '升']
+            ['Product SKU', 'Product Name', 'Material ID', 'Material Name', 'Unit Usage', 'Unit'],
+            ['CHAIR_001', 'Classic Wooden Chair', 'WOOD_OAK', 'Oak Wood Board', '2.5', 'sqm'],
+            ['CHAIR_001', 'Classic Wooden Chair', 'SCREW_M6', 'M6 Screw', '8', 'pcs'],
+            ['CHAIR_001', 'Classic Wooden Chair', 'GLUE_WOOD', 'Wood Glue', '0.1', 'L'],
+            ['CHAIR_001', 'Classic Wooden Chair', 'FINISH_VARNISH', 'Varnish', '0.2', 'L'],
+            ['TABLE_001', 'Oak Dining Table', 'WOOD_OAK', 'Oak Wood Board', '5.0', 'sqm'],
+            ['TABLE_001', 'Oak Dining Table', 'SCREW_M8', 'M8 Screw', '12', 'pcs'],
+            ['TABLE_001', 'Oak Dining Table', 'GLUE_WOOD', 'Wood Glue', '0.3', 'L'],
+            ['TABLE_001', 'Oak Dining Table', 'FINISH_VARNISH', 'Varnish', '0.5', 'L'],
+            ['DESK_001', 'Office Desk', 'WOOD_PINE', 'Pine Wood Board', '3.0', 'sqm'],
+            ['DESK_001', 'Office Desk', 'METAL_LEG', 'Metal Table Leg', '4', 'pcs'],
+            ['DESK_001', 'Office Desk', 'SCREW_M6', 'M6 Screw', '16', 'pcs'],
+            ['DESK_001', 'Office Desk', 'FINISH_PAINT', 'Paint', '0.3', 'L']
         ]
         
         try:
@@ -327,15 +327,15 @@ class GoogleSheetsClient:
             return False
         
         inventory_data = [
-            ['原材料ID', '原材料名称', '当前库存', '单位', '最低库存', '供应商'],
-            ['WOOD_OAK', '橡木板材', '250.0', '平方米', '10.0', '木材供应商A'],
-            ['SCREW_M6', 'M6螺丝', '600', '个', '200', '五金供应商A'],
-            ['SCREW_M8', 'M8螺丝', '450', '个', '150', '五金供应商A'],
-            ['GLUE_WOOD', '木工胶水', '15.0', '升', '1.0', '化工供应商'],
-            ['FINISH_VARNISH', '清漆', '25.0', '升', '0.5', '涂料供应商'],
-            ['WOOD_PINE', '松木板材', '100.0', '平方米', '8.0', '木材供应商B'],
-            ['METAL_LEG', '金属桌腿', '100', '个', '5', '金属制品厂'],
-            ['FINISH_PAINT', '油漆', '10.0', '升', '0.5', '涂料供应商']
+            ['Material ID', 'Material Name', 'Current Stock', 'Unit', 'Min Stock', 'Supplier'],
+            ['WOOD_OAK', 'Oak Wood Board', '250.0', 'sqm', '10.0', 'Wood Supplier A'],
+            ['SCREW_M6', 'M6 Screw', '600', 'pcs', '200', 'Hardware Supplier A'],
+            ['SCREW_M8', 'M8 Screw', '450', 'pcs', '150', 'Hardware Supplier A'],
+            ['GLUE_WOOD', 'Wood Glue', '15.0', 'L', '1.0', 'Chemical Supplier'],
+            ['FINISH_VARNISH', 'Varnish', '25.0', 'L', '0.5', 'Paint Supplier'],
+            ['WOOD_PINE', 'Pine Wood Board', '100.0', 'sqm', '8.0', 'Wood Supplier B'],
+            ['METAL_LEG', 'Metal Table Leg', '100', 'pcs', '5', 'Metal Factory'],
+            ['FINISH_PAINT', 'Paint', '10.0', 'L', '0.5', 'Paint Supplier']
         ]
         
         try:

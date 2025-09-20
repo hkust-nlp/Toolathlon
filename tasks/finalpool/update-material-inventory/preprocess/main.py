@@ -15,8 +15,7 @@ from utils.app_specific.googlesheet.drive_helper import (
 )
 
 GOOGLESHEET_URLS = [
-    "https://docs.google.com/spreadsheets/d/1vqY4o_y4l1z3BiVMtGJVhVmHFUTIPwQpz2NQzyLGJks",
-    "https://docs.google.com/spreadsheets/d/1GazHYtRTApb4JXSxP5YG0VGQhNGOqLR76uX840_tUng",
+    "https://docs.google.com/spreadsheets/d/1S9BFFHU262CjU87DnGFfP_LMChhAT4lx7uNvwY-7HoI",
 ]
 
 FOLDER_NAME = "update-material-inventory"
@@ -26,7 +25,6 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 task_dir = os.path.dirname(current_dir)
 sys.path.insert(0, task_dir)
 sys.path.insert(0, current_dir)
-
 
 async def setup_google_sheets( ):
     task_root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -60,12 +58,12 @@ def setup_logging():
 
 def calculate_max_producible_quantities() -> dict:
     """
-    根据原材料库存计算各产品的最大可生产数量
-    
+    Calculate maximum producible quantities for each product based on material inventory
+
     Returns:
-        dict: 各产品的最大可生产数量
+        dict: Maximum producible quantities for each product
     """
-    # 原材料库存（来自sheets_setup.py）
+    # Material inventory (from sheets_setup.py)
     material_inventory = {
         'WOOD_OAK': 250.0,
         'SCREW_M6': 600,
@@ -77,7 +75,7 @@ def calculate_max_producible_quantities() -> dict:
         'FINISH_PAINT': 10.0
     }
     
-    # BOM定义
+    # BOM definition
     bom = {
         'CHAIR_001': {
             'WOOD_OAK': 2.5,
@@ -113,7 +111,7 @@ def calculate_max_producible_quantities() -> dict:
             possible_qty = int(available_stock // unit_requirement)
             possible_quantities.append(possible_qty)
         
-        # 取最小值作为最大可生产数量
+        # Take minimum value as maximum producible quantity
         max_quantities[product_sku] = min(possible_quantities) if possible_quantities else 0
     
     return max_quantities
@@ -173,8 +171,8 @@ def setup_woocommerce_products(wc_client) -> dict:
         },
         {
             "sku": "DESK_001",
-            "name": "Desk",
-            "description": "Modern, minimalist desk, perfect for home and office use",
+            "name": "Office Desk",
+            "description": "Modern, minimalist office desk, perfect for home and office use",
             "regular_price": "699.00", 
             "manage_stock": True,
             "stock_quantity": max_quantities.get("DESK_001", 0),
@@ -333,9 +331,6 @@ if __name__ == "__main__":
     
     success = True
     
-    # if not asyncio.run(setup_google_sheets()):
-    #     logger.warning("Google Sheets setup had issues, but continuing...")
-    #     success = False
     if not setup_test_environment():
         logger.warning("Test environment setup had issues, but continuing...")
         success = False

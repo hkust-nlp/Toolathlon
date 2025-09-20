@@ -32,7 +32,6 @@ def run_complete_evaluation(agent_workspace: str, groundtruth_workspace: str, re
     print("\\n📊 STEP 2: Checking Google Sheets Integration...")
     try:
         sheets_result = evaluate_sheets_integration(agent_workspace)
-        print(sheets_result)
         sheets_pass = sheets_result['status'] != 'failed'
         sheets_msg = f"Sheets integration check: {sheets_result.get('score', 0):.2f}"
         results.append(("Google Sheets", sheets_pass, sheets_msg))
@@ -40,12 +39,11 @@ def run_complete_evaluation(agent_workspace: str, groundtruth_workspace: str, re
     except Exception as e:
         results.append(("Google Sheets", False, str(e)))
         print(f"❌ Google Sheets error: {e}")
-    
+
     # Step 3: Check WooCommerce sync
     print("\\n🛒 STEP 3: Checking WooCommerce Sync...")
     try:
         wc_result = evaluate_woocommerce_sync(agent_workspace)
-        print(wc_result)
         wc_pass = wc_result['status'] != 'failed'
         wc_msg = f"WooCommerce sync check: {wc_result.get('score', 0):.2f}"
         results.append(("WooCommerce Sync", wc_pass, wc_msg))
@@ -53,53 +51,34 @@ def run_complete_evaluation(agent_workspace: str, groundtruth_workspace: str, re
     except Exception as e:
         results.append(("WooCommerce Sync", False, str(e)))
         print(f"❌ WooCommerce sync error: {e}")
-    # Calculate overall results
+
+    # Calculate overall results - ALL tests must pass (strict evaluation)
     passed_count = sum(1 for _, passed, _ in results if passed)
     total_count = len(results)
-    
-    # Calculate weighted score
-    weights = {'Google Sheets': 0.4, 'WooCommerce Sync': 0.3, 'Execution Log': 0.1}
-    weighted_score = 0.0
-    total_weight = 0.0
-    
-    for test_name, passed, message in results:
-        if test_name in weights:
-            score = 1.0 if passed else 0.0
-            weight = weights[test_name]
-            weighted_score += score * weight
-            total_weight += weight
-    
-    overall_score = weighted_score / total_weight if total_weight > 0 else 0.0
     
     # Summary
     summary = []
     summary.append("\\n" + "=" * 80)
     summary.append("EVALUATION SUMMARY")
     summary.append("=" * 80)
-    
+
     for test_name, passed, message in results:
         status = "✅ PASSED" if passed else "❌ FAILED"
         summary.append(f"{test_name}: {status}")
         if not passed:
             summary.append(f"  Details: {message}")
-    
-    summary.append(f"\\nOverall Score: {overall_score:.2f}")
-    summary.append(f"Tests Passed: {passed_count}/{total_count}")
-    
-    # Determine final status
-    # Core functions must pass
-    core_tests = ['Google Sheets', 'WooCommerce Sync']
-    core_passed = all(passed for test_name, passed, _ in results if test_name in core_tests)
-    
-    overall_pass = core_passed and overall_score >= 0.6
-    
+
+    summary.append(f"\\nTests Passed: {passed_count}/{total_count}")
+
+    # Determine final status - ALL tests must pass (strict evaluation)
+    overall_pass = passed_count == total_count and total_count > 0
+
     if overall_pass:
         summary.append("\\n🎉 EVALUATION PASSED - Material inventory management system working correctly!")
     else:
-        summary.append("\\n❌ EVALUATION FAILED - Core functionality issues detected")
-        if not core_passed:
-            summary.append("Core functions (Google Sheets + WooCommerce) must pass for system to work")
-    
+        summary.append("\\n❌ EVALUATION FAILED - All core functions must pass")
+        summary.append("Requirements: Perfect match with expected results for all components")
+
     return overall_pass, "\\n".join(summary)
 
 if __name__ == "__main__":

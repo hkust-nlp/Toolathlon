@@ -20,18 +20,16 @@ except ImportError:
     GoogleSheetsClient = None
 
 def setup_logging():
-    """设置日志"""
+    """Setup logging"""
     logging.basicConfig(level=logging.INFO)
     return logging.getLogger(__name__)
 
 def load_expected_results() -> Optional[Dict]:
-    """加载预期结果"""
+    """Load expected results"""
     result_files = [
         os.path.join(os.path.dirname(current_dir), 'groundtruth_workspace', 'expected_results.json')
     ]
 
-    print(result_files)
-    
     for result_file in result_files:
         try:
             if os.path.exists(result_file):
@@ -39,30 +37,37 @@ def load_expected_results() -> Optional[Dict]:
                     return json.load(f)
         except Exception:
             continue
-    
+
     return None
 
 def load_agent_config(workspace_path: str) -> Optional[Dict]:
-    """从agent工作区加载配置"""
-    config_path = os.path.join(workspace_path, 'config.json')
-    try:
-        if os.path.exists(config_path):
-            with open(config_path, 'r', encoding='utf-8') as f:
-                return json.load(f)
-    except Exception:
-        pass
+    """Load configuration from agent workspace"""
+    # Try multiple possible config file locations
+    config_paths = [
+        os.path.join(workspace_path, 'config.json'),
+        os.path.join(workspace_path, 'initial_workspace', 'config.json'),
+        os.path.join(os.path.dirname(current_dir), 'initial_workspace', 'config.json')
+    ]
+
+    for config_path in config_paths:
+        try:
+            if os.path.exists(config_path):
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+        except Exception:
+            continue
     return None
 
 def check_sheets_inventory_updates(spreadsheet_id: str, expected_final_inventory: Dict[str, float]) -> Tuple[bool, Dict]:
     """
-    检查Google Sheets中的库存是否正确更新
-    
+    Check if inventory in Google Sheets is correctly updated
+
     Args:
-        spreadsheet_id: 电子表格ID
-        expected_final_inventory: 预期的最终库存状态
-        
+        spreadsheet_id: Spreadsheet ID
+        expected_final_inventory: Expected final inventory state
+
     Returns:
-        (检查是否通过, 检查结果详情)
+        (Whether check passed, Check result details)
     """
     logger = setup_logging()
     
@@ -75,13 +80,12 @@ def check_sheets_inventory_updates(spreadsheet_id: str, expected_final_inventory
         if not sheets_client.authenticate():
             return False, {'error': 'Google Sheets authentication failed'}
         
-        # 获取当前库存
-        print(spreadsheet_id)
+        # Get current inventory
         current_inventory = sheets_client.get_current_inventory(spreadsheet_id)
         if not current_inventory:
             return False, {'error': 'Failed to get current inventory from sheets'}
         
-        # 检查每种原材料的库存更新
+        # Check inventory updates for each material
         results = {
             'material_checks': {},
             'total_materials_checked': 0,
@@ -104,7 +108,7 @@ def check_sheets_inventory_updates(spreadsheet_id: str, expected_final_inventory
             
             actual_qty = current_inventory[material_id]
             
-            # 允许小数点精度误差
+            # Allow decimal precision error
             tolerance = 0.01
             is_correct = abs(actual_qty - expected_qty) <= tolerance
             
@@ -121,24 +125,22 @@ def check_sheets_inventory_updates(spreadsheet_id: str, expected_final_inventory
             else:
                 results['incorrectly_updated'] += 1
         
-        # 计算通过率
-        pass_rate = results['correctly_updated'] / results['total_materials_checked'] if results['total_materials_checked'] > 0 else 0
-        overall_pass = pass_rate >= 0.9  # 90%通过率
-        
-        results['pass_rate'] = pass_rate
+        # Require ALL materials to be correctly updated (no tolerance for errors)
+        overall_pass = results['incorrectly_updated'] == 0 and results['correctly_updated'] > 0
+
         results['overall_pass'] = overall_pass
-        
+
         return overall_pass, results
         
     except Exception as e:
-        logger.error(f"检查库存更新失败: {e}")
+        logger.error(f"Failed to check inventory updates: {e}")
         return False, {'error': str(e)}
 
 
 def evaluate_sheets_integration(workspace_path: str) -> Dict:
-    """评估Google Sheets集成"""
+    """Evaluate Google Sheets integration"""
     logger = setup_logging()
-    logger.info(f"开始评估Google Sheets集成: {workspace_path}")
+    logger.info(f"Starting Google Sheets integration evaluation: {workspace_path}")
     
     results = {
         'status': 'success',
@@ -147,51 +149,50 @@ def evaluate_sheets_integration(workspace_path: str) -> Dict:
         'score': 0.0
     }
     
-    # 加载预期结果
+    # Load expected results
     expected_results = load_expected_results()
     if not expected_results:
         results['status'] = 'failed'
-        results['issues'].append('无法加载预期结果文件')
+        results['issues'].append('Unable to load expected results file')
         return results
-    
-    # 从agent工作区加载配置
+
+    # Load configuration from agent workspace
     agent_config = load_agent_config(workspace_path)
     if not agent_config:
         results['status'] = 'failed'
-        results['issues'].append('无法从工作区加载配置文件')
+        results['issues'].append('Unable to load configuration file from workspace')
         return results
-    
-    # 获取spreadsheet ID
+
+    # Get spreadsheet ID
     spreadsheet_id = agent_config.get('spreadsheet_id')
     if not spreadsheet_id:
         results['status'] = 'failed'
-        results['issues'].append('配置中未找到spreadsheet_id')
+        results['issues'].append('spreadsheet_id not found in configuration')
         return results
-    
-    # 获取预期的最终库存状态
-    print(expected_results)
+
+    # Get expected final inventory state
     expected_final_inventory = expected_results.get('expected_final_inventories', {}).get('google_sheets_material_inventory', {})
     if not expected_final_inventory:
         results['status'] = 'failed'
-        results['issues'].append('预期结果中未找到Google Sheets最终库存状态')
+        results['issues'].append('Google Sheets final inventory state not found in expected results')
         return results
     
-    # 检查库存更新
+    # Check inventory updates
     sheets_pass, sheets_results = check_sheets_inventory_updates(
         spreadsheet_id, expected_final_inventory
     )
     results['checks']['sheets_updates'] = sheets_results
     
     if not sheets_pass:
-        results['issues'].append('Google Sheets库存更新不正确')
-    
-    # 计算总分
+        results['issues'].append('Google Sheets inventory updates are incorrect')
+
+    # Calculate final score based on strict match requirement
     results['score'] = 1.0 if sheets_pass else 0.0
-    
-    if results['score'] < 0.9:
+
+    # Status is failed if not perfect match
+    if not sheets_pass:
         results['status'] = 'failed'
-    
-    logger.info(f"Google Sheets集成评估完成，分数: {results['score']:.2f}")
+
     return results
 
 if __name__ == "__main__":
