@@ -1,11 +1,315 @@
-import asyncio
+#!/usr/bin/env python3
+"""
+WooCommerce New Welcome Task - Preprocess Setup
+设置初始工作环境：清空邮箱、设置WooCommerce订单数据、准备BigQuery环境
+"""
+import os
+import sys
+import json
+import time
 from argparse import ArgumentParser
 from pathlib import Path
-from utils.general.helper import run_command, get_module_path
-import os
-import json
+from datetime import datetime, timedelta
+from typing import Dict, List
+
+# Add parent directory to import token configuration
+current_dir = os.path.dirname(os.path.abspath(__file__))
+task_dir = os.path.dirname(current_dir)
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(task_dir)))
+sys.path.insert(0, task_dir)  # For token_key_session
+sys.path.insert(0, project_root)  # For utils
+
+
+def clear_mailbox() -> Dict:
+    """
+    清空邮箱 - 使用通用邮箱工具清理 INBOX, Sent, Drafts 文件夹
+
+    Returns:
+        清理结果字典
+    """
+    print("📧 开始清空邮箱...")
+
+    try:
+        # 导入配置
+        from token_key_session import all_token_key_session
+
+        # 读取邮件配置文件
+        try:
+            with open(all_token_key_session.emails_config_file, 'r', encoding='utf-8') as f:
+                email_config = json.load(f)
+        except Exception as e:
+            print(f"❌ 无法读取邮件配置文件: {e}")
+            return {
+                "success": False,
+                "error": f"无法读取邮件配置文件: {e}",
+                "timestamp": datetime.now().isoformat()
+            }
+
+        # 延迟导入邮箱清理模块
+        try:
+            from utils.app_specific.poste.ops import setup_clean_mailbox_environment
+        except ImportError as e:
+            print(f"❌ 无法导入邮箱清理模块: {e}")
+            return {
+                "success": False,
+                "error": f"无法导入邮箱清理模块: {e}",
+                "timestamp": datetime.now().isoformat()
+            }
+
+        # 使用通用邮箱清理函数
+        result = setup_clean_mailbox_environment(email_config)
+
+        print(f"📊 邮箱清理结果:")
+        if result["success"]:
+            print(f"✅ 成功清理文件夹: {', '.join(result['cleared_folders'])}")
+        else:
+            print(f"⚠️ 部分文件夹清理失败:")
+            for error in result.get("errors", []):
+                print(f"   - {error}")
+
+        return {
+            "success": result["success"],
+            "cleared_folders": result.get("cleared_folders", []),
+            "failed_folders": result.get("failed_folders", []),
+            "errors": result.get("errors", []),
+            "timestamp": datetime.now().isoformat()
+        }
+
+    except Exception as e:
+        error_result = {
+            "success": False,
+            "error": str(e),
+            "timestamp": datetime.now().isoformat()
+        }
+        print(f"❌ 邮箱清理过程中出错: {e}")
+        return error_result
+
+
+def setup_woocommerce_orders() -> Dict:
+    """
+    设置WooCommerce订单数据：清空现有订单并添加新的首次购买订单
+
+    Returns:
+        设置结果字典
+    """
+    print("🛍️ 设置WooCommerce订单数据...")
+
+    try:
+        # 导入配置
+        from token_key_session import all_token_key_session
+
+        # 延迟导入WooCommerce模块
+        try:
+            from utils.app_specific.woocommerce import (
+                OrderManager,
+                create_new_welcome_orders
+            )
+        except ImportError as e:
+            print(f"❌ 无法导入WooCommerce模块: {e}")
+            return {
+                "success": False,
+                "error": f"无法导入WooCommerce模块: {e}",
+                "timestamp": datetime.now().isoformat()
+            }
+
+        # 初始化订单管理器
+        order_manager = OrderManager(
+            all_token_key_session.woocommerce_site_url,
+            all_token_key_session.woocommerce_api_key,
+            all_token_key_session.woocommerce_api_secret
+        )
+
+        # 第一步：清空现有订单
+        print("🗑️ 清空现有订单...")
+        clear_result = order_manager.clear_all_orders(confirm=True)
+
+        if not clear_result['success']:
+            error_msg = clear_result.get('error', '未知错误')
+            print(f"❌ 清空订单失败: {error_msg}")
+            return {
+                "success": False,
+                "error": f"清空订单失败: {error_msg}",
+                "deleted_count": clear_result.get('deleted_count', 0)
+            }
+
+        deleted_count = clear_result.get('deleted_count', 0)
+        print(f"✅ 成功删除 {deleted_count} 个现有订单")
+
+        # 第二步：生成新订单数据
+        print("📦 生成新订单数据...")
+        all_orders, first_time_orders = create_new_welcome_orders()
+
+        # 第三步：上传新订单到WooCommerce
+        print("📤 上传新订单到WooCommerce...")
+        upload_result = order_manager.upload_orders(
+            all_orders,
+            virtual_product_id=1,
+            batch_delay=0.8
+        )
+
+        if not upload_result['success']:
+            error_msg = upload_result.get('error', '未知错误')
+            print(f"❌ 上传订单失败: {error_msg}")
+            return {
+                "success": False,
+                "error": f"上传订单失败: {error_msg}",
+                "deleted_count": deleted_count,
+                "generated_orders": len(all_orders)
+            }
+
+        successful_orders = upload_result.get('successful_orders', 0)
+        failed_orders = upload_result.get('failed_orders', 0)
+
+        print(f"📊 订单设置结果:")
+        print(f"   删除旧订单: {deleted_count} 个")
+        print(f"   生成新订单: {len(all_orders)} 个")
+        print(f"   成功上传: {successful_orders} 个")
+        print(f"   失败上传: {failed_orders} 个")
+        print(f"   首次购买客户: {len(first_time_orders)} 个")
+
+        # 保存订单数据到文件供评估使用
+        current_dir = Path(__file__).parent
+        orders_file = current_dir / "generated_orders.json"
+        with open(orders_file, 'w', encoding='utf-8') as f:
+            json.dump({
+                "all_orders": all_orders,
+                "first_time_orders": first_time_orders
+            }, f, ensure_ascii=False, indent=2)
+
+        print(f"📄 订单数据已保存到: {orders_file}")
+
+        return {
+            "success": failed_orders == 0,
+            "deleted_count": deleted_count,
+            "generated_orders": len(all_orders),
+            "successful_uploads": successful_orders,
+            "failed_uploads": failed_orders,
+            "first_time_customers": len(first_time_orders),
+            "orders_file": str(orders_file)
+        }
+
+    except Exception as e:
+        error_msg = f"WooCommerce订单设置过程中出错: {e}"
+        print(f"❌ {error_msg}")
+        return {
+            "success": False,
+            "error": error_msg
+        }
+
+
+def main():
+    """主预处理函数"""
+
+    parser = ArgumentParser(description="Preprocess script - Set up the initial environment for the WooCommerce new welcome task")
+    parser.add_argument("--agent_workspace", required=False, help="Agent工作空间路径")
+    parser.add_argument("--credentials_file", default="configs/gcp-service_account.keys.json", help="BigQuery凭证文件路径")
+    parser.add_argument("--launch_time", required=False, help="Launch time")
+    args = parser.parse_args()
+
+    print("=" * 80)
+    print("WooCommerce New Welcome Task - Preprocessing")
+    print("=" * 80)
+
+    results = []
+
+    try:
+        # 第一步：清空邮箱
+        print("\n" + "="*60)
+        print("Step 1: Clear Mailbox")
+        print("="*60)
+
+        mailbox_result = clear_mailbox()
+        results.append(("Mailbox Cleanup", mailbox_result["success"], mailbox_result))
+
+        if mailbox_result["success"]:
+            print("✅ 邮箱清理成功")
+        else:
+            print("⚠️ 邮箱清理部分失败，但继续后续操作...")
+
+        # 等待邮箱操作完成
+        time.sleep(2)
+
+        # 第二步：设置WooCommerce订单
+        print("\n" + "="*60)
+        print("Step 2: Setup WooCommerce Orders")
+        print("="*60)
+
+        woocommerce_result = setup_woocommerce_orders()
+        results.append(("WooCommerce Setup", woocommerce_result["success"], woocommerce_result))
+
+        if woocommerce_result["success"]:
+            print("✅ WooCommerce订单设置成功")
+        else:
+            print("❌ WooCommerce订单设置失败")
+
+        # 第三步：设置BigQuery环境
+        print("\n" + "="*60)
+        print("Step 3: Setup BigQuery Environment")
+        print("="*60)
+
+        # 设置BigQuery路径和数据
+        credentials_path = Path(args.credentials_file)
+        if not credentials_path.is_absolute():
+            credentials_path = Path.cwd() / credentials_path
+
+        if credentials_path.exists():
+            # 读取客户数据
+            current_dir = Path(__file__).parent
+            json_path = current_dir / "customers_data.json"
+            if json_path.exists():
+                json_data = read_json_data(str(json_path))
+
+                project_id = get_project_id_from_key(str(credentials_path))
+                if project_id:
+                    try:
+                        client, dataset_id = setup_bigquery_resources(str(credentials_path), project_id, json_data)
+                        results.append(("BigQuery Setup", True, {"dataset_id": dataset_id}))
+                        print("✅ BigQuery环境设置成功")
+                    except Exception as e:
+                        results.append(("BigQuery Setup", False, {"error": str(e)}))
+                        print(f"❌ BigQuery设置失败: {e}")
+                else:
+                    results.append(("BigQuery Setup", False, {"error": "无法获取项目ID"}))
+                    print("❌ 无法从凭证文件获取项目ID")
+            else:
+                results.append(("BigQuery Setup", False, {"error": "客户数据文件不存在"}))
+                print("❌ 客户数据文件不存在")
+        else:
+            results.append(("BigQuery Setup", False, {"error": "凭证文件不存在"}))
+            print("❌ BigQuery凭证文件不存在")
+
+        # 汇总结果
+        print("\n" + "="*80)
+        print("PREPROCESSING SUMMARY")
+        print("="*80)
+
+        success_count = sum(1 for _, success, _ in results if success)
+        total_count = len(results)
+
+        for step_name, success, details in results:
+            status = "✅ PASSED" if success else "❌ FAILED"
+            print(f"{step_name}: {status}")
+            if not success and "error" in details:
+                print(f"  Error: {details['error']}")
+
+        overall_success = success_count == total_count
+        print(f"\nOverall: {success_count}/{total_count} steps completed successfully")
+
+        if overall_success:
+            print("\n🎉 所有预处理步骤完成！任务环境已就绪")
+            return True
+        else:
+            print("\n⚠️ 预处理部分完成，请检查失败的步骤")
+            return False
+
+    except Exception as e:
+        print(f"❌ 预处理失败: {e}")
+        return False
+
+
+# 以下是原有的BigQuery相关函数（保持不变）
+
 import logging
-from datetime import datetime, date, timedelta
 from google.cloud import bigquery
 from google.oauth2 import service_account
 from google.api_core.exceptions import Conflict, GoogleAPICallError, NotFound
@@ -13,6 +317,7 @@ from google.api_core.exceptions import Conflict, GoogleAPICallError, NotFound
 # Enable verbose logging for debugging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
 
 def read_json_data(json_path: str):
     """从JSON文件读取客户数据"""
@@ -363,53 +668,4 @@ def get_project_id_from_key(credentials_path: str) -> str | None:
         return None
 
 if __name__ == "__main__":
-    parser = ArgumentParser()
-    parser.add_argument("--agent_workspace", required=False)
-    parser.add_argument("--credentials_file", default="configs/gcp-service_account.keys.json")
-    parser.add_argument("--launch_time", required=False, help="Launch time (can contain spaces)")
-    args = parser.parse_args()
-
-    print("🛍️ 开始设置 BigQuery WooCommerce CRM 资源...")
-    print("=" * 60)
-    
-    # Get credentials file path
-    credentials_path = Path(args.credentials_file)
-    
-    # Make sure the path is absolute
-    if not credentials_path.is_absolute():
-        credentials_path = Path.cwd() / credentials_path
-    
-    if not credentials_path.exists():
-        print(f"❌ 错误：凭证文件不存在: {credentials_path}")
-        print("请确保服务账号密钥文件存在于指定路径")
-        exit(1)
-    else:
-        print(f"✅ 找到凭证文件: {credentials_path}")
-    
-    # Get JSON data file path
-    json_path = Path(os.path.join(os.path.dirname(__file__), "customers_data.json"))
-    if not json_path.is_absolute():
-        json_path = Path.cwd() / json_path
-        
-    print(f"📖 JSON数据文件路径: {json_path}")
-    
-    # Read JSON data
-    json_data = read_json_data(str(json_path))
-    
-    project_id = get_project_id_from_key(str(credentials_path))
-    
-    if project_id:
-        print(f"🆔 从凭证文件中成功读取项目ID: {project_id}")
-        try:
-            client, dataset_id = setup_bigquery_resources(str(credentials_path), project_id, json_data)
-            print("\n" + "=" * 60)
-            print("🎉 所有 BigQuery 资源设置完毕！")
-            print("📊 已将JSON数据迁移到BigQuery")
-            print("🎯 任务：代理需要同步新客户数据并发送欢迎邮件")
-            print("=" * 60)
-        except Exception as e:
-            print(f"\n❌ 设置失败: {e}")
-            exit(1)
-    else:
-        print(f"❌ 无法从凭证文件中读取项目ID。")
-        exit(1)
+    main()

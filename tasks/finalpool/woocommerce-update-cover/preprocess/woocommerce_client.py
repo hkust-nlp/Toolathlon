@@ -28,28 +28,39 @@ class WooCommerceClient:
         self.auth = HTTPBasicAuth(consumer_key, consumer_secret)
         self.session = requests.Session()
         self.session.auth = self.auth
-        
+
+        # 设置连接池和超时配置
+        self.session.verify = False  # 禁用SSL验证（对于本地开发）
+        adapter = requests.adapters.HTTPAdapter(
+            pool_connections=1,
+            pool_maxsize=1,
+            max_retries=3
+        )
+        self.session.mount('http://', adapter)
+        self.session.mount('https://', adapter)
+
         # WordPress用户认证 (用于媒体上传)
         self.wp_auth = None
         self.wp_username = wp_username
         self.wp_password = wp_password
         if wp_username and wp_password:
             self.wp_auth = HTTPBasicAuth(wp_username, wp_password)
-        
+
         # API调用限制 (避免超过速率限制)
-        self.request_delay = 0.5  # 每次请求间隔500ms
+        self.request_delay = 1.0  # 增加到1秒间隔
         self.last_request_time = 0
+        self.max_retries = 3  # 最大重试次数
     
     def _make_request(self, method: str, endpoint: str, data: Dict = None, params: Dict = None) -> Tuple[bool, Dict]:
         """
-        发送API请求
-        
+        发送API请求（带重试机制）
+
         Args:
             method: HTTP方法 (GET, POST, PUT, DELETE)
             endpoint: API端点
             data: 请求数据
             params: URL参数
-            
+
         Returns:
             (成功标志, 响应数据)
         """
@@ -58,33 +69,78 @@ class WooCommerceClient:
         time_since_last = current_time - self.last_request_time
         if time_since_last < self.request_delay:
             time.sleep(self.request_delay - time_since_last)
-        
+
         url = f"{self.api_base}/{endpoint.lstrip('/')}"
-        
-        try:
-            headers = {"Content-Type": "application/json"}
-            
-            if method.upper() == 'GET':
-                response = self.session.get(url, params=params, headers=headers)
-            elif method.upper() == 'POST':
-                response = self.session.post(url, json=data, params=params, headers=headers)
-            elif method.upper() == 'PUT':
-                response = self.session.put(url, json=data, params=params, headers=headers)
-            elif method.upper() == 'DELETE':
-                response = self.session.delete(url, params=params, headers=headers)
-            else:
-                return False, {"error": f"不支持的HTTP方法: {method}"}
-            
-            self.last_request_time = time.time()
-            
-            response.raise_for_status()
-            return True, response.json()
-            
-        except requests.exceptions.RequestException as e:
-            error_msg = f"API请求失败: {str(e)}"
-            if hasattr(e.response, 'text'):
-                error_msg += f" - {e.response.text}"
-            return False, {"error": error_msg}
+
+        # 重试机制
+        for attempt in range(self.max_retries + 1):
+            try:
+                headers = {
+                    "Content-Type": "application/json",
+                    "Connection": "close",  # 确保连接关闭，避免连接池问题
+                    "User-Agent": "WooCommerce-Python-Client/1.0"
+                }
+
+                # 设置超时
+                timeout = (10, 30)  # (连接超时, 读取超时)
+
+                if method.upper() == 'GET':
+                    response = self.session.get(url, params=params, headers=headers, timeout=timeout)
+                elif method.upper() == 'POST':
+                    response = self.session.post(url, json=data, params=params, headers=headers, timeout=timeout)
+                elif method.upper() == 'PUT':
+                    response = self.session.put(url, json=data, params=params, headers=headers, timeout=timeout)
+                elif method.upper() == 'DELETE':
+                    response = self.session.delete(url, params=params, headers=headers, timeout=timeout)
+                else:
+                    return False, {"error": f"不支持的HTTP方法: {method}"}
+
+                self.last_request_time = time.time()
+
+                # 检查响应状态
+                if response.status_code >= 200 and response.status_code < 300:
+                    try:
+                        return True, response.json()
+                    except ValueError:  # JSON解析失败
+                        return True, {"message": "Success", "status_code": response.status_code}
+                else:
+                    # HTTP错误状态码
+                    error_data = {"error": f"HTTP {response.status_code}", "status_code": response.status_code}
+                    try:
+                        error_detail = response.json()
+                        error_data.update(error_detail)
+                    except ValueError:
+                        error_data["raw_response"] = response.text[:500]
+                    return False, error_data
+
+            except (requests.exceptions.ConnectionError,
+                    requests.exceptions.Timeout,
+                    ConnectionResetError) as e:
+                if attempt < self.max_retries:
+                    wait_time = (attempt + 1) * 2  # 递增等待时间
+                    print(f"   🔄 连接失败，{wait_time}秒后重试 (第{attempt + 1}次): {str(e)[:100]}")
+                    time.sleep(wait_time)
+                    continue
+                else:
+                    error_msg = f"API请求失败（已重试{self.max_retries}次）: {str(e)}"
+                    return False, {"error": error_msg}
+
+            except requests.exceptions.RequestException as e:
+                error_msg = f"API请求失败: {str(e)}"
+                if hasattr(e, 'response') and e.response is not None:
+                    error_msg += f" - HTTP {e.response.status_code}"
+                    try:
+                        error_detail = e.response.json()
+                        error_msg += f" - {error_detail}"
+                    except ValueError:
+                        error_msg += f" - {e.response.text[:200]}"
+                return False, {"error": error_msg}
+
+            except Exception as e:
+                error_msg = f"未知错误: {str(e)}"
+                return False, {"error": error_msg}
+
+        return False, {"error": "请求失败，已达到最大重试次数"}
     
     def get_product(self, product_id: str) -> Tuple[bool, Dict]:
         """获取商品信息"""

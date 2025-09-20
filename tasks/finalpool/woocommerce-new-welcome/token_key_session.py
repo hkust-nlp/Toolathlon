@@ -3,11 +3,8 @@ import os
 
 from addict import Dict
 import os
-# I am gradually modifying the tokens to the pseudo account in this project
-all_token_key_session = Dict(
-    google_oauth2_credentials_path = "configs/credentials.json",
-    google_oauth2_token_path = "configs/credentials.json", # I just put them all together in the same file
 
+all_token_key_session = Dict(
     woocommerce_api_key = "ck_woocommerce_token_christine1993",
     woocommerce_api_secret = "cs_woocommerce_token_christine1993",
     woocommerce_site_url = "http://localhost:10003/store88",
