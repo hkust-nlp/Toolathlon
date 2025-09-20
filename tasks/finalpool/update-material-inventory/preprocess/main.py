@@ -5,6 +5,20 @@ import json
 import shutil
 import logging
 from pathlib import Path
+import asyncio
+
+sys.path.append(os.path.dirname(__file__))
+
+from utils.app_specific.googlesheet.drive_helper import (
+    get_google_service, find_folder_by_name, create_folder, 
+    clear_folder, copy_sheet_to_folder
+)
+
+GOOGLESHEET_URLS = [
+    "https://docs.google.com/spreadsheets/d/1S9BFFHU262CjU87DnGFfP_LMChhAT4lx7uNvwY-7HoI",
+]
+
+FOLDER_NAME = "update-material-inventory"
 
 # Add local paths for imports
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -12,78 +26,44 @@ task_dir = os.path.dirname(current_dir)
 sys.path.insert(0, task_dir)
 sys.path.insert(0, current_dir)
 
+async def setup_google_sheets( ):
+    task_root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    os.makedirs(os.path.join(task_root_path, "files"), exist_ok=True)
+    folder_id_file = os.path.join(task_root_path, "files", "folder_id.txt")
+
+    if os.path.exists(folder_id_file):
+        os.remove(folder_id_file)
+
+    drive_service, sheets_service = get_google_service()
+
+    folder_id = find_folder_by_name(drive_service, FOLDER_NAME)
+    if not folder_id:
+        folder_id = create_folder(drive_service, FOLDER_NAME)
+
+    clear_folder(drive_service, folder_id)
+
+    for sheet_url in GOOGLESHEET_URLS:
+        copy_sheet_to_folder(drive_service, sheet_url, folder_id)
+
+    with open(folder_id_file, "w") as f:
+        f.write(folder_id)
+
+    print(f"Folder ID saved: {folder_id}")
+
 def setup_logging():
     """Setup logging"""
     logging.basicConfig(level=logging.INFO)
     return logging.getLogger(__name__)
 
-def copy_initial_files(agent_workspace: str) -> bool:
-    """Copy initial configuration files to agent workspace"""
-    try:
-        logger = setup_logging()
-        logger.info(f"🚀 Setting up initial environment in: {agent_workspace}")
-        
-        # Ensure workspace exists
-        os.makedirs(agent_workspace, exist_ok=True)
-        
-        # Copy config.json from initial_workspace
-        initial_workspace = os.path.join(task_dir, "initial_workspace")
-        config_source = os.path.join(initial_workspace, "config.json")
-        config_dest = os.path.join(agent_workspace, "config.json")
-        
-        if os.path.exists(config_source):
-            shutil.copy2(config_source, config_dest)
-            logger.info("✅ Copied config.json")
-        else:
-            logger.warning("⚠️ Initial config.json not found, creating basic config")
-            # Create basic config matching the task requirements
-            basic_config = {
-                "spreadsheet_id": "",
-                "woocommerce": {
-                    "site_url": "",
-                    "consumer_key": "",
-                    "consumer_secret": ""
-                },
-                "monitoring": {
-                    "check_interval": 30,
-                    "log_level": "INFO"
-                },
-                "bom_sheet_name": "BOM",
-                "inventory_sheet_name": "Material_Inventory"
-            }
-            with open(config_dest, 'w', encoding='utf-8') as f:
-                json.dump(basic_config, f, indent=2, ensure_ascii=False)
-            logger.info("✅ Created basic config.json")
-        
-        # Copy test order data for evaluation reference
-        test_order_source = os.path.join(current_dir, "test_order.json")
-        test_order_dest = os.path.join(agent_workspace, "test_order.json")
-        if os.path.exists(test_order_source):
-            shutil.copy2(test_order_source, test_order_dest)
-            logger.info("✅ Copied test order data")
-            
-        # Copy order_simulator.py to agent workspace for use
-        order_sim_source = os.path.join(current_dir, "order_simulator.py")
-        order_sim_dest = os.path.join(agent_workspace, "order_simulator.py")
-        if os.path.exists(order_sim_source):
-            shutil.copy2(order_sim_source, order_sim_dest)
-            logger.info("✅ Copied order simulator")
-        
-        logger.info("📊 Initial files setup completed")
-        return True
-        
-    except Exception as e:
-        logger.error(f"Failed to copy initial files: {e}")
-        return False
 
 def calculate_max_producible_quantities() -> dict:
     """
-    根据原材料库存计算各产品的最大可生产数量
-    
+    Calculate maximum producible quantities for each product based on material inventory
+
     Returns:
-        dict: 各产品的最大可生产数量
+        dict: Maximum producible quantities for each product
     """
-    # 原材料库存（来自sheets_setup.py）
+    # Material inventory (from sheets_setup.py)
     material_inventory = {
         'WOOD_OAK': 250.0,
         'SCREW_M6': 600,
@@ -95,7 +75,7 @@ def calculate_max_producible_quantities() -> dict:
         'FINISH_PAINT': 10.0
     }
     
-    # BOM定义
+    # BOM definition
     bom = {
         'CHAIR_001': {
             'WOOD_OAK': 2.5,
@@ -131,7 +111,7 @@ def calculate_max_producible_quantities() -> dict:
             possible_qty = int(available_stock // unit_requirement)
             possible_quantities.append(possible_qty)
         
-        # 取最小值作为最大可生产数量
+        # Take minimum value as maximum producible quantity
         max_quantities[product_sku] = min(possible_quantities) if possible_quantities else 0
     
     return max_quantities
@@ -173,30 +153,30 @@ def setup_woocommerce_products(wc_client) -> dict:
     test_products = [
         {
             "sku": "CHAIR_001",
-            "name": "经典木椅",
-            "description": "舒适的经典木质椅子，适合餐厅和办公室使用",
+            "name": "Classic Wooden Chair",
+            "description": "Comfortable, classic wooden chair, perfect for dining rooms and offices",
             "regular_price": "299.00",
             "manage_stock": True,
             "stock_quantity": max_quantities.get("CHAIR_001", 0),
-            "categories": [{"name": "家具"}, {"name": "椅子"}]
+            "categories": [{"name": "Furniture"}, {"name": "Chairs"}]
         },
         {
             "sku": "TABLE_001", 
-            "name": "橡木餐桌",
-            "description": "精美的橡木餐桌，可容纳4-6人就餐",
+            "name": "Oak Dining Table",
+            "description": "Beautiful oak dining table, seating 4-6",
             "regular_price": "899.00",
             "manage_stock": True,
             "stock_quantity": max_quantities.get("TABLE_001", 0),
-            "categories": [{"name": "家具"}, {"name": "桌子"}]
+            "categories": [{"name": "Furniture"}, {"name": "Tables"}]
         },
         {
             "sku": "DESK_001",
-            "name": "办公桌",
-            "description": "现代简约办公桌，适合家庭和办公室使用",
+            "name": "Office Desk",
+            "description": "Modern, minimalist office desk, perfect for home and office use",
             "regular_price": "699.00", 
             "manage_stock": True,
             "stock_quantity": max_quantities.get("DESK_001", 0),
-            "categories": [{"name": "家具"}, {"name": "办公家具"}]
+            "categories": [{"name": "Furniture"}, {"name": "Office furniture"}]
         }
     ]
     
@@ -338,10 +318,9 @@ def setup_test_environment() -> bool:
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("--agent_workspace", required=True)
+    parser.add_argument("--agent_workspace", required=False)
     parser.add_argument("--launch_time", required=False, help="Launch time")
-    # parser.add_argument("--setup_test", action="store_true", 
-    #                    help="Setup test environment with WooCommerce and Sheets")
+
     # default to use setup_test
     args = parser.parse_args()
     
@@ -352,20 +331,12 @@ if __name__ == "__main__":
     
     success = True
     
-    # Step 1: Copy initial files
-    # if not copy_initial_files(args.agent_workspace):
-    #     success = False
-    
-    # Step 2: Optional test environment setup
-    #if args.setup_test or not success:
     if not setup_test_environment():
         logger.warning("Test environment setup had issues, but continuing...")
         success = False
-    if not copy_initial_files(args.agent_workspace):
-        success = False
+
     if success:
         print("\\n🎉 Preprocessing completed successfully!")
-        print(f"Agent workspace ready at: {args.agent_workspace}")
         sys.exit(0)
     else:
         print("\\n❌ Preprocessing failed")

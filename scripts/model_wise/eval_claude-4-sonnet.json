@@ -1,6 +1,6 @@
 {
     "global_task_config":{
-        "max_turns": 50,
+        "max_turns": 500,
         "max_steps_under_single_turn_mode": 50,
         "dump_path":"./recorded_trajectories_v2/run1"
     },
@@ -20,7 +20,7 @@
         "tool":{
             "tool_choice": "auto",
             "parallel_tool_calls":true,
-            "max_inner_turns": 20
+            "max_inner_turns": 2000
         }
     },
     "user":{

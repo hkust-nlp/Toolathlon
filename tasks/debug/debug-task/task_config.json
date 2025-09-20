@@ -1,5 +1,5 @@
 {
-    "needed_mcp_servers": ["filesystem"],
+    "needed_mcp_servers": ["huggingface"],
     "needed_local_tools": [],
     "meta": {}
 }

@@ -388,9 +388,6 @@ def main():
         
         success1 = setup_task_data()
         
-   
-        
-        
         if success1:
             print("\n🎉 Preprocessing completed! Task environment is ready")
             if forms_result and forms_result.get('success'):

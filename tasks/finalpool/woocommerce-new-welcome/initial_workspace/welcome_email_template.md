@@ -1,39 +1,39 @@
-# 欢迎邮件模板
+# Welcome Email Template
 
-## 邮件主题
-欢迎加入[Store Name]！专属优惠等您领取 🎉
+## Email Subject
+Welcome to [Store Name]! Exclusive offers await you 🎉
 
-## 邮件正文
+## Email Body
 
-亲爱的 {{customer_name}}，
+Dear {{customer_name}},
 
-感谢您在我们店铺完成第一笔订单！作为新客户，我们为您准备了专属优惠：
+Thank you for placing your first order with us! As a new customer, we've prepared exclusive offers for you:
 
-### 🎁 新客户专属福利
-- **9折优惠码**：WELCOME10（下次购物可用）
-- **免运费**：订单满$50即可享受
-- **积分翻倍**：首月内所有订单积分翻倍
+### 🎁 New Customer Exclusive Benefits
+- **10% Off Coupon Code**: WELCOME10 (valid on your next order)
+- **Free Shipping**: Enjoy with orders over $50
+- **Double Points**: Double your points on all orders within your first month
 
-### 📦 您的首单信息
-- 订单号：{{order_id}}
-- 订单金额：${{order_total}}
-- 订单日期：{{order_date}}
+### 📦 Your First Order Information
+- Order ID: {{order_id}}
+- Order Amount: ${{order_total}}
+- Order Date: {{order_date}}
 
-### 🛍️ 为您推荐
-根据您的购买记录，您可能还会喜欢：
-- [推荐商品1]
-- [推荐商品2]
-- [推荐商品3]
+### 🛍️ Recommended for You
+Based on your purchase history, you may also like:
+- [Recommended Item 1]
+- [Recommended Item 2]
+- [Recommended Item 3]
 
-### 📞 需要帮助？
-- 客服邮箱：support@example.com
-- 客服电话：1-800-EXAMPLE
-- 在线客服：www.example.com/chat
+### 📞 Need help?
+- Customer Service Email: support@example.com
+- Customer Service Phone: 1-800-EXAMPLE
+- Live Chat: www.example.com/chat
 
-再次感谢您的信任与支持！
+Thank you again for your trust and support!
 
-祝好，
-[Store Name] 团队
+Best wishes,
+[Store Name] Team
 
 ---
-*此邮件由系统自动发送，请勿直接回复。*
+*This email is sent automatically. Please do not reply directly.*

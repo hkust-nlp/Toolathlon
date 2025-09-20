@@ -1,91 +1,91 @@
 {
   "expected_updates": {
-    "1470": {
-      "product_name": "彩虹运动鞋",
-      "expected_top_variation_id": 1471,
-      "expected_featured_image_id": 1464,
-      "expected_color": "红色",
+    "429": {
+      "product_name": "Rainbow Sneakers",
+      "expected_top_variation_id": 430,
+      "expected_featured_image_id": 423,
+      "expected_color": "Red",
       "expected_sales_quantity": 9,
       "current_featured_image_id": null,
       "all_variations_sales": [
         {
-          "variation_id": 1471,
-          "color": "红色",
+          "variation_id": 430,
+          "color": "Red",
           "sales": 9
         },
         {
-          "variation_id": 1473,
-          "color": "绿色",
+          "variation_id": 432,
+          "color": "Green",
           "sales": 8
         },
         {
-          "variation_id": 1474,
-          "color": "黄色",
+          "variation_id": 433,
+          "color": "Yellow",
           "sales": 4
         },
         {
-          "variation_id": 1472,
-          "color": "蓝色",
+          "variation_id": 431,
+          "color": "Blue",
           "sales": 2
         }
       ]
     },
-    "1475": {
-      "product_name": "时尚背包",
-      "expected_top_variation_id": 1477,
-      "expected_featured_image_id": 1465,
-      "expected_color": "蓝色",
-      "expected_sales_quantity": 5,
+    "434": {
+      "product_name": "Fashion Backpack",
+      "expected_top_variation_id": 436,
+      "expected_featured_image_id": 424,
+      "expected_color": "Blue",
+      "expected_sales_quantity": 15,
       "current_featured_image_id": null,
       "all_variations_sales": [
         {
-          "variation_id": 1477,
-          "color": "蓝色",
+          "variation_id": 436,
+          "color": "Blue",
+          "sales": 15
+        },
+        {
+          "variation_id": 435,
+          "color": "Red",
+          "sales": 7
+        },
+        {
+          "variation_id": 438,
+          "color": "Yellow",
           "sales": 5
         },
         {
-          "variation_id": 1476,
-          "color": "红色",
-          "sales": 3
-        },
-        {
-          "variation_id": 1478,
-          "color": "绿色",
-          "sales": 2
-        },
-        {
-          "variation_id": 1479,
-          "color": "黄色",
+          "variation_id": 437,
+          "color": "Green",
           "sales": 1
         }
       ]
     },
-    "1480": {
-      "product_name": "无线蓝牙耳机",
-      "expected_top_variation_id": 1484,
-      "expected_featured_image_id": 1467,
-      "expected_color": "黄色",
-      "expected_sales_quantity": 11,
+    "439": {
+      "product_name": "Wireless Bluetooth Headphones",
+      "expected_top_variation_id": 440,
+      "expected_featured_image_id": 423,
+      "expected_color": "Red",
+      "expected_sales_quantity": 9,
       "current_featured_image_id": null,
       "all_variations_sales": [
         {
-          "variation_id": 1484,
-          "color": "黄色",
-          "sales": 11
+          "variation_id": 440,
+          "color": "Red",
+          "sales": 9
         },
         {
-          "variation_id": 1483,
-          "color": "绿色",
-          "sales": 6
+          "variation_id": 442,
+          "color": "Green",
+          "sales": 5
         },
         {
-          "variation_id": 1482,
-          "color": "蓝色",
+          "variation_id": 443,
+          "color": "Yellow",
           "sales": 4
         },
         {
-          "variation_id": 1481,
-          "color": "红色",
+          "variation_id": 441,
+          "color": "Blue",
           "sales": 2
         }
       ]
@@ -94,29 +94,29 @@
   "total_products_to_update": 3,
   "analysis_period": {
     "description": "上周（周一到周日）",
-    "start_date": "2025-09-01",
-    "end_date": "2025-09-07",
+    "start_date": "2025-09-08",
+    "end_date": "2025-09-14",
     "note": "基于随机受欢迎程度和实际模拟销量数据确定最佳销售变体，任何变体都可能成为最佳销售"
   },
   "created_test_data": {
     "products_count": 3,
     "variations_total": 12,
-    "total_orders": 44,
-    "total_quantity_sold": 57,
-    "average_order_quantity": 1.3
+    "total_orders": 49,
+    "total_quantity_sold": 71,
+    "average_order_quantity": 1.45
   },
   "sales_summary": {
-    "1471": 9,
-    "1476": 3,
-    "1472": 2,
-    "1477": 5,
-    "1484": 11,
-    "1482": 4,
-    "1474": 4,
-    "1473": 8,
-    "1478": 2,
-    "1483": 6,
-    "1481": 2,
-    "1479": 1
+    "442": 5,
+    "430": 9,
+    "431": 2,
+    "435": 7,
+    "440": 9,
+    "436": 15,
+    "433": 4,
+    "443": 4,
+    "437": 1,
+    "432": 8,
+    "441": 2,
+    "438": 5
   }
 }

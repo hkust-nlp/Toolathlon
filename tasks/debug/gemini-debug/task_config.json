@@ -1,0 +1,5 @@
+{
+    "needed_mcp_servers": ["arxiv_local"],
+    "needed_local_tools": ["web_search"],
+    "meta": {}
+}

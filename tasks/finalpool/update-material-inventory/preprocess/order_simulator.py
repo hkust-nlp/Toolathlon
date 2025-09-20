@@ -43,15 +43,15 @@ class OrderSimulator:
         self.wc_client = wc_client
         self.logger = self._setup_logging()
         self.available_products = [
-            {"sku": "CHAIR_001", "name": "经典木椅", "price": 299.00},
-            {"sku": "TABLE_001", "name": "橡木餐桌", "price": 899.00},
-            {"sku": "DESK_001", "name": "办公桌", "price": 599.00}
+            {"sku": "CHAIR_001", "name": "Classic Wooden Chair", "price": 299.00},
+            {"sku": "TABLE_001", "name": "Oak Dining Table", "price": 899.00},
+            {"sku": "DESK_001", "name": "Office Desk", "price": 599.00}
         ]
         self.customers = [
-            {"name": "张三", "email": "zhang@example.com", "phone": "138****1234"},
-            {"name": "李四", "email": "li@example.com", "phone": "139****5678"},
-            {"name": "王五", "email": "wang@example.com", "phone": "137****9012"},
-            {"name": "赵六", "email": "zhao@example.com", "phone": "136****3456"}
+            {"name": "John Smith", "email": "john@example.com", "phone": "138****1234"},
+            {"name": "Jane Doe", "email": "jane@example.com", "phone": "139****5678"},
+            {"name": "Bob Wilson", "email": "bob@example.com", "phone": "137****9012"},
+            {"name": "Alice Brown", "email": "alice@example.com", "phone": "136****3456"}
         ]
         
     def _setup_logging(self):
@@ -138,31 +138,31 @@ class OrderSimulator:
             
             # 分割客户姓名
             name_parts = simulated_order.customer_info["name"].split()
-            first_name = name_parts[0] if name_parts else "客户"
+            first_name = name_parts[0] if name_parts else "Customer"
             last_name = name_parts[-1] if len(name_parts) > 1 else ""
             
             order_data = {
                 "status": simulated_order.status,
                 "set_paid": simulated_order.payment_status == "paid",
                 "payment_method": "bacs",
-                "payment_method_title": "银行转账",
+                "payment_method_title": "Bank Transfer",
                 "billing": {
                     "first_name": first_name,
                     "last_name": last_name,
                     "email": simulated_order.customer_info["email"],
                     "phone": simulated_order.customer_info["phone"],
-                    "address_1": "测试地址123号",
-                    "city": "测试城市",
-                    "state": "测试省",
+                    "address_1": "123 Test Street",
+                    "city": "Test City",
+                    "state": "Test State",
                     "postcode": "100000",
                     "country": "CN"
                 },
                 "shipping": {
                     "first_name": first_name,
                     "last_name": last_name,
-                    "address_1": "测试地址123号",
-                    "city": "测试城市", 
-                    "state": "测试省",
+                    "address_1": "123 Test Street",
+                    "city": "Test City",
+                    "state": "Test State",
                     "postcode": "100000",
                     "country": "CN"
                 },
@@ -170,7 +170,7 @@ class OrderSimulator:
                 "shipping_lines": [
                     {
                         "method_id": "flat_rate",
-                        "method_title": "标准配送",
+                        "method_title": "Standard Shipping",
                         "total": "10.00"
                     }
                 ]
@@ -179,50 +179,50 @@ class OrderSimulator:
             success, result = self.wc_client.create_order(order_data)
             if success:
                 order_id = result.get('id')
-                self.logger.info(f"✅ 成功创建WooCommerce订单: #{order_id}")
-                self.logger.info(f"   订单状态: {result.get('status')}")
-                self.logger.info(f"   付款状态: {'已付款' if result.get('date_paid') else '未付款'}")
+                self.logger.info(f"✅ Successfully created WooCommerce order: #{order_id}")
+                self.logger.info(f"   Order status: {result.get('status')}")
+                self.logger.info(f"   Payment status: {'Paid' if result.get('date_paid') else 'Unpaid'}")
                 return result
             else:
-                self.logger.error(f"❌ 创建WooCommerce订单失败: {result}")
+                self.logger.error(f"❌ Failed to create WooCommerce order: {result}")
                 return None
                 
         except Exception as e:
-            self.logger.error(f"创建WooCommerce订单时出错: {e}")
+            self.logger.error(f"Error creating WooCommerce order: {e}")
             return None
     
     def simulate_order_batch(self, count: int = 5, interval: int = 30) -> List[SimulatedOrder]:
-        """模拟批量订单创建"""
-        self.logger.info(f"🎯 开始模拟 {count} 个订单，间隔 {interval} 秒")
+        """Simulate batch order creation"""
+        self.logger.info(f"🎯 Starting simulation of {count} orders with {interval}s interval")
         
         orders = []
         for i in range(count):
-            # 生成模拟订单
+            # Generate simulated order
             simulated_order = self.generate_random_order()
             orders.append(simulated_order)
             
-            # 记录订单信息
-            self.logger.info(f"📦 模拟订单 {i+1}/{count}: {simulated_order.order_id}")
+            # Log order information
+            self.logger.info(f"📦 Simulated order {i+1}/{count}: {simulated_order.order_id}")
             for item in simulated_order.items:
                 self.logger.info(f"  - {item.name} (SKU: {item.sku}) x{item.quantity} @ ¥{item.price}")
-            self.logger.info(f"  总计: ¥{simulated_order.total:.2f}")
+            self.logger.info(f"  Total: ${simulated_order.total:.2f}")
             
-            # 如果提供了WooCommerce客户端，创建真实订单
+            # If WooCommerce client provided, create real order
             if self.wc_client:
                 wc_order = self.create_woocommerce_order(simulated_order)
                 if wc_order:
                     simulated_order.order_id = str(wc_order.get('id', simulated_order.order_id))
             
-            # 等待间隔（除了最后一个订单）
+            # Wait interval (except for last order)
             if i < count - 1:
-                self.logger.info(f"⏱️ 等待 {interval} 秒...")
+                self.logger.info(f"⏱️ Waiting {interval} seconds...")
                 time.sleep(interval)
         
-        self.logger.info(f"✅ 完成 {count} 个订单模拟")
+        self.logger.info(f"✅ Completed simulation of {count} orders")
         return orders
     
     def save_orders_to_file(self, orders: List[SimulatedOrder], filename: str = "simulated_orders.json"):
-        """保存订单到文件"""
+        """Save orders to file"""
         try:
             orders_data = []
             for order in orders:
@@ -247,17 +247,17 @@ class OrderSimulator:
             with open(filename, 'w', encoding='utf-8') as f:
                 json.dump(orders_data, f, ensure_ascii=False, indent=2)
             
-            self.logger.info(f"📄 订单数据已保存到: {filename}")
+            self.logger.info(f"📄 Order data saved to: {filename}")
             
         except Exception as e:
-            self.logger.error(f"保存订单数据失败: {e}")
+            self.logger.error(f"Failed to save order data: {e}")
 
 if __name__ == "__main__":
-    # 测试订单模拟器
+    # Test order simulator
     simulator = OrderSimulator()
     
-    # 生成几个测试订单
+    # Generate test orders
     orders = simulator.simulate_order_batch(count=3, interval=5)
     
-    # 保存到文件
+    # Save to file
     simulator.save_orders_to_file(orders)

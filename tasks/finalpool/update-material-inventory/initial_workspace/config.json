@@ -3,13 +3,13 @@
   "inventory_sheet_name": "Material_Inventory",
   "product_mapping": {
     "CHAIR_001": {
-      "woocommerce_id": "247"
+      "woocommerce_id": "33"
     },
     "TABLE_001": {
-      "woocommerce_id": "248"
+      "woocommerce_id": "34"
     },
     "DESK_001": {
-      "woocommerce_id": "249"
+      "woocommerce_id": "35"
     }
   },
   "spreadsheet_id": "13K_oZ32wICyZUai_ETcwicAP2K2P0_pZ"

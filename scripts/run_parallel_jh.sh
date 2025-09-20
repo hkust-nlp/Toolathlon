@@ -22,12 +22,14 @@ MAX_TOKENS="8192"
 USER_TEMPERATURE="1.0"
 USER_TOP_P="1.0"
 USER_MAX_TOKENS="1024"
-IMAGE_NAME="lockon0927/mcpbench-task-image-v2:jl0919alpha"  # Docker image to use
+IMAGE_NAME="lockon0927/mcpbench-task-image-v2:jl0921alpha"  # Docker image to use
 
 mkdir -p $DUMP_PATH
 
+DATESTR=$4
+
 # Optional parameters - uncomment and modify as needed
-TASK_LIST="filtered_tasks_parallel_09182034.txt"
+TASK_LIST="filtered_tasks_parallel_${DATESTR}.txt"
 
 
 # Generate temporary config file with random suffix to avoid conflicts
