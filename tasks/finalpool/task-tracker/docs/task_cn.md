@@ -1,1 +1,0 @@
-请查找`BenchTasksCollv2`这个项目所有开发者分支最近一次commit中追加的新任务，对于每个人的所有新任务，检查开发状态（不检查文件内容），有完整结构的就是implemented，否则就是implementing，根据新任务更新我们的notion page：implementation，并在GitHub中新建一个分支finalpool，把implemented的任务追加到finalpool中，在项目中的相对路径为tasks/finalpool
