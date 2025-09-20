@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 import asyncio
 
-from .check_log import check_log
+from .check_local import check_local
 from utils.general.helper import read_json  
 
 
@@ -15,16 +15,8 @@ if __name__=="__main__":
     parser.add_argument("--launch_time", required=False, help="Launch time")
     args = parser.parse_args()
 
-    res_log = read_json(args.res_log_file)
-    
-    # check log
-    try:
-        log_pass, log_error = check_log(res_log)
-        if not log_pass:
-            print("log check failed: ", log_error)
-            exit(1)
-    except Exception as e:
-        print("log check error: ", e)
+    if check_local(args.agent_workspace):
+        print("Pass all tests!")
+    else:
+        print("Fail")
         exit(1)
-    
-    print("Pass all tests!")
