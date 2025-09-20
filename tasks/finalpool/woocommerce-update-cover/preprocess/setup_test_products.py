@@ -41,10 +41,10 @@ class TestProductSetup:
         import time
         timestamp = int(time.time())
         self.image_ids = {
-            "红色": 16 + timestamp,
-            "蓝色": 34 + timestamp,
-            "绿色": 35 + timestamp,
-            "黄色": 36 + timestamp,
+            "Red": 16 + timestamp,
+            "Blue": 34 + timestamp,
+            "Green": 35 + timestamp,
+            "Yellow": 36 + timestamp,
         }
         print(f"🎨 图片ID已初始化（时间戳: {timestamp}）: {self.image_ids}")
     
@@ -86,7 +86,7 @@ class TestProductSetup:
             failed_attributes = 0
             
             if success and attributes:
-                test_attribute_names = ["颜色", "尺寸", "材质", "Color", "Size", "Material"]
+                test_attribute_names = ["Color", "Size", "Material", "颜色", "尺寸", "材质"]
                 
                 for attr in attributes:
                     attr_name = attr.get('name', '')
@@ -195,16 +195,16 @@ class TestProductSetup:
         
         attributes_to_create = [
             {
-                "name": "颜色",
+                "name": "Color",
                 "slug": "color",
                 "type": "select",
                 "order_by": "menu_order",
                 "has_archives": True,
                 "terms": [
-                    {"name": "红色", "slug": "red"},
-                    {"name": "蓝色", "slug": "blue"},
-                    {"name": "绿色", "slug": "green"},
-                    {"name": "黄色", "slug": "yellow"},
+                    {"name": "Red", "slug": "red"},
+                    {"name": "Blue", "slug": "blue"},
+                    {"name": "Green", "slug": "green"},
+                    {"name": "Yellow", "slug": "yellow"},
                 ]
             },
         ]
@@ -307,7 +307,7 @@ class TestProductSetup:
         print(f"✅ 图片ID已更新: {self.image_ids}")
         
         # 2. 获取属性信息
-        color_attr = next((attr for attr in self.created_attributes if attr['name'] == '颜色'), None)
+        color_attr = next((attr for attr in self.created_attributes if attr['name'] == 'Color'), None)
         
         if not color_attr:
             return {"success": False, "error": "缺少必要的商品属性"}
@@ -397,28 +397,28 @@ class TestProductSetup:
         # 多种不同类型的商品，增加测试的真实性
         product_templates = [
             {
-                "name": "彩虹运动鞋",
-                "description": "舒适轻便的运动鞋，多种颜色可选，适合日常运动和休闲穿着",
-                "short_description": "时尚彩虹运动鞋",
+                "name": "Rainbow Sneakers",
+                "description": "Comfortable and lightweight sneakers available in multiple colors, suitable for daily sports and casual wear",
+                "short_description": "Stylish Rainbow Sneakers",
                 "base_price": "199.99",
                 "days_ago": 45,
-                "default_color": "红色"  # 设置默认主图颜色
+                "default_color": "Yellow"  # 设置默认主图颜色为黄色，避免与最佳销售变体冲突
             },
             {
-                "name": "时尚背包",
-                "description": "大容量多功能背包，采用优质材料制作，有多种颜色可选",
-                "short_description": "多色时尚背包",
+                "name": "Fashion Backpack",
+                "description": "Large capacity multifunctional backpack made with high-quality materials, available in multiple colors",
+                "short_description": "Multi-color Fashion Backpack",
                 "base_price": "129.99",
                 "days_ago": 30,
-                "default_color": "蓝色"  # 设置默认主图颜色
+                "default_color": "Green"  # 设置默认主图颜色为绿色，避免与最佳销售变体冲突
             },
             {
-                "name": "无线蓝牙耳机",
-                "description": "高音质无线蓝牙耳机，支持降噪功能，多种色彩外观",
-                "short_description": "彩色蓝牙耳机",
+                "name": "Wireless Bluetooth Headphones",
+                "description": "High-quality wireless Bluetooth headphones with noise reduction feature, available in various colorful designs",
+                "short_description": "Colorful Bluetooth Headphones",
                 "base_price": "299.99",
                 "days_ago": 60,
-                "default_color": "绿色"  # 设置默认主图颜色
+                "default_color": "Blue"  
             }
         ]
 
@@ -432,21 +432,12 @@ class TestProductSetup:
             # 构建主图数组
             images_array = []
             if main_image_id:
-                # 从上传的图片中获取URL
-                main_image_url = None
-                for img in self.uploaded_images:
-                    if img.get('color') == default_color:
-                        main_image_url = img.get('url', '')
-                        break
-
-                if main_image_url:
-                    images_array.append({
-                        "src": main_image_url,
-                        "position": 0  # 主图位置
-                    })
-                    print(f"   🎨 为商品 {template['name']} 设置主图: {default_color} (ID: {main_image_id})")
-                else:
-                    print(f"   ⚠️ 未找到 {default_color} 的图片URL")
+                # 使用媒体ID而不是URL，避免WooCommerce重新下载
+                images_array.append({
+                    "id": main_image_id,  # 直接使用媒体ID
+                    "position": 0  # 主图位置
+                })
+                print(f"   🎨 为商品 {template['name']} 设置主图: {default_color} (ID: {main_image_id})")
             else:
                 print(f"   ⚠️ 未找到 {default_color} 的图片ID")
 

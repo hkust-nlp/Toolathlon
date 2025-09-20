@@ -10,21 +10,21 @@
   "detailed_results": [
     {
       "product_id": 950,
-      "product_name": "彩虹运动鞋",
+      "product_name": "Rainbow Sneakers",
       "status": "failed",
       "current_featured_image_id": 946,
       "expected_featured_image_id": 944
     },
     {
       "product_id": 955,
-      "product_name": "时尚背包",
+      "product_name": "Fashion Backpack",
       "status": "failed",
       "current_featured_image_id": 944,
       "expected_featured_image_id": 945
     },
     {
       "product_id": 960,
-      "product_name": "无线蓝牙耳机",
+      "product_name": "Wireless Bluetooth Headphones",
       "status": "success",
       "current_featured_image_id": 947,
       "expected_featured_image_id": 947
@@ -33,91 +33,91 @@
   "expected_data": {
     "expected_updates": {
       "950": {
-        "product_name": "彩虹运动鞋",
+        "product_name": "Rainbow Sneakers",
         "expected_top_variation_id": 951,
         "expected_featured_image_id": 944,
-        "expected_color": "红色",
+        "expected_color": "Red",
         "expected_sales_quantity": 9,
         "current_featured_image_id": null,
         "all_variations_sales": [
           {
             "variation_id": 951,
-            "color": "红色",
+            "color": "Red",
             "sales": 9
           },
           {
             "variation_id": 953,
-            "color": "绿色",
+            "color": "Green",
             "sales": 8
           },
           {
             "variation_id": 954,
-            "color": "黄色",
+            "color": "Yellow",
             "sales": 4
           },
           {
             "variation_id": 952,
-            "color": "蓝色",
+            "color": "Blue",
             "sales": 2
           }
         ]
       },
       "955": {
-        "product_name": "时尚背包",
+        "product_name": "Fashion Backpack",
         "expected_top_variation_id": 957,
         "expected_featured_image_id": 945,
-        "expected_color": "蓝色",
+        "expected_color": "Blue",
         "expected_sales_quantity": 5,
         "current_featured_image_id": null,
         "all_variations_sales": [
           {
             "variation_id": 957,
-            "color": "蓝色",
+            "color": "Blue",
             "sales": 5
           },
           {
             "variation_id": 956,
-            "color": "红色",
+            "color": "Red",
             "sales": 3
           },
           {
             "variation_id": 958,
-            "color": "绿色",
+            "color": "Green",
             "sales": 2
           },
           {
             "variation_id": 959,
-            "color": "黄色",
+            "color": "Yellow",
             "sales": 1
           }
         ]
       },
       "960": {
-        "product_name": "无线蓝牙耳机",
+        "product_name": "Wireless Bluetooth Headphones",
         "expected_top_variation_id": 964,
         "expected_featured_image_id": 947,
-        "expected_color": "黄色",
+        "expected_color": "Yellow",
         "expected_sales_quantity": 11,
         "current_featured_image_id": null,
         "all_variations_sales": [
           {
             "variation_id": 964,
-            "color": "黄色",
+            "color": "Yellow",
             "sales": 11
           },
           {
             "variation_id": 963,
-            "color": "绿色",
+            "color": "Green",
             "sales": 6
           },
           {
             "variation_id": 962,
-            "color": "蓝色",
+            "color": "Blue",
             "sales": 4
           },
           {
             "variation_id": 961,
-            "color": "红色",
+            "color": "Red",
             "sales": 2
           }
         ]

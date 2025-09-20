@@ -541,8 +541,8 @@ class ImageManager:
         import tempfile
         
         colors = [
-            ('红色', '#FF6B6B', 'red'), ('蓝色', '#4ECDC4', 'blue'), ('绿色', '#45B7D1', 'green'),
-            ('黄色', '#FFA07A', 'yellow'), ('紫色', '#D6336C', 'purple'), ('橙色', '#F9CA24', 'orange')
+            ('Red', '#FF6B6B', 'red'), ('Blue', '#4ECDC4', 'blue'), ('Green', '#45B7D1', 'green'),
+            ('Yellow', '#FFA07A', 'yellow'), ('Purple', '#D6336C', 'purple'), ('Orange', '#F9CA24', 'orange')
         ]
         
         test_images = []
@@ -587,7 +587,7 @@ class ImageManager:
                 'color_hex': color_hex,
                 'color_english': color_english,
                 'filename': f'test_image_{color_english}.jpg',
-                'alt_text': f'{color_name}测试图片'
+                'alt_text': f'{color_name} Test Image'
             })
             
         print(f"🎨 创建了 {len(test_images)} 个测试图片")
