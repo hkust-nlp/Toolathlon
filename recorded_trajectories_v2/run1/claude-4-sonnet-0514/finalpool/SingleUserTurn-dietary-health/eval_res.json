@@ -1,4 +1,0 @@
-{
-  "pass": false,
-  "failure": "\n================================================================================\n🥗 DIETARY-HEALTH Task Evaluation Report\n================================================================================\n\n❌ Local file check failed: Carbohydrate calculation incorrect: expected ~135.5g, got 118.0g\n💡 TIP: Check format.md for exact output requirements\n📊 Calculation help available in groundtruth_workspace/README.md\n\n================================================================================\n📊 Final Evaluation Results\n================================================================================\nlocal check failed:  Carbohydrate calculation incorrect: expected ~135.5g, got 118.0g\n"
-}

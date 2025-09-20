@@ -1,3 +1,3 @@
-Use the WooCommerce MCP server to check all order status updates for customers marked as "Completed", and send a Google Forms feedback questionnaire about their experience to the customers’ email addresses.
+Use the WooCommerce to check all order status updates for customers marked as "Completed", and send a Google Forms feedback questionnaire about their experience to the customers’ email addresses.
 The requirements for constructing the questionnaire can be found in form_requiremente.md in the workspace.
 Also, store the Google Drive link corresponding to the Google Form (e.g., https://drive.google.com/open?id=...) in the workspace file drive_url.txt.

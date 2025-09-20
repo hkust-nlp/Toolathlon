@@ -1,6 +1,0 @@
-Sales_Date,Salesperson,Customer_Name,Customer_Phone,Product,Sales_Amount,Customer_Email,Payment_Method
-2024-11-01,John Doe,Michael Johnson,(***,Laptop,$5999.00,***,Credit Card ***
-2024-11-02,Jane Smith,Sarah Davis,***,Phone,$3299.00,***,Debit Card ***
-2024-11-03,Bob Wilson,Robert Brown,(***,Tablet,$2899.00,***,Credit Card ***
-2024-11-04,Lisa Garcia,Jennifer Wilson,***,Headphones,$599.00,***,Cash
-2024-11-05,Tom Lee,David Garcia,(***,Keyboard,$299.00,***,PayPal 

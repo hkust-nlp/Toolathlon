@@ -1,4 +1,0 @@
-{
-  "pass": false,
-  "failure": "local check failed:  agent result does not contain 'Growth Rate' column\n"
-}

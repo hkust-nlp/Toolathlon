@@ -1,0 +1,7 @@
+{
+"subject": "Thank you for your purchase! Please share your shopping experience - {customer_name}",
+"body_template": "Dear {customer_name},\n\nThank you for purchasing {product_name} from our store!\n\nYour order #{order_number} was successfully completed on {completion_date}. In order to continuously improve our service quality, we sincerely invite you to take a few minutes to share your shopping experience.\n\nPlease click on the following link to complete a brief feedback survey:\n{survey_link}\n\nYour feedback is important to us and will help us provide better service to you and other customers.\n\nProduct Details:\n- Product Name: {product_name}\n- Order Amount: ¥{product_price}\n- Purchase Quantity: {quantity}\n\nIf you have any questions about the product or service, please feel free to contact our customer service team.\n\nThank you again for your support!\n\nSincerely,\nCustomer Service Team\nOnline Store",
+"content_type": "text/plain",
+"from_name": "Online Store Customer Service",
+"reply_to": "support@mcp.com"
+}

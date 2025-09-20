@@ -1,4 +1,0 @@
-{
-  "pass": false,
-  "failure": "Conversation id toolace_0 不匹配:\n左侧为groundtruth, 右侧为model generated\n  - Tool call consistency check failed: Message 9: tool_calls 数量不匹配 - 2 vs 1\nEvaluation failed\n"
-}
