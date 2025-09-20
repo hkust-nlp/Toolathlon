@@ -1,1 +1,0 @@
-Only edit the TODO section of the appendix within the LaTeX project directory, without affecting any other content of the paper: Add a new section at the end of the appendix to display the final prompt actually used in the paper, in a box style consistent with Appendix B of M-STAR (https://arxiv.org/pdf/2412.17451).

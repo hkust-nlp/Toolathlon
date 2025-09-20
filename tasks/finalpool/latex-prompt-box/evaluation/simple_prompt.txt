@@ -1,0 +1,8 @@
+\begin{tcolorbox}[
+colback=lightProxYellow!10,
+colframe=lightProxYellow,
+left=2mm, right=2mm,title=\textcolor{black}{\textbf{Simple Prompt}}]
+\begin{small}
+\texttt{Question:\\\{input\}\\Answer:\\Let's think step by step.\\}
+\end{small}
+\end{tcolorbox}

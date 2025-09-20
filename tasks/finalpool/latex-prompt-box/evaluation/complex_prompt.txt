@@ -1,0 +1,8 @@
+\begin{tcolorbox}[
+colback=lightProxYellow!10,
+colframe=lightProxYellow,
+left=2mm, right=2mm,title=\textcolor{black}{\textbf{Complex Prompt}}]
+\begin{small}
+\texttt{<|im\_start|>system\\You are a helpful assistant.<|im\_end|>\\<|im\_start|>user\\\{input\}\\Please reason step by step, and put your final answer within \textbackslash\textbackslash boxed\{\}.\\<|im\_end|>\\<|im\_start|>assistant\\}
+\end{small}
+\end{tcolorbox}

@@ -1,5 +1,0 @@
-{
-    "needed_mcp_servers": ["filesystem", "arxiv_local", "arxiv-latex", "terminal"],
-    "needed_local_tools": ["claim_done", "python_execute","handle_overlong_tool_outputs"],
-    "meta": {}
-}

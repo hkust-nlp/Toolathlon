@@ -1,0 +1,552 @@
+
+\appendix
+
+\section{Detailed Background: ``Zero RL Training"}
+\label{sec:detailed_grpo}
+% DeepSeek-R1-Zero~\citep{guo2025deepseek} demonstrates that reasoning capabilities can be effectively developed through large-scale reinforcement learning (RL), even without supervised fine-tuning (SFT) as an initial step. We follow this ``zero RL training" approach, conduct our experiments on various open base models 
+In our study, we follow the zero RL training recipe in ~\citet{guo2025deepseek} using various open base models, employing the GRPO algorithm~\citep{shao2024deepseekmath}. Here, zero RL training refers to reinforcement learning directly from the base model without any prior supervised fine-tuning (SFT).
+%Additional experiments exploring alternative algorithms are included in the Appendix xxxx. 
+GRPO optimizes computational efficiency by eliminating the need for a separate value model; instead, it directly utilizes group-normalized rewards to estimate advantages. For a query \( q \) and a set of responses \( O = \{o_1, o_2, \dots, o_G\} \) sampled from the old policy model \( \pi_{\text{old}} \), we adopt a token-level, length-rectified GRPO objective to optimize the policy model \( \pi \):\footnote{The original GRPO objective has a length normalization term that introduces length biases. We remove the length normalization term similar to concurrent works~\citep{yu2025dapoopensourcellmreinforcement,liu2025understanding} -- this length-rectified objective was the default implementation of GRPO in our adapted codebase, verl~\citep{sheng2024hybridflow}.}
+% \begin{align}
+% \mathcal{J}_{GRPO}(\theta) &= \mathbb{E}[q \sim P(Q), \{ o_i \}_{i=1}^G \sim \pi_{\theta_{\text{old}}}(O|q)] \\
+% &= \frac{1}{G} \sum_{i=1}^{G} \frac{1}{|o_i|} \sum_{t=1}^{|o_i|} \left\{ \min \left[ \frac{\pi_{\theta}(o_{i,t} | q, o_{i,<t})}{\pi_{\theta_{\text{old}}}(o_{i,t} | q, o_{i,<t})} \hat{A}_{i}, 1 - \epsilon, 1 + \epsilon \right] \right\} - \beta \mathbb{D}_{KL} [\pi_{\theta} || \pi_{\text{ref}}]
+% \end{align}
+
+
+% \begin{equation}
+%     \begin{split}
+%         \mathcal{J}_{\text{GRPO}}(\theta) 
+%         = & \underset{\text{Clipped policy update}}{\underbrace{\frac{1}{\sum_{i=1}^{G}|o_{i}|} \sum_{i=1}^G\sum_{t=1}^{|o_i|} \min\left[ r_{i,t}(\theta) \hat{A}_i,\, \operatorname{clip}\left(r_{i,t}(\theta); 1-\epsilon, 1+\epsilon\right) \hat{A}_i \right]}} \\
+%         & - \underset{\text{KL penalty}}{\underbrace{\beta \, \mathbb{D}_{\text{KL}}[\pi_\theta \parallel \pi_{\text{ref}}]}}
+%     \end{split}
+% \end{equation}
+
+\begin{equation}
+    \begin{aligned}
+        \mathcal{J}_{\text{GRPO}}(\theta) &= \underbrace{\frac{1}{\sum_{i=1}^{G}|o_{i}|} \sum_{i=1}^G\sum_{t=1}^{|o_i|} \min\left[ r_{i,t}(\theta) \hat{A}_i,\, \operatorname{clip}\left(r_{i,t}(\theta); 1-\epsilon, 1+\epsilon\right) \hat{A}_i \right]}_{\text{Clipped policy update}} 
+        - \underbrace{\beta \, \mathbb{D}_{\text{KL}}[\pi_\theta \parallel \pi_{\text{ref}}]}_{\text{KL penalty}} \\
+        &\text{where } r_{i,t}(\theta)=\frac{\pi_\theta(o_{i,t} \mid q, o_{i,<t})}{\pi_{\theta_{\text{old}}}(o_{i,t} \mid q, o_{i,<t})}
+    \end{aligned}
+\end{equation}
+
+
+% \begin{equation}
+%         \mathcal{J}_{\text{GRPO}}(\theta) = \underset{\text{Clipped policy update}}{\underbrace{\frac{1}{\sum_{i=1}^{G}|o_{i}|} \sum_{i=1}^G\sum_{t=1}^{|o_i|} \min\left[ \frac{\pi_\theta(o_{i,t} \mid q, o_{i,<t})}{\pi_{\theta_{\text{old}}}(o_{i,t} \mid q, o_{i,<t})} \hat{A}_i,\, \operatorname{clip}(\frac{\pi_\theta(o_{i,t} \mid q, o_{i,<t})}{\pi_{\theta_{\text{old}}}(o_{i,t} \mid q, o_{i,<t})}; 1-\epsilon, 1+\epsilon) \hat{A}_i \right]}}  - \underset{\text{KL penalty}}{\underbrace{\beta \, \mathbb{D}_{\text{KL}}[\pi_\theta \parallel \pi_{\text{ref}}]}}
+% \end{equation}
+
+where  \( \pi_{\text{ref}} \) represents the reference model, and the term \( \mathbb{D}_{KL} \) introduces a KL divergence constraint to limit how much the model can deviate from this reference. The advantage estimate \( \hat{A}_i \) measures how much better the response \( o_i \) is compared to the average response, which is computed using a group of rewards \( \{r_1, r_2, \dots, r_G\} \) for the responses in set \( O \):
+\begin{equation}
+   \hat{A}_i = \frac{r_i - \text{mean}(\{r_1, r_2, \dots, r_G\})}{\text{std}(\{r_1, r_2, \dots, r_G\})}
+\end{equation}
+
+\section{Detailed Experimental Setup}
+\label{appx:detailed_setup}
+\subsection{Dataset}
+% \label{sec:dataset_setting}
+To keep the training recipe simple, we select training data exclusively from the GSM8K~\citep{cobbe2021training} and MATH~\citep{hendrycks2021measuring} datasets. 
+For the MATH dataset, following prior studies~\citep{lightman2023let, wang2023math, sun2024easy}, we reserve the MATH500 subset as the test set, uniformly sample an additional 500 problems for validation, and combine the remaining 4,000 test problems with the original 7,500 training problems to form our training set. Each example in the MATH dataset is originally labeled with a difficulty level ranging from 1 to 5. In our experiments, we find that data difficulty is critical for successful zero RL (\textsection\ref{sec:data_complextiy_behaviur}) and it is necessary to use data that aligns with the model's capability. To investigate this phenomenon, we categorize the data into three difficulty levels: Easy (GSM8K and MATH lv.1), Medium (MATH lv.1–4), and Hard (MATH lv.3–5), with each category containing roughly 8,000 problems. 
+For our main training runs, we use Easy for LLama-3.1-8B, Mistral- v0.1-7B, and DeepSeek-Math-7B; Medium for Qwen-2.5-0.5B; Hard for Mistral-Small-24B, Qwen-2.5-Math-7B, and Qwen-2.5-1.5B/7B/14B/32B, and we will report ablation study on data difficulty in \textsection\ref{sec:data_complextiy_behaviur}. 
+
+
+% \label{sec:reward_remove}
+
+\subsection{Reward} 
+% \label{sec:reward_remove}
+We use a rule-based reward function that assigns rewards solely based on the correctness of the generated response: a correct final answer receives a reward of +1, while an incorrect one receives a reward of 0. Recent studies~\citep{deepscaler2025,chen2025empirical} often incorporate format-based rules into reward calculation, encouraging the model to follow specific output formats. However, we find that this approach may hinder the model's exploration and ultimately harm its performance particularly for the base models which struggle with following the format in the initial stage, as detailed in \textsection\ref{sec:remove_format}.
+
+% We also discuss the impact of incorporating format-based rewards on training in \textsection\ref{}.
+
+\subsection{Models} 
+We conduct zero RL training experiments on Llama-3.1-8B~\citep{dubey2024llama}, DeepSeek-Math-7B~\citep{shao2024deepseekmath}, Mistral-v0.1-7B~\citep{jiang2023mistral7b}, Mistral-Small-24b-Base-2501~\citep{mistral2024small}, and Qwen-2.5 (0.5B, 1.5B, 7B, 14B, 32B)~\citep{yang2024qwen2}.
+As we perform experiments for a variety of models, under extremely simple settings with small, simple datasets and only correctness reward, we refer to our obtained models as \emph{SimpleRL-Zoo} to represent a simple training recipe for a zoo of open base models.
+For models with weaker instruction-following capabilities (Llama-3.1-8B, Mistral-v0.1-7B, and Qwen-2.5-0.5B/1.5B), we employ simpler prompts~\citep{abel} requiring only step-by-step reasoning. For models with stronger instruction-following abilities, we use more complex prompts~\citep{yang2024qwen2} that require the final answers to be placed in boxes. In our preliminary experiments, we observe that using complex prompts with models that have weak instruction-following capabilities often results in large amounts of irrelevant or nonsensical content being generated early in training, leading to instability.
+The content of simpler prompts and more complex prompts is shown in Figure~\ref{fig:prompt_case} in Appendix.
+%% todo: add figure for this prompt
+
+
+% \begin{figure}[!t]
+%         \centering
+% \includegraphics[width=0.95\columnwidth]{fig/Prompt_Case.pdf}
+% \caption{Comparison between simple prompts and more complex prompts.  \yh{This figure can be smaller, or move to appendix. }      }
+%         \label{fig:prompt_case}
+% \end{figure}
+
+\subsection{Benchmark} 
+We evaluate performance on standard mathematical reasoning benchmarks, including GSM8K~\citep{cobbe2021training}, MATH 500~\citep{hendrycks2021measuring}, Minerva Math~\citep{lewkowycz2022solving}, and OlympiadBench~\citep{he2024olympiadbench}, as well as on competition-level benchmarks such as AIME 2024 and AMC 2023. 
+% We also evaluate the generalization ability of zero RL training using three benchmarks: IFEVAL~\citep{zhou2023instruction}, MMLU~\citep{hendrycks2020measuring}, and GPQA-Diamond~\citep{rein2024gpqa}. IFEVAL measures instruction-following capability, MMLU assesses the model's mastery of general knowledge, and GPQA-Diamond is a challenging benchmark that tests domain-specific expertise in chemistry, physics, and biology.
+% \jh{We also need to mention that we also test generalization, on xxx benchmarks}
+% \yh{
+% \subsection{Other Configurations:}
+% % \jh{I think we need to talk some important training/eval configs. for example, the rollout size (which is relevant to pass@k), the training max length and eval max length that we will mention again later, and mention we use verl [cite]. For some detailed configs that we want include in appendix (batch size, some GRPO hyperparams), we also need to cite that appendix here}
+% We train our models using the verl~\citep{sheng2024hybridflow} framework. We provide detailed training and evaluation details in the Appendix ~\ref{sec:train_evaluate_details}.
+% \label{sec:train_evaluate_details}
+% We typically use the same set of hyperparameters to train and evaluate all models in the SimpleRL-Zoo series in default main experiment setting.
+
+\subsection{Training and Evaluation Details}
+
+\label{sec:train_evaluate_details}
+We train our models using the verl~\citep{sheng2024hybridflow} framework. And we typically use the same set of hyperparameters to train and evaluate all models in the SimpleRL-Zoo series in default main experiment setting. We use a prompt batch size of 1,024 and generate 8 rollouts per prompt, with a maximum rollout length of 8,192 tokens. Training is performed using a mini-batch size of 256. The default sampling temperature is set to 1.0, and the clip ratio is 0.2. For models ranging from 0.5B to 14B parameters, we use a KL loss coefficient of 1e-4. For models larger than 14B, the KL loss coefficient is set to 1e-3. We build our evaluation script based on ~\citet{yang2024qwen2math}, using a temperature of 1.0 and a maximum generation length of 16K tokens. To ensure consistency, we adopt the same prompt template used during training. For most benchmarks, we report pass@1 results. However, for AIME 2024, which contains fewer problems, we report both pass@1 and average accuracy (avg@32), computed over 32 generated samples per problem.
+
+\section{Detailed Evaluation Metrics}
+\label{appx:eval_detail}
+\paragraph{Reasoning Behavior Ratio:} To better understand the model's reasoning patterns throughout the training process, we adopt the cognitive behavior framework proposed by ~\citet{gandhi2025cognitive} and use GPT-4o~\citep{hurst2024gpt} to identify reasoning-related behaviors, including ``Backtracking", ``Verification", ``Subgoal Setting", and ``Enumeration". 
+We report the ratio of responses that contain such cognitive behaviors.
+While some recent studies suggest tracking reflection behavior using related keywords~\citep{yeo2025demystifying,xie2025logic} as monitoring signals, we argue that these keywords only exhibit only a weak correlation with high-level reasoning patterns like reflection and verification. As a result, they fail to adequately capture the development of these reasoning processes.  Further details can be found in Appendix~\ref{appx:bahaviour}.
+
+\paragraph{Clip Ratio:} In the early stages of training, the base model exhibits weak instruction-following ability and often fails to stop appropriately, resulting in irrelevant or excessively long outputs. After training collapses, the model may also generate repetitive or overly extended responses. Since the model has a fixed maximum context length, such outputs may be truncated during both training and evaluation. To monitor this issue, we define the proportion of truncated outputs as the ``Clip Ratio".
+
+\paragraph{Average Stopped Length:} Generations that are truncated often result from issues such as repetitive patterns or incomplete reasoning, which typically do not contribute to effective trajectories. To account for this factor, we introduce a new metric to track the average length of responses that are stopped under normal conditions. It is a more reliable metric to consider only valid responses, thereby eliminating the interference caused by unstopped responses.
+\paragraph{Pass@k Accuracy:}
+We track the pass@k accuracy, which represents the percentage of questions for which at least one correct response is obtained when sampling k responses per question. Pass@k serves as an indicator of the model's exploration capabilities and is particularly relevant for RL, as it reflects the model's ability to generate responses that can achieve a positive reward. Previously, some researchers believed that RL training might merely reorder responses within the original model distribution, as evidenced by the lack of improvement in pass@k accuracy following RL training~\citep{shao2024deepseekmath}.
+
+
+
+\section{Detailed Result of SimpleRL}
+\label{appx:DetailedResult}
+Following the setup described in Section~\ref{sec:setup}, we perform ``zero training" on various base models. The trained models are then evaluated on multiple benchmarks, including GSM8K, MATH 500, Minerva Math, OlympiadBench, AIME2024, and AMC2023. The average results across all these benchmarks are presented in Figures~\ref{fig1:acc&len} and~\ref{fig2:clip&stop}. In this section, we provide more detailed results. Figure~\ref{fig:appx_acc&len} illustrates the trends in accuracy and response length, while Figure~\ref{fig:appx_clip&stop} shows the trends in clip ratio and stopped length.
+
+
+
+
+
+\begin{figure}[!t]
+        \centering
+\includegraphics[width=0.8\columnwidth]{fig/Prompt_Case.pdf}
+\caption{Comparison between simple prompts and more complex prompts.}
+        \label{fig:prompt_case}
+\end{figure}
+
+\begin{figure*}[!h]
+    \centering
+    \includegraphics[width=\textwidth]{fig/plot_appx_figure1_v2/Mistral-7B-v0.1.pdf} \\ \vspace{-3pt}
+    \includegraphics[width=\textwidth] {fig/plot_appx_figure1_v2/Llama-3.1-8B.pdf}
+    \\ \vspace{-3pt}
+    \includegraphics[width=\textwidth] {fig/plot_appx_figure1_v2/DeepSeek-Math-7B.pdf}
+    \\ \vspace{-3pt}
+    \includegraphics[width=\textwidth] {fig/plot_appx_figure1_v2/Mistral-Small-24B.pdf}
+    \\ \vspace{-3pt}
+    \includegraphics[width=\textwidth] {fig/plot_appx_figure1_v2/Qwen-2.5-0.5B.pdf}
+    \\ \vspace{-3pt}
+    \includegraphics[width=\textwidth] {fig/plot_appx_figure1_v2/Qwen-2.5-1.5B.pdf}
+    \\ \vspace{-3pt}
+    \includegraphics[width=\textwidth] {fig/plot_appx_figure1_v2/Qwen-2.5-7B.pdf}
+    \\ \vspace{-3pt}
+    \includegraphics[width=\textwidth] {fig/plot_appx_figure1_v2/Qwen-2.5-14B.pdf}
+    \\ \vspace{-3pt}
+    \includegraphics[width=\textwidth] {fig/plot_appx_figure1_v2/Qwen-2.5-32B.pdf}
+    \\ \vspace{-3pt}
+     \includegraphics[width=\textwidth] {fig/plot_appx_figure1_v2/Qwen-2.5-Math-7B.pdf}
+    \\ 
+    \vspace{-12pt}
+    \caption{A detailed evaluation of accuracy and response length throughout the training steps for various models. The x-axis represents the training steps, with the purple line showing the accuracy trend and the yellow line depicting the response length.}
+    \label{fig:appx_acc&len}
+    \vspace{-10pt}
+\end{figure*}
+
+
+
+
+
+\begin{figure*}[!h]
+    \centering
+    \includegraphics[width=\textwidth]{fig/plot_appx_figure2_v2/Mistral-7B-v0.1.pdf} \\ \vspace{-3pt}
+    \includegraphics[width=\textwidth] {fig/plot_appx_figure2_v2/Llama-3.1-8B.pdf}
+    \\ \vspace{-3pt}
+    \includegraphics[width=\textwidth] {fig/plot_appx_figure2_v2/DeepSeek-Math-7B.pdf}
+    \\ \vspace{-3pt}
+    \includegraphics[width=\textwidth] {fig/plot_appx_figure2_v2/Mistral-Small-24B.pdf}
+    \\ \vspace{-3pt}
+    \includegraphics[width=\textwidth] {fig/plot_appx_figure2_v2/Qwen-2.5-0.5B.pdf}
+    \\ \vspace{-3pt}
+    \includegraphics[width=\textwidth] {fig/plot_appx_figure2_v2/Qwen-2.5-1.5B.pdf}
+    \\ \vspace{-3pt}
+    \includegraphics[width=\textwidth] {fig/plot_appx_figure2_v2/Qwen-2.5-7B.pdf}
+    \\ \vspace{-3pt}
+    \includegraphics[width=\textwidth] {fig/plot_appx_figure2_v2/Qwen-2.5-14B.pdf}
+    \\ \vspace{-3pt}
+    \includegraphics[width=\textwidth] {fig/plot_appx_figure2_v2/Qwen-2.5-32B.pdf}
+    \\ \vspace{-3pt}
+     \includegraphics[width=\textwidth] {fig/plot_appx_figure2_v2/Qwen-2.5-Math-7B.pdf}
+    \\ 
+    \vspace{-12pt}
+    \caption{
+    A detailed evaluation of clip ratio and stopped length throughout the training steps for various models. The x-axis represents the training steps, with the red line showing the clip ratio trend and the blue line depicting the average stopped length. }
+    \label{fig:appx_clip&stop}
+    \vspace{-10pt}
+\end{figure*}
+% \end{document}
+
+
+
+% \section{Assessing Model Generalization Capability}
+% \label{sec:generalization_capability}
+% We also evaluate the generalization ability of zero RL training using three benchmarks: IFEVAL~\citep{zhou2023instruction}, MMLU~\citep{hendrycks2020measuring}, and GPQA-Diamond~\citep{rein2024gpqa}. IFEVAL measures instruction-following capability, MMLU assesses the model's mastery of general knowledge, and GPQA-Diamond is a challenging benchmark that tests domain-specific expertise in chemistry, physics, and biology.
+
+
+
+
+
+% Table~\ref{table:generalization_performance} presents the changes in model performance on IFEval, MMLU, and GPQA-Diamond before and after training. Despite zero RL training being conducted on only ~8K math reasoning-related examples, the model generalizes effectively across a range of tasks. Notably, it shows significant gains in instruction-following and general knowledge on IFEval and MMLU, as well as substantial improvements on the challenging GPQA-Diamond benchmark, which spans chemistry, physics, and biology.
+
+
+% \begin{table*}[t]
+% \centering
+% \resizebox{0.85\textwidth}{!}{
+% \begin{tabular}{lccccc}
+% \toprule
+% \multicolumn{1}{c}{\textbf{Model}} & \textbf{\begin{tabular}[c]{@{}c@{}}IFEVAL\\ strict-prompt\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}MMLU\\Stem\end{tabular}} & \textbf{MMLU} & \textbf{GPQA} & \textbf{Avg.} \\ \midrule
+% \multicolumn{6}{c}{\textit{Llama, DeepSeek and Mistral Models}} \\
+% Mistral-v0.1-7B & 13.5 & 26.1 & 28.0 & 23.2 & 22.7 \\
+% \rowcolor[rgb]{ .867, .922, .969}~~~~$\hookrightarrow$~+~\ourmethod & 21.8 & 28.1 & 34.6 & 30.3 & 28.7 \\
+% Llama-3.1-8B & 16.1 & 27.1 & 28.7 & 22.7 & 23.6 \\
+% \rowcolor[rgb]{ .867, .922, .969}~~~~$\hookrightarrow$~+~\ourmethod & 25.1 & 40.7 & 44.5 & 20.2 & 32.6 \\
+% DeepSeek-Math-7B & 11.5 & 21.6 & 22.7 & 19.2 & 18.7 \\
+% \rowcolor[rgb]{ .867, .922, .969}~~~~$\hookrightarrow$~+~\ourmethod & 16.3 & 47.4 & 45.5 & 27.3 & 34.1 \\
+% Mistral-Small-24B & 17.4 & 30.9 & 31.7 & 20.2 & 25.0 \\
+% \rowcolor[rgb]{ .867, .922, .969}~~~~$\hookrightarrow$~+~\ourmethod & 23.5 & 73.9 & 78.8 & 45.0 & 55.3 \\ \midrule
+% \multicolumn{6}{c}{\textit{Qwen Series Models}} \\
+% Qwen-2.5-0.5B & 9.6 & 23.2 & 24.9 & 24.8 & 20.6 \\
+% \rowcolor[rgb]{ .867, .922, .969}~~~~$\hookrightarrow$~+~\ourmethod & 14.4 & 32.1 & 34.6 & 26.3 & 26.8 \\
+% Qwen-2.5-1.5B & 15.2 & 33.1 & 35.4 & 24.8 & 27.1 \\
+% \rowcolor[rgb]{ .867, .922, .969}~~~~$\hookrightarrow$~+~\ourmethod & 20.3 & 42.1 & 45.2 & 28.8 & 34.1 \\
+% Qwen-2.5-7B & 21.3 & 39.8 & 38.6 & 23.7 & 30.8 \\
+% \rowcolor[rgb]{ .867, .922, .969}~~~~$\hookrightarrow$~+~\ourmethod & 25.9 & 49.6 & 47.0 & 29.8 & 38.1 \\
+% Qwen-2.5-Math-7B & 14.1 & 40.6 & 38.0 & 27.8 & 30.1 \\
+% \rowcolor[rgb]{ .867, .922, .969}~~~~$\hookrightarrow$~+~\ourmethod & 17.0 & 55.6 & 56.6 & 35.4 & 41.1 \\
+% Qwen-2.5-14B & 22.9 & 59.8 & 63.5 & 24.8 & 42.7 \\
+% \rowcolor[rgb]{ .867, .922, .969}~~~~$\hookrightarrow$~+~\ourmethod & 29.4 & 76.3 & 79.1 & 50.0 & 58.7 \\
+% Qwen-2.5-32B & 24.6 & 60.7 & 62.7 & 38.9 & 46.7 \\
+% \rowcolor[rgb]{ .867, .922, .969}~~~~$\hookrightarrow$~+~\ourmethod & 31.2 & 79.0 & 82.5 & 49.5 & 60.6 \\ \bottomrule
+% \end{tabular}
+
+% }
+% \caption{Detailed performance of various models across IFEVAL, MMLU and GPQA. The blue lines represent the models trained with our recipe.}
+% \label{table:generalization_performance}
+% \vspace{-12pt}
+% \end{table*}
+
+\section{Quantitative Behavior Validation}
+\label{sec:human_consistency}
+We assess the consistency between GPT-4o labeled reasoning behaviors and human annotations by having human experts annotate 105 model outputs. Table~\ref{tab:human_consistency} below presents the prediction rates and agreement rate. The prediction rate reflects how frequently each reasoning behavior is identified, while the agreement rate is the proportion of data on which the labelers (Human and GPT-4o) make the same prediction.
+
+Our results indicate a generally good level of agreement between GPT-4o and human annotations. However, GPT-4o tends to be more conservative when labeling certain behaviors such as Verification and Subgoal Setting. Upon closer examination, we observe that in cases with long CoT containing multiple reasoning behaviors, the model often favors labeling more obvious behaviors like Enumeration, while overlooking subtler ones.
+
+\begin{table}[t]
+    \centering
+\resizebox{0.85\textwidth}{!}{
+\begin{tabular}{llll}
+\hline
+\textbf{Behavior} & \textbf{Score by GPT-4o (\%)} & \textbf{Score by Human (\%)} & \textbf{Raw Agreement (\%)} \\ \hline
+Verification      & 78.10\% (82/105)              & 85.71\% (90/105)             & 90.48\% (95/105)            \\
+Backtracking      & 33.33\% (35/105)              & 35.24\% (37/105)             & 98.10\% (103/105)           \\
+Subgoal Setting   & 66.67\% (70/105)              & 74.29\% (78/105)             & 90.48\% (95/105)            \\
+Enumeration       & 61.90\% (65/105)              & 63.81\% (67/105)             & 94.29\% (99/105)            \\ \hline
+\end{tabular}}
+\caption{The consistency between GPT-4o labeled reasoning behaviors and human annotations}
+\label{tab:human_consistency}
+\end{table}
+
+
+
+\section{Impact of General SFT on the Performance of Reinforcement Learning}\label{sec:general_sft}
+
+\begin{table}[t]
+    \centering
+    \small
+    \begin{tabular}{cccccccc}
+    \toprule
+\multicolumn{1}{c}{\textbf{Init Model}} & \textbf{GSM8K} & \textbf{\begin{tabular}[c]{@{}c@{}}MATH \\ 500\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}Minerva \\ Math\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}Olympiad\\ Bench\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}AIME24 \\ (pass@1)\end{tabular}} & \textbf{AMC23} & \textbf{Avg.} \\ \midrule
+0 Step & 92.0 & 70.6 & 36.8 & 36.6 & 16.7 & 45.0 & 49.6 \\
+10 Step & 93.0 & 69.4 & 39.7 & 32.3 & 10.4 & 44.1 & 48.2 \\
+20 Step & 92.6 & 65.2 & 34.2 & 30.7 & 6.7 & 38.4 & 44.6 \\
+200 Step & 90.3 & 59.0 & 31.6 & 23.3 & 2.1 & 26.9 & 38.9 \\
+1000 Step & 88.9 & 48.8 & 27.6 & 20.7 & 2.5 & 18.1 & 34.4 \\
+2000 Step & 89.8 & 49.0 & 23.2 & 18.1 & 0.8 & 20.3 & 33.5 \\
+4000 Step & 87.7 & 52.0 & 23.5 & 17.2 & 2.1 & 21.6 & 34.0 \\
+\bottomrule
+\end{tabular}
+\caption{Experimental results from multiple Mistral-Small-24B models, each fine-tuned with a different number of SFT steps on a general SFT dataset for RL. The "number of steps" refers to the number of SFT steps applied. The reported benchmarks reflect the performance metrics on various evaluation benchmarks, measured using the model that achieved the best average performance after 100 iterations of reinforcement learning training.}
+\label{tab:general_sft_results}
+\end{table}
+
+We also investigated the general SFT setting beyond math-related datasets. In this setup, we first conducted SFT on Mistral-Small-24B using the widely adopted OpenHermes-2.5 dataset.\footnote{\url{https://huggingface.co/datasets/teknium/OpenHermes-2.5}} We implement with LLaMA-Factory~\citep{zheng-etal-2024-llamafactory} and adopt common hyperparameters of SFT, including 512 examples per batch with a constant learning rate of 1e-5. For consistency with our other experiments, we fine-tuned the model using the Qwen chat template.
+After SFT, we preserved multiple checkpoints at different training steps, and nearly 800 steps correspond to 1 epochs on the SFT dataset. We then performed reinforcement learning on these models using identical hyperparameters as in our zero-RL training experiments.
+
+Table~\ref{tab:general_sft_results} presents our findings, with performance reported as the best results achieved during RL training up to 100 iterations. The results demonstrate an inverse relationship between SFT steps and subsequent RL performance: models with more SFT steps showed diminished performance after RL training. While the average performance after 10 SFT steps remained comparable to the base model, it still exhibited some negative effects. More significantly, models with more than 20 steps showed substantially reduced RL potential.
+Therefore, we conclude that RL training produces the best performance gain when applied directly to the base model without any supervised fine-tuning, i.e., the zero RL training.
+
+\section{Impact of Exploration-Related Hyperparameters}
+\label{sec:impact_explore_hyper}
+In this section, we examine the effects of exploration-related hyperparameters on "zero-training." Drawing inspiration from ~\citet{zeng2024b,liu2024diving}, we focus on two key factors: sampling size (the number of responses per query) and sampling temperature.
+
+\paragraph{Sampling Size:} We examine how varying sampling sizes $N \in \{1,4,8,16,32\}$ influence the training process using the Mistral 24B model; these results are presented in Figure~\ref{fig:sampling_number}. Our analysis reveals a clear trend: as $N$ increases, the model's average performance notably improves, and variability in response lengths becomes significantly more stable. For example, after 100 training steps, the scenario with $N=32$ achieves an average accuracy approximately 6 points higher than that with $N=8$. Conversely, smaller sampling sizes ($N=1$ and $N=4$) cause training instability and potential collapse, indicated by rapid growth in generated length without corresponding accuracy improvements. We hypothesize that larger sample sizes enable the model to explore a broader and more diverse training space, which stabilizes advantage estimation and sustains continuous performance improvement.
+
+\begin{figure}[!t]
+        \centering
+\includegraphics[width=0.6\columnwidth]{fig/plot_figure8_v3_diff_n-mistral-24b}
+\caption{Comparison of accuracy and response length using different sampling numbers N = 1, 4, 8, 32. The training data is the Hard part (MATH lv.3–5) with the same setting in main results, as described in \S~\ref{sec:setup}.}
+        \label{fig:sampling_number}
+\end{figure}
+
+
+% \begin{figure}[!t]
+%         \centering
+% \includegraphics[width=0.7\columnwidth]{fig/plot_temperature.pdf}
+% \caption{Impact of training and evaluation temperatures on Qwen-2.5-0.5b's average final performance (x-axis: evaluation temp, y-axis: training temp).}
+%         \label{fig:train_sample_temperature}
+% \end{figure}
+
+
+% \begin{figure}[!t]
+%     % 左侧图片
+%     \begin{minipage}[t]{0.48\columnwidth} % 留2%间隙
+%         \centering
+%         \includegraphics[width=\linewidth]{fig/plot_figure8_v3_diff_n-mistral-24b}\vspace{-10pt}
+%         \caption{Comparison of accuracy and response length using different sampling numbers N = 1, 4, 8, 32. The training data is the Hard part (MATH lv.3–5) with the same setting in main results, as described in \S~\ref{sec:setup}.}
+%         \label{fig:sampling_number}
+%     \end{minipage}
+%     \hfill % 填充间隙
+%     % 右侧图片
+%     \begin{minipage}[t]{0.48\columnwidth}
+%         \centering
+%         \includegraphics[width=\linewidth]{fig/plot_temperature.pdf}
+%         \caption{Impact of training and evaluation temperatures on Qwen-2.5-0.5b's average final performance (x-axis: evaluation temp, y-axis: training temp).}
+%         \label{fig:train_sample_temperature}
+%     \end{minipage}
+% \end{figure}
+
+\paragraph{Sampling Temperature:} We conduct research on Qwen-2.5-0.5B to analyze the impact of sampling temperature during both training and evaluation on model performance. The results, presented in Figure~\ref{fig:train_sample_temperature} , indicate that training with higher temperatures generally leads to better average performance. For instance, models trained with temperatures of 1.0 and 1.2 outperform those trained with 0.8 and 0.6. Additionally, we find that the optimal evaluation temperature depends on the training temperature. Specifically, models trained at higher temperatures require higher sampling temperatures during evaluation, as using greedy sampling often results in repetitive outputs. Conversely, models trained at lower temperatures perform best when evaluated with lower sampling temperatures.
+
+\section{SimpleRL-Zoo For Qwen2.5-Math-7B}
+In this section, we conduct experiments on Qwen2.5-Math-7B~\citep{yang2024qwen2} using the ``hard part" data, as described in \S~\ref{sec:setup}, which consists of only 8K examples from MATH lv3-5. We apply both the PPO and GRPO algorithms to train our base model, and the overall evaluation results across training steps are shown in Figure~\ref{fig:qwen-math}. The final performance and response length for both algorithms converge to similar values, with GRPO slightly outperforming PPO. While the performance continues to improve, the response length does not exhibit a similar trend. Specifically, the stopping length for both algorithms remains relatively unchanged, and fluctuations in the average response length are primarily attributed to changes in the clip ratio. There are two main reasons for this behavior: First, the maximum context length for Qwen2.5-Math-7B is 4K, which is limited compared to other models with context lengths exceeding 8K, leading to a high clip ratio. Second, as a math-specific model, Qwen2.5-Math-7B already performs very well on MATH, the dataset we used for training, so it may not face enough challenge to further extend its response length. Therefore, we hypothesize that more challenging data might be needed to push this capable model further.
+\begin{figure*}[]
+    \centering
+    \subfigure{
+\includegraphics[width=0.45\textwidth]{fig/plot_appx_figure3_v1_ppo_grpo-qwen-2.5-math.pdf}
+    }
+    \subfigure{
+        \includegraphics[width=0.45\textwidth]{fig/plot_appx_figure4_v1_ppo_grpo-clip-ratio-stop-tokens-qwen-2.5-math.pdf}
+    } \vspace{-10pt}
+    \caption{Comparison of accuracy and response length between PPO and GRPO on Qwen2.5-Math-7B. The base model is trained using 8K examples from MATH lv3-5, with the same settings described in \S~\ref{sec:setup}.}
+    \label{fig:qwen-math}
+\end{figure*}
+
+
+\section{Reasoning Behavior Analysis}
+\label{appx:bahaviour}
+We apply ~\citet{gandhi2025cognitive}'s cognitive behavior framework to perform a detailed analysis of how model reasoning behaviors change during "zero training." We first describe our analysis setup, then compare reflection keyword tracking against this framework to monitor reflective behaviors. Finally, we use case studies to illustrate how the reasoning behaviors of various models evolve during training.
+
+\subsection{Setup}
+\label{sec:bahaviour_setup}
+We use GPT4-o to  identify and analyze the following key reasoning behaviors exhibited in the model's responses, with the prompt shown in Figure~\ref{fig:prompt_reasoning_behaviors}:
+
+(1) \textbf{Backtracking}: The model actively identifies errors during response generation and explicitly revises previously used methods.
+
+(2) \textbf{Verification}: The model systematically checks intermediate results to ensure correctness.
+
+(3) \textbf{Subgoal Setting}: The model decomposes complex problems into smaller, manageable steps.
+
+(4) \textbf{Enumeration}: The model exhaustively considers multiple cases or possibilities to solve problems.
+
+Note that we replaced "Backward Chaining" with "Enumeration," as the former was not relevant to our task.
+
+\begin{figure*}[!t]
+    \centering
+    \begin{minipage}{0.50\textwidth}
+        \centering
+        \includegraphics[width=\columnwidth]{fig/plot_appx_figure5_v1_behaviors_plus_keywords_deepseek-math-7b.pdf}
+        \caption{Changes in reflection behavior identified by different methods.}
+        \label{fig:method_reasoning_behaviors}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.40\textwidth}
+        \centering
+        \includegraphics[width=\columnwidth]{fig/plot_temperature.pdf}
+        \caption{Impact of training and evaluation temperatures on Qwen-2.5-0.5b's average final performance (x-axis: evaluation temp, y-axis: training temp).}
+        \label{fig:train_sample_temperature}
+    \end{minipage}
+\end{figure*}
+
+\begin{figure}[!t]
+        \centering
+\includegraphics[width=\columnwidth]{fig/Prompt_for_identifying_analyzing.pdf}
+\caption{Prompt for identifying and analyzing reasoning behaviors.
+        }
+        \label{fig:prompt_reasoning_behaviors}
+\end{figure}
+
+\subsection{Comparison of Different Reasoning Behavior Tracking Methods}
+% \label{appx:reason_behavior_analysis}
+% \begin{figure}[!t]
+%     \centering
+%     \includegraphics[width=0.7\columnwidth]{fig/plot_appx_figure5_v1_behaviors_plus_keywords_deepseek-math-7b.pdf}
+%     \caption{Changes in reflection behavior identified by different methods.}
+%     \label{fig:method_reasoning_behaviors}
+% \end{figure}
+
+
+% \begin{figure*}[!t]
+%     \centering
+%     \begin{minipage}{0.50\textwidth}
+%         \centering
+%         \includegraphics[width=\columnwidth]{fig/plot_appx_figure5_v1_behaviors_plus_keywords_deepseek-math-7b.pdf}
+%         \caption{Changes in reflection behavior identified by different methods.}
+%         \label{fig:method_reasoning_behaviors}
+%     \end{minipage}
+%     \hfill
+%     \begin{minipage}{0.40\textwidth}
+%         \centering
+%         \includegraphics[width=\columnwidth]{fig/plot_temperature.pdf}
+%         \caption{Impact of training and evaluation temperatures on Qwen-2.5-0.5b's average final performance (x-axis: evaluation temp, y-axis: training temp).}
+%         \label{fig:train_sample_temperature}
+%     \end{minipage}
+% \end{figure*}
+
+
+Using DeepSeek Math's "zero-training" process as an example, we compare two different methods for monitoring reasoning behavior. The first method tracks the occurrence of specific keywords in the model's responses, such as "recheck," "rethink," "try again," "wait," "alternatively," "retry," and "however." The second method employs ~\citep{gandhi2025cognitive}'s cognitive framework for evaluation. Figure~\ref{fig:method_reasoning_behaviors} illustrates the observed changes in reasoning behavior according to these two approaches. During the training process, we observe that the proportion of specified keywords in the DeepSeek math model's responses remains consistently low, exhibiting minimal variation. Conversely, reasoning behaviors identified by the cognitive framework demonstrate a significant upward trend.
+
+To understand this intriguing discrepancy, we manually review the reasoning behaviors recorded by the cognitive framework. Our analysis reveals that many of these reasoning behaviors do not necessarily involve the predefined keywords. For instance, in Figure~\ref{fig:deepseekmath_backtracking.png}, the observed reasoning behaviors include Verification and Backtracking, neither of which contains the specified keywords. This indicates that keywords alone cannot effectively distinguish or capture the nuanced differences between such behaviors. Similarly, in Figure~\ref{fig:deepseekmath_base_verification}, the reasoning process involves implicit verification steps, including recalculating intermediate results such as the dot product and magnitudes before determining the cosine of the angle. Again, these subtle verification steps are not represented by the designated keywords. In Figure~\ref{fig:deepseekmath_base_enumeration}, the reasoning involves considering multiple possible scenarios or outcomes. This type of exploratory reasoning is also inadequately captured by keyword-based approaches.
+These examples collectively illustrate that relying solely on keyword presence is insufficient for accurately identifying and differentiating complex reasoning behaviors within model responses.
+
+
+
+
+
+
+
+\begin{figure}[!t]
+        \centering
+\includegraphics[width=\columnwidth]{fig/deepseek-math-backtracking.pdf}
+\caption{A comparison of DeepSeek-Math-7B’s ``Backtracking" behavior before and after zero RL training. Here, ``base solution" represents the response of the DeepSeek-Math-7B base model,
+while ``zero solution" represents the response of the model after training.}
+        \label{fig:deepseekmath_backtracking.png}
+\end{figure}
+
+\begin{figure}[!t]
+        \centering
+\includegraphics[width=\columnwidth]{fig/DeepSeek-math-implict-verification.pdf}
+\caption{A comparison of DeepSeek-Math-7B’s ``Verification" behavior before and after zero RL training. Here, ``base solution" represents the response of the DeepSeek-Math-7B base model,
+while ``zero solution" represents the response of the model after training. Here involves implicit verification steps, including recalculating intermediate results such as the dot product and magnitudes before determining the cosine of the angle.}
+        \label{fig:deepseekmath_base_verification}
+\end{figure}
+
+
+
+\begin{figure}[!t]
+        \centering
+\includegraphics[width=\columnwidth]{fig/deepseek_math_explict_verification.pdf}
+\caption{A comparison of DeepSeek-Math-7B’s ``Verification" behavior before and after zero RL training. Here, ``base solution" represents the response of the DeepSeek-Math-7B base model,
+while ``zero solution" represents the response of the model after training. This demonstrates more explicit verification, including key phrases like ``Let's check".}
+        \label{fig:deepseekmath_explict_verification}
+\end{figure}
+
+
+
+\begin{figure}[!t]
+        \centering
+\includegraphics[width=\columnwidth]{fig/deepseek-math-enumeration.pdf}
+\caption{A comparison of DeepSeek-Math-7B’s ``Enumeration" behavior before and after zero RL training. Here, ``base solution" represents the response of the DeepSeek-Math-7B base model,
+while ``zero solution" represents the response of the model after training.}
+        \label{fig:deepseekmath_base_enumeration}
+\end{figure}
+
+
+\subsection{Reasoning Behavior Variations Across Different Models}
+
+\label{sec:other_model_behaviour}
+
+We present cases illustrating notable improvements in model reasoning behavior during training (Figure~\ref{fig4:behavior&counts}). Specifically, these improvements are demonstrated in the following models: Mistral 24B (Figure~\ref{fig7:verfication_case} and Figure~\ref{fig8:enumeration_case}), Qwen 2.5-0.5B (Figure~\ref{fig:qwen0.5b_base_verification}, Figure~\ref{fig:qwen0.5b_base_backtracking} and Figure~\ref{fig:qwen0.5b_base_enumeration}), Qwen 2.5-1.5B (Figure~\ref{fig:qwen1.5b_base_verification} and Figure~\ref{fig:qwen1.5b_base_enumeration}), DeepSeek-math-7B-base (Figure~\ref{fig:deepseekmath_backtracking.png}, Figure~\ref{fig:deepseekmath_base_verification}, Figure~\ref{fig:deepseekmath_explict_verification} and Figure~\ref{fig:deepseekmath_base_enumeration}), and Llama 3.1-8B (Figure~\ref{fig:llama3.1-8b_base_verification} and Figure~\ref{fig:llama3.1-8b_base_subgoal_setting}).
+
+
+\begin{figure}[!t]
+        \centering
+\includegraphics[width=\columnwidth]{fig/mistral24b_verification_appendix.pdf}\vspace{-10pt}
+\caption{A comparison of Mistral-24B's "verification" and "backtraining" behavior before and after "zero training." Here, "base solution" represents the response of the Mistral-24B base model, while "zero solution" represents the response of the model after training.
+        }
+        \label{fig7:verfication_case}
+    \vspace{-10pt}
+\end{figure}
+
+
+\begin{figure}[!t]
+        \centering
+\includegraphics[width=\columnwidth]{fig/mistral_enumeration.pdf}
+\caption{A comparison of Mistral-Small-24B's ``Enumeration" behavior before and after zero RL training. Here, ``base solution" represents the response of the Mistral-Small-24B base model, while ``zero solution" represents the response of the model after training.
+        }
+        \label{fig8:enumeration_case}
+    \vspace{-10pt}
+\end{figure}
+
+
+\begin{figure}[!t]
+        \centering
+\includegraphics[width=\columnwidth]{fig/Qwen2.5-0.5B-Verification.pdf}
+\caption{A comparison of Qwen-2.5-0.5B’s ``Verification'' behavior before and after zero RL training. Here, ``base solution'' represents the response of the Qwen-2.5-0.5B base model,
+while ``zero solution'' represents the response of the model after training.}
+        \label{fig:qwen0.5b_base_verification}
+\end{figure}
+
+
+\begin{figure}[!t]
+        \centering
+\includegraphics[width=\columnwidth]{fig/Qwen-2.5-0.5B-backtracking.pdf}
+\caption{A comparison of Qwen-2.5-0.5B’s ``Backtracking" behavior before and after zero RL training. Here, ``base solution" represents the response of the Qwen-2.5-0.5B base model,
+while ``zero solution" represents the response of the model after training.}
+        \label{fig:qwen0.5b_base_backtracking}
+\end{figure}
+
+
+
+\begin{figure}[!t]
+        \centering
+\includegraphics[width=\columnwidth]{fig/Qwen-2.5-0.5B-Enumeration.pdf}
+\caption{A comparison of Qwen-2.5-0.5B’s ``Enumeration" behavior before and after zero RL training. Here, ``base solution" represents the response of the Qwen-2.5-0.5-B base model,
+while ``zero solution" represents the response of the model after training.}
+        \label{fig:qwen0.5b_base_enumeration}
+\end{figure}
+
+
+
+\begin{figure}[!t]
+        \centering
+\includegraphics[width=\columnwidth]{fig/Qwen-1.5B-Verification.pdf}
+\caption{A comparison of Qwen-2.5-1.5B’s ``Verification" behavior before and after zero RL training. Here, ``base solution" represents the response of the Qwen-2.5-1.5B base model,
+while ``zero solution" represents the response of the model after training.}
+        \label{fig:qwen1.5b_base_verification}
+\end{figure}
+
+
+\begin{figure}[!t]
+        \centering
+\includegraphics[width=\columnwidth]{fig/Qwen1.5B-Enumeration.pdf}
+\caption{A comparison of Qwen-2.5-1.5B’s ``Enumeration" behavior before and after zero RL training. Here, ``base solution" represents the response of the Qwen-2.5-1.5B base model,
+while ``zero solution" represents the response of the model after training.}
+        \label{fig:qwen1.5b_base_enumeration}
+\end{figure}
+
+
+\begin{figure}[!t]
+        \centering
+\includegraphics[width=\columnwidth]{fig/llama3.1-8b-verification.pdf}
+\caption{A comparison of Llama-3.1-8B’s ``Verification" behavior before and after zero RL training. Here, ``base solution" represents the response of the Llama-3.1-8B base model,
+while ``zero solution" represents the response of the model after training.}
+        \label{fig:llama3.1-8b_base_verification}
+\end{figure}
+
+
+
+\begin{figure}[!t]
+        \centering
+\includegraphics[width=\columnwidth]{fig/Llama-3.1-8b-subgoal.pdf}
+\caption{A comparison of Llama-3.1-8B’s ``Subgoal Setting" behavior before and after zero RL training. Here, ``base solution" represents the response of the Llama-3.1-8B base model,
+while ``zero solution" represents the response of the model after training.}
+        \label{fig:llama3.1-8b_base_subgoal_setting}
+\end{figure}
+
+\section{Model Prompt}
+% ==============================================
+% TODO
+% PLEASE ADD THE PROMPT(s) HERE
+% DO NOT CHANGE ANY OTHER PART OF THIS FILE OR OTHER FILES
+% ALL YOUR EDITS SHOULD BE IN THE TODO SECTION
+% ==============================================
