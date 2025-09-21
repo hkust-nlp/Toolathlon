@@ -1,78 +1,80 @@
 {
-    "id": "weihao_academic_warning",
-    "needed_mcp_servers": [
-        "google-cloud",
-        "excel",
-        "filesystem"
+  "id": "weihao_academic_warning",
+  "needed_mcp_servers": [
+    "google-cloud",
+    "excel",
+    "filesystem"
+  ],
+  "meta": {
+    "description": "Automated academic warning system for students with declining quiz scores",
+    "difficulty": "medium",
+    "estimated_time": "30-45 minutes",
+    "tags": [
+      "bigquery",
+      "excel",
+      "cloud-logging",
+      "data-analysis",
+      "educational-tech"
     ],
-    "meta": {
-        "description": "Automated academic warning system for students with declining quiz scores",
-        "difficulty": "medium",
-        "estimated_time": "30-45 minutes",
-        "tags": [
-            "bigquery",
-            "excel",
-            "cloud-logging",
-            "data-analysis",
-            "educational-tech"
-        ],
-        "requirements": [
-            "Read Excel file containing latest quiz scores",
-            "Query BigQuery dataset for historical exam scores (tables exam_2501 to exam_2507)",
-            "Calculate average historical scores for each student",
-            "Identify students with >25% score decline",
-            "Write CRITICAL level logs to Google Cloud Logging for at-risk students",
-            "Ensure students have at least 3 historical exam records for reliable averages"
-        ],
-        "learning_objectives": [
-            "Working with Excel files using MCP servers",
-            "Querying BigQuery datasets and handling large data",
-            "Implementing business logic for educational data analysis",
-            "Writing structured logs to Google Cloud Logging",
-            "Data validation and error handling"
-        ]
-    },
-    "needed_local_tools": [
-        "claim_done",
-        "handle_overlong_tool_outputs"
+    "requirements": [
+      "Read Excel file containing latest quiz scores",
+      "Query BigQuery dataset for historical exam scores (tables exam_2501 to exam_2507)",
+      "Calculate average historical scores for each student",
+      "Identify students with >25% score decline",
+      "Write CRITICAL level logs to Google Cloud Logging for at-risk students",
+      "Ensure students have at least 3 historical exam records for reliable averages"
     ],
-    "evaluation_criteria": {
-        "correctness": {
-            "weight": 0.4,
-            "metrics": [
-                "Accuracy of student identification (precision/recall)",
-                "Correct application of 25% decline threshold",
-                "Proper handling of minimum 3 historical records requirement"
-            ]
-        },
-        "completeness": {
-            "weight": 0.3,
-            "metrics": [
-                "All qualifying students are identified",
-                "All required data sources are accessed",
-                "All warning logs are written to Cloud Logging"
-            ]
-        },
-        "code_quality": {
-            "weight": 0.2,
-            "metrics": [
-                "Proper error handling and data validation",
-                "Efficient data processing",
-                "Clear and structured logging messages"
-            ]
-        },
-        "mcp_usage": {
-            "weight": 0.1,
-            "metrics": [
-                "Correct usage of excel MCP server",
-                "Proper BigQuery queries via google-cloud MCP server",
-                "Appropriate filesystem operations"
-            ]
-        }
+    "learning_objectives": [
+      "Working with Excel files using MCP servers",
+      "Querying BigQuery datasets and handling large data",
+      "Implementing business logic for educational data analysis",
+      "Writing structured logs to Google Cloud Logging",
+      "Data validation and error handling"
+    ]
+  },
+  "needed_local_tools": [
+    "claim_done",
+    "handle_overlong_tool_outputs",
+    "manage_context",
+    "history"
+  ],
+  "evaluation_criteria": {
+    "correctness": {
+      "weight": 0.4,
+      "metrics": [
+        "Accuracy of student identification (precision/recall)",
+        "Correct application of 25% decline threshold",
+        "Proper handling of minimum 3 historical records requirement"
+      ]
     },
-    "success_threshold": {
-        "minimum_f1_score": 0.8,
-        "required_logs": "CRITICAL",
-        "data_completeness": 0.9
+    "completeness": {
+      "weight": 0.3,
+      "metrics": [
+        "All qualifying students are identified",
+        "All required data sources are accessed",
+        "All warning logs are written to Cloud Logging"
+      ]
+    },
+    "code_quality": {
+      "weight": 0.2,
+      "metrics": [
+        "Proper error handling and data validation",
+        "Efficient data processing",
+        "Clear and structured logging messages"
+      ]
+    },
+    "mcp_usage": {
+      "weight": 0.1,
+      "metrics": [
+        "Correct usage of excel MCP server",
+        "Proper BigQuery queries via google-cloud MCP server",
+        "Appropriate filesystem operations"
+      ]
     }
+  },
+  "success_threshold": {
+    "minimum_f1_score": 0.8,
+    "required_logs": "CRITICAL",
+    "data_completeness": 0.9
+  }
 }

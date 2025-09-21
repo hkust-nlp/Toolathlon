@@ -1,15 +1,17 @@
 {
-    "needed_mcp_servers": [
-        "huggingface",
-        "github",
-        "terminal",
-        "fetch"
-    ],
-    "needed_local_tools": [
-        "python_execute",
-        "claim_done",
-        "web_search",
-        "handle_overlong_tool_outputs"
-    ],
-    "meta": {}
+  "needed_mcp_servers": [
+    "huggingface",
+    "github",
+    "terminal",
+    "fetch"
+  ],
+  "needed_local_tools": [
+    "python_execute",
+    "claim_done",
+    "web_search",
+    "handle_overlong_tool_outputs",
+    "manage_context",
+    "history"
+  ],
+  "meta": {}
 }

@@ -1,13 +1,15 @@
 {
-    "needed_mcp_servers": [
-        "git",
-        "terminal",
-        "filesystem",
-        "emails"
-    ],
-    "needed_local_tools": [
-        "claim_done",
-        "handle_overlong_tool_outputs"
-    ],
-    "meta": {}
+  "needed_mcp_servers": [
+    "git",
+    "terminal",
+    "filesystem",
+    "emails"
+  ],
+  "needed_local_tools": [
+    "claim_done",
+    "handle_overlong_tool_outputs",
+    "manage_context",
+    "history"
+  ],
+  "meta": {}
 }

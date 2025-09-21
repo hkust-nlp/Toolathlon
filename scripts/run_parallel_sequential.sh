@@ -1,36 +1,28 @@
-# 列表: ("")
+# 定义模型提供商列表，使用 | 分隔格式："modelname|provider"
+MODEL_PROVIDER_LIST=(
+    "grok-code-fast-1|openrouter"
+    "gpt-5|openrouter"
+    "qwen-3-coder|qwen_official"
+    "deepseek-v3.1|deepseek_official"
+    "gemini-2.5-pro|openrouter"
+    "glm-4.5|openrouter"
+    "kimi-k2-0905|kimi_official"
+    "grok-4|openrouter"
+    "claude-4-sonnet-0514|openrouter"
+)
 
-# bash global_preparation/deploy_containers.sh
-# kind delete clusters --all
-# bash scripts/run_parallel_jh.sh qwen-3-coder "./dumps/qwen-3-coder_09182034" qwen_official
+DATESTR="09210140"
 
+for attempt in {2..3}; do
+    for model_provider in "${MODEL_PROVIDER_LIST[@]}"; do
+        # 解析模型名和提供商
+        MODEL_SHORT_NAME="${model_provider%%|*}"  # 从左边提取到第一个 | 之前的内容
+        PROVIDER="${model_provider##*|}"         # 从右边提取最后一个 | 之后的内容
+        
+        echo "Running $MODEL_SHORT_NAME with $PROVIDER, attempt $attempt ......"
 
-# bash global_preparation/deploy_containers.sh
-# kind delete clusters --all
-# bash scripts/run_parallel_jh.sh Kimi-K2-0905 "./dumps/kimi-k2-0905_09182034" kimi_official
-
-
-# bash global_preparation/deploy_containers.sh
-# kind delete clusters --all
-# bash scripts/run_parallel_jh.sh deepseek-v3.1 "./dumps/deepseek-v3.1_09182034" deepseek_official
-
-
-# bash global_preparation/deploy_containers.sh
-# kind delete clusters --all
-# bash scripts/run_parallel_jh.sh glm-4.5 "./dumps/glm-4.5_09182034" openrouter
-
-# bash global_preparation/deploy_containers.sh
-# kind delete clusters --all
-# bash scripts/run_parallel_jh.sh gpt-5 "./dumps/gpt-5_09182034" openrouter
-
-# bash global_preparation/deploy_containers.sh
-# kind delete clusters --all
-# bash scripts/run_parallel_jh.sh grok-code-fast-1 "./dumps/grok-code-fast-1_09182034" openrouter
-
-bash global_preparation/deploy_containers.sh
-kind delete clusters --all
-bash scripts/run_parallel_jh.sh gpt-5-mini "./dumps/gpt-5-mini-1_09182034" openrouter
-
-bash global_preparation/deploy_containers.sh
-kind delete clusters --all
-bash scripts/run_parallel_jh.sh grok-4 "./dumps/grok-4_09182034" openrouter
+        bash global_preparation/deploy_containers.sh
+        kind delete clusters --all
+        bash scripts/run_parallel_jh.sh "$MODEL_SHORT_NAME" "./dumps_finalexp/${MODEL_SHORT_NAME}_${DATESTR}_${attempt}" "$PROVIDER" "$DATESTR"
+    done
+done

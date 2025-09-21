@@ -1,19 +1,21 @@
 {
-    "needed_mcp_servers": [
-        "excel",
-        "filesystem",
-        "terminal"
+  "needed_mcp_servers": [
+    "excel",
+    "filesystem",
+    "terminal"
+  ],
+  "needed_local_tools": [
+    "claim_done",
+    "python_execute",
+    "handle_overlong_tool_outputs",
+    "manage_context",
+    "history"
+  ],
+  "meta": {
+    "task_type": "data_transformation",
+    "input_files": [
+      "Household_Appliances.xlsx"
     ],
-    "needed_local_tools": [
-        "claim_done",
-        "python_execute",
-        "handle_overlong_tool_outputs"
-    ],
-    "meta": {
-        "task_type": "data_transformation",
-        "input_files": [
-            "Household_Appliances.xlsx"
-        ],
-        "output_file": "Processed.xlsx"
-    }
+    "output_file": "Processed.xlsx"
+  }
 }

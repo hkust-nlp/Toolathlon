@@ -1,16 +1,18 @@
 {
-    "needed_mcp_servers": [
-        "filesystem",
-        "memory",
-        "excel",
-        "pdf-tools",
-        "fetch"
-    ],
-    "needed_local_tools": [
-        "claim_done",
-        "web_search",
-        "python_execute",
-        "handle_overlong_tool_outputs"
-    ],
-    "meta": {}
+  "needed_mcp_servers": [
+    "filesystem",
+    "memory",
+    "excel",
+    "pdf-tools",
+    "fetch"
+  ],
+  "needed_local_tools": [
+    "claim_done",
+    "web_search",
+    "python_execute",
+    "handle_overlong_tool_outputs",
+    "manage_context",
+    "history"
+  ],
+  "meta": {}
 }

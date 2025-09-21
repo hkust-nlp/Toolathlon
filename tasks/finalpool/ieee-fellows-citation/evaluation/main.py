@@ -107,3 +107,10 @@ if __name__=="__main__":
 
     print("The number of total scholars is: ", total_scholars)
     print('The number of correct scholars with high citation is: ', correct_scholars)
+
+    if correct_scholars >= 5 and correct_scholars == total_scholars:
+        print("✅ Evaluation passed")
+        exit(0)
+    else:
+        print("❌ Evaluation failed")
+        exit(1)

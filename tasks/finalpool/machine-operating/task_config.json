@@ -1,11 +1,13 @@
 {
-    "needed_mcp_servers": [
-        "google-cloud",
-        "filesystem",
-        "excel"
-    ],
-    "needed_local_tools": [
-        "python_execute",
-        "handle_overlong_tool_outputs"
-    ]
+  "needed_mcp_servers": [
+    "google-cloud",
+    "filesystem",
+    "excel"
+  ],
+  "needed_local_tools": [
+    "python_execute",
+    "handle_overlong_tool_outputs",
+    "manage_context",
+    "history"
+  ]
 }

@@ -1,17 +1,19 @@
 {
-    "needed_mcp_servers": [
-        "filesystem",
-        "word",
-        "notion"
-    ],
-    "needed_local_tools": [
-        "claim_done",
-        "handle_overlong_tool_outputs"
-    ],
-    "meta": {
-        "task_type": "notion_page_update",
-        "target_page": "Colley Whisson",
-        "source_document": "colley_whisson.docx",
-        "output_format": "Updated notion page with all required sections"
-    }
+  "needed_mcp_servers": [
+    "filesystem",
+    "word",
+    "notion"
+  ],
+  "needed_local_tools": [
+    "claim_done",
+    "handle_overlong_tool_outputs",
+    "manage_context",
+    "history"
+  ],
+  "meta": {
+    "task_type": "notion_page_update",
+    "target_page": "Colley Whisson",
+    "source_document": "colley_whisson.docx",
+    "output_format": "Updated notion page with all required sections"
+  }
 }

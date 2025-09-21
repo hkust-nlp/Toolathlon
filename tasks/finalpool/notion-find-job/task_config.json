@@ -1,17 +1,19 @@
 {
-    "needed_mcp_servers": [
-        "google_map",
-        "notion",
-        "emails",
-        "playwright_with_chunk"
-    ],
-    "needed_local_tools": [
-        "claim_done",
-        "handle_overlong_tool_outputs"
-    ],
-    "meta": {
-        "task_type": "notion_job_search",
-        "target_page": "Job Finder",
-        "output_format": "Updated Job Tracker database with filtered job positions and sent application emails for qualifying companies with 'checking' status"
-    }
+  "needed_mcp_servers": [
+    "google_map",
+    "notion",
+    "emails",
+    "playwright_with_chunk"
+  ],
+  "needed_local_tools": [
+    "claim_done",
+    "handle_overlong_tool_outputs",
+    "manage_context",
+    "history"
+  ],
+  "meta": {
+    "task_type": "notion_job_search",
+    "target_page": "Job Finder",
+    "output_format": "Updated Job Tracker database with filtered job positions and sent application emails for qualifying companies with 'checking' status"
+  }
 }

@@ -34,6 +34,7 @@ def generate_enhanced_stats(dump_path, tasks_folder, temp_config, task_list_file
 
     # Find all eval_res.json files with more specific pattern
     eval_files = glob.glob(f'{dump_path}/{tasks_folder}/*/eval_res.json')
+    status_files = glob.glob(f'{dump_path}/{tasks_folder}/*/status.json')
 
     successful_tasks = []
     unsuccessful_tasks = []
@@ -49,32 +50,36 @@ def generate_enhanced_stats(dump_path, tasks_folder, temp_config, task_list_file
     tasks_with_running_fail = []
     tasks_with_running_timeout = []
     tasks_with_running_max_turns = []
+    tasks_with_running_null = []
     tasks_with_evaluation_pass = []
     tasks_with_evaluation_fail = []
+    tasks_with_evaluation_null = []
 
     # 兼容性：基于原有逻辑的统计
     tasks_with_failed_status = []
     task_with_max_turns_exceeded = []
     tasks_with_success_status = []
 
-    print(f'📊 Processing {len(eval_files)} evaluation files...')
+    print(f'📊 Processing {len(status_files)} status files...')
 
-    for eval_file in eval_files:
+    for status_file in status_files:
         try:
-            with open(eval_file, 'r') as f:
-                eval_data = json.load(f)
+            eval_file = status_file.replace('status.json', 'eval_res.json')
+            if os.path.exists(eval_file):
+                with open(eval_file, 'r') as f:
+                    eval_data = json.load(f)
 
-            # Extract task name from path
-            task_name = extract_task_name(eval_file, tasks_folder)
+                # Extract task name from path
+                task_name = extract_task_name(eval_file, tasks_folder)
 
-            # Check if task passed (原有逻辑保持不变)
-            if eval_data.get('pass', False):
-                successful_tasks.append(task_name)
-            else:
-                unsuccessful_tasks.append(task_name)
+                # Check if task passed (原有逻辑保持不变)
+                if eval_data.get('pass', False):
+                    successful_tasks.append(task_name)
+                else:
+                    unsuccessful_tasks.append(task_name)
 
             # 优先检查 status.json
-            status_file = eval_file.replace('eval_res.json', 'status.json')
+            # status_file = eval_file.replace('eval_res.json', 'status.json')
             if os.path.exists(status_file):
                 try:
                     with open(status_file, 'r', encoding='utf-8') as f:
@@ -98,11 +103,15 @@ def generate_enhanced_stats(dump_path, tasks_folder, temp_config, task_list_file
                         tasks_with_running_timeout.append(task_name)
                     elif running_status == 'max_turn_exceeded':
                         tasks_with_running_max_turns.append(task_name)
+                    elif running_status is None:
+                        tasks_with_running_null.append(task_name)
 
                     if evaluation_status == 'pass':
                         tasks_with_evaluation_pass.append(task_name)
                     elif evaluation_status == 'fail':
                         tasks_with_evaluation_fail.append(task_name)
+                    elif evaluation_status is None:
+                        tasks_with_evaluation_null.append(task_name)
 
                 except Exception as e:
                     print(f'⚠️  Error reading status.json for {task_name}: {e}')
@@ -113,7 +122,7 @@ def generate_enhanced_stats(dump_path, tasks_folder, temp_config, task_list_file
 
             if os.path.exists(log_file):
                 try:
-                    with open(log_file, 'r') as f:
+                    with open(log_file, 'r', encoding='utf-8', errors='ignore') as f:
                         log_data = json.load(f)
 
                     # 兼容性：保持原有的状态统计（用于对比）
@@ -121,7 +130,7 @@ def generate_enhanced_stats(dump_path, tasks_folder, temp_config, task_list_file
                     if task_status == 'failed':
                         tasks_with_failed_status.append(task_name)
                         if os.path.exists(run_log):
-                            with open(run_log, 'r') as f:
+                            with open(run_log, 'r', encoding='utf-8', errors='ignore') as f:
                                 content = f.read()
                                 if "[THIS IS A TAG FOR MAX TURNS EXCEEDED]" in content:
                                     task_with_max_turns_exceeded.append(task_name)
@@ -151,7 +160,7 @@ def generate_enhanced_stats(dump_path, tasks_folder, temp_config, task_list_file
             print(f'⚠️  Error processing {eval_file}: {e}')
 
     # Calculate statistics
-    total_tasks = len(successful_tasks) + len(unsuccessful_tasks)
+    total_tasks = len(status_files)
     average_turns = sum(all_turns) / len(all_turns) if all_turns else 0
     average_tool_calls = sum(all_tool_calls) / len(all_tool_calls) if all_tool_calls else 0
     success_rate = len(successful_tasks) / total_tasks if total_tasks > 0 else 0
@@ -180,16 +189,20 @@ def generate_enhanced_stats(dump_path, tasks_folder, temp_config, task_list_file
                 'fail_count': len(tasks_with_running_fail),
                 'timeout_count': len(tasks_with_running_timeout),
                 'max_turns_count': len(tasks_with_running_max_turns),
+                'null_count': len(tasks_with_running_null),
                 'done_tasks': sorted(tasks_with_running_done),
                 'fail_tasks': sorted(tasks_with_running_fail),
                 'timeout_tasks': sorted(tasks_with_running_timeout),
-                'max_turns_tasks': sorted(tasks_with_running_max_turns)
+                'max_turns_tasks': sorted(tasks_with_running_max_turns),
+                'null_tasks': sorted(tasks_with_running_null)
             },
             'evaluation': {
                 'pass_count': len(tasks_with_evaluation_pass),
                 'fail_count': len(tasks_with_evaluation_fail),
+                'null_count': len(tasks_with_evaluation_null),
                 'pass_tasks': sorted(tasks_with_evaluation_pass),
-                'fail_tasks': sorted(tasks_with_evaluation_fail)
+                'fail_tasks': sorted(tasks_with_evaluation_fail),
+                'null_tasks': sorted(tasks_with_evaluation_null)
             }
         },
 
@@ -214,7 +227,7 @@ def generate_enhanced_stats(dump_path, tasks_folder, temp_config, task_list_file
 
     # Save enhanced statistics
     stats_file = f'{dump_path}/eval_stats.json'
-    with open(stats_file, 'w') as f:
+    with open(stats_file, 'w', encoding='utf-8') as f:
         json.dump(enhanced_stats, f, indent=2)
 
     print(f'✅ Enhanced statistics saved to: {stats_file}')
@@ -226,8 +239,8 @@ def generate_enhanced_stats(dump_path, tasks_folder, temp_config, task_list_file
     print(f'📈 Status breakdown:')
     print(f'   Preprocess: {len(tasks_with_preprocess_done)} done, {len(tasks_with_preprocess_fail)} fail')
     print(f'   Running: {len(tasks_with_running_done)} done, {len(tasks_with_running_fail)} fail, '
-          f'{len(tasks_with_running_timeout)} timeout, {len(tasks_with_running_max_turns)} max_turns')
-    print(f'   Evaluation: {len(tasks_with_evaluation_pass)} pass, {len(tasks_with_evaluation_fail)} fail')
+          f'{len(tasks_with_running_timeout)} timeout, {len(tasks_with_running_max_turns)} max_turns, {len(tasks_with_running_null)} null')
+    print(f'   Evaluation: {len(tasks_with_evaluation_pass)} pass, {len(tasks_with_evaluation_fail)} fail, {len(tasks_with_evaluation_null)} null')
 
     # 兼容性输出
     print(f'📈 Legacy status: {len(tasks_with_success_status)} success, {len(tasks_with_failed_status)} failed')

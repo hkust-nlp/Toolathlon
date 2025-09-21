@@ -941,12 +941,19 @@ class TaskAgent:
                 self.task_status = TaskStatus.INTERRUPTED
                 
         except Exception as e:
+            # a strange logic, 
+            #  - max-turn update the task status in `self._debug_print(f"[THIS IS A TAG FOR MAX TURNS EXCEEDED] Max turns exceeded: {e}")`
+            #  - but it will will raise an error in `raise RuntimeError(f"Failed to get agent response within {max_inner_steps} inner steps")`, leading us to this block
+            #  - so we need to use status_manager to update status here
             self._debug_print("Error when running agent -", e)
             if self.debug:
                 traceback.print_exc()
-            self.task_status = TaskStatus.FAILED
-            # 运行阶段失败（预处理已经成功了，否则不会到这里）
-            self.status_manager.update_running("fail")
+            if self.task_status == TaskStatus.MAX_TURNS_REACHED:
+                self.status_manager.update_running("max_turn_exceeded")
+            else:
+                self.task_status = TaskStatus.FAILED
+                # 运行阶段失败（预处理已经成功了，否则不会到这里）
+                self.status_manager.update_running("fail")
             
         finally:
             # 切换回原工作目录，in all cases

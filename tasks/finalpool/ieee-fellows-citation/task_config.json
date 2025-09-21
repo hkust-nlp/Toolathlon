@@ -1,19 +1,21 @@
 {
-    "needed_mcp_servers": [
-        "filesystem",
-        "playwright_with_chunk",
-        "gmail",
-        "terminal",
-        "fetch"
-    ],
-    "needed_local_tools": [
-        "web_search",
-        "python_execute",
-        "claim_done",
-        "handle_overlong_tool_outputs"
-    ],
-    "meta": {
-        "description": "Collect high-citation scholars (>10k citations) who cited my papers with verification using multiple search tools, and send results to my gmail",
-        "workflow": "Read profile → Scholarly search → Verify citation count > 10k → Send results"
-    }
+  "needed_mcp_servers": [
+    "filesystem",
+    "playwright_with_chunk",
+    "gmail",
+    "terminal",
+    "fetch"
+  ],
+  "needed_local_tools": [
+    "web_search",
+    "python_execute",
+    "claim_done",
+    "handle_overlong_tool_outputs",
+    "manage_context",
+    "history"
+  ],
+  "meta": {
+    "description": "Collect high-citation scholars (>10k citations) who cited my papers with verification using multiple search tools, and send results to my gmail",
+    "workflow": "Read profile \u2192 Scholarly search \u2192 Verify citation count > 10k \u2192 Send results"
+  }
 }

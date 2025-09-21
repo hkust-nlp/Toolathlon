@@ -1,14 +1,16 @@
 {
-    "needed_mcp_servers": [
-        "filesystem",
-        "yahoo-finance",
-        "google_sheet",
-        "notion",
-        "terminal"
-    ],
-    "needed_local_tools": [
-        "claim_done",
-        "python_execute",
-        "handle_overlong_tool_outputs"
-    ]
+  "needed_mcp_servers": [
+    "filesystem",
+    "yahoo-finance",
+    "google_sheet",
+    "notion",
+    "terminal"
+  ],
+  "needed_local_tools": [
+    "claim_done",
+    "python_execute",
+    "handle_overlong_tool_outputs",
+    "manage_context",
+    "history"
+  ]
 }

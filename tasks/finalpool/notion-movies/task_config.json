@@ -1,17 +1,19 @@
 {
-    "needed_mcp_servers": [
-        "playwright_with_chunk",
-        "notion",
-        "fetch"
-    ],
-    "needed_local_tools": [
-        "web_search",
-        "claim_done",
-        "handle_overlong_tool_outputs"
-    ],
-    "meta": {
-        "task_type": "notion_page_update",
-        "target_page": "Ultimate Movie Tracker",
-        "output_format": "Updated notion page with complete movie information including Star Wars Episode III"
-    }
+  "needed_mcp_servers": [
+    "playwright_with_chunk",
+    "notion",
+    "fetch"
+  ],
+  "needed_local_tools": [
+    "web_search",
+    "claim_done",
+    "handle_overlong_tool_outputs",
+    "manage_context",
+    "history"
+  ],
+  "meta": {
+    "task_type": "notion_page_update",
+    "target_page": "Ultimate Movie Tracker",
+    "output_format": "Updated notion page with complete movie information including Star Wars Episode III"
+  }
 }

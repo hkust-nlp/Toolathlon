@@ -3,7 +3,7 @@
 ## File Format
 - Save all documents in the current workspace
 - Use the naming convention: `Interview_Assessment_Report_CandidateName.docx`
-- Example: `Interview_Assessment_Report_Zhang_San.docx`
+- Example: `Interview_Assessment_Report_Anna_Taylor.docx`
 
 ## Document Structure and Formatting
 

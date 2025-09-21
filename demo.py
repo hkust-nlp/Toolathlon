@@ -100,7 +100,7 @@ async def main():
     try:
         from utils.status_manager import TaskStatusManager
         status_manager = TaskStatusManager(task_config.task_root)
-        status_manager.update_evaluation("pass" if eval_res.get('pass', False) else "fail")
+        status_manager.update_evaluation(eval_res.get('pass', None))
     except Exception as e:
         print(f"Warning: Failed to update evaluation status: {e}")
 

@@ -1,14 +1,16 @@
 {
-    "id": "tripAdviser",
-    "needed_mcp_servers": [
-        "google_map",
-        "fetch",
-        "filesystem",
-        "playwright_with_chunk"
-    ],
-    "needed_local_tools": [
-        "claim_done",
-        "handle_overlong_tool_outputs"
-    ],
-    "meta": {}
+  "id": "tripAdviser",
+  "needed_mcp_servers": [
+    "google_map",
+    "fetch",
+    "filesystem",
+    "playwright_with_chunk"
+  ],
+  "needed_local_tools": [
+    "claim_done",
+    "handle_overlong_tool_outputs",
+    "manage_context",
+    "history"
+  ],
+  "meta": {}
 }

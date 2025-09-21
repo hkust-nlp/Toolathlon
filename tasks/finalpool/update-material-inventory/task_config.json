@@ -1,12 +1,13 @@
 {
-    "needed_mcp_servers": [
-        "google_sheet",
-        "woocommerce"
-    ],
-    "needed_local_tools": [
-        "claim_done",
-        "python_execute",
-        "handle_overlong_tool_outputs",
-        "claim_done"
-    ]
+  "needed_mcp_servers": [
+    "google_sheet",
+    "woocommerce"
+  ],
+  "needed_local_tools": [
+    "claim_done",
+    "python_execute",
+    "handle_overlong_tool_outputs",
+    "manage_context",
+    "history"
+  ]
 }

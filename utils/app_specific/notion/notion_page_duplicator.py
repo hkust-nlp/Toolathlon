@@ -285,7 +285,7 @@ class NotionPageDuplicator:
                 print("Waiting for duplication to complete...")
 
                 # Wait for URL to change from the original page
-                page.wait_for_url(lambda url: url != original_url, timeout=180_000)
+                page.wait_for_url(lambda url: url != original_url, timeout=300_000)
 
                 # Keep checking until we get to a page that is neither the original nor the source parent
                 max_attempts = 10

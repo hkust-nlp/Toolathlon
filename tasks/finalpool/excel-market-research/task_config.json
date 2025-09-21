@@ -1,20 +1,22 @@
 {
-    "needed_mcp_servers": [
-        "excel",
-        "filesystem",
-        "terminal"
+  "needed_mcp_servers": [
+    "excel",
+    "filesystem",
+    "terminal"
+  ],
+  "needed_local_tools": [
+    "claim_done",
+    "python_execute",
+    "handle_overlong_tool_outputs",
+    "manage_context",
+    "history"
+  ],
+  "meta": {
+    "task_type": "market_research",
+    "input_files": [
+      "Market_Data.xlsx"
     ],
-    "needed_local_tools": [
-        "claim_done",
-        "python_execute",
-        "handle_overlong_tool_outputs"
-    ],
-    "meta": {
-        "task_type": "market_research",
-        "input_files": [
-            "Market_Data.xlsx"
-        ],
-        "output_file": "growth_rate.xlsx",
-        "description": "根据公司内部分类转换市场数据，计算Appliance门类2014-2024年增长率"
-    }
+    "output_file": "growth_rate.xlsx",
+    "description": "\u6839\u636e\u516c\u53f8\u5185\u90e8\u5206\u7c7b\u8f6c\u6362\u5e02\u573a\u6570\u636e\uff0c\u8ba1\u7b97Appliance\u95e8\u7c7b2014-2024\u5e74\u589e\u957f\u7387"
+  }
 }

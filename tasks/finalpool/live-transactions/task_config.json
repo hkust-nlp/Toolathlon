@@ -1,11 +1,13 @@
 {
-    "id": "weihao_live_transactions",
-    "needed_mcp_servers": [
-        "google-cloud",
-        "filesystem"
-    ],
-    "needed_local_tools": [
-        "claim_done",
-        "handle_overlong_tool_outputs"
-    ]
+  "id": "weihao_live_transactions",
+  "needed_mcp_servers": [
+    "google-cloud",
+    "filesystem"
+  ],
+  "needed_local_tools": [
+    "claim_done",
+    "handle_overlong_tool_outputs",
+    "manage_context",
+    "history"
+  ]
 }

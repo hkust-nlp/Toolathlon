@@ -1,5 +1,16 @@
 {
-    "needed_mcp_servers": ["canvas","emails","memory","excel"],
-    "needed_local_tools": ["claim_done","handle_overlong_tool_outputs"],
-    "meta": {}
+  "needed_mcp_servers": [
+    "canvas",
+    "emails",
+    "memory",
+    "terminal"
+  ],
+  "needed_local_tools": [
+    "claim_done",
+    "python_execute",
+    "handle_overlong_tool_outputs",
+    "manage_context",
+    "history"
+  ],
+  "meta": {}
 }

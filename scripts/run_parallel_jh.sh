@@ -131,7 +131,7 @@ echo "📊 Generating enhanced statistics..."
 uv run scripts/generate_parallel_stats.py --dump_path "$DUMP_PATH" --tasks_folder "$TASKS_FOLDER" --temp_config "$TEMP_CONFIG" --task_list_file "${TASK_LIST:-all_tasks}"
 
 # Cleanup
-rm -f "$TEMP_CONFIG"
+# rm -f "$TEMP_CONFIG"
 
 echo ""
 echo "📊 Parallel evaluation completed with exit code: $EVAL_EXIT_CODE"

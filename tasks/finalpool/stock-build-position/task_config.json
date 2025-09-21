@@ -1,13 +1,15 @@
 {
-    "needed_mcp_servers": [
-        "excel",
-        "yahoo-finance",
-        "terminal"
-    ],
-    "needed_local_tools": [
-        "claim_done",
-        "python_execute",
-        "handle_overlong_tool_outputs"
-    ],
-    "meta": {}
+  "needed_mcp_servers": [
+    "excel",
+    "yahoo-finance",
+    "terminal"
+  ],
+  "needed_local_tools": [
+    "claim_done",
+    "python_execute",
+    "handle_overlong_tool_outputs",
+    "manage_context",
+    "history"
+  ],
+  "meta": {}
 }

@@ -1,9 +1,17 @@
 {
-    "needed_mcp_servers": ["woocommerce"],
-    "needed_local_tools": ["claim_done", "python_execute", "handle_overlong_tool_outputs"],
-    "meta": {
-        "description": "根据上周销量数据更新 WooCommerce 商品主图，将销量最高的规格图片设为商品主图",
-        "category": "ecommerce_automation",
-        "difficulty": "medium"
-    }
+  "needed_mcp_servers": [
+    "woocommerce"
+  ],
+  "needed_local_tools": [
+    "claim_done",
+    "python_execute",
+    "handle_overlong_tool_outputs",
+    "manage_context",
+    "history"
+  ],
+  "meta": {
+    "description": "\u6839\u636e\u4e0a\u5468\u9500\u91cf\u6570\u636e\u66f4\u65b0 WooCommerce \u5546\u54c1\u4e3b\u56fe\uff0c\u5c06\u9500\u91cf\u6700\u9ad8\u7684\u89c4\u683c\u56fe\u7247\u8bbe\u4e3a\u5546\u54c1\u4e3b\u56fe",
+    "category": "ecommerce_automation",
+    "difficulty": "medium"
+  }
 }

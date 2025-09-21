@@ -1,14 +1,16 @@
 {
-    "needed_mcp_servers": [
-        "playwright_with_chunk",
-        "google_sheet",
-        "arxiv_local",
-        "huggingface",
-        "fetch"
-    ],
-    "needed_local_tools": [
-        "claim_done",
-        "web_search",
-        "handle_overlong_tool_outputs"
-    ]
+  "needed_mcp_servers": [
+    "playwright_with_chunk",
+    "google_sheet",
+    "arxiv_local",
+    "huggingface",
+    "fetch"
+  ],
+  "needed_local_tools": [
+    "claim_done",
+    "web_search",
+    "handle_overlong_tool_outputs",
+    "manage_context",
+    "history"
+  ]
 }

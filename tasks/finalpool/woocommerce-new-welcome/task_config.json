@@ -1,13 +1,15 @@
 {
-    "needed_mcp_servers": [
-        "woocommerce",
-        "filesystem",
-        "emails",
-        "google-cloud"
-    ],
-    "needed_local_tools": [
-        "python_execute",
-        "claim_done",
-        "handle_overlong_tool_outputs"
-    ]
+  "needed_mcp_servers": [
+    "woocommerce",
+    "filesystem",
+    "terminal",
+    "google-cloud"
+  ],
+  "needed_local_tools": [
+    "python_execute",
+    "claim_done",
+    "handle_overlong_tool_outputs",
+    "manage_context",
+    "history"
+  ]
 }

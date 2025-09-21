@@ -1,12 +1,14 @@
 {
-    "needed_mcp_servers": [
-        "arxiv_local",
-        "filesystem",
-        "scholarly"
-    ],
-    "needed_local_tools": [
-        "claim_done",
-        "handle_overlong_tool_outputs"
-    ],
-    "meta": {}
+  "needed_mcp_servers": [
+    "arxiv_local",
+    "filesystem",
+    "scholarly"
+  ],
+  "needed_local_tools": [
+    "claim_done",
+    "handle_overlong_tool_outputs",
+    "manage_context",
+    "history"
+  ],
+  "meta": {}
 }

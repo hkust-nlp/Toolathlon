@@ -613,14 +613,14 @@ API_MAPPINGS = {
         concurrency=32,
         context_window=256000
     ),    
-    # 'kimi-k2-instruct': Dict(
-    #     api_model={"ds_internal": None,
-    #                "aihubmix": "moonshotai/kimi-k2-instruct"},
-    #     price=[0.62/1000, 2.48/1000],
-    #     concurrency=32,
-    #     context_window=128000
-    # ),
-    'Kimi-K2-0905': Dict(
+    'grok-4-fast': Dict(
+        api_model={"ds_internal": None,
+                   "openrouter": "x-ai/grok-4-fast:free"},
+        price=[0.0/1000, 0.0/1000],
+        concurrency=32,
+        context_window=2000000
+    ),
+    'kimi-k2-0905': Dict(
         api_model={"ds_internal": None,
                    "aihubmix": "Kimi-K2-0905",
                    "openrouter": "moonshotai/kimi-k2-0905",

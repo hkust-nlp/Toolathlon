@@ -1,20 +1,22 @@
 {
-    "needed_mcp_servers": [
-        "memory",
-        "excel",
-        "filesystem"
+  "needed_mcp_servers": [
+    "memory",
+    "excel",
+    "filesystem"
+  ],
+  "needed_local_tools": [
+    "claim_done",
+    "handle_overlong_tool_outputs",
+    "manage_context",
+    "history"
+  ],
+  "meta": {
+    "task_type": "accounting",
+    "input_files": [
+      "Account_Book.xlsx",
+      "memory.json"
     ],
-    "needed_local_tools": [
-        "claim_done",
-        "handle_overlong_tool_outputs"
-    ],
-    "meta": {
-        "task_type": "accounting",
-        "input_files": [
-            "Account_Book.xlsx",
-            "memory.json"
-        ],
-        "output_file": "Account_Book.xlsx",
-        "description": "根据memory.json中的交易记录完善Excel账本，直接在Account_Book.xlsx中修改"
-    }
+    "output_file": "Account_Book.xlsx",
+    "description": "\u6839\u636ememory.json\u4e2d\u7684\u4ea4\u6613\u8bb0\u5f55\u5b8c\u5584Excel\u8d26\u672c\uff0c\u76f4\u63a5\u5728Account_Book.xlsx\u4e2d\u4fee\u6539"
+  }
 }

@@ -1,14 +1,16 @@
 {
-    "id": "weihao_invoiceorg_001",
-    "needed_mcp_servers": [
-        "pdf-tools",
-        "filesystem",
-        "yahoo-finance",
-        "excel"
-    ],
-    "meta": {},
-    "needed_local_tools": [
-        "claim_done",
-        "handle_overlong_tool_outputs"
-    ]
+  "id": "weihao_invoiceorg_001",
+  "needed_mcp_servers": [
+    "pdf-tools",
+    "filesystem",
+    "yahoo-finance",
+    "excel"
+  ],
+  "meta": {},
+  "needed_local_tools": [
+    "claim_done",
+    "handle_overlong_tool_outputs",
+    "manage_context",
+    "history"
+  ]
 }

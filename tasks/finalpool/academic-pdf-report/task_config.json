@@ -1,16 +1,18 @@
 {
-    "needed_mcp_servers": [
-        "playwright_with_chunk",
-        "excel",
-        "terminal",
-        "arxiv_local",
-        "pdf-tools",
-        "fetch"
-    ],
-    "needed_local_tools": [
-        "claim_done",
-        "web_search",
-        "handle_overlong_tool_outputs"
-    ],
-    "meta": {}
+  "needed_mcp_servers": [
+    "playwright_with_chunk",
+    "excel",
+    "terminal",
+    "arxiv_local",
+    "pdf-tools",
+    "fetch"
+  ],
+  "needed_local_tools": [
+    "claim_done",
+    "web_search",
+    "handle_overlong_tool_outputs",
+    "manage_context",
+    "history"
+  ],
+  "meta": {}
 }

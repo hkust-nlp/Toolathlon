@@ -1,5 +1,14 @@
 {
-    "needed_mcp_servers": ["emails","snowflake", "pdf-tools", "filesystem"],
-    "needed_local_tools": ["claim_done"],
-    "meta": {}
+  "needed_mcp_servers": [
+    "emails",
+    "snowflake",
+    "pdf-tools",
+    "filesystem"
+  ],
+  "needed_local_tools": [
+    "claim_done",
+    "manage_context",
+    "history"
+  ],
+  "meta": {}
 }
