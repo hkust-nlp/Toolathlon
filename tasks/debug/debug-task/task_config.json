@@ -1,5 +1,26 @@
 {
-    "needed_mcp_servers": ["huggingface"],
-    "needed_local_tools": [],
+    "needed_mcp_servers": [
+        "filesystem",
+        "memory",
+        "excel",
+        "pdf-tools",
+        "fetch",
+        "woocommerce",
+        "git",
+        "google-cloud",
+        "yahoo-finance",
+        "scholarly",
+        "google_sheet",
+        "notion",
+        "arxiv_local"
+    ],
+    "needed_local_tools": [
+        "claim_done",
+        "web_search",
+        "python_execute",
+        "handle_overlong_tool_outputs",
+        "manage_context",
+        "history"
+    ],
     "meta": {}
 }

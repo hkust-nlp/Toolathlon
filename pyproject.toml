@@ -167,4 +167,5 @@ dependencies = [
     "wsproto==1.2.0",
     "yarl==1.20.0",
     "yfinance>=0.2.62",
+    "seaborn>=0.13.2",
 ]

@@ -67,3 +67,13 @@ recorded_trajectories_v2
 
 dumps_for_mcp_check/
 dumps_finalexp/
+scripts/temp_parallel_*
+tasks/finalpool_add_unrelated_mcps_*
+
+dumps_finalexp_gemini25pro_only
+dumps_ablation
+dumps_finalexp_overlong_ablation/
+
+dumps_ablation.tar.gz
+dumps_finalexp_overlong_ablation.tar.gz
+dumps_finalexp.tar.gz

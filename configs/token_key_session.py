@@ -32,7 +32,7 @@ all_token_key_session = Dict(
     google_client_secret = google_credentials["client_secret"],
     google_refresh_token = google_credentials["refresh_token"],
 
-    google_sheets_folder_id = "", # KEEP_IT_ASIS_CUA_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR
+    google_sheets_folder_id = "16gPpZIGFDUuHj9niuTBpQ9WQXwxRdGYo", # KEEP_IT_ASIS_CUA_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR
     google_oauth2_credentials_path = "configs/google_credentials.json", # make sure you have already copied the json file to this path
     google_oauth2_token_path = "configs/google_credentials.json", # make sure you have already copied the json file to this path
     
@@ -44,7 +44,7 @@ all_token_key_session = Dict(
 
     #### Github
     github_token = "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", # TO BR FILLED
-    github_allowed_repos = "", # KEEP_IT_ASIS_CUA_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR
+    github_allowed_repos = "null", # KEEP_IT_ASIS_CUA_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR
     github_read_only = "1", # default to ban write, but the tasks should open it if needed
     
     #### Huggingface
@@ -58,8 +58,7 @@ all_token_key_session = Dict(
     notion_integration_key_eval = "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", # TO BE FILLED
     source_notion_page_url="https://www.notion.so/Notion-Source-Page-262c4171366e8067863bc8645fd6d51f", # TO BE FILLED
     eval_notion_page_url="https://www.notion.so/Notion-Eval-Page-262c4171366e80a1a366c6f10ee59381", # TO BE FILLED
-    notion_allowed_page_ids="", # KEEP_IT_ASIS_CUA_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR
-
+    notion_allowed_page_ids="277c4171-366e-8096-8110-f801daed53dc", # KEEP_IT_ASIS_CUA_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR
 
     #### SnowFlake
     snowflake_account = "RXYGDRJ-QA40744", # TO BE FILLED
@@ -69,17 +68,17 @@ all_token_key_session = Dict(
     snowflake_password = "MCPtest0606!!!", # TO BE FILLED
     snowflake_database = "SNOWFLAKE", # we prefill `SNOWFLAKE` here to make compatibility
     snowflake_schema = "PUBLIC", # we prefill `PUBLIC` here to make compatibility
-    snowflake_op_allowed_databases = "", # KEEP_IT_ASIS_CUA_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR
+    snowflake_op_allowed_databases = "null", # KEEP_IT_ASIS_CUA_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR
 
     ### Local Ones
     # Canvas, we use the first student's token
-    canvas_api_token = "canvas_token_ronald_81q2O", # KEEP_IT_ASIS_CUA_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR
+    canvas_api_token = "canvas_token_victoria_14z", # KEEP_IT_ASIS_CUA_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR
     canvas_domain = "localhost:20001",
 
     # Woocommerce
-    woocommerce_api_key = "ck_woocommerce_token_emma_206rnIn",
-    woocommerce_api_secret = "cs_woocommerce_token_emma_206rnIn",
-    woocommerce_site_url = "http://localhost:10003/store81",
+    woocommerce_api_key = "ck_woocommerce_token_PE0613bf053",
+    woocommerce_api_secret = "cs_woocommerce_token_PE0613bf053",
+    woocommerce_site_url = "http://localhost:10003/store100",
 
     # K8s
     kubeconfig_path = "deployment/k8s/configs/cluster1-config.yaml",

@@ -9,7 +9,7 @@ uv run demo.py \
 --eval_config scripts/model_wise/eval_claude-4-sonnet.json \
 --task_dir  debug/debug-task \
 --debug \
---model_short_name grok-4-fast \
+--model_short_name qwen-3-max \
 --provider openrouter \
 --max_steps_under_single_turn_mode 200 \
 --multi_turn_mode \

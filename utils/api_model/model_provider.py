@@ -23,14 +23,17 @@ class ContextTooLongError(Exception):
         self.max_tokens = max_tokens
 
 class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
-    def __init__(self, model: str, openai_client: AsyncOpenAI, 
+    def __init__(self, model: str, 
+                 openai_client: AsyncOpenAI, 
                  retry_times: int = 5, # FIXME: hardcoded now, should be dynamic
                  retry_delay: float = 5.0,
-                 debug: bool = True): # FIXME: hardcoded now, should be dynamic
+                 debug: bool = True,
+                 short_model_name: str | None = None): # FIXME: hardcoded now, should be dynamic
         super().__init__(model=model, openai_client=openai_client)
         self.retry_times = retry_times
         self.retry_delay = retry_delay
         self.debug = debug
+        self.short_model_name = short_model_name
 
     def _add_cache_control_to_messages(self, messages: list, min_cache_tokens: int = 2048) -> list:
         """
@@ -94,10 +97,17 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
     def _get_model_specific_config(self):
         """获取模型特定的配置参数"""
         if 'gpt-5' in self.model:
-            return {
+            basic = {
                 'use_max_completion_tokens': True,
                 'use_parallel_tool_calls': True
             }
+            if "low" in self.short_model_name:
+                basic['reasoning_effort'] = "low"
+            elif "medium" in self.short_model_name:
+                basic['reasoning_effort'] = "medium"
+            elif "high" in self.short_model_name:
+                basic['reasoning_effort'] = "high"
+            return basic
         elif 'o4' in self.model or 'o3' in self.model:
             return {
                 'use_max_completion_tokens': True,
@@ -210,6 +220,14 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
         if model_config['use_parallel_tool_calls']:
             base_params['parallel_tool_calls'] = parallel_tool_calls
         
+        # override reasoning_effort
+        if model_config.get('reasoning_effort') is not None:
+            base_params['reasoning_effort'] = model_config['reasoning_effort']
+        
+        # from pprint import pprint
+        
+        # pprint(base_params)
+        
         # DEBUG: Print the actual parameters being sent to OpenAI SDK
         # print("🔍 DEBUG: OpenAI SDK call parameters:")
         # print(f"  Model: {base_params.get('model')}")
@@ -272,7 +290,8 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                         'message too long',
                         'prompt is too long',
                         'maximum number of tokens',
-                        'This model\'s maximum prompt length is' # for xAI model
+                        r'This model\'s maximum prompt length is', # for xAI model
+                        'Your request exceeded model token limit: ' # for kimi
                     ]):
                         context_too_long = True
                         
@@ -296,6 +315,11 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                         match = re.search(r'This model\'s maximum prompt length is (\d+).*request contains (\d+)', error_str)
                         if match:
                             max_tokens, current_tokens = int(match.group(1)), int(match.group(2))
+                        
+                        # 模式5: kimi
+                        match = re.search(r'Your request exceeded model token limit: (\d+)', error_str)
+                        if match:
+                            max_tokens = int(match.group(1))
                 
                 # 2. 尝试解析结构化错误（如果是 OpenAI API 错误对象）
                 if hasattr(e, 'response') and hasattr(e.response, 'json'):
@@ -327,6 +351,7 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                         'exceeds maximum',
                         'exceeds the maximum',
                         'prompt is too long',
+                        'Your request exceeded model token limit: ',
                     ]):
                         context_too_long = True
                 
@@ -359,7 +384,7 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                 await asyncio.sleep(self.retry_delay)
 
 class CustomModelProvider(ModelProvider):
-    def get_model(self, model_name: str | None, debug: bool = True) -> Model:
+    def get_model(self, model_name: str | None, debug: bool = True, short_model_name: str | None = None) -> Model:
         client = AsyncOpenAI(
             api_key=global_configs.ds_key,
             base_url=global_configs.base_url_ds
@@ -369,30 +394,33 @@ class CustomModelProvider(ModelProvider):
         )
         return OpenAIChatCompletionsModelWithRetry(model=model_name, 
                                                    openai_client=client,
-                                                   debug=debug)
+                                                   debug=debug,
+                                                   short_model_name=short_model_name)
 
 class CustomModelProviderAiHubMix(ModelProvider):
-    def get_model(self, model_name: str | None, debug: bool = True) -> Model:
+    def get_model(self, model_name: str | None, debug: bool = True, short_model_name: str | None = None) -> Model:
         client = AsyncOpenAI(
             api_key=global_configs.non_ds_key,
             base_url=global_configs.base_url_non_ds,
         )
         return OpenAIChatCompletionsModelWithRetry(model=model_name, 
                                                    openai_client=client,
-                                                   debug=debug)
+                                                   debug=debug,
+                                                   short_model_name=short_model_name)
 
 class CustomModelProviderAnthropic(ModelProvider):
-    def get_model(self, model_name: str | None, debug: bool = True) -> Model:
+    def get_model(self, model_name: str | None, debug: bool = True, short_model_name: str | None = None) -> Model:
         client = AsyncOpenAI(
             api_key=global_configs.official_anthropic_key,
             base_url="https://api.anthropic.com/v1/",
         )
         return OpenAIChatCompletionsModelWithRetry(model=model_name, 
                                                    openai_client=client,
-                                                   debug=debug)
+                                                   debug=debug,
+                                                   short_model_name=short_model_name)
 
 class CustomModelProviderLocalVLLM(ModelProvider):
-    def get_model(self, model_name: str | None, debug: bool = True) -> Model:
+    def get_model(self, model_name: str | None, debug: bool = True, short_model_name: str | None = None) -> Model:
         import os
         vllm_base_url = os.getenv('VLLM_BASE_URL', 'http://localhost:8000/v1')
         client = AsyncOpenAI(
@@ -401,47 +429,52 @@ class CustomModelProviderLocalVLLM(ModelProvider):
         )
         return OpenAIChatCompletionsModelWithRetry(model=model_name, 
                                                    openai_client=client,
-                                                   debug=debug)
+                                                   debug=debug,
+                                                   short_model_name=short_model_name)
 
 class CustomModelProviderOpenRouter(ModelProvider):
-    def get_model(self, model_name: str | None, debug: bool = True) -> Model:
+    def get_model(self, model_name: str | None, debug: bool = True, short_model_name: str | None = None) -> Model:
         client = AsyncOpenAI(
             api_key=global_configs.openrouter_key,
             base_url="https://openrouter.ai/api/v1",
         )
         return OpenAIChatCompletionsModelWithRetry(model=model_name, 
                                                    openai_client=client,
-                                                   debug=debug)
+                                                   debug=debug,
+                                                   short_model_name=short_model_name)
 
 class CustomModelProviderQwenOfficial(ModelProvider):
-    def get_model(self, model_name: str | None, debug: bool = True) -> Model:
+    def get_model(self, model_name: str | None, debug: bool = True, short_model_name: str | None = None) -> Model:
         client = AsyncOpenAI(
             api_key=global_configs.qwen_official_key,
             base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
         )
         return OpenAIChatCompletionsModelWithRetry(model=model_name, 
                                                    openai_client=client,
-                                                   debug=debug)
+                                                   debug=debug,
+                                                   short_model_name=short_model_name)
 
 class CustomModelProviderKimiOfficial(ModelProvider):
-    def get_model(self, model_name: str | None, debug: bool = True) -> Model:
+    def get_model(self, model_name: str | None, debug: bool = True, short_model_name: str | None = None) -> Model:
         client = AsyncOpenAI(
             api_key=global_configs.kimi_official_key,
             base_url="https://api.moonshot.cn/v1",
         )
         return OpenAIChatCompletionsModelWithRetry(model=model_name, 
                                                    openai_client=client,
-                                                   debug=debug)
+                                                   debug=debug,
+                                                   short_model_name=short_model_name)
 
 class CustomModelProviderDeepSeekOfficial(ModelProvider):
-    def get_model(self, model_name: str | None, debug: bool = True) -> Model:
+    def get_model(self, model_name: str | None, debug: bool = True, short_model_name: str | None = None) -> Model:
         client = AsyncOpenAI(
             api_key=global_configs.deepseek_official_key,
             base_url="https://api.deepseek.com/v1",
         )
         return OpenAIChatCompletionsModelWithRetry(model=model_name, 
                                                    openai_client=client,
-                                                   debug=debug)
+                                                   debug=debug,
+                                                   short_model_name=short_model_name)
 
 model_provider_mapping = {
     "ds_internal": CustomModelProvider,
@@ -512,6 +545,27 @@ API_MAPPINGS = {
         price=[1.25/1000, 10/1000.0],
         concurrency=32,
         context_window=400000,
+        openrouter_config={"provider": {"only": ["openai/default"]}}
+    ),
+    'gpt-5-low': Dict(
+        api_model={"openrouter": "openai/gpt-5"},
+        price=[1.25/1000, 10/1000.0],
+        concurrency=32,
+        context_window=400000,
+        openrouter_config={"provider": {"only": ["openai"]}}
+    ),
+    'gpt-5-medium': Dict(
+        api_model={"openrouter": "openai/gpt-5"},
+        price=[1.25/1000, 10/1000.0],
+        concurrency=32,
+        context_window=400000,
+        openrouter_config={"provider": {"only": ["openai"]}}
+    ),
+    'gpt-5-high': Dict(
+        api_model={"openrouter": "openai/gpt-5"},
+        price=[1.25/1000, 10/1000.0],
+        concurrency=32,
+        context_window=400000,
         openrouter_config={"provider": {"only": ["openai"]}}
     ),
     'gpt-5-mini': Dict(
@@ -520,7 +574,8 @@ API_MAPPINGS = {
                    "openrouter": "openai/gpt-5-mini"},
         price=[0.25/1000,2/1000.0],
         concurrency=32,
-        context_window=400000
+        context_window=400000,
+        openrouter_config={"provider": {"only": ["openai"]}}
     ),
     # 'gpt-5-nano': Dict(
     #     api_model={"ds_internal": "",
@@ -531,24 +586,29 @@ API_MAPPINGS = {
     # ),
     'o4-mini': Dict(
         api_model={"ds_internal": "azure-o4-mini-2025-04-16",
-                   "aihubmix": "o4-mini"},
+                   "aihubmix": "o4-mini",
+                   "openrouter": "openai/o4-mini"},
         price=[0.0011, 0.0044],
         concurrency=32,
-        context_window=200000
+        context_window=200000,
+        openrouter_config={"provider": {"only": ["openai"]}}
     ),
     'o3': Dict(
         api_model={"ds_internal": "?????", # no o3 in ds internal
-                   "aihubmix": "o3"},
+                   "aihubmix": "o3",
+                   "openrouter": "openai/o3"},
         price=[0.010, 0.040],
         concurrency=32,
-        context_window=200000
+        context_window=200000,
+        openrouter_config={"provider": {"only": ["openai"]}}
     ),
     'o3-pro': Dict(
         api_model={"ds_internal": "?????", # no o3-pro in ds internal
                    "aihubmix": "o3-pro"}, # no o3-pro in aihubmix
         price=[0.022, 0.088],
         concurrency=32,
-        context_window=200000
+        context_window=200000,
+        openrouter_config={"provider": {"only": ["openai"]}}
     ),
     'claude-4-sonnet-0514': Dict(
         api_model={"ds_internal": "oai-api-claude-sonnet-4-20250514",
@@ -567,7 +627,8 @@ API_MAPPINGS = {
                    "anthropic": "claude-opus-4-1-20250805"},
         price=[16.5/1000, 82.5/1000],
         concurrency=32,
-        context_window=200000
+        context_window=200000,
+        openrouter_config={"provider": {"only": ["anthropic"]}}
     ),
     'gemini-2.5-pro': Dict(
         api_model={"ds_internal": "cloudsway-gemini-2.5-pro",
@@ -575,7 +636,8 @@ API_MAPPINGS = {
                    "openrouter": "google/gemini-2.5-pro"},
         price=[0.00125, 0.010],
         concurrency=32,
-        context_window=1000000
+        context_window=1000000,
+        openrouter_config={"provider": {"only": ["google-vertex"]}}
     ),
     'gemini-2.5-flash': Dict(
         api_model={"ds_internal": "cloudsway-gemini-2.5-flash",
@@ -583,7 +645,8 @@ API_MAPPINGS = {
                    "openrouter": "google/gemini-2.5-flash"},
         price=[0.00015, 0.0035],
         concurrency=32,
-        context_window=1000000
+        context_window=1000000,
+        openrouter_config={"provider": {"only": ["google-vertex"]}}
     ),
     # 'grok-3-beta': Dict(
     #     api_model={"ds_internal": "grok-3-beta",
@@ -603,7 +666,8 @@ API_MAPPINGS = {
         api_model={"openrouter": "x-ai/grok-4"},
         price=[3/1000, 15/1000],
         concurrency=32,
-        context_window=256000
+        context_window=256000,
+        openrouter_config={"provider": {"only": ["xai"]}}
     ),
     'grok-code-fast-1': Dict(
         api_model={"ds_internal": "grok-code-fast-1",
@@ -611,14 +675,16 @@ API_MAPPINGS = {
                    "openrouter": "x-ai/grok-code-fast-1"},
         price=[0.2/1000, 1.5/1000],
         concurrency=32,
-        context_window=256000
+        context_window=256000,
+        openrouter_config={"provider": {"only": ["xai"]}}
     ),    
     'grok-4-fast': Dict(
         api_model={"ds_internal": None,
                    "openrouter": "x-ai/grok-4-fast:free"},
         price=[0.0/1000, 0.0/1000],
         concurrency=32,
-        context_window=2000000
+        context_window=2000000,
+        openrouter_config={"provider": {"only": ["xai"]}}
     ),
     'kimi-k2-0905': Dict(
         api_model={"ds_internal": None,
@@ -650,14 +716,20 @@ API_MAPPINGS = {
     ),
     "qwen-3-max": Dict(
         api_model={
-            "qwen_official": "qwen3-max-preview",
+            "qwen_official": "qwen3-max-2025-09-23",
             "openrouter": "qwen/qwen3-max"},
         price=[1.2/1000, 6/1000],
         concurrency=32,
         context_window=256000,
+        openrouter_config={"provider": {"only": ["alibaba"]}}
     ),
-    
-    
+    "gpt-oss-120b": Dict(
+        api_model={"openrouter": "openai/gpt-oss-120b"},
+        price=[0.00125, 0.010],
+        concurrency=32,
+        context_window=256000,
+        openrouter_config={"provider": {"only": ["fireworks"]}}
+    ),
 }
 
 set_tracing_disabled(disabled=True)
