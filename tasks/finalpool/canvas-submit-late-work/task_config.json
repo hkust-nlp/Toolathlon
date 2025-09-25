@@ -6,9 +6,9 @@
     "emails"
   ],
   "needed_local_tools": [
-    "claim_done",
     "python_execute",
     "manage_context",
+    "handle_overlong_tool_outputs",
     "history"
   ],
   "meta": {}

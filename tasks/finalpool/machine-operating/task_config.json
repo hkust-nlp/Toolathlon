@@ -8,6 +8,7 @@
     "python_execute",
     "handle_overlong_tool_outputs",
     "manage_context",
-    "history"
+    "history",
+    "claim_done"
   ]
 }

@@ -290,7 +290,8 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                         'message too long',
                         'prompt is too long',
                         'maximum number of tokens',
-                        r'This model\'s maximum prompt length is' # for xAI model
+                        r'This model\'s maximum prompt length is', # for xAI model
+                        'Your request exceeded model token limit: ' # for kimi
                     ]):
                         context_too_long = True
                         
@@ -314,6 +315,11 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                         match = re.search(r'This model\'s maximum prompt length is (\d+).*request contains (\d+)', error_str)
                         if match:
                             max_tokens, current_tokens = int(match.group(1)), int(match.group(2))
+                        
+                        # 模式5: kimi
+                        match = re.search(r'Your request exceeded model token limit: (\d+)', error_str)
+                        if match:
+                            max_tokens = int(match.group(1))
                 
                 # 2. 尝试解析结构化错误（如果是 OpenAI API 错误对象）
                 if hasattr(e, 'response') and hasattr(e.response, 'json'):
@@ -345,6 +351,7 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                         'exceeds maximum',
                         'exceeds the maximum',
                         'prompt is too long',
+                        'Your request exceeded model token limit: ',
                     ]):
                         context_too_long = True
                 
@@ -538,6 +545,27 @@ API_MAPPINGS = {
         price=[1.25/1000, 10/1000.0],
         concurrency=32,
         context_window=400000,
+        openrouter_config={"provider": {"only": ["openai/default"]}}
+    ),
+    'gpt-5-low': Dict(
+        api_model={"openrouter": "openai/gpt-5"},
+        price=[1.25/1000, 10/1000.0],
+        concurrency=32,
+        context_window=400000,
+        openrouter_config={"provider": {"only": ["openai"]}}
+    ),
+    'gpt-5-medium': Dict(
+        api_model={"openrouter": "openai/gpt-5"},
+        price=[1.25/1000, 10/1000.0],
+        concurrency=32,
+        context_window=400000,
+        openrouter_config={"provider": {"only": ["openai"]}}
+    ),
+    'gpt-5-high': Dict(
+        api_model={"openrouter": "openai/gpt-5"},
+        price=[1.25/1000, 10/1000.0],
+        concurrency=32,
+        context_window=400000,
         openrouter_config={"provider": {"only": ["openai"]}}
     ),
     'gpt-5-low': Dict(
@@ -709,12 +737,16 @@ API_MAPPINGS = {
     ),
     "qwen-3-max": Dict(
         api_model={
-            "qwen_official": "qwen3-max-preview",
+            "qwen_official": "qwen3-max-2025-09-23",
             "openrouter": "qwen/qwen3-max"},
         price=[1.2/1000, 6/1000],
         concurrency=32,
         context_window=256000,
+<<<<<<< HEAD
         openrouter_config={"provider": {"only": ["qwen/qwen3-max"]}}
+=======
+        openrouter_config={"provider": {"only": ["alibaba"]}}
+>>>>>>> 17197ec5a78c6477595059e9761f21687513b153
     ),
     "gpt-oss-120b": Dict(
         api_model={"openrouter": "openai/gpt-oss-120b"},

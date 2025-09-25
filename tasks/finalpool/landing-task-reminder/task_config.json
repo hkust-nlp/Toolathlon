@@ -8,7 +8,8 @@
   "needed_local_tools": [
     "claim_done",
     "manage_context",
-    "history"
+    "history",
+    "handle_overlong_tool_outputs"
   ],
   "meta": {}
 }
