@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Configuration Variables - Modify as needed
-TASKS_FOLDER="finalpool"
+
 TAG="subset"
 
 # Parse input arguments for model_name and dump_path
@@ -14,7 +14,7 @@ USER_MODEL_PROVIDER="aihubmix"
 
 MAX_STEPS="100"
 MAX_TURNS="50"
-WORKERS="1"
+WORKERS="10"
 TIMEOUT="2400"
 TEMPERATURE="0.6"
 TOP_P="1"
@@ -27,6 +27,9 @@ IMAGE_NAME="lockon0927/mcpbench-task-image-v2:jl0921alpha"  # Docker image to us
 mkdir -p $DUMP_PATH
 
 DATESTR=$4
+
+NUM_ADDED_SERVERS=$5
+TASKS_FOLDER="finalpool_add_unrelated_mcps_${NUM_ADDED_SERVERS}"
 
 # Optional parameters - uncomment and modify as needed
 TASK_LIST="filtered_tasks_parallel_${DATESTR}.txt"

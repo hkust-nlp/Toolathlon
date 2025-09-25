@@ -1,0 +1,24 @@
+{
+    "type": "entity",
+    "entityType": "Person",
+    "name": "MCPWang",
+    "observations": [
+        "Student ID: 2201210606",
+        "Email: mcptest0606@gmail.com",
+        "Address: Building 1, Unit 2, Haidian Road Community",
+        "Major: Computer Science and Technology",
+        "Hobbies: Programming, Reading, Basketball",
+        "Graduation year: 2027",
+        "GPA: 3.8",
+        "University: ABC University",
+        "Degree: Bachelor's",
+        "Education period: 2023-09 to 2027-06",
+        "Currently pursuing: Master's degree",
+        "Health condition: Gout, cannot eat seafood",
+        "Daily routine: Regular schedule",
+        "Mental health: Healthy",
+        "Personality: Lively",
+        "Swimming ability: Cannot swim",
+        "Birthday: 2000-01-01"
+    ]
+}

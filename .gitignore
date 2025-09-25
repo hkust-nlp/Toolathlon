@@ -67,3 +67,8 @@ recorded_trajectories_v2
 
 dumps_for_mcp_check/
 dumps_finalexp/
+dumps_finalexp_ytb/
+dumps_ablation_ytb/
+
+scripts/temp_parallel_config*
+tasks/finalpool_add_unrelated_mcps_*

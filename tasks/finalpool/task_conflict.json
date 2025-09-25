@@ -1,6 +1,7 @@
 {
     "conflict_groups": [
         ["set-conf-cr-ddl", "student-interview"],
-        ["huggingface-upload","dataset-license-issue"]
+        ["huggingface-upload","dataset-license-issue"],
+        ["woocommerce-customer-survey","woocommerce-product-recall"]
     ]
 }

@@ -63,6 +63,8 @@ def generate_enhanced_stats(dump_path, tasks_folder, temp_config, task_list_file
     print(f'📊 Processing {len(status_files)} status files...')
 
     for status_file in status_files:
+        # print(f'Processing {status_file}...')
+        task_name = extract_task_name(status_file, tasks_folder)
         try:
             eval_file = status_file.replace('status.json', 'eval_res.json')
             if os.path.exists(eval_file):
@@ -70,7 +72,7 @@ def generate_enhanced_stats(dump_path, tasks_folder, temp_config, task_list_file
                     eval_data = json.load(f)
 
                 # Extract task name from path
-                task_name = extract_task_name(eval_file, tasks_folder)
+                # task_name = extract_task_name(eval_file, tasks_folder)
 
                 # Check if task passed (原有逻辑保持不变)
                 if eval_data.get('pass', False):
@@ -106,11 +108,12 @@ def generate_enhanced_stats(dump_path, tasks_folder, temp_config, task_list_file
                     elif running_status is None:
                         tasks_with_running_null.append(task_name)
 
-                    if evaluation_status == 'pass':
-                        tasks_with_evaluation_pass.append(task_name)
-                    elif evaluation_status == 'fail':
-                        tasks_with_evaluation_fail.append(task_name)
-                    elif evaluation_status is None:
+                    if evaluation_status is not None:
+                        if evaluation_status:
+                            tasks_with_evaluation_pass.append(task_name)
+                        else:
+                            tasks_with_evaluation_fail.append(task_name)
+                    else:
                         tasks_with_evaluation_null.append(task_name)
 
                 except Exception as e:

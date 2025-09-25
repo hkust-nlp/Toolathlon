@@ -1,0 +1,15 @@
+{
+  "时间戳记": "2025-7-4 下午02:19:54",
+  "Name": "MCPWang",
+  "StudentID": "2201210606",
+  "Please name the homework from June 10th in the format: Name-StudentID-NLP1.pdf, and submit it via the link below.": "MCPWang-2201210606-NLP1 - Doe John.pdf",
+  "Please name the homework from June 20th in the format: Name-StudentID-NLP2.doc\n, and submit it via the link below.": "MCPWang-2201210606-NLP2 - Doe John.doc",
+  "Please compress the two Excel files from June 30th into a ZIP file, rename it as Name-StudentID-NLP3.zip, and upload it via the link below.": {
+    "zip_file_name": "MCPWang-2201210606-NLP3 - Doe John.zip",
+    "contained_files": [
+      "06-30-nlp-homework-1.xlsx",
+      "06-30-nlp-homework-2.xlsx"
+    ]
+  },
+  "Do not fill in this information unless you are unable to submit the assignment on time. Please provide the reason for the delay here.": null
+}
