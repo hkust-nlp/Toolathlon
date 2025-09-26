@@ -5,7 +5,5 @@ all_token_key_session = Dict(
     woocommerce_api_key = "ck_woocommerce_token_emma_206rnIn",
     woocommerce_api_secret = "cs_woocommerce_token_emma_206rnIn",
     woocommerce_site_url = "http://localhost:10003/store81",
-    woocommerce_admin_username = "mcpwoocommerce",
-    woocommerce_admin_password = "mcpwoocommerce",
     woocommerce_config_file = os.path.join(os.path.dirname(__file__), "woocommerce_config.json"),
 )

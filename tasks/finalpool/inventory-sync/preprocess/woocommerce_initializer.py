@@ -25,111 +25,35 @@ class WooCommerceStoreInitializer:
     
     def __init__(self):
         """
-        初始化器
-        
-        Args:
-            site_url: WooCommerce网站URL
-            username: WooCommerce管理员用户名
-            password: WooCommerce管理员密码
+        初始化器 - 使用预配置的API密钥
         """
         self.site_url = all_token_key_session.woocommerce_site_url.rstrip('/')
-        self.username = all_token_key_session.woocommerce_admin_username
-        self.password = all_token_key_session.woocommerce_admin_password
         self.wc_client = None
         self.consumer_key = None
         self.consumer_secret = None
-        
+
         print(f"🚀 初始化WooCommerce商店: {self.site_url}")
     
     def setup_api_credentials(self) -> Tuple[bool, str]:
         """
-        设置API凭据 - 通过WordPress REST API创建WooCommerce API密钥
+        设置API凭据 - 直接使用预配置的API密钥
         """
-        print("🔑 设置API凭据...")
-        
-        # 首先尝试通过WordPress REST API登录
-        login_url = f"{self.site_url}/wp-json/jwt-auth/v1/token"
-        login_data = {
-            "username": self.username,
-            "password": self.password
-        }
-        
-        try:
-            response = requests.post(login_url, json=login_data)
-            if response.status_code == 200:
-                token_data = response.json()
-                jwt_token = token_data.get('token')
-                print("✅ JWT认证成功")
-                
-                # 使用JWT token创建WooCommerce API密钥
-                return self._create_wc_api_keys(jwt_token)
-            else:
-                # 如果JWT不可用，尝试基础认证方式
-                print("⚠️ JWT认证不可用，尝试其他方式...")
-                return self._create_api_keys_basic_auth()
-                
-        except Exception as e:
-            print(f"❌ API凭据设置失败: {e}")
-            return False, str(e)
-    
-    def _create_wc_api_keys(self, jwt_token: str) -> Tuple[bool, str]:
-        """使用JWT token创建WooCommerce API密钥"""
-        api_keys_url = f"{self.site_url}/wp-json/wc/v3/system_status/tools/create_api_key"
-        
-        headers = {
-            "Authorization": f"Bearer {jwt_token}",
-            "Content-Type": "application/json"
-        }
-        
-        key_data = {
-            "description": "Multi-City Inventory Sync System",
-            "user_id": 1,  # 管理员用户ID
-            "permissions": "read_write"
-        }
-        
-        try:
-            response = requests.post(api_keys_url, json=key_data, headers=headers)
-            if response.status_code == 200:
-                api_data = response.json()
-                self.consumer_key = api_data.get('consumer_key')
-                self.consumer_secret = api_data.get('consumer_secret')
-                
-                print(f"✅ API密钥创建成功")
-                print(f"   Consumer Key: {self.consumer_key[:20]}...")
-                print(f"   Consumer Secret: {self.consumer_secret[:20]}...")
-                
-                # 初始化WooCommerce客户端
-                self.wc_client = WooCommerceClient(
-                    self.site_url, 
-                    self.consumer_key, 
-                    self.consumer_secret
-                )
-                
-                return True, "API密钥创建成功"
-            else:
-                return False, f"API密钥创建失败: {response.text}"
-                
-        except Exception as e:
-            return False, f"创建API密钥时出错: {e}"
-    
-    def _create_api_keys_basic_auth(self) -> Tuple[bool, str]:
-        """使用基础认证创建API密钥（备用方法）"""
-        print("🔧 使用基础认证方式...")
-        
+        print("🔑 使用预配置的API凭据...")
+
         consumer_key = all_token_key_session.woocommerce_api_key
         consumer_secret = all_token_key_session.woocommerce_api_secret
-        
+
         if consumer_key and consumer_secret:
             self.consumer_key = consumer_key
             self.consumer_secret = consumer_secret
-            
+
             # 初始化WooCommerce客户端
             self.wc_client = WooCommerceClient(
-                self.site_url, 
-                self.consumer_key, 
+                self.site_url,
+                self.consumer_key,
                 self.consumer_secret
             )
-            
+
             # 测试API连接
             success, response = self.wc_client.list_products(per_page=1)
             if success:
@@ -140,6 +64,7 @@ class WooCommerceStoreInitializer:
                 return False, "API连接测试失败"
         else:
             return False, "未提供有效的API密钥"
+    
     
     def create_product_categories(self) -> Dict[str, int]:
         """创建商品分类"""

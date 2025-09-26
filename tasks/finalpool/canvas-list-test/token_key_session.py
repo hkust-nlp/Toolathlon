@@ -6,7 +6,6 @@ all_token_key_session = Dict(
  # use local deployed ones, or set up your own token to control
     canvas_user_name = "ryan.brown93@mcp.com",
     canvas_api_token = "canvas_token_BryapivvLK7C",
-    canvas_domain = "localhost:20001",
     admin_canvas_token = "mcpcanvasadmintoken2"
  
 )

@@ -4,7 +4,9 @@ agent_workspace=$2
 
 # 设置变量
 k8sconfig_path_dir=${agent_workspace}/k8s_configs
-backup_k8sconfig_path_dir=deployment/k8s/configs
+# backup_k8sconfig_path_dir=deployment/k8s/configs
+backup_k8sconfig_path_dir=${SCRIPT_DIR}/../k8s_configs
+mkdir -p $backup_k8sconfig_path_dir
 cluster_name="cluster-cleanup"
 
 # 获取当前文件的父目录

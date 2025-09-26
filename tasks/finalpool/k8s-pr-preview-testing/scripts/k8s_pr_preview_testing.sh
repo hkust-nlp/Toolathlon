@@ -5,7 +5,9 @@ agent_workspace=$3
 # 设置变量
 PORT=${1:-30123}  # 默认端口30123，可通过第一个参数覆盖
 k8sconfig_path_dir=${agent_workspace}/k8s_configs
-backup_k8sconfig_path_dir=deployment/k8s/configs
+# backup_k8sconfig_path_dir=deployment/k8s/configs
+backup_k8sconfig_path_dir=${SCRIPT_DIR}/../k8s_configs
+mkdir -p $backup_k8sconfig_path_dir
 cluster_name="cluster-pr-preview"
 
 podman_or_docker=$(uv run python -c "import sys; sys.path.append('configs'); from global_configs import global_configs; print(global_configs.podman_or_docker)")

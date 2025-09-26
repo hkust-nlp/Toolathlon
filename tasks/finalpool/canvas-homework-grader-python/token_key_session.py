@@ -6,6 +6,5 @@ import os
 all_token_key_session = Dict(
     admin_canvas_api_token = "mcpcanvasadmintoken1",
     canvas_api_token = "canvas_token_TT1021#WQtww",
-    canvas_domain = "localhost:20001",
     emails_config_file = os.path.join(os.path.dirname(__file__), "email_config.json")
 )

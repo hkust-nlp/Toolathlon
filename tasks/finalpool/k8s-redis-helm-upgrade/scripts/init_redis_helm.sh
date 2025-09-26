@@ -4,7 +4,9 @@ agent_workspace=$3
 
 # 设置变量
 k8sconfig_path_dir=${agent_workspace}/k8s_configs
-backup_k8sconfig_path_dir=deployment/k8s/configs
+# backup_k8sconfig_path_dir=deployment/k8s/configs
+backup_k8sconfig_path_dir=${SCRIPT_DIR}/../k8s_configs
+mkdir -p $backup_k8sconfig_path_dir
 cluster_name="cluster-redis-helm"
 resource_yaml="${agent_workspace}/k8s_configs/redis_helm_namespace.yaml"
 helm_repo_name="bitnami"

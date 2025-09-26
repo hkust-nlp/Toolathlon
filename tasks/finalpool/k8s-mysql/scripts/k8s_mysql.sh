@@ -6,7 +6,9 @@ agent_workspace=$2
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 k8sconfig_path_dir=${agent_workspace}/k8s_configs
-backup_k8sconfig_path_dir=deployment/k8s/configs
+# backup_k8sconfig_path_dir=deployment/k8s/configs
+backup_k8sconfig_path_dir=${SCRIPT_DIR}/../k8s_configs
+mkdir -p $backup_k8sconfig_path_dir
 cluster_name="cluster-mysql"
 
 resource_yaml="${SCRIPT_DIR}/../k8s_resources/k8s_mysql.yaml"

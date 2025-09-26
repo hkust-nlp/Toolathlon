@@ -69,11 +69,9 @@ from utils.app_specific.canvas import CanvasAPI, AnnouncementManager, QuizManage
 from utils.app_specific.canvas.tools import delete_all_courses as tool_delete_all_courses
 
 CANVAS_API_TOKEN = all_token_key_session.admin_canvas_token
-CANVAS_DOMAIN = all_token_key_session.canvas_domain
 CANVAS_USER_NAME = all_token_key_session.canvas_user_name
 CANVAS_USER_TOKEN = all_token_key_session.canvas_api_token
 os.environ["CANVAS_API_TOKEN"] = CANVAS_API_TOKEN
-os.environ["CANVAS_DOMAIN"] = CANVAS_DOMAIN
 
 # Configure logging
 logging.basicConfig(

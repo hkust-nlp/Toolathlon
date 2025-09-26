@@ -8,8 +8,4 @@ all_token_key_session = Dict(
     google_cloud_allowed_bigquery_datasets = "all_transactions",
     google_cloud_allowed_log_buckets = "null",
     google_cloud_allowed_instances = "null",
-    
-    # GCP project & service account used by this task
-    gcp_project_id = "mcp-bench0606",
-    gcp_service_account_path = "configs/gcp-service_account.keys.json",
 )

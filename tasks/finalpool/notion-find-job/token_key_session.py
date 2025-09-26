@@ -6,13 +6,15 @@ import os
 # find theabs path of this file
 file_path = os.path.abspath(__file__)
 
+emails_config_file = os.path.join(os.path.dirname(file_path), "emails_config.json")
 allowed_page_id_file = os.path.join(os.path.dirname(file_path), "files", "duplicated_page_id.txt")
+
 with open(allowed_page_id_file, "r") as f:
     allowed_page_ids = f.read()
 
 all_token_key_session = Dict(
     # poste emails
-    emails_config_file = "tasks/finalpool/notion-find-job/emails_config.json",
+    emails_config_file = emails_config_file,
     # notion
     notion_allowed_page_ids = allowed_page_ids
 )
