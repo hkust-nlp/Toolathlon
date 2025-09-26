@@ -11,7 +11,7 @@ from utils.app_specific.googlesheet.drive_helper import (
 )
 
 GOOGLESHEET_URLS = [
-    "https://docs.google.com/spreadsheets/d/1P-Nxq3u-sIJHT6ivZp-FuBgRegMui4dDFeH5bCQUuH4/edit?gid=447797205#gid=447797205"
+    "https://docs.google.com/spreadsheets/d/1O-KvQDZP0qsrAZ55b9IYwrslXq4rcWzO7OZtCn39e_U/edit?usp=sharing"
 ]
 
 FOLDER_NAME = "music-analysis"

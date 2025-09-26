@@ -25,11 +25,11 @@ GITHUB_TOKEN = global_token_key_session.github_token
 READONLY = False
 FORKING_LIST = [
     # source repo, fork_default_branch_only
-    ("lockon-n/My-Homepage", True),
-    ("lockon-n/optimizing-llms-contextual-reasoning", True),
-    ("lockon-n/llm-adaptive-learning", True),
-    ("lockon-n/ipsum-lorem-all-you-need", True),
-    ("lockon-n/enhancing-llms", True),
+    ("Toolathlon-Archive/My-Homepage", True),
+    ("Toolathlon-Archive/optimizing-llms-contextual-reasoning", True),
+    ("Toolathlon-Archive/llm-adaptive-learning", True),
+    ("Toolathlon-Archive/ipsum-lorem-all-you-need", True),
+    ("Toolathlon-Archive/enhancing-llms", True),
 ]
 
 def to_importable_emails_format(legacy_emails, receiver_email: str, today_file_path: str):

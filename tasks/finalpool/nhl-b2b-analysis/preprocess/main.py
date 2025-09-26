@@ -11,7 +11,7 @@ from utils.app_specific.googlesheet.drive_helper import (
 )
 
 GOOGLESHEET_URLS = [
-    "https://docs.google.com/spreadsheets/d/1a0zqLuJz9e1iXadU911MTrr5Jh_Vaq6zWVt6eeBYb9Q/edit?gid=1113684723#gid=1113684723"
+    "https://docs.google.com/spreadsheets/d/12k3WVBDyglnqIBnY1782AKLvL04IC_oI-5nxGleh6Gw/edit?usp=sharing"
 ]
 
 FOLDER_NAME = "NHL-B2B-Analysis"

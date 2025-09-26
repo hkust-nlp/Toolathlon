@@ -19,7 +19,7 @@ from utils.app_specific.huggingface.datasets import (
 )
 
 GITHUB_REPO_NAME = "LUFFY"
-SOURCE_REPO_NAME = f"lockon-n/{GITHUB_REPO_NAME}"
+SOURCE_REPO_NAME = f"Toolathlon-Archive/{GITHUB_REPO_NAME}"
 
 async def main():
     parser = ArgumentParser()

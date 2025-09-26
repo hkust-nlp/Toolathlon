@@ -11,7 +11,7 @@ from utils.app_specific.googlesheet.drive_helper import (
 )
 
 GOOGLESHEET_URLS = [
-    "https://docs.google.com/spreadsheets/d/12Lv4lRZYFAl4kqw5BaG7ioTSGLHKUS3_qXyxjFQQUHk"
+    "https://docs.google.com/spreadsheets/d/1USjrHiFIUuPQCBflwoTpe5VLEVFc2FCYbKt7JxGKGFw/edit?usp=sharing"
 ]
 
 FOLDER_NAME = "vlm-history-completer"

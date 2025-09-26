@@ -15,7 +15,7 @@ from utils.app_specific.googlesheet.drive_helper import (
 )
 
 GOOGLESHEET_URLS = [
-    "https://docs.google.com/spreadsheets/d/1S9BFFHU262CjU87DnGFfP_LMChhAT4lx7uNvwY-7HoI",
+    "https://docs.google.com/spreadsheets/d/1wDBqVX9duqdPR0P1t_ExSgSOtS-1M3NOpIFaJZQacNI/edit?usp=sharing",
 ]
 
 FOLDER_NAME = "update-material-inventory"

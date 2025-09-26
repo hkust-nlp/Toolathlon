@@ -11,7 +11,7 @@ from utils.app_specific.googlesheet.drive_helper import (
 )
 
 GOOGLESHEET_URLS = [
-    "https://docs.google.com/spreadsheets/d/1l_XCK3ebOsKESX-SRamka0Z_O2K5Y2REqo6OHh4C93c",
+    "https://docs.google.com/spreadsheets/d/10gld103ZdIZvCUFwn9-vrkgOElzI37JqYBAK5rBQt1Y/edit?usp=sharing",
 ]
 
 FOLDER_NAME = "gdp-cr5-analysis"

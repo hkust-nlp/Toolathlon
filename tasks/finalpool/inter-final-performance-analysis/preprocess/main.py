@@ -17,7 +17,7 @@ from utils.app_specific.googlesheet.drive_helper import (
 )
 
 # 源Google Sheet URL (需要复制的模板)
-SOURCE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1MQtSSQyw3IUhZvryZ5xcroxI31Gw-Ey7viumkaIZaaY"
+SOURCE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1fKZ2b4R5kFgxGFis9UuJV2ANxth0Kdu_ifK8krlui4o/edit?usp=sharing"
 
 # 目标文件夹名称
 FOLDER_NAME = "inter-ucl-final2325"

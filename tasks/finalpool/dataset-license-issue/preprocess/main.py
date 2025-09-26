@@ -19,7 +19,7 @@ from utils.app_specific.huggingface.datasets import (
 )
 
 GITHUB_REPO_NAME = "Annoy-DataSync"
-SOURCE_REPO_NAME = f"lockon-n/{GITHUB_REPO_NAME}"
+SOURCE_REPO_NAME = f"Toolathlon-Archive/{GITHUB_REPO_NAME}"
 HF_DATASET_REASONING_SUFFIX = "Annoy-PyEdu-Rs" 
 HF_DATASET_RAW_SUFFIX = "Annoy-PyEdu-Rs-Raw"
 

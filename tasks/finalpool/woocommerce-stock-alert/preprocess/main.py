@@ -32,7 +32,7 @@ from utils.app_specific.poste.local_email_manager import LocalEmailManager
 from token_key_session import all_token_key_session
 
 # Target Google Sheet URL and folder configuration
-GOOGLESHEET_URL = "https://docs.google.com/spreadsheets/d/19q_G5MMKpfRIblnR3_4613BtQDuFR0lNIE7UqsW7nbg"
+GOOGLESHEET_URL = "https://docs.google.com/spreadsheets/d/1cMNmXLps78jD-_5bYZlQRitx7mHXagInEHLWW2cBwEY/edit?usp=sharing"
 FOLDER_NAME = "woocommerce-stock-alert"
 
 

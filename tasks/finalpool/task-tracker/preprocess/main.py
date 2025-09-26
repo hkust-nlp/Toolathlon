@@ -18,7 +18,7 @@ from utils.general.helper import run_command, print_color, fork_repo
 READONLY = False
 FORKING_LIST = [
     # source repo, fork_default_branch_only
-    ("lockon-n/BenchTasksCollv3", False)
+    ("Toolathlon-Archive/BenchTasksCollv3", False)
 ]
 NEEDED_SUBPAGE_NAME = "Task Tracker"
 

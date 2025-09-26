@@ -11,7 +11,7 @@ from utils.app_specific.googlesheet.drive_helper import (
 )
 
 GOOGLESHEET_URLS = [
-    "https://docs.google.com/spreadsheets/d/1QS43S-zMg0JozNfBOwBQOKsYwTsMLBDSMj5Jrdk1BdE/edit?gid=0#gid=0"
+    "https://docs.google.com/spreadsheets/d/1Vs0uhbqvUvV9r7jOBoANvD7Vy1AXzkHQMnns2zOL0Ps/edit?usp=sharing"
 ]
 
 FOLDER_NAME = "llm-training-dataset"

@@ -12,7 +12,7 @@ from utils.app_specific.googlesheet.drive_helper import (
 )
 
 GOOGLESHEET_URLS = [
-    "https://docs.google.com/spreadsheets/d/1IPfh0QqoSmXM1YRh4a3RAFnokMHqejPWpVX_Ijd50YE",
+    "https://docs.google.com/spreadsheets/d/1Edaz5Aie3HnxrKEaMdjyuFm04O_P8pEx_pp9nm8GCrA/edit?usp=sharing",
 ]
 
 FOLDER_NAME = "K8sSafetyAudit"

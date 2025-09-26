@@ -9,11 +9,11 @@ from utils.app_specific.github.helper_funcs import read_file_content, get_latest
 from configs.token_key_session import all_token_key_session
 
 UPSTREAM_GIT_REPOS = [
-    "lockon-n/My-Homepage",
-    "lockon-n/optimizing-llms-contextual-reasoning",
-    "lockon-n/llm-adaptive-learning",
-    "lockon-n/ipsum-lorem-all-you-need",
-    "lockon-n/enhancing-llms",
+    "Toolathlon-Archive/My-Homepage",
+    "Toolathlon-Archive/optimizing-llms-contextual-reasoning",
+    "Toolathlon-Archive/llm-adaptive-learning",
+    "Toolathlon-Archive/ipsum-lorem-all-you-need",
+    "Toolathlon-Archive/enhancing-llms",
 ]
 
 
