@@ -17,6 +17,7 @@ CONFIG_DIR="$(pwd)/deployment/poste/configs"
 
 # 获取命令参数
 COMMAND=${1:-start}  # 默认为 start
+CONFIGURE_DOVECOT=${2:-true} # 默认为true，反正我在ubuntu上是要开的
 
 # 停止和删除容器的函数
 stop_container() {
@@ -183,7 +184,9 @@ case "$COMMAND" in
     perform_cleanup
     start_container
     sleep 30
-    configure_dovecot
+    if [ "$CONFIGURE_DOVECOT" = "true" ]; then
+      configure_dovecot
+    fi
     create_accounts
     ;;
   stop)
@@ -195,7 +198,9 @@ case "$COMMAND" in
     perform_cleanup
     start_container
     sleep 30
-    configure_dovecot
+    if [ "$CONFIGURE_DOVECOT" = "true" ]; then
+      configure_dovecot
+    fi
     create_accounts
     ;;
   clean)

@@ -19,3 +19,9 @@ cp ./configs/google_credentials.json  ~/.gmail-mcp/credentials.json
 sudo sysctl fs.inotify.max_user_watches=1048576
 sudo sysctl fs.inotify.max_user_instances=16384
 sudo sysctl fs.inotify.max_queued_events=16384
+#### or you can also edit /etc/sysctl.conf to make it permanent
+# echo fs.inotify.max_user_watches=1048576 | sudo tee -a /etc/sysctl.conf
+# echo fs.inotify.max_user_instances=16384 | sudo tee -a /etc/sysctl.conf
+# echo fs.inotify.max_queued_events=16384 | sudo tee -a /etc/sysctl.conf
+# sudo sysctl -p
+####

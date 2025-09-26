@@ -1,4 +1,4 @@
-> TBD, in this document we will teach the public how to register all needed accounts and how to fill in the token_key_session.py from these account info
+In this document we will teach the public how to register all needed accounts and how to fill in the token_key_session.py from these account info
 
 
 ### Part1 Overview
@@ -7,14 +7,14 @@ In part 1, we will introduce all accounts needed in launching this project
 #### Remote Ones
 - google account x 1
     - to generate credentials
-    - to generate youtube key
-    - to generate google map key
+    - to generate api key
+    - to generate service account
 - github account x 1
     - to generate github tokens
 - wandb account x 1
     - to generate wandb token
 - notion account x 1
-    - TBD
+    - to generate connection secrets
 - snowflake account x 1
     - to collect account, warehouse, etc
 - huggingface account x 1
@@ -23,6 +23,10 @@ In part 1, we will introduce all accounts needed in launching this project
 #### Local Ones
 All local accounts will be automatically created after you `bash global_preparation/deploy_containers.sh`
 see `configs/users_data.json` for all accounts we will create
+
+We by default register all the accounts in `config/users_data.json` to Canvas and Poste, and we will register the #81 to #100 accounts to woocommerce and create a subsite for each of them.
+
+The following are the admin accounts for each of the three applications:
 
 - Poste email service
     - Admin: email = mcpposte_admin@mcp.com , password = mcpposte
@@ -156,22 +160,6 @@ see `configs/users_data.json` for all accounts we will create
     ![](./figures/gcp_serviceaccount_part4.png)
     Then rename and move the downloaded key json file to `configs/gcp-service_account.keys.json`
 
-#### Google Auth State for Playwright
-Some of the tasks needs google login state for playwright. We prepare a script for it.
-
-The script is `global_preparation/create_google_state.py`.
-
-Copy this script to a normal PC, like your laptop.
-
-You will find a `browser_path` in line 5, please fill in it with the actual chrome executable path on your PC.
-
-Then run `python create_google_state.py`, make sure the python executable you use have `playwright` installed. Please just follow the instructions of the script. (We strongly encouraged you to set up a small uv project to handle this.)
-
-It will save a `google_auth_state.json` at the same path your run this script.
-
-Finally, copy this file to `configs/google_auth_state.json`
-
-
 #### Github Account
 We recommand register a new github account, and generate a full premission read-write token for this account (see https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens or directly https://github.com/settings/tokens/new).
 Paste the read-write token to the `github_token` variable in `configs/token_key_session.py`
@@ -192,7 +180,7 @@ We recommand register a new notion account and create a new workspace.
 
 First run `uv run utils/app_specific/notion/notion_login_helper.py --headless` to generate a `notion_state.json` under the `configs`, please just follow the instructions from the script, this is a one-time effort.
 
-Please duplicate the public page [Notion Source Page](...) (we will fill in later) to your workspace,
+Please duplicate the public page [Notion Source Page](https://amazing-wave-b38.notion.site/Notion-Source-Page-27ad10a48436805b9179fdaff2f65be2) to your workspace,
 record the url of this duplicated page (not our public page) as the `source_notion_page_url` variable in `configs/token_key_session.py`
 
 Please also create a new page called `Notion Eval Page` directly under your workspace,
