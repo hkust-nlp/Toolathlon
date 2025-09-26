@@ -26,10 +26,8 @@ IMAGE_NAME="lockon0927/mcpbench-task-image-v2:jl0921alpha"  # Docker image to us
 
 mkdir -p $DUMP_PATH
 
-DATESTR=$4
-
 # Optional parameters - uncomment and modify as needed
-TASK_LIST="filtered_tasks_parallel_${DATESTR}.txt"
+TASK_LIST=$4
 
 
 # Generate temporary config file with random suffix to avoid conflicts

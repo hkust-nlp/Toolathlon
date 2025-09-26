@@ -383,25 +383,11 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                 
                 await asyncio.sleep(self.retry_delay)
 
-class CustomModelProvider(ModelProvider):
-    def get_model(self, model_name: str | None, debug: bool = True, short_model_name: str | None = None) -> Model:
-        client = AsyncOpenAI(
-            api_key=global_configs.ds_key,
-            base_url=global_configs.base_url_ds
-        ) if model_name == 'deepseek-chat' or model_name == 'deepseek-reasoner' else AsyncOpenAI(
-            api_key=global_configs.non_ds_key,
-            base_url=global_configs.base_url_non_ds,
-        )
-        return OpenAIChatCompletionsModelWithRetry(model=model_name, 
-                                                   openai_client=client,
-                                                   debug=debug,
-                                                   short_model_name=short_model_name)
-
 class CustomModelProviderAiHubMix(ModelProvider):
     def get_model(self, model_name: str | None, debug: bool = True, short_model_name: str | None = None) -> Model:
         client = AsyncOpenAI(
-            api_key=global_configs.non_ds_key,
-            base_url=global_configs.base_url_non_ds,
+            api_key=global_configs.aihubmix_key,
+            base_url="https://aihubmix.com/v1",
         )
         return OpenAIChatCompletionsModelWithRetry(model=model_name, 
                                                    openai_client=client,
@@ -477,7 +463,6 @@ class CustomModelProviderDeepSeekOfficial(ModelProvider):
                                                    short_model_name=short_model_name)
 
 model_provider_mapping = {
-    "ds_internal": CustomModelProvider,
     "aihubmix": CustomModelProviderAiHubMix,
     "anthropic": CustomModelProviderAnthropic,
     "local_vllm": CustomModelProviderLocalVLLM,

@@ -23,8 +23,8 @@ logger = logging.getLogger(__name__)
 
 # launch a AsyncOpenAIClientWithRetry instance
 client = AsyncOpenAIClientWithRetry( # FIXME: hardcoded now, should be dynamic
-    api_key=global_configs.non_ds_key,
-    base_url=global_configs.base_url_non_ds,
+    api_key=global_configs.aihubmix_key,
+    base_url="https://aihubmix.com/v1",
     provider="aihubmix",  
 )
 

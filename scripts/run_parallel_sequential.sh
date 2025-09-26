@@ -17,12 +17,12 @@ MODEL_PROVIDER_LIST=(
     # "gpt-5|openrouter"
     # "qwen-3-max|openrouter"
     # "claude-4.1-opus-0805|openrouter"
-    "gpt-5-high|openrouter"
+    # "gpt-5-high|openrouter"
     # "gpt-5-medium|openrouter"
     # "gpt-5-low|openrouter"
 )
 
-DATESTR="09211710"
+TASK_LIST_FILE="./filtered_tasks.txt"
 
 for attempt in {1..3}; do
     for model_provider in "${MODEL_PROVIDER_LIST[@]}"; do
@@ -34,6 +34,6 @@ for attempt in {1..3}; do
 
         # bash global_preparation/deploy_containers.sh
         # kind delete clusters --all
-        bash scripts/run_parallel_jh.sh "$MODEL_SHORT_NAME" "./dumps_finalexp/${MODEL_SHORT_NAME}_${DATESTR}_${attempt}" "$PROVIDER" "$DATESTR"
+        bash scripts/run_parallel_jh.sh "$MODEL_SHORT_NAME" "./dumps_finalexp/${MODEL_SHORT_NAME}_${attempt}" "$PROVIDER" "$TASK_LIST_FILE"
     done
 done

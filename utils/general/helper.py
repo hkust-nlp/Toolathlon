@@ -543,8 +543,8 @@ async def specifical_inialize_for_mcp(task_config):
 def build_user_client(user_config: UserConfig) -> AsyncOpenAIClientWithRetry:
     """构建用户客户端"""
     return AsyncOpenAIClientWithRetry(
-        api_key=global_configs.non_ds_key,
-        base_url=global_configs.base_url_non_ds,
+        api_key=global_configs.aihubmix_key,
+        base_url="https://aihubmix.com/v1",
         provider=user_config.model.provider,
     )
 
