@@ -24,6 +24,8 @@ MODEL_PROVIDER_LIST=(
 
 TASK_LIST_FILE="./filtered_tasks.txt"
 
+poste_configure_dovecot=${1:-true}
+
 for attempt in {1..3}; do
     for model_provider in "${MODEL_PROVIDER_LIST[@]}"; do
         # 解析模型名和提供商
@@ -32,8 +34,7 @@ for attempt in {1..3}; do
         
         echo "Running $MODEL_SHORT_NAME with $PROVIDER, attempt $attempt ......"
 
-        # bash global_preparation/deploy_containers.sh
-        # kind delete clusters --all
+        bash global_preparation/deploy_containers.sh $poste_configure_dovecot
         bash scripts/run_parallel_jh.sh "$MODEL_SHORT_NAME" "./dumps_finalexp/${MODEL_SHORT_NAME}_${attempt}" "$PROVIDER" "$TASK_LIST_FILE"
     done
 done

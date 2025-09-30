@@ -52,7 +52,7 @@ if command -v kubectl &> /dev/null; then
     echo "kubectl is already installed at: $(which kubectl)"
 else
     echo "Installing kubectl..."
-    KUBECTL_VERSION=$(curl -L -s https://dl.k8s.io/release/stable.txt)
+    KUBECTL_VERSION="v1.34.1" # we specify this to keep reproducibility
     curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
     chmod +x kubectl
     $SUDO mv kubectl "$INSTALL_KUBECTL_PATH"

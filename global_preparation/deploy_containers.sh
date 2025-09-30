@@ -3,11 +3,17 @@ start_time=$(date +%s)
 echo "Start time: $(date)"
 
 poste_configure_dovecot=${1:-true}
-create_test_k8s_cluster=${2:-true}
+echo "============================================================================================="
+echo "poste_configure_dovecot: $poste_configure_dovecot"
+echo "For some Linux distributions, you need to configure Dovecot to allow plaintext auth."
+echo "If you are not sure, please set to true."
+echo "Our experience: Ubuntu 24.04 should set this as true, but AlmaLinux should set this as false."
+echo "============================================================================================="
 
-bash deployment/k8s/scripts/prepare.sh --no-sudo # or no-sudo if you cannot use sudo, this will install some needed commands
-# this is just a test cluster to make sure the MCP servers are ready to use
-bash deployment/k8s/scripts/setup.sh # this is to create a test cluster
+sleep 5
+
+# this is just to launch a test cluster (also clear existing ones) to make sure the MCP servers are ready to use
+bash deployment/k8s/scripts/setup.sh # this is to create one test cluster
 
 bash deployment/canvas/scripts/setup.sh # port 10001 20001
 

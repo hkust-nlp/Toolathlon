@@ -1,8 +1,5 @@
 import glob
-<<<<<<< HEAD
-=======
 from pprint import pprint
->>>>>>> 17197ec5a78c6477595059e9761f21687513b153
 from .utils import prepare_all_stat_for_one_traj
 import json
 from tqdm import tqdm
@@ -11,10 +8,6 @@ parent_dir = "dumps_finalexp"
 full_stat_jsonl = []
 
 for model_name in [
-<<<<<<< HEAD
-    "gpt-5-high",
-=======
->>>>>>> 17197ec5a78c6477595059e9761f21687513b153
     "gpt-5",
     "grok-4",
     "claude-4-sonnet-0514",

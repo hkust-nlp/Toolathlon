@@ -473,56 +473,12 @@ model_provider_mapping = {
 }
 
 API_MAPPINGS = {
-    # 'deepseek-v3-0324': Dict(
-    #     api_model={"ds_internal": "deepseek-chat",
-    #                "aihubmix": "DeepSeek-V3",
-    #                "openrouter": "deepseek/deepseek-chat"},
-    #     price=[0.272/1000, 1.088/1000],
-    #     concurrency=32,
-    #     context_window=64000,
-    #     openrouter_config={"provider": {"only": ["deepseek"]}}
-    # ),
-    # 'deepseek-r1-0528': Dict(
-    #     api_model={"ds_internal": "deepseek-reasoner",
-    #                "aihubmix": "DeepSeek-R1"},
-    #     price=[0.546/1000, 2.184/1000],
-    #     concurrency=32,
-    #     context_window=64000
-    # ),
-    'deepseek-v3.1': Dict(
-        api_model={"ds_internal": "",
-                   "aihubmix": "DeepSeek-V3.1",
-                   "openrouter": "deepseek/deepseek-chat-v3.1",
-                   "deepseek_official": "deepseek-chat"}, # 2025/9/18, this model may become other model later
-        price=[0.56/1000, 1.68/1000],
+    'deepseek-v3.2-exp': Dict(
+        api_model={"deepseek_official": "deepseek-chat"}, # 2025/9/29, this model may become other model later
+        price=[2/7000, 3/7000], # an estimated price, no cache considered
         concurrency=32,
         context_window=128000,
-        openrouter_config={"provider": {"only": ["sambanova/fp8"]}}
     ),
-    'deepseek-v3.1-think': Dict(
-        api_model={"ds_internal": "",
-                   "aihubmix": "DeepSeek-V3.1-Think",
-                   "deepseek_official": "deepseek-reasoner"}, # 2025/9/18, this model may become other model later
-        price=[0.56/1000, 1.68/1000],
-        concurrency=32,
-        context_window=128000
-    ),
-    # 'gpt-4o': Dict(
-    #     api_model={"ds_internal": "azure-gpt-4o-2024-11-20",
-    #                "aihubmix": "gpt-4o-2024-11-20",
-    #                "openrouter": "openai/gpt-4o"},
-    #     price=[0.005, 0.015],
-    #     concurrency=32,
-    #     context_window=128000,
-    #     openrouter_config={"provider": {"only": ["openai"]}}
-    # ),
-    # 'gpt-4o-mini': Dict(
-    #     api_model={"ds_internal": "azure-gpt-4o-mini-2024-07-18",
-    #                "aihubmix": "gpt-4o-mini"},
-    #     price=[0.00015, 0.0006],
-    #     concurrency=32,
-    #     context_window=128000
-    # ),
     'gpt-5': Dict(
         api_model={"ds_internal": "",
                    "aihubmix": "gpt-5",
@@ -531,27 +487,6 @@ API_MAPPINGS = {
         concurrency=32,
         context_window=400000,
         openrouter_config={"provider": {"only": ["openai/default"]}}
-    ),
-    'gpt-5-low': Dict(
-        api_model={"openrouter": "openai/gpt-5"},
-        price=[1.25/1000, 10/1000.0],
-        concurrency=32,
-        context_window=400000,
-        openrouter_config={"provider": {"only": ["openai"]}}
-    ),
-    'gpt-5-medium': Dict(
-        api_model={"openrouter": "openai/gpt-5"},
-        price=[1.25/1000, 10/1000.0],
-        concurrency=32,
-        context_window=400000,
-        openrouter_config={"provider": {"only": ["openai"]}}
-    ),
-    'gpt-5-high': Dict(
-        api_model={"openrouter": "openai/gpt-5"},
-        price=[1.25/1000, 10/1000.0],
-        concurrency=32,
-        context_window=400000,
-        openrouter_config={"provider": {"only": ["openai"]}}
     ),
     'gpt-5-low': Dict(
         api_model={"openrouter": "openai/gpt-5"},
@@ -583,13 +518,6 @@ API_MAPPINGS = {
         context_window=400000,
         openrouter_config={"provider": {"only": ["openai"]}}
     ),
-    # 'gpt-5-nano': Dict(
-    #     api_model={"ds_internal": "",
-    #                "aihubmix": "gpt-5-nano"},
-    #     price=[0.05/1000, 0.4/1000],
-    #     concurrency=32,
-    #     context_window=1000000
-    # ),
     'o4-mini': Dict(
         api_model={"ds_internal": "azure-o4-mini-2025-04-16",
                    "aihubmix": "o4-mini",
@@ -616,9 +544,17 @@ API_MAPPINGS = {
         context_window=200000,
         openrouter_config={"provider": {"only": ["openai"]}}
     ),
+    'claude-4.5-sonnet-0929': Dict(
+        api_model={"aihubmix": "claude-sonnet-4-5-20250929",
+                   "anthropic": "claude-sonnet-4-5-20250929",
+                   "openrouter": "anthropic/claude-sonnet-4.5"},
+        price=[0.003, 0.015],
+        concurrency=32,
+        context_window=1000000,
+        openrouter_config={"provider": {"only": ["anthropic"]}}
+    ),
     'claude-4-sonnet-0514': Dict(
-        api_model={"ds_internal": "oai-api-claude-sonnet-4-20250514",
-                   "aihubmix": "claude-sonnet-4-20250514",
+        api_model={"aihubmix": "claude-sonnet-4-20250514",
                    "anthropic": "claude-sonnet-4-20250514",
                    "openrouter": "anthropic/claude-sonnet-4"},
         price=[0.003, 0.015],
@@ -654,20 +590,6 @@ API_MAPPINGS = {
         context_window=1000000,
         openrouter_config={"provider": {"only": ["google-vertex"]}}
     ),
-    # 'grok-3-beta': Dict(
-    #     api_model={"ds_internal": "grok-3-beta",
-    #                "aihubmix": "grok-3-beta"},
-    #     price=[0.003, 0.015],
-    #     concurrency=32,
-    #     context_window=128000
-    # ),
-    # 'grok-3-mini-beta': Dict(
-    #     api_model={"ds_internal": "grok-3-mini-beta",
-    #                "aihubmix": "grok-3-mini-beta"},
-    #     price=[0.0003, 0.0005],
-    #     concurrency=32,
-    #     context_window=128000
-    # ),
     'grok-4': Dict(
         api_model={"openrouter": "x-ai/grok-4"},
         price=[3/1000, 15/1000],
@@ -727,19 +649,15 @@ API_MAPPINGS = {
         price=[1.2/1000, 6/1000],
         concurrency=32,
         context_window=256000,
-<<<<<<< HEAD
-        openrouter_config={"provider": {"only": ["qwen/qwen3-max"]}}
-=======
         openrouter_config={"provider": {"only": ["alibaba"]}}
->>>>>>> 17197ec5a78c6477595059e9761f21687513b153
     ),
-    "gpt-oss-120b": Dict(
-        api_model={"openrouter": "openai/gpt-oss-120b"},
-        price=[0.00125, 0.010],
-        concurrency=32,
-        context_window=256000,
-        openrouter_config={"provider": {"only": ["fireworks"]}}
-    ),
+    # "gpt-oss-120b": Dict(
+    #     api_model={"openrouter": "openai/gpt-oss-120b"},
+    #     price=[0.00125, 0.010],
+    #     concurrency=32,
+    #     context_window=256000,
+    #     openrouter_config={"provider": {"only": ["fireworks"]}}
+    # ),
 }
 
 set_tracing_disabled(disabled=True)

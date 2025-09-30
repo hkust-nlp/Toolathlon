@@ -1,3 +1,5 @@
+WITH_SUDO=${1:-false}
+
 # check if uv is here, if not, run "curl -LsSf https://astral.sh/uv/install.sh | sh" to install first
 if ! command -v uv &> /dev/null; then
     echo "uv could not be found, please install via `curl -LsSf https://astral.sh/uv/install.sh | sh`"
@@ -36,6 +38,40 @@ fi
 
 # uv
 uv sync
+
+# k8s
+echo "Tip: To support multiple k8s tasks, it is recommended to adjust inotify parameters. Please make sure you have sudo privileges."
+echo "For temporary effect, run:"
+echo "  sudo sysctl fs.inotify.max_user_watches=1048576"
+echo "  sudo sysctl fs.inotify.max_user_instances=16384"
+echo "  sudo sysctl fs.inotify.max_queued_events=16384"
+echo "For permanent effect, append the following lines to /etc/sysctl.conf and then run 'sudo sysctl -p':"
+echo "  fs.inotify.max_user_watches=1048576"
+echo "  fs.inotify.max_user_instances=16384"
+echo "  fs.inotify.max_queued_events=16384"
+if [ "$WITH_SUDO" = true ]; then
+    bash deployment/k8s/scripts/prepare.sh --sudo
+    # configure inotify
+    sudo sh -c 'echo "user.max_user_namespaces=10000" >> /etc/sysctl.conf'
+    sudo sh -c 'echo "fs.inotify.max_user_watches=1048576" >> /etc/sysctl.conf'
+    sudo sh -c 'echo "fs.inotify.max_user_instances=16384" >> /etc/sysctl.conf'
+    sudo sh -c 'echo "fs.inotify.max_queued_events=16384" >> /etc/sysctl.conf'
+    sudo sysctl -p
+else
+    bash deployment/k8s/scripts/prepare.sh --no-sudo
+    # echo some so information to tell the user to configure inotify via sudo in some way
+    echo "Please configure inotify via sudo to make sure you can run the k8s tasks in parallel."
+    echo "For temporary effect, run:"
+    echo "  sudo sysctl fs.inotify.max_user_watches=1048576"
+    echo "  sudo sysctl fs.inotify.max_user_instances=16384"
+    echo "  sudo sysctl fs.inotify.max_queued_events=16384"
+    echo "  sudo sysctl user.max_user_namespaces=10000"
+    echo "For permanent effect, append the following lines to /etc/sysctl.conf and then run 'sudo sysctl -p':"
+    echo "  fs.inotify.max_user_watches=1048576"
+    echo "  fs.inotify.max_user_instances=16384"
+    echo "  fs.inotify.max_queued_events=16384"
+    echo "  user.max_user_namespaces=10000"
+fi
 
 # install playwright
 source .venv/bin/activate
@@ -102,7 +138,7 @@ npm audit fix
 cd ../..
 
 # pull image
-# check use podman  or docker from configs/global_configs.py
+# check use podman or docker from configs/global_configs.py
 podman_or_docker=$(uv run python -c "import sys; sys.path.append('configs'); from global_configs import global_configs; print(global_configs.podman_or_docker)")
 if [ "$podman_or_docker" = "podman" ]; then
     podman pull lockon0927/mcpbench-task-image-v2:jl0921alpha
