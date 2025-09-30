@@ -445,11 +445,11 @@ class TaskAgent:
             ),
         )
         
-        # 获取所有可用工具
+        # Get all available tools
         available_tools = await self.agent.get_all_tools()
-        self._debug_print(f">>可用工具列表 (x{len(available_tools)})")
+        # self._debug_print(f">>List of available tools (x{len(available_tools)})")
         for tool in available_tools:
-            self._debug_print(f"[{tool.name}]", tool.description)
+            # self._debug_print(f"[{tool.name}]", tool.description)
             self.all_tools.append({
                 "type": "function",
                 "function": {
@@ -968,13 +968,13 @@ class TaskAgent:
             self.agent_cost = agent_cost
 
             # 打印成本摘要
-            self._debug_print(f"===模拟用户（{self.user_config.model.short_name}）的开销如下===")
+            self._debug_print(f"===LLM-simulator（{self.user_config.model.short_name}）Cost Summary===")
             for k, v in user_cost.items():
                 self._debug_print(f"{k} : {v}")
-            self._debug_print(f"===Agent（{self.agent_config.model.short_name}）的开销如下===")
+            self._debug_print(f"===Agent（{self.agent_config.model.short_name}）Cost Summary===")
             for k, v in agent_cost.items():
                 self._debug_print(f"{k} : {v}")
-            self._debug_print("===关键统计信息===")
+            self._debug_print("===Key Statistics===")
             for k, v in self.stats.items():
                 self._debug_print(f"{k} : {v}")
             

@@ -17,5 +17,5 @@ uv run demo.py \
 --model_short_name deepseek-v3.2-exp \
 --provider deepseek_official \
 --max_steps_under_single_turn_mode 200 \
---multi_turn_mode \
---manual \
+# --multi_turn_mode \
+# --manual \

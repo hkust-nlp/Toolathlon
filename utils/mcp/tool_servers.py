@@ -10,14 +10,14 @@ from configs.token_key_session import all_token_key_session
 
 
 class ToolCallError(Exception):
-    """工具调用错误的自定义异常类型"""
+    """Custom exception type for tool call errors"""
     def __init__(self, message: str, original_exception: Exception = None):
         self.message = message
         self.original_exception = original_exception
         super().__init__(self.message)
 
 class MCPServerManager:
-    """MCP 服务器管理器，用于初始化和管理多个 MCP 服务器"""
+    """MCP server manager, for initializing and managing multiple MCP servers"""
 
     def __init__(self, 
                  agent_workspace: str, 
@@ -25,11 +25,11 @@ class MCPServerManager:
                  debug: bool = False,
                  local_token_key_session: Dict = None):
         """
-        初始化 MCP 服务器管理器
+        Initialize MCP server manager
         
         Args:
-            agent_workspace: 代理工作空间路径
-            config_dir: 配置文件目录路径
+            agent_workspace: Agent workspace path
+            config_dir: Configuration file directory path
         """
         self.local_servers_paths = os.path.abspath("./local_servers")
         self.local_binary_paths = os.path.abspath("./local_binary")
@@ -39,25 +39,25 @@ class MCPServerManager:
         self.debug = debug
         self.local_token_key_session = local_token_key_session
         self._lock = asyncio.Lock()
-        # 保存每个服务器的任务，确保在同一个任务中管理生命周期
+        # Save each server's task, ensure the lifecycle is managed in the same task
         self._server_tasks: Dict[str, asyncio.Task] = {}
-        # 保存连接完成的事件
+        # Save the event of connection completion
         self._connection_events: Dict[str, asyncio.Event] = {}
         
-        # 从配置文件加载服务器
+        # Load servers from configuration files
         self._load_servers_from_configs(config_dir)
 
     def _load_servers_from_configs(self, config_dir: str):
-        """从配置文件目录加载服务器配置"""
+        """Load servers from configuration file directory"""
         config_path = Path(config_dir)
         if not config_path.exists():
-            raise ValueError(f"配置目录不存在: {config_dir}")
+            raise ValueError(f"Configuration directory does not exist: {config_dir}")
         
         if self.debug:
-            print(f">>从配置目录加载服务器: {config_dir}")
-            print(f">>servers工作区: {self.agent_workspace}")
+            print(f">>Loading servers from config directory: {config_dir}")
+            print(f">>Agent workspace: {self.agent_workspace}")
         
-        # 读取所有 yaml 配置文件
+        # Read all yaml configuration files
         for config_file in config_path.glob("*.yaml"):
             try:
                 with open(config_file, 'r', encoding='utf-8') as f:
@@ -65,14 +65,14 @@ class MCPServerManager:
                     if config:
                         self._initialize_server_from_config(config, config_file.stem)
             except Exception as e:
-                print(f"加载配置文件 {config_file} 失败: {e}")
+                print(f"Failed to load config file {config_file}: {e}")
 
     def _initialize_server_from_config(self, config: Dict[str, Any], default_name: str):
-        """从配置字典初始化单个服务器"""
+        """Initialize a single server from a configuration dictionary"""
         server_type = config.get('type', 'stdio').lower()
         server_name = config.get('name', default_name)
         
-        # 处理参数中的模板变量
+        # Process template variables in parameters
         params = self._process_config_params(config.get('params', {}))
         
         # specialized preprocessing for playwright_with_chunk
@@ -81,7 +81,7 @@ class MCPServerManager:
             if os.geteuid() == 0:
                 params['args'].append('--no-sandbox')
 
-        # 创建服务器实例
+        # Create server instance
         kwargs = {
             'name': server_name,
             'params': params,
@@ -96,49 +96,48 @@ class MCPServerManager:
         elif server_type == 'sse':
             server = MCPServerSse(**kwargs)
         else:
-            raise ValueError(f"不支持的服务器类型: {server_type}")
+            raise ValueError(f"Unsupported server type: {server_type}")
         
         self.servers[server_name] = server
-        if self.debug:
-            print(f"  - 已预加载服务器: {server_name} (类型: {server_type})")
+        # if self.debug:
+            # print(f"  - Preloaded server: {server_name} (type: {server_type})")
 
     def _get_template_variables(self) -> Dict[str, str]:
-        """动态获取所有可用的模板变量"""
+        """Dynamically get all available template variables"""
         template_vars = {
-            # 基本路径变量
+            # Basic path variables
             'agent_workspace': self.agent_workspace,
             'local_servers_paths': self.local_servers_paths,
             'local_binary_paths': self.local_binary_paths,
             'podman_or_docker': global_configs.podman_or_docker,
         }
         
-        # 动态添加 global_configs 中的所有属性
+        # Dynamically add all attributes in global_configs
         for key, value in global_configs.items():
-            if isinstance(value, (str, int, float, bool)):  # 只处理基本类型
+            if isinstance(value, (str, int, float, bool)):  # Only process basic types
                 template_vars[f'config.{key}'] = str(value)
         
-        # 动态添加 all_token_key_session 中的所有属性
+        # Dynamically add all attributes in all_token_key_session
         for key, value in all_token_key_session.items():
-            if isinstance(value, (str, int, float, bool)):  # 只处理基本类型
+            if isinstance(value, (str, int, float, bool)):  # Only process basic types
                 template_vars[f'token.{key}'] = str(value)
         
-        # 用local_token_key_session 覆盖 all_token_key_session
-        # 并加上提示信息
+        # Use local_token_key_session to override all_token_key_session
+        # And add prompt information
         if self.local_token_key_session is not None:
             for key, value in self.local_token_key_session.items():
-                if isinstance(value, (str, int, float, bool)):  # 只处理基本类型
+                if isinstance(value, (str, int, float, bool)):  # Only process basic types
                     template_vars[f'token.{key}'] = str(value)
-                    # print(f"  - 已覆盖 token.{key} = {value}")
         
         return template_vars
 
     def _process_config_params(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """处理配置参数中的模板变量"""
+        """Process template variables in configuration parameters"""
         template_vars = self._get_template_variables()
         
         def replace_templates(obj):
             if isinstance(obj, str):
-                # 使用正则表达式替换所有的模板变量
+                # Use regular expression to replace all template variables
                 import re
                 pattern = r'\$\{([^}]+)\}'
                 
@@ -147,8 +146,8 @@ class MCPServerManager:
                     if var_name in template_vars:
                         return template_vars[var_name]
                     else:
-                        print(f"警告: 未找到模板变量 '{var_name}'")
-                        return match.group(0)  # 保持原样
+                        print(f"Warning: Template variable '{var_name}' not found")
+                        return match.group(0)  # Keep original
                 
                 return re.sub(pattern, replacer, obj)
                 
@@ -163,77 +162,77 @@ class MCPServerManager:
 
     async def _manage_server_lifecycle(self, name: str, server: Union[MCPServerStdio, MCPServerSse], 
                                        max_connect_retries: int = 3, connect_retry_delay: float = 2.0):
-        """在单个任务中管理服务器的完整生命周期"""
+        """Manage the full lifecycle of a server in a single task"""
         event = self._connection_events.get(name)
         last_connect_exception = None
         
-        # 连接重试逻辑
+        # Connection retry logic
         for connect_attempt in range(max_connect_retries + 1):
             try:
-                async with server:  # 使用服务器的上下文管理器，这会自动调用 connect()
-                    # 连接成功后，添加到已连接列表
+                async with server:  # Use server's context manager, which will automatically call connect()
+                    # After connection success, add to connected list
                     self.connected_servers[name] = server
                     
-                    # 设置连接完成事件
+                    # Set connection completion event
                     if event:
                         event.set()
                     
                     if self.debug:
-                        print(f"  - 服务器 {name} 已连接 (尝试 {connect_attempt + 1}/{max_connect_retries + 1})")
-                        # 尝试获取工具列表以验证连接
+                        print(f"  - Server {name} connected (attempt {connect_attempt + 1}/{max_connect_retries + 1})")
+                        # Try to get tool list to verify connection
                         try:
                             tools = await server.list_tools()
-                            print(f"    可用工具数: {len(tools)}")
+                            print(f"    Available tools: {len(tools)}")
                         except Exception as e:
-                            print(f"    获取工具列表失败: {e}")
+                            print(f"    Failed to get tools list: {e}")
                     
-                    # 保持连接，直到任务被取消
+                    # Keep connection until task is cancelled
                     try:
-                        await asyncio.sleep(float('inf'))  # 无限等待
+                        await asyncio.sleep(float('inf'))  # Infinite wait
                     except asyncio.CancelledError:
-                        # 正常取消，进行清理
+                        # Normal cancellation, perform cleanup
                         if self.debug:
-                            print(f"  - 正在断开服务器 {name}")
-                        raise  # 重新抛出以触发 __aexit__
+                            print(f"  - Disconnecting server {name}")
+                        raise  # Re-throw to trigger __aexit__
                     
-                    # 如果连接成功，跳出重试循环
+                    # If connection successful, break retry loop
                     break
                     
             except asyncio.CancelledError:
-                # 预期的取消，不记录为错误
+                # Expected cancellation, not recorded as error
                 raise
             except Exception as e:
                 last_connect_exception = e
                 if connect_attempt < max_connect_retries:
                     if self.debug:
-                        print(f"服务器 {name} 连接失败 (尝试 {connect_attempt + 1}/{max_connect_retries + 1}): {e}")
-                        print(f"等待 {connect_retry_delay} 秒后重试连接...")
+                        print(f"Server {name} connection failed (attempt {connect_attempt + 1}/{max_connect_retries + 1}): {e}")
+                        print(f"Waiting {connect_retry_delay} seconds to retry connection...")
                     await asyncio.sleep(connect_retry_delay)
                 else:
-                    print(f"服务器 {name} 连接最终失败 (已尝试 {max_connect_retries + 1} 次): {e}")
+                    print(f"Server {name} connection failed (attempt {max_connect_retries + 1} times): {e}")
                     if event and not event.is_set():
-                        event.set()  # 确保事件被设置，避免死等
+                        event.set()  # Ensure event is set, avoid dead wait
                     break
         
-        # 清理 - 使用 try-finally 确保清理总是执行
+        # Cleanup - use try-finally to ensure cleanup always executes
         try:
-            # 清理逻辑
+            # Cleanup logic
             self.connected_servers.pop(name, None)
             self._server_tasks.pop(name, None)
             self._connection_events.pop(name, None)
             if self.debug:
-                print(f"  - 服务器 {name} 已完全断开")
+                print(f"  - Server {name} fully disconnected")
         except Exception as e:
             if self.debug:
-                print(f"  - 服务器 {name} 清理时出错: {e}")
-            # 即使清理出错也要继续，确保状态被清理
+                print(f"  - Server {name} error during cleanup: {e}")
+            # Even if cleanup fails, continue, ensure state is cleaned up
             self.connected_servers.pop(name, None)
             self._server_tasks.pop(name, None)
             self._connection_events.pop(name, None)
 
     async def connect_servers(self, server_names: Optional[List[str]] = None, 
                              max_connect_retries: int = 3, connect_retry_delay: float = 2.0):
-        """连接指定的服务器"""
+        """Connect specified servers"""
         if server_names is None:
             server_names = list(self.servers.keys())
 
@@ -242,21 +241,21 @@ class MCPServerManager:
             
             for name in server_names:
                 if name not in self.servers:
-                    print(f"警告: 未找到名为 '{name}' 的服务器")
+                    print(f"Warning: Server '{name}' not found")
                     continue
                     
                 if name in self._server_tasks:
                     if self.debug:
-                        print(f"服务器 '{name}' 已在运行，跳过")
+                        print(f"Server '{name}' is already running, skipping")
                     continue
                 
                 server = self.servers[name]
                 
-                # 创建连接完成事件
+                # Create connection completion event
                 event = asyncio.Event()
                 self._connection_events[name] = event
                 
-                # 创建任务来管理服务器生命周期
+                # Create task to manage server lifecycle
                 task = asyncio.create_task(
                     self._manage_server_lifecycle(name, server, max_connect_retries, connect_retry_delay),
                     name=f"mcp_server_{name}"
@@ -264,23 +263,23 @@ class MCPServerManager:
                 self._server_tasks[name] = task
                 tasks_to_wait.append((name, event))
             
-            # 等待所有服务器连接完成
+            # Wait for all servers to connect
             if tasks_to_wait:
                 if self.debug:
-                    print(f">>正在连接 {len(tasks_to_wait)} 个服务器...")
+                    print(f">>Connecting {len(tasks_to_wait)} servers...")
                 
-                # 等待所有连接事件
+                # Wait for all connection events
                 wait_tasks = [event.wait() for name, event in tasks_to_wait]
                 await asyncio.gather(*wait_tasks)
                 
-                # 验证连接
+                # Verify connection
                 connected_count = sum(1 for name, _ in tasks_to_wait if name in self.connected_servers)
                 if self.debug:
-                    print(f">>已成功连接 {connected_count}/{len(tasks_to_wait)} 个 MCP 服务器")
+                    print(f">>Successfully connected {connected_count}/{len(tasks_to_wait)} MCP servers")
 
     async def disconnect_servers(self, server_names: Optional[List[str]] = None, 
                                 max_disconnect_retries: int = 3, disconnect_retry_delay: float = 1.0):
-        """断开指定服务器连接"""
+        """Disconnect specified servers"""
         async with self._lock:
             if server_names is None:
                 servers_to_disconnect = list(self._server_tasks.keys())
@@ -292,58 +291,58 @@ class MCPServerManager:
             
             if not servers_to_disconnect:
                 if self.debug:
-                    print("没有需要断开的服务器")
+                    print("No servers to disconnect")
                 return
             
             if self.debug:
-                print(f">>正在断开 {len(servers_to_disconnect)} 个服务器...")
+                print(f">>Disconnecting {len(servers_to_disconnect)} servers...")
             
-            # 记录要断开的任务，用于后续统计
+            # Record tasks to disconnect, for later statistics
             tasks_to_cancel = []
             for name in servers_to_disconnect:
                 if task := self._server_tasks.get(name):
                     task.cancel()
                     tasks_to_cancel.append((name, task))
             
-            # 立即从连接列表中移除服务器，避免状态不一致
+            # Immediately remove servers from connected list, avoid inconsistent state
             for name in servers_to_disconnect:
                 self.connected_servers.pop(name, None)
             
-            # 等待所有任务完成清理，带重试机制
+            # Wait for all tasks to complete cleanup, with retry mechanism
             if tasks_to_cancel:
                 last_disconnect_exception = None
                 for disconnect_attempt in range(max_disconnect_retries + 1):
                     try:
-                        # 使用超时等待，避免无限等待
+                        # Use timeout to avoid infinite wait
                         try:
-                            # 提取任务对象进行等待
+                            # Extract task objects to wait
                             tasks_only = [task for name, task in tasks_to_cancel]
                             await asyncio.wait_for(
                                 asyncio.gather(*tasks_only, return_exceptions=True),
-                                timeout=10.0  # 10秒超时
+                                timeout=10.0  # 10 seconds timeout
                             )
                         except asyncio.TimeoutError:
                             if self.debug:
-                                print(f"等待任务完成超时 (尝试 {disconnect_attempt + 1}/{max_disconnect_retries + 1})")
+                                print(f"Waiting for tasks to complete timeout (attempt {disconnect_attempt + 1}/{max_disconnect_retries + 1})")
                         
-                        # 验证任务是否都已完成
+                        # Verify if all tasks are completed
                         still_running = [
                             name for name, task in tasks_to_cancel 
                             if not task.done()
                         ]
                         if not still_running:
                             if self.debug:
-                                print(f"所有服务器断开成功 (尝试 {disconnect_attempt + 1}/{max_disconnect_retries + 1})")
+                                print(f"All servers disconnected successfully (attempt {disconnect_attempt + 1}/{max_disconnect_retries + 1})")
                             break
                         else:
                             if disconnect_attempt < max_disconnect_retries:
                                 if self.debug:
-                                    print(f"部分服务器断开失败，仍有 {len(still_running)} 个任务运行中")
-                                    print(f"等待 {disconnect_retry_delay} 秒后重试断开...")
+                                    print(f"Some servers disconnected failed, still have {len(still_running)} tasks running")
+                                    print(f"Waiting {disconnect_retry_delay} seconds to retry disconnect...")
                                 await asyncio.sleep(disconnect_retry_delay)
                             else:
-                                print(f"断开操作最终失败，仍有 {len(still_running)} 个任务运行中")
-                                # 强制清理剩余的任务
+                                print(f"Disconnect operation failed, still have {len(still_running)} tasks running")
+                                # Force cleanup remaining tasks
                                 for name in still_running:
                                     if task := self._server_tasks.get(name):
                                         if not task.done():
@@ -352,133 +351,133 @@ class MCPServerManager:
                         last_disconnect_exception = e
                         if disconnect_attempt < max_disconnect_retries:
                             if self.debug:
-                                print(f"断开操作失败 (尝试 {disconnect_attempt + 1}/{max_disconnect_retries + 1}): {e}")
-                                print(f"等待 {disconnect_retry_delay} 秒后重试...")
+                                print(f"Disconnect operation failed (attempt {disconnect_attempt + 1}/{max_disconnect_retries + 1}): {e}")
+                                print(f"Waiting {disconnect_retry_delay} seconds to retry disconnect...")
                             await asyncio.sleep(disconnect_retry_delay)
                         else:
-                            print(f"断开操作最终失败 (已尝试 {max_disconnect_retries + 1} 次): {e}")
+                            print(f"Disconnect operation failed (attempt {max_disconnect_retries + 1} times): {e}")
             
             if self.debug:
-                # 统计实际断开的服务器数量
+                # Count actual disconnected servers
                 disconnected_count = 0
                 for name, task in tasks_to_cancel:
                     if task.done():
                         disconnected_count += 1
                 
-                print(f">>已断开 {disconnected_count}/{len(servers_to_disconnect)} 个 MCP 服务器")
+                print(f">>Disconnected {disconnected_count}/{len(servers_to_disconnect)} MCP servers")
 
     async def ensure_all_disconnected(self, max_cleanup_retries: int = 3, cleanup_retry_delay: float = 1.0):
-        """确保所有服务器都已断开（用于清理）"""
-        # 先尝试正常断开
+        """Ensure all servers are disconnected (for cleanup)"""
+        # Try to disconnect normally first
         await self.disconnect_servers(max_disconnect_retries=max_cleanup_retries, 
                                      disconnect_retry_delay=cleanup_retry_delay)
         
-        # 强制取消所有剩余的任务
+        # Force cancel all remaining tasks
         remaining_tasks = list(self._server_tasks.values())
         if remaining_tasks:
             for task in remaining_tasks:
                 if not task.done():
                     task.cancel()
             
-            # 等待所有任务完成，带重试机制
+            # Wait for all tasks to complete, with retry mechanism
             for cleanup_attempt in range(max_cleanup_retries + 1):
                 try:
-                    # 使用超时等待，避免无限等待
+                    # Use timeout to avoid infinite wait
                     try:
                         await asyncio.wait_for(
                             asyncio.gather(*remaining_tasks, return_exceptions=True),
-                            timeout=10.0  # 10秒超时
+                            timeout=10.0  # 10 seconds timeout
                         )
                     except asyncio.TimeoutError:
                         if self.debug:
-                            print(f"等待清理任务完成超时 (尝试 {cleanup_attempt + 1}/{max_cleanup_retries + 1})")
+                            print(f"Waiting for cleanup tasks to complete timeout (attempt {cleanup_attempt + 1}/{max_cleanup_retries + 1})")
                     
-                    if not self._server_tasks:  # 如果所有任务都已清理
+                    if not self._server_tasks:  # If all tasks are cleaned up
                         break
                     elif cleanup_attempt < max_cleanup_retries:
                         if self.debug:
-                            print(f"清理任务失败 (尝试 {cleanup_attempt + 1}/{max_cleanup_retries + 1})")
-                            print(f"等待 {cleanup_retry_delay} 秒后重试清理...")
+                            print(f"Cleanup tasks failed (attempt {cleanup_attempt + 1}/{max_cleanup_retries + 1})")
+                            print(f"Waiting {cleanup_retry_delay} seconds to retry cleanup...")
                         await asyncio.sleep(cleanup_retry_delay)
                     else:
-                        print(f"清理任务最终失败 (已尝试 {max_cleanup_retries + 1} 次)")
+                        print(f"Cleanup tasks failed (attempt {max_cleanup_retries + 1} times)")
                 except Exception as e:
                     if cleanup_attempt < max_cleanup_retries:
                         if self.debug:
-                            print(f"清理任务异常 (尝试 {cleanup_attempt + 1}/{max_cleanup_retries + 1}): {e}")
-                            print(f"等待 {cleanup_retry_delay} 秒后重试清理...")
+                            print(f"Cleanup tasks failed (attempt {cleanup_attempt + 1}/{max_cleanup_retries + 1}): {e}")
+                            print(f"Waiting {cleanup_retry_delay} seconds to retry cleanup...")
                         await asyncio.sleep(cleanup_retry_delay)
                     else:
-                        print(f"清理任务最终异常 (已尝试 {max_cleanup_retries + 1} 次): {e}")
+                        print(f"Cleanup tasks failed (attempt {max_cleanup_retries + 1} times): {e}")
         
-        # 强制清理所有状态
+        # Force cleanup all states
         self._server_tasks.clear()
         self.connected_servers.clear()
         self._connection_events.clear()
 
     def get_all_connected_servers(self) -> List[Union[MCPServerStdio, MCPServerSse]]:
-        """获取所有已连接的服务器实例"""
+        """Get all connected server instances"""
         return list(self.connected_servers.values())
 
     def get_connected_server_names(self) -> List[str]:
-        """获取所有已连接的服务器名称"""
+        """Get all connected server names"""
         return list(self.connected_servers.keys())
 
     def get_available_servers(self) -> List[str]:
-        """获取所有可用的服务器名称（包括未连接的）"""
+        """Get all available server names (including not connected ones)"""
         return list(self.servers.keys())
     
     def is_server_connected(self, server_name: str) -> bool:
-        """检查指定服务器是否已连接"""
+        """Check if specified server is connected"""
         return server_name in self.connected_servers
 
     def list_available_template_variables(self):
-        """列出所有可用的模板变量（调试用）"""
+        """List all available template variables (for debugging)"""
         vars = self._get_template_variables()
-        print("可用的模板变量:")
+        print("Available template variables:")
         for key, value in sorted(vars.items()):
             print(f"  ${{{key}}} = {value}")
 
     async def __aenter__(self):
-        """异步上下文管理器入口"""
+        """Async context manager entry"""
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        """异步上下文管理器退出"""
+        """Async context manager exit"""
         await self.ensure_all_disconnected(max_cleanup_retries=3, cleanup_retry_delay=1.0)
 
 
 async def call_tool_with_retry(server, tool_name: str, arguments: dict, retry_time: int = 5, delay: float = 1.0):
     """
-    带重试机制的工具调用函数
+    Tool call function with retry mechanism
     
     Args:
-        server: MCP服务器实例
-        tool_name: 工具名称
-        arguments: 工具参数
-        retry_time: 重试次数，默认5次
-        delay: 重试间隔（秒），默认1秒
+        server: MCP server instance
+        tool_name: Tool name
+        arguments: Tool arguments
+        retry_time: Retry times, default 5 times
+        delay: Retry interval (seconds), default 1 second
     
     Returns:
-        工具调用结果
+        Tool call result
     
     Raises:
-        ToolCallError: 所有重试都失败后抛出工具调用错误
+        ToolCallError: All retries failed and throw tool call error
     """
     last_exception = None
     
-    for attempt in range(retry_time + 1):  # +1 是因为第一次不算重试
+    for attempt in range(retry_time + 1):  # +1 because the first attempt is not a retry
         try:
             result = await server.call_tool(tool_name=tool_name, arguments=arguments)
             return result
         except Exception as e:
             last_exception = e
-            if attempt < retry_time:  # 如果不是最后一次尝试
-                print(f"工具调用失败 (尝试 {attempt + 1}/{retry_time + 1}): {e}")
-                print(f"等待 {delay} 秒后重试...")
+            if attempt < retry_time:  # If not the last attempt
+                print(f"Tool call failed (attempt {attempt + 1}/{retry_time + 1}): {e}")
+                print(f"Waiting {delay} seconds to retry...")
                 await asyncio.sleep(delay)
             else:
-                print(f"工具调用最终失败 (已尝试 {retry_time + 1} 次): {e}")
+                print(f"Tool call failed (attempt {retry_time + 1} times): {e}")
     
-    # 所有重试都失败了，抛出ToolCallError
-    raise ToolCallError(f"工具调用失败: {tool_name}", last_exception)
+    # All retries failed, throw ToolCallError
+    raise ToolCallError(f"Tool call failed: {tool_name}", last_exception)
