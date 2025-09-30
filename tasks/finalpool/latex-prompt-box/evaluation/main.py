@@ -23,11 +23,11 @@ def find_desired_tcolorbox_remove_blanks(tex_content: str, title: str) -> str:
     # print(removed_blanks_tex_content)
     
     # 构建要匹配的模式（也移除空白）
-    first_part = r"\begin{tcolorbox}[colback=lightProxYellow!10,colframe=lightProxYellow,left=2mm,right=2mm,title=\textcolor{black}{\textbf{<<<<title>>>>}}]\begin{small}\texttt{"
+    first_part = r"\begin{tcolorbox}[colback=lightProxYellow!10,colframe=lightProxYellow,left=2mm,right=2mm,title=\textcolor{black}{\textbf{<<<<title>>>>}}]\begin{small}"
     first_part = first_part.replace("<<<<title>>>>", title)
     first_part = re.sub(r'\s+', '', first_part)
     # print(first_part)
-    second_part = r"}\end{small}\end{tcolorbox}"
+    second_part = r"\end{small}\end{tcolorbox}"
 
     firstpartposition = removed_blanks_tex_content.rfind(first_part)
     if firstpartposition == -1:
