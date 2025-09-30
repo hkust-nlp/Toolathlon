@@ -16,6 +16,8 @@ ACCOUNTS_FILE="$CONFIG_DIR/created_accounts.json"
 
 # Default number of users to create (will be overridden by JSON file)
 DEFAULT_USER_COUNT=503
+# Batch size for concurrent execution
+MAX_CONCURRENT=50
 
 # Function to show usage
 show_usage() {
@@ -161,37 +163,69 @@ declare -a USER_DATA=()
 TEMP_USERS=$(mktemp)
 load_users_from_json > "$TEMP_USERS"
 
+# Create temporary directory for results
+TEMP_RESULTS_DIR="$(dirname "$0")/../tmpfiles"
+rm -rf "$TEMP_RESULTS_DIR"
+mkdir -p "$TEMP_RESULTS_DIR"
+
 # Process users
 counter=0
+batch_count=0
 while IFS='|' read -r id first_name last_name full_name email password; do
     counter=$((counter + 1))
-    
+
     # Only create the requested number of users
     if [ $counter -gt $USER_COUNT ]; then
         break
     fi
-    
+
     # Show progress bar
     draw_progress_bar $counter $USER_COUNT
-    
-    # Create user with error handling
-    CREATE_RESULT=$($podman_or_docker exec --user=8 $CONTAINER_NAME php /opt/admin/bin/console email:create "$email" "$password" "$full_name" 2>&1)
-    if [ $? -eq 0 ]; then
-        ((SUCCESS_COUNT++))
-        # Store user data for JSON
-        USER_DATA+=("{\"email\":\"$email\",\"password\":\"$password\",\"name\":\"$full_name\",\"first_name\":\"$first_name\",\"last_name\":\"$last_name\",\"is_admin\":false}")
-    else
-        ((FAILED_COUNT++))
-        # If in debug mode, show the error
-        if [ "${DEBUG:-}" = "1" ]; then
-            echo ""
-            echo "❌ Failed to create $email: $CREATE_RESULT"
+
+    # Create user in background with error handling
+    (
+        RESULT_FILE="$TEMP_RESULTS_DIR/user_${counter}.result"
+        CREATE_RESULT=$($podman_or_docker exec --user=8 $CONTAINER_NAME php /opt/admin/bin/console email:create "$email" "$password" "$full_name" 2>&1)
+        if [ $? -eq 0 ]; then
+            echo "success|$email|$password|$full_name|$first_name|$last_name" > "$RESULT_FILE"
+        else
+            echo "failed|$email|$CREATE_RESULT" > "$RESULT_FILE"
         fi
+    ) &
+
+    batch_count=$((batch_count + 1))
+
+    # Wait for each batch of MAX_CONCURRENT to complete
+    if [ $((batch_count % MAX_CONCURRENT)) -eq 0 ]; then
+        wait
     fi
+
 done < "$TEMP_USERS"
 
-# Clean up temp file
+# Wait for the last batch to complete
+wait
+
+# Process results from temporary files
+for result_file in "$TEMP_RESULTS_DIR"/*.result; do
+    if [ -f "$result_file" ]; then
+        IFS='|' read -r status email password full_name first_name last_name < "$result_file"
+        if [ "$status" = "success" ]; then
+            ((SUCCESS_COUNT++))
+            USER_DATA+=("{\"email\":\"$email\",\"password\":\"$password\",\"name\":\"$full_name\",\"first_name\":\"$first_name\",\"last_name\":\"$last_name\",\"is_admin\":false}")
+        else
+            ((FAILED_COUNT++))
+            # If in debug mode, show the error
+            if [ "${DEBUG:-}" = "1" ]; then
+                echo ""
+                echo "❌ Failed to create $email: $password"  # $password contains error message in failed case
+            fi
+        fi
+    fi
+done
+
+# Clean up temp files
 rm -f "$TEMP_USERS"
+rm -rf "$TEMP_RESULTS_DIR"
 
 # Complete progress bar
 draw_progress_bar $USER_COUNT $USER_COUNT

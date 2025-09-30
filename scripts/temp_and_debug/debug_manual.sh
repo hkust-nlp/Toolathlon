@@ -1,13 +1,18 @@
-# 参数说明
-# eval_config 控制使用的模型，输出保存路径，采样参数等；开发阶段请在scripts/debug_eval_config.json里修改
-# task_dir 任务路径，请使用相对于`tasks`的相对路径
-# debug 开启debug模式，打印所有信息
-# manual 使用真实用户，否则使用模拟用户
-# multi_turn_mode 开启多轮模式，否则使用单轮模式；单轮模式下，核心任务直接作为第一轮用户输入，此后不再有模拟用户
+# Parameter description
+# eval_config: Controls the model to use, output save path, sampling parameters, etc. During development, please modify scripts/temp_and_debug/debug_eval_config.json
+# task_dir: Task directory, please use the path relative to `tasks`
+# debug: Enable debug mode to print all information
+# manual: Use real users, otherwise simulated users will be used
+# multi_turn_mode: Enable multi-turn mode, otherwise use single-turn mode; in single-turn mode, the core task is used as the first round of user input, and there will be no more simulated users afterwards
+
+# the following parameters are used to override the parameters in the eval_config
+# model_short_name: Model name, see utils/api_model/model_provider.py
+# provider: Provider, see utils/api_model/model_provider.py
+# max_steps_under_single_turn_mode: Maximum number of steps under single-turn mode
 
 uv run demo.py \
 --eval_config scripts/temp_and_debug/debug_eval_config.json \
---task_dir  debug/debug-task \
+--task_dir  finalpool/apply-phd-email \
 --debug \
 --model_short_name deepseek-v3.2-exp \
 --provider deepseek_official \
