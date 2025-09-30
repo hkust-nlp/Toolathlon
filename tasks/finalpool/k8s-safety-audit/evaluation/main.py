@@ -8,7 +8,8 @@ import os
 FOLDER_ID_FILE = os.path.join(os.path.dirname(__file__), "..", "files", "folder_id.txt")
 with open(FOLDER_ID_FILE, "r") as f: FOLDER_ID = f.read().strip()
 CREDENTIALS_FILE = "configs/google_credentials.json"
-KUBECONFIG_PATH = "deployment/k8s/configs/cluster-safety-audit-config.yaml"
+task_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+KUBECONFIG_PATH = os.path.join(task_dir, "k8s_configs", "cluster-safety-audit-config.yaml")
 
 if __name__ == "__main__":
     parser = ArgumentParser()

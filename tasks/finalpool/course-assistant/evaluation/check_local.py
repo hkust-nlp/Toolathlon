@@ -12,52 +12,7 @@ import imaplib
 import sys
 import re
 from typing import List, Tuple
-
-def extract_email_body(email_message) -> str:
-    """优先提取text/plain正文，如无则降级为text/html并去除标签"""
-    body = ""
-    if email_message.is_multipart():
-        for part in email_message.walk():
-            content_type = part.get_content_type()
-            content_disposition = str(part.get('Content-Disposition'))
-            if content_type == 'text/plain' and 'attachment' not in content_disposition:
-                charset = part.get_content_charset() or 'utf-8'
-                try:
-                    body = part.get_payload(decode=True).decode(charset, errors='replace')
-                    return body
-                except Exception:
-                    continue
-        # 降级为text/html
-        for part in email_message.walk():
-            content_type = part.get_content_type()
-            content_disposition = str(part.get('Content-Disposition'))
-            if content_type == 'text/html' and 'attachment' not in content_disposition:
-                charset = part.get_content_charset() or 'utf-8'
-                try:
-                    html = part.get_payload(decode=True).decode(charset, errors='replace')
-                    # 去除html标签
-                    body = re.sub('<[^<]+?>', '', html)
-                    return body
-                except Exception:
-                    continue
-    else:
-        content_type = email_message.get_content_type()
-        if content_type == 'text/plain':
-            charset = email_message.get_content_charset() or 'utf-8'
-            try:
-                body = email_message.get_payload(decode=True).decode(charset, errors='replace')
-                return body
-            except Exception:
-                pass
-        elif content_type == 'text/html':
-            charset = email_message.get_content_charset() or 'utf-8'
-            try:
-                html = email_message.get_payload(decode=True).decode(charset, errors='replace')
-                body = re.sub('<[^<]+?>', '', html)
-                return body
-            except Exception:
-                pass
-    return body
+from utils.app_specific.poste.ops import extract_email_body
 
 def check_account_emails(email_address: str, password: str, imap_server: str, imap_port: int, use_ssl: bool, required_keywords: List[str], account_label: str) -> Tuple[bool, dict]:
     """检查指定账户的nlp-course-emergency邮件，校验正文内容，返回是否通过、合格邮件信息（日志直接打印）"""

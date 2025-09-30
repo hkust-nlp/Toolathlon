@@ -369,3 +369,154 @@ def create_product_analysis_orders(seed: Optional[int] = None) -> List[Dict]:
         random.shuffle(all_orders)
 
     return all_orders
+
+def create_new_welcome_orders(seed: Optional[int] = None) -> Tuple[List[Dict], List[Dict]]:
+    """
+    Create orders for woocommerce-new-welcome task using built-in WooCommerce customer data
+    Focus on customers identified as first-time buyers using orders_count=1
+
+    Args:
+        seed: Random seed for reproducibility
+
+    Returns:
+        Tuple of (all_orders, first_time_completed_orders)
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    # Load WooCommerce customer data with built-in attributes
+    task_dir = Path(__file__).parent.parent.parent.parent / "tasks" / "finalpool" / "woocommerce-new-welcome" / "preprocess"
+    woocommerce_data_file = task_dir / "woocommerce_data.json"
+    customers_data_file = task_dir / "customers_data.json"
+
+    if not woocommerce_data_file.exists():
+        raise FileNotFoundError(f"WooCommerce data file not found: {woocommerce_data_file}")
+    if not customers_data_file.exists():
+        raise FileNotFoundError(f"Customers data file not found: {customers_data_file}")
+
+    # Read WooCommerce customer data
+    with open(woocommerce_data_file, 'r', encoding='utf-8') as f:
+        woocommerce_data = json.load(f)
+
+    # Read BigQuery customer data
+    with open(customers_data_file, 'r', encoding='utf-8') as f:
+        customers_data = json.load(f)
+
+    print("📊 Using WooCommerce built-in customer attributes for order generation")
+
+    # Create customer mapping
+    woocommerce_customers = woocommerce_data.get("customers", [])
+    bigquery_customers = {c["woocommerce_id"]: c for c in customers_data}
+
+    # Identify first-time customers using built-in orders_count attribute
+    first_time_customers = [c for c in woocommerce_customers if c.get("orders_count", 0) == 1]
+    returning_customers = [c for c in woocommerce_customers if c.get("orders_count", 0) > 1]
+
+    print(f"📈 Found {len(first_time_customers)} first-time customers (orders_count=1)")
+    print(f"📈 Found {len(returning_customers)} returning customers (orders_count>1)")
+
+    # Set random seed
+    if seed is not None:
+        random.seed(seed)
+        print(f"🎲 Using random seed: {seed}")
+
+    all_orders = []
+    first_time_completed_orders = []
+    now = datetime.now()
+
+    # Generate orders for first-time customers (all completed)
+    for i, customer in enumerate(first_time_customers):
+        # Use customer's actual order date from WooCommerce data
+        order_date_str = customer.get("last_order_date")
+        if order_date_str:
+            try:
+                order_date = datetime.fromisoformat(order_date_str.replace('Z', '+00:00'))
+            except:
+                order_date = now - timedelta(days=random.randint(1, 7))
+        else:
+            order_date = now - timedelta(days=random.randint(1, 7))
+
+        # Get total spent and calculate appropriate product
+        total_spent = float(customer.get("total_spent", "0").replace('$', '').replace(',', ''))
+
+        # Select product based on total spent
+        if total_spent > 500:
+            product = ProductData("Premium Smart Watch", total_spent)
+        elif total_spent > 200:
+            product = ProductData("Wireless Bluetooth Earphones", total_spent)
+        elif total_spent > 100:
+            product = ProductData("Portable Power Bank", total_spent)
+        else:
+            product = ProductData("Phone Case", total_spent)
+
+        order = {
+            "order_id": 100 + i,
+            "order_number": f"{100 + i}",
+            "customer_email": customer["email"],
+            "customer_name": f"{customer['first_name']} {customer['last_name']}",
+            "customer_id": customer["id"],
+            "woocommerce_customer_id": customer["id"],
+            "status": "completed",
+            "date_created": order_date.strftime('%Y-%m-%dT%H:%M:%S'),
+            "date_completed": (order_date + timedelta(days=random.randint(1, 3))).strftime('%Y-%m-%dT%H:%M:%S'),
+            "product_name": product.name,
+            "product_price": product.price,
+            "quantity": 1,
+            "total_spent": total_spent,
+            "orders_count": customer.get("orders_count", 1),
+            "is_first_order": True,
+            "is_paying_customer": customer.get("is_paying_customer", True),
+            "period": "recent_7_days"
+        }
+        all_orders.append(order)
+        first_time_completed_orders.append(order)
+
+    # Generate orders for returning customers (mix of completed and processing)
+    for i, customer in enumerate(returning_customers[:5]):  # Only add 5 returning customers
+        order_date_str = customer.get("last_order_date")
+        if order_date_str:
+            try:
+                order_date = datetime.fromisoformat(order_date_str.replace('Z', '+00:00'))
+            except:
+                order_date = now - timedelta(days=random.randint(1, 30))
+        else:
+            order_date = now - timedelta(days=random.randint(1, 30))
+
+        total_spent = float(customer.get("total_spent", "0").replace('$', '').replace(',', ''))
+        orders_count = customer.get("orders_count", 2)
+
+        # Calculate order value based on customer history
+        order_value = total_spent / orders_count if orders_count > 0 else 100.0
+
+        product = ProductData("Additional Product", order_value)
+
+        # Returning customers have mix of completed and processing orders
+        status = "completed" if random.random() < 0.7 else "processing"
+
+        order = {
+            "order_id": 200 + i,
+            "order_number": f"{200 + i}",
+            "customer_email": customer["email"],
+            "customer_name": f"{customer['first_name']} {customer['last_name']}",
+            "customer_id": customer["id"],
+            "woocommerce_customer_id": customer["id"],
+            "status": status,
+            "date_created": order_date.strftime('%Y-%m-%dT%H:%M:%S'),
+            "date_completed": (order_date + timedelta(days=random.randint(1, 5))).strftime('%Y-%m-%dT%H:%M:%S') if status == "completed" else None,
+            "product_name": product.name,
+            "product_price": product.price,
+            "quantity": 1,
+            "total_spent": total_spent,
+            "orders_count": orders_count,
+            "is_first_order": False,
+            "is_paying_customer": customer.get("is_paying_customer", True),
+            "period": "recent_30_days"
+        }
+        all_orders.append(order)
+
+    print(f"📦 Generated {len(all_orders)} total orders using WooCommerce built-in attributes")
+    print(f"   - First-time completed orders: {len(first_time_completed_orders)} (orders_count=1)")
+    print(f"   - Returning customer orders: {len(all_orders) - len(first_time_completed_orders)} (orders_count>1)")
+
+    return all_orders, first_time_completed_orders

@@ -3,7 +3,7 @@
 agent_workspace=$2
 
 # 设置变量
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SCRIPT_DIR=$(dirname "$0")
 
 k8sconfig_path_dir=${agent_workspace}/k8s_configs
 # backup_k8sconfig_path_dir=deployment/k8s/configs

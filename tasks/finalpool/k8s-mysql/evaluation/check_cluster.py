@@ -349,8 +349,12 @@ def build_expected_config() -> ExpectedConfig:
 # -----------------------------
 
 def main() -> None:
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--kubeconfig_path", required=True)
+    args = parser.parse_args()
+    kubeconfig_path = args.kubeconfig_path
     # 与你的创建脚本保持一致
-    kubeconfig_path = "deployment/k8s/configs/cluster-mysql-config.yaml"
     expected = build_expected_config()
 
     validator = KubernetesValidator(

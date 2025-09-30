@@ -238,7 +238,7 @@ def build_expected_config() -> ExpectedConfig:
 
 def main() -> None:
     parser = ArgumentParser()
-    parser.add_argument("--kubeconfig_path", default="deployment/k8s/configs/cluster-safety-audit-config.yaml")
+    parser.add_argument("--kubeconfig_path", required=True)
     args = parser.parse_args()
 
     kubeconfig_path = args.kubeconfig_path

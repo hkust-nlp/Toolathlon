@@ -7,12 +7,12 @@ from typing import Dict, Any
 
 TARGET_VERSION = "22.0.0"
 
-def check_helm_upgrade(workspace_dir: str) -> Dict[str, Any]:
+def check_helm_upgrade(task_dir: str) -> Dict[str, Any]:
     """
     Check if Redis Helm chart was successfully upgraded
     
     Args:
-        workspace_dir: The agent's workspace directory
+        task_dir: The task directory
         
     Returns:
         Dictionary with detailed check results
@@ -37,7 +37,7 @@ def check_helm_upgrade(workspace_dir: str) -> Dict[str, Any]:
     
     try:
         # Check if kubeconfig exists
-        kubeconfig_path = f"{workspace_dir}/k8s_configs/cluster-redis-helm-config.yaml"
+        kubeconfig_path = os.path.join(task_dir, "k8s_configs", "cluster-redis-helm-config.yaml")
         if not os.path.exists(kubeconfig_path):
             return {"error": "Kubeconfig not found"}
         
@@ -149,17 +149,17 @@ def check_helm_upgrade(workspace_dir: str) -> Dict[str, Any]:
     except Exception as e:
         return {"error": str(e)}
 
-def evaluate(workspace_dir: str) -> Dict[str, Any]:
+def evaluate(task_dir: str) -> Dict[str, Any]:
     """
     Main evaluation function for the Redis Helm upgrade task
     
     Args:
-        workspace_dir: The agent's workspace directory
+        task_dir: The task directory
         
     Returns:
         Dictionary with evaluation results
     """
-    details = check_helm_upgrade(workspace_dir)
+    details = check_helm_upgrade(task_dir)
     
     # Handle error case
     if "error" in details:
@@ -239,7 +239,9 @@ if __name__ == "__main__":
     parser.add_argument("--launch_time", required=False)
     args = parser.parse_args()
     
-    result = evaluate(args.agent_workspace)
+    task_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+    result = evaluate(task_dir)
     print(json.dumps(result, indent=2))
     
     # Exit with code 1 if overall_score < 1.0, 0 if perfect score

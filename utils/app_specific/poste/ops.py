@@ -2,6 +2,7 @@ import imaplib
 import email
 from email.header import decode_header
 from typing import Dict, List, Tuple
+import re
 
 from utils.general.helper import print_color
 from utils.general.helper import normalize_str
@@ -337,6 +338,69 @@ def check_sender_outbox(sender_config: dict, interference_emails: set) -> Tuple[
     return passed, unexpected_sends
 
 
+
+def clear_all_mail_folders(config: Dict, folders: List[str] = None) -> Dict:
+    """
+    清空多个邮箱文件夹
+
+    Args:
+        config: 邮箱配置字典
+        folders: 要清空的文件夹列表，默认为 ['INBOX', 'Sent', 'Drafts']
+
+    Returns:
+        Dict: 清理结果
+    """
+    if folders is None:
+        folders = ['INBOX', 'Sent', 'Drafts']
+
+    results = {
+        "success": True,
+        "cleared_folders": [],
+        "failed_folders": [],
+        "errors": []
+    }
+
+    for folder in folders:
+        try:
+            clear_folder(folder, config)
+            results["cleared_folders"].append(folder)
+            print_color(f"Successfully cleared folder: {folder}", "green")
+        except Exception as e:
+            results["failed_folders"].append(folder)
+            results["errors"].append(f"{folder}: {e}")
+            results["success"] = False
+            print_color(f"Failed to clear folder {folder}: {e}", "red")
+
+    return results
+
+
+def setup_clean_mailbox_environment(config: Dict) -> Dict:
+    """
+    设置干净的邮箱环境 - 清空所有常用文件夹
+
+    Args:
+        config: 邮箱配置字典
+
+    Returns:
+        Dict: 清理结果和状态
+    """
+    print_color("Setting up clean mailbox environment...", "blue")
+
+    # 常用的邮箱文件夹
+    standard_folders = ['INBOX', 'Sent', 'Drafts']
+
+    result = clear_all_mail_folders(config, standard_folders)
+
+    if result["success"]:
+        print_color("✅ Mailbox environment setup complete", "green")
+    else:
+        print_color("⚠️ Mailbox setup completed with some errors", "yellow")
+        for error in result["errors"]:
+            print_color(f"   {error}", "red")
+
+    return result
+
+
 def extract_email_body(email_message) -> str:
     """Prefer text/plain; fallback to text/html with tags removed."""
     body = ""
@@ -380,53 +444,3 @@ def extract_email_body(email_message) -> str:
             except Exception:
                 pass
     return body
-
-    """Scan sender outbox to ensure no emails were sent to interference addresses."""
-    passed = True
-    unexpected_sends = []
-
-    try:
-        if sender_config['use_ssl']:
-            imap_connection = imaplib.IMAP4_SSL(sender_config['imap_server'], sender_config['imap_port'])
-        else:
-            imap_connection = imaplib.IMAP4(sender_config['imap_server'], sender_config['imap_port'])
-
-        imap_connection.login(sender_config['email'], sender_config['password'])
-        imap_connection.select('Sent')
-
-        status, all_message_numbers = imap_connection.search(None, 'ALL')
-        if status != 'OK':
-            print(f"[OUTBOX][{sender_config['email']}] Search failed")
-            return False, []
-
-        all_messages = all_message_numbers[0].split()
-
-        for num in all_messages:
-            try:
-                status, message_data = imap_connection.fetch(num, '(RFC822)')
-                if status == 'OK':
-                    email_message = email.message_from_bytes(message_data[0][1])
-                    to_field = email_message.get('To', '').lower()
-
-                    for interference_email in interference_emails:
-                        if interference_email.lower() in to_field:
-                            subject = decode_email_subject(email_message.get('Subject', 'Unknown Subject'))
-                            unexpected_sends.append({
-                                'to': interference_email,
-                                'subject': subject,
-                                'message_id': num.decode() if isinstance(num, bytes) else str(num)
-                            })
-                            passed = False
-                            break
-
-            except Exception as e:
-                print(f"[OUTBOX] Error while reading message {num}: {e}")
-                continue
-
-        imap_connection.logout()
-
-    except Exception as e:
-        print(f"[OUTBOX] Exception during outbox check: {e}")
-        passed = False
-
-    return passed, unexpected_sends

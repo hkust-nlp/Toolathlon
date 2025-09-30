@@ -3,6 +3,7 @@
 agent_workspace=$3
 
 # 设置变量
+SCRIPT_DIR=$(dirname "$0")
 PORT=${1:-30123}  # 默认端口30123，可通过第一个参数覆盖
 k8sconfig_path_dir=${agent_workspace}/k8s_configs
 # backup_k8sconfig_path_dir=deployment/k8s/configs

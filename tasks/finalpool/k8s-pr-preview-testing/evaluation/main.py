@@ -12,7 +12,8 @@ from utils.general.helper import normalize_str
 
 # ORIGINAL_HASH="ca1e55249730750ec2efc8f2a42ff6b905beceec"
 NAMESPACE="pr-preview-123"
-K8S_CONFIG_PATH="deployment/k8s/configs/cluster-pr-preview-config.yaml"
+task_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+K8S_CONFIG_PATH=os.path.join(task_dir, "k8s_configs", "cluster-pr-preview-config.yaml")
 
 def parse_markdown_table(table_content):
     """Parse markdown table into structured data"""

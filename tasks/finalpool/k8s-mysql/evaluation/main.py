@@ -9,8 +9,9 @@ import json
 import subprocess
 import socket
 import pymysql
-
-KUBECONFIG_PATH = "deployment/k8s/configs/cluster-mysql-config.yaml"
+import os
+task_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+KUBECONFIG_PATH = os.path.join(task_dir, "k8s_configs", "cluster-mysql-config.yaml")
 
 def normalize_str(s: str) -> str:
     """去掉前后空格、双引号，压缩中间空格，并转为小写"""
@@ -159,7 +160,6 @@ def check_safe_connection(res_log_file):
         print(f"Error connecting to MySQL: {e}")
         return False
 
-    return False
 
 
 if __name__ == "__main__":
@@ -216,7 +216,7 @@ if __name__ == "__main__":
 
     print("Check cluster status...")
     stdout, stderr, return_code = asyncio.run(run_command(
-                f"uv run -m {get_module_path('check_cluster')}", debug=True,show_output=True))
+                f"uv run -m {get_module_path('check_cluster')} --kubeconfig_path {KUBECONFIG_PATH}", debug=True,show_output=True))
     if return_code != 0:
         print(f"[ERROR] Cluster check failed with return code {return_code}")
         print(f"stdout: {stdout}")

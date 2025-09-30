@@ -9,7 +9,8 @@ from .order_generator import (
     ProductData,
     OrderGenerationConfig,
     create_customer_survey_orders,
-    create_product_analysis_orders
+    create_product_analysis_orders,
+    create_new_welcome_orders
 )
 from .order_manager import (
     OrderManager,
@@ -26,6 +27,7 @@ __all__ = [
     'OrderManager',
     'create_customer_survey_orders',
     'create_product_analysis_orders',
+    'create_new_welcome_orders',
     'setup_customer_survey_environment',
     'setup_product_analysis_environment'
 ]

@@ -35,8 +35,8 @@ def run_cmd(cmd: List[str], suppress_error_log: bool = False) -> Tuple[int, str,
         return 1, "", str(e)
 
 
-def detect_kubeconfig(agent_workspace: str, repo_root: str) -> str:
-    cand1 = os.path.join(repo_root, "deployment", "k8s", "configs", "cluster-cleanup-config.yaml")
+def detect_kubeconfig(agent_workspace: str, task_dir: str) -> str:
+    cand1 = os.path.join(task_dir, "k8s_configs", "cluster-cleanup-config.yaml")
     cand2 = os.path.join(agent_workspace, "k8s_configs", "cluster-cleanup-config.yaml")
     debug(f"Trying kubeconfig candidates: {cand1} | {cand2}")
     if os.path.exists(cand1):
@@ -376,14 +376,15 @@ def main() -> int:
     VERBOSE = bool(args.verbose)
 
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+    task_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     debug(f"Repo root resolved to: {repo_root}")
     debug(f"Agent workspace: {args.agent_workspace}")
+    debug(f"Task dir: {task_dir}")
 
     # Resolve kubeconfig
-    kubeconfig = detect_kubeconfig(args.agent_workspace, repo_root)
+    kubeconfig = detect_kubeconfig(args.agent_workspace, task_dir)
 
     # Paths
-    task_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     yaml_manifest = os.path.join(task_dir, "k8s_resources", "k8s_deployment_cleanup.yaml")
     groundtruth_dir = args.groundtruth_workspace or os.path.join(task_dir, "groundtruth_workspace")
     expected_email_path = os.path.join(groundtruth_dir, "expected_email_content.txt")
