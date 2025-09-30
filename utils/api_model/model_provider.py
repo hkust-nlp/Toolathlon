@@ -397,7 +397,7 @@ class CustomModelProviderAiHubMix(ModelProvider):
 class CustomModelProviderAnthropic(ModelProvider):
     def get_model(self, model_name: str | None, debug: bool = True, short_model_name: str | None = None) -> Model:
         client = AsyncOpenAI(
-            api_key=global_configs.official_anthropic_key,
+            api_key=global_configs.anthropic_official_key,
             base_url="https://api.anthropic.com/v1/",
         )
         return OpenAIChatCompletionsModelWithRetry(model=model_name, 
@@ -422,7 +422,7 @@ class CustomModelProviderOpenRouter(ModelProvider):
     def get_model(self, model_name: str | None, debug: bool = True, short_model_name: str | None = None) -> Model:
         client = AsyncOpenAI(
             api_key=global_configs.openrouter_key,
-            base_url="http://localhost:12345/api/v1",
+            base_url="https://openrouter.ai/api/v1",
         )
         return OpenAIChatCompletionsModelWithRetry(model=model_name, 
                                                    openai_client=client,

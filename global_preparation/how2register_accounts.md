@@ -65,11 +65,20 @@ The following are the admin accounts for each of the three applications:
     - https://console.cloud.google.com/
     ![launch_new_gcp](./figures/launch_new_gcp.png)
     - Say we name it as "TestProject"
-    - After creating, click the `Select a Project` button again (it may become the  of another project, but click that button anyway) and then select the "TestProject"
+    - After creating, click the `Select a Project` button again (it may become the of another project, but click that button anyway) and then select the "TestProject"
     - Please fill the project ID to the `gcp_project_id` variable in `configs/token_key_session.py`
     ![](./figures/gcp_id.png)
 3. Enable all needed APIs
+
+    Just run 
+    ```
+    bash global_preparation/batch_enable_gloud_apis.sh {gcp_project_id}
+    ```
+
+    <details>
+    <summary>(Or if you do not want to use gcloud cli ...) Legacy GUI-based Operations</summary>
     - Upon switch to that project, go to `APIs and services` from the side bar
+
     ![](./figures/enable_gcp_apis_part1.png)
     ![](./figures/enable_gcp_apis_part2.png)
     ![](./figures/enable_gcp_apis_part3.png)
@@ -118,6 +127,7 @@ The following are the admin accounts for each of the three applications:
         Service Management API					
         Service Usage API
         ```
+    </details>
 4. Oauth2.0 Authentication
     - Go to "APIs & Services" > "Credentials"
     ![](./figures/gcp_oauth2_part1.png)

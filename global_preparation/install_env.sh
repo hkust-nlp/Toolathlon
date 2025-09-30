@@ -52,10 +52,6 @@ cd node_modules/@lockon0927/playwright-mcp-with-chunk
 npx playwright install chromium
 cd ../../..
 
-# Set environment variable for Playwright (ignore host requirements warnings)
-export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1
-echo "export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1" >> ~/.bashrc
-
 # uvx
 uv tool install office-powerpoint-mcp-server@2.0.6
 uv tool install office-word-mcp-server@1.1.9
@@ -109,7 +105,7 @@ cd ../..
 # check use podman  or docker from configs/global_configs.py
 podman_or_docker=$(uv run python -c "import sys; sys.path.append('configs'); from global_configs import global_configs; print(global_configs.podman_or_docker)")
 if [ "$podman_or_docker" = "podman" ]; then
-    podman pull lockon0927/mcpbench-task-image-v2:latest
+    podman pull lockon0927/mcpbench-task-image-v2:jl0921alpha
 else
-    docker pull lockon0927/mcpbench-task-image-v2:latest
+    docker pull lockon0927/mcpbench-task-image-v2:jl0921alpha
 fi
