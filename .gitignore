@@ -75,6 +75,7 @@ dumps_for_mcp_check/
 dumps_finalexp/
 dumps_finalexp_ytb/
 dumps_ablation_ytb/
+dumps_debug/
 
 scripts/temp_parallel_config*
 tasks/finalpool_add_unrelated_mcps_*

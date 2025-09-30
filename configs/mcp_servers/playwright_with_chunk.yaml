@@ -1,4 +1,4 @@
-# 使用 Playwright 提供浏览器自动化功能
+# Use Playwright to provide browser automation functionality
 # https://github.com/microsoft/playwright-mcp
 type: stdio
 name: playwright_with_chunk
@@ -7,11 +7,10 @@ params:
   args:
     - "-y"
     - "@lockon0927/playwright-mcp-with-chunk"
-    - "--headless"      # 无界面模式
-    - "--isolated"      # 每次初始化新会话，不保存缓存
-    - "--no-sandbox"    # 可能带来安全风险，如果您的机器支持沙盒，请删除此选项； 此外，root运行时此项必须打开
+    - "--headless"      # Headless mode
+    - "--isolated"      # Initialize a new session each time, do not save cache
     - "--browser"
-    - "chromium"        # 请使用 chromium，其他浏览器可能需要 sudo 安装
+    - "chromium"        # Please use chromium; other browsers may require sudo installation
     - "--user-agent"
     - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     - "--output-dir"
@@ -20,8 +19,5 @@ params:
     - "omit"
     - "--span-size"
     - "5000"
-  # env:
-  #   HTTPS_PROXY: "${config.proxy}"
-  #   HTTP_PROXY: "${config.proxy}"
 client_session_timeout_seconds: 120
 cache_tools_list: true

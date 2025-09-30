@@ -75,6 +75,12 @@ class MCPServerManager:
         # 处理参数中的模板变量
         params = self._process_config_params(config.get('params', {}))
         
+        # specialized preprocessing for playwright_with_chunk
+        if server_name == 'playwright_with_chunk':
+            # if the current user is root, then add --no-sandbox to the params
+            if os.geteuid() == 0:
+                params['args'].append('--no-sandbox')
+
         # 创建服务器实例
         kwargs = {
             'name': server_name,

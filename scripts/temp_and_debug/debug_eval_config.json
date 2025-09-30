@@ -2,7 +2,7 @@
     "global_task_config":{
         "max_turns": 50,
         "max_steps_under_single_turn_mode": 50,
-        "dump_path":"./dumps/run1"
+        "dump_path":"./dumps_debug/"
     },
     "mcp":{
         "server_config_path": "configs/mcp_servers"
