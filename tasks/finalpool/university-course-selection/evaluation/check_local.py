@@ -5,7 +5,7 @@ from typing import Tuple, Optional
 from itertools import permutations
 from utils.general.helper import normalize_str
 
-def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode=False) -> Tuple[bool, Optional[str]]:
+def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode=True) -> Tuple[bool, Optional[str]]:
     """
     Main evaluation function for the university course selection task.
     
@@ -22,61 +22,59 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode=False)
             - Optional[str]: Success message or detailed error description
     """
     
-    # 定义需要匹配的列名
-    # 课程名称	课程代码	任课老师	上课校区	上课时间	人数	学分数	考核方式	考试时间	选课限制条件
     REQUIRED_COLUMNS = ['课程名称', '课程代码', '任课老师', '上课校区', '上课时间', '人数', '学分数', '考核方式', '考试时间', '选课限制条件']
     if en_mode:
         # Course name	Course ID	Instructor	Campus	Class Time	Enrollment	Credits	Assessment Method	Exam Time	Course Selection Restrictions
         REQUIRED_COLUMNS = ['Course name', 'Course ID', 'Instructor', 'Campus', 'Class Time', 'Enrollment', 'Credits', 'Assessment Method', 'Exam Time', 'Course Selection Restrictions']
     
     def clean_dataframe(df, cols):
-        """清理DataFrame，去除空行和无效数据"""
-        # 提取需要的列
+        """Clean DataFrame, remove empty rows and invalid data"""
+        # Extract the required columns
         subset = df[cols].copy()
         
-        # 去除所有指定列都为空的行
+        # Remove all rows where all specified columns are empty
         subset = subset.dropna(how='all', subset=cols)
         
-        # 去除任一指定列为空或仅包含空字符串的行
+        # Remove rows where any specified column is empty or only contains empty strings
         for col in cols:
             mask = subset[col].apply(lambda x: str(x).strip() != '' and not pd.isna(x))
             subset = subset[mask]
         
-        # 重置索引
+        # Reset the index
         return subset.reset_index(drop=True)
     
     def smart_compare(val1, val2):
-        """智能比较两个值，处理数值类型和字符串类型"""
-        # 处理NaN值
+        """Smart compare two values, handle numeric and string types"""
+        # Handle NaN values
         if pd.isna(val1) and pd.isna(val2):
             return True
         if pd.isna(val1) or pd.isna(val2):
             return False
         
-        # 尝试数值比较
+        # Try numeric comparison
         try:
-            # 尝试将两个值都转换为浮点数
+            # Try to convert both values to floats
             num1 = float(str(val1).strip())
             num2 = float(str(val2).strip())
-            # 使用小误差比较
+            # Use small error comparison
             return abs(num1 - num2) < 1e-10
         except (ValueError, TypeError):
-            # 如果不是数值，进行字符串比较
+            # If not a number, perform string comparison
             str1 = normalize_str(str(val1).strip())
             str2 = normalize_str(str(val2).strip())
             return str1 == str2
     
     def compare_single_files(gt_file_path, agent_file_path):
-        """比较单个groundtruth文件和agent文件"""
+        """Compare a single groundtruth file and agent file"""
         try:
-            # 读取groundtruth文件，去掉全空的sheet
+            # Read the groundtruth file, remove all empty sheets
             gt_excel = pd.ExcelFile(gt_file_path)
             gt_df = None
             for sheet_name in gt_excel.sheet_names:
                 sheet_df = pd.read_excel(gt_file_path, sheet_name=sheet_name)
-                # 检查sheet是否全空（所有列都为空或只包含空字符串）
+                # Check if the sheet is empty (all columns are empty or only contain empty strings)
                 if not sheet_df.empty and not sheet_df.isna().all().all():
-                    # 检查是否有非空字符串
+                    # Check if there are non-empty strings
                     has_content = False
                     for col in sheet_df.columns:
                         if sheet_df[col].astype(str).str.strip().ne('').any():
@@ -87,24 +85,24 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode=False)
                         break
             
             if gt_df is None:
-                return False, "Groundtruth文件中没有包含有效数据的sheet"
+                return False, "Groundtruth file does not contain any valid sheets"
             
             available_gt_cols = [col for col in REQUIRED_COLUMNS if col in gt_df.columns]
             if not available_gt_cols:
-                return False, "Groundtruth文件不包含必需的列"
+                return False, "Groundtruth file does not contain the required columns"
             
             gt_cleaned = clean_dataframe(gt_df, available_gt_cols)
             if gt_cleaned.empty:
-                return False, "Groundtruth文件中没有有效数据"
+                return False, "Groundtruth file does not contain any valid data"
             
-            # 读取agent文件，去掉全空的sheet
+            # Read the agent file, remove all empty sheets
             agent_excel = pd.ExcelFile(agent_file_path)
             agent_df = None
             for sheet_name in agent_excel.sheet_names:
                 sheet_df = pd.read_excel(agent_file_path, sheet_name=sheet_name)
-                # 检查sheet是否全空（所有列都为空或只包含空字符串）
+                # Check if the sheet is empty (all columns are empty or only contain empty strings)
                 if not sheet_df.empty and not sheet_df.isna().all().all():
-                    # 检查是否有非空字符串
+                    # Check if there are non-empty strings
                     has_content = False
                     for col in sheet_df.columns:
                         if sheet_df[col].astype(str).str.strip().ne('').any():
@@ -115,30 +113,30 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode=False)
                         break
             
             if agent_df is None:
-                return False, "Agent文件中没有包含有效数据的sheet"
+                return False, "Agent file does not contain any valid sheets"
             
             available_agent_cols = [col for col in REQUIRED_COLUMNS if col in agent_df.columns]
             if not available_agent_cols:
-                return False, "Agent文件不包含必需的列"
+                return False, "Agent file does not contain the required columns"
             
             agent_cleaned = clean_dataframe(agent_df, available_agent_cols)
             if agent_cleaned.empty:
-                return False, "Agent文件中没有有效数据"
+                return False, "Agent file does not contain any valid data"
             
-            # 确保两个文件有相同的列
+            # Ensure the two files have the same columns
             common_cols = list(set(available_gt_cols) & set(available_agent_cols))
             if not common_cols:
-                return False, "两个文件没有共同的必需列"
+                return False, "The two files do not have the same required columns"
             
-            # 检查数据条数是否一致
+            # Check if the number of data rows is consistent
             if len(gt_cleaned) != len(agent_cleaned):
-                return False, f"数据条数不匹配 - GT: {len(gt_cleaned)} 条，Agent: {len(agent_cleaned)} 条"
+                return False, f"Data row count mismatch - GT: {len(gt_cleaned)} rows, Agent: {len(agent_cleaned)} rows"
             
-            # 排序后比较内容
+            # Compare the content after sorting
             gt_sorted = gt_cleaned[common_cols].sort_values(by=common_cols).reset_index(drop=True)
             agent_sorted = agent_cleaned[common_cols].sort_values(by=common_cols).reset_index(drop=True)
             
-            # 逐行比较指定列的内容
+            # Compare the content of the specified columns row by row
             mismatches = []
             for i in range(len(gt_sorted)):
                 for col in common_cols:
@@ -154,15 +152,15 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode=False)
                         })
             
             if mismatches:
-                error_msg = f"发现 {len(mismatches)} 处不匹配"
+                error_msg = f"Found {len(mismatches)} mismatches"
                 return False, error_msg
             
-            return True, f"成功匹配 {len(gt_sorted)} 条有效记录"
+            return True, f"Successfully matched {len(gt_sorted)} valid records"
         
         except Exception as e:
-            return False, f"比较文件时出错: {str(e)}"
+            return False, f"Error when comparing files: {str(e)}"
     
-    # 获取groundtruth文件列表
+    # Get the groundtruth file list
     groundtruth_files = []
     for file in os.listdir(groundtruth_workspace):
         if file.endswith('.xlsx'):
@@ -171,7 +169,7 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode=False)
     if not groundtruth_files:
         return False, "No Excel files found in groundtruth workspace"
     
-    # 获取agent文件列表
+    # Get the agent file list
     agent_files = []
     for file in os.listdir(agent_workspace):
         if file.endswith('.xlsx'):
@@ -180,17 +178,17 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode=False)
     if not agent_files:
         return False, "No Excel files found in agent workspace"
     
-    # 检查文件数量是否相等
+    # Check if the number of files is equal
     if len(groundtruth_files) != len(agent_files):
-        return False, f"文件数量不匹配 - Groundtruth: {len(groundtruth_files)} 个文件，Agent: {len(agent_files)} 个文件"
+        return False, f"File count mismatch - Groundtruth: {len(groundtruth_files)} files, Agent: {len(agent_files)} files"
     
-    print(f"开始寻找完全匹配方案，需要检查 {len(groundtruth_files)}! = {len(list(permutations(agent_files)))} 种排列")
+    print(f"Start finding the perfect matching solution, need to check {len(groundtruth_files)}! = {len(list(permutations(agent_files)))} permutations")
     
-    # 尝试所有可能的agent文件排列，寻找完全匹配
+    # Try all possible agent file permutations, find the perfect matching solution
     for agent_permutation in permutations(agent_files):
-        print(f"尝试排列: {list(zip(groundtruth_files, agent_permutation))}")
+        print(f"Trying permutation: {list(zip(groundtruth_files, agent_permutation))}")
         
-        # 检查当前排列是否能实现完全匹配
+        # Check if the current permutation can achieve a perfect match
         all_matched = True
         match_details = []
         
@@ -203,16 +201,16 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode=False)
             if success:
                 match_details.append(f"{gt_file} ↔ {agent_file}: {message}")
             else:
-                print(f"  失败: {gt_file} vs {agent_file} - {message}")
+                print(f"  Failed: {gt_file} vs {agent_file} - {message}")
                 all_matched = False
-                break  # 当前排列失败，尝试下一个排列
+                break  # The current permutation failed, try the next permutation
         
         if all_matched:
-            # 找到完全匹配的方案
-            success_msg = f"找到完全匹配方案！\n"
+            # Find the perfect matching solution
+            success_msg = f"Found the perfect matching solution!\n"
             for detail in match_details:
                 success_msg += f"  {detail}\n"
             return True, success_msg.strip()
     
-    # 如果所有排列都无法实现完全匹配
-    return False, f"尝试了所有 {len(list(permutations(agent_files)))} 种文件排列组合，都无法找到完全匹配方案" 
+    # If all permutations cannot achieve a perfect match
+    return False, f"Tried all {len(list(permutations(agent_files)))} permutations, but cannot find the perfect matching solution" 

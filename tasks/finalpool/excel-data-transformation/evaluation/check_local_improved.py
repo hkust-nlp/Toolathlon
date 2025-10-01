@@ -144,7 +144,7 @@ def check_local(agent_workspace: str, groundtruth_workspace: str,
             return False, f"[{error['category'].upper()}] {error['details']}"
 
         # === STAGE 4: Content Validation ===
-        expected_appliances = ['Household Refrigerator', 'Air Conditioner', 'Household Washing Machines']
+        expected_appliances = ['Household Refrigerators', 'Air Conditioners', 'Household Washing Machines']
         agent_appliances = agent_df['Appliance types'].unique().tolist()
         missing_appliances = [app for app in expected_appliances if app not in agent_appliances]
         

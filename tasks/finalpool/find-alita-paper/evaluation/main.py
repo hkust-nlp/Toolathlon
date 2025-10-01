@@ -7,7 +7,7 @@ from utils.general.helper import read_json, normalize_str
 import re
 
 
-# 添加项目根目录到Python路径
+# Add project root to Python path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../.."))
 sys.path.insert(0, project_root)
 
@@ -21,82 +21,82 @@ code_url_gt = "github.com/CharlesQ9/Alita"
 
 
 def check_pdf(pdf_path, groundtruth_workspace):
-    # 由于arxiv可能会上传新版本，该函数请这样实现
-    # 根据arxiv_id_gt获取最新版本的arxiv，如果是v1，就直接使用groundtruth_workspace/gt_alita_{arxiv_id_gt}v1.pdf
-    # 否则，请下载一个最新版本的pdf到groundtruth_workspace/gt_alita_{arxiv_id_gt}v{n}.pdf
+    # Since arxiv may upload new versions, please implement this function as follows
+    # Get the latest version of arxiv based on arxiv_id_gt, if it is v1, just use groundtruth_workspace/gt_alita_{arxiv_id_gt}v1.pdf
+    # Otherwise, please download a latest version of pdf to groundtruth_workspace/gt_alita_{arxiv_id_gt}v{n}.pdf
 
-    # 请确保下载的完整性
+    # Please ensure the completeness of the download
     
-    # 然后请你对比pdf_path和groundtruth_workspace/gt_alita_{arxiv_id_gt}v{n}.pdf是否一致
-    # 如果一致，则返回True，否则返回False
+    # Then please compare whether pdf_path and groundtruth_workspace/gt_alita_{arxiv_id_gt}v{n}.pdf are consistent
+    # If consistent, return True, otherwise return False
     
     import arxiv
     import hashlib
     import requests
     
     try:
-        # 获取 arXiv 论文信息
+        # Get arXiv paper information
         client = arxiv.Client()
         search = arxiv.Search(id_list=[arxiv_id_gt])
         paper = next(client.results(search))
 
-        # 获取版本信息
+        # Get version information
         version = paper.entry_id.split('v')[-1]
         pdf_url = paper.entry_id.replace('abs', 'pdf')
         print(f"arXiv paper version: v{version}")
         
-        # 构建 groundtruth 文件路径
+        # Build groundtruth file path
         gt_filename = f"gt_alita_{arxiv_id_gt}v{version}.pdf"
         gt_file_path = os.path.join(groundtruth_workspace, gt_filename)
         
-        # 如果版本是 v1 且文件已存在，直接使用
+        # If the version is v1 and the file exists, just use
         if os.path.exists(gt_file_path):
             print(f"Using existing groundtruth file: {gt_file_path}")
         else:
-            # 下载最新版本的 PDF
+            # Download the latest version of PDF
             print(f"Downloading version v{version} PDF to: {gt_file_path}")
             
-            # 确保目录存在
+            # Ensure the directory exists
             os.makedirs(groundtruth_workspace, exist_ok=True)
             
-            # 下载 PDF 文件，带重试机制
+            # Download PDF file, with retry mechanism
             max_retries = 3
-            retry_delay = 2  # 秒
+            retry_delay = 2  # seconds
             
             for attempt in range(max_retries):
                 try:
                     print(f"Download attempt {attempt + 1}/{max_retries}")
                     
-                    # 设置超时和重试参数
+                    # Set timeout and retry parameters
                     response = requests.get(
                         pdf_url, 
                         stream=True, 
-                        timeout=(10, 30),  # (连接超时, 读取超时)
+                        timeout=(10, 30),  # (connection timeout, read timeout)
                         headers={
                             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
                         }
                     )
                     response.raise_for_status()
                     
-                    # 获取文件大小用于验证
+                    # Get file size for verification
                     content_length = response.headers.get('content-length')
                     if content_length:
                         expected_size = int(content_length)
                         print(f"Expected file size: {expected_size} bytes")
                     
-                    # 下载文件
+                    # Download file
                     downloaded_size = 0
                     with open(gt_file_path, 'wb') as f:
                         for chunk in response.iter_content(chunk_size=8192):
-                            if chunk:  # 过滤掉空块
+                            if chunk:  # Filter out empty blocks
                                 f.write(chunk)
                                 downloaded_size += len(chunk)
                     
-                    # 验证下载完整性
+                    # Verify download completeness
                     if content_length and downloaded_size != expected_size:
                         raise Exception(f"Download incomplete: expected {expected_size} bytes, got {downloaded_size} bytes")
                     
-                    # 验证文件是否为有效的 PDF
+                    # Verify if the file is a valid PDF
                     with open(gt_file_path, 'rb') as f:
                         header = f.read(4)
                         if header != b'%PDF':
@@ -108,7 +108,7 @@ def check_pdf(pdf_path, groundtruth_workspace):
                 except Exception as e:
                     print(f"Download attempt {attempt + 1} failed: {e}")
                     
-                    # 删除可能损坏的文件
+                    # Delete possibly corrupted file
                     if os.path.exists(gt_file_path):
                         os.remove(gt_file_path)
                     
@@ -116,22 +116,22 @@ def check_pdf(pdf_path, groundtruth_workspace):
                         print(f"Retrying in {retry_delay} seconds...")
                         import time
                         time.sleep(retry_delay)
-                        retry_delay *= 2  # 指数退避
+                        retry_delay *= 2  # Exponential backoff
                     else:
                         print("All download attempts failed")
                         raise Exception(f"Failed to download PDF after {max_retries} attempts: {e}")
         
-        # 检查下载的文件是否存在
+        # Check if the downloaded file exists
         if not os.path.exists(gt_file_path):
             print(f"Error: Groundtruth file not found: {gt_file_path}")
             return False
         
-        # 检查输入的 PDF 文件是否存在
+        # Check if the input PDF file exists
         if not os.path.exists(pdf_path):
             print(f"Error: Input PDF file not found: {pdf_path}")
             return False
         
-        # 计算两个文件的 MD5 哈希值进行对比
+        # Calculate the MD5 hash values of the two files for comparison
         def calculate_md5(file_path):
             hash_md5 = hashlib.md5()
             with open(file_path, "rb") as f:
@@ -145,7 +145,7 @@ def check_pdf(pdf_path, groundtruth_workspace):
         print(f"Input PDF MD5: {input_md5}")
         print(f"Groundtruth PDF MD5: {gt_md5}")
         
-        # 对比哈希值
+        # Compare hash values
         if input_md5 == gt_md5:
             print("PDF files are identical!")
             return True
@@ -194,13 +194,13 @@ code_url: {code_url}
     if code_url.startswith("http://"):
         code_url = code_url[7:]
     
-    # 检查是否匹配基础URL或带有版本号的URL
+    # Check if the base URL or the URL with version number matches
     normalized_arxiv_abs_url = normalize_str(arxiv_abs_url)
     normalized_arxiv_abs_url_gt = normalize_str(arxiv_abs_url_gt)
     
-    # 检查是否完全匹配或匹配带有版本号后缀的URL
+    # Check if the URL matches the base URL or the URL with version number
     if normalized_arxiv_abs_url != normalized_arxiv_abs_url_gt:
-        # 检查是否匹配 v{n} 格式的版本号
+        # Check if the URL matches the version number format
         version_pattern = re.compile(rf"^{re.escape(normalized_arxiv_abs_url_gt)}v\d+$")
         if not version_pattern.match(normalized_arxiv_abs_url):
             print(f"Arxiv URL mismatch: the desired arxiv id is: {arxiv_abs_url_gt}, but the found arxiv url is: {arxiv_abs_url}")
@@ -258,7 +258,7 @@ async def main(args):
 
 
 if __name__ == "__main__":
-    """主函数，支持命令行调用"""
+    """Main function, support command line call"""
     parser = argparse.ArgumentParser(description='Evaluate arXiv paper search task')
     parser.add_argument('--res_log_file', required=False, help='Path to result log file')
     parser.add_argument('--agent_workspace', required=True, help='Path to agent workspace')

@@ -414,8 +414,8 @@ class TaskAgent:
         await self.mcp_manager.connect_servers(self.task_config.needed_mcp_servers)
     
     async def setup_agent(self) -> None:
-        """初始化Agent"""
-        self._debug_print(">>初始化agent loop")
+        """Initialize Agent"""
+        self._debug_print(">>Initializing agent loop")
         
         local_tools = []
         if self.task_config.needed_local_tools is not None:

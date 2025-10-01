@@ -6,11 +6,11 @@ from utils.general.helper import normalize_str
 
 def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode: bool = False):
     """
-    严格检查课程作业文件管理任务的本地文件处理情况
-    验证是否正确找到、列出、重命名和分类了相关文件，确保一个不多一个不少
+    Strictly check the local file processing of the course homework file management task
+    Verify whether the relevant files are correctly found, listed, renamed, and classified, ensuring that one is not more or less
     """
     
-    # 读取标准答案
+    # Read the standard answer
     expected_mapping_file = os.path.join(groundtruth_workspace, "expected_mapping.json")
     if not os.path.exists(expected_mapping_file):
         return False, "Missing expected mapping file for strict validation"
@@ -26,30 +26,30 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode: bool 
     except Exception as e:
         return False, f"Failed to read expected mapping: {str(e)}"
 
-    # 第一阶段：检查文件夹结构
+    # First stage: check the folder structure
     foldername = "os_hw3" if en_mode else "操作系统作业3"
     os_hw3_folder = os.path.join(agent_workspace, foldername)
     if not os.path.exists(os_hw3_folder):
         return False, f"Missing '{foldername}' folder for OS homework 3 files"
     
-    # 第1.5阶段，目标文件夹下没有.rs .py 或者 .c文件
-    # 检查os_hw3_folder根目录下不应该有源代码文件，它们应该被分类到子文件夹中
+    # 1.5 stage, the target folder should not have .rs .py or .c files
+    # The target folder should not have .rs .py or .c files
     try:
         root_files = os.listdir(os_hw3_folder)
         for file in root_files:
             if file.startswith('.'):
                 continue
-            # 跳过目录
+            # Skip the directory
             file_path = os.path.join(os_hw3_folder, file)
             if os.path.isdir(file_path):
                 continue
-            # 检查是否有源代码文件直接在根目录
+            # Check if there are source code files directly in the root directory
             if file.endswith(('.c', '.rs', '.py')):
                 return False, f"Source code file '{file}' found directly in '{foldername}' folder - it should be moved to the appropriate language subfolder"
     except Exception as e:
         return False, f"Error checking {foldername} root folder: {str(e)}"
 
-    # 第1.6阶段，确保三个子目录存在
+    # 1.6 stage, ensure the three subdirectories exist
     c_folder = os.path.join(os_hw3_folder, "C")
     rust_folder = os.path.join(os_hw3_folder, "Rust")
     python_folder = os.path.join(os_hw3_folder, "Python")
@@ -63,13 +63,13 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode: bool 
     if not os.path.exists(python_folder):
         return False, f"Missing '{foldername}/Python' folder for Python language files"
     
-    # 第二阶段：检查重命名文件的精确性
+    # Second stage: check the precision of the renamed files
     c_files = []
     rust_files = []
     python_files = []
     rename_pattern = r"^[^-]+-[^-]+-[^-]+-OS-HW3"
     
-    # 检查C语言文件夹
+    # Check the C language folder
     try:
         c_folder_files = os.listdir(c_folder)
         for file in c_folder_files:
@@ -84,7 +84,7 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode: bool 
     except Exception as e:
         return False, f"Error reading {foldername}/C folder: {str(e)}"
     
-    # 检查Rust文件夹
+    # Check the Rust folder
     try:
         rust_folder_files = os.listdir(rust_folder)
         for file in rust_folder_files:
@@ -99,7 +99,7 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode: bool 
     except Exception as e:
         return False, f"Error reading {foldername}/Rust folder: {str(e)}"
     
-    # 检查Python文件夹
+    # Check the Python folder
     try:
         python_folder_files = os.listdir(python_folder)
         for file in python_folder_files:
@@ -114,7 +114,7 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode: bool 
     except Exception as e:
         return False, f"Error reading {foldername}/Python folder: {str(e)}"
     
-    # 验证文件数量精确性
+    # Verify the precision of the file count
     if len(c_files) != expected_c_count:
         return False, f"Expected exactly {expected_c_count} C files, but found {len(c_files)}"
     
@@ -124,12 +124,12 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode: bool 
     if len(python_files) != expected_python_count:
         return False, f"Expected exactly {expected_python_count} Python files, but found {len(python_files)}"
     
-    # 第三阶段：验证每个学生的文件重命名正确性
+    # Third stage: verify the precision of the file renaming for each student
     processed_students = set()
     all_renamed_files = c_files + rust_files + python_files
     
     for renamed_file in all_renamed_files:
-        # 解析重命名文件以提取学生信息
+        # Parse the renamed file to extract the student information
         parts = renamed_file.split('-')
         if len(parts) < 5:
             return False, f"Invalid rename format for file: {renamed_file}"
@@ -138,17 +138,17 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode: bool 
         college = parts[1]
         student_id = parts[2]
         
-        # 检查学生是否在预期列表中
+        # Check if the student is in the expected list
         if student_name not in expected_students:
             return False, f"Unexpected student '{student_name}' in renamed file: {renamed_file}"
         
-        # 检查是否重复处理
+        # Check no duplicate processing
         if student_name in processed_students:
             return False, f"Duplicate file found for student '{student_name}'"
         
         processed_students.add(student_name)
         
-        # 验证重命名的准确性
+        # Verify the precision of the file renaming
         expected_info = expected_students[student_name]
 
         # expected_renamed = expected_info["expected_renamed"]
@@ -157,14 +157,14 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode: bool 
             
             # return False, f"Incorrect rename for {student_name}. Expected: '{expected_renamed}', Got: '{renamed_file}'"
         
-        # 验证学院和学号信息
+        # Verify the college and student ID information
         if normalize_str(college) != normalize_str(expected_info["college"]):
             return False, f"Incorrect college for {student_name}. Expected: '{expected_info['college']}', Got: '{college}'"
         
         if student_id != expected_info["student_id"]:
             return False, f"Incorrect student ID for {student_name}. Expected: '{expected_info['student_id']}', Got: '{student_id}'"
         
-        # 验证文件类型和文件夹位置
+        # Verify the file type and folder location
         file_extension = renamed_file.split('.')[-1]
         if expected_info["file_type"] == "c" and file_extension != "c":
             return False, f"File type mismatch for {student_name}: expected C file"
@@ -173,7 +173,7 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode: bool 
         elif expected_info["file_type"] == "python" and file_extension != "py":
             return False, f"File type mismatch for {student_name}: expected Python file"
         
-        # 验证文件在正确的文件夹中
+        # Verify the file is in the correct folder
         expected_folder = expected_info["target_folder"]
         if expected_folder == "C" and renamed_file not in c_files:
             return False, f"C file for {student_name} not found in {foldername}/C folder"
@@ -182,7 +182,7 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode: bool 
         elif expected_folder == "Python" and renamed_file not in python_files:
             return False, f"Python file for {student_name} not found in {foldername}/Python folder"
     
-    # 第四阶段：确保没有遗漏任何学生
+    # Fourth stage: ensure no student is missed
     missing_students = []
     for student_name in expected_students.keys():
         if student_name not in processed_students:
@@ -191,9 +191,9 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode: bool 
     if missing_students:
         return False, f"Missing files for students: {missing_students}"
     
-    # 第五阶段：文件内容验证 - 使用hashlib比较原始文件和重命名后文件的内容
+    # Fifth stage: file content verification - use hashlib to compare the original file and the renamed file
     def calculate_file_hash(file_path):
-        """计算文件的MD5哈希值"""
+        """Calculate the MD5 hash value of the file"""
         hasher = hashlib.md5()
         try:
             with open(file_path, 'rb') as f:
@@ -203,11 +203,11 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode: bool 
         except Exception as e:
             return None
     
-    # 获取initial_workspace路径 (基于groundtruth_workspace的路径结构)
+    # Get the initial_workspace path (based on the path structure of groundtruth_workspace)
     task_root = os.path.dirname(groundtruth_workspace)
     initial_workspace = os.path.join(task_root, "initial_workspace")
-    if en_mode:
-        initial_workspace = os.path.join(task_root, "initial_workspace_en")
+    if not en_mode:
+        initial_workspace = os.path.join(task_root, "initial_workspace_cn")
     
     content_verification_errors = []
     content_hash_errors = []
@@ -217,7 +217,7 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode: bool 
         expected_info = expected_students[student_name]
         original_filename = expected_info["original_file"]
         
-        # 确定重命名后文件的路径
+        # Determine the path of the renamed file
         if expected_info["file_type"] == "c":
             renamed_file_path = os.path.join(c_folder, renamed_file)
         elif expected_info["file_type"] == "rust":
@@ -225,20 +225,20 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode: bool 
         else:  # python
             renamed_file_path = os.path.join(python_folder, renamed_file)
         
-        # 原始文件路径
+        # Original file path
         original_file_path = os.path.join(initial_workspace, original_filename)
         
-        # 检查原始文件是否存在
+        # Check if the original file exists
         if not os.path.exists(original_file_path):
             content_verification_errors.append(f"Original file not found for {student_name}: {original_filename}")
             continue
         
-        # 检查重命名后文件是否存在
+        # Check if the renamed file exists
         if not os.path.exists(renamed_file_path):
             content_verification_errors.append(f"Renamed file not found for {student_name}: {renamed_file}")
             continue
         
-        # 计算两个文件的哈希值并比较
+        # Calculate the hash values of the two files and compare
         original_hash = calculate_file_hash(original_file_path)
         renamed_hash = calculate_file_hash(renamed_file_path)
         
@@ -253,11 +253,11 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode: bool 
         if original_hash != renamed_hash:
             content_hash_errors.append(f"Content mismatch for {student_name}: original file hash {original_hash} != renamed file hash {renamed_hash}")
     
-    # 如果有内容不匹配的错误，这是严重错误
+    # If there are content mismatches, this is a serious error
     if content_hash_errors:
         return False, f"Content verification failed: {len(content_hash_errors)} files have content mismatches. Details: {'; '.join(content_hash_errors[:3])}{'...' if len(content_hash_errors) > 3 else ''}"
     
-    # 其他内容验证错误作为警告
+    # Other content verification errors as warnings
     content_warning = ""
     if content_verification_errors:
         content_warning = f" (Content verification warnings: {len(content_verification_errors)} issues)"
