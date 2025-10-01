@@ -13,7 +13,6 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
     # we need 100% match
     for index, row in gt_df.iterrows():
         for col in gt_df.columns:
-            # 两个都是nan时认为相等
             if pd.isna(row[col]) and pd.isna(agent_df[col][index]):
                 continue
             if row[col] != agent_df[col][index]:
