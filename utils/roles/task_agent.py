@@ -8,25 +8,60 @@ from enum import Enum
 import pickle
 from pathlib import Path
 
-from agents import (
-    Agent,
-    RunConfig,
-    Usage,
-    # Runner,
-    ModelSettings,
-    ToolCallItem,
-    # MessageOutputItem,
-    # ToolCallOutputItem,
-    ModelProvider,
-    ItemHelpers
-)
+# 移除 OpenAI Agents SDK 导入
+# from agents import (
+#     Agent,
+#     RunConfig,
+#     Usage,
+#     ModelSettings,
+#     ToolCallItem,
+#     ModelProvider,
+#     ItemHelpers
+# )
+# from agents.exceptions import MaxTurnsExceeded
 
-from agents.exceptions import MaxTurnsExceeded
+# 添加 OpenHands SDK 导入
+try:
+    from openhands.sdk.agent.agent import Agent as OpenHandsAgent
+    from openhands.sdk.conversation import Conversation
+    from openhands.sdk.conversation.state import ConversationState, AgentExecutionStatus
+    from openhands.sdk.event import (
+        MessageEvent,
+        ActionEvent,
+        ObservationEvent,
+        SystemPromptEvent,
+        LLMConvertibleEvent,
+    )
+    from openhands.sdk.llm import Message, TextContent
+except ImportError:
+    # Fallback to agent-sdk path
+    import sys
+    agent_sdk_path = Path(__file__).parent.parent.parent.parent / 'agent-sdk'
+    if agent_sdk_path.exists():
+        sys.path.insert(0, str(agent_sdk_path))
+    from openhands.sdk.agent.agent import Agent as OpenHandsAgent
+    from openhands.sdk.conversation import Conversation
+    from openhands.sdk.conversation.state import ConversationState, AgentExecutionStatus
+    from openhands.sdk.event import (
+        MessageEvent,
+        ActionEvent,
+        ObservationEvent,
+        SystemPromptEvent,
+        LLMConvertibleEvent,
+    )
+    from openhands.sdk.llm import Message, TextContent
 
 from utils.roles.context_managed_runner import ContextManagedRunner
 from utils.api_model.model_provider import ContextTooLongError
 
 from utils.mcp.tool_servers import MCPServerManager
+from utils.mcp.openhands_mcp_config import create_openhands_mcp_config
+
+# Import OpenHands SDK for MCP tools
+from openhands.sdk.mcp.utils import create_mcp_tools as openhands_create_mcp_tools
+
+# Import LLM adapter
+from utils.openhands_adapter import create_openhands_llm_from_config, register_function_tools
 from utils.api_model.model_provider import calculate_cost, get_context_window
 from utils.roles.user import User, UserRuntimeConfig
 from utils.api_model.openai_client import AsyncOpenAIClientWithRetry
@@ -51,6 +86,20 @@ from utils.aux_tools.overlong_tool_manager import overlong_tool_tools
 
 from utils.general.helper import print_color
 from utils.status_manager import TaskStatusManager
+
+# Simple Usage class for compatibility (replaces OpenAI Agents SDK Usage)
+class Usage:
+    """Simple usage tracking class"""
+    def __init__(self):
+        self.input_tokens = 0
+        self.output_tokens = 0
+        self.requests = 0
+
+    def add(self, usage_dict):
+        """Add usage from a dictionary"""
+        self.input_tokens += usage_dict.get('input_tokens', 0)
+        self.output_tokens += usage_dict.get('output_tokens', 0)
+        self.requests += 1
 
 local_tool_mappings = {
     "ai_webpage_summary": tool_ai_webpage_summary,
@@ -84,7 +133,7 @@ class TaskAgent:
         self,
         task_config: TaskConfig,
         agent_config: AgentConfig,
-        agent_model_provider: ModelProvider,
+        agent_model_provider: Any,  # ModelProvider from utils.api_model.model_provider
         user_config: UserConfig,
         user_client: AsyncOpenAIClientWithRetry,
         mcp_config: MCPConfig,
@@ -105,8 +154,11 @@ class TaskAgent:
         self.agent_hooks = agent_hooks
         self.run_hooks = run_hooks
         self.termination_checker = termination_checker or self._default_termination_checker
-        
-        self.agent: Optional[Agent] = None
+
+        self.agent: Optional[OpenHandsAgent] = None  # OpenHands Agent
+        self.conversation: Optional[Conversation] = None  # OpenHands Conversation
+        self.llm: Optional[Any] = None  # OpenHands LLM
+        self.local_tool_executors: Dict[str, Callable] = {}  # 本地工具执行器映射
         self.mcp_manager: Optional[MCPServerManager] = None
         self.user_simulator: Optional[User] = None
         self.all_tools: List[Dict] = []
@@ -162,77 +214,6 @@ class TaskAgent:
         if self.debug:
             print(*args)
 
-    def _extract_first_user_input(self) -> str:
-        """提取第一轮用户输入"""
-        if self.first_user_input:
-            return self.first_user_input
-        
-        # 如果没有保存，从logs中提取第一条用户消息
-        for log in self.logs:
-            if log.get("role") == "user":
-                return log.get("content", "")
-        
-        # 如果都没有，返回任务字符串作为后备
-        return self.task_config.task_str
-
-    def _reset_context_and_history(self) -> None:
-        """重置上下文和历史记录，但保留轮数累积信息和截断历史"""
-        self._debug_print("Resetting context and history due to context too long error")
-        
-        # 保存当前的重要信息
-        session_id = self.shared_context.get("_session_id")
-        history_dir = self.shared_context.get("_history_dir")
-        agent_workspace = self.shared_context.get("_agent_workspace")
-        context_limit = self.shared_context.get("_context_limit")
-        
-        # 保存当前的累积信息
-        meta = self.shared_context.get("_context_meta", {})
-        current_turn = meta.get("current_turn", 0)
-        total_turns_ever = meta.get("total_turns_ever", 0)
-        truncated_turns = meta.get("truncated_turns", 0)
-        truncation_history = meta.get("truncation_history", [])
-        started_at = meta.get("started_at", datetime.datetime.now().isoformat())
-        
-        # 计算这次截断的信息
-        turns_in_current_sequence = meta.get("turns_in_current_sequence", 0)
-        new_truncated_turns = truncated_turns + turns_in_current_sequence
-        
-        # 更新截断历史
-        new_truncation_history = truncation_history.copy()
-        new_truncation_history.append({
-            "at_turn": current_turn,
-            "method": "force_reset_context",
-            "value": "all_current_sequence",
-            "deleted_turns": turns_in_current_sequence,
-            "timestamp": datetime.datetime.now().isoformat(),
-            "reason": "Context too long error"
-        })
-        
-        # 重置shared_context，但保留累积信息
-        self.shared_context = {
-            "_agent_workspace": agent_workspace,
-            "_session_id": session_id,
-            "_history_dir": history_dir,
-            "_context_meta": {
-                "session_id": session_id,
-                "history_dir": history_dir,
-                "started_at": started_at,  # 保留原始开始时间
-                "current_turn": current_turn,  # 保留当前轮数
-                "total_turns_ever": total_turns_ever,  # 保留总轮数
-                "turns_in_current_sequence": 0,  # 重置当前序列轮数
-                "mini_turns_in_current_sequence": 0,  # 重置mini轮数
-                "boundary_in_current_sequence": [],  # 重置边界信息
-                "truncated_turns": new_truncated_turns,  # 更新截断轮数
-                "truncation_history": new_truncation_history,  # 更新截断历史
-                "context_reset": True,  # 标记上下文已重置
-                "reset_timestamp": datetime.datetime.now().isoformat()
-            },
-            "_context_limit": context_limit
-        }
-        
-        # 清空logs
-        self.logs = []
-
     def _default_termination_checker(self, content: str, recent_tools: List[Dict], check_target: str = "user") -> bool:
         """默认的终止条件检查器"""
         if check_target=='user':
@@ -246,12 +227,16 @@ class TaskAgent:
         return self.checkpoint_file
     
     async def _save_checkpoint(self) -> None:
-        """保存当前执行状态到检查点"""
+        """
+        保存当前执行状态到检查点
+
+        Note: OpenHands Conversation 自动保存状态到 persistence_dir
+        这里只保存兼容性数据
+        """
         if not self.allow_resume:
             return
-            
+
         checkpoint_data = {
-            'logs': self.logs.copy(),
             'logs_to_record': self.logs_to_record.copy(),
             'all_tools': self.all_tools.copy(),
             'stats': self.stats.copy(),
@@ -264,12 +249,11 @@ class TaskAgent:
                 'conversation_history': self.user_simulator.conversation_history if self.user_simulator else []
             },
             'session_id': self.session_id,
-            'history_dir': self.history_dir,
             'initial_run_time': getattr(self, 'initial_run_time', 'unknown'),
             'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            'version': '2.0'
+            'version': '3.0'  # OpenHands version
         }
-        
+
         try:
             with open(self._get_checkpoint_path(), 'wb') as f:
                 pickle.dump(checkpoint_data, f)
@@ -278,54 +262,57 @@ class TaskAgent:
             self._debug_print(f"Failed to save checkpoint: {e}")
 
     async def _load_checkpoint(self) -> bool:
-        """从检查点恢复执行状态"""
+        """
+        从检查点恢复执行状态
+
+        Note: OpenHands Conversation 会从 persistence_dir 自动恢复
+        这里只恢复兼容性数据
+        """
         if not self.allow_resume:
             return False
-            
+
         checkpoint_path = self._get_checkpoint_path()
         if not os.path.exists(checkpoint_path):
             self._debug_print("No checkpoint found")
             return False
-            
+
         try:
             with open(checkpoint_path, 'rb') as f:
                 checkpoint_data = pickle.load(f)
-            
+
             # 检查版本兼容性
             version = checkpoint_data.get('version', '1.0')
-            if version == '1.0':
-                self._debug_print("Old checkpoint version detected, cannot resume")
+            if version in ['1.0', '2.0']:
+                self._debug_print("Old checkpoint version detected, cannot resume with OpenHands")
                 return False
-            
+
             # 恢复状态
-            self.logs = checkpoint_data['logs']
             self.logs_to_record = checkpoint_data['logs_to_record']
             self.all_tools = checkpoint_data['all_tools']
             self.stats = checkpoint_data['stats']
-            
+
             # 恢复会话信息
             self.session_id = checkpoint_data.get('session_id')
-            self.history_dir = checkpoint_data.get('history_dir')
             self.initial_run_time = checkpoint_data.get('initial_run_time', 'unknown')
-            
+
             # 恢复Usage对象
             usage_data = checkpoint_data['usage']
             self.usage.input_tokens = usage_data['input_tokens']
             self.usage.output_tokens = usage_data['output_tokens']
             self.usage.requests = usage_data['requests']
-            
+
             # 恢复用户模拟器状态
             if self.user_simulator:
                 if hasattr(self.user_simulator, 'set_state'):
                     self.user_simulator.set_state(checkpoint_data['user_simulator_state'])
                 else:
                     self.user_simulator.conversation_history = checkpoint_data['user_simulator_state'].get('conversation_history', [])
-            
+
             self._debug_print(f"Checkpoint loaded from {checkpoint_data['timestamp']}")
             self._debug_print(f"Resuming from turn {self.stats['interaction_turns']}")
             self._debug_print(f"Session ID: {self.session_id}")
             return True
-            
+
         except Exception as e:
             self._debug_print(f"Failed to load checkpoint: {e}")
             return False
@@ -400,64 +387,268 @@ class TaskAgent:
 
     
     async def setup_mcp_servers(self, local_token_key_session: Dict) -> None:
-        """设置并连接MCP服务器"""
+        """
+        设置并初始化 MCP 服务器（使用 OpenHands SDK）
 
+        这个方法会：
+        1. 将 YAML 配置转换为 OpenHands 格式
+        2. 使用 OpenHands SDK 的 create_mcp_tools 创建工具
+        3. 存储工具列表供 setup_agent 使用
+        """
         if self.debug:
-            print_color("\n=== Starting to setup MCP servers ===", "blue")
+            print_color("\n=== Starting to setup MCP servers (OpenHands) ===", "blue")
 
-        self.mcp_manager = MCPServerManager(
+        # 创建 OpenHands 格式的 MCP 配置
+        self.openhands_mcp_config = create_openhands_mcp_config(
             agent_workspace=self.task_config.agent_workspace,
             config_dir=self.mcp_config.server_config_path,
-            debug=self.debug,
-            local_token_key_session=local_token_key_session
+            server_names=self.task_config.needed_mcp_servers,
+            local_token_key_session=local_token_key_session,
+            debug=self.debug
         )
-        await self.mcp_manager.connect_servers(self.task_config.needed_mcp_servers)
+
+        if self.debug:
+            print_color(f"Created OpenHands MCP config for {len(self.openhands_mcp_config.get('mcpServers', {}))} servers", "blue")
+            for server_name in self.openhands_mcp_config.get('mcpServers', {}).keys():
+                print_color(f"  - {server_name}", "blue")
+
+        # 使用 OpenHands SDK 创建 MCP 工具
+        # 注意：这会临时连接服务器获取工具列表，然后断开
+        if openhands_create_mcp_tools is not None:
+            try:
+                self.mcp_tools = openhands_create_mcp_tools(
+                    config=self.openhands_mcp_config,
+                    timeout=30.0
+                )
+
+                if self.debug:
+                    print_color(f"Successfully created {len(self.mcp_tools)} MCP tools from OpenHands SDK", "green")
+                    # 显示前几个工具
+                    tool_names = [t.name for t in self.mcp_tools[:5]]
+                    print_color(f"Sample tools: {tool_names}", "blue")
+                    if len(self.mcp_tools) > 5:
+                        print_color(f"... and {len(self.mcp_tools) - 5} more tools", "blue")
+
+            except Exception as e:
+                print_color(f"Error creating MCP tools from OpenHands SDK: {e}", "red")
+                if self.debug:
+                    import traceback
+                    traceback.print_exc()
+                self.mcp_tools = []
+        else:
+            print_color("Warning: OpenHands SDK not available, no MCP tools created", "yellow")
+            self.mcp_tools = []
+
+        # 保留对原 MCPServerManager 的引用（兼容性）
+        # 但不再实际使用它进行连接
+        self.mcp_manager = None
     
     async def setup_agent(self) -> None:
-        """初始化Agent"""
-        self._debug_print(">>初始化agent loop")
-        
-        local_tools = []
+        """
+        初始化 OpenHands Agent 和 Conversation
+
+        替换原有的 OpenAI Agents SDK，使用 OpenHands SDK：
+        1. 创建 OpenHands LLM
+        2. 收集本地工具 + MCP 工具
+        3. 转换本地工具为 OpenHands 格式
+        4. 创建 OpenHands Agent
+        5. 创建 Conversation
+        """
+        self._debug_print(">>初始化 OpenHands agent 和 conversation")
+
+        # 1. 创建 OpenHands LLM（替代原来的 Model）
+        self.llm = create_openhands_llm_from_config(
+            agent_config=self.agent_config,
+            agent_model_provider=self.agent_model_provider,
+            debug=self.debug,
+        )
+
+        if self.debug:
+            print_color(f"Created OpenHands LLM: {self.llm.model}", "blue")
+
+        # 2. 收集本地 FunctionTool 对象
+        local_function_tools = []
         if self.task_config.needed_local_tools is not None:
             for tool_name in self.task_config.needed_local_tools:
                 tool_or_toolsets = local_tool_mappings[tool_name]
                 if isinstance(tool_or_toolsets, list):
-                    local_tools.extend(tool_or_toolsets)
+                    local_function_tools.extend(tool_or_toolsets)
                 else:
-                    local_tools.append(tool_or_toolsets)
+                    local_function_tools.append(tool_or_toolsets)
 
-        self.agent = Agent(
-            name="Assistant",
-            instructions=self.task_config.system_prompts.agent,
-            model=self.agent_model_provider.get_model(self.agent_config.model.real_name, 
-                                                      debug = self.debug,
-                                                      short_model_name=self.agent_config.model.short_name),
-            mcp_servers=[*self.mcp_manager.get_all_connected_servers()],
-            tools=local_tools,
-            hooks=self.agent_hooks,
-            model_settings=ModelSettings(
-                temperature=self.agent_config.generation.temperature,
-                top_p=self.agent_config.generation.top_p,
-                max_tokens=self.agent_config.generation.max_tokens,
-                tool_choice=self.agent_config.tool.tool_choice,
-                parallel_tool_calls=self.agent_config.tool.parallel_tool_calls,
-                extra_body=self.agent_config.generation.extra_body,
-            ),
+        # 3. 转换本地工具为 OpenHands ToolSpec
+        # 这会注册工具到 OpenHands 工具注册表，并返回 ToolSpec 列表
+        local_toolspecs = register_function_tools(local_function_tools) if local_function_tools else []
+
+        # 同时保存本地工具的执行器映射
+        for function_tool in local_function_tools:
+            self.local_tool_executors[function_tool.name] = function_tool.on_invoke_tool
+
+        if self.debug and local_toolspecs:
+            print_color(f"Registered {len(local_toolspecs)} local tools", "blue")
+            for spec in local_toolspecs[:3]:  # 显示前3个
+                print_color(f"  - {spec.name}", "blue")
+
+        # 4. 合并本地 ToolSpec 和 MCP tools
+        all_toolspecs = local_toolspecs
+        if hasattr(self, 'mcp_tools') and self.mcp_tools:
+            # MCP tools 已经是 OpenHands Tool 格式（from create_mcp_tools）
+            # 需要从中提取 ToolSpec
+            mcp_toolspecs = []
+            for mcp_tool in self.mcp_tools:
+                if hasattr(mcp_tool, 'to_toolspec'):
+                    mcp_toolspecs.append(mcp_tool.to_toolspec())
+                else:
+                    # 兜底：从 tool 属性构建 ToolSpec
+                    from openhands.sdk.tool import ToolSpec
+                    mcp_toolspecs.append(ToolSpec(
+                        name=mcp_tool.name,
+                        params=mcp_tool.annotations.params if hasattr(mcp_tool, 'annotations') and mcp_tool.annotations else {}
+                    ))
+
+            all_toolspecs = local_toolspecs + mcp_toolspecs
+
+            if self.debug:
+                print_color(f"Agent will use {len(local_toolspecs)} local tools + {len(mcp_toolspecs)} MCP tools", "blue")
+        else:
+            if self.debug:
+                print_color(f"Agent will use {len(local_toolspecs)} local tools (no MCP tools)", "yellow")
+
+        # 5. 创建 OpenHands Agent（使用 ToolSpec 列表）
+        self.agent = OpenHandsAgent(
+            llm=self.llm,
+            tools=all_toolspecs,  # 传入 ToolSpec 列表
+            system_message=self.task_config.system_prompts.agent,
         )
-        
-        # Get all available tools
-        available_tools = await self.agent.get_all_tools()
-        # self._debug_print(f">>List of available tools (x{len(available_tools)})")
-        for tool in available_tools:
-            # self._debug_print(f"[{tool.name}]", tool.description)
+
+        # 6. 创建 Conversation
+        persistence_dir = Path(self.task_config.agent_workspace) / 'conversation_state'
+        persistence_dir.mkdir(parents=True, exist_ok=True)
+
+        self.conversation = Conversation(
+            agent=self.agent,
+            workspace=str(self.task_config.agent_workspace),  # 正确参数名：workspace
+            persistence_dir=str(persistence_dir),
+            max_iteration_per_run=self.agent_config.tool.max_inner_turns,
+            callbacks=[self._on_event],
+            visualize=False,  # 禁用默认可视化
+        )
+
+        if self.debug:
+            print_color(f"Created OpenHands Conversation: {self.conversation.id}", "green")
+
+        # 7. 维护 self.all_tools（用于 User simulator）
+        # 从本地 FunctionTool 提取 OpenAI 格式
+        for function_tool in local_function_tools:
             self.all_tools.append({
                 "type": "function",
                 "function": {
-                    "name": tool.name,
-                    "description": tool.description,
-                    "parameters": tool.params_json_schema
+                    "name": function_tool.name,
+                    "description": function_tool.description,
+                    "parameters": function_tool.params_json_schema
                 }
             })
+
+        # 从 MCP tools 提取 OpenAI 格式
+        if hasattr(self, 'mcp_tools') and self.mcp_tools:
+            for mcp_tool in self.mcp_tools:
+                if hasattr(mcp_tool, 'to_openai_tool'):
+                    openai_tool = mcp_tool.to_openai_tool()
+                    self.all_tools.append(openai_tool)
+
+        if self.debug:
+            print_color(f"Populated {len(self.all_tools)} tools for User simulator compatibility", "blue")
+
+    def _on_event(self, event) -> None:
+        """
+        OpenHands 事件回调
+
+        处理 Conversation 产生的事件，用于：
+        1. 维护 logs_to_record（用于最终记录）
+        2. 更新统计信息
+        3. 执行本地工具调用
+        4. 调试输出
+        """
+        # 更新 logs_to_record
+        if isinstance(event, MessageEvent):
+            if event.source == "user":
+                # 用户消息已经在 run_interaction_loop 中添加
+                pass
+            elif event.source == "agent":
+                # Agent 消息
+                content = event.content[0].text if event.content else ""
+                self.logs_to_record.append({
+                    "role": "assistant",
+                    "content": content
+                })
+
+        elif isinstance(event, ActionEvent):
+            # 工具调用
+            self.stats["cumulative_tool_calls"] += 1
+
+            if self.debug:
+                print_color(f"[Action] {event.tool_name}", "cyan")
+
+            # 检查是否是本地工具，如果是则手动执行
+            if event.tool_name in self.local_tool_executors:
+                if self.debug:
+                    print_color(f"[Executing local tool] {event.tool_name}", "yellow")
+
+                try:
+                    # 获取工具执行器
+                    executor = self.local_tool_executors[event.tool_name]
+
+                    # 从 action 中提取参数
+                    # ActionEvent.action 是一个 Action 对象
+                    # 我们需要将它转换为字典形式的参数
+                    import json
+                    if hasattr(event, 'tool_call') and event.tool_call:
+                        # 从 tool_call 中提取参数
+                        if hasattr(event.tool_call, 'function') and event.tool_call.function:
+                            if hasattr(event.tool_call.function, 'arguments'):
+                                args_str = event.tool_call.function.arguments
+                                params = json.loads(args_str) if isinstance(args_str, str) else args_str
+                            else:
+                                params = {}
+                        else:
+                            params = {}
+                    else:
+                        # 兜底：从 action 对象提取
+                        params = {}
+                        if hasattr(event.action, '__dict__'):
+                            params = {k: v for k, v in event.action.__dict__.items()
+                                     if not k.startswith('_')}
+
+                    # 执行工具
+                    import inspect
+                    if inspect.iscoroutinefunction(executor):
+                        # 异步执行器 - 需要在异步上下文中执行
+                        # 这里我们先存储结果，实际执行由 conversation 处理
+                        if self.debug:
+                            print_color(f"[Local tool] {event.tool_name} is async, will be executed by conversation", "yellow")
+                    else:
+                        # 同步执行器
+                        result = executor(params)
+                        if self.debug:
+                            print_color(f"[Local tool result] {result[:100] if isinstance(result, str) and len(result) > 100 else result}", "green")
+
+                except Exception as e:
+                    if self.debug:
+                        print_color(f"[Local tool error] {event.tool_name}: {e}", "red")
+                        import traceback
+                        traceback.print_exc()
+
+        elif isinstance(event, ObservationEvent):
+            # 工具结果
+            if self.debug and event.is_error:
+                print_color(f"[Observation Error] {event.tool_name}", "red")
+
+        # 追踪 token 使用（从 LLM 响应事件）
+        # OpenHands 在 conversation.state 中维护统计，这里只做调试输出
+        if self.debug and hasattr(event, 'usage'):
+            usage = event.usage
+            if usage:
+                self._debug_print(f"[Token Usage] Input: {usage.get('input_tokens', 0)}, Output: {usage.get('output_tokens', 0)}")
     
     async def setup_user_simulator(self) -> None:
         """初始化用户模拟器"""
@@ -471,105 +662,28 @@ class TaskAgent:
         )
         self.user_simulator.initialize_conversation()
 
-    async def process_agent_response(self, result) -> List[Dict]:
-        """处理Agent的响应，返回工具调用列表（简化版本）"""
-        tool_calls_in_response = []  # 记录这次响应中的所有工具调用
-        
-        # 只需要提取工具调用信息用于终止条件检查
-        for item in result.new_items:
-            if isinstance(item, ToolCallItem):
-                tool_item = item.to_input_item()
-                tool_call = {
-                    "id": tool_item['call_id'],
-                    "type": "function",
-                    "function": {
-                        "name": tool_item["name"],
-                        "arguments": tool_item["arguments"]
-                    }
-                }
-                tool_calls_in_response.append(tool_call)
-        
-        # 更新工具调用统计
-        self.stats["tool_calls"] += len(tool_calls_in_response)
-        
-        # 简化的日志记录（只记录关键信息）
-        if result.final_output:
-            self.logs_to_record.append({
-                "role": "assistant",
-                "content": result.final_output,
-                "tool_calls_count": len(tool_calls_in_response)
-            })
-        
-        return tool_calls_in_response
-
     async def run_interaction_loop(self,
                                    abs_original_task_root: str) -> None:
-        """运行交互循环"""
-        # 使用固定的 session_id
+        """
+        运行交互循环（OpenHands SDK 版本）
+
+        使用 Conversation.run() 替代原有的 ContextManagedRunner.run()
+        OpenHands 自动管理上下文和事件历史
+        """
+        # 初始化 session id（保持兼容性）
         self.session_id = f"task_{self.task_config.id}_session"
-        self.history_dir = os.path.join(abs_original_task_root, "conversation_history")
-        
-        # 初始化对话历史
-        self.logs = []  # 保留这个，用于传给 Runner
-        
-        # 初始化共享的 context（重要！）
-        self.shared_context = {
-            "_agent_workspace": self.task_config.agent_workspace,
+        self.initial_run_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-            "_session_id": self.session_id,
-            "_history_dir": self.history_dir,
-            "_context_meta": {
-                "session_id": self.session_id,
-                "history_dir": self.history_dir,
-                "started_at": datetime.datetime.now().isoformat(),
-                "current_turn": -1,
-                "total_turns_ever": 0,
-                "turns_in_current_sequence": 0,
-                "mini_turns_in_current_sequence": 0,
-                "boundary_in_current_sequence": [],
-                "truncated_turns": 0,
-                "truncation_history": []
-            },
-            "_context_limit": get_context_window(self.agent_config.model.short_name)
-        }
-
-        # 如果是恢复模式，尝试加载检查点
-        resumed = False
-        if self.allow_resume:
-            resumed = await self._load_checkpoint()
-        
-        # 处理历史文件
-        history_file = os.path.join(self.history_dir, f"{self.session_id}_history.jsonl")
-        
-        if resumed:
-            # 恢复模式：从历史文件重建 logs
-            self.logs = self._rebuild_logs_from_history(history_file)
-            self._debug_print(f"Resuming session {self.session_id} with {len(self.logs)} messages")
-        else:
-            # 非恢复模式
-            self.initial_run_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            
-            # 如果存在旧的历史文件，删除它
-            if os.path.exists(history_file):
-                self._debug_print(f"Removing old history file for session {self.session_id}")
-                os.remove(history_file)
-            
-            self.logs = []
-        
-        if self.single_turn_mode:
-            real_max_turns = 1
-        else:
-            real_max_turns = self.task_config.max_turns
+        # 确定最大轮次
+        max_turns = 1 if self.single_turn_mode else self.task_config.max_turns
 
         if self.debug:
-            print_color("=== Starting interaction loop ===", "blue")
+            print_color("=== Starting interaction loop (OpenHands) ===", "blue")
 
-        while self.stats["interaction_turns"] < real_max_turns:
+        # 主交互循环
+        while self.stats["interaction_turns"] < max_turns:
             try:
-                # 每轮对话开始时重置累积的inner steps计数
-                self.cumulative_inner_steps = 0
-                
-                # 获取用户输入
+                # 1. 获取用户输入
                 if self.single_turn_mode:
                     user_query = self.task_config.task_str
                 elif self.manual:
@@ -582,198 +696,78 @@ class TaskAgent:
                 if self.first_user_input is None:
                     self.first_user_input = user_query
 
-                # 添加到历史
-                self.logs.append({"role": "user", "content": user_query})
-
-                # 在这里单独处理用户轮
-                current_turn_in_seq = self.shared_context["_context_meta"]["turns_in_current_sequence"]
-                mini_turns_in_current_sequence = self.shared_context["_context_meta"]["mini_turns_in_current_sequence"]
-                self.shared_context["_context_meta"]["boundary_in_current_sequence"].append((mini_turns_in_current_sequence, 
-                                                                                             mini_turns_in_current_sequence+1))
-                
-                self.shared_context["_context_meta"]["turns_in_current_sequence"] = current_turn_in_seq + 1
-                self.shared_context["_context_meta"]["mini_turns_in_current_sequence"] += 1
-                self.shared_context["_context_meta"]["total_turns_ever"] += 1
-                self.shared_context["_context_meta"]["current_turn"] += 1
-                # 上面不再加1，因为是从0编号
-
-                # 保存用户输入到历史
-                current_turn = self.shared_context["_context_meta"]["current_turn"]
-                ContextManagedRunner._save_user_input_to_history(
-                    session_id=self.session_id,
-                    user_input=user_query,
-                    history_dir=self.history_dir,
-                    turn_number=current_turn
-                )
-
-                # 添加到记录
-                self.logs_to_record.append({"role": "user", "content": user_query})
-                
-                # 增加交互轮次计数
-                self.stats["interaction_turns"] += 1
-                
                 # 检查用户输入的终止条件
                 if self.termination_checker(user_query, [], 'user'):
                     self._debug_print("Termination condition met by user input")
                     break
-                
-                # Agent 响应 - 用while循环处理可能的上下文重置
-                max_inner_steps = self.agent_config.tool.max_inner_turns if not self.single_turn_mode else self.task_config.max_steps_under_single_turn_mode
-                result = None
-                
-                while self.cumulative_inner_steps < max_inner_steps:
-                    remaining_steps = max_inner_steps - self.cumulative_inner_steps
-                    
-                    try:
 
-                        turn_before = self.shared_context["_context_meta"]["current_turn"]
-                        result = await ContextManagedRunner.run(
-                            starting_agent=self.agent,
-                            input=self.logs,  # 传入完整历史
-                            context=self.shared_context,  # 使用共享的 context！
-                            run_config=RunConfig(model_provider=self.agent_model_provider),
-                            hooks=self.run_hooks,
-                            max_turns=remaining_steps,  # 使用剩余的步数限制
-                            history_dir=self.history_dir,
-                            session_id=self.session_id,
-                        )
-                        turn_after = self.shared_context["_context_meta"]["current_turn"]
-                        
-                        # 统计这次运行使用的assiatant轮数
-                        self.cumulative_inner_steps += turn_after - turn_before
-                        self._debug_print(f"\033[90m[INFO] Used {turn_after - turn_before} assistant turns, total: {self.cumulative_inner_steps}/{max_inner_steps}\033[0m")
-                        
-                        # 成功完成，跳出循环
-                        break
-                    except MaxTurnsExceeded as e:
-                        self._debug_print(f"[THIS IS A TAG FOR MAX TURNS EXCEEDED] Max turns exceeded: {e}")
-                        self.task_status = TaskStatus.MAX_TURNS_REACHED
-                        break
-                    except ContextTooLongError as e:
-                        self._debug_print(f"Context too long detected: {e}")
-                        
-                        # 从shared_context中获取已执行的步数信息
-                        executed_steps = 0
-                        if self.shared_context and "_force_reset_context" in self.shared_context:
-                            reset_info = self.shared_context["_force_reset_context"]
-                            executed_steps = reset_info.get("executed_turns", 1)  # 使用已执行的turns数
-                        
-                        # 如果没有获取到执行步数，默认认为至少执行了1步
-                        if executed_steps == 0:
-                            executed_steps = 1
-                        
-                        self.cumulative_inner_steps += executed_steps
-                        self._debug_print(f"Context reset after {executed_steps} executed steps, total: {self.cumulative_inner_steps}/{max_inner_steps}")
-                        
-                        # 检查是否还有剩余步数
-                        if self.cumulative_inner_steps >= max_inner_steps:
-                            self._debug_print("No more inner steps available for context reset")
-                            raise RuntimeError(
-                                f"Context too long and no remaining inner steps to handle reset. "
-                                f"Used {self.cumulative_inner_steps}/{max_inner_steps} steps. "
-                                f"Original error: {e}"
-                            )
-                        
-                        # 保存第一轮用户输入
-                        first_user_input = self._extract_first_user_input()
-                        
-                        # # 如果剩余步数很少，截断用户输入以节省token
-                        # remaining_after_reset = max_inner_steps - self.cumulative_inner_steps
-                        # if remaining_after_reset <= 3:  # 剩余步数很少时截断输入
-                        #     max_input_length = 1000
-                        #     if len(first_user_input) > max_input_length:
-                        #         first_user_input = first_user_input[:max_input_length] + "...[输入已截断]"
-                        #         self._debug_print(f"Truncated user input to {max_input_length} characters due to limited remaining steps")
-                        
-                        # 重置上下文和历史
-                        self._reset_context_and_history()
-                        
-                        # 获取最近10轮交互的历史摘要
-                        history_summary = ContextManagedRunner.get_recent_turns_summary(
-                            self.history_dir, 
-                            self.session_id, 
-                            num_turns=10
-                        )
-                        
-                        # 重构输入，集成历史摘要
-                        is_chinese = hasattr(self.task_config, 'language') and self.task_config.language == 'zh'
-                        if is_chinese:
-                            reset_message = (
-                                "[上下文已清空] 先前交互的上下文长度超过模型的可接受长度，已强制清空上下文。"
-                                "以下是任务的原始需求和最近的交互历史概览。"
-                                "请继续执行任务，必要时可使用历史记录搜索工具查看完整详情。"
-                            )
-                        else:
-                            reset_message = (
-                                "[Context reset] The context length of the previous interaction exceeds "
-                                "the acceptable length of the model, and the context has been forcibly cleared. "
-                                "Below are the original task requirements and a summary of recent interactions. "
-                                "Please continue with the task, and use history search "
-                                "tools if you need complete details."
-                            )
-                        
-                        new_user_query = f"{reset_message}\n\n=== Original User Task ===\n{first_user_input}\n\n{history_summary}"
-                        
-                        # 重新开始对话
-                        self.logs = [{"role": "user", "content": new_user_query}]
-                        
-                        # 更新上下文元数据 - 只重置当前序列相关的属性
-                        # 注意：current_turn 和 total_turns_ever 在 _reset_context_and_history 中已经保留
-                        # 这里只需要设置新序列的开始状态
-                        self.shared_context["_context_meta"]["turns_in_current_sequence"] = 1
-                        self.shared_context["_context_meta"]["mini_turns_in_current_sequence"] = 1
-                        self.shared_context["_context_meta"]["boundary_in_current_sequence"] = [(0, 1)]
-                        
-                        # # 由于是新的序列开始，需要增加轮数计数
-                        # 这里不用再加
-                        # self.shared_context["_context_meta"]["current_turn"] += 1
-                        self.shared_context["_context_meta"]["total_turns_ever"] += 1
-                        
-                        # 保存重置后的用户输入到历史
-                        current_reset_turn = self.shared_context["_context_meta"]["current_turn"]
-                        ContextManagedRunner._save_user_input_to_history(
-                            session_id=self.session_id,
-                            user_input=new_user_query,
-                            history_dir=self.history_dir,
-                            turn_number=current_reset_turn
-                        )
-                        
-                        # 继续while循环，尝试下一次运行
-                        continue
-                
-                # 检查是否成功得到结果
-                if result is None:
-                    raise RuntimeError(f"Failed to get agent response within {max_inner_steps} inner steps")
-                
-                # 如果累积步数超过限制，记录警告但继续执行
-                if self.cumulative_inner_steps >= max_inner_steps:
-                    self._debug_print(f"Warning: Reached maximum inner steps limit ({max_inner_steps})")
-                
-                # 更新统计信息
-                for raw_response in result.raw_responses:
-                    self.usage.add(raw_response.usage)
-                    self.stats["agent_llm_requests"] += 1
+                # 记录用户消息
+                self.logs_to_record.append({"role": "user", "content": user_query})
 
-                # 这里是多部执行后，已经合并原始输入和新生成的内容的input
-                self.logs = self.build_new_logs(result.input,result.new_items)
-                
-                # 添加新的响应到历史
-                # self.logs.extend([item.to_input_item() for item in result.new_items])
-                
-                self.user_simulator.receive_message(result.final_output)
-                
-                # 处理响应并获取工具调用
-                recent_tool_calls = await self.process_agent_response(result)
-                
-                # 检查Agent响应的终止条件
-                if self.termination_checker(result.final_output, recent_tool_calls, 'agent'):
-                    self._debug_print("Termination condition met by agent response")
+                # 2. 发送消息到 Conversation
+                self.conversation.send_message(user_query)
+
+                # 记录当前事件数量（用于提取新事件）
+                events_before = len(self.conversation.state.events)
+
+                # 3. 运行 Conversation（同步调用，OpenHands 内部处理异步）
+                try:
+                    self.conversation.run()
+                except Exception as e:
+                    self._debug_print(f"Error during conversation.run(): {e}")
+                    if self.debug:
+                        import traceback
+                        traceback.print_exc()
+                    # 继续执行，让外层错误处理逻辑处理
+                    raise
+
+                # 4. 提取新事件并更新统计
+                new_events = self.conversation.state.events[events_before:]
+
+                # 从新事件中提取最后一条 agent 消息（如果有）
+                last_agent_message = None
+                for event in reversed(new_events):
+                    if isinstance(event, MessageEvent) and event.source == "agent":
+                        content = event.content[0].text if event.content else ""
+                        last_agent_message = content
+                        break
+
+                # 5. 发送 agent 响应给 user simulator
+                if last_agent_message and not self.manual and not self.single_turn_mode:
+                    self.user_simulator.receive_message(last_agent_message)
+
+                # 6. 增加交互轮次
+                self.stats["interaction_turns"] += 1
+
+                # 7. 检查终止条件
+                # 检查 agent 状态
+                if self.conversation.state.agent_status == AgentExecutionStatus.FINISHED:
+                    self._debug_print("Agent finished execution")
                     break
-                
-                # 定期保存检查点
+
+                # 检查 agent 响应的终止条件
+                if last_agent_message:
+                    # 从新事件中提取工具调用（用于终止检查）
+                    recent_tool_calls = []
+                    for event in new_events:
+                        if isinstance(event, ActionEvent):
+                            recent_tool_calls.append({
+                                "type": "function",
+                                "function": {"name": event.tool_name}
+                            })
+
+                    if self.termination_checker(last_agent_message, recent_tool_calls, 'agent'):
+                        self._debug_print("Termination condition met by agent response")
+                        break
+
+                # 8. 单轮模式只执行一次
+                if self.single_turn_mode:
+                    break
+
+                # 9. 定期保存检查点
                 if self.allow_resume and self.stats["interaction_turns"] % self.checkpoint_interval == 0:
                     await self._save_checkpoint()
-                    
+
             except KeyboardInterrupt:
                 # 处理用户中断
                 self._debug_print("\nInterrupted by user")
@@ -787,16 +781,19 @@ class TaskAgent:
                 if self.allow_resume:
                     await self._save_checkpoint()
                 raise
-        
+
         # 检查是否因为达到最大轮次而终止
-        if self.stats["interaction_turns"] >= self.task_config.max_turns:
-            self._debug_print(f"Maximum turns ({self.task_config.max_turns}) reached")
+        if self.stats["interaction_turns"] >= max_turns:
+            self._debug_print(f"Maximum turns ({max_turns}) reached")
             self.task_status = TaskStatus.MAX_TURNS_REACHED
 
-    def build_new_logs(self, input, generated_items):
-        input_items = ItemHelpers.input_to_new_input_list(input)
-        input_items.extend([generated_item.to_input_item() for generated_item in generated_items])
-        return input_items
+        # 更新最终的 token 统计（从 conversation.state 获取）
+        if hasattr(self.conversation.state, 'stats'):
+            conv_stats = self.conversation.state.stats
+            if 'total_tokens' in conv_stats:
+                self.stats["total_tokens"] = conv_stats['total_tokens']
+            if 'llm_requests' in conv_stats:
+                self.stats["agent_llm_requests"] = conv_stats['llm_requests']
 
     def get_cost_summary(self) -> Tuple[Dict, Dict]:
         """获取成本摘要"""
@@ -827,26 +824,29 @@ class TaskAgent:
         return user_cost, agent_cost
     
     async def save_results(self) -> None:
-        """保存运行结果到日志文件"""
+        """保存运行结果到日志文件（OpenHands 版本）"""
         res_log_file = self.task_config.log_file
-        
+
         if not os.path.exists(os.path.dirname(res_log_file)):
             os.makedirs(os.path.dirname(res_log_file))
-        
-        # 从 ContextManagedRunner 获取完整的格式化历史
-        if self.session_id and self.history_dir:
-            complete_messages = ContextManagedRunner.get_formatted_history(
-                self.history_dir,
-                self.session_id
-            )
-            session_stats = ContextManagedRunner.get_session_stats(
-                self.history_dir,
-                self.session_id
-            )
-        else:
-            # 降级到使用 logs_to_record
-            complete_messages = self.logs_to_record
-            session_stats = {}
+
+        # 使用 logs_to_record（已经在 _on_event 和 run_interaction_loop 中维护）
+        complete_messages = self.logs_to_record
+
+        # 从 conversation.state 计算 session stats
+        session_stats = {}
+        if hasattr(self, 'conversation') and self.conversation:
+            # 统计事件数量
+            total_events = len(self.conversation.state.events)
+            action_events = sum(1 for e in self.conversation.state.events if isinstance(e, ActionEvent))
+            message_events = sum(1 for e in self.conversation.state.events if isinstance(e, MessageEvent))
+
+            session_stats = {
+                'total_events': total_events,
+                'action_events': action_events,
+                'message_events': message_events,
+                'agent_status': str(self.conversation.state.agent_status) if hasattr(self.conversation.state, 'agent_status') else 'unknown'
+            }
 
         with open(res_log_file, "w", encoding='utf-8') as f:
             result = {
@@ -865,17 +865,25 @@ class TaskAgent:
                 'user_cost': self.user_cost,
                 'resumed': self.allow_resume,
                 'session_id': self.session_id,
-                'history_file': str(Path(self.history_dir) / f"{self.session_id}_history.jsonl") if self.session_id else None
+                'conversation_id': self.conversation.id if hasattr(self, 'conversation') and self.conversation else None
             }
-            
+
             json_output = json.dumps(result, ensure_ascii=False, cls=CustomJSONEncoder)
             f.write(json_output)
 
     
     async def cleanup(self) -> None:
-        """清理资源"""
-        if self.mcp_manager:
-            await self.mcp_manager.disconnect_servers()
+        """
+        清理资源
+
+        注意：使用 OpenHands MCP 后，不再需要手动断开 MCP 服务器
+        因为 OpenHands 的工具在每次调用时自动连接/断开
+        """
+        # OpenHands MCP 工具会自动管理连接，无需手动清理
+        # 保留方法以维持兼容性
+        if self.debug:
+            print_color("Cleanup: OpenHands MCP tools handle connections automatically", "blue")
+        pass
     
     async def run(self) -> TaskStatus:
         """运行整个任务"""
