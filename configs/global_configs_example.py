@@ -1,4 +1,4 @@
-# 请将该文件填写上实际内容后，复制一份，去掉_example的后缀
+# Please fill in the actual content of this file, and copy it, removing the _example suffix
 from addict import Dict
 global_configs = Dict(
     aihubmix_key="xxx", # Fill in the aihubmix key
