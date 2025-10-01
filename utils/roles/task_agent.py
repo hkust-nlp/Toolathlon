@@ -476,31 +476,31 @@ class TaskAgent:
                 else:
                     local_function_tools.append(tool_or_toolsets)
 
-        # 3. 转换本地工具为 OpenHands ToolSpec
-        # 这会注册工具到 OpenHands 工具注册表，并返回 ToolSpec 列表
+        # 3. 转换本地工具为 OpenHands ToolSpec 并注册
+        # 这会创建完整的 Tool 对象，注册到 OpenHands 工具注册表，并返回 ToolSpec 列表
         local_toolspecs = register_function_tools(local_function_tools) if local_function_tools else []
 
-        # 同时保存本地工具的执行器映射
-        for function_tool in local_function_tools:
-            self.local_tool_executors[function_tool.name] = function_tool.on_invoke_tool
-
         if self.debug and local_toolspecs:
-            print_color(f"Registered {len(local_toolspecs)} local tools", "blue")
+            print_color(f"Registered {len(local_toolspecs)} local tools to OpenHands registry", "blue")
             for spec in local_toolspecs[:3]:  # 显示前3个
                 print_color(f"  - {spec.name}", "blue")
 
-        # 4. 合并本地 ToolSpec 和 MCP tools
+        # 4. 处理并注册 MCP tools
         all_toolspecs = local_toolspecs
         if hasattr(self, 'mcp_tools') and self.mcp_tools:
-            # MCP tools 已经是 OpenHands Tool 格式（from create_mcp_tools）
-            # 需要从中提取 ToolSpec
+            # MCP tools 是 Tool 实例，需要注册到全局注册表
+            from openhands.sdk.tool import ToolSpec, register_tool
+
             mcp_toolspecs = []
             for mcp_tool in self.mcp_tools:
+                # 注册 MCP Tool 实例到全局注册表
+                register_tool(mcp_tool.name, mcp_tool)
+
+                # 提取 ToolSpec
                 if hasattr(mcp_tool, 'to_toolspec'):
                     mcp_toolspecs.append(mcp_tool.to_toolspec())
                 else:
                     # 兜底：从 tool 属性构建 ToolSpec
-                    from openhands.sdk.tool import ToolSpec
                     mcp_toolspecs.append(ToolSpec(
                         name=mcp_tool.name,
                         params=mcp_tool.annotations.params if hasattr(mcp_tool, 'annotations') and mcp_tool.annotations else {}
@@ -510,6 +510,7 @@ class TaskAgent:
 
             if self.debug:
                 print_color(f"Agent will use {len(local_toolspecs)} local tools + {len(mcp_toolspecs)} MCP tools", "blue")
+                print_color(f"Registered {len(mcp_toolspecs)} MCP tools to OpenHands registry", "blue")
         else:
             if self.debug:
                 print_color(f"Agent will use {len(local_toolspecs)} local tools (no MCP tools)", "yellow")
@@ -566,8 +567,7 @@ class TaskAgent:
         处理 Conversation 产生的事件，用于：
         1. 维护 logs_to_record（用于最终记录）
         2. 更新统计信息
-        3. 执行本地工具调用
-        4. 调试输出
+        3. 调试输出
         """
         # 更新 logs_to_record
         if isinstance(event, MessageEvent):
@@ -583,65 +583,22 @@ class TaskAgent:
                 })
 
         elif isinstance(event, ActionEvent):
-            # 工具调用
+            # 工具调用（所有工具，包括本地和 MCP）
             self.stats["cumulative_tool_calls"] += 1
 
             if self.debug:
                 print_color(f"[Action] {event.tool_name}", "cyan")
 
-            # 检查是否是本地工具，如果是则手动执行
-            if event.tool_name in self.local_tool_executors:
-                if self.debug:
-                    print_color(f"[Executing local tool] {event.tool_name}", "yellow")
-
-                try:
-                    # 获取工具执行器
-                    executor = self.local_tool_executors[event.tool_name]
-
-                    # 从 action 中提取参数
-                    # ActionEvent.action 是一个 Action 对象
-                    # 我们需要将它转换为字典形式的参数
-                    import json
-                    if hasattr(event, 'tool_call') and event.tool_call:
-                        # 从 tool_call 中提取参数
-                        if hasattr(event.tool_call, 'function') and event.tool_call.function:
-                            if hasattr(event.tool_call.function, 'arguments'):
-                                args_str = event.tool_call.function.arguments
-                                params = json.loads(args_str) if isinstance(args_str, str) else args_str
-                            else:
-                                params = {}
-                        else:
-                            params = {}
-                    else:
-                        # 兜底：从 action 对象提取
-                        params = {}
-                        if hasattr(event.action, '__dict__'):
-                            params = {k: v for k, v in event.action.__dict__.items()
-                                     if not k.startswith('_')}
-
-                    # 执行工具
-                    import inspect
-                    if inspect.iscoroutinefunction(executor):
-                        # 异步执行器 - 需要在异步上下文中执行
-                        # 这里我们先存储结果，实际执行由 conversation 处理
-                        if self.debug:
-                            print_color(f"[Local tool] {event.tool_name} is async, will be executed by conversation", "yellow")
-                    else:
-                        # 同步执行器
-                        result = executor(params)
-                        if self.debug:
-                            print_color(f"[Local tool result] {result[:100] if isinstance(result, str) and len(result) > 100 else result}", "green")
-
-                except Exception as e:
-                    if self.debug:
-                        print_color(f"[Local tool error] {event.tool_name}: {e}", "red")
-                        import traceback
-                        traceback.print_exc()
-
         elif isinstance(event, ObservationEvent):
             # 工具结果
-            if self.debug and event.is_error:
-                print_color(f"[Observation Error] {event.tool_name}", "red")
+            if self.debug:
+                if event.is_error:
+                    print_color(f"[Observation Error] {event.tool_name}", "red")
+                else:
+                    # 显示工具结果的前100个字符
+                    content = str(event.content) if hasattr(event, 'content') else ""
+                    preview = content[:100] + "..." if len(content) > 100 else content
+                    print_color(f"[Observation] {event.tool_name}: {preview}", "green")
 
         # 追踪 token 使用（从 LLM 响应事件）
         # OpenHands 在 conversation.state 中维护统计，这里只做调试输出

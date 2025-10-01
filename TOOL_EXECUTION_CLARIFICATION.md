@@ -313,3 +313,9 @@ task_agent.local_tool_executors = {
 ```
 
 希望这样更清楚了！🎯
+
+  1. 导入 ToolExecutor：从 openhands.sdk.tool 导入 ToolExecutor 基类
+  2. 创建 ToolExecutor 子类：新增 create_executor_class() 函数，动态创建继承自 ToolExecutor 的执行器类
+  3. 实现 __call__ 方法：ToolExecutor 子类必须实现 __call__(self, action: Action) -> Observation 方法
+  4. 处理异步函数：在 executor 中处理同步和异步的 on_invoke_tool 函数调用
+  5. 传入实例：在创建 Tool 时，传入 ExecutorClass() 实例而不是函数
