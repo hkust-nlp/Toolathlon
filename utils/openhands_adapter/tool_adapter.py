@@ -10,31 +10,94 @@ from openhands.sdk.tool.schema import Action, Observation
 import inspect
 
 
-def create_action_class(tool_name: str):
-    """动态创建 Action 类"""
-    from pydantic import Field, field_validator
+def create_action_class(tool_name: str, params_schema: dict):
+    """动态创建 Action 类，根据参数 schema 添加字段"""
+    from pydantic import Field, field_validator, create_model
+    from typing import Any
 
     # 动态创建类名
     action_class_name = f"{tool_name}Action"
 
-    class CustomAction(Action):
-        """Custom action for tool"""
+    # 从 params_schema 提取字段定义
+    properties = params_schema.get('properties', {})
+    required_fields = params_schema.get('required', [])
 
-        # 设置 kind 字段，使用 json_schema_extra 从 schema 中排除
-        kind: str = Field(
-            default=action_class_name,
-            json_schema_extra={"exclude": True}  # 从生成的 JSON schema 中排除
-        )
+    # 构建 Pydantic 字段字典
+    fields = {}
+    for field_name, field_info in properties.items():
+        field_type = Any  # 默认类型
+        field_default = ...  # 默认为必需
 
-        @field_validator('kind', mode='before')
-        @classmethod
-        def force_kind_value(cls, v):
-            """强制 kind 字段始终是类名，忽略外部输入"""
-            return action_class_name
+        # 根据 JSON schema 类型确定 Python 类型
+        json_type = field_info.get('type', 'string')
+        if json_type == 'string':
+            field_type = str
+        elif json_type == 'integer':
+            field_type = int
+        elif json_type == 'number':
+            field_type = float
+        elif json_type == 'boolean':
+            field_type = bool
+        elif json_type == 'array':
+            field_type = list
+        elif json_type == 'object':
+            field_type = dict
 
-    # 设置类名
-    CustomAction.__name__ = action_class_name
-    CustomAction.__qualname__ = action_class_name
+        # 确定默认值
+        if field_name not in required_fields:
+            if 'default' in field_info:
+                field_default = field_info['default']
+            else:
+                field_default = None
+                field_type = field_type | None  # 可选字段
+
+        # 创建 Field
+        description = field_info.get('description', '')
+        fields[field_name] = (field_type, Field(default=field_default, description=description))
+
+    # 使用 create_model 动态创建模型，继承自 Action
+    CustomAction = create_model(
+        action_class_name,
+        __base__=Action,
+        **fields
+    )
+
+    # 添加 field_validator 来强制 kind 字段值
+    def force_kind_value(v):
+        """强制 kind 字段始终是类名，忽略外部输入"""
+        return action_class_name
+
+    # 使用 __pydantic_decorators__ 添加 validator（如果可能）
+    # 或者覆盖 __init__ 方法
+    original_init = CustomAction.__init__
+
+    def custom_init(self, **data):
+        # 强制设置 kind 字段
+        data['kind'] = action_class_name
+        original_init(self, **data)
+
+    CustomAction.__init__ = custom_init
+
+    # 覆盖 model_json_schema 方法，移除 kind 字段
+    original_model_json_schema = CustomAction.model_json_schema
+
+    @classmethod
+    def custom_model_json_schema(cls, **kwargs):
+        """覆盖 JSON schema 生成，移除 kind 字段"""
+        schema = original_model_json_schema(**kwargs)
+        # 从 properties 中删除 kind
+        if 'properties' in schema and 'kind' in schema['properties']:
+            del schema['properties']['kind']
+        # 从 required 中删除 kind（如果存在）
+        if 'required' in schema and 'kind' in schema['required']:
+            schema['required'].remove('kind')
+        return schema
+
+    CustomAction.model_json_schema = custom_model_json_schema
+
+    # 设置 kind 字段的默认值
+    if 'kind' in CustomAction.model_fields:
+        CustomAction.model_fields['kind'].default = action_class_name
 
     return CustomAction
 
@@ -44,23 +107,39 @@ def create_observation_class(tool_name: str):
     from pydantic import Field
     from openhands.sdk.llm import TextContent
 
-    class CustomObservation(Observation):
-        """Custom observation for tool"""
-        # 显式设置 kind 字段为类名（Pydantic discriminated union 要求）
-        kind: str = Field(default=f"{tool_name}Observation", frozen=True)
-        content: str = ""
-        error: str | None = None
+    # 使用 tool_name 构建类名
+    observation_class_name = f"{tool_name}Observation"
 
-        @property
-        def to_llm_content(self):
-            """返回 LLM 格式的内容"""
-            if self.error:
-                return [TextContent(text=f"Error: {self.error}")]
-            return [TextContent(text=self.content)]
+    # 定义 to_llm_content 方法实现
+    def to_llm_content_impl(self):
+        """返回 LLM 格式的内容"""
+        if self.error:
+            return [TextContent(text=f"Error: {self.error}")]
+        return [TextContent(text=self.content)]
 
-    # 设置类名
-    CustomObservation.__name__ = f"{tool_name}Observation"
-    CustomObservation.__qualname__ = f"{tool_name}Observation"
+    # 使用 type() 一步创建类
+    # 关键：直接使用正确的类名，不创建中间模板
+    CustomObservation = type(
+        observation_class_name,  # ✅ 正确的、唯一的类名
+        (Observation,),          # 基类
+        {
+            '__module__': __name__,
+            '__annotations__': {
+                'content': str,
+                'error': str | None,
+            },
+            'content': Field(default=""),
+            'error': Field(default=None),
+            'to_llm_content': property(to_llm_content_impl),  # ✅ 添加 property
+        }
+    )
+
+    # 设置 kind 字段的默认值
+    if 'kind' in CustomObservation.model_fields:
+        CustomObservation.model_fields['kind'].default = observation_class_name
+
+    # 重建模型以应用更改
+    CustomObservation.model_rebuild()
 
     return CustomObservation
 
@@ -93,36 +172,32 @@ def create_executor_class(tool_name: str, on_invoke: Callable, ObservationClass)
                 # 调用原始的 on_invoke_tool 函数
                 if inspect.iscoroutinefunction(on_invoke):
                     import asyncio
-                    # 异步函数
+                    import concurrent.futures
+                    import threading
+
+                    # 异步函数 - 在新线程的新事件循环中运行
+                    def run_async_in_thread(coro):
+                        """在新线程中运行异步函数，避免事件循环冲突"""
+                        def thread_func():
+                            # 创建新的事件循环
+                            loop = asyncio.new_event_loop()
+                            asyncio.set_event_loop(loop)
+                            try:
+                                return loop.run_until_complete(coro)
+                            finally:
+                                loop.close()
+
+                        with concurrent.futures.ThreadPoolExecutor() as executor:
+                            future = executor.submit(thread_func)
+                            return future.result()
+
                     if len(param_names) == 2:
                         # 期望 (context, params_str) - 旧的 OpenAI Agents SDK 格式
                         params_str = json.dumps(params)
-                        try:
-                            loop = asyncio.get_event_loop()
-                            if loop.is_running():
-                                # 创建一个Future并在事件循环中运行
-                                future = asyncio.ensure_future(on_invoke(None, params_str))
-                                # 等待完成
-                                while not future.done():
-                                    asyncio.get_event_loop()._run_once()
-                                result = future.result()
-                            else:
-                                result = loop.run_until_complete(on_invoke(None, params_str))
-                        except RuntimeError:
-                            result = asyncio.run(on_invoke(None, params_str))
+                        result = run_async_in_thread(on_invoke(None, params_str))
                     else:
                         # 期望 (params) - 新格式
-                        try:
-                            loop = asyncio.get_event_loop()
-                            if loop.is_running():
-                                future = asyncio.ensure_future(on_invoke(params))
-                                while not future.done():
-                                    asyncio.get_event_loop()._run_once()
-                                result = future.result()
-                            else:
-                                result = loop.run_until_complete(on_invoke(params))
-                        except RuntimeError:
-                            result = asyncio.run(on_invoke(params))
+                        result = run_async_in_thread(on_invoke(params))
                 else:
                     # 同步函数
                     if len(param_names) == 2:
@@ -169,8 +244,8 @@ def convert_function_tool_to_openhands(function_tool):
     params_schema = function_tool.params_json_schema
     on_invoke = function_tool.on_invoke_tool
 
-    # 动态创建 Action 和 Observation 类
-    ActionClass = create_action_class(tool_name)
+    # 动态创建 Action 和 Observation 类，传递参数 schema
+    ActionClass = create_action_class(tool_name, params_schema)
     ObservationClass = create_observation_class(tool_name)
 
     # 动态创建 Executor 类
