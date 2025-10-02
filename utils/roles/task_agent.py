@@ -29,6 +29,8 @@ try:
         MessageEvent,
         ActionEvent,
         ObservationEvent,
+        AgentErrorEvent,
+        UserRejectObservation,
         SystemPromptEvent,
         LLMConvertibleEvent,
     )
@@ -46,6 +48,8 @@ except ImportError:
         MessageEvent,
         ActionEvent,
         ObservationEvent,
+        AgentErrorEvent,
+        UserRejectObservation,
         SystemPromptEvent,
         LLMConvertibleEvent,
     )
@@ -174,6 +178,7 @@ class TaskAgent:
         self.stats = {
             "interaction_turns": 0,
             "tool_calls": 0,
+            "cumulative_tool_calls": 0,
             "agent_llm_requests": 0,
             "total_tokens": 0,
             "input_tokens": 0,
@@ -496,15 +501,11 @@ class TaskAgent:
                 # 注册 MCP Tool 实例到全局注册表
                 register_tool(mcp_tool.name, mcp_tool)
 
-                # 提取 ToolSpec
-                if hasattr(mcp_tool, 'to_toolspec'):
-                    mcp_toolspecs.append(mcp_tool.to_toolspec())
-                else:
-                    # 兜底：从 tool 属性构建 ToolSpec
-                    mcp_toolspecs.append(ToolSpec(
-                        name=mcp_tool.name,
-                        params=mcp_tool.annotations.params if hasattr(mcp_tool, 'annotations') and mcp_tool.annotations else {}
-                    ))
+                # 创建 ToolSpec（不带 params，因为是固定实例）
+                mcp_toolspecs.append(ToolSpec(
+                    name=mcp_tool.name,
+                    params={}  # 固定实例不支持 params
+                ))
 
             all_toolspecs = local_toolspecs + mcp_toolspecs
 
@@ -584,21 +585,25 @@ class TaskAgent:
 
         elif isinstance(event, ActionEvent):
             # 工具调用（所有工具，包括本地和 MCP）
-            self.stats["cumulative_tool_calls"] += 1
-
+            # 注意：不再手动更新 self.stats，统计信息由 OpenHands conversation.state 管理
             if self.debug:
                 print_color(f"[Action] {event.tool_name}", "cyan")
 
         elif isinstance(event, ObservationEvent):
-            # 工具结果
+            # 工具结果（正常情况）
             if self.debug:
-                if event.is_error:
-                    print_color(f"[Observation Error] {event.tool_name}", "red")
+                # 显示工具结果的前100个字符
+                content = str(event.observation.to_llm_content) if hasattr(event.observation, 'to_llm_content') else str(event.observation)
+                preview = content[:100] + "..." if len(content) > 100 else content
+                print_color(f"[Observation] {event.tool_name}: {preview}", "green")
+
+        elif isinstance(event, (AgentErrorEvent, UserRejectObservation)):
+            # 错误或拒绝
+            if self.debug:
+                if isinstance(event, AgentErrorEvent):
+                    print_color(f"[Agent Error] {event.tool_name}: {event.error}", "red")
                 else:
-                    # 显示工具结果的前100个字符
-                    content = str(event.content) if hasattr(event, 'content') else ""
-                    preview = content[:100] + "..." if len(content) > 100 else content
-                    print_color(f"[Observation] {event.tool_name}: {preview}", "green")
+                    print_color(f"[User Reject] {event.tool_name}: {event.rejection_reason}", "red")
 
         # 追踪 token 使用（从 LLM 响应事件）
         # OpenHands 在 conversation.state 中维护统计，这里只做调试输出

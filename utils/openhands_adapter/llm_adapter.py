@@ -59,12 +59,22 @@ def create_openhands_llm(
     # Extract configuration from model_provider
     # mcpbench_dev's model_provider wraps an AsyncOpenAI client
     # Note: OpenHands LLM uses max_output_tokens instead of max_tokens
+
+    # For custom OpenAI-compatible endpoints, use "openai/" prefix
+    # This tells LiteLLM to route to OpenAI-compatible API format
+    # Example: openai/mistral, openai/claude-sonnet-4-20250514
+    final_model_name = f"openai/{model_name}"
+
     llm_config: Dict[str, Any] = {
-        "model": model_name,
+        "model": final_model_name,
         "temperature": temperature,
         "max_output_tokens": max_tokens,  # OpenHands uses max_output_tokens
         "top_p": top_p,
     }
+
+    if debug:
+        print(f"[LLM Adapter] Creating LLM with model: {final_model_name}")
+        print(f"  Original model name: {model_name}")
 
     # Try to extract API key and base URL from model_provider
     # model_provider.get_model() returns a Model instance with openai_client
@@ -72,30 +82,63 @@ def create_openhands_llm(
         # Get a dummy model to access the client configuration
         dummy_model = model_provider.get_model(model_name, debug=debug)
 
-        if hasattr(dummy_model, 'openai_client'):
-            client = dummy_model.openai_client
+        if debug:
+            print(f"[LLM Adapter] dummy_model type: {type(dummy_model)}")
+            if hasattr(dummy_model, 'model'):
+                print(f"[LLM Adapter] dummy_model.model: {dummy_model.model}")
+
+        # The OpenAI client is stored as _client (private attribute)
+        if hasattr(dummy_model, '_client'):
+            client = dummy_model._client
+
+            if debug:
+                print(f"[LLM Adapter] client type: {type(client)}")
+                print(f"[LLM Adapter] client has api_key attr: {hasattr(client, 'api_key')}")
+                print(f"[LLM Adapter] client has base_url attr: {hasattr(client, 'base_url')}")
 
             # Extract API key
             if hasattr(client, 'api_key') and client.api_key:
-                llm_config["api_key"] = SecretStr(client.api_key)
+                if debug:
+                    print(f"[LLM Adapter] Raw api_key type: {type(client.api_key)}")
+                    print(f"[LLM Adapter] Raw api_key value: {str(client.api_key)[:20]}...")
 
-            # Extract base URL
+                # Convert to SecretStr
+                llm_config["api_key"] = SecretStr(str(client.api_key))
+
+                if debug:
+                    print(f"[LLM Adapter] Converted api_key to SecretStr")
+            else:
+                if debug:
+                    print(f"[LLM Adapter] WARNING: No api_key found in client!")
+
+            # Extract base URL (api_base for custom endpoints)
             if hasattr(client, 'base_url') and client.base_url:
                 base_url_str = str(client.base_url)
+                if debug:
+                    print(f"[LLM Adapter] Raw base_url: {base_url_str}")
+
                 # Remove trailing slash for consistency
                 if base_url_str.endswith('/'):
                     base_url_str = base_url_str[:-1]
                 llm_config["base_url"] = base_url_str
 
             if debug:
-                print(f"[LLM Adapter] Extracted config from model_provider:")
-                print(f"  - Model: {model_name}")
-                print(f"  - Base URL: {llm_config.get('base_url', 'default')}")
-                print(f"  - API Key: {'***' if llm_config.get('api_key') else 'none'}")
+                print(f"[LLM Adapter] Final llm_config:")
+                print(f"  - Model: {llm_config['model']}")
+                print(f"  - Base URL: {llm_config.get('base_url', 'NOT SET')}")
+                print(f"  - API Key present: {('api_key' in llm_config)}")
+                if 'api_key' in llm_config:
+                    print(f"  - API Key type: {type(llm_config['api_key'])}")
+                    print(f"  - API Key value (first 20 chars): {llm_config['api_key'].get_secret_value()[:20]}...")
+        else:
+            if debug:
+                print(f"[LLM Adapter] WARNING: dummy_model has no _client attribute!")
 
     except Exception as e:
+        import traceback
         if debug:
-            print(f"[LLM Adapter] Warning: Could not extract client config: {e}")
+            print(f"[LLM Adapter] ERROR extracting client config: {e}")
+            print(f"[LLM Adapter] Traceback: {traceback.format_exc()}")
             print(f"[LLM Adapter] Using default litellm configuration")
 
     # Create OpenHands LLM
