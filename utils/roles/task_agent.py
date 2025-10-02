@@ -124,10 +124,12 @@ class TaskStatus(Enum):
     INTERRUPTED = "interrupted"  # 新增状态：表示任务被中断
 
 class CustomJSONEncoder(json.JSONEncoder):
-    """自定义JSON编码器，用于处理将Python中的布尔值转换为小写的'true'和'false'形式输出"""
+    """自定义JSON编码器，用于处理将Python中的布尔值转换为小写的'true'和'false'形式输出，以及处理 UUID 对象"""
     def default(self, o):
         if isinstance(o, bool):
             return str(o).lower()
+        if isinstance(o, uuid.UUID):
+            return str(o)
         return super().default(o)
 
 class TaskAgent:
@@ -576,12 +578,17 @@ class TaskAgent:
                 # 用户消息已经在 run_interaction_loop 中添加
                 pass
             elif event.source == "agent":
-                # Agent 消息
-                content = event.content[0].text if event.content else ""
+                # Agent 消息 - 使用辅助方法提取文本
+                content = self._extract_text_from_message_event(event)
+
                 self.logs_to_record.append({
                     "role": "assistant",
                     "content": content
                 })
+
+                if self.debug:
+                    preview = content[:100] + "..." if len(content) > 100 else content
+                    print_color(f"[Agent Message] {preview}", "yellow")
 
         elif isinstance(event, ActionEvent):
             # 工具调用（所有工具，包括本地和 MCP）
@@ -611,7 +618,51 @@ class TaskAgent:
             usage = event.usage
             if usage:
                 self._debug_print(f"[Token Usage] Input: {usage.get('input_tokens', 0)}, Output: {usage.get('output_tokens', 0)}")
-    
+
+    def _extract_stats_from_conversation(self) -> None:
+        """
+        从 conversation.state 提取统计信息到 self.stats 和 self.usage
+
+        这个方法用于兼容性 - 在需要时从 OpenHands 的单一数据源提取信息
+        """
+        if not self.conversation or not hasattr(self.conversation, 'state'):
+            return
+
+        # 获取 OpenHands 的统计信息
+        metrics = self.conversation.state.stats.get_combined_metrics()
+
+        # 更新 self.usage（兼容性）
+        if metrics.accumulated_token_usage:
+            self.usage.input_tokens = metrics.accumulated_token_usage.prompt_tokens
+            self.usage.output_tokens = metrics.accumulated_token_usage.completion_tokens
+            # 通过 costs 列表估算请求数
+            self.usage.requests = len(metrics.costs)
+
+        # 更新 self.stats（兼容性）
+        self.stats["total_tokens"] = self.usage.input_tokens + self.usage.output_tokens
+        self.stats["input_tokens"] = self.usage.input_tokens
+        self.stats["output_tokens"] = self.usage.output_tokens
+        self.stats["agent_llm_requests"] = self.usage.requests
+
+        # 从事件中统计工具调用次数
+        if hasattr(self.conversation.state, 'events'):
+            action_events = [e for e in self.conversation.state.events if isinstance(e, ActionEvent)]
+            self.stats["cumulative_tool_calls"] = len(action_events)
+            self.stats["tool_calls"] = len(action_events)
+
+    @staticmethod
+    def _extract_text_from_message_event(event: MessageEvent) -> str:
+        """
+        从 MessageEvent 提取文本内容
+
+        MessageEvent.llm_message.content 是 List[TextContent | ImageContent]
+        """
+        text_parts = []
+        for content_item in event.llm_message.content:
+            if hasattr(content_item, 'text'):
+                text_parts.append(content_item.text)
+        return "".join(text_parts)
+
     async def setup_user_simulator(self) -> None:
         """初始化用户模拟器"""
         user_runtime_config = UserRuntimeConfig(
@@ -690,8 +741,8 @@ class TaskAgent:
                 last_agent_message = None
                 for event in reversed(new_events):
                     if isinstance(event, MessageEvent) and event.source == "agent":
-                        content = event.content[0].text if event.content else ""
-                        last_agent_message = content
+                        # 使用辅助方法提取文本
+                        last_agent_message = self._extract_text_from_message_event(event)
                         break
 
                 # 5. 发送 agent 响应给 user simulator
@@ -749,44 +800,47 @@ class TaskAgent:
             self._debug_print(f"Maximum turns ({max_turns}) reached")
             self.task_status = TaskStatus.MAX_TURNS_REACHED
 
-        # 更新最终的 token 统计（从 conversation.state 获取）
-        if hasattr(self.conversation.state, 'stats'):
-            conv_stats = self.conversation.state.stats
-            if 'total_tokens' in conv_stats:
-                self.stats["total_tokens"] = conv_stats['total_tokens']
-            if 'llm_requests' in conv_stats:
-                self.stats["agent_llm_requests"] = conv_stats['llm_requests']
+        # 从 conversation.state 提取最终统计信息（单一数据源）
+        self._extract_stats_from_conversation()
 
     def get_cost_summary(self) -> Tuple[Dict, Dict]:
-        """获取成本摘要"""
+        """获取成本摘要（从 OpenHands conversation.state 提取）"""
+        # 确保统计信息是最新的
+        self._extract_stats_from_conversation()
+
         # 添加空值检查，防止 user_simulator 为 None
         if self.user_simulator is None:
             user_cost = {"total_cost": 0, "total_input_tokens": 0, "total_output_tokens": 0, "total_requests": 0}
         else:
             user_cost = self.user_simulator.get_cost_summary()
-        
+
         _, _, total_cost = calculate_cost(
             self.agent_config.model.short_name,
             self.usage.input_tokens,
             self.usage.output_tokens
         )
-        
-        # 更新token统计
-        self.stats["input_tokens"] = self.usage.input_tokens
-        self.stats["output_tokens"] = self.usage.output_tokens
-        self.stats["total_tokens"] = self.usage.input_tokens + self.usage.output_tokens
-        
+
         agent_cost = {
             "total_cost": round(total_cost,4),
             "total_input_tokens": self.usage.input_tokens,
             "total_output_tokens": self.usage.output_tokens,
             "total_requests": self.usage.requests,
         }
-        
+
         return user_cost, agent_cost
     
     async def save_results(self) -> None:
-        """保存运行结果到日志文件（OpenHands 版本）"""
+        """
+        保存运行结果到日志文件（OpenHands 版本）
+
+        统计信息来源：
+        - self.stats 和 self.usage: 通过 _extract_stats_from_conversation() 从 conversation.state 提取
+        - session_stats: 直接从 conversation.state.events 计算
+        - logs_to_record: 在 _on_event 回调中维护
+        """
+        # 确保统计信息是最新的
+        self._extract_stats_from_conversation()
+
         res_log_file = self.task_config.log_file
 
         if not os.path.exists(os.path.dirname(res_log_file)):

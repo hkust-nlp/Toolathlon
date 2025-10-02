@@ -12,23 +12,51 @@ import inspect
 
 def create_action_class(tool_name: str):
     """动态创建 Action 类"""
+    from pydantic import Field, field_validator
+
+    # 动态创建类名
+    action_class_name = f"{tool_name}Action"
+
     class CustomAction(Action):
         """Custom action for tool"""
-        pass
+
+        # 设置 kind 字段，使用 json_schema_extra 从 schema 中排除
+        kind: str = Field(
+            default=action_class_name,
+            json_schema_extra={"exclude": True}  # 从生成的 JSON schema 中排除
+        )
+
+        @field_validator('kind', mode='before')
+        @classmethod
+        def force_kind_value(cls, v):
+            """强制 kind 字段始终是类名，忽略外部输入"""
+            return action_class_name
 
     # 设置类名
-    CustomAction.__name__ = f"{tool_name}Action"
-    CustomAction.__qualname__ = f"{tool_name}Action"
+    CustomAction.__name__ = action_class_name
+    CustomAction.__qualname__ = action_class_name
 
     return CustomAction
 
 
 def create_observation_class(tool_name: str):
     """动态创建 Observation 类"""
+    from pydantic import Field
+    from openhands.sdk.llm import TextContent
+
     class CustomObservation(Observation):
         """Custom observation for tool"""
+        # 显式设置 kind 字段为类名（Pydantic discriminated union 要求）
+        kind: str = Field(default=f"{tool_name}Observation", frozen=True)
         content: str = ""
         error: str | None = None
+
+        @property
+        def to_llm_content(self):
+            """返回 LLM 格式的内容"""
+            if self.error:
+                return [TextContent(text=f"Error: {self.error}")]
+            return [TextContent(text=self.content)]
 
     # 设置类名
     CustomObservation.__name__ = f"{tool_name}Observation"
@@ -50,25 +78,60 @@ def create_executor_class(tool_name: str, on_invoke: Callable, ObservationClass)
                 params = {}
                 if hasattr(action, '__dict__'):
                     for key, value in action.__dict__.items():
-                        if not key.startswith('_') and key not in ['kind', 'thought', 'tool_name']:
+                        if not key.startswith('_') and key not in ['kind']:
                             params[key] = value
+
+                # 从 Pydantic 模型中提取字段
+                if hasattr(action, 'model_dump'):
+                    params = action.model_dump(exclude={'kind'})
+
+                # 检查 on_invoke 的签名
+                import json
+                sig = inspect.signature(on_invoke)
+                param_names = list(sig.parameters.keys())
 
                 # 调用原始的 on_invoke_tool 函数
                 if inspect.iscoroutinefunction(on_invoke):
-                    # 如果是异步函数，需要在异步上下文中执行
                     import asyncio
-                    try:
-                        loop = asyncio.get_event_loop()
-                        if loop.is_running():
-                            # 如果事件循环正在运行，创建一个 task
-                            result = asyncio.create_task(on_invoke(params))
-                        else:
-                            result = loop.run_until_complete(on_invoke(params))
-                    except RuntimeError:
-                        # 没有事件循环，创建一个新的
-                        result = asyncio.run(on_invoke(params))
+                    # 异步函数
+                    if len(param_names) == 2:
+                        # 期望 (context, params_str) - 旧的 OpenAI Agents SDK 格式
+                        params_str = json.dumps(params)
+                        try:
+                            loop = asyncio.get_event_loop()
+                            if loop.is_running():
+                                # 创建一个Future并在事件循环中运行
+                                future = asyncio.ensure_future(on_invoke(None, params_str))
+                                # 等待完成
+                                while not future.done():
+                                    asyncio.get_event_loop()._run_once()
+                                result = future.result()
+                            else:
+                                result = loop.run_until_complete(on_invoke(None, params_str))
+                        except RuntimeError:
+                            result = asyncio.run(on_invoke(None, params_str))
+                    else:
+                        # 期望 (params) - 新格式
+                        try:
+                            loop = asyncio.get_event_loop()
+                            if loop.is_running():
+                                future = asyncio.ensure_future(on_invoke(params))
+                                while not future.done():
+                                    asyncio.get_event_loop()._run_once()
+                                result = future.result()
+                            else:
+                                result = loop.run_until_complete(on_invoke(params))
+                        except RuntimeError:
+                            result = asyncio.run(on_invoke(params))
                 else:
-                    result = on_invoke(params)
+                    # 同步函数
+                    if len(param_names) == 2:
+                        # 期望 (context, params_str)
+                        params_str = json.dumps(params)
+                        result = on_invoke(None, params_str)
+                    else:
+                        # 期望 (params)
+                        result = on_invoke(params)
 
                 # 返回 Observation
                 return ObservationClass(
