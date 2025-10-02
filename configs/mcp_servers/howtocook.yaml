@@ -1,4 +1,3 @@
-# 今天吃什么 菜单
 # https://www.modelscope.cn/mcp/servers/@worryzyy/howtocook-mcp
 type: stdio
 name: howtocook

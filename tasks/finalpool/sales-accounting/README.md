@@ -1,39 +1,44 @@
-# 数码产品店记账本任务
+# Digital Products Store Ledger Task
 
-## 任务描述
-模拟一家数码产品店老板需要根据上周的营业记录完善店铺账本的场景。
+## Task Description
+Simulate a scenario where a digital products store owner needs to complete the store's ledger based on last week's business records.
 
-## 输入数据
-1. **账本.xlsx** - 包含120条历史交易记录的Excel账本（2023-12-01到2024-01-06）
-2. **memory.json** - 上周交易记录的知识图谱格式数据，包含：
-   - 商品信息（iPhone 15 Pro, MacBook Air, AirPods Pro）
-   - 客户信息（王五, 赵六, 刘七）
-   - 供应商信息（供应商A, 供应商B）
-   - 5条销售和进货交易记录（2024-01-07到2024-01-10）
+## Input Data
+1. **Account_Book.xlsx** - Excel ledger containing 120 historical transaction records (December 1, 2023 to January 6, 2024)
+2. **memory.json** - Knowledge graph format data of last week's transaction records, including:
+   - Product information (iPhone 15 Pro, MacBook Air, AirPods Pro)
+   - Customer information (Wang Wu, Zhao Liu, Liu Qi)
+   - Supplier information (Supplier A, Supplier B)
+   - 5 sales and purchase transaction records (January 7-10, 2024)
 
-## 任务目标
-Agent需要：
-1. 读取并理解memory.json中的知识图谱数据
-2. 从中提取具体的交易信息（日期、类型、商品、数量、价格、客户/供应商）
-3. 将这些交易记录正确添加到账本.xlsx中
-4. 确保账本格式正确，数据完整，最终应有125条记录
+## Task Objectives
+The Agent needs to:
+1. Read and understand the knowledge graph data in memory.json
+2. Extract specific transaction information from it (date, type, product, quantity, price, customer/supplier)
+3. Correctly add these transaction records to Account_Book.xlsx
+4. Ensure the ledger format is correct and data is complete, with a final total of 125 records
 
-## 评估标准
-1. **本地检查**：验证账本Excel文件是否正确更新，包含所有5条上周交易记录
-2. **日志检查**：确认Agent在处理过程中提及了关键交易信息
-3. **远程检查**：（暂未实现）
+## Evaluation Criteria
+1. **Local Check**:
+   - Verify the ledger has exactly 126 rows (including header)
+   - First 121 rows must match the reference ledger exactly
+   - Last 5 rows must match one of two accepted orderings (comparing first 7 columns only):
+     - Solution 1: Purchase transactions grouped before sales on 2024-01-08
+     - Solution 2: Sales transaction before purchase on 2024-01-08
+2. **Log Check**: Confirm that the Agent mentioned key transaction information during processing
+3. **Remote Check**: (Not yet implemented)
 
-## 数据规模
-- **初始账本**：121行（包括表头），120条历史交易记录
-- **完整账本**：126行（包括表头），125条交易记录
-- **知识图谱**：13个实体，15个关系
+## Data Scale
+- **Initial Ledger**: 121 rows (including header), 120 historical transaction records
+- **Complete Ledger**: 126 rows (including header), 125 transaction records
+- **Knowledge Graph**: 13 entities, 15 relationships
 
-## 使用的工具
-- **Memory工具**：读取和解析知识图谱数据
-- **Excel工具**：操作和更新Excel账本文件
+## Tools Used
+- **Memory Tool**: Read and parse knowledge graph data
+- **Excel Tool**: Operate and update Excel ledger files
 
-## 构建数据
-使用 `build_excel_ledger.py` 脚本构建所有数据文件：
-- 生成复杂的历史交易数据（18种商品，40+客户，5个供应商）
-- 创建格式化的Excel账本文件
-- 生成对应的知识图谱JSON数据
+## Data Construction
+Use the `build_excel_ledger.py` script to build all data files:
+- Generate complex historical transaction data (18 products, 40+ customers, 5 suppliers)
+- Create formatted Excel ledger files
+- Generate corresponding knowledge graph JSON data 
