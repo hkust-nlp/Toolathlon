@@ -12,7 +12,7 @@
 
 uv run demo.py \
 --eval_config scripts/temp_and_debug/debug_eval_config.json \
---task_dir  finalpool/sales-accounting \
+--task_dir  finalpool/student-interview \
 --debug \
 --model_short_name gpt-5 \
 --provider aihubmix \

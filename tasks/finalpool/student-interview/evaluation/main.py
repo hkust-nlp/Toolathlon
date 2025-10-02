@@ -37,7 +37,7 @@ def check_time_overlap(start1, end1, start2, end2):
     """Check if two time intervals overlap"""
     return start1 < end2 and end1 > start2
 
-def validate_interview_time(interview, today_date, tomorrow_date):
+def validate_interview_time(interview, tomorrow_date, the_day_after_tomorrow_date, already_scheduled_interviews):
     """
     Validate interview time against all constraints
     Returns (is_valid, issues_list)
@@ -54,9 +54,9 @@ def validate_interview_time(interview, today_date, tomorrow_date):
     event_end_dt = parse_iso_time(end_time['dateTime'])
     event_date = event_start_dt.date()
     
-    # Check 1: Date within today/tomorrow range
-    if event_date not in [today_date, tomorrow_date]:
-        issues.append(f"❌ {student}: Interview date {event_date} not within today/tomorrow range")
+    # Check 1: Date within tomorrow/the day after tomorrow range
+    if event_date not in [tomorrow_date, the_day_after_tomorrow_date]:
+        issues.append(f"❌ {student}: Interview date {event_date} not within tomorrow/the day after tomorrow range")
         return False, issues
     
     # Check 2: Duration >= 90 minutes
@@ -76,8 +76,8 @@ def validate_interview_time(interview, today_date, tomorrow_date):
     
     # Check 4: No conflicts with existing meetings
     conflicts = [
-        (today_date, 15, 17, "Academic Committee Meeting"),
-        (tomorrow_date, 9, 11, "PhD Dissertation Defense")
+        (tomorrow_date, 15, 17, "Academic Committee Meeting"),
+        (the_day_after_tomorrow_date, 9, 11, "PhD Dissertation Defense")
     ]
     
     for conflict_date, conflict_start_hour, conflict_end_hour, conflict_name in conflicts:
@@ -93,6 +93,17 @@ def validate_interview_time(interview, today_date, tomorrow_date):
             if check_time_overlap(event_start_dt, event_end_dt, conflict_start_dt, conflict_end_dt):
                 issues.append(f"❌ {student}: Interview conflicts with {conflict_name} ({conflict_start_hour:02d}:00-{conflict_end_hour:02d}:00)")
                 return False, issues
+    
+    # Check 5: No conflicts with each other
+    for interview in already_scheduled_interviews:
+        if interview['student'] != student:
+            start_time = parse_iso_time(interview['start_time']['dateTime'])
+            end_time = parse_iso_time(interview['end_time']['dateTime'])
+            if check_time_overlap(event_start_dt, event_end_dt, start_time, end_time):
+                issues.append(f"❌ {student}: Interview conflicts with {interview['student']} ({interview['start_time'].strftime('%H:%M')}-{interview['end_time'].strftime('%H:%M')})")
+                return False, issues
+    
+    already_scheduled_interviews.append(interview)
     
     # All checks passed
     print(f"✅ {student}: Interview arrangement valid")
@@ -117,29 +128,14 @@ async def main(args):
     
     # 2. Read today's date
     today_file_path = Path(__file__).parent.parent / "groundtruth_workspace" / "today.txt"
-    alternative_paths = [
-        today_file_path,
-        Path(__file__).parent / "groundtruth_workspace" / "today.txt",
-        Path(workspace_path) / "groundtruth_workspace" / "today.txt",
-        Path(".") / "groundtruth_workspace" / "today.txt"
-    ]
-    
-    today_file_path = None
-    for path in alternative_paths:
-        if path.exists():
-            today_file_path = path
-            break
-    
-    if not today_file_path:
-        print("❌ Unable to find today.txt file")
-        exit(1)
     
     try:
         with open(today_file_path, 'r', encoding='utf-8') as f:
             today = f.read().strip()
         today_date = datetime.strptime(today, '%Y-%m-%d').date()
         tomorrow_date = today_date + timedelta(days=1)
-        print(f"📅 Evaluation period: {today_date} to {tomorrow_date}")
+        the_day_after_tomorrow_date = today_date + timedelta(days=2)
+        print(f"📅 Evaluation period: {tomorrow_date} to {the_day_after_tomorrow_date}")
     except Exception as e:
         print(f"❌ Failed to read today.txt: {e}")
         exit(1)
@@ -167,8 +163,8 @@ async def main(args):
             
             # Single query covering both days
             query_params = {
-                "timeMin": f"{today_date}T00:00:00+08:00",
-                "timeMax": f"{tomorrow_date}T23:59:59+08:00",
+                "timeMin": f"{tomorrow_date}T00:00:00+08:00",
+                "timeMax": f"{the_day_after_tomorrow_date}T23:59:59+08:00",
                 "orderBy": "startTime"
             }
             
@@ -236,8 +232,9 @@ async def main(args):
     
     # Checkpoint 2: Valid interview times (30 points)
     valid_interviews = 0
+    already_scheduled_interviews = []
     for interview in interview_events:
-        is_valid, issues = validate_interview_time(interview, today_date, tomorrow_date)
+        is_valid, issues = validate_interview_time(interview, tomorrow_date, the_day_after_tomorrow_date, already_scheduled_interviews)
         if is_valid:
             valid_interviews += 1
         else:

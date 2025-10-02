@@ -6,84 +6,22 @@ WooCommerce New Welcome Task - Preprocess Setup
 import os
 import sys
 import json
-import time
 from argparse import ArgumentParser
 from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Dict, List
+
+from utils.app_specific.poste.email_import_utils import clear_all_email_folders
 
 # Add parent directory to import token configuration
 current_dir = os.path.dirname(os.path.abspath(__file__))
 task_dir = os.path.dirname(current_dir)
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(task_dir)))
 sys.path.insert(0, task_dir)  # For token_key_session
-sys.path.insert(0, project_root)  # For utils
+from token_key_session import all_token_key_session as local_token_key_session
 
-
-def clear_mailbox() -> Dict:
-    """
-    清空邮箱 - 使用通用邮箱工具清理 INBOX, Sent, Drafts 文件夹
-
-    Returns:
-        清理结果字典
-    """
-    print("📧 开始清空邮箱...")
-
-    try:
-        # 导入配置
-        from token_key_session import all_token_key_session
-
-        # 读取邮件配置文件
-        try:
-            with open(all_token_key_session.emails_config_file, 'r', encoding='utf-8') as f:
-                email_config = json.load(f)
-        except Exception as e:
-            print(f"❌ 无法读取邮件配置文件: {e}")
-            return {
-                "success": False,
-                "error": f"无法读取邮件配置文件: {e}",
-                "timestamp": datetime.now().isoformat()
-            }
-
-        # 延迟导入邮箱清理模块
-        try:
-            from utils.app_specific.poste.ops import setup_clean_mailbox_environment
-        except ImportError as e:
-            print(f"❌ 无法导入邮箱清理模块: {e}")
-            return {
-                "success": False,
-                "error": f"无法导入邮箱清理模块: {e}",
-                "timestamp": datetime.now().isoformat()
-            }
-
-        # 使用通用邮箱清理函数
-        result = setup_clean_mailbox_environment(email_config)
-
-        print(f"📊 邮箱清理结果:")
-        if result["success"]:
-            print(f"✅ 成功清理文件夹: {', '.join(result['cleared_folders'])}")
-        else:
-            print(f"⚠️ 部分文件夹清理失败:")
-            for error in result.get("errors", []):
-                print(f"   - {error}")
-
-        return {
-            "success": result["success"],
-            "cleared_folders": result.get("cleared_folders", []),
-            "failed_folders": result.get("failed_folders", []),
-            "errors": result.get("errors", []),
-            "timestamp": datetime.now().isoformat()
-        }
-
-    except Exception as e:
-        error_result = {
-            "success": False,
-            "error": str(e),
-            "timestamp": datetime.now().isoformat()
-        }
-        print(f"❌ 邮箱清理过程中出错: {e}")
-        return error_result
-
+def clear_mailbox():
+    clear_all_email_folders(local_token_key_session.emails_config_file)
 
 def setup_woocommerce_orders() -> Dict:
     """
@@ -218,16 +156,8 @@ def main():
         print("Step 1: Clear Mailbox")
         print("="*60)
 
-        mailbox_result = clear_mailbox()
-        results.append(("Mailbox Cleanup", mailbox_result["success"], mailbox_result))
-
-        if mailbox_result["success"]:
-            print("✅ 邮箱清理成功")
-        else:
-            print("⚠️ 邮箱清理部分失败，但继续后续操作...")
-
-        # 等待邮箱操作完成
-        time.sleep(2)
+        clear_mailbox()
+        results.append(("Mailbox Cleanup", True, {}))
 
         # 第二步：设置WooCommerce订单
         print("\n" + "="*60)

@@ -2,9 +2,9 @@
 
 This task simulates a professor's workflow of scheduling interviews with students based on their research qualifications and calendar availability.
 
-> 关于无关邮件注入：在`student-interview/preprocess/files/fake_emails_300_manual.json`下有300个构造好的无关邮件，所有内容均为虚构，含有mcp.com的邮件名称和当前实际部署的503个无冲突，可以在preprocess中随机抽取并用IMAP和任务邮件一起注入到INBOX当中，注意在注入前最好先根据send_time排序
-> 
-> 另外关于邮件中涉及的时间：`student-interview/preprocess/files/fake_emails_300_manual.json`当中的所有时间都使用占位符`xx days before current date`代替，可以通过指定当前时间来批量替换，具体实现过程可以直接使用Claude Code解析本任务的预处理过程，迁移到其他任务上
+> About irrelevant email injection: There are 300 pre-constructed irrelevant emails in `student-interview/preprocess/files/fake_emails_300_manual.json`. All content is fictional, with email addresses using the mcp.com domain. These emails are guaranteed to have no conflicts with the 503 currently deployed addresses. You can randomly sample from them in the preprocess step and inject them into the INBOX together with the task-related emails via IMAP. Note: It is recommended to sort all emails by `send_time` before injection.
+>
+> Regarding the timestamps in these emails: All dates in `student-interview/preprocess/files/fake_emails_300_manual.json` use the placeholder `xx days before current date`. You can batch-replace these placeholders by specifying the current date. For implementation details, you can directly use Claude Code to parse the preprocessing logic of this task and migrate it to other tasks if needed.
 
 ## Email System Design
 
