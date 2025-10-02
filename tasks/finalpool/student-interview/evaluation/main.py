@@ -186,10 +186,32 @@ async def main(args):
     scheduled_students = set()
     
     # Find interview-related events
+    # also the pre existing events should be found as well, we do not want the agent to delete them
+
+    pre_existing_events = [
+        {
+            'summary': 'Academic Committee Meeting',
+            'start_time': f'{tomorrow_date}T15:00:00+08:00',
+            'end_time': f'{tomorrow_date}T17:00:00+08:00'
+        },
+        {
+            'summary': 'PhD Dissertation Defense',
+            'start_time': f'{the_day_after_tomorrow_date}T09:00:00+08:00',
+            'end_time': f'{the_day_after_tomorrow_date}T11:00:00+08:00'
+        }
+    ]
+    found = [False, False]
+
     for event in all_events:
         summary = event.get('summary', '').lower()
         description = event.get('description', '').lower()
         
+        # find if the event is in the pre existing events
+        for i, pre_existing_event in enumerate(pre_existing_events):
+            if pre_existing_event['summary'] == event['summary'] and pre_existing_event['start_time'] == event['start']['dateTime'] and pre_existing_event['end_time'] == event['end']['dateTime']:
+                found[i] = True
+                break
+
         # Check for interview keywords
         if any(keyword in summary for keyword in ['interview', 'student', '面试']) or \
            any(keyword in description for keyword in ['interview', 'student', '面试']):
@@ -207,6 +229,11 @@ async def main(args):
                     scheduled_students.add(student)
                     break
     
+    if not found[0] or not found[1]:
+        print("❌ Checkpoint 0 (0pts): Some pre existing events not found")
+        exit(1)
+    print(f"✅ Checkpoint 0 (0pts): All pre existing events found")
+
     print(f"   Qualified students: {qualified_students}")
     print(f"   Scheduled students: {scheduled_students}")
     print(f"   Interview events found: {len(interview_events)}")
