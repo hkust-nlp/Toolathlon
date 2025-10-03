@@ -617,6 +617,16 @@ def normalize_str(xstring):
     # remove punctuation and whitespace and lowercase
     return re.sub(r'[^\w]', '', xstring).lower().strip()
 
+def compare_iso_time(agent_time, groundtruth_time,date_only=False):
+    # given both date in iso format, compare if they are the same
+    agent_time = datetime.datetime.fromisoformat(agent_time)
+    groundtruth_time = datetime.datetime.fromisoformat(groundtruth_time)
+    if date_only: # we only compare the date part
+        agent_time = agent_time.date()
+        groundtruth_time = groundtruth_time.date()
+    return agent_time == groundtruth_time
+
+
 async def fork_repo(source_repo, target_repo, fork_default_branch_only, readonly=False):
     command = f"uv run -m utils.app_specific.github.github_delete_and_refork "
     command += f"--source_repo_name {source_repo} "
