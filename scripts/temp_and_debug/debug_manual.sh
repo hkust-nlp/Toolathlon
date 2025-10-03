@@ -12,10 +12,10 @@
 
 uv run demo.py \
 --eval_config scripts/temp_and_debug/debug_eval_config.json \
---task_dir  finalpool/privacy-desensitization \
+--task_dir  finalpool/huggingface-upload \
 --debug \
---model_short_name claude-4-sonnet-0514 \
---provider aihubmix \
+--model_short_name deepseek-v3.2-exp \
+--provider deepseek_official \
 --max_steps_under_single_turn_mode 200 \
 # --multi_turn_mode \
 # --manual \
