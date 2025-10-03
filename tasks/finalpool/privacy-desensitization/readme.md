@@ -1,0 +1,1 @@
+The main hard point of this task is that, we have debit card, insurance card other than credit card, so actually the model need to take carefully look at all files to do the replacement instead of just looking at some files than apply a so called "unified" solution.
