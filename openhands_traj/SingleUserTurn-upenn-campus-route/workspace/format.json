@@ -1,0 +1,20 @@
+{
+    "road_plan":[
+        {
+            "from": "Starting Point",
+            "to": "Destination",
+            "distance": "Walking distance",
+            "estimated_time": "Estimated walking time",
+            "directions": "Specific route guidance"
+        },
+        {
+            "from": "Starting Point",
+            "to": "Destination",
+            "distance": "Walking distance",
+            "estimated_time": "Estimated walking time",
+            "directions": "Specific route guidance"
+        }
+    ],
+    "total_distance": "Total walking distance",
+    "total_time": "Total estimated time"
+}

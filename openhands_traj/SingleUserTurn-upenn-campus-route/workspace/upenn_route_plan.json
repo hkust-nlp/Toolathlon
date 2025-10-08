@@ -1,0 +1,41 @@
+{
+    "road_plan": [
+        {
+            "from": "Penn Bookstore (3601 Walnut St)",
+            "to": "Benjamin Franklin Statue at College Hall",
+            "distance": "0.2 mi (278 m)",
+            "estimated_time": "4 minutes",
+            "directions": "Head east on Walnut St toward S 36th St, turn right onto S 36th St/36th St Walk, take the stairs and follow campus paths to College Hall. The Benjamin Franklin Statue is directly in front of College Hall."
+        },
+        {
+            "from": "Benjamin Franklin Statue at College Hall",
+            "to": "College Hall (building interior/exterior tour)",
+            "distance": "0 mi (same location)",
+            "estimated_time": "0 minutes",
+            "directions": "The statue is located directly in front of College Hall, so you can immediately explore this historic Victorian Gothic building, the oldest on campus."
+        },
+        {
+            "from": "College Hall",
+            "to": "Fisher Fine Arts Library",
+            "distance": "0.1 mi (182 m)",
+            "estimated_time": "2 minutes",
+            "directions": "Head east from College Hall, turn left toward S 34th St, take the stairs, then turn right onto S 34th St. The Fisher Fine Arts Library will be on your right."
+        },
+        {
+            "from": "Fisher Fine Arts Library",
+            "to": "ENIAC Exhibits at School of Engineering",
+            "distance": "486 ft (148 m)",
+            "estimated_time": "2 minutes",
+            "directions": "Head north on S 34th St toward Smith Walk, cross the road, then turn left onto Smith Walk. The School of Engineering building (220 S 33rd St) will be on your left, where ENIAC panels are displayed."
+        },
+        {
+            "from": "ENIAC Exhibits at School of Engineering",
+            "to": "Penn Museum",
+            "distance": "0.2 mi (345 m)",
+            "estimated_time": "5 minutes",
+            "directions": "Head southeast toward S 33rd St, turn right onto S 33rd St, then turn left onto South St. Turn right into the museum grounds, and the Penn Museum entrance will be on your left."
+        }
+    ],
+    "total_distance": "0.7 mi (1.1 km)",
+    "total_time": "13 minutes"
+}
