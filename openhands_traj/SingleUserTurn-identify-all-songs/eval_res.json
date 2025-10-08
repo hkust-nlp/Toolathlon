@@ -1,0 +1,4 @@
+{
+  "pass": false,
+  "failure": "content check failed:  The following ground truth songs were not found in agent's output: ['sweetbutpsycho', 'abcdefu', 'atmyworst', 'hymnfortheweekend', 'thatswhatilike', 'cupid', 'unhealthy', 'nothingonyou', 'talkingtothemoon', 'imamess', 'inferno', 'friends', 'letmedownslowly', 'ride', 'flymetothemoon', 'symphony', 'letitbeme', 'stressedout', 'prayerinc']\n"
+}

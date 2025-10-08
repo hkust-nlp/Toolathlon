@@ -1,0 +1,48 @@
+STOCK POSITION BUILDING PLAN
+============================
+Date: December 19, 2024 (Opening Prices)
+Total Capital: $1,000,000 USD
+Allocation Ratio: US Stocks:Hong Kong Stocks:A-shares = 4:3:3 (40%:30%:30%)
+Exchange Rates: USD/HKD = 7.7716, USD/CNY = 7.2854
+
+POSITION BREAKDOWN:
+==================
+
+US STOCKS (40% = $400,000, ~$66,667 per stock):
+-----------------------------------------------
+Microsoft (MSFT)      : $439.21 × 151 shares = $66,520.71
+Apple (AAPL)          : $246.62 × 270 shares = $66,587.40  
+NVIDIA (NVDA)         : $131.73 × 506 shares = $66,655.38
+AMD (AMD)             : $122.16 × 545 shares = $66,577.20
+Google (GOOGL)        : $191.01 × 349 shares = $66,662.49
+Meta (META)           : $608.97 × 109 shares = $66,377.73
+                                    US Total: $399,380.91
+
+HONG KONG STOCKS (30% = $300,000, $75,000 per stock):
+-----------------------------------------------------
+Alibaba (9988.HK)     : HK$82.53 × 7,062 shares = $74,995.88
+Meituan (3690.HK)     : HK$157.30 × 3,705 shares = $75,000.58
+XIAOMI (1810.HK)      : HK$30.20 × 19,300 shares = $74,999.74
+Tencent (0700.HK)     : HK$398.72 × 1,461 shares = $74,999.19
+                                    HK Total: $299,995.39
+
+A-SHARES (30% = $300,000, $60,000 per stock):
+---------------------------------------------
+BYD (002594.SZ)           : ¥92.83 × 4,700 shares = $59,999.98
+Ping An Insurance (601318.SS): ¥51.10 × 8,500 shares = $59,601.86
+WuXi AppTec (603259.SS)   : ¥54.16 × 8,000 shares = $59,503.77
+CATL (300750.SZ)         : ¥261.75 × 1,600 shares = $57,512.39
+Moutai (600519.SS)       : ¥1,511.34 × 200 shares = $41,472.59
+                                  A-Share Total: $278,090.59
+
+SUMMARY:
+========
+Total Investment: $977,466.89
+Remaining Cash: $22,533.11
+Portfolio Utilization: 97.7%
+
+Notes:
+- All purchases in whole shares
+- A-shares purchased in lots of 100 shares minimum
+- Prices based on December 19, 2024 opening prices
+- Exchange rates as of December 19, 2024

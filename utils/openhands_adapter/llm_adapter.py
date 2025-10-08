@@ -31,6 +31,7 @@ def create_openhands_llm(
     max_tokens: int = 4096,
     top_p: float = 1.0,
     debug: bool = False,
+    openrouter_config: Optional[Dict[str, Any]] = None,
 ) -> LLM:
     """
     Create an OpenHands LLM from mcpbench_dev's model_provider
@@ -42,6 +43,7 @@ def create_openhands_llm(
         max_tokens: Maximum tokens for generation (will be mapped to max_output_tokens)
         top_p: Top-p sampling parameter
         debug: Enable debug mode
+        openrouter_config: Optional OpenRouter-specific config (transforms, models, route, provider)
 
     Returns:
         OpenHands LLM instance
@@ -60,9 +62,13 @@ def create_openhands_llm(
     # mcpbench_dev's model_provider wraps an AsyncOpenAI client
     # Note: OpenHands LLM uses max_output_tokens instead of max_tokens
 
+    # Detect if this is OpenRouter based on base_url
+    is_openrouter = False
+
     # For custom OpenAI-compatible endpoints, use "openai/" prefix
     # This tells LiteLLM to route to OpenAI-compatible API format
     # Example: openai/mistral, openai/claude-sonnet-4-20250514
+    # Exception: OpenRouter uses "openrouter/" prefix
     final_model_name = f"openai/{model_name}"
 
     llm_config: Dict[str, Any] = {
@@ -117,10 +123,41 @@ def create_openhands_llm(
                 if debug:
                     print(f"[LLM Adapter] Raw base_url: {base_url_str}")
 
+                # Detect if this is OpenRouter
+                if 'openrouter' in base_url_str.lower():
+                    is_openrouter = True
+                    # Update model name to use openrouter/ prefix
+                    final_model_name = f"openrouter/{model_name}"
+                    llm_config["model"] = final_model_name
+
+                    if debug:
+                        print(f"[LLM Adapter] Detected OpenRouter, using model: {final_model_name}")
+
                 # Remove trailing slash for consistency
                 if base_url_str.endswith('/'):
                     base_url_str = base_url_str[:-1]
                 llm_config["base_url"] = base_url_str
+
+            # Add OpenRouter-specific configuration
+            if is_openrouter and openrouter_config:
+                if debug:
+                    print(f"[LLM Adapter] Adding OpenRouter config: {openrouter_config}")
+
+                # OpenRouter supports transforms, models, route, provider
+                # These are passed via extra_body in litellm
+                extra_body = llm_config.get("extra_body", {})
+
+                # Add provider configuration (e.g., {"only": ["anthropic"]})
+                if "provider" in openrouter_config:
+                    extra_body["provider"] = openrouter_config["provider"]
+
+                # Add transforms, models, route if provided
+                for key in ["transforms", "models", "route"]:
+                    if key in openrouter_config:
+                        extra_body[key] = openrouter_config[key]
+
+                if extra_body:
+                    llm_config["extra_body"] = extra_body
 
             if debug:
                 print(f"[LLM Adapter] Final llm_config:")
@@ -130,6 +167,8 @@ def create_openhands_llm(
                 if 'api_key' in llm_config:
                     print(f"  - API Key type: {type(llm_config['api_key'])}")
                     print(f"  - API Key value (first 20 chars): {llm_config['api_key'].get_secret_value()[:20]}...")
+                if 'extra_body' in llm_config:
+                    print(f"  - Extra body: {llm_config['extra_body']}")
         else:
             if debug:
                 print(f"[LLM Adapter] WARNING: dummy_model has no _client attribute!")
@@ -176,6 +215,19 @@ def create_openhands_llm_from_config(
         ...     debug=self.debug,
         ... )
     """
+    # Get OpenRouter config if exists in API_MAPPINGS
+    from utils.api_model.model_provider import API_MAPPINGS
+
+    openrouter_config = None
+    model_short_name = agent_config.model.short_name
+
+    if model_short_name in API_MAPPINGS:
+        model_info = API_MAPPINGS[model_short_name]
+        openrouter_config = model_info.get('openrouter_config')
+
+        if debug and openrouter_config:
+            print(f"[LLM Adapter] Found OpenRouter config for {model_short_name}: {openrouter_config}")
+
     return create_openhands_llm(
         model_provider=agent_model_provider,
         model_name=agent_config.model.real_name,
@@ -183,4 +235,5 @@ def create_openhands_llm_from_config(
         max_tokens=agent_config.generation.max_tokens,
         top_p=agent_config.generation.top_p,
         debug=debug,
+        openrouter_config=openrouter_config,
     )

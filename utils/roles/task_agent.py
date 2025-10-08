@@ -21,42 +21,24 @@ from pathlib import Path
 # from agents.exceptions import MaxTurnsExceeded
 
 # 添加 OpenHands SDK 导入
-try:
-    from openhands.sdk.agent.agent import Agent as OpenHandsAgent
-    from openhands.sdk.conversation import Conversation
-    from openhands.sdk.conversation.state import ConversationState, AgentExecutionStatus
-    from openhands.sdk.event import (
-        MessageEvent,
-        ActionEvent,
-        ObservationEvent,
-        AgentErrorEvent,
-        UserRejectObservation,
-        SystemPromptEvent,
-        LLMConvertibleEvent,
-    )
-    from openhands.sdk.llm import Message, TextContent
-except ImportError:
-    # Fallback to agent-sdk path
-    import sys
-    agent_sdk_path = Path(__file__).parent.parent.parent.parent / 'agent-sdk'
-    if agent_sdk_path.exists():
-        sys.path.insert(0, str(agent_sdk_path))
-    from openhands.sdk.agent.agent import Agent as OpenHandsAgent
-    from openhands.sdk.conversation import Conversation
-    from openhands.sdk.conversation.state import ConversationState, AgentExecutionStatus
-    from openhands.sdk.event import (
-        MessageEvent,
-        ActionEvent,
-        ObservationEvent,
-        AgentErrorEvent,
-        UserRejectObservation,
-        SystemPromptEvent,
-        LLMConvertibleEvent,
-    )
-    from openhands.sdk.llm import Message, TextContent
 
-from utils.roles.context_managed_runner import ContextManagedRunner
-from utils.api_model.model_provider import ContextTooLongError
+from openhands.sdk.agent.agent import Agent as OpenHandsAgent
+from openhands.sdk.conversation import Conversation
+from openhands.sdk.conversation.state import ConversationState, AgentExecutionStatus
+from openhands.sdk.event import (
+    MessageEvent,
+    ActionEvent,
+    ObservationEvent,
+    AgentErrorEvent,
+    UserRejectObservation,
+    SystemPromptEvent,
+    LLMConvertibleEvent,
+)
+from openhands.sdk.llm import Message, TextContent
+
+
+# from utils.roles.context_managed_runner import ContextManagedRunner
+# from utils.api_model.model_provider import ContextTooLongError
 
 from utils.mcp.tool_servers import MCPServerManager
 from utils.mcp.openhands_mcp_config import create_openhands_mcp_config
@@ -220,6 +202,45 @@ class TaskAgent:
     def _debug_print(self, *args):
         if self.debug:
             print(*args)
+
+    def _patch_agent_error_event_for_claude(self):
+        """
+        Monkey patch AgentErrorEvent.to_llm_message() for Claude API compatibility
+
+        Claude API requires tool_result messages to have a corresponding tool_use block.
+        When AgentErrorEvent is created (e.g., tool not found, argument validation error),
+        there's no ActionEvent created, so Claude API rejects the error message.
+
+        Solution: Convert AgentErrorEvent to a user message instead of tool message.
+        This allows the agent to see the error and adjust its strategy without
+        violating Claude API's strict tool_use/tool_result pairing requirement.
+        """
+        from openhands.sdk.event.llm_convertible import AgentErrorEvent
+        from openhands.sdk.llm import Message, TextContent
+
+        # Store original method
+        original_to_llm_message = AgentErrorEvent.to_llm_message
+
+        def patched_to_llm_message(self):
+            """
+            Patched version that converts error to user message for Claude compatibility
+
+            Original behavior (causes Claude API error):
+                role="tool", tool_call_id=<id>
+
+            New behavior (Claude compatible):
+                role="user", content="[Tool Error - {tool_name}] {error}"
+            """
+            return Message(
+                role="user",
+                content=[TextContent(text=f"[Tool Error - {self.tool_name}] {self.error}")],
+            )
+
+        # Apply patch
+        AgentErrorEvent.to_llm_message = patched_to_llm_message
+
+        if self.debug:
+            print_color("[Patch] Applied AgentErrorEvent patch for Claude API compatibility", "green")
 
     def _default_termination_checker(self, content: str, recent_tools: List[Dict], check_target: str = "user") -> bool:
         """默认的终止条件检查器"""
@@ -463,6 +484,11 @@ class TaskAgent:
         """
         self._debug_print(">>初始化 OpenHands agent 和 conversation")
 
+        # Monkey patch AgentErrorEvent for Claude API compatibility
+        # This fixes the issue where Claude API rejects tool_result messages
+        # with tool_use_id that don't have a corresponding tool_use block
+        self._patch_agent_error_event_for_claude()
+
         # 1. 创建 OpenHands LLM（替代原来的 Model）
         self.llm = create_openhands_llm_from_config(
             agent_config=self.agent_config,
@@ -519,13 +545,51 @@ class TaskAgent:
                 print_color(f"Agent will use {len(local_toolspecs)} local tools (no MCP tools)", "yellow")
 
         # 5. 创建 OpenHands Agent（使用 ToolSpec 列表）
+        # 创建 AgentContext 添加 builtin tools 使用说明（修复 kind 字段问题）
+        from openhands.sdk.context import AgentContext
+
+        context = AgentContext(
+            system_message_suffix="""
+<CRITICAL_TOOL_USAGE_RULES>
+IMPORTANT: When calling tools, DO NOT manually provide the 'kind' field.
+The 'kind' field is automatically managed by the system and should NEVER be included in your tool call arguments.
+
+Correct tool usage:
+- think tool: {"thought": "your reasoning and analysis"}
+- finish tool: {"message": "task completion summary"}
+
+Incorrect usage (will cause validation errors):
+- {"kind": "planning", "thought": "..."}  ❌ WRONG
+- {"kind": "success", "message": "..."}   ❌ WRONG
+
+The 'kind' field may appear in tool schemas but is SYSTEM-MANAGED ONLY.
+Never include it in your tool call arguments.
+</CRITICAL_TOOL_USAGE_RULES>
+
+<TASK_COMPLETION_PROTOCOL>
+CRITICAL: When you have completed the task, you MUST call the 'finish' tool.
+
+Usage: finish(message="summary of accomplishments")
+
+Call this when:
+- You have successfully completed the user's requested task
+- All objectives have been met
+- No further actions are needed
+
+WITHOUT calling finish, the system will NOT recognize task completion!
+</TASK_COMPLETION_PROTOCOL>
+"""
+        )
+
         self.agent = OpenHandsAgent(
             llm=self.llm,
             tools=all_toolspecs,  # 传入 ToolSpec 列表
-            system_message=self.task_config.system_prompts.agent,
+            # agent_context=context,  # 添加工具使用说明
+            # system_message=self.task_config.system_prompts.agent,
+            # filter_tools_regex="^(?!think|finish).*$",  # 过滤掉 think 和 finish 工具（存在 kind 验证问题）
         )
 
-        # 6. 创建 Conversation
+        # 6. 创建 Conversation（显式启用 stuck detection）
         persistence_dir = Path(self.task_config.agent_workspace) / 'conversation_state'
         persistence_dir.mkdir(parents=True, exist_ok=True)
 
@@ -533,13 +597,16 @@ class TaskAgent:
             agent=self.agent,
             workspace=str(self.task_config.agent_workspace),  # 正确参数名：workspace
             persistence_dir=str(persistence_dir),
-            max_iteration_per_run=self.agent_config.tool.max_inner_turns,
+            max_iteration_per_run=self.agent_config.tool.max_inner_turns,  # 单次 run() 的最大步数
             callbacks=[self._on_event],
             visualize=False,  # 禁用默认可视化
+            stuck_detection=True,  # 显式启用 stuck detection
         )
 
         if self.debug:
             print_color(f"Created OpenHands Conversation: {self.conversation.id}", "green")
+            print_color(f"  Max iteration per run: {self.conversation.max_iteration_per_run}", "green")
+            print_color(f"  Stuck detection: {self.conversation.stuck_detector is not None}", "green")
 
         # 7. 维护 self.all_tools（用于 User simulator）
         # 从本地 FunctionTool 提取 OpenAI 格式
@@ -678,25 +745,36 @@ class TaskAgent:
     async def run_interaction_loop(self,
                                    abs_original_task_root: str) -> None:
         """
-        运行交互循环（OpenHands SDK 版本）
+        运行交互循环（完全 OpenHands SDK 版本 - 方案 A）
 
-        使用 Conversation.run() 替代原有的 ContextManagedRunner.run()
-        OpenHands 自动管理上下文和事件历史
+        充分利用 OpenHands 的完整循环机制：
+        - conversation.run() 处理内层循环（max_iteration_per_run）
+        - 外层循环管理 user-agent 交互轮次（max_turns）
+        - 自动 stuck detection 和状态管理
+        - AgentExecutionStatus 驱动的终止条件
+
+        循环语义：
+        - max_turns: 最大 user-agent 交互轮次（外层循环）
+        - max_iteration_per_run: 单次 run() 内的最大 agent 步数（内层循环，已在 Conversation 初始化时设置）
         """
         # 初始化 session id（保持兼容性）
         self.session_id = f"task_{self.task_config.id}_session"
         self.initial_run_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        # 确定最大轮次
-        max_turns = 1 if self.single_turn_mode else self.task_config.max_turns
+        # 确定最大用户交互轮次
+        max_user_turns = 1 if self.single_turn_mode else self.task_config.max_turns
 
         if self.debug:
-            print_color("=== Starting interaction loop (OpenHands) ===", "blue")
+            print_color("=== Starting interaction loop (OpenHands Full Mode) ===", "blue")
+            print_color(f"  Max user turns: {max_user_turns}", "blue")
+            print_color(f"  Max iterations per run: {self.conversation.max_iteration_per_run}", "blue")
+            print_color(f"  Stuck detection: {self.conversation.stuck_detector is not None}", "blue")
 
-        # 主交互循环
-        while self.stats["interaction_turns"] < max_turns:
+        # 主交互循环 - 每轮对应一次用户输入和 agent 完整响应
+        for turn in range(max_user_turns):
             try:
-                # 1. 获取用户输入
+                # === 阶段 1: 获取用户输入 ===
+                # 这部分是user simulator的部分 保持了原本框架的逻辑
                 if self.single_turn_mode:
                     user_query = self.task_config.task_str
                 elif self.manual:
@@ -712,18 +790,24 @@ class TaskAgent:
                 # 检查用户输入的终止条件
                 if self.termination_checker(user_query, [], 'user'):
                     self._debug_print("Termination condition met by user input")
+                    self.task_status = TaskStatus.SUCCESS
                     break
 
                 # 记录用户消息
                 self.logs_to_record.append({"role": "user", "content": user_query})
 
-                # 2. 发送消息到 Conversation
+                # === 阶段 2: 发送消息并运行 OpenHands 完整循环 ===
                 self.conversation.send_message(user_query)
 
                 # 记录当前事件数量（用于提取新事件）
                 events_before = len(self.conversation.state.events)
 
-                # 3. 运行 Conversation（同步调用，OpenHands 内部处理异步）
+                # 运行 OpenHands 完整循环
+                # conversation.run() 会处理：
+                # 1. max_iteration_per_run 限制（内层循环）
+                # 2. AgentExecutionStatus.FINISHED 检测
+                # 3. Stuck detection（重复模式、错误循环等）
+                # 4. 错误恢复（AgentErrorEvent 转换为 user message）
                 try:
                     self.conversation.run()
                 except Exception as e:
@@ -731,77 +815,110 @@ class TaskAgent:
                     if self.debug:
                         import traceback
                         traceback.print_exc()
-                    # 继续执行，让外层错误处理逻辑处理
+                    # 标记为失败并继续处理
+                    self.task_status = TaskStatus.FAILED
                     raise
 
-                # 4. 提取新事件并更新统计
+                # === 阶段 3: 提取新事件和 agent 响应 ===
                 new_events = self.conversation.state.events[events_before:]
 
-                # 从新事件中提取最后一条 agent 消息（如果有）
+                # 提取最后一条 agent 消息
                 last_agent_message = None
                 for event in reversed(new_events):
                     if isinstance(event, MessageEvent) and event.source == "agent":
-                        # 使用辅助方法提取文本
                         last_agent_message = self._extract_text_from_message_event(event)
                         break
 
-                # 5. 发送 agent 响应给 user simulator
+                # 发送 agent 响应给 user simulator
                 if last_agent_message and not self.manual and not self.single_turn_mode:
                     self.user_simulator.receive_message(last_agent_message)
 
-                # 6. 增加交互轮次
-                self.stats["interaction_turns"] += 1
+                # 更新交互轮次
+                self.stats["interaction_turns"] = turn + 1
 
-                # 7. 检查终止条件
-                # 检查 agent 状态
-                if self.conversation.state.agent_status == AgentExecutionStatus.FINISHED:
-                    self._debug_print("Agent finished execution")
+                # === 阶段 4: 检查 OpenHands 状态驱动的终止条件 ===
+                agent_status = self.conversation.state.agent_status
+
+                # 终止条件 1: Agent 完成任务
+                if agent_status == AgentExecutionStatus.FINISHED:
+                    self._debug_print("Agent finished task successfully")
+                    self.task_status = TaskStatus.SUCCESS
                     break
 
-                # 检查 agent 响应的终止条件
-                if last_agent_message:
-                    # 从新事件中提取工具调用（用于终止检查）
-                    recent_tool_calls = []
-                    for event in new_events:
-                        if isinstance(event, ActionEvent):
-                            recent_tool_calls.append({
-                                "type": "function",
-                                "function": {"name": event.tool_name}
-                            })
+                # 终止条件 2: Stuck 检测触发
+                if agent_status == AgentExecutionStatus.STUCK:
+                    self._debug_print("Agent stuck detected by OpenHands")
+                    if self.debug and self.conversation.stuck_detector:
+                        # 打印 stuck 详情
+                        print_color("[Stuck Detection] Agent is stuck in repetitive pattern", "red")
+                    self.task_status = TaskStatus.FAILED
+                    break
 
-                    if self.termination_checker(last_agent_message, recent_tool_calls, 'agent'):
-                        self._debug_print("Termination condition met by agent response")
-                        break
+                # 终止条件 3: 自定义终止检查器（兼容性）
+                # 这个兼容是和原本框架的local tool中的claim-done进行兼容，可以删除忽略
+                # if last_agent_message:
+                #     # 从新事件中提取工具调用
+                #     recent_tool_calls = [
+                #         {"type": "function", "function": {"name": e.tool_name}}
+                #         for e in new_events if isinstance(e, ActionEvent)
+                #     ]
 
-                # 8. 单轮模式只执行一次
+                #     if self.termination_checker(last_agent_message, recent_tool_calls, 'agent'):
+                #         self._debug_print("Termination condition met by agent response")
+                #         self.task_status = TaskStatus.SUCCESS
+                #         break
+
+                # === 阶段 5: 单轮模式特殊处理 ===
                 if self.single_turn_mode:
+                    # 单轮模式：执行一次后立即退出
+                    self._debug_print("Single-turn mode: exiting after first turn")
+                    # 根据 agent 状态决定任务状态
+                    if agent_status == AgentExecutionStatus.FINISHED:
+                        self.task_status = TaskStatus.SUCCESS
+                    elif agent_status == AgentExecutionStatus.STUCK:
+                        self.task_status = TaskStatus.FAILED
+                    else:
+                        # Agent 未明确完成，可能是达到 max_iteration_per_run
+                        self.task_status = TaskStatus.MAX_TURNS_REACHED
                     break
 
-                # 9. 定期保存检查点
-                if self.allow_resume and self.stats["interaction_turns"] % self.checkpoint_interval == 0:
+                # === 阶段 6: 定期保存检查点 ===
+                if self.allow_resume and (turn + 1) % self.checkpoint_interval == 0:
                     await self._save_checkpoint()
+                    if self.debug:
+                        print_color(f"[Checkpoint] Saved at turn {turn + 1}", "green")
 
             except KeyboardInterrupt:
                 # 处理用户中断
                 self._debug_print("\nInterrupted by user")
                 if self.allow_resume:
                     await self._save_checkpoint()
-                    self.task_status = TaskStatus.INTERRUPTED
+                self.task_status = TaskStatus.INTERRUPTED
                 raise
             except Exception as e:
                 # 处理其他异常
-                self._debug_print(f"\nError during interaction: {e}")
+                self._debug_print(f"\nError during interaction turn {turn + 1}: {e}")
                 if self.allow_resume:
                     await self._save_checkpoint()
+                self.task_status = TaskStatus.FAILED
                 raise
 
-        # 检查是否因为达到最大轮次而终止
-        if self.stats["interaction_turns"] >= max_turns:
-            self._debug_print(f"Maximum turns ({max_turns}) reached")
+        # === 最终状态检查 ===
+        # 如果循环正常结束但没有设置任务状态，说明达到了最大轮次
+        if self.task_status is None and self.stats["interaction_turns"] >= max_user_turns:
+            self._debug_print(f"Maximum user turns ({max_user_turns}) reached")
             self.task_status = TaskStatus.MAX_TURNS_REACHED
 
         # 从 conversation.state 提取最终统计信息（单一数据源）
         self._extract_stats_from_conversation()
+
+        # 打印最终状态摘要
+        if self.debug:
+            print_color("\n=== Interaction Loop Completed ===", "blue")
+            print_color(f"  Final status: {self.task_status}", "blue")
+            print_color(f"  Agent status: {self.conversation.state.agent_status}", "blue")
+            print_color(f"  Total turns: {self.stats['interaction_turns']}", "blue")
+            print_color(f"  Total tool calls: {self.stats.get('cumulative_tool_calls', 0)}", "blue")
 
     def get_cost_summary(self) -> Tuple[Dict, Dict]:
         """获取成本摘要（从 OpenHands conversation.state 提取）"""

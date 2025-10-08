@@ -12,7 +12,7 @@
 
 uv run demo.py \
 --eval_config scripts/temp_and_debug/debug_eval_config.json \
---task_dir  finalpool/add-bibtex \
+--task_dir  finalpool/upenn-campus-route \
 --debug \
 --model_short_name claude-4-sonnet-0514 \
 --provider aihubmix \
