@@ -31,7 +31,7 @@
     "canvas-mcp-server": "github:lockon-n/mcp-canvas-lms#109770466cff5559e7c29988a153aa3563e007f7",
     "edgeone-pages-mcp": "^0.0.6",
     "firecrawl-mcp": "^1.11.0",
-    "howtocook-mcp": "^0.1.1",
+    "howtocook-mcp": "github:lockon-n/HowToCook-mcp#11510d36bcb55f6c84eaac3f85f2b051a1c70b5b",
     "hyperbrowser-mcp": "^1.0.25",
     "mcp-crypto-price": "^1.2.0",
     "mcp-deepwiki": "^0.0.10",
