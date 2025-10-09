@@ -1,6 +1,6 @@
 # Analysis Output Format Guide
 
-Please follow this EXACT format for your nutritional analysis. The evaluation system will look for these specific patterns.
+Please follow this EXACT format for your nutritional analysis.
 
 ## Required Format:
 
@@ -13,9 +13,9 @@ Please follow this EXACT format for your nutritional analysis. The evaluation sy
 ```
 
 ## Assessment Options:
-- **Below expectations** - when actual intake is below the target range
-- **Meets expectations** - when actual intake is within the target range  
-- **Excessive intake** - when actual intake exceeds the target range
+- **Below expectations** -  the actual intake is under 95% of the lower bound of the target range
+- **Excessive intake** - the actual intake is over 105% of the upper bound of the target range
+- **Meets expectations** - otherwise
 
 ## Format Examples:
 
@@ -40,15 +40,5 @@ Please follow this EXACT format for your nutritional analysis. The evaluation sy
 ## Important Notes:
 - Use **exactly** this heading: "# Today's Meal Nutritional Analysis"
 - Include both "Expected:" and "Actual:" values
-- Round numbers to 0.5g precision (e.g., 135.5g, 146.0g, 98.5g)
-- Assessment must match the actual vs expected comparison
 - The "|" separator between Expected and Actual is required
-
-## Calculation Tips:
-1. Extract ingredient quantities from cuisine.md
-2. Look up nutritional values in Nutrition.xlsx 
-3. Calculate: (nutrition per 100g / 100) × ingredient weight
-4. Sum all ingredients for total daily intake
-5. Compare against target ranges from health_guide.md
-
-The evaluation system accepts approximate values within ±5g tolerance for easier agent compliance.
+- Use the average nutrient value when the ingredient amount is provided as a range

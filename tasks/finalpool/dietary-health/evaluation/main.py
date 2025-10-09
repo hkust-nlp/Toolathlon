@@ -1,28 +1,6 @@
 from argparse import ArgumentParser
-import asyncio
-
-try:
-    from .check_local_flexible import check_local_flexible as check_local
-    from .check_local import check_local as check_local_strict
-    from utils.general.helper import read_json
-except ImportError:
-    # Handle both relative and absolute imports
-    import sys
-    import os
-    sys.path.insert(0, os.path.dirname(__file__))
-    from check_local_flexible import check_local_flexible as check_local
-    from check_local import check_local as check_local_strict
-    
-    # For utils import, try to find it
-    try:
-        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-        from utils.general.helper import read_json
-    except ImportError:
-        # Fallback json reading
-        import json
-        def read_json(file_path):
-            with open(file_path, 'r') as f:
-                return json.load(f)
+from .check_local import check_local_flexible as check_local
+from utils.general.helper import read_json
 
 if __name__ == "__main__":
     parser = ArgumentParser()
@@ -44,22 +22,17 @@ if __name__ == "__main__":
     }
     
     # Check local
-    try:
-        local_pass, local_error = check_local(args.agent_workspace, args.groundtruth_workspace, res_log)
-        evaluation_results["local_check"]["passed"] = local_pass
-        evaluation_results["local_check"]["error"] = local_error
-        
-        if not local_pass:
-            print(f"\n❌ Local file check failed: {local_error}")
-            print("💡 TIP: Check format.md for exact output requirements")
-            print("📊 Calculation help available in groundtruth_workspace/README.md")
-        else:
-            print(f"\n✅ Local file check passed")
-            print("🎯 Nutritional analysis meets requirements!")
-            
-    except Exception as e:
-        evaluation_results["local_check"]["error"] = str(e)
-        print(f"\n⚠️ Local file check exception: {e}")
+    local_pass, local_error = check_local(args.agent_workspace, args.groundtruth_workspace, res_log)
+    evaluation_results["local_check"]["passed"] = local_pass
+    evaluation_results["local_check"]["error"] = local_error
+    
+    if not local_pass:
+        print(f"\n❌ Local file check failed: {local_error}")
+        print("💡 TIP: Check format.md for exact output requirements")
+        print("📊 Calculation help available in groundtruth_workspace/README.md")
+    else:
+        print(f"\n✅ Local file check passed")
+        print("🎯 Nutritional analysis meets requirements!")
     
     # Generate final evaluation report
     print("\n" + "="*80)

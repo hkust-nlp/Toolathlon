@@ -29,8 +29,8 @@ Unit: g = daily intake per kg of body weight (g/kg)
 
 **Notes (For Large-Bodied Obese Individuals):**
 
-* **For large-bodied obese individuals with BMI > 28**, reduce initial carb intake during the fat loss phase (Male 2.5g, Female 2.1g), reduce protein (Male 1.2g), and reduce fat (Male 0.6g).
-* **For large-bodied obese individuals with BMI > 32**, reduce initial carb intake during the fat loss phase (Male 2.0g, Female 1.7g), reduce protein (Male 1.0g), and reduce fat (Male 0.5g).
+* **For large-bodied obese individuals with BMI > 28**, reduce initial carb intake during the fat loss phase (Male 2.4-2.7g, Female 2.1-2.4g), reduce protein (Male 1.2g), and reduce fat (Male 0.6g).
+* **For large-bodied obese individuals with BMI > 32**, reduce initial carb intake during the fat loss phase (Male 2.0-2.4g, Female 1.7-2.0g), reduce protein (Male 1.0g), and reduce fat (Male 0.5g).
 * **The above table refers to training days**. On rest days, reduce carb intake (by 0.5g compared to training days).
 
 **Note: Protein intake can fluctuate by +/- 10g from the allocated amount and still be within expectations. Carbohydrate intake must be strictly controlled within the given range.**
