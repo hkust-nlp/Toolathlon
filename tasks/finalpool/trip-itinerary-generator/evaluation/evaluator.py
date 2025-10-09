@@ -11,172 +11,189 @@ from .opening_hours import validate_opening_hours_simple
 from .maps_api import get_attractions_info, calculate_distances_and_times
 from .file_utils import load_wishlist_attractions
 
+from utils.general.helper import normalize_str
+
+
 async def evaluate_itinerary_with_maps(submission_path: str, initial_workspace_path: str) -> Tuple[bool, str]:
-    """使用Google Maps API验证行程安排"""
-    try:
-        # 读取提交的行程文件
-        with open(submission_path, 'r', encoding='utf-8') as f:
-            submission = json.load(f)
+    # read submission
+    with open(submission_path, 'r', encoding='utf-8') as f:
+        submission = json.load(f)
+    
+    # check basic structure
+    if not all(day in submission for day in ['day1', 'day2']):
+        return False, "missing day1 or day2"
+    
+    # read wishlist
+    wishlist_attractions = load_wishlist_attractions(initial_workspace_path)
+    print(f"wishlist attractions: {wishlist_attractions}")
+    
+    # initialize MCP manager
+    mcp_manager = MCPServerManager(agent_workspace="./")
+    server = mcp_manager.servers['google_map']
+    
+    async with server:
+        # step 1: get all attractions info
+        attractions_info = await get_attractions_info(server, wishlist_attractions)
         
-        # 检查基本结构
-        if not all(day in submission for day in ['day1', 'day2']):
-            return False, "缺少day1或day2"
+        evaluation_results = []
+        total_checks = 0
+        passed_checks = 0
+
+        all_attractions_visted = {attraction: 0 for attraction in wishlist_attractions}
         
-        # 读取愿望清单
-        wishlist_attractions = load_wishlist_attractions(initial_workspace_path)
-        print(f"愿望清单景点: {wishlist_attractions}")
-        
-        # 初始化MCP管理器
-        mcp_manager = MCPServerManager(agent_workspace="./")
-        server = mcp_manager.servers['google_map']
-        
-        async with server:
-            # 步骤1: 预先获取所有景点的详细信息
-            attractions_info = await get_attractions_info(server, wishlist_attractions)
+        # evaluate each day
+        for day_key in ['day1', 'day2']:
+            day_data = submission[day_key]
+            day_name = "Monday" if day_key == "day1" else "Tuesday"
             
-            evaluation_results = []
-            total_checks = 0
-            passed_checks = 0
+            print(f"\n=== evaluation {day_key} ({day_name}) ===")
             
-            # 评估每一天的行程
-            for day_key in ['day1', 'day2']:
-                day_data = submission[day_key]
-                day_name = "Monday" if day_key == "day1" else "Tuesday"
+            # extract day attractions
+            day_attractions = [spot.get('name', '') for spot in day_data]
+            
+            # step 2: calculate day distance and time
+            if len(day_attractions) > 1:
+                distance_results = await calculate_distances_and_times(server, day_attractions)
+            else:
+                distance_results = []
+            
+            # step 3: evaluate each spot
+            for i, spot in enumerate(day_data):
+                spot_name = spot.get('name', '')
+                spot_address = spot.get('address', '')
+                spot_opening_hours = spot.get('opening_hours', '')
+                spot_distance = spot.get('distance_to_next', '')
+                spot_time = spot.get('time_spent_to_next', '')
                 
-                print(f"\n=== 评估 {day_key} ({day_name}) ===")
+                print(f"\n  spot {i+1}: {spot_name}")
                 
-                # 提取当天的景点名称列表，用于计算距离
-                day_attractions = [spot.get('name', '') for spot in day_data]
+                # check 1: spot name in wishlist
+                total_checks += 1
+                name_match = False
+                matching_attraction = None
                 
-                # 步骤2: 计算当天路线的距离和时间
-                if len(day_attractions) > 1:
-                    distance_results = await calculate_distances_and_times(server, day_attractions)
-                else:
-                    distance_results = []
+                for wishlist_name in wishlist_attractions:
+                    if similar(spot_name, wishlist_name) > 0.8 or normalize_str(spot_name) in normalize_str(wishlist_name) or normalize_str(wishlist_name) in normalize_str(spot_name):
+                        name_match = True
+                        matching_attraction = wishlist_name
+                        print(f"    ✓ spot name matches wishlist: {wishlist_name}")
+                        passed_checks += 1
+                        all_attractions_visted[wishlist_name] += 1
+                        break
                 
-                # 步骤3: 逐个评估景点
-                for i, spot in enumerate(day_data):
-                    spot_name = spot.get('name', '')
-                    spot_address = spot.get('address', '')
-                    spot_opening_hours = spot.get('opening_hours', '')
-                    spot_distance = spot.get('distance_to_next', '')
-                    spot_time = spot.get('time_spent_to_next', '')
-                    
-                    print(f"\n  景点 {i+1}: {spot_name}")
-                    
-                    # 检查1: 景点名称是否在愿望清单中
+                if not name_match:
+                    print(f"    ✗ spot name not in wishlist: {spot_name}")
+                    evaluation_results.append(f"{day_key}: spot {i+1} '{spot_name}' not in wishlist")
+                    # continue
+                
+                # check 1.5: day 1 should be in Rive Droite
+                if day_key == "day1":
                     total_checks += 1
-                    name_match = False
-                    matching_attraction = None
+                    if wishlist_name not in ['Louvre Museum', 'Arc de Triomphe', 'Musée de l\'Orangerie']:
+                        print(f"    ✗ Day1 - spot name not in Rive Droite: {spot_name}")
+                    else:
+                        print(f"    ✓ Day1 - spot name in Rive Droite: {spot_name}")
+                        passed_checks += 1
+
+                # prepare check 2: get real info
+                real_info = attractions_info.get(matching_attraction)
+                if not real_info:
+                    print(f"    ✗ cannot get {matching_attraction} info")
+                    evaluation_results.append(f"cannot verify {day_key}: spot {i+1} '{spot_name}' info")
+                    continue
+                
+                # check 2: address validation
+                total_checks += 1
+                real_address = real_info['address']
+                if real_address and similar(spot_address, real_address) > 0.6 or normalize_str(spot_address) in normalize_str(real_address) or normalize_str(real_address) in normalize_str(spot_address):
+                    print(f"    ✓ address validation passed")
+                    passed_checks += 1
+                else:
+                    print(f"    ✗ address not matched")
+                    print(f"      submitted address: {spot_address}")
+                    print(f"      real address: {real_address}")
+                    evaluation_results.append(f"{day_key}: spot {i+1} '{spot_name}' address not accurate")
+                
+                # check 3: opening hours validation
+                total_checks += 1
+                real_hours = real_info['monday_hours'] if day_name == "Monday" else real_info['tuesday_hours']
+                
+                is_valid, validation_message = validate_opening_hours_simple(spot_opening_hours, real_hours, day_name)
+                
+                if is_valid:
+                    print(f"    ✓ opening hours validation passed: {validation_message}")
+                    passed_checks += 1
+                else:
+                    print(f"    ✗ opening hours not matched: {validation_message}")
+                    print(f"      submitted time: {spot_opening_hours}")
+                    print(f"      real time: {real_hours}")
+                    evaluation_results.append(f"{day_key}: spot {i+1} '{spot_name}' opening hours not correct")
+
+                
+                # check 4: distance and time validation
+                if i < len(day_data) - 1:
+                    total_checks += 2  # distance and time each one check point
                     
-                    for wishlist_name in wishlist_attractions:
-                        if similar(spot_name, wishlist_name) > 0.8:
-                            name_match = True
-                            matching_attraction = wishlist_name
-                            print(f"    ✓ 景点名称匹配愿望清单: {wishlist_name}")
-                            passed_checks += 1
+                    # find corresponding distance calculation result
+                    distance_result = None
+                    for dr in distance_results:
+                        if dr['origin'] == spot_name and dr['destination'] == day_attractions[i + 1]:
+                            distance_result = dr
                             break
                     
-                    if not name_match:
-                        print(f"    ✗ 景点名称不在愿望清单中: {spot_name}")
-                        evaluation_results.append(f"{day_key}第{i+1}个景点'{spot_name}'不在愿望清单中")
-                        continue
-                    
-                    # 获取该景点的真实信息
-                    real_info = attractions_info.get(matching_attraction)
-                    if not real_info:
-                        print(f"    ✗ 无法获取景点 {matching_attraction} 的详细信息")
-                        evaluation_results.append(f"无法验证{day_key}第{i+1}个景点'{spot_name}'的信息")
-                        continue
-                    
-                    # 检查2: 地址验证
-                    total_checks += 1
-                    real_address = real_info['address']
-                    if real_address and similar(spot_address, real_address) > 0.6:
-                        print(f"    ✓ 地址验证通过")
-                        passed_checks += 1
-                    else:
-                        print(f"    ✗ 地址不匹配")
-                        print(f"      提交的地址: {spot_address}")
-                        print(f"      实际地址: {real_address}")
-                        evaluation_results.append(f"{day_key}第{i+1}个景点地址不准确")
-                    
-                    # 检查3: 营业时间验证（使用简化的验证逻辑）
-                    total_checks += 1
-                    real_hours = real_info['monday_hours'] if day_name == "Monday" else real_info['tuesday_hours']
-                    
-                    if real_hours:
-                        # 使用简化的营业时间验证逻辑
-                        is_valid, validation_message = validate_opening_hours_simple(spot_opening_hours, real_hours, day_name)
+                    if distance_result and 'distance_km' in distance_result:
+                        # validate distance
+                        submitted_dist = parse_distance_km(spot_distance)
+                        real_dist = distance_result['distance_km']
                         
-                        if is_valid:
-                            print(f"    ✓ 营业时间验证通过: {validation_message}")
-                            passed_checks += 1
-                        else:
-                            print(f"    ✗ 营业时间不匹配: {validation_message}")
-                            print(f"      提交的时间: {spot_opening_hours}")
-                            print(f"      实际时间: {real_hours}")
-                            evaluation_results.append(f"{day_key}第{i+1}个景点营业时间不正确")
-                    else:
-                        print(f"    ✗ 无营业时间信息")
-                        evaluation_results.append(f"{day_key}第{i+1}个景点无营业时间信息")
-                    
-                    # 检查4: 距离和时间验证（如果不是最后一个景点）
-                    if i < len(day_data) - 1:
-                        total_checks += 2  # 距离和时间各一个检查点
-                        
-                        # 查找对应的距离计算结果
-                        distance_result = None
-                        for dr in distance_results:
-                            if dr['origin'] == spot_name and dr['destination'] == day_attractions[i + 1]:
-                                distance_result = dr
-                                break
-                        
-                        if distance_result and 'distance_km' in distance_result:
-                            # 验证距离
-                            submitted_dist = parse_distance_km(spot_distance)
-                            real_dist = distance_result['distance_km']
-                            
-                            if submitted_dist is not None and real_dist is not None:
-                                if abs(submitted_dist - real_dist) <= 0.3:  # 允许300米误差
-                                    print(f"    ✓ 距离验证通过: {submitted_dist}km vs {real_dist:.2f}km")
-                                    passed_checks += 1
-                                else:
-                                    print(f"    ✗ 距离差异过大: {submitted_dist}km vs {real_dist:.2f}km")
-                                    evaluation_results.append(f"{day_key}第{i+1}个景点到第{i+2}个景点距离不准确")
+                        if submitted_dist is not None and real_dist is not None:
+                            if abs(submitted_dist - real_dist) <= 0.3:  # allow 300 meter error
+                                print(f"    ✓ distance validation passed: {submitted_dist}km vs {real_dist:.2f}km")
+                                passed_checks += 1
                             else:
-                                print(f"    ✗ 距离信息无效或缺失")
-                                evaluation_results.append(f"{day_key}第{i+1}个景点到第{i+2}个景点距离信息无效")
-                            
-                            # 验证时间
-                            submitted_time = parse_time_minutes(spot_time)
-                            real_time = distance_result['duration_minutes']
-                            
-                            if submitted_time is not None and real_time is not None:
-                                if abs(submitted_time - real_time) <= 5:  # 允许5分钟误差
-                                    print(f"    ✓ 时间验证通过: {submitted_time}min vs {real_time:.0f}min")
-                                    passed_checks += 1
-                                else:
-                                    print(f"    ✗ 时间差异过大: {submitted_time}min vs {real_time:.0f}min")
-                                    evaluation_results.append(f"{day_key}第{i+1}个景点到第{i+2}个景点时间不准确")
-                            else:
-                                print(f"    ✗ 时间信息无效或缺失")
-                                evaluation_results.append(f"{day_key}第{i+1}个景点到第{i+2}个景点时间信息无效")
+                                print(f"    ✗ distance too large: {submitted_dist}km vs {real_dist:.2f}km")
+                                evaluation_results.append(f"{day_key}: spot {i+1} '{spot_name}' to {i+2} '{day_attractions[i+1]}' distance not accurate")
                         else:
-                            print(f"    ✗ 无法获取距离和时间信息")
-                            evaluation_results.append(f"{day_key}第{i+1}个景点到第{i+2}个景点无法获取距离时间信息")
-                            # 距离和时间验证失败，不给分数
-        
-        # 计算通过率
-        pass_rate = (passed_checks / total_checks * 100) if total_checks > 0 else 0
-        print(f"\n总体评估: {passed_checks}/{total_checks} ({pass_rate:.1f}%)")
-        
-        # 要求100%通过 - 所有字段必须完全匹配
-        if pass_rate >= 100.0:
-            return True, f"评估通过 ({pass_rate:.1f}%)"
-        else:
-            failed_count = len(evaluation_results)
-            return False, f"评估失败 ({pass_rate:.1f}%): 共{failed_count}项不匹配 - " + "; ".join(evaluation_results[:3])
-        
-    except Exception as e:
-        return False, f"评估过程出错: {str(e)}" 
+                            print(f"    ✗ distance info invalid or missing")
+                            evaluation_results.append(f"{day_key}: spot {i+1} '{spot_name}' to {i+2} '{day_attractions[i+1]}' distance info invalid")
+                        
+                        # validate time
+                        submitted_time = parse_time_minutes(spot_time)
+                        real_time = distance_result['duration_minutes']
+                        
+                        if submitted_time is not None and real_time is not None:
+                            if abs(submitted_time - real_time) <= 5:  # allow 5 minute error
+                                print(f"    ✓ time validation passed: {submitted_time}min vs {real_time:.0f}min")
+                                passed_checks += 1
+                            else:
+                                print(f"    ✗ time too large: {submitted_time}min vs {real_time:.0f}min")
+                                evaluation_results.append(f"{day_key}: spot {i+1} '{spot_name}' to {i+2} '{day_attractions[i+1]}' time not accurate")
+                        else:
+                            print(f"    ✗ time info invalid or missing")
+                            evaluation_results.append(f"{day_key}: spot {i+1} '{spot_name}' to {i+2} '{day_attractions[i+1]}' time info invalid")
+                    else:
+                        print(f"    ✗ cannot get distance and time info")
+                        evaluation_results.append(f"{day_key}: spot {i+1} '{spot_name}' to {i+2} '{day_attractions[i+1]}' cannot get distance and time info")
+                        # distance and time validation failed, no score
+
+        # check 5: all attractions should be visited only once
+        print("\n===== all attractions should be visited only once ======")
+        for attraction, visited in all_attractions_visted.items():
+            total_checks += 1
+            if visited != 1:
+                print(f"    ✗ attraction {attraction} visited {visited} times")
+                evaluation_results.append(f"attraction {attraction} visited {visited} times")
+            else:
+                print(f"    ✓ attraction {attraction} visited {visited} times")
+                passed_checks += 1
+
+    # calculate pass rate
+    pass_rate = (passed_checks / total_checks * 100) if total_checks > 0 else 0
+    print(f"\ntotal evaluation: {passed_checks}/{total_checks} ({pass_rate:.1f}%)")
+    
+    # require 100% pass - all fields must match exactly
+    if pass_rate >= 100.0:
+        return True, f"evaluation passed ({pass_rate:.1f}%)"
+    else:
+        failed_count = len(evaluation_results)
+        return False, f"evaluation failed ({pass_rate:.1f}%): {failed_count} mismatches - " + "; ".join(evaluation_results[:3])
