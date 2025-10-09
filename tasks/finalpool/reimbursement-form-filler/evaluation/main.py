@@ -2,7 +2,6 @@ from argparse import ArgumentParser
 import sys
 import os
 
-# 添加路径以导入utils
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
 
 from .check_local import check_local
@@ -31,12 +30,8 @@ if __name__ == "__main__":
     else:
         res_log = {"status": "success", "key_statistics": {"tool_calls": 10}}
     
-    # agent_workspace = "/Users/quentin/Desktop/RESEARCH/MCP/finalpool/mcpbench_dev/dumps/run1/claude-4-sonnet-0514/finalpool/Chinese-SingleUserTurn-reimbursement-form-filler/workspace/"
-    # groundtruth_workspace = "/Users/quentin/Desktop/RESEARCH/MCP/finalpool/mcpbench_dev/tasks/finalpool/reimbursement-form-filler/groundtruth_workspace"
-    # check local file
     try:
         local_pass, local_error = check_local(args.agent_workspace, args.groundtruth_workspace)
-        # local_pass, local_error = check_local(agent_workspace, groundtruth_workspace)
         if not local_pass:
             print("Local file check fail: ", local_error)
             exit(1)
@@ -44,6 +39,5 @@ if __name__ == "__main__":
     except Exception as e:
         print("Local file check error: ", e)
         exit(1)
-    
     
     print("✓ All checks passed! The evaluation of the reimbursement form has been successfully passed!") 
