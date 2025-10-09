@@ -68,12 +68,17 @@ def clean_required_ingredients(required_ingredients):
             continue
             
         normalized_name = normalize_ingredient_name(ingredient_name)
+        # remove "的用量为"， "的数量为"， "需要"
+        # parts from here all deleted!
+        normalized_name = re.sub(r'的用量为.*$', '', normalized_name)
+        normalized_name = re.sub(r'的数量为.*$', '', normalized_name)
+        normalized_name = re.sub(r'需要.*$', '', normalized_name)
         
         if normalized_name and normalized_name not in cleaned:
             # if punctuation is in the normalized name, remove it
             # we skip this ingredient
             # also consider chinese punctuation
-            if any(char in normalized_name for char in string.punctuation) or any(char in normalized_name for char in '。、；：（）\(\)\s'):
+            if any(char in normalized_name for char in string.punctuation) or any(char in normalized_name for char in "。、；：（）"):
                 continue
             clean_quantity = quantity
             if isinstance(quantity, str):
