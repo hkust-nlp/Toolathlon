@@ -169,4 +169,5 @@ dependencies = [
     "yfinance>=0.2.62",
     "seaborn>=0.13.2",
     "gcloud>=0.18.3",
+    "scipy>=1.16.2",
 ]
