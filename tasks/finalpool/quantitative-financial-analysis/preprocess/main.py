@@ -9,7 +9,7 @@ import asyncio
 # Add utils to path
 sys.path.append(os.path.dirname(__file__))
 
-from utils.general.helper import run_command, print_color,read_json
+from utils.general.helper import run_command, print_color
 from utils.app_specific.poste.ops import clear_folder
 from utils.app_specific.googlesheet.drive_helper import (
     get_google_service, find_folder_by_name, create_folder, 

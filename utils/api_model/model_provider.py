@@ -224,16 +224,9 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
         if model_config.get('reasoning_effort') is not None:
             base_params['reasoning_effort'] = model_config['reasoning_effort']
         
-        # from pprint import pprint
-        
-        # pprint(base_params)
-        
-        # DEBUG: Print the actual parameters being sent to OpenAI SDK
-        # print("🔍 DEBUG: OpenAI SDK call parameters:")
-        # print(f"  Model: {base_params.get('model')}")
-        # print(f"  Temperature: {base_params.get('temperature')}")
-        # print(f"  Extra Body: {base_params.get('extra_body')}")
-        # print("=" * 50)
+        # for claude-4.5-sonnet, top_p and temerature cannot be set simultaneously
+        if "claude-sonnet-4.5" in self.model or "claude-sonnet-4-5" in self.model:
+            base_params.pop('top_p')
         
         ret = await self._get_client().chat.completions.create(**base_params)
 

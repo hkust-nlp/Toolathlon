@@ -10,6 +10,7 @@ from datetime import datetime
 import os
 
 from utils.app_specific.google_form.ops import clear_google_forms
+from utils.app_specific.google_oauth.ops import get_credentials
 
 GOOGLE_CREDENTIAL_FILE = "configs/google_credentials.json"
 GOOGLE_FORM_NAME = "Freshmen Welcome Party"
@@ -259,18 +260,6 @@ def create_google_form(service, form_name):
     
     return form_id
 
-def get_credentials():
-    """Get Google API credentials from the existing token file"""
-    # 直接从你的文件读取 credentials
-    creds = Credentials.from_authorized_user_file(GOOGLE_CREDENTIAL_FILE)
-    
-    # 如果 token 过期，刷新它
-    if not creds.valid:
-        if creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-    
-    return creds
-
 if __name__=="__main__":
     parser = ArgumentParser()
     parser.add_argument("--agent_workspace", required=False)
@@ -278,7 +267,7 @@ if __name__=="__main__":
     args = parser.parse_args()
 
     # Get credentials
-    creds = get_credentials()
+    creds = get_credentials(GOOGLE_CREDENTIAL_FILE)
     service = build('forms', 'v1', credentials=creds)
     
     # Part 0: Delete existing forms with the same name

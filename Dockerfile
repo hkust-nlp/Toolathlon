@@ -124,7 +124,7 @@ WORKDIR /workspace/local_servers
 # Yahoo Finance MCP
 RUN git clone https://github.com/lockon-n/yahoo-finance-mcp \
     && cd yahoo-finance-mcp \
-    && git checkout 27445a684dd2c65a6664620c5d057f66c42ea81f \
+    && git checkout 469103ba1464486cb7b8bd2c1f6355f42ca64a5b \
     && uv sync
 
 # YouTube MCP Server
