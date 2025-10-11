@@ -12,7 +12,7 @@
 
 uv run demo.py \
 --eval_config scripts/temp_and_debug/debug_eval_config.json \
---task_dir  finalpool/imagenet \
+--task_dir  finalpool/fillout-online-forms \
 --debug \
 --model_short_name deepseek-v3.2-exp \
 --provider deepseek_official \

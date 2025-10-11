@@ -142,9 +142,15 @@ The following are the admin accounts for each of the three applications:
     - Download the JSON file of your client's OAuth keys
     ![](./figures/gcp_oauth2_part4.png)
     - Rename this key json file to `gcp-oauth.keys.json` and place it under `configs`
-5. Add test user
-    - Visit this https://console.cloud.google.com/auth/audience (or "APIs and servises" -> "OAuth consent screen" -> "Audience") and add your google account as a test user
-    ![](./figures/gcp_oauth2_part5.png), you can also add other accounts as well if you want
+5. Switching Publishing Status
+    - Visit this https://console.cloud.google.com/auth/audience (or "APIs and servises" -> "OAuth consent screen" -> "Audience") and publish the app
+    ![](./figures/gcp_oauth2_part5_1.png)
+    We do this to make sure the refresh token generated in Step 6 will not expire shortly (7 days in testing status)
+
+    - (Alternative if you do not want to publish) If you do want to keep it in testing status, you can add your google account as a test user
+    ![](./figures/gcp_oauth2_part5.png) You can also add other accounts as well if you want.
+    **WARNING**: In this case, you may need to regenerate the credentials in step 6 every week, which is annoying.
+
 6. Generate credentials
     - Make sure you are under the root directory of this project and then
         ```
