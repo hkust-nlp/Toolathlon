@@ -1,5 +1,5 @@
 {
-    "needed_mcp_servers": ["huggingface","playwright_with_chunk"],
-    "needed_local_tools": ["web_search"],
+    "needed_mcp_servers": ["xtwitter","filesystem"],
+    "needed_local_tools": [],
     "meta": {}
 }

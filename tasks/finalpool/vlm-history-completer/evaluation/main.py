@@ -1,9 +1,3 @@
-#!/usr/bin/env python3
-"""
-VLM History Completer 评估脚本
-从指定的Google Drive文件夹中读取VLM历史表格，与groundtruth.json进行匹配
-"""
-
 import json
 import sys
 import os
@@ -14,19 +8,17 @@ import gspread
 from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
-
-# 添加项目根目录到Python路径
-sys.path.append(str(Path(__file__).parent.parent.parent.parent))
-import configs.token_key_session as configs
-
 from addict import Dict
+from utils.app_specific.google_oauth.ops import get_credentials
+from utils.general.helper import normalize_str
 import os
+from typing import Union
 
 with open("tasks/finalpool/vlm-history-completer/files/folder_id.txt", "r") as f:
     folder_id = f.read().strip()
 
 GOOGLE_CREDENTIALS_PATH = 'configs/google_credentials.json'
-TARGET_FOLDER_ID = folder_id  # 指定的Google Drive文件夹ID
+TARGET_FOLDER_ID = folder_id  
 SCOPES = [
     'https://www.googleapis.com/auth/drive',
     'https://www.googleapis.com/auth/spreadsheets'
@@ -35,73 +27,29 @@ SPREADSHEET_NAME = "Directory of Generative AI"
 WORKSHEET_NAME = "Text and Image"
 
 def authenticate_google_services():
-    """认证Google服务 - 使用OAuth2用户凭证"""
-    try:
-        print("正在认证Google服务...")
-        
-        # 读取OAuth2凭证文件
-        with open(GOOGLE_CREDENTIALS_PATH, 'r') as f:
-            creds_data = json.load(f)
-        
-        # 创建OAuth2凭证对象
-        credentials = Credentials(
-            token=creds_data.get('token'),
-            refresh_token=creds_data.get('refresh_token'),
-            token_uri=creds_data.get('token_uri'),
-            client_id=creds_data.get('client_id'),
-            client_secret=creds_data.get('client_secret'),
-            scopes=creds_data.get('scopes', SCOPES)
-        )
-        
-        # 如果token过期，自动刷新
-        if credentials.expired and credentials.refresh_token:
-            credentials.refresh(Request())
-            
-            # 更新保存的token
-            creds_data['token'] = credentials.token
-            with open(GOOGLE_CREDENTIALS_PATH, 'w') as f:
-                json.dump(creds_data, f, indent=2)
-            print("✓ Token已刷新并保存")
-        
-        # 初始化gspread客户端
-        gc = gspread.authorize(credentials)
-        
-        # 初始化Google Drive API客户端
-        drive_service = build('drive', 'v3', credentials=credentials)
-        
-        print("✓ Google服务认证成功")
-        return gc, drive_service
-        
-    except FileNotFoundError:
-        raise Exception(f"错误：找不到凭证文件 '{GOOGLE_CREDENTIALS_PATH}'")
-    except json.JSONDecodeError:
-        raise Exception(f"错误：凭证文件格式错误 '{GOOGLE_CREDENTIALS_PATH}'")
-    except Exception as e:
-        raise Exception(f"Google服务认证失败: {e}")
+    credentials = get_credentials(GOOGLE_CREDENTIALS_PATH)
+    gc = gspread.authorize(credentials)
+    drive_service = build('drive', 'v3', credentials=credentials)
+    return gc, drive_service
 
 
 def similar(a: str, b: str) -> float:
-    """计算两个字符串的相似度"""
+    """Calculate the similarity between two strings"""
     return SequenceMatcher(None, str(a).lower().strip(), str(b).lower().strip()).ratio()
-
-
-def normalize_text(text: str) -> str:
-    """标准化文本"""
-    return text.strip().lower() if text else ""
 
 
 def find_spreadsheet_in_folder(spreadsheet_name: str = SPREADSHEET_NAME) -> str:
     """
-    在目标文件夹中查找指定名称的Spreadsheet文件
-    返回找到的表格的ID
+    Find the spreadsheet file with the specified name in the target folder
+    Return the ID of the found spreadsheet
     """
-    print(f"🔍 在文件夹中查找名为 '{spreadsheet_name}' 的Spreadsheet文件...")
+    print(f"🔍 Find the spreadsheet file with the name '{spreadsheet_name}' in the target folder...")
     
     try:
-        # 认证Google服务
+        # Authenticate Google services
         gc, drive_service = authenticate_google_services()
         
-        # 查询文件夹中指定名称的Spreadsheet文件
+        # Query the spreadsheet file with the specified name in the target folder
         query = f"'{TARGET_FOLDER_ID}' in parents and name='{spreadsheet_name}' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false"
         results = drive_service.files().list(
             q=query,
@@ -110,8 +58,8 @@ def find_spreadsheet_in_folder(spreadsheet_name: str = SPREADSHEET_NAME) -> str:
         
         files = results.get('files', [])
         if not files:
-            # 如果没找到指定名称的文件，尝试查找任何spreadsheet文件
-            print(f"⚠️  未找到名为 '{spreadsheet_name}' 的表格，尝试查找文件夹中的任何Spreadsheet文件...")
+            # If the specified name file is not found, try to find any spreadsheet file
+            print(f"⚠️  The spreadsheet file with the name '{spreadsheet_name}' is not found, try to find any spreadsheet file in the target folder...")
             fallback_query = f"'{TARGET_FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false"
             fallback_results = drive_service.files().list(
                 q=fallback_query,
@@ -120,46 +68,46 @@ def find_spreadsheet_in_folder(spreadsheet_name: str = SPREADSHEET_NAME) -> str:
             
             fallback_files = fallback_results.get('files', [])
             if not fallback_files:
-                raise Exception(f"文件夹中没有找到任何Google Spreadsheet文件")
+                raise Exception(f"No Google Spreadsheet file found in the target folder")
             
-            # 返回第一个找到的表格
+            # Return the first found spreadsheet
             spreadsheet = fallback_files[0]
             spreadsheet_id = spreadsheet['id']
-            print(f"✅ 找到表格: {spreadsheet['name']} (ID: {spreadsheet_id})")
+            print(f"✅ Found spreadsheet: {spreadsheet['name']} (ID: {spreadsheet_id})")
             return spreadsheet_id
         
-        # 返回指定名称的表格ID
+        # Return the ID of the specified name spreadsheet
         spreadsheet = files[0]
         spreadsheet_id = spreadsheet['id']
-        print(f"✅ 找到表格: {spreadsheet['name']} (ID: {spreadsheet_id})")
+        print(f"✅ Found spreadsheet: {spreadsheet['name']} (ID: {spreadsheet_id})")
         return spreadsheet_id
         
     except Exception as e:
-        print(f"⚠️  自动查找表格失败: {str(e)}")
+        print(f"⚠️  Failed to find the spreadsheet file: {str(e)}")
         raise
 
 
 def read_google_sheet_as_json(spreadsheet_id: str,worksheet_name: str = WORKSHEET_NAME) -> list:
     """
-    使用gspread库读取Google Sheets并转换为JSON
+    Read the Google Sheets using gspread library and convert to JSON
     """
-    print(f"📊 正在读取表格: {spreadsheet_id}")
+    print(f"📊 Reading the spreadsheet: {spreadsheet_id}")
     
     try:
-        # 认证Google服务并使用gspread连接
+        # Authenticate Google services and use gspread to connect
         gc, drive_service = authenticate_google_services()
         spreadsheet = gc.open_by_key(spreadsheet_id)
         
-        # 按名称获取指定工作表
+        # Get the specified worksheet by name
         worksheet = spreadsheet.worksheet(worksheet_name)
 
-        # 获取所有数据
+        # Get all data
         values = worksheet.get_all_values()
         
         if len(values) < 2:
-            raise Exception("表格数据不足（需要至少包含标题行和一行数据）")
+            raise Exception("The spreadsheet data is insufficient (at least one header row and one row of data)")
         
-        # 解析标题行，找到列索引
+        # Parse the header row, find the column index
         headers = [str(cell).lower().strip() for cell in values[0]]
         
         model_col = -1
@@ -167,17 +115,17 @@ def read_google_sheet_as_json(spreadsheet_id: str,worksheet_name: str = WORKSHEE
         source_col = -1
         
         for i, header in enumerate(headers):
-            if 'model' == header or '模型' == header:
+            if 'model' == header:
                 model_col = i
-            elif 'architecture' in header or '架构' in header:
+            elif 'architecture' in header:
                 arch_col = i
-            elif 'source' in header or '来源' in header or 'link' in header:
+            elif 'source' in header:
                 source_col = i
         
         if model_col == -1:
-            raise Exception("未找到模型名称列（Model列）")
+            raise Exception("The model name column (Model column) is not found")
         
-        # 解析数据行
+        # Parse the data row
         parsed_data = []
         for row_idx, row in enumerate(values[1:], 1):
             if len(row) > model_col and str(row[model_col]).strip():
@@ -191,36 +139,24 @@ def read_google_sheet_as_json(spreadsheet_id: str,worksheet_name: str = WORKSHEE
                     "Sources": sources
                 })
         
-        print(f"✅ 成功读取 {len(parsed_data)} 条记录")
+        print(f"✅ Successfully read {len(parsed_data)} records")
         return parsed_data
         
     except Exception as e:
-        print(f"❌ 读取表格数据时发生错误: {str(e)}")
+        print(f"❌ Failed to read the spreadsheet data: {str(e)}")
         raise
 
 
-def load_groundtruth(groundtruth_path: str) -> list:
-    """加载标准答案"""
-    try:
-        with open(groundtruth_path, 'r', encoding='utf-8') as f:
-            groundtruth = json.load(f)
-        print(f"📋 成功加载 {len(groundtruth)} 条标准答案")
-        return groundtruth
-    except Exception as e:
-        print(f"❌ 加载标准答案失败: {str(e)}")
-        return []
-
-
 def find_matching_model(model_name: str, groundtruth: list) -> dict:
-    """在标准答案中查找匹配的模型"""
-    model_name_clean = normalize_text(model_name)
+    """Find matching model in groundtruth"""
+    model_name_clean = normalize_str(model_name)
     
-    # 精确匹配
+    # Exact matching
     for gt_entry in groundtruth:
-        if normalize_text(gt_entry["Model"]) == model_name_clean:
+        if normalize_str(gt_entry["Model"]) == model_name_clean:
             return gt_entry
     
-    # 相似度匹配
+    # Similarity matching
     best_match = None
     best_similarity = 0.0
     
@@ -233,42 +169,31 @@ def find_matching_model(model_name: str, groundtruth: list) -> dict:
     return best_match
 
 
-def evaluate_field(submitted: str, expected: str, field_name: str) -> bool:
-    """评估单个字段是否匹配"""
-    submitted = normalize_text(submitted)
-    expected = normalize_text(expected)
+def evaluate_field(submitted: str, expected: Union[str, list], field_name: str) -> bool:
+    submitted = normalize_str(submitted)
+
+    if isinstance(expected, str):
+        expected = [expected]
+
+    expected = [normalize_str(e) for e in expected]
     
-    # 如果都是unavailable，算匹配
-    if submitted == "unavailable" and expected == "unavailable":
-        return True
-    
-    # 如果期望是unavailable但提交了内容，算错误
-    if expected == "unavailable" and submitted != "" and submitted != "unavailable":
-        return False
-    
-    # 计算相似度
+
     if field_name == "Architecture":
-        # 架构字段用相似度匹配
-        return similar(submitted, expected) >= 0.7
+        for e in expected:
+            if submitted == e:
+                return True
+        return False
     elif field_name == "Sources":
-        # 链接字段可以更宽松一些
-        if submitted == expected:
-            return True
-        # 检查是否是同一域名
-        try:
-            if submitted.startswith("http") and expected.startswith("http"):
-                sub_domain = submitted.split('/')[2] if '://' in submitted else submitted.split('/')[0]
-                exp_domain = expected.split('/')[2] if '://' in expected else expected.split('/')[0]
-                return sub_domain == exp_domain
-        except:
-            pass
-        return similar(submitted, expected) >= 0.6
-    
-    return False
+        for e in expected:
+            if e in submitted:
+                return True
+        return False
+    else:
+        raise ValueError(f"Invalid field name: {field_name}")
 
 
 def evaluate_submission(submitted_data: list, groundtruth: list) -> dict:
-    """评估提交的数据"""
+    """Evaluate submitted data"""
     total_models = len(submitted_data)
     matched_models = 0
     correct_architecture = 0
@@ -279,7 +204,7 @@ def evaluate_submission(submitted_data: list, groundtruth: list) -> dict:
         submitted_arch = submitted_entry.get("Architecture", "")
         submitted_sources = submitted_entry.get("Sources", "")
         
-        # 查找匹配的标准答案
+        # Find matching groundtruth
         gt_match = find_matching_model(model_name, groundtruth)
         # print(f"{model_name}: {gt_match}")
         
@@ -288,13 +213,13 @@ def evaluate_submission(submitted_data: list, groundtruth: list) -> dict:
         
         matched_models += 1
         
-        # 评估架构字段
+        # Evaluate architecture field
         if evaluate_field(submitted_arch, gt_match["Architecture"], "Architecture"):
             correct_architecture += 1
         else:
             print(f"{model_name} -- expect: {gt_match["Architecture"]}, actual: {submitted_arch}")
         
-        # 评估sources字段
+        # Evaluate sources field
         if evaluate_field(submitted_sources, gt_match["Sources"], "Sources"):
             correct_sources += 1
         else:
@@ -312,57 +237,43 @@ def evaluate_submission(submitted_data: list, groundtruth: list) -> dict:
 
 
 if __name__ == "__main__":
-    parser = ArgumentParser(description="VLM History Completer 评估工具")
-    parser.add_argument("--groundtruth_workspace", help="标准答案目录路径", default="../groundtruth_workspace")
-    parser.add_argument("--agent_workspace", help="Agent工作目录路径（兼容性参数）")
-    parser.add_argument("--res_log_file", help="结果日志文件路径（兼容性参数）")
+    parser = ArgumentParser(description="VLM History Completer evaluation tool")
+    parser.add_argument("--groundtruth_workspace", help="Ground truth directory path", default="../groundtruth_workspace")
+    parser.add_argument("--agent_workspace", help="Agent work directory path (compatibility parameter)")
+    parser.add_argument("--res_log_file", help="Result log file path (compatibility parameter)")
     parser.add_argument("--launch_time", required=False, help="Launch time")
     args = parser.parse_args()
     
-    # 设置路径
     groundtruth_workspace = Path(args.groundtruth_workspace) if args.groundtruth_workspace else Path("../groundtruth_workspace")
     groundtruth_file = groundtruth_workspace / "groundtruth.json"
     
-    # 检查标准答案文件
-    if not groundtruth_file.exists():
-        print(f"❌ 标准答案文件不存在: {groundtruth_file}")
-        sys.exit(1)
+    print(f"🎯 Start evaluating VLM history table")
     
-    print(f"🎯 开始评估VLM历史表格")
-    
-    # 加载标准答案
-    groundtruth = load_groundtruth(str(groundtruth_file))
-    if not groundtruth:
-        print("❌ 无法加载标准答案")
-        sys.exit(1)
+    with open(groundtruth_file, 'r', encoding='utf-8') as f:
+        groundtruth = json.load(f)
     
     try:
-        # 从文件夹中自动查找表格
+        # Find spreadsheet in folder
         spreadsheet_id = find_spreadsheet_in_folder(SPREADSHEET_NAME)
-        
-        # 读取提交的数据
+        # Read submitted data
         submitted_data = read_google_sheet_as_json(spreadsheet_id)
-        if not submitted_data:
-            print("❌ 无法读取表格数据")
-            sys.exit(1)
-        
     except Exception as e:
-        print(f"❌ 读取表格数据失败: {str(e)}")
+        print(f"❌ Failed to read spreadsheet data: {str(e)}")
         sys.exit(1)
     
-    # 执行评估
+    # Execute evaluation
     result = evaluate_submission(submitted_data, groundtruth)
     
-    # 输出简化结果
-    print(f"\n📈 评估结果:")
-    print(f"   匹配模型: {result['matched_models']}/{result['total_models']}")
-    print(f"   架构正确: {result['correct_architecture']}/{result['matched_models']}")
-    print(f"   Sources正确: {result['correct_sources']}/{result['matched_models']}")
-    print(f"   综合得分: {result['overall_score']:.1%}")
+    # Output simplified result
+    print(f"\n📈 Evaluation results:")
+    print(f"   Matched models: {result['matched_models']}/{result['total_models']}")
+    print(f"   Architecture correct: {result['correct_architecture']}/{result['matched_models']}")
+    print(f"   Sources correct: {result['correct_sources']}/{result['matched_models']}")
+    print(f"   Overall score: {result['overall_score']:.1%}")
     
     if result['overall_score'] >= 1.0:
-        print(f"✅ 评估通过")
+        print(f"✅ Evaluation passed")
         sys.exit(0)
     else:
-        print(f"❌ 评估未通过")
+        print(f"❌ Evaluation failed")
         sys.exit(1) 

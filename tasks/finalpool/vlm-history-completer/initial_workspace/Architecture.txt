@@ -1,2 +1,2 @@
 Architecture column: Fill in the technical architecture description of the model. Select from the following five types
-Transformer-based, Diffusion-based, Dual-Encoder, Hybrid, Unavailable
+Transformer-based, Diffusion-based, Dual-Encoder, LLM-based

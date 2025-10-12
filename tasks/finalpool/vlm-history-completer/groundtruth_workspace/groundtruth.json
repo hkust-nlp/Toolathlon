@@ -2,106 +2,101 @@
   {
     "Model": "OpenAI CLIP",
     "Architecture": "Dual-Encoder",
-    "Sources": "https://openai.com/blog/clip/"
+    "Sources": ["https://openai.com/blog/clip/","https://openai.com/index/clip/"]
   },
   {
     "Model": "DALL-E",
     "Architecture": "Transformer-based",
-    "Sources": "https://openai.com/blog/dall-e/"
+    "Sources": ["https://openai.com/blog/dall-e/","https://openai.com/index/dall-e/"]
   },
   {
     "Model": "GLIDE",
     "Architecture": "Diffusion-based",
-    "Sources": "https://github.com/openai/glide-text2im"
+    "Sources": ["https://github.com/openai/glide-text2im"]
   },
   {
     "Model": "DALL-E2",
     "Architecture": "Diffusion-based",
-    "Sources": "https://openai.com/dall-e-2/"
+    "Sources": ["https://openai.com/dall-e-2/", "https://openai.com/index/dall-e-2/"]
   },
   {
     "Model": "Imagen",
     "Architecture": "Diffusion-based",
-    "Sources": "https://imagen.research.google"
+    "Sources": ["https://imagen.research.google","https://deepmind.google/models/imagen/"]
   },
   {
     "Model": "Parti",
     "Architecture": "Transformer-based",
-    "Sources": "https://parti.research.google"
+    "Sources": ["https://parti.research.google","https://sites.research.google/parti/"]
   },
   {
     "Model": "Make-a-Scene",
-    "Architecture": "Hybrid",
-    "Sources": "https://github.com/CasualGANPapers/Make-A-Scene"
+    "Architecture": ["Transformer-based"],
+    "Sources": ["https://ai.meta.com/blog/greater-creative-control-for-ai-image-generation/"]
   },
   {
     "Model": "StableDiffusion 1",
     "Architecture": "Diffusion-based",
-    "Sources": "https://stability.ai/news/stable-diffusion-public-release"
+    "Sources": ["https://stability.ai/news/stable-diffusion-public-release"]
   },
   {
     "Model": "LAION CLIP",
     "Architecture": "Dual-Encoder",
-    "Sources": "https://laion.ai/blog/large-openclip/"
+    "Sources": ["https://laion.ai/blog/large-openclip/"]
   },
   {
     "Model": "StableDiffusion 1.5",
     "Architecture": "Diffusion-based",
-    "Sources": "https://github.com/Kameronski/stable-diffusion-1.5"
+    "Sources": ["https://github.com/Kameronski/stable-diffusion-1.5"]
   },
   {
     "Model": "AltCLIP",
     "Architecture": "Dual-Encoder",
-    "Sources": "https://github.com/FlagAI-Open/FlagAI"
+    "Sources": ["https://github.com/FlagAI-Open/FlagAI","https://github.com/FlagAI-Open/FlagAI/tree/master/examples/AltCLIP","https://model.baai.ac.cn/model-detail/100075","https://model.baai.ac.cn/model-detail/100077"]
   },
   {
     "Model": "GPT-4",
-    "Architecture": "Transformer-based",
-    "Sources": "https://openai.com/gpt-4"
+    "Architecture": "LLM-based",
+    "Sources": ["https://openai.com/gpt-4", "https://openai.com/index/gpt-4-research/","https://openai.com/index/gpt-4-research/","https://openai.com/index/gpt-4/"]
   },
   {
     "Model": "SigLIP",
     "Architecture": "Dual-Encoder",
-    "Sources": "https://github.com/google-research/big_vision"
+    "Sources": ["https://github.com/google-research/big_vision","https://arxiv.org/abs/2303.15343"]
   },
   {
     "Model": "EVA-CLIP",
     "Architecture": "Dual-Encoder",
-    "Sources": "https://github.com/baaivision/EVA/tree/master/EVA-CLIP"
+    "Sources": ["https://github.com/baaivision/EVA/tree/master/EVA-CLIP","https://github.com/baaivision/EVA/"]
   },
   {
     "Model": "PaLM-2",
-    "Architecture": "Transformer-based",
-    "Sources": "https://blog.google/technology/ai/google-palm-2-ai-large-language-model/"
+    "Architecture": "LLM-based",
+    "Sources": ["https://blog.google/technology/ai/google-palm-2-ai-large-language-model/","https://ai.google.dev/palm_docs"]
   },
   {
     "Model": "Claude-2",
-    "Architecture": "Transformer-based",
-    "Sources": "https://www.anthropic.com/news/claude-2"
+    "Architecture": "LLM-based",
+    "Sources": ["https://www.anthropic.com/news/claude-2"]
   },
   {
     "Model": "AltDiffusion",
     "Architecture": "Diffusion-based",
-    "Sources": "https://github.com/superhero-7/AltDiffusion"
+    "Sources": ["https://github.com/superhero-7/AltDiffusion","https://github.com/FlagAI-Open/FlagAI/tree/master/examples/AltDiffusion","https://model.baai.ac.cn/model-detail/100076","https://model.baai.ac.cn/model-detail/100077"]
   },
   {
     "Model": "StableDiffusion 2",
     "Architecture": "Diffusion-based",
-    "Sources": "https://stability.ai/news/stable-diffusion-v2-release"
+    "Sources": ["https://stability.ai/news/stable-diffusion-v2-release"]
   },
   {
     "Model": "Imagen 2",
     "Architecture": "Diffusion-based",
-    "Sources": "unavailable"
+    "Sources": ["https://deepmind.google/models/imagen/","https://deepmind.google/technologies/imagen-2/","https://blog.google/technology/ai/google-imagen-2/"]
   },
   {
     "Model": "DeepFloyd",
     "Architecture": "Diffusion-based",
-    "Sources": "https://github.com/deep-floyd"
-  },
-  {
-    "Model": "Parti 2",
-    "Architecture": "unavailable",
-    "Sources": "unavailable"
+    "Sources": ["https://stability.ai/news/deepfloyd-if-text-to-image-model"]
   }
 ]

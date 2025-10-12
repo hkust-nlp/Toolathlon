@@ -7,6 +7,7 @@
     "@cgize/mcp-think-tool": "^1.0.1",
     "@cocal/google-calendar-mcp": "^1.3.0",
     "@e2b/mcp-server": "^0.2.0",
+    "@enescinar/twitter-mcp": "^0.1.0",
     "@gongrzhe/server-calendar-autoauth-mcp": "^1.0.2",
     "@gongrzhe/server-gmail-autoauth-mcp": "^1.1.8",
     "@jinzcdev/leetcode-mcp-server": "^1.1.0",

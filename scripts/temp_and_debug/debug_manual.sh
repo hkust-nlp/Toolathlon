@@ -12,7 +12,7 @@
 
 uv run demo.py \
 --eval_config scripts/temp_and_debug/debug_eval_config.json \
---task_dir  finalpool/quantitative-financial-analysis \
+--task_dir  finalpool/vlm-history-completer \
 --debug \
 --model_short_name claude-4.5-sonnet-0929 \
 --provider aihubmix \
