@@ -12,10 +12,10 @@
 
 uv run demo.py \
 --eval_config scripts/temp_and_debug/debug_eval_config.json \
---task_dir  finalpool/meeting-assign \
+--task_dir  finalpool/travel-exchange \
 --debug \
 --model_short_name claude-4.5-sonnet-0929 \
 --provider aihubmix \
 --max_steps_under_single_turn_mode 200 \
-# --multi_turn_mode \
-# --manual \
+--multi_turn_mode \
+--manual \
