@@ -17,8 +17,8 @@ Columns:
    - **Horizon**: Time window (4 months, 5 months, 6 months)
    - **Hit Rate (%)**: Percentage of ratings where the predicted direction matches actual price movement
    - **Avg Excess Return (%)**: Average stock return minus S&P 500 return over the horizon
-   - **#Signals**: Number of valid rating signals used
-   - **#Excluded**: Number of signals excluded because the specified horizon falls outside the available historical price data.
+   - **#Signals**: Count of valid rating signals, i.e., all ratings records released within the past two years.
+   - **#Excluded**: Count of signals excluded because the specified horizon exceeds available historical price data—for example, if the price on the rating release date or after the desired period is unavailable.
 
 2. Update the "More Reliable" section in with:
 - **Choice**: Specify which stock (NVDA or AAPL) has more reliable analyst ratings.

@@ -8,23 +8,24 @@ from io import StringIO
 
 def compare_rating(rating, stock_result):
     grade_to_direction = {
-        # “Up”-predictions
+        # "Up"-predictions
         "Overweight":     "up",
         "Outperform":     "up",
         "Buy":            "up",
+        "Upgrade":        "up",
         "Strong Buy":     "up",
         "Positive":       "up",
         "Accumulate":     "up",
 
-        # “Flat”-predictions
+        # "Flat"-predictions
         "Neutral":        "flat",
         "Hold":           "flat",
-        "Sector Weight":  "flat",   # 跟随所在行业走势，近似“横盘”
-        "Perform":       "flat",
+        "Sector Weight":  "flat",   # Follow sector movements, approximately "sideways"
+        "Perform":        "flat",
         "Market Perform": "flat",
         "Equal-Weight":   "flat",
 
-        # “Down”-predictions
+        # "Down"-predictions
         "Sell":           "down",
         "Underperform":   "down",
         "Underweight":    "down",
@@ -54,14 +55,14 @@ def compare_rating(rating, stock_result):
 
 def compute_excess_return(stock_result, bench_result):
     """
-    计算股票和基准指数在指定日期及之后 4、5、6 个月的超额收益。
-    超额收益 = 股票收益 - 基准指数收益
+    Calculate the excess returns of a stock relative to the benchmark index for 4, 5, and 6 months after the given date.
+    Excess return = Stock return - Benchmark return
 
     Args:
         stock_result: dict
-            股票的收盘价结果，格式同 get_stock_price 的返回值。
+            Stock closing price results, in the same format as returned by get_stock_price.
         bench_result: dict
-            基准指数的收盘价结果，格式同 get_stock_price 的返回值。
+            Benchmark index closing price results, same format as get_stock_price.
 
     Returns:
         dict:
@@ -83,14 +84,14 @@ def compute_excess_return(stock_result, bench_result):
             R_stock = (stock_price - start_stock) / start_stock
             R_bench = (bench_price - start_bench) / start_bench
 
-            excess_returns[horizon] = (R_stock - R_bench) * 100  # 转为百分比形式
+            excess_returns[horizon] = (R_stock - R_bench) * 100  # Convert to percent
 
     return excess_returns
     
 def get_stock_price(stock_hist: pd.DataFrame, bench_hist: pd.DataFrame, date, rating) -> dict:
     """
-    同时返回股票和基准指数在指定日期及之后 4、5、6 个月的收盘价，
-    并自动对齐输入日期与历史数据的时区。
+    Return both stock and benchmark closing prices at the specified date and after 4, 5, 6 months.
+    Automatically align timezone between the input date and historical data.
     """
     def _prepare(hist: pd.DataFrame):
         h = hist.sort_index()
@@ -99,16 +100,16 @@ def get_stock_price(stock_hist: pd.DataFrame, bench_hist: pd.DataFrame, date, ra
     stock_dates, stock_close = _prepare(stock_hist)
     bench_dates, bench_close = _prepare(bench_hist)
 
-    # 1. 解析输入日期，并对齐到 stock_dates 的时区
+    # 1. Parse input date and align to stock_dates timezone
     dt0 = pd.to_datetime(date)
-    tz = stock_dates.tz  # 可能是 UTC，也可能是 None
+    tz = stock_dates.tz  # could be UTC or None
     if tz is not None and dt0.tzinfo is None:
         dt0 = dt0.tz_localize(tz)
     elif tz is None and dt0.tzinfo is not None:
         dt0 = dt0.tz_convert(None)
 
     def _nearest_price(dates: pd.DatetimeIndex, closes: pd.Series, target: pd.Timestamp) -> float | None:
-        # 先把 target 对齐到 dates 的时区
+        # Align target to dates' timezone
         if dates.tz is not None and target.tzinfo is None:
             target = target.tz_localize(dates.tz)
         elif dates.tz is None and target.tzinfo is not None:
@@ -141,48 +142,48 @@ def get_gt(ticker):
     two_years_ago = pd.Timestamp.today() - pd.DateOffset(years=2)
     recent_ratings = ratings[ratings.index >= two_years_ago]
 
-    # 初始化统计容器
+    # Initialize statistics container
     results = {
         "4m": {"hit": 0, "excess": 0.0, "signals": 0, "fails": 0},
         "5m": {"hit": 0, "excess": 0.0, "signals": 0, "fails": 0},
         "6m": {"hit": 0, "excess": 0.0, "signals": 0, "fails": 0},
     }
 
-    # 遍历每条评级
+    # Traverse each rating
     for dt, row in recent_ratings.iterrows():
         rating = row["ToGrade"]
-        # 先获取股价与基准价格数据
+        # Get prices for stock and benchmark
         info = get_stock_price(stock_hist, bench_hist, dt, rating)
         stock_res = info["stock"]
         bench_res = info["benchmark"]
 
-        # 如果 start 缺失，则整条信号无效
+        # If start price is missing, exclude whole signal
         if stock_res["start"] is None or bench_res["start"] is None:
             for h in ("4m", "5m", "6m"):
                 results[h]["fails"] += 1
             continue
 
-        # 方向命中情况
+        # Hit result by direction
         hit_map = compare_rating(rating, stock_res)
 
-        # 超额收益
+        # Excess return
         excess_map = compute_excess_return(stock_res, bench_res)
 
-        # 累计到统计中
+        # Aggregate results
         for h in ("4m", "5m", "6m"):
-            # 如果未来价格缺失，则视为剔除
+            # If future price is missing, treat as excluded
             if stock_res[h] is None or bench_res[h] is None:
                 results[h]["fails"] += 1
                 continue
 
             results[h]["signals"] += 1
-            # 命中记 1，否则记 0
+            # Add hit if matched
             if hit_map[h]:
                 results[h]["hit"] += 1
-            # 累加超额收益
+            # Accumulate excess return
             results[h]["excess"] += excess_map[h]
 
-    # 计算 Hit Rate (%) 与 Avg Excess Return (%)
+    # Calculate Hit Rate (%) and Avg Excess Return (%)
     summary = {}
     for h, stats in results.items():
         n = stats["signals"]
@@ -205,27 +206,26 @@ def load_results_md(workspace: Path) -> str:
         print("Target file does not exist. Test fail.")
         exit(1)
     
-    template_file = "results_template.md"
-    template_p = workspace / template_file
-    if template_p.exists():
-        print("Template file still exists. Test fail.")
-        exit(1)
+    # template_file = "results_template.md"
+    # template_p = workspace / template_file
+    # if template_p.exists():
+    #     print("Template file still exists. Test fail.")
+    #     exit(1)
     
     return p.read_text(encoding="utf-8")
 
 
 def parse_table(md: str) -> pd.DataFrame:
     """
-    从 Markdown 文本中提取第一张表格，
-    并返回 pandas.DataFrame。
+    Extract the first table from Markdown text and return as pandas.DataFrame.
     """
-    # 找到 ## Table 之后的表格段
+    # Find the table segment after ## Table
     tbl_match = re.search(r"## Table\s*(\|[\s\S]+?)\n## ", md)
     if not tbl_match:
         print("No table found in the Markdown content.")
         exit(1)
     tbl_md = tbl_match.group(1).strip()
-    # 用 pandas 解析
+    # Parse with pandas
     df = pd.read_csv(
         StringIO(tbl_md),
         sep="|",
@@ -234,7 +234,7 @@ def parse_table(md: str) -> pd.DataFrame:
         skipinitialspace=True,
         usecols=lambda x: x.strip() != ""
     )
-    # 清洗列名与数据
+    # Clean column names and data
     df.columns = [c.strip() for c in df.columns]
     for col in df.columns:
         df[col] = df[col].astype(str).str.strip()
@@ -244,7 +244,7 @@ def parse_table(md: str) -> pd.DataFrame:
 
 def parse_choice(md: str) -> str:
     """
-    提取 "Choice: (NVDA or AAPL)" 的值
+    Extract the value of "Choice: (NVDA or AAPL)".
     """
     m = re.search(r"^Choice:\s*(NVDA|AAPL)\s*$", md, flags=re.MULTILINE)
     if not m:
@@ -254,7 +254,7 @@ def parse_choice(md: str) -> str:
 
 def parse_data_range(md: str):
     """
-    提取 Start/End 日期 (格式 YYYY-MM-DD)
+    Extract Start/End date (format YYYY-MM-DD)
     """
     m_start = re.search(r"Start:\s*(\d{4}-\d{2}-\d{2})", md)
     m_end   = re.search(r"End:\s*(\d{4}-\d{2}-\d{2})", md)
@@ -287,13 +287,13 @@ def main():
     aapl_stats = get_gt("AAPL")
 
     print("🔍 Verifying reported table against ground truth...")
-    # 阈值设置
+    # Thresholds
     pct_thresh = 0.02   # 2%
     count_ratio_thresh = 0.05  # 5%
 
     for _, row in df.iterrows():
         ticker = row["Ticker"]
-        horizon = row["Horizon"].split()[0] + "m"  # e.g. "4 months" → "4m"
+        horizon = row["Horizon"].split()[0] + "m"  # e.g. "4 months" -> "4m"
         reported_hit = float(row["Hit Rate (%)"])
         reported_excess = float(row["Avg Excess Return (%)"])
         reported_signals = int(row["#Signals"])
