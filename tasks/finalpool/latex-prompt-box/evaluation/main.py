@@ -3,12 +3,12 @@ import re
 from argparse import ArgumentParser
 
 def find_package_import(tex_content: str) -> bool:
-    # 检测是不是有\n\usepackage[xxx]{tcolorbox} 或者 \n\usepackage{tcolorbox}
-    # 方案1：使用原始字符串并正确转义
+    # Detect if there is \n\usepackage[xxx]{tcolorbox} or \n\usepackage{tcolorbox}
+    # Approach 1: Use raw string and correct escaping
     pattern1 = '\n'+r'\\usepackage\[.*?\]\{tcolorbox\}'
     pattern2 = '\n'+r'\\usepackage\{tcolorbox\}'
     
-    # 合并两个模式（可选的方括号部分）
+    # Combine both patterns (optional square brackets)
     pattern = '\n'+r'\\usepackage(?:\[.*?\])?\{tcolorbox\}'
     
     return re.search(pattern, tex_content) is not None
@@ -17,12 +17,11 @@ def find_color_definition(tex_content: str) -> bool:
     return '\n'+r'\definecolor{lightProxYellow}{HTML}{ffbb00}' in tex_content
 
 def find_desired_tcolorbox_remove_blanks(tex_content: str, title: str) -> str:
-    
-    # 移除所有空白字符
+    # Remove all white space characters
     removed_blanks_tex_content = re.sub(r'\s+', '', tex_content)
     # print(removed_blanks_tex_content)
     
-    # 构建要匹配的模式（也移除空白）
+    # Build the pattern to match (also removes whitespace)
     first_part = r"\begin{tcolorbox}[colback=lightProxYellow!10,colframe=lightProxYellow,left=2mm,right=2mm,title=\textcolor{black}{\textbf{<<<<title>>>>}}]\begin{small}"
     first_part = first_part.replace("<<<<title>>>>", title)
     first_part = re.sub(r'\s+', '', first_part)
@@ -87,7 +86,7 @@ def main():
     founddesiredtcolorbox_dict = {'Simple Prompt': False, 'Complex Prompt': False}
     appendix_text_content = read_file(os.path.join(args.agent_workspace, "simplerlcolm25", "Appendix.tex"))
 
-    # 找到从\section{Model Prompt}之后的部分
+    # Find the section after \section{Model Prompt}
     if r"\section{Model Prompt}" not in appendix_text_content:
         print("Fail to find section Model Prompt in Appendix.tex")
         return False

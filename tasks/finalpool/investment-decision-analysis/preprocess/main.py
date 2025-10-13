@@ -1,13 +1,8 @@
 #!/usr/bin/env python3
-"""
-Google Sheets预处理脚本
-用于创建动态文件夹并清理已存在的投资分析相关Google Sheet文件
-"""
 import os
 import sys
 from argparse import ArgumentParser
 
-# 任务配置
 FOLDER_NAME = "InvestmentAnalysisWorkspace"
 
 from utils.app_specific.googlesheet.drive_helper import (
@@ -17,59 +12,52 @@ from utils.app_specific.googlesheet.drive_helper import (
 
 
 def main():
-    """主函数 - 模仿googlesheet-example的实现"""
     parser = ArgumentParser(description="Investment Decision Analysis preprocess")
     parser.add_argument("--agent_workspace", required=False)
     parser.add_argument("--launch_time", required=False)
     args = parser.parse_args()
 
-    print("Investment Decision Analysis预处理工具")
-    print("用途：创建动态文件夹并清理已存在的投资分析相关Google Sheets文件")
-    print(f"动态文件夹名称: {FOLDER_NAME}")
-    print("=" * 60)
-
     try:
-        # 设置文件路径
         task_root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         os.makedirs(os.path.join(task_root_path, "files"), exist_ok=True)
         folder_id_file = os.path.join(task_root_path, "files", "folder_id.txt")
 
-        # 删除旧的folder_id文件
+        # Delete old folder_id file
         if os.path.exists(folder_id_file):
             os.remove(folder_id_file)
-            print("已删除旧的folder_id文件")
+            print("Old folder_id file deleted")
 
-        # 获取Google服务
+        # Get Google service
         drive_service, sheets_service = get_google_service()
-        print("Google服务认证成功")
+        print("Google service authentication successful")
 
-        # 查找或创建文件夹
+        # Find or create folder
         folder_id = find_folder_by_name(drive_service, FOLDER_NAME)
         if not folder_id:
             folder_id = create_folder(drive_service, FOLDER_NAME)
-            print(f"创建了新文件夹: {FOLDER_NAME} (ID: {folder_id})")
+            print(f"Created new folder: {FOLDER_NAME} (ID: {folder_id})")
         else:
-            print(f"找到现有文件夹: {FOLDER_NAME} (ID: {folder_id})")
+            print(f"Found existing folder: {FOLDER_NAME} (ID: {folder_id})")
 
-        # 清理文件夹内容
+        # Clean folder content
         clear_folder(drive_service, folder_id)
-        print("已清理文件夹内容")
+        print("Folder content cleaned")
 
-        # 保存folder_id到文件
+        # Save folder_id to file
         with open(folder_id_file, "w") as f:
             f.write(folder_id)
 
-        print(f"Folder ID已保存: {folder_id}")
+        print(f"Folder ID saved: {folder_id}")
         print("=" * 60)
-        print("预处理完成：环境已准备好，可以开始任务")
+        print("Preprocessing complete: environment is ready, can start task")
         print("=" * 60)
         
         return True
         
     except Exception as e:
-        print(f" 预处理过程中发生错误: {e}")
+        print(f" Error during preprocessing: {e}")
         print("=" * 60)
-        print(" 预处理失败：无法准备环境")
+        print(" Preprocessing failed: cannot prepare environment")
         print("=" * 60)
         return False
 
