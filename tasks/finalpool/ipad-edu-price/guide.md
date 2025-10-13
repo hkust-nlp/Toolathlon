@@ -1,5 +1,5 @@
-任务预期实现流程
-1. 根据task.md得到目标是阅读官网的ipad和apple pencil的价格
-2. 检索对应的8个网址，得到这两件商品在四个地区的价格
-3. 获取实时税率，得到统一单位后的结果
-4. 得出结论，按照所需要求返回
+Expected workflow:
+1. According to task.md, the goal is to find the prices of iPad and Apple Pencil from the official website.
+2. Retrieve information from the 8 specific web pages to obtain the prices of these two products in four regions.
+3. Obtain the current tax rates and convert all prices to a unified currency/unit.
+4. Draw a conclusion and present the result according to the required format.

@@ -1,24 +1,22 @@
-iPad Pro + Apple Pencil 教育优惠价格比较参考信息 (即时)
+iPad Pro + Apple Pencil Education Discount Price Comparison Reference (Real-Time)
 
 
-地区参考：
-- 香港 (Hong Kong, HK)
-- 中国大陆 (China, 内地)
-- 新加坡 (Singapore, SG)  
-- 美国 (USA, US, United States)
+Regions referenced:
+- Hong Kong (HK)
+- Mainland China (China, CN)
+- Singapore (SG)
+- United States (USA, US, United States)
 
-评估要点：
-1. 报告的地区应该是上述四个地区之一
-2. 价格应该包含货币符号和数额
-3. 应该提及教育优惠政策
-4. 应该考虑返校季活动
-5. 应该进行多地区比较分析
+Evaluation Criteria:
+1. The reported region should be one of the four above.
+2. The price should include both the currency symbol and the amount.
+3. The education discount policy should be mentioned.
+4. Back-to-school promotions should be considered.
+5. A multi-region comparison and analysis should be provided.
 
-预期格式：
-price_comparison_\boxed_1{地区名}_total_\boxed_2{价格}
 
 Comment by Wenshuo
-对应网址
+Reference URLs:
 https://www.apple.com/hk-edu/shop/buy-ipad/ipad-pro
 https://www.apple.com/sg-edu/shop/buy-ipad/ipad-pro
 https://www.apple.com.cn/cn-edu/shop/buy-ipad/ipad-pro
