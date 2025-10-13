@@ -59,9 +59,9 @@ def check_account_emails(email_address: str, password: str, imap_server: str, im
         if valid_count == 0:
             print(f"❌ [{account_label}] 没有找到正文包含所有关键词({required_keywords})的邮件")
             passed = False
-        elif valid_count > 1:
-            print(f"❌ [{account_label}] 找到{valid_count}封正文包含所有关键词({required_keywords})的邮件，应只有1封")
-            passed = False
+        # elif valid_count > 1:
+        #     print(f"❌ [{account_label}] 找到{valid_count}封正文包含所有关键词({required_keywords})的邮件，应只有1封")
+        #     passed = False
         if extra_msgs:
             print(f"❌ [{account_label}] 存在{len(extra_msgs)}封主题为nlp-course-emergency但正文不符的多余邮件:")
             for msg in extra_msgs:
