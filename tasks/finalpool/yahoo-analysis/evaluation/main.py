@@ -29,6 +29,7 @@ def compare_rating(rating, stock_result):
         "Sell":           "down",
         "Underperform":   "down",
         "Underweight":    "down",
+        "Reduce":         "down",
     }
     direction = grade_to_direction.get(rating, None)
 
@@ -159,6 +160,7 @@ def get_gt(ticker):
 
         # If start price is missing, exclude whole signal
         if stock_res["start"] is None or bench_res["start"] is None:
+            # print(f"Start price is missing for {dt}, {rating} is excluded for all horizons")
             for h in ("4m", "5m", "6m"):
                 results[h]["fails"] += 1
             continue
@@ -173,6 +175,7 @@ def get_gt(ticker):
         for h in ("4m", "5m", "6m"):
             # If future price is missing, treat as excluded
             if stock_res[h] is None or bench_res[h] is None:
+                # print(f"Future price is missing for {dt}, {rating} is excluded for {h}")
                 results[h]["fails"] += 1
                 continue
 
