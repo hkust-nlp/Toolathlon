@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-增强版游戏统计任务评估测试脚本
+Enhanced Game Statistics Evaluation Test Script
 
-测试增强后的evaluation逻辑，验证：
-1. 每日排行榜的完整性验证（包括与原始数据的一致性检查）
-2. 历史统计数据的准确性验证
-3. 错误场景的处理能力
+Tests the enhanced evaluation logic to verify:
+1. The completeness of the daily leaderboard (including consistency with raw data)
+2. The accuracy of historical statistics
+3. Handling of error scenarios
 
-使用方法:
+Usage:
 python test_enhanced_evaluation.py [--create_test_data] [--test_failures]
 """
 
@@ -25,7 +25,7 @@ sys.path.append(str(Path(__file__).parent))
 from evaluation.main import verify_daily_leaderboard, verify_historical_stats_update
 
 class TestDataManager:
-    """测试数据管理器"""
+    """Test data manager."""
     
     def __init__(self, server):
         self.server = server
@@ -33,8 +33,8 @@ class TestDataManager:
         self.table_name = f"leaderboard_{self.today_str.replace('-', '')}"
     
     async def create_correct_leaderboard(self):
-        """创建正确的排行榜数据（基于真实的top100）"""
-        print("🔧 创建正确的排行榜测试数据...")
+        """Create correct leaderboard data (based on actual top 100)."""
+        print("🔧 Creating correct leaderboard test data...")
         
         # First get the actual top 100 players from daily_scores_stream
         daily_query_result = await call_tool_with_retry(self.server, "bigquery_run_query", {
@@ -54,7 +54,7 @@ class TestDataManager:
         start_pos = content.find("[")
         end_pos = content.rfind("]")
         if start_pos == -1 or end_pos == -1:
-            raise Exception("无法解析每日分数查询结果")
+            raise Exception("Cannot parse the daily scores query result")
         
         top100_players = json.loads(content[start_pos:end_pos+1])
         
@@ -83,14 +83,14 @@ class TestDataManager:
             """
         })
         
-        print(f"✅ 已创建正确的排行榜 {self.table_name} 包含 {len(top100_players)} 条记录")
+        print(f"✅ Correct leaderboard {self.table_name} with {len(top100_players)} records created")
         return len(top100_players)
     
     async def create_incorrect_leaderboard_wrong_players(self):
-        """创建错误的排行榜数据（包含错误的玩家）"""
-        print("🔧 创建错误排行榜测试数据（错误玩家）...")
+        """Create incorrect leaderboard data (wrong players included)."""
+        print("🔧 Creating incorrect leaderboard test data (wrong players)...")
         
-        # Get actual top 100 players
+        # Get actual top 110 players
         daily_query_result = await call_tool_with_retry(self.server, "bigquery_run_query", {
             "query": f"""
             SELECT 
@@ -136,12 +136,12 @@ class TestDataManager:
             """
         })
         
-        print(f"✅ 已创建错误排行榜（错误玩家）")
+        print(f"✅ Incorrect leaderboard (wrong players) created")
         return len(wrong_leaderboard)
     
     async def create_incorrect_leaderboard_wrong_scores(self):
-        """创建错误的排行榜数据（分数错误）"""
-        print("🔧 创建错误排行榜测试数据（分数错误）...")
+        """Create incorrect leaderboard data (wrong scores)."""
+        print("🔧 Creating incorrect leaderboard test data (wrong scores)...")
         
         # Get actual top 100 players
         daily_query_result = await call_tool_with_retry(self.server, "bigquery_run_query", {
@@ -188,12 +188,12 @@ class TestDataManager:
             """
         })
         
-        print(f"✅ 已创建错误排行榜（分数错误）")
+        print(f"✅ Incorrect leaderboard (wrong scores) created")
         return len(top100_players)
     
     async def create_correct_historical_stats(self):
-        """创建正确的历史统计数据"""
-        print("🔧 创建正确的历史统计测试数据...")
+        """Create correct historical statistics data."""
+        print("🔧 Creating correct historical statistics test data...")
         
         # Get aggregated data from daily_scores_stream
         daily_query_result = await call_tool_with_retry(self.server, "bigquery_run_query", {
@@ -240,26 +240,26 @@ class TestDataManager:
                 """
             })
         
-        print(f"✅ 已创建正确的历史统计数据 {len(daily_stats)} 条记录")
+        print(f"✅ Correct historical statistics with {len(daily_stats)} records created")
         return len(daily_stats)
     
     async def cleanup_test_data(self):
-        """清理测试数据"""
-        print("🧹 清理测试数据...")
+        """Clean up test data."""
+        print("🧹 Cleaning up test data...")
         
         try:
             # Drop leaderboard table
             await call_tool_with_retry(self.server, "bigquery_run_query", {
                 "query": f"DROP TABLE IF EXISTS `game_analytics.{self.table_name}`"
             })
-            print(f"✅ 已删除排行榜表 {self.table_name}")
+            print(f"✅ Leaderboard table {self.table_name} deleted")
         except Exception as e:
-            print(f"⚠️  删除排行榜表时出错: {e}")
+            print(f"⚠️  Error when deleting leaderboard table: {e}")
 
 async def test_correct_leaderboard_validation(server):
-    """测试正确排行榜的验证"""
+    """Test correct leaderboard validation."""
     print("\n" + "="*60)
-    print("🧪 测试 1: 正确排行榜验证")
+    print("🧪 Test 1: Correct leaderboard validation")
     print("="*60)
     
     test_manager = TestDataManager(server)
@@ -272,12 +272,12 @@ async def test_correct_leaderboard_validation(server):
         # Run validation - should pass
         result = await verify_daily_leaderboard(server, today_str)
         
-        print(f"\n📊 测试结果: {'✅ 通过' if result else '❌ 失败'}")
+        print(f"\n📊 Test Result: {'✅ PASSED' if result else '❌ FAILED'}")
         
         if result:
-            print("🎉 正确排行榜验证成功通过！")
+            print("🎉 Correct leaderboard validation passed!")
         else:
-            print("❌ 正确排行榜验证失败，这不应该发生")
+            print("❌ Correct leaderboard validation failed, this should not happen.")
         
         return result
         
@@ -285,9 +285,9 @@ async def test_correct_leaderboard_validation(server):
         await test_manager.cleanup_test_data()
 
 async def test_incorrect_leaderboard_players(server):
-    """测试错误玩家的排行榜验证"""
+    """Test incorrect player leaderboard validation."""
     print("\n" + "="*60)
-    print("🧪 测试 2: 错误玩家排行榜验证")
+    print("🧪 Test 2: Incorrect player leaderboard validation")
     print("="*60)
     
     test_manager = TestDataManager(server)
@@ -300,12 +300,12 @@ async def test_incorrect_leaderboard_players(server):
         # Run validation - should fail
         result = await verify_daily_leaderboard(server, today_str)
         
-        print(f"\n📊 测试结果: {'❌ 错误检测失败' if result else '✅ 正确检测到错误'}")
+        print(f"\n📊 Test Result: {'❌ DID NOT DETECT ERROR' if result else '✅ Correctly detected error'}")
         
         if not result:
-            print("🎉 错误玩家检测成功！")
+            print("🎉 Error player detection succeeded!")
         else:
-            print("❌ 应该检测到错误但没有检测到")
+            print("❌ Should have detected error but did not.")
         
         return not result  # Test passes if validation fails
         
@@ -313,9 +313,9 @@ async def test_incorrect_leaderboard_players(server):
         await test_manager.cleanup_test_data()
 
 async def test_incorrect_leaderboard_scores(server):
-    """测试错误分数的排行榜验证"""
+    """Test incorrect score leaderboard validation."""
     print("\n" + "="*60)
-    print("🧪 测试 3: 错误分数排行榜验证")
+    print("🧪 Test 3: Incorrect score leaderboard validation")
     print("="*60)
     
     test_manager = TestDataManager(server)
@@ -328,12 +328,12 @@ async def test_incorrect_leaderboard_scores(server):
         # Run validation - should fail
         result = await verify_daily_leaderboard(server, today_str)
         
-        print(f"\n📊 测试结果: {'❌ 错误检测失败' if result else '✅ 正确检测到错误'}")
+        print(f"\n📊 Test Result: {'❌ DID NOT DETECT ERROR' if result else '✅ Correctly detected error'}")
         
         if not result:
-            print("🎉 错误分数检测成功！")
+            print("🎉 Error score detection succeeded!")
         else:
-            print("❌ 应该检测到分数错误但没有检测到")
+            print("❌ Should have detected score error but did not.")
         
         return not result  # Test passes if validation fails
         
@@ -341,9 +341,9 @@ async def test_incorrect_leaderboard_scores(server):
         await test_manager.cleanup_test_data()
 
 async def test_historical_stats_validation(server):
-    """测试历史统计验证"""
+    """Test historical statistics validation."""
     print("\n" + "="*60)
-    print("🧪 测试 4: 历史统计验证")
+    print("🧪 Test 4: Historical statistics validation")
     print("="*60)
     
     test_manager = TestDataManager(server)
@@ -356,23 +356,23 @@ async def test_historical_stats_validation(server):
         # Run validation - should pass
         result = await verify_historical_stats_update(server, today_str)
         
-        print(f"\n📊 测试结果: {'✅ 通过' if result else '❌ 失败'}")
+        print(f"\n📊 Test Result: {'✅ PASSED' if result else '❌ FAILED'}")
         
         if result:
-            print("🎉 历史统计验证成功通过！")
+            print("🎉 Historical stats validation passed!")
         else:
-            print("❌ 历史统计验证失败")
+            print("❌ Historical stats validation failed.")
         
         return result
         
     except Exception as e:
-        print(f"❌ 测试过程出错: {e}")
+        print(f"❌ Error occurred during test: {e}")
         return False
 
 async def run_enhanced_evaluation_tests(test_failures=False):
-    """运行增强版评估测试"""
-    print("🎯 开始增强版游戏统计评估测试...")
-    print(f"📅 测试日期: {date.today().strftime('%Y-%m-%d')}")
+    """Run enhanced evaluation tests."""
+    print("🎯 Starting enhanced game statistics evaluation tests...")
+    print(f"📅 Test Date: {date.today().strftime('%Y-%m-%d')}")
     
     xx_MCPServerManager = MCPServerManager(agent_workspace="./")
     google_cloud_server = xx_MCPServerManager.servers['google-cloud']
@@ -382,60 +382,60 @@ async def run_enhanced_evaluation_tests(test_failures=False):
     async with google_cloud_server as server:
         # Test 1: Correct leaderboard validation
         result1 = await test_correct_leaderboard_validation(server)
-        test_results.append(("正确排行榜验证", result1))
+        test_results.append(("Correct Leaderboard Validation", result1))
         
         if test_failures:
             # Test 2: Incorrect players detection
             result2 = await test_incorrect_leaderboard_players(server)
-            test_results.append(("错误玩家检测", result2))
+            test_results.append(("Wrong Player Detection", result2))
             
             # Test 3: Incorrect scores detection
             result3 = await test_incorrect_leaderboard_scores(server)
-            test_results.append(("错误分数检测", result3))
+            test_results.append(("Wrong Score Detection", result3))
         
         # Test 4: Historical stats validation
         result4 = await test_historical_stats_validation(server)
-        test_results.append(("历史统计验证", result4))
+        test_results.append(("Historical Stats Validation", result4))
     
     # Print summary
     print("\n" + "="*60)
-    print("📈 测试总结")
+    print("📈 Test Summary")
     print("="*60)
     
     passed = 0
     total = len(test_results)
     
     for test_name, result in test_results:
-        status = "✅ 通过" if result else "❌ 失败"
+        status = "✅ PASSED" if result else "❌ FAILED"
         print(f"{test_name}: {status}")
         if result:
             passed += 1
     
-    print(f"\n🎯 总体结果: {passed}/{total} 个测试通过")
+    print(f"\n🎯 Overall Result: {passed}/{total} tests passed")
     
     if passed == total:
-        print("🎉 所有测试通过！增强版评估逻辑工作正常。")
+        print("🎉 All tests passed! Enhanced evaluation logic is working correctly.")
         return 0
     else:
-        print("❌ 部分测试失败，请检查增强版评估逻辑。")
+        print("❌ Some tests failed, please check the enhanced evaluation logic.")
         return 1
 
 async def main():
-    parser = ArgumentParser(description="增强版游戏统计任务评估测试")
+    parser = ArgumentParser(description="Enhanced Game Statistics Evaluation Test")
     parser.add_argument("--test_failures", action="store_true", 
-                       help="是否测试错误检测能力（包括错误场景测试）")
+                       help="Whether to test error detection capability (including error scenarios)")
     args = parser.parse_args()
     
     try:
         exit_code = await run_enhanced_evaluation_tests(test_failures=args.test_failures)
         return exit_code
     except Exception as e:
-        print(f"❌ 测试执行失败: {e}")
+        print(f"❌ Test execution failed: {e}")
         import traceback
         traceback.print_exc()
         return 1
 
 if __name__ == "__main__":
     exit_code = asyncio.run(main())
-    print(f"\n🏁 测试完成，退出码: {exit_code}")
+    print(f"\n🏁 Testing completed, exit code: {exit_code}")
     sys.exit(exit_code)
