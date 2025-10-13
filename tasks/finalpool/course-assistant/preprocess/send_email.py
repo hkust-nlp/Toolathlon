@@ -10,24 +10,22 @@ from pathlib import Path
 import re
 from datetime import datetime, timedelta
 
-# from configs.personal_info import personal_info
-
 class EmailSendError(Exception):
-    """邮件发送错误"""
+    """Error occurred during sending emails."""
     pass
 
 class LocalEmailSender:
     def __init__(self, sender_email, password, smtp_server='localhost', smtp_port=1587, use_ssl=False, use_starttls=False, use_auth=True, verbose=True):
         """
-        初始化本地邮件发送器
-        :param sender_email: 发件人邮箱地址
-        :param password: 邮箱密码
-        :param smtp_server: SMTP服务器地址
-        :param smtp_port: SMTP服务器端口
-        :param use_ssl: 是否使用SSL
-        :param use_starttls: 是否使用STARTTLS
-        :param use_auth: 是否使用认证
-        :param verbose: 是否打印详细信息
+        Initialize local email sender.
+        :param sender_email: Sender email address
+        :param password: Email password
+        :param smtp_server: SMTP server address
+        :param smtp_port: SMTP server port
+        :param use_ssl: Use SSL
+        :param use_starttls: Use STARTTLS
+        :param use_auth: Use authentication
+        :param verbose: Print verbose information
         """
         self.sender_email = sender_email
         self.password = password
@@ -39,82 +37,82 @@ class LocalEmailSender:
         self.verbose = verbose
     
     def _log(self, message, force=False):
-        """打印日志信息"""
+        """Print log information."""
         if self.verbose or force:
             print(message)
     
     def send_email(self, receiver_email, sender_name, subject, content, content_type='plain'):
         """
-        发送邮件
-        :param receiver_email: 收件人邮箱
-        :param sender_name: 发件人显示名称
-        :param subject: 邮件标题
-        :param content: 邮件内容
-        :param content_type: 内容类型 'plain' 或 'html'
+        Send a single email.
+        :param receiver_email: Receiver's email address
+        :param sender_name: Sender's display name
+        :param subject: Email subject
+        :param content: Email content
+        :param content_type: 'plain' or 'html'
         """
         try:
-            # 创建邮件对象
+            # Create email message
             msg = MIMEMultipart()
             
-            # 设置发件人（包含自定义名称）
+            # Set sender info (with custom sender name)
             msg['From'] = formataddr((sender_name, self.sender_email))
             msg['To'] = receiver_email
             msg['Subject'] = subject
             
-            # 添加邮件正文
+            # Attach content
             msg.attach(MIMEText(content, content_type, 'utf-8'))
             
-            # 连接邮件服务器
+            # Connect to the mail server
             if self.use_ssl:
                 server = smtplib.SMTP_SSL(self.smtp_server, self.smtp_port)
             else:
                 server = smtplib.SMTP(self.smtp_server, self.smtp_port)
                 if self.use_starttls:
-                    server.starttls()  # 启用TLS加密
+                    server.starttls()  # Enable TLS
             
-            # 只在需要认证时进行登录
+            # Login if authentication is required
             if self.use_auth:
                 server.login(self.sender_email, self.password)
             
-            # 发送邮件
+            # Send the email
             server.send_message(msg)
             server.quit()
             
-            self._log("✅ 邮件发送成功！")
-            self._log(f"   发件人：{sender_name}")
-            self._log(f"   收件人：{receiver_email}")
-            self._log(f"   主题：{subject}")
+            self._log("✅ Email sent successfully!")
+            self._log(f"   From: {sender_name}")
+            self._log(f"   To: {receiver_email}")
+            self._log(f"   Subject: {subject}")
             self._log("-" * 50)
             
             return True
             
         except Exception as e:
-            error_msg = f"邮件发送失败 - 发件人: {sender_name}, 主题: {subject}, 错误: {str(e)}"
+            error_msg = f"Failed to send email - From: {sender_name}, Subject: {subject}, Error: {str(e)}"
             self._log(f"❌ {error_msg}", force=True)
             self._log("-" * 50)
             return False
     
     def send_batch_emails(self, receiver_email, email_list, delay=1):
         """
-        批量发送邮件
-        :param receiver_email: 收件人邮箱
-        :param email_list: 邮件列表，每个元素是一个字典
-        :param delay: 每封邮件之间的延迟（秒）
+        Send a batch of emails.
+        :param receiver_email: Receiver's email address
+        :param email_list: List of emails, each as a dict
+        :param delay: Delay in seconds between emails
         :return: (success_count, fail_count, failed_emails)
         """
-        self._log(f"开始批量发送 {len(email_list)} 封邮件...\n")
+        self._log(f"Starting batch send for {len(email_list)} emails...\n")
         
         success_count = 0
         fail_count = 0
         failed_emails = []
         
         for i, email_data in enumerate(email_list, 1):
-            self._log(f"正在发送第 {i}/{len(email_list)} 封邮件...")
+            self._log(f"Sending email {i}/{len(email_list)}...")
             
-            # 自动检测内容类型
+            # Detect content type automatically
             content_type = email_data.get('content_type', 'plain')
             if content_type == 'auto':
-                # 简单检测是否包含HTML标签
+                # Simple detection for HTML tags
                 content = email_data['content']
                 if '<html>' in content.lower() or '<body>' in content.lower() or '<p>' in content or '<div>' in content:
                     content_type = 'html'
@@ -140,11 +138,11 @@ class LocalEmailSender:
                 })
             
             if i < len(email_list):
-                self._log(f"等待 {delay} 秒后发送下一封邮件...\n")
+                self._log(f"Waiting {delay} seconds before sending the next email...\n")
                 time.sleep(delay)
         
-        self._log("\n批量发送完成！")
-        self._log(f"成功: {success_count} 封，失败: {fail_count} 封")
+        self._log("\nBatch sending completed!")
+        self._log(f"Success: {success_count}, Failed: {fail_count}")
         
         return success_count, fail_count, failed_emails
 
@@ -153,11 +151,13 @@ def format_email_with_personal_info(email_data,
                                     today,
                                     verbose=True):
     """
-    使用personal_info中的键值对格式化邮件数据
-    占位符格式: <<<<||||key||||>>>>
-    :param email_data: 原始邮件数据字典
-    :param verbose: 是否打印详细信息
-    :return: 格式化后的邮件数据字典
+    Format email data with values from `personal_info` style dict.
+    Placeholder format: <<<<||||key||||>>>>
+    :param email_data: Original email data dict
+    :param placeholder_values: Placeholder key-value mapping
+    :param today: Today's date (ISO string)
+    :param verbose: Print verbose information
+    :return: Formatted email data dict
     """
     def _log(message, force=False):
         if verbose or force:
@@ -166,78 +166,68 @@ def format_email_with_personal_info(email_data,
     formatted_email = email_data.copy()
     
     try:
-        # 格式化每个字符串字段
+        # Format each string field
         for key, value in formatted_email.items():
             if isinstance(value, str):
                 try:
-                    # 查找所有占位符 <<<<||||key||||>>>>
+                    # Find all placeholders <<<<||||key||||>>>>
                     pattern = r'<<<<\|\|\|\|([\w+-]+)\|\|\|\|>>>>'
                     matches = re.findall(pattern, value)
                     
                     formatted_value = value
                     for match in matches:
                         placeholder = f'<<<<||||{match}||||>>>>'
-                        # print(f"DEBUG: 匹配到占位符: {match}")
                         if match in placeholder_values:
                             replacement = str(placeholder_values[match])
                             formatted_value = formatted_value.replace(placeholder, replacement)
-                            # _log(f"替换占位符: {placeholder} -> {replacement}")
-                        # 如果是日期或者年份
+                        # Date/year placeholders
                         elif match == 'year' or match.startswith('today+') or match.startswith('today-'):
-                            # print(f"DEBUG: 进入日期处理分支，match={match}")
-                            # 我会传入今天的日期，以ISO格式，例如2025-06-30
-                            # 请你把year替换为今天+30天后的年份
-                            # 对于日期，请把today+X替换为对应的日期
+                            # 'today' is passed as ISO format string (e.g. 2025-06-30)
                             try:
                                 if match == 'year':
-                                    # 计算今天+30天后的年份
+                                    # Replace with year 30 days from today
                                     today_date = datetime.fromisoformat(today)
                                     future_date = today_date + timedelta(days=30)
                                     replacement = str(future_date.year)
                                 elif match.startswith('today+'):
-                                    # 解析today+X格式，X是天数
-                                    days_to_add = int(match[6:])  # 去掉'today+'前缀
+                                    days_to_add = int(match[6:])
                                     today_date = datetime.fromisoformat(today)
                                     future_date = today_date + timedelta(days=days_to_add)
                                     replacement = future_date.strftime('%Y-%m-%d')
                                 elif match.startswith('today-'):
-                                    # 解析today-X格式，X是天数
-                                    days_to_subtract = int(match[6:])  # 去掉'today-'前缀
+                                    days_to_subtract = int(match[6:])
                                     today_date = datetime.fromisoformat(today)
                                     past_date = today_date - timedelta(days=days_to_subtract)
                                     replacement = past_date.strftime('%Y-%m-%d')
                                 else:
-                                    replacement = placeholder  # 保持原样
+                                    replacement = placeholder
                                 
                                 formatted_value = formatted_value.replace(placeholder, replacement)
-                                # _log(f"替换占位符: {placeholder} -> {replacement}")
                             except (ValueError, TypeError) as e:
-                                _log(f"⚠️  日期处理错误: {e}", force=True)
-                                # 如果日期处理失败，保持原占位符
+                                _log(f"⚠️  Date processing error: {e}", force=True)
                                 pass
                         else:
-                            _log(f"⚠️  未找到personal_info中的键: {match}", force=True)
+                            _log(f"⚠️  Key not found in placeholder info: {match}", force=True)
                     
                     formatted_email[key] = formatted_value
                     
                 except Exception as e:
-                    _log(f"⚠️  格式化字段 '{key}' 时出错: {e}", force=True)
-                    # 如果格式化失败，保持原值
+                    _log(f"⚠️  Error formatting field '{key}': {e}", force=True)
                     pass
         
         return formatted_email
         
     except Exception as e:
-        _log(f"⚠️  格式化邮件数据时出错: {e}", force=True)
+        _log(f"⚠️  Error formatting email data: {e}", force=True)
         return email_data
 
 def load_emails_from_jsonl(file_path, placeholder_file_path, verbose=True):
     """
-    从JSONL文件加载邮件数据
-    :param file_path: JSONL文件路径
-    :param placeholder_file_path: 占位符文件路径
-    :param verbose: 是否打印详细信息
-    :return: 邮件列表
+    Load email data from JSONL file.
+    :param file_path: JSONL file path
+    :param placeholder_file_path: Placeholder file path
+    :param verbose: Print verbose information
+    :return: List of emails
     """
     def _log(message, force=False):
         if verbose or force:
@@ -248,194 +238,194 @@ def load_emails_from_jsonl(file_path, placeholder_file_path, verbose=True):
     with open(placeholder_file_path, 'r', encoding='utf-8') as f:
         placeholder_values = json.load(f)
 
-    # 获取今天的日期，格式为ISO格式 (YYYY-MM-DD)
+    # Get today's date in ISO format (YYYY-MM-DD)
     today = datetime.now().strftime('%Y-%m-%d')
     
-    # 保存today时间到文件，用于后续eval
-    # 相对于send_email.py文件的位置：../groundtruth_workspace/today.txt
+    # Save today's date to file for later use
+    # Relative to send_email.py: ../groundtruth_workspace/today.txt
     script_dir = Path(__file__).parent.parent
     today_file_path = script_dir / 'groundtruth_workspace' / 'today.txt'
     today_file_path.parent.mkdir(parents=True, exist_ok=True)
     with open(today_file_path, 'w', encoding='utf-8') as f:
         f.write(today)
-    _log(f"✅ 已保存today时间到: {today_file_path}")
+    _log(f"✅ Saved today's date to: {today_file_path}")
 
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             for line_num, line in enumerate(f, 1):
                 line = line.strip()
-                if not line:  # 跳过空行
+                if not line:  # Skip empty lines
                     continue
                 try:
                     email_data = json.loads(line)
                     
-                    # 验证必需字段
+                    # Check required fields
                     required_fields = ['sender_name', 'subject', 'content']
                     missing_fields = [field for field in required_fields if field not in email_data]
                     
                     if missing_fields:
-                        _log(f"⚠️  第 {line_num} 行缺少必需字段: {missing_fields}", force=True)
+                        _log(f"⚠️  Line {line_num}: Missing required field(s): {missing_fields}", force=True)
                         continue
                     
-                    # 如果没有指定content_type，设为auto以自动检测
+                    # If content_type is not specified, set to 'auto'
                     if 'content_type' not in email_data:
                         email_data['content_type'] = 'auto'
                     
-                    # 使用personal_info格式化邮件数据
+                    # Format email with personal info
                     formatted_email = format_email_with_personal_info(email_data, placeholder_values, today, verbose=verbose)
                     emails.append(formatted_email)
                     
                 except json.JSONDecodeError as e:
-                    _log(f"⚠️  第 {line_num} 行JSON解析错误: {e}", force=True)
+                    _log(f"⚠️  Line {line_num}: JSON decode error: {e}", force=True)
                     continue
                     
-        _log(f"✅ 成功加载 {len(emails)} 封邮件")
+        _log(f"✅ Successfully loaded {len(emails)} emails")
         return emails
         
     except FileNotFoundError:
-        print(f"❌ 文件未找到: {file_path}")
+        print(f"❌ File not found: {file_path}")
         sys.exit(1)
     except Exception as e:
-        print(f"❌ 读取文件时出错: {e}")
+        print(f"❌ Error while reading file: {e}")
         sys.exit(1)
 
 def create_parser():
-    """创建命令行参数解析器"""
+    """Create command line argument parser."""
     parser = argparse.ArgumentParser(
-        description='本地邮件批量发送工具',
+        description='Local Email Batch Sending Tool',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog='''
-示例:
+Examples:
   python gmail_sender.py --sender your@gmail.com --password "your_app_password" --receiver target@example.com --jsonl emails.jsonl
 
-JSONL文件格式示例:
-  {"sender_name": "张三", "subject": "测试邮件", "content": "这是邮件内容"}
-  {"sender_name": "李四", "subject": "HTML邮件", "content": "<h1>HTML标题</h1><p>内容</p>", "content_type": "html"}
+JSONL File Format Example:
+  {"sender_name": "Zhang San", "subject": "Test Email", "content": "This is the content"}
+  {"sender_name": "Li Si", "subject": "HTML Email", "content": "<h1>HTML Title</h1><p>Body</p>", "content_type": "html"}
   
-占位符格式:
-  使用 <<<<||||key||||>>>> 作为占位符，其中key是personal_info中的键名
-  例如: "Hello <<<<||||name||||>>>>, your email is <<<<||||email||||>>>>"
+Placeholder Format:
+  Use <<<<||||key||||>>>> as placeholder, where key is the key in the personal_info json.
+  Example: "Hello <<<<||||name||||>>>>, your email is <<<<||||email||||>>>>"
         '''
     )
     
     parser.add_argument(
         '--sender', '-s',
         required=True,
-        help='发件人邮箱地址'
+        help='Sender email address'
     )
     
     parser.add_argument(
         '--password', '-p',
         required=True,
-        help='邮箱密码'
+        help='Email password'
     )
     
     parser.add_argument(
         '--receiver', '-r',
         required=True,
-        help='收件人邮箱地址'
+        help='Receiver email address'
     )
     
     parser.add_argument(
         '--jsonl', '-j',
         required=True,
-        help='包含邮件内容的JSONL文件路径'
+        help='Path to JSONL file containing emails'
     )
 
     parser.add_argument(
         '--placeholder', '-pl',
         required=True,
-        help='包含占位符的JSONL文件路径'
+        help='Path to json file containing placeholder key-values'
     )
     
     parser.add_argument(
         '--delay', '-d',
         type=float,
         default=2.0,
-        help='每封邮件之间的延迟秒数（默认: 2秒）'
+        help='Delay in seconds between consecutive emails (default: 2 seconds)'
     )
     
     parser.add_argument(
         '--dry-run',
         action='store_true',
-        help='只检查JSONL文件，不实际发送邮件'
+        help='Check JSONL file and show email preview, don\'t actually send emails'
     )
     
     parser.add_argument(
         '--quiet', '-q',
         action='store_true',
-        help='安静模式，只在出错时打印信息'
+        help='Quiet mode, only print when error occurs'
     )
     
     parser.add_argument(
         '--no-confirm',
         action='store_true',
-        help='不需要确认，直接发送'
+        help='Send emails without confirmation'
     )
     
     return parser
 
 def main():
-    # 解析命令行参数
+    # Parse CLI arguments
     parser = create_parser()
     args = parser.parse_args()
     
-    # 设置verbose模式
+    # Set verbose mode
     verbose = not args.quiet
     
-    # 打印配置信息
+    # Print configuration
     if verbose:
         print("=" * 60)
-        print("本地邮件批量发送工具")
+        print("Local Email Batch Sending Tool")
         print("=" * 60)
-        print(f"发件人邮箱: {args.sender}")
-        print(f"收件人邮箱: {args.receiver}")
-        print(f"邮件数据文件: {args.jsonl}")
-        print(f"占位符文件: {args.placeholder}")
-        print(f"发送延迟: {args.delay} 秒")
+        print(f"Sender: {args.sender}")
+        print(f"Receiver: {args.receiver}")
+        print(f"Email data file: {args.jsonl}")
+        print(f"Placeholder file: {args.placeholder}")
+        print(f"Send delay: {args.delay} seconds")
         print("=" * 60)
         print()
     
-    # 加载邮件数据
+    # Load emails
     if verbose:
-        print("正在加载邮件数据...")
+        print("Loading email data...")
     
     emails = load_emails_from_jsonl(args.jsonl, args.placeholder, verbose=verbose)
 
-
     if not emails:
-        print("❌ 没有有效的邮件数据")
+        print("❌ No valid emails to send.")
         sys.exit(1)
     
-    # 如果是dry-run模式，只显示邮件预览
+    # Dry run mode - preview only
     if args.dry_run:
         if verbose:
-            print("\n🔍 Dry-run模式 - 邮件预览:\n")
+            print("\n🔍 Dry-run mode - Email Preview:\n")
             for i, email in enumerate(emails, 1):
-                print(f"邮件 {i}:")
-                print(f"  发件人名称: {email['sender_name']}")
-                print(f"  主题: {email['subject']}")
-                print(f"  内容类型: {email.get('content_type', 'auto')}")
-                print(f"  内容预览: {email['content'][:100]}{'...' if len(email['content']) > 100 else ''}")
+                print(f"Email {i}:")
+                print(f"  Sender Name: {email['sender_name']}")
+                print(f"  Subject: {email['subject']}")
+                print(f"  Content-Type: {email.get('content_type', 'auto')}")
+                preview = email['content'][:100]
+                print(f"  Content Preview: {preview}{'...' if len(email['content']) > 100 else ''}")
                 print("-" * 40)
-            print(f"\n总计: {len(emails)} 封邮件")
+            print(f"\nTotal: {len(emails)} emails")
         else:
             print(f"Dry-run: {len(emails)} emails loaded")
         return
     
-    # 确认发送
+    # Confirmation before sending
     if not args.no_confirm:
         if verbose:
-            print(f"\n准备发送 {len(emails)} 封邮件到 {args.receiver}")
-        confirm = input("是否继续？(y/n): ")
+            print(f"\nReady to send {len(emails)} emails to {args.receiver}")
+        confirm = input("Continue? (y/n): ")
         if confirm.lower() != 'y':
             if verbose:
-                print("已取消发送")
+                print("Sending aborted.")
             sys.exit(0)
     
-    # 创建发送器并发送邮件
+    # Create sender and send emails
     if verbose:
-        print("\n开始发送邮件...\n")
+        print("\nStarting to send emails...\n")
     
     sender = LocalEmailSender(args.sender, args.password, use_auth=False, verbose=verbose)
     success_count, fail_count, failed_emails = sender.send_batch_emails(
@@ -444,25 +434,25 @@ def main():
         delay=args.delay
     )
     
-    # 显示最终结果
+    # Final result
     if verbose:
         print("\n" + "=" * 60)
-        print("发送完成！")
-        print(f"成功: {success_count} 封")
-        print(f"失败: {fail_count} 封")
+        print("Send completed!")
+        print(f"Success: {success_count}")
+        print(f"Failed: {fail_count}")
         print("=" * 60)
     else:
-        # 安静模式下只打印简单结果
-        print(f"完成: 成功 {success_count}/{len(emails)}")
+        # Quiet mode just print summary
+        print(f"Finished: {success_count} successful / {len(emails)} total")
     
-    # 如果有失败的邮件，打印详情并抛出异常
+    # Print details and raise error if any failures
     if fail_count > 0:
-        print(f"\n❌ 有 {fail_count} 封邮件发送失败:")
+        print(f"\n❌ {fail_count} emails failed to send:")
         for failed in failed_emails:
-            print(f"  - 第 {failed['index']} 封: {failed['sender_name']} - {failed['subject']}")
+            print(f"  - Email {failed['index']}: {failed['sender_name']} - {failed['subject']}")
         
-        # 抛出异常使程序返回非0状态码
-        raise EmailSendError(f"{fail_count} 封邮件发送失败")
+        # Raise error so the program exits with nonzero status
+        raise EmailSendError(f"{fail_count} email(s) failed to send.")
 
 if __name__ == "__main__":
     try:
@@ -470,8 +460,8 @@ if __name__ == "__main__":
     except EmailSendError:
         sys.exit(1)
     except KeyboardInterrupt:
-        print("\n\n程序被用户中断")
+        print("\n\nInterrupted by user")
         sys.exit(1)
     except Exception as e:
-        print(f"\n❌ 程序出错: {e}")
+        print(f"\n❌ Program Error: {e}")
         sys.exit(1)

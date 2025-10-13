@@ -3,37 +3,34 @@ import sys
 import os
 from .check_local import main as check_local_main
 
-
-if __name__=="__main__":
+if __name__ == "__main__":
     parser = ArgumentParser()
-    print("args started")
+    print("Argument parsing started")
     parser.add_argument("--agent_workspace", required=False)
     parser.add_argument("--groundtruth_workspace", required=False)
     parser.add_argument("--res_log_file", required=False)
     parser.add_argument("--launch_time", required=False, help="Launch time")
-    parser.add_argument('--subject', '-s', default='nlp-course-emergency', help='邮件主题关键词')
+    parser.add_argument('--subject', '-s', default='nlp-course-emergency', help='Subject keyword')
     args = parser.parse_args()
 
-    
-    # 检查本地邮箱配置
+    # Check local email configuration
     try:
-        # 本地邮箱无需外部配置文件，直接使用内置配置
-        print("✅ 使用本地邮箱配置")
-            
+        # Local email config is used directly without external config files
+        print("✅ Using local email configuration")
     except Exception as e:
-        print(f"❌ 错误：配置验证失败: {e}")
+        print(f"❌ Error: Configuration validation failed: {e}")
         exit(1)
 
-    # 运行邮件检查
+    # Run email check
     try:
         success = check_local_main()
     except Exception as e:
-        print(f"❌ 运行过程中发生异常: {e}")
+        print(f"❌ An exception occurred during execution: {e}")
         success = False
-    
+
     if success:
-        print("\n🎉 测试成功！")
+        print("\n🎉 Test succeeded!")
     else:
-        print("\n💥 测试失败！")
-    
+        print("\n💥 Test failed!")
+
     exit(0 if success else 1)

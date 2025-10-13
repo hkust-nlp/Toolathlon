@@ -544,7 +544,7 @@ API_MAPPINGS = {
         price=[0.003, 0.015],
         concurrency=32,
         context_window=1000000,
-        # openrouter_config={"provider": {"only": ["anthropic"]}}
+        openrouter_config={"provider": {"only": ["anthropic"]}}
     ),
     'claude-4-sonnet-0514': Dict(
         api_model={"aihubmix": "claude-sonnet-4-20250514",

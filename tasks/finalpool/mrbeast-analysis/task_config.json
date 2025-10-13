@@ -6,6 +6,7 @@
     "youtube-transcript"
   ],
   "needed_local_tools": [
+    "python_execute",
     "claim_done",
     "handle_overlong_tool_outputs",
     "manage_context",
