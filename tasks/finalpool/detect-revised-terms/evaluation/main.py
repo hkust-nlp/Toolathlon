@@ -13,7 +13,6 @@ if __name__=="__main__":
     parser.add_argument("--launch_time", required=False, help="Launch time")
     args = parser.parse_args()
 
-    # 只有在提供了res_log_file参数时才读取
     res_log = None
     if args.res_log_file:
         res_log = read_json(args.res_log_file)
