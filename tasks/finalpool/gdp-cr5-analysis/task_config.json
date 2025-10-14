@@ -1,6 +1,7 @@
 {
   "needed_mcp_servers": [
     "google_sheet",
+    "playwright_with_chunk",
     "fetch"
   ],
   "needed_local_tools": [
