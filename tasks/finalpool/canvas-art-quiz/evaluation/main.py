@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 from utils.general.helper import normalize_str
 
-# Add parent directory to path to import canvas_api and token config
+# Add parent directory to sys.path to import canvas_api and token config
 parent_dir = Path(__file__).parent.parent
 sys.path.append(str(parent_dir))
 
@@ -65,48 +65,7 @@ def load_expected_questions():
             'correct_answer': 'A'
         }
     ]
-    # expected_questions = [
-    #     {
-    #         'question_text': '卡拉瓦乔的明暗对照法（chiaroscuro）对巴洛克绘画的影响，最准确的描述是：',
-    #         'options': [
-    #             '仅限于意大利本土，未能传播到其他欧洲国家',
-    #             '创造了一种戏剧性的光影效果，强调了宗教主题的神秘性和情感张力',
-    #             '主要影响了静物画和风景画的发展',
-    #             '延续了文艺复兴盛期的柔和过渡式明暗处理'
-    #         ],
-    #         'correct_answer': 'B'
-    #     },
-    #     {
-    #         'question_text': '库尔贝1855年在巴黎世界博览会期间举办"现实主义展览馆"的历史意义在于：',
-    #         'options': [
-    #             '首次将印象派作品介绍给公众',
-    #             '标志着艺术家独立于官方沙龙体系的开端',
-    #             '促成了法国学院派与前卫艺术的和解',
-    #             '确立了历史画作为最高艺术体裁的地位'
-    #         ],
-    #         'correct_answer': 'B'
-    #     },
-    #     {
-    #         'question_text': '关于杜尚的《泉》（1917），以下哪项解释最准确地体现了这件作品的革命性？',
-    #         'options': [
-    #             '展示了工业产品的形式美感',
-    #             '通过挪用和重新语境化，质疑了艺术创作的本质和艺术体制的权威',
-    #             '开创了装置艺术的先河',
-    #             '将日常用品提升为高雅艺术'
-    #         ],
-    #         'correct_answer': 'B'
-    #     },
-    #     {
-    #         'question_text': '罗斯科（Mark Rothko）的色域绘画与巴内特·纽曼（Barnett Newman）的"拉链"绘画的根本差异在于：',
-    #         'options': [
-    #             '罗斯科追求色彩的情感共鸣和精神性体验，纽曼强调瞬间性和崇高感的智性表达',
-    #             '罗斯科使用几何形状，纽曼使用有机形态',
-    #             '罗斯科关注政治主题，纽曼专注于纯粹抽象',
-    #             '罗斯科受立体主义影响，纽曼受超现实主义影响'
-    #         ],
-    #         'correct_answer': 'A'
-    #     }
-    # ]
+
     return expected_questions
 
 def find_ah101_course(canvas):
@@ -219,21 +178,21 @@ def main(agent_workspace, groundtruth_workspace, res_log_file):
     )
     
     # Step 1: Find Art History course
-    print("\n1. 查找Art History (AH101)课程...")
+    print("\n1. Searching for Art History (AH101) course...")
     course_id = find_ah101_course(canvas)
     if not course_id:
-        print("❌ 无法继续验证：找不到Art History课程")
+        print("❌ Cannot continue verification: Art History course not found")
         return False, "Unknown error"
     
     # Step 2: List quizzes in the course
-    print("\n2. 查找课程中的quiz...")
+    print("\n2. Searching for quizzes in the course...")
     quizzes = canvas.list_quizzes(course_id)
     
     if not quizzes:
-        print("❌ 课程中没有找到quiz")
+        print("❌ No quizzes found in the course")
         return False, "Can not find quiz in the course"
     
-    print(f"找到 {len(quizzes)} 个quiz:")
+    print(f"Found {len(quizzes)} quizzes:")
     for i, quiz in enumerate(quizzes, 1):
         print(f"   {i}. {quiz.get('title', 'Unknown')} (ID: {quiz.get('id')})")
     
@@ -242,47 +201,47 @@ def main(agent_workspace, groundtruth_workspace, res_log_file):
     quiz_id = quiz['id']
     quiz_title = quiz['title']
     
-    print(f"\n3. 获取quiz '{quiz_title}' 的详细信息...")
+    print(f"\n3. Retrieving detailed info for quiz '{quiz_title}'...")
     quiz_info = canvas.get_quiz_info(course_id, quiz_id)
     
     if not quiz_info:
-        print("❌ 无法获取quiz详细信息")
+        print("❌ Unable to get quiz details")
         return False, "Can not get quiz info"
     
     # Step 4: Load expected questions
-    print("\n4. 加载预期题目内容...")
+    print("\n4. Loading expected questions...")
     expected_questions = load_expected_questions()
     
     # Step 5: Verify quiz content
-    print("\n5. 验证quiz内容...")
+    print("\n5. Verifying quiz content...")
     is_valid, error_message = verify_quiz_questions(quiz_info, expected_questions)
     
     if is_valid:
-        print("✅ Quiz验证成功！")
-        print(f"   Quiz标题: {quiz_info.get('title')}")
-        print(f"   题目数量: {quiz_info.get('total_questions')}")
-        print(f"   题目类型: 全部为多选题")
-        print(f"   正确答案: BBBA")
+        print("✅ Quiz verification succeeded!")
+        print(f"   Quiz title: {quiz_info.get('title')}")
+        print(f"   Number of questions: {quiz_info.get('total_questions')}")
+        print(f"   Question type: All multiple choice")
+        print(f"   Correct answers: BBBA")
         
         # Display question summary
-        print(f"\n📋 题目摘要:")
+        print(f"\n📋 Question summary:")
         for i, question in enumerate(quiz_info.get('questions', []), 1):
             correct_answers = [ans for ans in question.get('answers', []) if ans.get('is_correct', False)]
             correct_letter = chr(65 + question.get('answers', []).index(correct_answers[0])) if correct_answers else '?'
-            print(f"   题目 {i}: {correct_letter}")
+            print(f"   Question {i}: {correct_letter}")
         
         return True, "All questions verified successfully"
 
     else:
-        print("❌ Quiz验证失败！")
-        print(f"   错误信息: {error_message}")
+        print("❌ Quiz verification failed!")
+        print(f"   Error message: {error_message}")
         
         # Show detailed comparison
-        print(f"\n📊 详细对比:")
+        print(f"\n📊 Detailed comparison:")
         questions = quiz_info.get('questions', [])
         for i, (actual_q, expected_q) in enumerate(zip(questions, expected_questions)):
-            print(f"\n   题目 {i+1}:")
-            print(f"     类型: {actual_q.get('question_type')}")
+            print(f"\n   Question {i+1}:")
+            print(f"     Type: {actual_q.get('question_type')}")
             
             # Show correct answer
             actual_answers = actual_q.get('answers', [])
@@ -291,7 +250,7 @@ def main(agent_workspace, groundtruth_workspace, res_log_file):
                 correct_index = actual_answers.index(correct_answers[0])
                 actual_letter = chr(65 + correct_index)
                 expected_letter = expected_q['correct_answer']
-                print(f"     正确答案: 实际={actual_letter}, 预期={expected_letter}")
+                print(f"     Correct answer: actual={actual_letter}, expected={expected_letter}")
         
     return False, error_message
     
@@ -307,12 +266,12 @@ if __name__ == "__main__":
 
     ret, msg = main(args.agent_workspace, args.groundtruth_workspace, args.res_log_file)
 
-    # 删除Art History课程
+    # Delete Art History course (optional, commented out)
     # try:
     #     canvas_url = f"http://{all_token_key_session.canvas_admin_domain}"
     #     canvas_token = all_token_key_session.canvas_api_token
     #     canvas = CanvasAPI(canvas_url, canvas_token)
-    #     # 查找名为"Art History"的课程
+    #     # Look for course named "Art History"
     #     courses = canvas.list_courses()
     #     art_history_course = None
     #     for course in courses:
@@ -322,15 +281,15 @@ if __name__ == "__main__":
     #     if art_history_course:
     #         course_id = art_history_course.get('id')
     #         canvas.delete_course(course_id)
-    #         print(f"🗑️ 已删除课程: Art History (ID: {course_id})")
+    #         print(f"🗑️ Deleted course: Art History (ID: {course_id})")
     #     else:
-    #         print("⚠️ 未找到名为 'Art History' 的课程，无需删除。")
+    #         print("⚠️ Course named 'Art History' not found; nothing to delete.")
     # except Exception as e:
     #     print(e)
-    #     print(f"❌ 删除Art History课程时出错: {e}")
+    #     print(f"❌ Error deleting Art History course: {e}")
 
     if not ret:
         print(msg)
         exit(1)
 
-    print("✅ 验证成功")
+    print("✅ Verification successful")
