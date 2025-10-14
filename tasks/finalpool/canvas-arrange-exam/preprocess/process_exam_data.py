@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-考试信息整理脚本
-从course_config.json中提取考试信息，按照preprocess/result.csv的列名要求整理并写入exam_schedule.csv
+Exam Information Processing Script
+Extract exam information from course_config.json and write into exam_schedule.csv according to preprocess/result.csv columns.
 """
 
 import json
@@ -10,27 +10,27 @@ from pathlib import Path
 from datetime import datetime
 
 def load_course_config():
-    """加载课程配置文件"""
+    """Load the course configuration file."""
     config_file = Path(__file__).parent.parent / "files" / "course_config copy.json"
     
     if not config_file.exists():
-        raise FileNotFoundError(f"课程配置文件不存在: {config_file}")
+        raise FileNotFoundError(f"Course configuration file does not exist: {config_file}")
     
     with open(config_file, 'r', encoding='utf-8') as f:
         return json.load(f)
 
 def extract_exam_info(course_data):
-    """从课程数据中提取考试信息"""
+    """Extract exam information from course data."""
     exam_records = []
     
     for course in course_data.get('courses', []):
-        # 基本信息
+        # Basic information
         course_code = course.get('course_code', '')
         course_name = course.get('name', '')
         exam_time = course.get('exam_time', '')
         teacher = course.get('teacher', '')
         
-        # 处理考试类型
+        # Handle exam type
         exam_type = course.get('exam_type', 'closed_book')
         if exam_type == 'closed_book':
             open_closed_book = 'Closed-book'
@@ -41,7 +41,7 @@ def extract_exam_info(course_data):
         else:
             open_closed_book = exam_type.title()
         
-        # 处理时长
+        # Handle duration
         duration_value = course.get('duration', '')
         duration_unit = course.get('duration_unit', 'minutes')
         if duration_value and duration_unit:
@@ -49,13 +49,13 @@ def extract_exam_info(course_data):
         else:
             duration = 'TBD'
         
-        # 处理地点
+        # Handle location
         location = course.get('location', 'TBD')
         
-        # 处理时间
+        # Handle time
         if exam_time:
             try:
-                # 解析时间格式
+                # Parse time format
                 dt = datetime.strptime(exam_time, "%Y-%m-%d %H:%M")
                 final_date = dt.strftime("%Y-%m-%d")
                 time_str = dt.strftime("%H:%M")
@@ -66,13 +66,13 @@ def extract_exam_info(course_data):
             final_date = 'TBD'
             time_str = 'TBD'
         
-        # 信息源（默认为Announcement）
+        # Information source (default Announcement)
         information_source = 'Announcement'
         
-        # 课程学分
+        # Course credit
         course_credit = str(course.get('credits', 'TBD'))
         
-        # 创建考试记录
+        # Create exam record
         exam_record = {
             'Course Code': course_code,
             'Course Name': course_name,
@@ -91,12 +91,12 @@ def extract_exam_info(course_data):
     return exam_records
 
 def write_to_csv(exam_records, output_file):
-    """将考试信息写入CSV文件"""
+    """Write exam records to a CSV file."""
     if not exam_records:
-        print("没有考试信息需要写入")
+        print("No exam records to write.")
         return
     
-    # 定义列名顺序（根据preprocess/result.csv）
+    # Define column order (according to preprocess/result.csv)
     columns = [
         'Course Code',
         'Course Name',
@@ -113,52 +113,52 @@ def write_to_csv(exam_records, output_file):
     with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=columns)
         
-        # 写入表头
+        # Write header
         writer.writeheader()
         
-        # 写入数据
+        # Write records
         for record in exam_records:
             writer.writerow(record)
     
-    print(f"考试信息已成功写入: {output_file}")
+    print(f"Exam information successfully written to: {output_file}")
 
 def main():
-    """主函数"""
+    """Main function."""
     try:
-        print("开始处理考试信息...")
+        print("Start processing exam information...")
         
-        # 1. 加载课程配置
-        print("加载课程配置文件...")
+        # 1. Load course configuration
+        print("Loading course configuration file...")
         course_data = load_course_config()
-        print(f"成功加载 {len(course_data.get('courses', []))} 门课程")
+        print(f"Successfully loaded {len(course_data.get('courses', []))} courses")
         
-        # 2. 提取考试信息
-        print("提取考试信息...")
+        # 2. Extract exam information
+        print("Extracting exam information...")
         exam_records = extract_exam_info(course_data)
-        print(f"提取到 {len(exam_records)} 条考试记录")
+        print(f"Extracted {len(exam_records)} exam records")
         
-        # 3. 写入CSV文件
+        # 3. Write to CSV
         output_file = Path(__file__).parent / "exam_schedule.csv"
-        print(f"写入考试信息到: {output_file}")
+        print(f"Writing exam information to: {output_file}")
         write_to_csv(exam_records, output_file)
         
-        # 4. 显示统计信息
-        print("\n考试信息统计:")
-        print(f"总课程数: {len(course_data.get('courses', []))}")
-        print(f"考试记录数: {len(exam_records)}")
+        # 4. Show summary statistics
+        print("\nExam Information Statistics:")
+        print(f"Total number of courses: {len(course_data.get('courses', []))}")
+        print(f"Number of exam records: {len(exam_records)}")
         
-        # 5. 显示前几条记录作为预览
+        # 5. Preview top records
         if exam_records:
-            print("\n前3条考试记录预览:")
+            print("\nPreview of the first 3 exam records:")
             for i, record in enumerate(exam_records[:3]):
-                print(f"\n记录 {i+1}:")
+                print(f"\nRecord {i+1}:")
                 for key, value in record.items():
                     print(f"  {key}: {value}")
         
-        print("\n✅ 考试信息处理完成！")
+        print("\n✅ Exam information processing completed!")
         
     except Exception as e:
-        print(f"❌ 处理过程中发生错误: {str(e)}")
+        print(f"❌ An error occurred during processing: {str(e)}")
         raise
 
 if __name__ == "__main__":

@@ -216,18 +216,18 @@ class CanvasCourseSetup:
         course_name = course_info["name"]
         course_code = course_info["course_code"]
         
-        # 基础公告模板
+        # Basic announcement template
         announcements = []
         
-        # 1. 课程开始欢迎公告
-        # 构建考试类型信息
+        # 1. Course start welcome announcement
+        # Build exam type information
         exam_type = course_info.get("exam_type", "TBD")
         if exam_type == "no_exam":
             exam_type_display = "No Final Exam"
         else:
             exam_type_display = exam_type.replace("_", " ").title()
         
-        # 构建学分信息
+        # Build credit information
         credits = course_info.get("credits", "TBD")
         
         announcements.append({
@@ -235,7 +235,7 @@ class CanvasCourseSetup:
             "content": f"Dear {course_code} students,\n\nWelcome to {course_name}! I'm excited to have you in this course.\n\n🏫 Course Information:\n🎓 Credits: {credits}\n📝 Exam Type: {exam_type_display}\n\n📚 Course Materials:\n- Please check the syllabus for required textbooks\n- All lecture slides will be posted on Canvas\n- Office hours: Tuesdays and Thursdays 2:00-4:00 PM\n\n💡 Important Notes:\n- Please introduce yourself in the discussion forum\n- Check your email regularly for course updates\n- Don't hesitate to ask questions!\n\nLooking forward to a great semester!\n\nBest regards,\nCourse Instructor"
         })
         
-        # 2. 第一次作业公告 (10月)
+        # 2. First assignment announcement (October)
         if "CS" in course_code or "AI" in course_code or "NET" in course_code or "DB" in course_code:
             announcements.append({
                 "title": f"Assignment 1 Released - {course_code}",
@@ -252,14 +252,14 @@ class CanvasCourseSetup:
                 "content": f"Dear {course_code} students,\n\n📝 Your first essay assignment is now available.\n\n📅 Due Date: October 18, 2024, 11:59 PM\n📊 Weight: 20% of final grade\n📄 Length: 1000-1200 words\n\n📋 Assignment Details:\n- Topic: 'The Impact of Technology on Modern Communication'\n- Use MLA format\n- Minimum 5 academic sources required\n- Submit as PDF or Word document\n\n✍️ Requirements:\n- Clear thesis statement\n- Well-structured arguments\n- Proper citations and bibliography\n- Proofread for grammar and style\n\nBest regards,\nCourse Instructor"
             })
         
-        # 3. 期中考试或测验公告 (11月)
+        # 3. Midterm exam or quiz announcement (November)
         if course_info.get("exam_type") != "no_exam":
             announcements.append({
                 "title": f"Midterm Exam Information - {course_code}",
                 "content": f"Dear {course_code} students,\n\n📅 Midterm Exam Schedule:\n\n📅 Date: November 12, 2024\n⏰ Time: Regular class time\n⏱️ Duration: 75 minutes\n📍 Location: Regular classroom\n\n📚 Exam Coverage:\n- Chapters 1-6 from textbook\n- All lecture materials through Week 8\n- Homework assignments 1-4\n\n📝 Format:\n- Multiple choice (40%)\n- Short answer questions (35%)\n- Problem solving (25%)\n\n💡 Study Tips:\n- Review lecture slides and notes\n- Practice problems from homework\n- Attend review session on November 10\n\nGood luck with your preparation!\n\nBest regards,\nCourse Instructor"
             })
         
-        # 4. 项目公告（针对编程类课程）(12月)
+        # 4. Project announcement (for programming courses) (December)
         if "CS" in course_code or "AI" in course_code or "NET" in course_code or "DB" in course_code:
             announcements.append({
                 "title": f"Group Project Announcement - {course_code}",
@@ -271,7 +271,7 @@ class CanvasCourseSetup:
                 "content": f"Dear {course_code} students,\n\n📊 Individual Research Project Announced!\n\n📅 Due Date: December 12, 2024\n📊 Weight: 20% of final grade\n\n🎯 Project Requirements:\n- Choose a mathematical topic related to course material\n- Write a 8-10 page research paper\n- Include mathematical proofs or applications\n- Present findings to the class (10 minutes)\n\n📋 Suggested Topics:\n- Applications of linear algebra in computer graphics\n- Mathematical modeling in real-world problems\n- Historical development of key theorems\n- Computational methods and algorithms\n\n📅 Timeline:\n- Topic selection: November 15, 2024\n- Outline submission: November 25, 2024\n- Draft for peer review: December 5, 2024\n- Final submission: December 12, 2024\n\nBest regards,\nCourse Instructor"
             })
         
-        # # 5. 重要通知公告 (期末准备期 - 12月初)
+        # # 5. Important notice announcement (final preparation period - early December)
         # announcements.append({
         #     "title": f"Final Exam Preparation Updates - {course_code}",
         #     "content": f"Dear {course_code} students,\n\n📢 Important updates as we approach the final exam period:\n\n🚨 Final Exam Reminders:\n- Final exam scheduled for January 2025 (check course announcement for exact date)\n- Review sessions will be scheduled during the last week of classes\n- Office hours extended during exam period (Mon-Fri 1-4 PM)\n\n📚 Study Resources:\n- Comprehensive study guide now available\n- Past exam samples posted for practice\n- All lecture recordings accessible until end of semester\n\n🗓️ End-of-Semester Schedule:\n- Last day of classes: December 20, 2024\n- Final project presentations: December 16-18, 2024\n- Course evaluations due: December 22, 2024\n\n💡 Study Tips:\n- Start reviewing early - don't wait until exam week\n- Form study groups to discuss difficult concepts\n- Attend review sessions for clarification\n\n💬 Questions?\nFeel free to post in the discussion forum or attend office hours.\n\nBest regards,\nCourse Instructor"
@@ -285,7 +285,7 @@ class CanvasCourseSetup:
         total_announcements = 0
         
         try:
-            # 1. 先创建早期的学期公告 (9月-12月，按时间顺序)
+            # 1. First create early semester announcements (September-December, in chronological order)
             additional_announcements = self.generate_additional_announcements(course_info)
             print(f"📝 Creating {len(additional_announcements)} semester announcements for {course_info['name']} (Sep-Dec 2024)")
             
@@ -299,10 +299,10 @@ class CanvasCourseSetup:
                 else:
                     print(f"❌ Failed to create semester announcement {i}")
                 
-                # 小间隔，避免API调用过于频繁
+                # Small interval to avoid API calls being too frequent
                 await asyncio.sleep(0.3)
             
-            # 2. 最后创建期末考试公告 (1月 2025)
+            # 2. Finally create final exam announcement (January 2025)
             print(f"📢 Creating final exam announcement for {course_info['name']} (Jan 2025)")
             main_announcement_created = await self.create_announcement(course_id, course_info["announcement"])
             total_announcements += 1
@@ -315,7 +315,7 @@ class CanvasCourseSetup:
             print(f"📊 Announcement Summary for {course_info['name']}: {success_count}/{total_announcements} created successfully")
             print(f"📅 Timeline: Semester announcements (Sep-Dec 2024) → Final exam (Jan 2025)")
             
-            return success_count > 0  # 至少成功创建一个公告就算成功
+            return success_count > 0  # At least one announcement created successfully
             
         except Exception as e:
             logger.error(f"Error creating multiple announcements for {course_info['name']}: {e}")
@@ -1310,23 +1310,23 @@ async def run_with_args(delete=False, publish=False, agent_workspace=None):
 
 async def main(delete=False, publish=False, agent_workspace=None):
     """Main function that can accept external arguments"""
-    # 如果没有传入参数，则从命令行解析
+    # If no parameters are passed, parse from command line
     if delete is False and publish is False and agent_workspace is None:
         import argparse
         
-        # 创建参数解析器
+        # Create parameter parser
         parser = argparse.ArgumentParser(description='Canvas Course Setup Tool')
         parser.add_argument('--delete', action='store_true', help='Delete all courses')
         parser.add_argument('--publish', action='store_true', help='Publish all unpublished courses')
         parser.add_argument('--agent_workspace', help='Agent workspace path')
         
-        # 解析参数
+        # Parse parameters
         args = parser.parse_args()
         delete = args.delete
         publish = args.publish
         agent_workspace = args.agent_workspace
     
-    # 调用run_with_args函数
+    # Call run_with_args function
     await run_with_args(delete=delete, publish=publish, agent_workspace=agent_workspace)
 
 if __name__ == "__main__":

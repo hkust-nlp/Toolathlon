@@ -1,170 +1,170 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-考试通知邮件一键导入脚本
-直接将邮件注入到收件箱，而不是通过发送
-支持自定义时间戳
+Exam Notification Email Injector Script
+Directly injects exam notification emails into the inbox, without sending
+Supports custom timestamps
 """
 
 import sys
 from pathlib import Path
 from datetime import datetime
 
-# 添加路径以便导入send_exam_notification_smtp模块
+# Add path to import send_exam_notification_smtp module
 sys.path.append(str(Path(__file__).parent))
 
 from send_exam_notification_smtp import inject_exam_emails_from_config
 
 
 def inject_with_custom_time():
-    """使用自定义时间注入邮件"""
+    """Inject exam notification emails with a custom timestamp"""
     
-    # 配置文件路径
+    # Path to the config file
     config_file = Path(__file__).parent.parent / 'files' / 'email_config.json'
     
-    print("🕐 一键导入考试通知邮件 - 自定义时间模式")
+    print("🕐 Exam Notification Email Injector - Custom Time Mode")
     print("=" * 50)
     
-    # 设置不同的时间点示例
+    # Example scenarios with different timestamps
     email_scenarios = [
         {
-            "name": "期末考试通知（发送于12月1日上午）",
+            "name": "Final Exam Notification (Sent on Dec 1 Morning)",
             "time": datetime(2024, 12, 1, 10, 0, 0),
-            "description": "学期末期，正式通知期末考试安排"
+            "description": "End of term: Official final exam arrangement notification"
         },
         {
-            "name": "考试提醒（发送于12月15日下午）", 
+            "name": "Exam Reminder (Sent on Dec 15 Afternoon)", 
             "time": datetime(2024, 12, 15, 15, 30, 0),
-            "description": "考试前一个月提醒"
+            "description": "Reminder one month before the exam"
         },
         {
-            "name": "最后提醒（发送于1月10日早上）",
+            "name": "Last Reminder (Sent on Jan 10 Morning)",
             "time": datetime(2025, 1, 10, 8, 0, 0), 
-            "description": "考试前几天的最后提醒"
+            "description": "Final reminder days before the exam"
         }
     ]
     
-    print("请选择要导入的邮件场景：")
+    print("Please select which email scenario to inject:")
     for i, scenario in enumerate(email_scenarios, 1):
         print(f"{i}. {scenario['name']}")
-        print(f"   时间: {scenario['time'].strftime('%Y-%m-%d %H:%M:%S')}")
-        print(f"   说明: {scenario['description']}")
+        print(f"   Time: {scenario['time'].strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"   Description: {scenario['description']}")
         print()
     
-    print("4. 使用当前时间")
-    print("5. 手动输入时间")
+    print("4. Use current time")
+    print("5. Enter custom time manually")
     print()
     
     try:
-        choice = input("请输入选择 (1-5): ").strip()
+        choice = input("Enter your choice (1-5): ").strip()
         
         if choice == "1":
             selected_scenario = email_scenarios[0]
             timestamp = selected_scenario["time"].timestamp()
-            print(f"📅 选择场景: {selected_scenario['name']}")
-            print(f"⏰ 邮件时间: {selected_scenario['time'].strftime('%Y-%m-%d %H:%M:%S')}")
+            print(f"📅 Selected scenario: {selected_scenario['name']}")
+            print(f"⏰ Email time: {selected_scenario['time'].strftime('%Y-%m-%d %H:%M:%S')}")
             
         elif choice == "2":
             selected_scenario = email_scenarios[1]
             timestamp = selected_scenario["time"].timestamp()
-            print(f"📅 选择场景: {selected_scenario['name']}")
-            print(f"⏰ 邮件时间: {selected_scenario['time'].strftime('%Y-%m-%d %H:%M:%S')}")
+            print(f"📅 Selected scenario: {selected_scenario['name']}")
+            print(f"⏰ Email time: {selected_scenario['time'].strftime('%Y-%m-%d %H:%M:%S')}")
             
         elif choice == "3":
             selected_scenario = email_scenarios[2]
             timestamp = selected_scenario["time"].timestamp()
-            print(f"📅 选择场景: {selected_scenario['name']}")
-            print(f"⏰ 邮件时间: {selected_scenario['time'].strftime('%Y-%m-%d %H:%M:%S')}")
+            print(f"📅 Selected scenario: {selected_scenario['name']}")
+            print(f"⏰ Email time: {selected_scenario['time'].strftime('%Y-%m-%d %H:%M:%S')}")
             
         elif choice == "4":
             timestamp = None
-            print("📅 使用当前时间")
+            print("📅 Using current time")
             
         elif choice == "5":
-            print("请输入时间 (格式: YYYY-MM-DD HH:MM:SS)")
-            time_str = input("时间: ").strip()
+            print("Please input a timestamp (format: YYYY-MM-DD HH:MM:SS)")
+            time_str = input("Time: ").strip()
             custom_time = datetime.strptime(time_str, "%Y-%m-%d %H:%M:%S")
             timestamp = custom_time.timestamp()
-            print(f"⏰ 自定义时间: {custom_time.strftime('%Y-%m-%d %H:%M:%S')}")
+            print(f"⏰ Custom time: {custom_time.strftime('%Y-%m-%d %H:%M:%S')}")
             
         else:
-            print("❌ 无效选择")
+            print("❌ Invalid choice")
             return False
             
-        print("\n🚀 开始导入邮件...")
+        print("\n🚀 Starting email injection ...")
         print("-" * 50)
         
-        # 执行邮件注入
+        # Execute email injection
         success = inject_exam_emails_from_config(str(config_file), timestamp)
         
         return success
         
     except ValueError as e:
-        print(f"❌ 时间格式错误: {e}")
-        print("请使用格式: YYYY-MM-DD HH:MM:SS，例如: 2024-12-01 10:00:00")
+        print(f"❌ Timestamp format error: {e}")
+        print("Please use format: YYYY-MM-DD HH:MM:SS, e.g.: 2024-12-01 10:00:00")
         return False
     except Exception as e:
-        print(f"❌ 操作失败: {e}")
+        print(f"❌ Operation failed: {e}")
         return False
 
 
 def inject_current_time():
-    """使用当前时间注入邮件"""
+    """Inject exam notification emails with current timestamp"""
     
     config_file = Path(__file__).parent.parent / 'files' / 'email_config.json'
     
-    print("🕐 一键导入考试通知邮件 - 当前时间模式")
+    print("🕐 Exam Notification Email Injector - Current Time Mode")
     print("=" * 50)
     
-    # 使用当前时间注入
+    # Inject with current time
     success = inject_exam_emails_from_config(str(config_file), None)
     
     return success
 
 
 def main():
-    """主函数"""
-    print("📧 考试通知邮件一键导入工具")
-    print("🎯 直接将邮件注入到收件箱，无需SMTP发送")
-    print("⏰ 支持自定义邮件时间戳")
+    """Main entry point"""
+    print("📧 Exam Notification Email Bulk Injector Tool")
+    print("🎯 Directly injects exam emails into the inbox, no SMTP sending required")
+    print("⏰ Custom timestamp supported")
     print("=" * 60)
     print()
     
-    print("请选择导入模式：")
-    print("1. 自定义时间模式 (可选择预设场景或手动输入时间)")
-    print("2. 当前时间模式 (立即导入)")
-    print("3. 退出")
+    print("Please select an injection mode:")
+    print("1. Custom time mode (pick a preset scenario or enter time manually)")
+    print("2. Current time mode (inject immediately)")
+    print("3. Exit")
     print()
     
     try:
-        mode = input("请输入选择 (1-3): ").strip()
+        mode = input("Enter your choice (1-3): ").strip()
         
         if mode == "1":
             success = inject_with_custom_time()
         elif mode == "2":
             success = inject_current_time()
         elif mode == "3":
-            print("👋 再见！")
+            print("👋 Bye!")
             return
         else:
-            print("❌ 无效选择")
+            print("❌ Invalid choice")
             return
             
         if success:
             print("\n" + "=" * 60)
-            print("🎉 邮件导入成功完成！")
-            print("📬 请检查收件箱确认邮件已成功导入")
+            print("🎉 Email injection completed successfully!")
+            print("📬 Please check the inbox to confirm emails were injected")
             print("=" * 60)
         else:
             print("\n" + "=" * 60)
-            print("💥 邮件导入失败！")
-            print("🔍 请检查配置文件和网络连接")
+            print("💥 Email injection failed!")
+            print("🔍 Please check the config file and network connection")
             print("=" * 60)
             
     except KeyboardInterrupt:
-        print("\n\n👋 用户取消操作")
+        print("\n\n👋 Operation cancelled by user")
     except Exception as e:
-        print(f"\n❌ 程序执行失败: {e}")
+        print(f"\n❌ Program execution failed: {e}")
 
 
 if __name__ == "__main__":

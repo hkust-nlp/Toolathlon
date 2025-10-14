@@ -12,7 +12,7 @@
 
 uv run demo.py \
 --eval_config scripts/temp_and_debug/debug_eval_config.json \
---task_dir  finalpool/gdp-cr5-analysis \
+--task_dir  finalpool/canvas-arrange-exam \
 --debug \
 --model_short_name deepseek-v3.2-exp \
 --provider deepseek_official \
