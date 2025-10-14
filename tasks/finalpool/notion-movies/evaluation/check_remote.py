@@ -13,8 +13,14 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(grandparent_dir)))
 print(f"Added directory to sys.path: {grandparent_dir}")
 
 # --- Configuration ---
-import configs.token_key_session as configs
-NOTION_TOKEN = configs.all_token_key_session.notion_integration_key
+from configs.token_key_session import all_token_key_session
+NOTION_TOKEN = all_token_key_session.notion_integration_key
+
+# find page id file
+duplicated_notion_page_id_file = os.path.join(os.path.dirname(__file__), "..", "files", "duplicated_page_id.txt")
+with open(duplicated_notion_page_id_file, "r") as f:
+    duplicated_page_id = f.read()
+TARGET_PAGE_ID = duplicated_page_id
 
 def get_notion_workspace_pages(token):
     """Get all pages in Notion workspace"""
@@ -282,130 +288,52 @@ def find_movie_database_from_page(page_id, token):
         print(f"Error finding movie database: {e}")
         return None
 
-def find_movie_pages(token, parent_page_title="Ultimate Movie Tracker"):
-    """Find all movie pages under the Ultimate Movie Tracker page"""
-    try:
-        # First find all pages with the parent title
-        parent_pages = find_page_by_title(token, parent_page_title, partial_match=False)
-        
-        # Filter for pages that are under "Notion Eval Page"
-        target_parent_page = None
-        print(f"Found {len(parent_pages)} '{parent_page_title}' pages, checking which is under Notion Eval Page...")
-        for i, page in enumerate(parent_pages):
-            print(f"  Checking page {i+1}: {page['title']} (ID: {page['id']})")
-            try:
-                page_details = get_notion_page_properties(page['id'], token)
-                parent = page_details.get('parent', {})
-                print(f"    Parent type: {parent.get('type')}")
-                if parent.get('type') == 'page_id':
-                    parent_id = parent.get('page_id')
-                    print(f"    Parent ID: {parent_id}")
-                    try:
-                        parent_page = get_notion_page_properties(parent_id, token)
-                        parent_props = parent_page.get('properties', {})
-                        parent_title_prop = parent_props.get('title', {}).get('title', [])
-                        parent_title = ''.join([part.get('text', {}).get('content', '') for part in parent_title_prop])
-                        print(f"    Parent page title: '{parent_title}'")
-                        
-                        if 'Notion Eval Page' in parent_title:
-                            print(f"    ✅ Found correct target page under Notion Eval Page!")
-                            target_parent_page = page
-                            break
-                        else:
-                            print(f"    ❌ Not under Notion Eval Page")
-                    except Exception as e:
-                        print(f"    Error getting parent page: {e}")
-                else:
-                    print(f"    ❌ No page parent (type: {parent.get('type')})")
-            except Exception as e:
-                print(f"    Error getting page details: {e}")
-                continue
-        
-        if not target_parent_page:
-            print(f"Could not find {parent_page_title} under Notion Eval Page")
-            if parent_pages:
-                target_parent_page = parent_pages[0]  # Use first match as fallback
-            else:
-                return []
-        
-        parent_page = target_parent_page
-        print(f"Found parent page: {parent_page['title']} (ID: {parent_page['id']})")
-        
-        # Try to find the movie database within this page
-        movie_db_id = find_movie_database_from_page(parent_page['id'], token)
-        
-        if not movie_db_id:
-            # If no movie database found in page blocks, try alternative approach
-            print("No movie database found in page blocks, trying to find it through parent relationships...")
-            
-            # Get all databases and check if any have this page as parent
-            try:
-                all_databases = get_notion_databases(token)
-                for database in all_databases.get('results', []):
-                    db_parent = database.get('parent', {})
-                    if (db_parent.get('type') == 'page_id' and 
-                        db_parent.get('page_id') == parent_page['id']):
-                        
-                        database_title = ''.join([part.get('text', {}).get('content', '') 
-                                                for part in database.get('title', [])])
-                        print(f"Found database with parent relationship: '{database_title}' (ID: {database['id']})")
-                        
-                        # This database belongs to our page, use it
-                        movie_db_id = database['id']
-                        break
-                else:
-                    print("No database found with parent relationship to our page")
-                    return []
-            except Exception as e:
-                print(f"Error searching databases by parent relationship: {e}")
-                return []
-            
-        # Get database entries
-        print(f"Getting entries from movie database {movie_db_id}")
-        try:
-            database_entries = get_database_entries(movie_db_id, token)
-            print(f"Found {len(database_entries.get('results', []))} database entries")
-            
-            # Convert database entries to movie pages format
-            movie_pages = []
-            for entry in database_entries.get('results', []):
-                movie_pages.append({
-                    'id': entry['id'],
-                    'title': entry.get('properties', {}),
-                    'url': entry.get('url', ''),
-                    'properties': entry.get('properties', {})
-                })
-                
-            return movie_pages
-            
-        except Exception as e:
-            print(f"Error getting database entries from {movie_db_id}: {e}")
-            print(f"This might be because the database ID is incorrect or we don't have access")
-            
-            # Try to get the database properties to see if we can access it at all
-            try:
-                print(f"Attempting to get database properties for {movie_db_id}")
-                db_url = f"https://api.notion.com/v1/databases/{movie_db_id}"
-                headers = {
-                    "Authorization": f"Bearer {token}",
-                    "Notion-Version": "2022-06-28",
-                    "Content-Type": "application/json"
-                }
-                response = requests.get(db_url, headers=headers)
-                response.encoding = 'utf-8'
-                print(f"Database properties request status: {response.status_code}")
-                if response.status_code == 200:
-                    print("Database exists and is accessible")
-                else:
-                    print(f"Database access failed: {response.text}")
-            except Exception as db_check_e:
-                print(f"Database check failed: {db_check_e}")
-            
+def find_movie_pages(token):
+    """
+    Get all movie entries directly from the TARGET_PAGE_ID
+    """
+    page_id = TARGET_PAGE_ID
+    print(f"Getting movie database from page {page_id}")
+
+    # Find the movie database within this page
+    movie_db_id = find_movie_database_from_page(page_id, token)
+
+    if not movie_db_id:
+        # If no movie database found in page blocks, try finding through parent relationships
+        print("No movie database found in page blocks, trying to find it through parent relationships...")
+
+        all_databases = get_notion_databases(token)
+        for database in all_databases.get('results', []):
+            db_parent = database.get('parent', {})
+            if (db_parent.get('type') == 'page_id' and
+                db_parent.get('page_id') == page_id):
+
+                database_title = ''.join([part.get('text', {}).get('content', '')
+                                        for part in database.get('title', [])])
+                print(f"Found database with parent relationship: '{database_title}' (ID: {database['id']})")
+
+                movie_db_id = database['id']
+                break
+        else:
+            print("No database found with parent relationship to our page")
             return []
-        
-    except Exception as e:
-        print(f"Error finding movie pages: {e}")
-        return []
+
+    # Get database entries
+    print(f"Getting entries from movie database {movie_db_id}")
+    database_entries = get_database_entries(movie_db_id, token)
+    print(f"Found {len(database_entries.get('results', []))} database entries")
+
+    # Convert database entries to movie pages format
+    movie_pages = []
+    for entry in database_entries.get('results', []):
+        movie_pages.append({
+            'id': entry['id'],
+            'title': entry.get('properties', {}),
+            'url': entry.get('url', ''),
+            'properties': entry.get('properties', {})
+        })
+
+    return movie_pages
 
 def get_notion_databases(token):
     """Get all databases in Notion workspace"""
@@ -722,15 +650,6 @@ def check_star_wars_movie_exists(movies: List[Dict], token: str = None) -> Tuple
     
     return False, ["Star Wars: Episode III - Revenge of the Sith not found"]
 
-def check_youtube_trailer_links(youtube_links: List[str]) -> Tuple[bool, List[str]]:
-    """
-    Check if there are YouTube trailer links
-    """
-    if not youtube_links:
-        return False, ["No YouTube trailer links found"]
-    
-    return True, [f"Found {len(youtube_links)} YouTube trailer link(s)"]
-
 def get_notion_page_content_as_text(page_id: str, token: str) -> str:
     """
     Get Notion page content as plain text
@@ -803,74 +722,27 @@ def check_remote(agent_workspace: str, groundtruth_workspace: str, res_log = Non
     
     if not notion_token:
         return False, "No Notion token provided"
+
+    print("Searching for Ultimate Movie Tracker page and movie database...")
+    movie_pages = find_movie_pages(notion_token)
     
-    try:
-        # First, try to find the Ultimate Movie Tracker page and its movie database
-        print("Searching for Ultimate Movie Tracker page and movie database...")
-        movie_pages = find_movie_pages(notion_token, parent_page_title="Ultimate Movie Tracker")
+    if movie_pages:
+        print(f"Found {len(movie_pages)} movie entries")
         
-        if movie_pages:
-            print(f"Found {len(movie_pages)} movie entries")
-            
-            # Extract movie information from each database entry
-            movies = []
-            for movie_page in movie_pages:
-                try:
-                    movie_info = extract_movie_information_from_page_properties(movie_page['properties'], movie_page.get('id'))
-                    if movie_info['name']:  # Only add if we have a name
-                        movies.append(movie_info)
-                        print(f"- {movie_info['name']}: Status={movie_info['status']}, Genre={movie_info['genre']}, Released={movie_info['released']}, Director={movie_info['director']}")
-                except Exception as e:
-                    print(f"Error extracting info from movie entry: {e}")
-                    continue
-            
-            if movies:
-                print(f"Successfully extracted {len(movies)} movies from database")
-                
-                # Check each requirement
-                results = []
-                
-                # Check movie information completeness
-                movies_complete, missing_movie_info = check_movie_information_completeness(movies)
-                if not movies_complete:
-                    results.extend(missing_movie_info)
-                
-                # Check movie information accuracy (released year and director)
-                movies_accurate, accuracy_issues = check_movie_information_accuracy(movies)
-                if not movies_accurate:
-                    results.extend(accuracy_issues)
-                
-                # Check if Star Wars movie exists with correct information and YouTube link
-                star_wars_ok, star_wars_issues = check_star_wars_movie_exists(movies, notion_token)
-                if not star_wars_ok:
-                    results.extend(star_wars_issues)
-                
-                if results:
-                    return False, " | ".join(results)
-                
-                return True, "All movie database entries have complete information including Star Wars Episode III with specific YouTube trailer link!"
-            else:
-                print("No movie information could be extracted from the database entries")
-                return False, "No movie information could be extracted from the database entries"
+        # Extract movie information from each database entry
+        movies = []
+        for movie_page in movie_pages:
+            try:
+                movie_info = extract_movie_information_from_page_properties(movie_page['properties'], movie_page.get('id'))
+                if movie_info['name']:  # Only add if we have a name
+                    movies.append(movie_info)
+                    print(f"- {movie_info['name']}: Status={movie_info['status']}, Genre={movie_info['genre']}, Released={movie_info['released']}, Director={movie_info['director']}")
+            except Exception as e:
+                print(f"Error extracting info from movie entry: {e}")
+                continue
         
-        # If no movie pages found, try the database approach
-        print("No movie pages found, trying to find movie database...")
-        movie_databases = find_database_by_title(notion_token, "movie", partial_match=True)
-        if movie_databases:
-            print(f"Found movie database: {movie_databases[0]['title']} (ID: {movie_databases[0]['id']})")
-            
-            # Get database entries
-            print("Getting database entries...")
-            database_entries = get_database_entries(movie_databases[0]['id'], notion_token)
-            print(f"Found {len(database_entries.get('results', []))} database entries")
-            
-            # Extract movie information from database
-            movies = extract_movie_information_from_database(database_entries.get('results', []))
-            print(f"Extracted {len(movies)} movies from database")
-            
-            # Print movie information for debugging
-            for movie in movies:
-                print(f"- {movie['name']}: Status={movie['status']}, Genre={movie['genre']}, Released={movie['released']}, Director={movie['director']}")
+        if movies:
+            print(f"Successfully extracted {len(movies)} movies from database")
             
             # Check each requirement
             results = []
@@ -893,95 +765,12 @@ def check_remote(agent_workspace: str, groundtruth_workspace: str, res_log = Non
             if results:
                 return False, " | ".join(results)
             
-            return True, "Ultimate Movie Tracker database has been updated correctly with complete movie information including Star Wars with specific YouTube trailer link!"
+            return True, "All movie database entries have complete information including Star Wars Episode III with specific YouTube trailer link!"
+        else:
+            print("No movie information could be extracted from the database entries")
+            return False, "No movie information could be extracted from the database entries"
         
-        # If no movie database found, try the original approach with the page
-        print("No movie pages or database found, trying to access the page directly...")
         
-        # Find the Ultimate Movie Tracker page
-        print("Searching for 'Notion Eval Page/Ultimate Movie Tracker' page in Notion...")
-        matching_pages = find_page_by_title(notion_token, "Ultimate Movie Tracker", partial_match=True)
-        
-        # Filter for pages that are under "Notion Eval Page"
-        target_page = None
-        print(f"Found {len(matching_pages)} Ultimate Movie Tracker pages, checking which is under Notion Eval Page...")
-        for i, page in enumerate(matching_pages):
-            print(f"Checking page {i+1}: {page['title']} (ID: {page['id']})")
-            # Get the page to check its parent structure
-            try:
-                page_details = get_notion_page_properties(page['id'], notion_token)
-                # Check if this page is under the "Notion Eval Page" by examining the URL or path
-                page_url = page_details.get('url', '')
-                print(f"  Page URL: {page_url}")
-                
-                # Also check parent structure - if it has a parent page, get that page's title
-                parent = page_details.get('parent', {})
-                print(f"  Parent type: {parent.get('type')}")
-                if parent.get('type') == 'page_id':
-                    parent_id = parent.get('page_id')
-                    print(f"  Parent ID: {parent_id}")
-                    try:
-                        parent_page = get_notion_page_properties(parent_id, notion_token)
-                        parent_props = parent_page.get('properties', {})
-                        parent_title_prop = parent_props.get('title', {}).get('title', [])
-                        parent_title = ''.join([part.get('text', {}).get('content', '') for part in parent_title_prop])
-                        print(f"  Parent page title: '{parent_title}'")
-                        
-                        if 'Notion Eval Page' in parent_title:
-                            print(f"  ✅ Found correct target page under Notion Eval Page!")
-                            target_page = page
-                            break
-                        else:
-                            print(f"  ❌ Not under Notion Eval Page")
-                    except Exception as e:
-                        print(f"  Error getting parent page: {e}")
-                else:
-                    print(f"  ❌ No page parent (type: {parent.get('type')})")
-                        
-            except Exception as e:
-                print(f"  Error getting page details: {e}")
-                continue
-        
-        if not target_page:
-            print("Could not find Ultimate Movie Tracker under Notion Eval Page, trying first match...")
-            target_page = matching_pages[0] if matching_pages else None
-            
-        if not target_page:
-            return False, "No page found with title containing 'Ultimate Movie Tracker'"
-        print(f"Found page: {target_page['title']} (ID: {target_page['id']})")
-        
-        # Get page properties first to check access
-        print("Getting page properties...")
-        try:
-            page_properties = get_notion_page_properties(target_page['id'], notion_token)
-            print(f"Page properties: {json.dumps(page_properties, indent=2)}")
-        except Exception as e:
-            print(f"Failed to get page properties: {e}")
-        
-        # Get page content
-        print("Extracting page content...")
-        notion_content = get_notion_page_content_as_text(target_page['id'], notion_token)
-        print(f"----- notion_content -----")
-        print(notion_content)
-        
-        # Also try to get raw blocks for debugging
-        print("Getting raw page blocks...")
-        try:
-            raw_blocks = get_notion_page_blocks(target_page['id'], notion_token)
-            print(f"Raw blocks response: {json.dumps(raw_blocks, indent=2)}")
-        except Exception as e:
-            print(f"Failed to get raw blocks: {e}")
-        
-        if not notion_content.strip():
-            return False, "No content found in the Notion page and no movie pages or database found"
-        
-        print(f"Successfully extracted {len(notion_content)} characters from Notion page")
-        
-        # For now, return success if we can access the page
-        return True, "Page accessible but no movie pages or database found - manual inspection needed"
-        
-    except Exception as e:
-        return False, f"Failed to get Notion content: {str(e)}"
 
 if __name__ == "__main__":
     parser = ArgumentParser()
