@@ -290,7 +290,6 @@ if __name__=="__main__":
         print(f"Public form link saved to: {agent_workspace_path / 'form_link_for_public.txt'}")
     
     # Part 3: Save the drive edit link
-    # groundtruth_workspace是本文件的dir/../groundtruth_workspace
     file_path = os.path.dirname(__file__)
     groundtruth_workspace_path = Path(os.path.join(file_path, "..", "groundtruth_workspace"))
     groundtruth_workspace_path.mkdir(parents=True, exist_ok=True)
