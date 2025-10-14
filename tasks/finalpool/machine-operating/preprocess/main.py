@@ -30,36 +30,96 @@ def check_gcloud_authentication():
     except Exception:
         return False
 
-def delete_bucket(bucket_name="iot_anomaly_reports", project_id=PROJECT_ID, location="us-central1"):
-    print(f"🔍 Checking if bucket exists: {bucket_name}")
+import uuid
 
-    try:
-        storage_client = storage.Client(project=project_id, credentials=credentials)
+def delete_and_recreate_bucket(
+    bucket_name="iot_anomaly_reports", project_id=PROJECT_ID, location="us-central1", max_retries=10
+):
+    """
+    Find all buckets with prefix bucket_name, delete them, and recreate a new unique bucket (prefix bucket_name+uuid),
+    and save the new bucket name to ../groundtruth_workspace/bucket_name.txt file.
+    Retries up to max_retries times for robustness.
+    """
+    import time
 
+    print(f"🔍 Finding and deleting buckets with prefix: {bucket_name}")
+
+    for attempt in range(1, max_retries + 1):
         try:
-            bucket = storage_client.bucket(bucket_name)
-            if bucket.exists():
-                print(f"✅ Bucket {bucket_name} already exists")
+            storage_client = storage.Client(project=project_id, credentials=credentials)
 
-                print(f"🗑️  Deleting bucket {bucket_name}...")
-                bucket.delete()
-                print(f"✅ Successfully deleted bucket {bucket_name}")
+            # Find all buckets with prefix matching
+            found_buckets = []
+            for bucket in storage_client.list_buckets():
+                if bucket.name.startswith(bucket_name):
+                    print(f"🗑️  Deleting bucket: {bucket.name}")
+                    try:
+                        # Need to delete all objects in the bucket first
+                        blobs = list(bucket.list_blobs())
+                        if blobs:
+                            for blob in blobs:
+                                blob.delete()
+                        bucket.delete(force=True)
+                        print(f"✅ Successfully deleted bucket {bucket.name}")
+                    except Exception as del_e:
+                        print(f"⚠️ Error deleting bucket {bucket.name}: {del_e}")
+                    found_buckets.append(bucket.name)
 
-        except NotFound:
-            # Bucket does not exist, create it
-            print(f"📦 Creating bucket: {bucket_name}")
-            bucket = storage_client.create_bucket(bucket_name, location=location)
-            print(f"✅ Successfully created bucket: {bucket_name}")
-            return True
+            # Double check deletion
+            still_exists = [b.name for b in storage_client.list_buckets() if b.name.startswith(bucket_name)]
+            if still_exists:
+                print(f"⚠️ Still found buckets after deletion attempt: {still_exists}. Retrying...")
+                raise Exception("Buckets not fully deleted yet")
 
-        except Conflict:
-            # Bucket already exists (possibly in another project)
-            print(f"⚠️  Bucket {bucket_name} already exists (possibly in another project)")
-            return True
+            # Generate new unique bucket name
+            new_bucket_name = f"{bucket_name}-{uuid.uuid4().hex[:12]}"
+            print(f"📦 Creating new bucket: {new_bucket_name}")
 
-    except Exception as e:
-        print(f"❌ Error checking/creating bucket: {e}")
-        return False
+            # Try to create the new bucket, retry internally if Conflict
+            create_succeeded = False
+            for create_attempt in range(3):
+                try:
+                    bucket_obj = storage_client.bucket(new_bucket_name)
+                    storage_client.create_bucket(bucket_obj, location=location)
+                    print(f"✅ Successfully created bucket: {new_bucket_name}")
+                    create_succeeded = True
+                    break
+                except Conflict:
+                    print(f"⚠️ Bucket name {new_bucket_name} already taken/conflict, retrying with new name...")
+                    new_bucket_name = f"{bucket_name}-{uuid.uuid4().hex[:12]}"
+                except Exception as create_e:
+                    print(f"❌ Failed to create bucket ({create_attempt+1}/3): {create_e}")
+                    time.sleep(2)
+            if not create_succeeded:
+                raise Exception("Failed to create new bucket after retries")
+
+            # Save bucket name to specified file
+            save_path = os.path.abspath(
+                os.path.join(os.path.dirname(__file__), "../groundtruth_workspace/bucket_name.txt")
+            )
+            # Extra retry here in case of file IO issues
+            for file_attempt in range(3):
+                try:
+                    with open(save_path, "w") as f:
+                        f.write(new_bucket_name.strip() + "\n")
+                    print(f"💾 Saved new bucket name to {save_path}")
+                    break
+                except Exception as file_e:
+                    print(f"⚠️ Error saving bucket name file: {file_e}, retrying...")
+                    time.sleep(1)
+            else:
+                raise Exception("Failed to write bucket name file after retries")
+
+            return new_bucket_name
+
+        except Exception as e:
+            print(f"❌ Error handling buckets (attempt {attempt}/{max_retries}): {e}")
+            if attempt < max_retries:
+                print("⏳ Waiting a bit before next retry...")
+                time.sleep(3)
+            else:
+                print("❌ All attempts failed. Giving up.")
+                return False
 
 def check_bq_dataset_exists(dataset_name="machine_operating", project_id=PROJECT_ID):
     """Check if BigQuery dataset exists"""
@@ -246,7 +306,7 @@ def cleanup_preprocess_environment():
     cleanup_results = {}
     
     # Ensure bucket is deleted
-    bucket_ready = delete_bucket("iot_anomaly_reports")
+    bucket_ready = delete_and_recreate_bucket("iot_anomaly_reports")
     cleanup_results["bucket_ready"] = bucket_ready
 
     # Manage machine_operating BigQuery dataset

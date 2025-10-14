@@ -449,7 +449,7 @@ def find_anomaly_report_files(workspace_dir: str) -> list:
         return anomaly_files
 
     for file in os.listdir(workspace_dir):
-        if 'anomaly_report' in file and file.endswith('.csv'):
+        if file == 'anomaly_report.csv':
             file_path = os.path.join(workspace_dir, file)
             file_size = os.path.getsize(file_path)
             anomaly_files.append({
@@ -462,7 +462,7 @@ def find_anomaly_report_files(workspace_dir: str) -> list:
 
 def find_anomaly_report_in_bucket(bucket_name: str = "iot_anomaly_reports", file_pattern: str = "anomaly_report") -> str:
     """Search for anomaly report files matching the pattern in the GCS bucket"""
-    print(f"🔍 Searching for anomaly reports in bucket: gs://{bucket_name}/{file_pattern}*.csv")
+    print(f"🔍 Searching for anomaly reports in bucket: gs://{bucket_name}/{file_pattern}.csv")
 
     try:
         storage_client = storage.Client(credentials=credentials)
@@ -472,11 +472,11 @@ def find_anomaly_report_in_bucket(bucket_name: str = "iot_anomaly_reports", file
 
         matching_files = []
         for blob in blobs:
-            if blob.name.startswith(file_pattern) and blob.name.endswith('.csv'):
+            if blob.name == f"{file_pattern}.csv":
                 matching_files.append(blob.name)
 
         if not matching_files:
-            raise ValueError(f"No anomaly report files found matching pattern '{file_pattern}*.csv' in bucket {bucket_name}")
+            raise ValueError(f"No anomaly report files found matching pattern '{file_pattern}.csv' in bucket {bucket_name}")
 
         print(f"📄 Found {len(matching_files)} matching file(s):")
         for i, file_name in enumerate(matching_files):
@@ -547,7 +547,7 @@ if __name__ == "__main__":
     print(f"Agent workspace: {args.agent_workspace}")
     print(f"Groundtruth workspace: {args.groundtruth_workspace}")
     print(f"Storage bucket: {args.bucket_name}")
-    print(f"Target file pattern: {args.file_pattern}*.csv")
+    print(f"Target file pattern: {args.file_pattern}.csv")
     print(f"Test mode: {args.test_mode}")
     print(f"Time tolerance: {args.time_tolerance}s")
     print(f"Reading tolerance: {args.reading_tolerance}")
@@ -572,6 +572,10 @@ if __name__ == "__main__":
         else:
             # Production mode: download file from GCS
             print("\n🏭 Production mode: Downloading from Google Cloud Storage")
+            # here we load bucket name from ../groundtruth_workspace/bucket_name.txt file
+            with open(os.path.join(args.groundtruth_workspace, "bucket_name.txt"), "r") as f:
+                args.bucket_name = f.read().strip()
+            print(f"📄 Using bucket name: {args.bucket_name}")
             temp_agent_file = validate_task_completion(args.bucket_name, args.file_pattern)
             agent_file = temp_agent_file
             print(f"📄 Using downloaded agent file: {agent_file}")
@@ -584,19 +588,6 @@ if __name__ == "__main__":
             if gt_anomaly_files:
                 groundtruth_file = gt_anomaly_files[0]['filepath']
                 print(f"📄 Using groundtruth file: {groundtruth_file}")
-
-        if not groundtruth_file:
-            possible_paths = [
-                "anomaly_report.csv",
-                "../groundtruth_workspace/anomaly_report.csv",
-                "../../groundtruth/dev/anomaly_report.csv"
-            ]
-
-            for path in possible_paths:
-                if os.path.exists(path):
-                    groundtruth_file = path
-                    print(f"📄 Found groundtruth file: {groundtruth_file}")
-                    break
 
         if not groundtruth_file:
             raise FileNotFoundError("Could not find groundtruth anomaly report file")
