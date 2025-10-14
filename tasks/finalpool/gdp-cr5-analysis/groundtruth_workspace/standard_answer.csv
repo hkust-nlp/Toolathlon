@@ -1,8 +1,8 @@
 Region,Top5_Countries,Top5_GDP_Sum,Region_GDP_Total,CR5_Ratio
-North America,"United States, Canada, Bermuda",27610091,27610091,100
-South Asia,"India, Bangladesh, Pakistan, Sri Lanka, Nepal",4337056,4361631,99.44
-East Asia & Pacific,"China, Japan, Australia, Korea, Rep., Indonesia",26854077,30655246,87.6
-Latin America & Caribbean,"Brazil, Mexico, Argentina, Cuba, Colombia",4856210,6748778,71.96
-Middle East & North Africa,"Saudi Arabia, Israel, United Arab Emirates, Egypt, Arab Rep., Iran, Islamic Rep.",3003009,4414423,68.03
-Sub-Saharan Africa,"Nigeria, South Africa, Ethiopia, Kenya, Angola",1230173,2047347,60.09
-Europe & Central Asia,"Germany, United Kingdom, France, Russian Federation, Italy",14176619,25192038,56.27
+North America,"United States/Canada/Bermuda",27610091,27610091,100
+South Asia,"India/Bangladesh/Pakistan/Sri Lanka/Nepal",4337056,4361631,99.44
+East Asia & Pacific,"China/Japan/Australia/Korea, Rep./Indonesia",26854077,30655246,87.6
+Latin America & Caribbean,"Brazil/Mexico/Argentina/Cuba/Colombia",4856210,6748778,71.96
+Middle East & North Africa,"Saudi Arabia/Israel/United Arab Emirates/Egypt, Arab Rep./Iran, Islamic Rep.",3003009,4414423,68.03
+Sub-Saharan Africa,"Nigeria/South Africa/Ethiopia/Kenya/Angola",1230173,2047347,60.09
+Europe & Central Asia,"Germany/United Kingdom/France/Russian Federation/Italy",14176619,25192038,56.27

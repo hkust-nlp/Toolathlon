@@ -12,6 +12,8 @@ from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
+from utils.general.helper import normalize_str
+
 def init_google_clients(credentials_file: str):
     """Initialize Google Sheets and Drive API clients"""
     if not os.path.exists(credentials_file):
@@ -118,117 +120,104 @@ def load_standard_answer(groundtruth_workspace: str) -> List[Dict[str, str]]:
     
     return standard_data
 
-def normalize_country_name(country_name: str) -> str:
-    """Normalize a single country name to match standard answer format"""
-    if not country_name:
-        return ""
+# def normalize_country_name(country_name: str) -> str:
+#     """Normalize a single country name to match standard answer format"""
+#     if not country_name:
+#         return ""
     
-    normalized = country_name.strip().strip('"').strip("'")
+#     normalized = country_name.strip().strip('"').strip("'")
     
-    country_mappings = {
-        "united states": "united states",
-        "canada": "canada", 
-        "bermuda": "bermuda",
-        "india": "india",
-        "bangladesh": "bangladesh",
-        "pakistan": "pakistan",
-        "sri lanka": "sri lanka",
-        "nepal": "nepal",
-        "china": "china",
-        "japan": "japan",
-        "australia": "australia",
-        "korea, rep.": "korea, rep.",
-        "indonesia": "indonesia",
-        "brazil": "brazil",
-        "mexico": "mexico",
-        "argentina": "argentina",
-        "cuba": "cuba",
-        "colombia": "colombia",
-        "saudi arabia": "saudi arabia",
-        "united arab emirates": "united arab emirates",
-        "egypt, arab rep.": "egypt, arab rep.",
-        "iran, islamic rep.": "iran, islamic rep.",
-        "iraq": "iraq",
-        "nigeria": "nigeria",
-        "south africa": "south africa",
-        "ethiopia": "ethiopia",
-        "kenya": "kenya",
-        "angola": "angola",
-        "germany": "germany",
-        "united kingdom": "united kingdom",
-        "france": "france",
-        "russian federation": "russian federation",
-        "italy": "italy",
-        # Alias
-        "korea": "korea, rep.",
-        "south korea": "korea, rep.",
-        "republic of korea": "korea, rep.",
-        "egypt": "egypt, arab rep.",
-        "iran": "iran, islamic rep.",
-        "islamic republic of iran": "iran, islamic rep.",
-        "russia": "russian federation",
-        "uk": "united kingdom",
-        "britain": "united kingdom",
-        "great britain": "united kingdom",
-        "usa": "united states",
-        "us": "united states",
-        "united states of america": "united states",
-        "uae": "united arab emirates",
-        # Additional aliases
-        "mexico": "mexico",
-        "guatemala": "guatemala", 
-        "costa rica": "costa rica",
-        "turkey": "turkey",
-        "türkiye": "turkey",
-        "israel": "israel",
-        "chile": "chile",
-        "ghana": "ghana",
-        # Possible bidirectional
-        "korea, rep.": "south korea",
-        "egypt, arab rep.": "egypt",
-        "iran, islamic rep.": "iran",
-        "united arab emirates": "uae",
-    }
+#     country_mappings = {
+#         "united states": "united states",
+#         "canada": "canada", 
+#         "bermuda": "bermuda",
+#         "india": "india",
+#         "bangladesh": "bangladesh",
+#         "pakistan": "pakistan",
+#         "sri lanka": "sri lanka",
+#         "nepal": "nepal",
+#         "china": "china",
+#         "japan": "japan",
+#         "australia": "australia",
+#         "korea, rep.": "korea, rep.",
+#         "indonesia": "indonesia",
+#         "brazil": "brazil",
+#         "mexico": "mexico",
+#         "argentina": "argentina",
+#         "cuba": "cuba",
+#         "colombia": "colombia",
+#         "saudi arabia": "saudi arabia",
+#         "united arab emirates": "united arab emirates",
+#         "egypt, arab rep.": "egypt, arab rep.",
+#         "iran, islamic rep.": "iran, islamic rep.",
+#         "iraq": "iraq",
+#         "nigeria": "nigeria",
+#         "south africa": "south africa",
+#         "ethiopia": "ethiopia",
+#         "kenya": "kenya",
+#         "angola": "angola",
+#         "germany": "germany",
+#         "united kingdom": "united kingdom",
+#         "france": "france",
+#         "russian federation": "russian federation",
+#         "italy": "italy",
+#         # Alias
+#         "korea": "korea, rep.",
+#         "south korea": "korea, rep.",
+#         "republic of korea": "korea, rep.",
+#         "egypt": "egypt, arab rep.",
+#         "iran": "iran, islamic rep.",
+#         "islamic republic of iran": "iran, islamic rep.",
+#         "russia": "russian federation",
+#         "uk": "united kingdom",
+#         "britain": "united kingdom",
+#         "great britain": "united kingdom",
+#         "usa": "united states",
+#         "us": "united states",
+#         "united states of america": "united states",
+#         "uae": "united arab emirates",
+#         # Additional aliases
+#         "mexico": "mexico",
+#         "guatemala": "guatemala", 
+#         "costa rica": "costa rica",
+#         "turkey": "turkey",
+#         "türkiye": "turkey",
+#         "israel": "israel",
+#         "chile": "chile",
+#         "ghana": "ghana",
+#         # Possible bidirectional
+#         "korea, rep.": "south korea",
+#         "egypt, arab rep.": "egypt",
+#         "iran, islamic rep.": "iran",
+#         "united arab emirates": "uae",
+#     }
     
-    normalized_lower = normalized.lower()
-    if normalized_lower in country_mappings:
-        return country_mappings[normalized_lower]
+#     normalized_lower = normalized.lower()
+#     if normalized_lower in country_mappings:
+#         return country_mappings[normalized_lower]
     
-    suffixes_to_remove = [", rep.", ", rb", ", the", " republic", " federation"]
-    for suffix in suffixes_to_remove:
-        if normalized_lower.endswith(suffix):
-            normalized_lower = normalized_lower[:-len(suffix)].strip()
-            break
+#     suffixes_to_remove = [", rep.", ", rb", ", the", " republic", " federation"]
+#     for suffix in suffixes_to_remove:
+#         if normalized_lower.endswith(suffix):
+#             normalized_lower = normalized_lower[:-len(suffix)].strip()
+#             break
     
-    return normalized_lower
+#     return normalized_lower
 
 def normalize_countries_list(countries_str: str) -> List[str]:
     """Normalize a country list string to a list of country names"""
     if not countries_str:
         return []
-    if ',' in countries_str:
-        countries = [c.strip().strip('"').strip("'") for c in countries_str.split(',')]
-    elif ';' in countries_str:
-        countries = [c.strip().strip('"').strip("'") for c in countries_str.split(';')]
-    else:
-        countries = [countries_str.strip().strip('"').strip("'")]
-    
-    normalized_countries = []
-    for country in countries:
-        if country:
-            normalized = normalize_country_name(country)
-            if normalized:
-                normalized_countries.append(normalized)
-    
-    return normalized_countries
+    return [normalize_str(c) for c in countries_str.split('/')]
 
 def calculate_country_match_score(agent_countries: List[str], standard_countries: List[str]) -> Tuple[float, List[str]]:
     """Calculate match score for country list"""
     if not agent_countries or not standard_countries:
         return 0.0, []
     
-    agent_normalized = [normalize_country_name(c) for c in agent_countries]
-    standard_normalized = [normalize_country_name(c) for c in standard_countries]
+    # we have already normalized them before
+    agent_normalized = agent_countries
+    standard_normalized = standard_countries
     
     matched_pairs = []
     agent_set = set(agent_normalized)
@@ -263,6 +252,8 @@ def calculate_country_match_score(agent_countries: List[str], standard_countries
         return 1.0, []
     
     score = len(matched_pairs) / total_possible
+    if score < 1.0:
+        print(f"Groundtruth countries and agent countries do not match exactly:\nGroundtruth: {standard_countries}\nAgent: {agent_countries}")
     return score, matched_pairs
 
 def compare_cr5_data(agent_data: List[Dict[str, str]], standard_data: List[Dict[str, str]]) -> Tuple[List[str], Dict[str, any]]:
