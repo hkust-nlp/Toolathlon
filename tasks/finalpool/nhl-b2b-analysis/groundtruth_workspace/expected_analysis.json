@@ -1,9 +1,9 @@
 {
-    "task_description": "NHL 2024-2025赛季背靠背比赛统计",
+    "task_description": "NHL 2024-2025 Season Back-to-Back Games Statistics",
     "analysis_requirements": {
         "sheet_required": {
-            "name": "背靠背比赛统计",
-            "description": "每支球队的四种背靠背模式统计",
+            "name": "Back-to-Back Game Statistics",
+            "description": "Statistics of four types of back-to-back patterns for each team",
             "columns": ["Team", "HA", "AH", "HH", "AA", "Total"],
             "validation_rule": "HA + AH + HH + AA = Total"
         }
@@ -13,11 +13,11 @@
     "standard_answer_sheet_csv_export": "YOUR_STANDARD_ANSWER_GOOGLE_SHEET_CSV_EXPORT_URL_HERE",
     "expected_metrics": {
         "total_nhl_teams": 30,
-        "back_to_back_definition": "两场比赛日期只差1天",
+        "back_to_back_definition": "A back-to-back is defined as two games with only 1 day difference between their dates",
         "analysis_period": "2024-2025 NHL Regular Season",
-                "back_to_back_patterns": {
+        "back_to_back_patterns": {
             "HA": "Home-Away: First game at home, second game away",
-            "AH": "Away-Home: First game away, second game at home", 
+            "AH": "Away-Home: First game away, second game at home",
             "HH": "Home-Home: Both games at home",
             "AA": "Away-Away: Both games away"
         }
@@ -25,27 +25,27 @@
     "evaluation_criteria": {
         "local_files": {
             "required": true,
-            "description": "必须生成包含分析结果的本地文件"
+            "description": "A local file containing the analysis results must be generated"
         },
         "google_sheets": {
             "required": true,
-            "description": "必须创建名为'背靠背比赛统计'的Google Sheets表格"
+            "description": "A Google Sheets table named 'Back-to-Back Game Statistics' must be created"
         },
         "mathematical_validation": {
             "required": true,
-            "description": "每行数据必须满足：HA+AH+HH+AA=Total"
+            "description": "Each row must satisfy: HA+AH+HH+AA=Total"
         },
         "data_accuracy": {
             "required": true,
-            "description": "背靠背比赛识别必须基于日期差1天的准确计算"
+            "description": "Back-to-back games must be identified based on an exact 1-day difference between dates"
         },
         "completeness": {
             "required": true,
-            "description": "必须覆盖所有30支NHL球队"
+            "description": "All 30 NHL teams must be covered"
         },
         "verifiability": {
             "required": true,
-            "description": "所有数字必须可在原始赛程表中复算验证"
+            "description": "All numbers must be verifiable against the original schedule"
         }
     }
 }

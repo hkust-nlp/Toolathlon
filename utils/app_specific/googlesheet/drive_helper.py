@@ -1,7 +1,11 @@
 import os
 import json
+import gspread
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
+from utils.app_specific.google_oauth.ops import get_credentials
+import pandas as pd
+from typing import Optional
 
 def get_google_service():
     credentials_file = "configs/google_credentials.json"
@@ -87,3 +91,63 @@ def copy_sheet_to_folder(drive_service, sheet_url, folder_id):
     ).execute()
     
     return copied_file['id']
+
+def authenticate_google_services():
+    """Authenticate Google services using OAuth2 user credentials."""
+    credentials = get_credentials()
+
+    # Authorize gspread client
+    gc = gspread.authorize(credentials)
+
+    # Initialize Google Drive API client
+    drive_service = build('drive', 'v3', credentials=credentials)
+
+    return gc, drive_service
+
+def find_spreadsheet_in_folder(target_folder_id: str, spreadsheet_name: str = "NHL-B2B-Analysis") -> str:
+    """
+    Search for the Spreadsheet file in the agent workspace folder.
+    Preference: use folder_id.txt to retrieve folder ID for search.
+    """
+    gc, drive_service = authenticate_google_services()
+
+    # Query the target folder for the Spreadsheet with specified name
+    query = f"'{target_folder_id}' in parents and name='{spreadsheet_name}' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false"
+    results = drive_service.files().list(
+        q=query,
+        fields="files(id, name, mimeType)"
+    ).execute()
+
+    files = results.get('files', [])
+    if not files:
+        raise Exception(f"No Google Spreadsheet file found in the folder {target_folder_id} with name {spreadsheet_name}")
+
+    # Return the spreadsheet ID with the specified name
+    spreadsheet = files[0]
+    return spreadsheet['id']
+
+def fetch_google_sheet_data_gspread(sheet_id: str) -> Optional[pd.DataFrame]:
+    """
+    Fetch Google Sheet data using gspread.
+    Note: I'm not sure if this can handle multi sheet spreadsheets.
+    """
+    print(f"Warning: This function can only handle single sheet spreadsheets!!!!")
+    gc, drive_service = authenticate_google_services()
+    spreadsheet = gc.open_by_key(sheet_id)
+
+    # Get the first worksheet
+    worksheet = spreadsheet.get_worksheet(0)
+    if not worksheet:
+        raise Exception("No worksheets found in spreadsheet")
+
+    # Get all data
+    values = worksheet.get_all_values()
+
+    if len(values) < 2:
+        raise Exception("Sheet data insufficient (needs at least one header row and one data row)")
+
+    # Convert to DataFrame
+    df = pd.DataFrame(values[1:], columns=values[0])
+    df = df.dropna(how='all')  # Drop entirely empty rows
+
+    return df
