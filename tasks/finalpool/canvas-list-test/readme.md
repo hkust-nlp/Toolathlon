@@ -14,3 +14,5 @@ final_xiaochen_dev updates:
 - Fixed utils/app_specific/canvas/api_client.py by adding missing submission_types and allowed_extensions parameters to the create_assignment function, so that assignments can be submitted successfully.
 
 the initial state and groundtruth ius dynamically generated in this task!
+
+According to the ENG class info, I do not need to attend this quiz.
