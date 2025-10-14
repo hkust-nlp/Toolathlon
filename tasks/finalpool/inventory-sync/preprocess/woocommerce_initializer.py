@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Tuple
 import sys
 import os
 
-# 添加项目根目录到Python路径
+# Add project root to Python path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 task_dir = os.path.dirname(current_dir)
 sys.path.append(task_dir)
@@ -18,27 +18,28 @@ from clear_all_products import main as clear_all_products
 from token_key_session import all_token_key_session
 
 class WooCommerceStoreInitializer:
-    """WooCommerce商店初始化器 - 从空账户开始设置6城市3RegionInventory系统
-    
-    支持城市：New York、Boston(East)，Dallas、Houston(South)，LA、San Francisco(West)
     """
-    
+    WooCommerce Store Initializer - Set up 6-city, 3-region inventory system from a blank account.
+
+    Supported cities: New York, Boston (East), Dallas, Houston (South), LA, San Francisco (West)
+    """
+
     def __init__(self):
         """
-        初始化器 - 使用预配置的API密钥
+        Initializer - uses preconfigured API credentials.
         """
         self.site_url = all_token_key_session.woocommerce_site_url.rstrip('/')
         self.wc_client = None
         self.consumer_key = None
         self.consumer_secret = None
 
-        print(f"🚀 初始化WooCommerce商店: {self.site_url}")
-    
+        print(f"🚀 Initializing WooCommerce store: {self.site_url}")
+
     def setup_api_credentials(self) -> Tuple[bool, str]:
         """
-        设置API凭据 - 直接使用预配置的API密钥
+        Set up API credentials - uses preconfigured API keys directly.
         """
-        print("🔑 使用预配置的API凭据...")
+        print("🔑 Using preconfigured API credentials...")
 
         consumer_key = all_token_key_session.woocommerce_api_key
         consumer_secret = all_token_key_session.woocommerce_api_secret
@@ -47,29 +48,28 @@ class WooCommerceStoreInitializer:
             self.consumer_key = consumer_key
             self.consumer_secret = consumer_secret
 
-            # 初始化WooCommerce客户端
+            # Initialize WooCommerce client
             self.wc_client = WooCommerceClient(
                 self.site_url,
                 self.consumer_key,
                 self.consumer_secret
             )
 
-            # 测试API连接
+            # Test API connection
             success, response = self.wc_client.list_products(per_page=1)
             if success:
-                print("✅ API连接测试成功")
-                return True, "API密钥设置成功"
+                print("✅ API connection test succeeded")
+                return True, "API credentials set successfully"
             else:
-                print(f"❌ API连接测试失败: {response}")
-                return False, "API连接测试失败"
+                print(f"❌ API connection test failed: {response}")
+                return False, "API connection test failed"
         else:
-            return False, "未提供有效的API密钥"
-    
-    
+            return False, "Valid API credentials not provided"
+
     def create_product_categories(self) -> Dict[str, int]:
-        """创建商品分类"""
-        print("📂 创建商品分类...")
-        
+        """Create product categories"""
+        print("📂 Creating product categories...")
+
         categories = [
             {"name": "Electronic Products", "description": "Mobile phones, computers, digital devices, etc."},
             {"name": "Clothing, Shoes & Accessories", "description": "Clothing, shoes, accessories, etc."},
@@ -77,11 +77,11 @@ class WooCommerceStoreInitializer:
             {"name": "Sports & Outdoors", "description": "Sports equipment, outdoor gear, etc."},
             {"name": "Beauty & Personal Care", "description": "Cosmetics, skincare, personal care products, etc."}
         ]
-        
+
         created_categories = {}
-        
+
         for category in categories:
-            # 创建分类的API调用
+            # Create category via API
             category_data = {
                 "name": category["name"],
                 "description": category["description"],
@@ -90,68 +90,62 @@ class WooCommerceStoreInitializer:
                 "menu_order": 0,
                 "parent": 0
             }
-            
+
             success, response = self.wc_client._make_request('POST', 'products/categories', data=category_data)
-            
+
             if success:
                 category_id = response.get('id')
                 created_categories[category["name"]] = category_id
-                print(f"  ✅ 创建分类: {category['name']} (ID: {category_id})")
+                print(f"  ✅ Created category: {category['name']} (ID: {category_id})")
             else:
-                print(f"  ❌ 创建分类失败: {category['name']} - {response.get('error', '未知错误')}")
-        
+                print(f"  ❌ Failed to create category: {category['name']} - {response.get('error', 'Unknown error')}")
+
         return created_categories
-    
+
     def create_sample_products(self, categories: Dict[str, int]) -> List[Dict]:
-        """创建示例商品"""
-        print("🛍️ 创建示例商品...")
-        
-        # 获取示例商品数据
+        """Create sample products"""
+        print("🛍️ Creating sample products...")
+
+        # Get sample product data
         sample_products = generate_sample_products()
         created_products = []
-        
-        # 分类映射
+
+        # Category mapping
         category_mapping = {
             "Electronic Products": categories.get("Electronic Products"),
-            "Clothing, Shoes & Accessories": categories.get("Clothing, Shoes & Accessories"), 
+            "Clothing, Shoes & Accessories": categories.get("Clothing, Shoes & Accessories"),
             "Home & Living": categories.get("Home & Living")
         }
-        
+
         for product_id, name, category, price, description in sample_products:
             category_id = category_mapping.get(category, categories.get("Electronic Products"))
-            
-            # 生成合理的初始库存、销量和发布时间
+
+            # Generate realistic initial stock, sales, and publish date
             import random
             from datetime import datetime, timedelta
-            
+
             initial_stock = random.randint(50, 200)
-            
-            # 根据商品类型设置不同的销量范围
+
+            # Set different sales ranges depending on product type
             if category == "Electronic Products":
-                initial_sales = random.randint(100, 500)  # Electronic Products 销量高
-                # Electronic Products 近期销量也相对较高
+                initial_sales = random.randint(100, 500)  # Higher sales for electronics
                 sales_30_days = random.randint(int(initial_sales * 0.1), int(initial_sales * 0.3))
-                # Electronic Products 较新，发布时间在最近6个月内
-                days_ago = random.randint(30, 180)
+                days_ago = random.randint(30, 180)  # Published within last 6 months
             elif category == "Clothing, Shoes & Accessories":
-                initial_sales = random.randint(80, 300)   # 服装销量中等
-                # 服装30天销量波动较大（季节性）
+                initial_sales = random.randint(80, 300)   # Medium sales for clothing
                 sales_30_days = random.randint(int(initial_sales * 0.05), int(initial_sales * 0.4))
-                # 服装产品发布时间在最近1年内
-                days_ago = random.randint(60, 365)
+                days_ago = random.randint(60, 365)        # Published within last year
             else:
-                initial_sales = random.randint(20, 150)   # 其他商品销量较低
-                # 其他商品30天销量相对稳定
+                initial_sales = random.randint(20, 150)   # Lower sales for others
                 sales_30_days = random.randint(int(initial_sales * 0.03), int(initial_sales * 0.2))
-                # 其他商品可能更早发布，在最近2年内
-                days_ago = random.randint(90, 730)
-            
-            # 计算发布时间
+                days_ago = random.randint(90, 730)        # Published within last 2 years
+
+            # Calculate publish date
             publish_date = datetime.now() - timedelta(days=days_ago)
             publish_date_str = publish_date.strftime("%Y-%m-%dT%H:%M:%S")
-            
+
             product_data = {
-                "name": "(Test Product) "+name,
+                "name": "(Test Product) " + name,
                 "type": "simple",
                 "regular_price": str(price),
                 "description": description,
@@ -160,10 +154,10 @@ class WooCommerceStoreInitializer:
                 "manage_stock": True,
                 "stock_quantity": initial_stock,
                 "stock_status": "instock",
-                "date_created": publish_date_str,  # 设置发布时间
-                "status": "publish",  # 确保商品已发布
+                "date_created": publish_date_str,  # Set publish time
+                "status": "publish",  # Ensure product is published
                 "categories": [{"id": category_id}] if category_id else [],
-                "images": [],  # 可以后续添加图片
+                "images": [],  # Images can be added later
                 "attributes": [],
                 "meta_data": [
                     {"key": "original_product_id", "value": product_id},
@@ -177,9 +171,9 @@ class WooCommerceStoreInitializer:
                     {"key": "_sales_last_30_days", "value": str(sales_30_days)}
                 ]
             }
-            
+
             success, response = self.wc_client.create_product(product_data)
-            
+
             if success:
                 wc_product_id = response.get('id')
                 created_products.append({
@@ -191,33 +185,33 @@ class WooCommerceStoreInitializer:
                     'price': price,
                     'success': True
                 })
-                print(f"  ✅ 创建商品: {name} (WC ID: {wc_product_id}, SKU: {product_id})")
+                print(f"  ✅ Created product: {name} (WC ID: {wc_product_id}, SKU: {product_id})")
             else:
-                print(f"  ❌ 创建商品失败: {name} - {response.get('error', '未知错误')}")
+                print(f"  ❌ Failed to create product: {name} - {response.get('error', 'Unknown error')}")
                 created_products.append({
                     'original_id': product_id,
                     'name': name,
                     'sku': product_id,
                     'success': False,
-                    'error': response.get('error', '未知错误')
+                    'error': response.get('error', 'Unknown error')
                 })
-        
+
         return created_products
-    
+
     def setup_regional_inventory_system(self, base_products: List[Dict]) -> Dict:
-        """设置RegionInventory系统"""
-        print("🗺️ 设置RegionInventory系统...")
-        
+        """Set up RegionInventory system"""
+        print("🗺️ Setting up RegionInventory system...")
+
         if not self.wc_client:
-            return {"error": "WooCommerce客户端未初始化"}
-        
-        # 初始化库存管理器
+            return {"error": "WooCommerce client not initialized"}
+
+        # Initialize inventory manager
         wc_manager = WooCommerceInventoryManager(self.wc_client)
-        
-        # 为每个区域创建商品变体
+
+        # Create product variants for each region
         regional_setup_results = {}
-        
-        # 将基础商品转换为区域商品格式
+
+        # Convert base products to regional product format
         products_for_regions = []
         for product in base_products:
             if product['success']:
@@ -228,30 +222,30 @@ class WooCommerceStoreInitializer:
                     'description': f"Regional inventory product - {product['name']}",
                     'category': product.get('category', 'Uncategorized')
                 })
-        
+
         if products_for_regions:
-            # 为每个区域初始化商品
+            # Initialize products for each region
             regional_products = wc_manager.initialize_regional_products(products_for_regions)
             regional_setup_results['regional_products'] = regional_products
-            
-            # 创建商品映射表
+
+            # Create product mapping table
             product_mapping = {}
             for region, products in regional_products.items():
                 product_mapping[region] = {}
                 for product in products:
                     if product['success']:
                         product_mapping[region][product['original_id']] = str(product['wc_id'])
-            
+
             regional_setup_results['product_mapping'] = product_mapping
-        
+
         return regional_setup_results
-    
+
     def configure_store_settings(self) -> bool:
-        """配置商店基础设置"""
-        print("⚙️ 配置商店基础设置...")
-        
+        """Configure basic store settings"""
+        print("⚙️ Configuring basic store settings...")
+
         try:
-            # 配置库存管理设置
+            # Configure inventory management settings
             settings_data = {
                 "manage_stock": "yes",
                 "notifications": "yes",
@@ -260,95 +254,93 @@ class WooCommerceStoreInitializer:
                 "out_of_stock_amount": 0,
                 "out_of_stock_visibility": "visible"
             }
-            
-            # 注意：WooCommerce设置API可能需要特殊权限
-            print("  ℹ️ 库存管理设置需要在WooCommerce后台手动配置")
-            print("  📍 路径: WooCommerce > 设置 > 产品 > 库存")
-            print("  ✅ 建议启用库存管理和低库存通知")
-            
+
+            # Note: WooCommerce settings API may require special permissions
+            print("  ℹ️ Inventory management settings should be configured manually via WooCommerce admin panel.")
+            print("  📍 Path: WooCommerce > Settings > Products > Inventory")
+            print("  ✅ It's recommended to enable stock management and low stock notifications.")
+
             return True
-            
+
         except Exception as e:
-            print(f"  ⚠️ 自动配置失败: {e}")
-            print("  📝 请手动在WooCommerce后台配置库存设置")
+            print(f"  ⚠️ Automatic configuration failed: {e}")
+            print("  📝 Please configure inventory settings manually in WooCommerce Admin")
             return False
-    
+
     def run_full_initialization(self) -> Dict:
-        """运行完整的商店初始化流程"""
-        print("🚀 开始完整的WooCommerce商店初始化...")
+        """Run full store initialization process"""
+        print("🚀 Starting full WooCommerce store initialization...")
         print("=" * 60)
-        
+
         results = {
             "success": False,
             "steps": {},
             "errors": []
         }
-        
+
         try:
-            # 步骤1: 设置API凭据
-            print("\n📋 步骤1: 设置API凭据")
+            # Step 1: Set up API credentials
+            print("\n📋 Step 1: Set up API credentials")
             api_success, api_message = self.setup_api_credentials()
             results["steps"]["api_setup"] = {"success": api_success, "message": api_message}
-            
+
             if not api_success:
-                results["errors"].append(f"API设置失败: {api_message}")
+                results["errors"].append(f"API setup failed: {api_message}")
                 return results
-            
-            # 步骤2: 创建商品分类
-            print("\n📋 步骤2: 创建商品分类")
+
+            # Step 2: Create product categories
+            print("\n📋 Step 2: Create product categories")
             categories = self.create_product_categories()
             results["steps"]["categories"] = {"success": len(categories) > 0, "data": categories}
-            
-            # 步骤3: 创建示例商品
-            print("\n📋 步骤3: 创建示例商品")
+
+            # Step 3: Create sample products
+            print("\n📋 Step 3: Create sample products")
             products = self.create_sample_products(categories)
             successful_products = [p for p in products if p['success']]
             results["steps"]["products"] = {
-                "success": len(successful_products) > 0, 
+                "success": len(successful_products) > 0,
                 "data": products,
                 "count": len(successful_products)
             }
-            
-            # 步骤4: 设置RegionInventory系统
-            print("\n📋 步骤4: 设置RegionInventory系统")
+
+            # Step 4: Set up RegionInventory system
+            print("\n📋 Step 4: Set up RegionInventory system")
             regional_setup = self.setup_regional_inventory_system(successful_products)
             results["steps"]["regional_setup"] = {"success": "product_mapping" in regional_setup, "data": regional_setup}
-            
-            # 步骤5: 配置商店设置
-            print("\n📋 步骤5: 配置商店设置")
+
+            # Step 5: Configure store settings
+            print("\n📋 Step 5: Configure store settings")
             settings_success = self.configure_store_settings()
             results["steps"]["store_settings"] = {"success": settings_success}
-            
-            # 检查整体成功状态
+
+            # Check overall success
             results["success"] = all([
                 api_success,
                 len(categories) > 0,
                 len(successful_products) > 0,
                 "product_mapping" in regional_setup
             ])
-            
+
             if results["success"]:
-                print("\n🎉 WooCommerce商店初始化完成！")
+                print("\n🎉 WooCommerce store initialization completed!")
                 print("=" * 60)
-                print(f"✅ 创建了 {len(categories)} 个商品分类")
-                print(f"✅ 创建了 {len(successful_products)} 个基础商品") 
-                print(f"✅ 设置了 3 个区域的库存系统")
-                print("✅ 系统已准备好进行库存同步")
-                
-                # 保存配置信息
+                print(f"✅ {len(categories)} product categories created")
+                print(f"✅ {len(successful_products)} base products created")
+                print(f"✅ Region inventory system set for 3 regions")
+                print("✅ System is ready for inventory synchronization")
                 print(results)
                 self._save_configuration(results)
             else:
-                print("\n❌ 初始化过程中出现问题，请检查错误信息")
-            
+                print("\n❌ There were errors during initialization, please check error messages.")
+
         except Exception as e:
-            results["errors"].append(f"初始化过程异常: {e}")
-            print(f"❌ 初始化失败: {e}")
-        
+            results["errors"].append(f"Exception during initialization: {e}")
+            print(f"❌ Initialization failed: {e}")
+
         return results
-    
+
     def _save_configuration(self, results: Dict):
-        """保存配置信息到文件"""
+        """Save configuration information to file"""
         config_data = {
             "site_url": self.site_url,
             "consumer_key": self.consumer_key,
@@ -363,34 +355,34 @@ class WooCommerceStoreInitializer:
         try:
             with open(config_file, 'w', encoding='utf-8') as f:
                 json.dump(config_data, f, indent=2, ensure_ascii=False)
-            print(f"📝 配置信息已保存到: {config_file}")
+            print(f"📝 Configuration information saved to: {config_file}")
         except Exception as e:
-            print(f"⚠️ 保存配置文件失败: {e}")
+            print(f"⚠️ Failed to save configuration file: {e}")
 
 def main():
-    """主函数 - 交互式初始化"""
-    print("🛒 WooCommerce 6城市库存系统初始化器")
-    print("支持城市：New York、Boston(East)，Dallas、Houston(South)，LA、San Francisco(West)")
+    """Main function - interactive initializer"""
+    print("🛒 WooCommerce 6-City Inventory System Initializer")
+    print("Supported cities: New York, Boston (East), Dallas, Houston (South), LA, San Francisco (West)")
     print("=" * 60)
-    
-    # 清理原有商品
+
+    # Clear existing products
     clear_all_products()
 
-    # 开始初始化
+    # Start initialization
     initializer = WooCommerceStoreInitializer()
     results = initializer.run_full_initialization()
-    
+
     if results["success"]:
-        print("\n🎯 下一步操作:")
-        print("1. 运行数据库初始化: database_setup")
-        print("2. 执行库存同步: inventory_sync")
-        print("3. 运行完整测试: evaluation.main")
+        print("\n🎯 Next steps:")
+        print("1. Run database initialization: database_setup")
+        print("2. Start inventory sync: inventory_sync")
+        print("3. Run full evaluation: evaluation.main")
     else:
-        print("\n🔧 故障排除:")
-        print("1. 检查网站URL是否正确")
-        print("2. 确认用户名和密码是否正确")
-        print("3. 确保WooCommerce插件已安装并激活")
-        print("4. 检查网站是否支持REST API")
+        print("\n🔧 Troubleshooting:")
+        print("1. Check that the site URL is correct")
+        print("2. Confirm username and password are correct")
+        print("3. Ensure WooCommerce plugin is installed and active")
+        print("4. Confirm that the site supports REST API")
 
     return results
 

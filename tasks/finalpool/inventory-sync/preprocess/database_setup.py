@@ -4,28 +4,26 @@ import random
 from datetime import datetime, timedelta
 from os import sys, path
 
-# 添加项目路径
+# Add project path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 task_dir = os.path.dirname(current_dir)
 initial_workspace_dir = os.path.join(task_dir, "initial_workspace")
 sys.path.append(initial_workspace_dir)
 
-# 城市和区域映射
+# City to region mapping
 CITY_REGION_MAPPING = {
-    # East区域
+    # East region
     "New York": "East",
     "Boston": "East", 
-    
-    # South区域
+    # South region
     "Dallas": "South",
     "Houston": "South",
-    
-    # West区域
+    # West region
     "LA": "West",
     "San Francisco": "West"
 }
 
-# 英文城市名映射（用于数据库文件名）
+# English city name mapping (used for DB file names)
 CITY_NAME_MAPPING = {
     "New York": "new_york",
     "Boston": "boston",
@@ -35,31 +33,28 @@ CITY_NAME_MAPPING = {
     "San Francisco": "san_francisco"
 }
 
-# 动态获取数据库文件夹路径
+# Dynamically get the database folder path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 task_dir = os.path.dirname(current_dir)
 DB_FOLDER = os.path.join(task_dir, "initial_workspace", "warehouse")
 
 
 def clear_all_databases():
-    # 确保数据库文件夹存在
+    # Ensure DB folder exists
     os.makedirs(DB_FOLDER, exist_ok=True)
-    
     for filename in os.listdir(DB_FOLDER):
         if filename.endswith(".db"):
             os.remove(os.path.join(DB_FOLDER, filename))
 
 def create_warehouse_database(city_name_cn, city_name_en):
-    """为每个城市创建仓库数据库"""
-    # 确保数据库文件夹存在
+    """Create warehouse database for each city"""
     os.makedirs(DB_FOLDER, exist_ok=True)
-    
     db_path = f"{DB_FOLDER}/warehouse_{city_name_en}.db"
 
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     
-    # 创建仓库信息表
+    # Create warehouses table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS warehouses (
             warehouse_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -71,7 +66,7 @@ def create_warehouse_database(city_name_cn, city_name_en):
         )
     ''')
     
-    # 创建商品表
+    # Create products table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS products (
             product_id TEXT PRIMARY KEY,
@@ -84,7 +79,7 @@ def create_warehouse_database(city_name_cn, city_name_en):
         )
     ''')
     
-    # 创建库存表
+    # Create inventory table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS inventory (
             inventory_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -102,7 +97,7 @@ def create_warehouse_database(city_name_cn, city_name_en):
         )
     ''')
     
-    # 创建库存变更日志表
+    # Create inventory logs table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS inventory_logs (
             log_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -118,20 +113,20 @@ def create_warehouse_database(city_name_cn, city_name_en):
         )
     ''')
     
-    # 插入仓库信息
+    # Insert warehouse info
     cursor.execute('''
         INSERT OR REPLACE INTO warehouses (warehouse_id, city_name_cn, city_name_en, region, address)
         VALUES (1, ?, ?, ?, ?)
-    ''', (city_name_cn, city_name_en, CITY_REGION_MAPPING[city_name_cn], f"{city_name_cn}市中心仓库区"))
+    ''', (city_name_cn, city_name_en, CITY_REGION_MAPPING[city_name_cn], f"{city_name_cn} Downtown Warehouse Area"))
     
     conn.commit()
     conn.close()
     
-    print(f"✓ 创建了 {city_name_cn} ({city_name_en}) 的仓库数据库: {db_path}")
+    print(f"✓ Created warehouse database for {city_name_cn} ({city_name_en}): {db_path}")
     return db_path
 
 def generate_sample_products():
-    """生成示例商品数据"""
+    """Generate sample product data"""
     products = [
         ("PROD001", "iPhone 15 Pro", "Electronic Products", 999.99, "High quality iPhone 15 Pro"),
         ("PROD002", "MacBook Air M2", "Electronic Products", 1299.99, "High quality MacBook Air M2"),
@@ -154,26 +149,26 @@ def generate_sample_products():
     return products
 
 def populate_database_with_sample_data(city_name_cn, city_name_en):
-    """为数据库填充示例数据"""
+    """Populate database with sample data"""
     db_path = f"{DB_FOLDER}/warehouse_{city_name_en}.db"
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     
-    # 插入商品数据
+    # Insert product data
     products = generate_sample_products()
     cursor.executemany('''
         INSERT OR REPLACE INTO products (product_id, product_name, category, price, description)
         VALUES (?, ?, ?, ?, ?)
     ''', products)
     
-    # 为每个商品生成随机库存
+    # Generate random inventory for each product
     for product_id, _, _, _, _ in products:
-        # 根据城市规模生成不同的库存数量
-        if city_name_cn in ["New York", "LA", "Dallas", "Houston"]:  # 大城市
+        # Set quantity based on city size
+        if city_name_cn in ["New York", "LA", "Dallas", "Houston"]:  # Large city
             base_quantity = random.randint(200, 800)
-        elif city_name_cn in ["Boston", "San Francisco"]:  # 中等城市
+        elif city_name_cn in ["Boston", "San Francisco"]:  # Medium city
             base_quantity = random.randint(150, 600)
-        else:  # 其他城市
+        else:  # Other cities
             base_quantity = random.randint(100, 400)
             
         cursor.execute('''
@@ -182,7 +177,7 @@ def populate_database_with_sample_data(city_name_cn, city_name_en):
             VALUES (?, 1, ?)
         ''', (product_id, base_quantity))
         
-        # 添加一些库存变更日志
+        # Add some inventory log entries
         for _ in range(random.randint(1, 3)):
             old_qty = random.randint(0, base_quantity)
             new_qty = random.randint(0, base_quantity + 100)
@@ -198,28 +193,24 @@ def populate_database_with_sample_data(city_name_cn, city_name_en):
     conn.commit()
     conn.close()
     
-    print(f"✓ 为 {city_name_cn} 数据库填充了示例数据")
+    print(f"✓ Populated sample data for {city_name_cn} database")
 
 def create_all_warehouse_databases():
-    """创建所有城市的仓库数据库"""
-    print("开始创建多城市仓库数据库...")
-    
+    """Create warehouse databases for all cities"""
+    print("Starting creation of warehouse databases for multiple cities...")
     created_databases = []
-    
     for city_cn, city_en in CITY_NAME_MAPPING.items():
         db_path = create_warehouse_database(city_cn, city_en)
         populate_database_with_sample_data(city_cn, city_en)
         created_databases.append(db_path)
-    
-    print(f"\n✅ 成功创建了 {len(created_databases)} 个城市的仓库数据库:")
+    print(f"\n✅ Successfully created warehouse databases for {len(created_databases)} cities:")
     for db in created_databases:
         print(f"  - {db}")
-    
     return created_databases
 
 if __name__ == "__main__":
     clear_all_databases()
-    # 创建所有数据库
+    # Create all databases
     create_all_warehouse_databases()
-    print("\n🎉 数据库初始化完成！")
-    print("📝 下一步可以运行库存同步程序来测试WooCommerce集成。")
+    print("\n🎉 Database initialization complete!")
+    print("📝 Next, you can run the inventory sync program to test WooCommerce integration.")
