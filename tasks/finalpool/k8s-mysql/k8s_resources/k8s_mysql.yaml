@@ -49,7 +49,7 @@ data:
     collation-server=utf8mb4_0900_ai_ci
 
 # =========================
-# data: MySQL-f1 Service & StatefulSet (持久化)
+# data: MySQL-f1 Service & StatefulSet (Persistent Storage)
 # =========================
 ---
 apiVersion: v1
@@ -60,7 +60,7 @@ metadata:
   labels:
     app: mysql-f1
 spec:
-  # 使用 Headless 便于固定 DNS（mysql-f1-0.mysql-f1.data.svc.cluster.local）
+  # Use Headless to fix DNS (e.g., mysql-f1-0.mysql-f1.data.svc.cluster.local)
   clusterIP: None
   ports:
     - name: mysql
@@ -146,7 +146,7 @@ spec:
         - name: MYSQL_ROOT_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: mysql-f1-secret   # 跟 MySQL StatefulSet 使用的 Secret 对齐
+              name: mysql-f1-secret   # Consistent with MySQL StatefulSet Secret
               key: MYSQL_ROOT_PASSWORD
       volumeMounts:
         - name: csv

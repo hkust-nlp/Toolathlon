@@ -52,7 +52,7 @@ The ground truth (GT) solution is stored in `evaluation/gt.csv` and contains the
 1. **GT Data Structure**: The ground truth file contains 77 rows (including header) covering:
    * **Historical Era** (1950s-1960s): Early Formula 1 champions like Fangio, Ascari
    * **Classic Era** (1970s-1980s): Icons like Stewart, Lauda, Prost
-   * **Modern Era** (1990s-2000s): Schumacher, Häkkinen, Hamilton dominance
+   * **Modern Era** (1990s-2000s): Schumacher, Hkkinen, Hamilton dominance
    * **Current Era** (2010s-2024): Vettel, Hamilton, Verstappen championships
 
 2. **Evaluation Process**:
