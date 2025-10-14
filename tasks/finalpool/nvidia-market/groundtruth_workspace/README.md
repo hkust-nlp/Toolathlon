@@ -1,5 +1,5 @@
 Record:
-1. Outstanding Shares (2022Q4-2024Q1) is lacked in yfinance, should be found through playwright or use the 2024Q2 to estimate.
-2. 添加`Please retroactively adjust the data to reflect the stock split`到prompt，防止由于nvidia 2024Q1的股票分割导致的验证歧义
-3. 13f数据中似乎存在重复，groundtruth中去除了重复
-4. 添加`Ignore options, you only need to consider common holdings`到prompt，消除options带来的验证歧义
+1. Outstanding Shares (2022Q4-2024Q1) are missing in yfinance, and should be found via Playwright or estimated using 2024Q2 values.
+2. Add `Please retroactively adjust the data to reflect the stock split` to the prompt to avoid validation ambiguity caused by Nvidia’s Q1 2024 stock split.
+3. There seem to be duplicates in the 13F data; duplicates have been removed from the ground truth.
+4. Add `Ignore options, you only need to consider common holdings` to the prompt to eliminate validation ambiguity caused by options.
