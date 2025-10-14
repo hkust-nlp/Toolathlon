@@ -19,8 +19,8 @@ metadata:
   name: test
 ---
 # =========================
-# 高风险 #1（分=10，高）
-# 命中：Privileged(10) → 直接高风险，忽略其他项
+# HIGH RISK #1 (Score=10, High)
+# Matched: Privileged(10) → Direct HIGH risk, ignore other items
 # =========================
 apiVersion: apps/v1
 kind: Deployment
@@ -44,8 +44,8 @@ spec:
         - containerPort: 9090
 ---
 # =========================
-# 高风险 #2（分=10，高）
-# 命中：/var/run/docker.sock( +5 ) + CAP_SYS_ADMIN( +4 ) + writable root file system( +1 ) = 10 → 高
+# HIGH RISK #2 (Score=10, High)
+# Matched: /var/run/docker.sock( +5 ) + CAP_SYS_ADMIN( +4 ) + writable root file system( +1 ) = 10 → HIGH
 # =========================
 apiVersion: apps/v1
 kind: Deployment
@@ -64,12 +64,12 @@ spec:
       - name: dockersock
         hostPath:
           path: /var/run/docker.sock
-          type: FileOrCreate   # 为兼容 kind/containerd，避免因不存在的 socket 类型校验失败
+          type: FileOrCreate   # For compatibility with kind/containerd, avoid validation error if the socket does not exist
       containers:
       - name: runner
         image: alpine:3.20
         imagePullPolicy: IfNotPresent
-        command: ["sh","-c","sleep infinity"]  # 覆盖默认命令，保持容器常驻
+        command: ["sh","-c","sleep infinity"]  # Override default command to keep container running
         volumeMounts:
         - name: dockersock
           mountPath: /var/run/docker.sock
@@ -79,11 +79,11 @@ spec:
           runAsNonRoot: true
           runAsUser: 1000
           capabilities:
-            add: ["SYS_ADMIN"]  # 命中风控规则所需
+            add: ["SYS_ADMIN"]  # Required for matching risk rule
 ---
 # =========================
-# 中风险 #1（分=7，中）
-# 命中：hostPID(+2) + allowPrivilegeEscalation(+2) + 以 root 运行(+2) + writable root file system(+1) = 7
+# MEDIUM RISK #1 (Score=7, Medium)
+# Matched: hostPID(+2) + allowPrivilegeEscalation(+2) + running as root(+2) + writable root file system(+1) = 7
 # =========================
 apiVersion: apps/v1
 kind: Deployment
@@ -104,13 +104,13 @@ spec:
         image: alpine:3.20
         command: ["sh","-c","sleep 3600"]
         securityContext:
-          runAsUser: 0            # 以 root 运行
+          runAsUser: 0            # Run as root
           allowPrivilegeEscalation: true
           readOnlyRootFilesystem: false
 ---
 # =========================
-# 中风险 #2（分=7，中）
-# 命中：hostNetwork(+2) + CAP_NET_ADMIN(+4) + writable root file system(+1 未指定，默认为False) = 7
+# MEDIUM RISK #2 (Score=7, Medium)
+# Matched: hostNetwork(+2) + CAP_NET_ADMIN(+4) + writable root file system(+1, unspecified, defaults to false) = 7
 # =========================
 apiVersion: apps/v1
 kind: Deployment
@@ -138,8 +138,8 @@ spec:
             add: ["NET_ADMIN"]
 ---
 # =========================
-# 中风险 #3（分=7，中）
-# 命中：CAP_SYS_TIME(+4) + hostIPC(+2) + 可写根文件系统(+1) = 7
+# MEDIUM RISK #3 (Score=7, Medium)
+# Matched: CAP_SYS_TIME(+4) + hostIPC(+2) + writable root file system(+1) = 7
 # =========================
 apiVersion: apps/v1
 kind: Deployment
@@ -168,8 +168,8 @@ spec:
             add: ["SYS_TIME"]
 ---
 # =========================
-# 低风险 #1（分=0，低）
-# 强化：非特权、非 host*、只读根、非 root、丢弃全部能力
+# LOW RISK #1 (Score=0, Low)
+# Hardened: Non-privileged, no host*, read-only root, non-root, all capabilities dropped
 # =========================
 ---
 apiVersion: v1
@@ -220,8 +220,8 @@ spec:
           name: payment-gateway-www
 ---
 # =========================
-# 低风险 #2（分=0，低）
-# 同上强化基线
+# LOW RISK #2 (Score=0, Low)
+# Same as above hardened profile baseline
 # =========================
 apiVersion: v1
 kind: ConfigMap
@@ -271,8 +271,8 @@ spec:
           name: auth-service-www
 ---
 # =========================
-# 低风险 #3（分=1，低）
-# 命中：可写根文件系统(+1)；其余均安全
+# LOW RISK #3 (Score=1, Low)
+# Matched: writable root file system(+1); otherwise safe
 # =========================
 apiVersion: apps/v1
 kind: Deployment
@@ -295,15 +295,15 @@ spec:
         - containerPort: 8080
         securityContext:
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: false   # 仅此一项加分
+          readOnlyRootFilesystem: false   # Only this item scores
           runAsNonRoot: true
-          runAsUser: 101                  # 该镜像内置用户
+          runAsUser: 101                  # Built-in user in this image
           capabilities:
             drop: ["ALL"]
 ---
 # =========================
-# 低风险 #4（分=0，低）
-# Redis demo，按低权基线配置
+# LOW RISK #4 (Score=0, Low)
+# Redis demo, configured to low-privilege baseline
 # =========================
 apiVersion: apps/v1
 kind: Deployment
@@ -333,8 +333,8 @@ spec:
             drop: ["ALL"]
 ---
 # =========================
-# 低风险 #5（分=0，低）
-# Elasticsearch demo，按低权基线配置（非 root 运行）
+# LOW RISK #5 (Score=0, Low)
+# Elasticsearch demo, configured to low-privilege baseline (runs as non-root)
 # =========================
 apiVersion: apps/v1
 kind: Deployment
