@@ -21,13 +21,9 @@ from datetime import datetime
 project_root = Path(__file__).parent.parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-try:
-    from utils.app_specific.canvas import create_canvas_evaluator
-    from utils.mcp.tool_servers import MCPServerManager
-except ImportError as e:
-    print(f"Error: Cannot import Canvas utils modules: {e}")
-    print("Make sure utils.app_specific.canvas is properly installed.")
-    sys.exit(1)
+from utils.app_specific.canvas import create_canvas_evaluator
+from utils.mcp.tool_servers import MCPServerManager
+
 
 
 def load_student_expectations(task_dir: Path) -> dict:
