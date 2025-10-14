@@ -20,7 +20,7 @@
         "allowed_attempts": 2,
         "scoring_policy": "keep_highest",
         "points_possible": 100,
-        "due_at": "2025-09-25T23:59:00Z",
+        "due_at": "2025-10-22T23:59:00Z",
         "questions": [
           {
             "question_text": "What is the primary function of an operating system?",
@@ -74,7 +74,7 @@
         "name": "CS101 Unit 2 Homework Assignment",
         "description": "Complete the exercises from Chapter 2 of the textbook, including operating system concepts and data structure implementation. Please provide handwritten solutions and scan them as PDF for submission.\n\nSpecific Requirements:\n1. Explain the three main functions of an operating system",
         "points_possible": 50,
-        "due_at": "2025-09-28T23:59:00Z",
+        "due_at": "2025-10-25T23:59:00Z",
         "submission_types": "online_text_entry",
         "published": true
       },
@@ -108,7 +108,7 @@
         "allowed_attempts": 1,
         "scoring_policy": "keep_highest",
         "points_possible": 150,
-        "due_at": "2025-09-28T23:59:00Z",
+        "due_at": "2025-10-26T23:59:00Z",
         "questions": [
           {
             "question_text": "What is the time complexity of binary search in a sorted array?",
@@ -162,7 +162,7 @@
         "name": "CS201 Algorithm Analysis Homework",
         "description": "Complete Chapter 3 exercises on algorithm time complexity analysis. Including Big O notation analysis and sorting algorithm performance comparison. Please provide handwritten solutions and scan them as PDF for submission.\n\nAssignment Content:\n1. Analyze the time complexity of given algorithms\n2. Compare advantages and disadvantages of different sorting algorithms\n3. Design an O(log n) search algorithm\n4. Draw recursion call tree and analyze space complexity",
         "points_possible": 75,
-        "due_at": "2025-09-29T23:59:00Z",
+        "due_at": "2025-10-27T23:59:00Z",
         "submission_types": "online_text_entry",
         "published": true
       },
@@ -196,7 +196,7 @@
         "allowed_attempts": 2,
         "scoring_policy": "keep_highest",
         "points_possible": 120,
-        "due_at": "2025-09-27T23:59:00Z",
+        "due_at": "2025-10-24T23:59:00Z",
         "questions": [
           {
             "question_text": "Which SQL command is used to retrieve data from a database?",
@@ -250,7 +250,7 @@
         "name": "CS301 Database Design Project",
         "description": "Design and implement a comprehensive database system for a small business. This assignment covers database modeling, normalization, SQL implementation, and optimization.\n\nProject Requirements:\n1. Create an Entity-Relationship (ER) diagram for the business scenario\n2. Normalize the database to 3NF (Third Normal Form)\n3. Write SQL scripts to create tables with proper constraints\n4. Implement complex queries including joins, subqueries, and aggregations\n5. Analyze query performance and suggest optimizations\n\nDeliverables:\n- ER diagram (PDF format)\n- Database schema with normalization explanation\n- SQL script files\n- Query implementation and performance analysis report\n\nSubmission Format: ZIP file containing all deliverables, filename: StudentID_Name_CS301_DatabaseProject.zip",
         "points_possible": 100,
-        "due_at": "2025-09-28T23:59:00Z",
+        "due_at": "2025-10-25T23:59:00Z",
         "submission_types": [
           "online_upload",
           "online_text_entry"
@@ -292,7 +292,7 @@
         "allowed_attempts": 2,
         "scoring_policy": "keep_highest",
         "points_possible": 100,
-        "due_at": "2025-09-25T23:59:00Z",
+        "due_at": "2025-10-23T23:59:00Z",
         "questions": [
           {
             "question_text": "Which software development methodology emphasizes iterative development and customer collaboration?",
@@ -346,7 +346,7 @@
         "name": "CS302 Software Development Team Project",
         "description": "Complete a full-stack web application development project using Agile methodology. This assignment simulates real-world software development practices including version control, testing, and deployment.\n\nProject Requirements:\n1. Develop a web application with frontend and backend components\n2. Use Git for version control with proper branching strategy\n3. Implement unit tests and integration tests\n4. Apply Agile practices (sprints, user stories, retrospectives)\n5. Create comprehensive project documentation\n6. Deploy the application to a cloud platform\n\nDeliverables:\n- Source code repository (GitHub link)\n- Project documentation including architecture design\n- Test reports and coverage analysis\n- Deployment guide and live application URL\n- Sprint retrospective and team collaboration report\n\nSubmission Format: Document with all links and reports, filename: StudentID_Name_CS302_TeamProject.pdf",
         "points_possible": 120,
-        "due_at": "2025-09-27T23:59:00Z",
+        "due_at": "2025-10-25T23:59:00Z",
         "submission_types": [
           "online_upload",
           "online_text_entry"
@@ -387,7 +387,7 @@
         "allowed_attempts": 1,
         "scoring_policy": "keep_highest",
         "points_possible": 200,
-        "due_at": "2025-09-24T23:59:00Z",
+        "due_at": "2025-10-21T23:59:00Z",
         "questions": [
           {
             "question_text": "Which design pattern is used to ensure only one instance of a class exists?",
@@ -441,7 +441,7 @@
         "name": "CS401 Advanced Software Architecture Design",
         "description": "Design and document a complex software architecture for a large-scale enterprise application. This assignment focuses on advanced architectural patterns, system design, and scalability considerations.\n\nProject Requirements:\n1. Design a microservices-based architecture for an e-commerce platform\n2. Apply advanced design patterns (Factory, Observer, Strategy, etc.)\n3. Create detailed system architecture diagrams and documentation\n4. Address scalability, security, and performance requirements\n5. Design API specifications and data flow diagrams\n6. Propose deployment and monitoring strategies\n\nDeliverables:\n- System architecture document with detailed diagrams\n- Design pattern implementation examples\n- API specifications and documentation\n- Performance and scalability analysis\n- Security architecture and threat model\n- Deployment and DevOps strategy document\n\nSubmission Format: Comprehensive report in PDF format, filename: StudentID_Name_CS401_ArchitectureDesign.pdf",
         "points_possible": 150,
-        "due_at": "2025-09-25T23:59:00Z",
+        "due_at": "2025-10-22T23:59:00Z",
         "submission_types": [
           "online_upload",
           "online_text_entry"
@@ -481,7 +481,7 @@
         "allowed_attempts": 2,
         "scoring_policy": "keep_highest",
         "points_possible": 150,
-        "due_at": "2025-09-27T23:59:00Z",
+        "due_at": "2025-10-25T23:59:00Z",
         "questions": [
           {
             "question_text": "Which type of machine learning uses labeled training data?",
@@ -535,7 +535,7 @@
         "name": "AI101 Machine Learning Implementation Project",
         "description": "Implement and evaluate machine learning algorithms for a real-world dataset. This assignment covers fundamental AI concepts, algorithm implementation, and performance analysis.\n\nProject Requirements:\n1. Choose a dataset from provided options (classification or regression problem)\n2. Implement at least three different machine learning algorithms from scratch\n3. Compare algorithms using appropriate evaluation metrics\n4. Perform data preprocessing and feature engineering\n5. Create visualizations to explain model behavior and results\n6. Write a comprehensive analysis report\n\nAlgorithms to implement (choose 3):\n- Linear Regression / Logistic Regression\n- Decision Trees\n- k-Nearest Neighbors (k-NN)\n- Naive Bayes\n- Support Vector Machines (SVM)\n\nDeliverables:\n- Python implementation code with documentation\n- Data analysis and preprocessing notebook\n- Algorithm comparison and evaluation report\n- Visualization of results and model performance\n\nSubmission Format: ZIP file containing code and report, filename: StudentID_Name_AI101_MLProject.zip",
         "points_possible": 130,
-        "due_at": "2025-09-30T23:59:00Z",
+        "due_at": "2025-10-28T23:59:00Z",
         "submission_types": [
           "online_upload",
           "online_text_entry"
@@ -578,7 +578,7 @@
         "allowed_attempts": 3,
         "scoring_policy": "keep_highest",
         "points_possible": 80,
-        "due_at": "2025-09-24T23:59:00Z",
+        "due_at": "2025-10-22T23:59:00Z",
         "questions": [
           {
             "question_text": "What does RDBMS stand for?",
@@ -658,7 +658,7 @@
         "allowed_attempts": 2,
         "scoring_policy": "keep_highest",
         "points_possible": 120,
-        "due_at": "2025-09-28T23:59:00Z",
+        "due_at": "2025-10-25T23:59:00Z",
         "questions": [
           {
             "question_text": "Which layer of the OSI model is responsible for routing?",
@@ -738,7 +738,7 @@
         "allowed_attempts": 1,
         "scoring_policy": "keep_highest",
         "points_possible": 100,
-        "due_at": "2025-09-30T23:59:00Z",
+        "due_at": "2025-10-28T23:59:00Z",
         "questions": [
           {
             "question_text": "Choose the correct sentence:",
@@ -818,7 +818,7 @@
         "allowed_attempts": 3,
         "scoring_policy": "keep_highest",
         "points_possible": 100,
-        "due_at": "2025-10-01T23:59:00Z",
+        "due_at": "2025-10-29T23:59:00Z",
         "questions": [
           {
             "question_text": "What is tokenization in NLP?",
@@ -898,7 +898,7 @@
         "allowed_attempts": 1,
         "scoring_policy": "keep_highest",
         "points_possible": 200,
-        "due_at": "2025-09-28T23:59:00Z",
+        "due_at": "2025-10-25T23:59:00Z",
         "questions": [
           {
             "question_text": "What is the derivative of x²?",
@@ -978,7 +978,7 @@
         "allowed_attempts": 2,
         "scoring_policy": "keep_highest",
         "points_possible": 150,
-        "due_at": "2025-09-27T23:59:00Z",
+        "due_at": "2025-10-24T23:59:00Z",
         "questions": [
           {
             "question_text": "What is the result of multiplying a 2x3 matrix by a 3x2 matrix?",
@@ -1058,7 +1058,7 @@
         "allowed_attempts": 2,
         "scoring_policy": "keep_highest",
         "points_possible": 200,
-        "due_at": "2025-09-30T23:59:00Z",
+        "due_at": "2025-10-28T23:59:00Z",
         "questions": [
           {
             "question_text": "What was the primary purpose of the 'Principle of Legitimacy' advocated by Metternich at the Congress of Vienna (1815)?",
@@ -1253,7 +1253,7 @@
         "allowed_attempts": 1,
         "scoring_policy": "keep_highest",
         "points_possible": 180,
-        "due_at": "2025-09-28T23:59:00Z",
+        "due_at": "2025-10-26T23:59:00Z",
         "questions": [
           {
             "question_text": "Consider this argument: 'All effective leaders are good communicators. Sarah is not a good communicator. Therefore, Sarah is not an effective leader.' This argument is:",

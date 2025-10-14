@@ -54,8 +54,9 @@ def parse_quiz_data(json_file_path, output_csv_path):
             except ValueError:
                 deadline_dt = None
         
+        real_course_code = course_code.replace('-1', '')
         quiz_data.append({
-            'course_code': course_code,
+            'course_code': real_course_code,
             
             'credits': credits,
             'quiz_title': quiz_title,
@@ -110,7 +111,7 @@ def parse_assign_data(json_file_path, output_csv_path):
             
         # Extract basic course info
         course_code = course.get('course_code', '')
-        ###这两个课程的assign已经提交了，不需要再统计了#################
+        # these two courses have already submitted, so no need to count
         if course_code == "CS101-1" or course_code == "CS201-1":
             continue
         course_name = course.get('name', '')
@@ -134,8 +135,10 @@ def parse_assign_data(json_file_path, output_csv_path):
             except ValueError:
                 deadline_dt = None
         
+        real_course_code = course_code.replace('-1', '')
+
         assign_data.append({
-            'course_code': course_code,
+            'course_code': real_course_code,
             'course_name': course_name,
             
             'assignment_title': assign_title,
@@ -155,8 +158,8 @@ def parse_assign_data(json_file_path, output_csv_path):
     
     # Write to CSV
     fieldnames = [
-        'course_code',  'assignment_title', 'description',
-        'deadline', 'course_name', 'points_possible'
+        'course_code', 'course_name', 'assignment_title',
+        'deadline',  'points_possible'
        
     ]
     
@@ -166,7 +169,7 @@ def parse_assign_data(json_file_path, output_csv_path):
         
         for row in assign_data:
             # Remove the helper field before writing
-            row_copy = {k: v for k, v in row.items() if k != 'deadline_parsed'}
+            row_copy = {k: v for k, v in row.items() if k not in ['deadline_parsed','description']}
             writer.writerow(row_copy)
     
     print(f"Quiz information extracted successfully!")

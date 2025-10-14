@@ -1,19 +1,6 @@
-
-print("main.py started")
-try:
-    from argparse import ArgumentParser
-    import asyncio
-    import sys
-    from .check_log import check_log
-    from .check_local import check_local
-    from .check_remote import check_remote
-    from utils.general.helper import read_json  
-except Exception as e:
-    print("import error: ", e)
-    exit(1)
-
-print("import finished")
-
+from argparse import ArgumentParser
+import sys
+from .check_local import check_local
 
 
 if __name__=="__main__":
@@ -26,22 +13,8 @@ if __name__=="__main__":
     args = parser.parse_args()
     print(sys.argv, flush=True)
     
-    # res_log = read_json(args.res_log_file)  # 暂时不需要日志检查
-    
-    # # check log
-    # try:
-    #     log_pass, log_error = check_log(res_log)
-    #     if not log_pass:
-    #         print("log check failed: ", log_error)
-    #         exit(1)
-    # except Exception as e:
-    #     print("log check error: ", e)
-    #     exit(1)
-    
-    # check local
     try:
         print("agent_workspace: ", args.agent_workspace)
-        print("开始测试local")
         local_pass, local_error = check_local(args.agent_workspace, args.groundtruth_workspace)
         if not local_pass:
             print("local check failed: ", local_error)
@@ -50,14 +23,5 @@ if __name__=="__main__":
         print("local check error: ", e)
         exit(1)
     
-    # # check remote
-    # try:
-    #     remote_pass, remote_error = check_remote(args.agent_workspace, args.groundtruth_workspace, res_log)
-    #     if not remote_pass:
-    #             print("remote check failed: ", remote_error)
-    #             exit(1)
-    # except Exception as e:
-    #     print("remote check error: ", e)
-    #     exit(1)
     
     print("Pass all tests!")
