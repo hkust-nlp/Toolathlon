@@ -5,15 +5,10 @@
     "terminal"
   ],
   "needed_local_tools": [
+    "python_execute",
     "manage_context",
     "history",
     "claim_done",
     "handle_overlong_tool_outputs"
-  ],
-  "max_turns": 5,
-  "meta": {
-    "description": "NHL 2024-2025\u8d5b\u5b63\u80cc\u9760\u80cc\u6bd4\u8d5b\u5206\u6790\u4efb\u52a1",
-    "category": "sports_analysis",
-    "difficulty": "medium"
-  }
+  ]
 }
