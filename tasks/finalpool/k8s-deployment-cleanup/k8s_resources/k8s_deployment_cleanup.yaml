@@ -180,37 +180,37 @@ spec:
             memory: "32Mi"
             cpu: "50m"
 ---
-# Production namespace (干扰项 - 不应该被清理)
+# Production namespace (distractor - should NOT be cleaned up)
 apiVersion: v1
 kind: Namespace
 metadata:
   name: production
 ---
-# Staging namespace (干扰项)
+# Staging namespace (distractor)
 apiVersion: v1
 kind: Namespace
 metadata:
   name: staging
 ---
-# Monitoring namespace (干扰项)
+# Monitoring namespace (distractor)
 apiVersion: v1
 kind: Namespace
 metadata:
   name: monitoring
 ---
-# Logging namespace (干扰项)
+# Logging namespace (distractor)
 apiVersion: v1
 kind: Namespace
 metadata:
   name: logging
 ---
-# Backup namespace (干扰项 - 不应该被清理)
+# Backup namespace (distractor - should NOT be cleaned up)
 apiVersion: v1
 kind: Namespace
 metadata:
   name: backup
 ---
-# Production deployment (干扰项 - 生产环境，不应该被清理)
+# Production deployment (distractor - production environment, should NOT be cleaned up)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -237,7 +237,7 @@ spec:
             memory: "64Mi"
             cpu: "100m"
 ---
-# Staging deployment (干扰项 - 旧的，应该被清理)
+# Staging deployment (distractor - outdated, should be cleaned up)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -264,7 +264,7 @@ spec:
             memory: "32Mi"
             cpu: "50m"
 ---
-# Monitoring deployment (干扰项 - 旧的，应该被清理)
+# Monitoring deployment (distractor - outdated, should be cleaned up)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -291,7 +291,7 @@ spec:
             memory: "128Mi"
             cpu: "200m"
 ---
-# Logging deployment (干扰项 - 旧的，应该被清理)
+# Logging deployment (distractor - outdated, should be cleaned up)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -318,7 +318,7 @@ spec:
             memory: "64Mi"
             cpu: "100m"
 ---
-# Backup deployment (干扰项 - 最近的，不应该被清理)
+# Backup deployment (distractor - recent, should NOT be cleaned up)
 apiVersion: apps/v1
 kind: Deployment
 metadata:

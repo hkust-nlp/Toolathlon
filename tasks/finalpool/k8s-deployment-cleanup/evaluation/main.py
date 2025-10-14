@@ -27,7 +27,6 @@ def run_cmd(cmd: List[str], suppress_error_log: bool = False) -> Tuple[int, str,
         if VERBOSE:
             debug(f"Return code: {p.returncode}\nSTDOUT: {out}\nSTDERR: {err}")
         else:
-            # 非verbose时仅在错误时打印stderr片段
             if p.returncode != 0 and not suppress_error_log:
                 print(f"ben cmd failed: {' '.join(cmd)} | {err[:300]}")
         return p.returncode, out, err
