@@ -29,16 +29,16 @@ class TransactionRecord:
 class LiveTransactionsDataGenerator:
     def __init__(self, scale_factor: int = 1, suspicious_transactions_count: int = 1):
         """
-        初始化数据生成器
+        Initialize the data generator.
         
         Args:
-            scale_factor: 数据规模扩展倍数 (1=基础规模, 2=2倍规模, 等等)
-            suspicious_transactions_count: 可疑交易数量
+            scale_factor: Data scale factor (1=base, 2=double base, etc.)
+            suspicious_transactions_count: Number of suspicious transactions
         """
         self.scale_factor = scale_factor
         self.suspicious_transactions_count = suspicious_transactions_count
         
-        # 基础数量配置
+        # Base configuration
         self.base_counts = {
             'normal_users': 5,
             'normal_transactions': 20,
@@ -46,7 +46,7 @@ class LiveTransactionsDataGenerator:
             'related_transactions_per_suspicious': 4
         }
         
-        # 计算实际数量
+        # Actual number calculation
         self.actual_counts = {
             'normal_users': self.base_counts['normal_users'] * scale_factor,
             'normal_transactions': self.base_counts['normal_transactions'] * scale_factor,
@@ -54,18 +54,18 @@ class LiveTransactionsDataGenerator:
             'related_transactions_per_suspicious': self.base_counts['related_transactions_per_suspicious']
         }
         
-        # 可疑交易IDs
+        # Suspicious transaction IDs
         self.suspicious_transaction_ids = [f"T8492XJ{i}" for i in range(1, suspicious_transactions_count + 1)]
         self.main_suspicious_id = "T8492XJ3" if "T8492XJ3" in self.suspicious_transaction_ids else self.suspicious_transaction_ids[0]
         
-        # 可疑用户IDs（每个可疑交易对应一个可疑用户）
+        # Suspicious IDs (each suspicious tx has corresponding entities)
         self.suspicious_user_ids = [f"U{8847291 + i}" for i in range(suspicious_transactions_count)]
         self.suspicious_account_ids = [f"AC{7739284 + i}" for i in range(suspicious_transactions_count)]
         self.suspicious_merchant_ids = [f"MER{9934812 + i}" for i in range(suspicious_transactions_count)]
         self.suspicious_card_ids = [f"CARD{6672839 + i}" for i in range(suspicious_transactions_count)]
         self.suspicious_device_ids = [f"DEV{4482913 + i}" for i in range(suspicious_transactions_count)]
         
-        # 地理位置数据
+        # Location data
         self.locations = {
             "LOC001": {"city": "New York", "country": "USA", "latitude": 40.7128, "longitude": -74.0060, "timezone": "America/New_York"},
             "LOC002": {"city": "London", "country": "UK", "latitude": 51.5074, "longitude": -0.1278, "timezone": "Europe/London"},
@@ -80,10 +80,10 @@ class LiveTransactionsDataGenerator:
         }
         
     def generate_users(self) -> List[Dict[str, Any]]:
-        """生成用户数据"""
+        """Generate user data"""
         users = []
         
-        # 可疑用户
+        # Suspicious users
         for i, user_id in enumerate(self.suspicious_user_ids):
             users.append({
                 "user_id": user_id,
@@ -104,7 +104,7 @@ class LiveTransactionsDataGenerator:
                 "suspicious_activity_score": round(8.7 + i * 0.1, 1)
             })
         
-        # 正常用户
+        # Normal users
         base_users = [
             {"username": "john_smith", "email": "john.smith@gmail.com", "risk_level": "LOW"},
             {"username": "mary_jones", "email": "mary.jones@outlook.com", "risk_level": "MEDIUM"},
@@ -140,10 +140,10 @@ class LiveTransactionsDataGenerator:
         return users
     
     def generate_accounts(self) -> List[Dict[str, Any]]:
-        """生成账户数据"""
+        """Generate account data"""
         accounts = []
         
-        # 可疑账户
+        # Suspicious accounts
         for i, account_id in enumerate(self.suspicious_account_ids):
             accounts.append({
                 "account_id": account_id,
@@ -164,7 +164,7 @@ class LiveTransactionsDataGenerator:
                 "investigation_notes": f"Multiple large volume transactions, pattern analysis required - Account {i+1}"
             })
         
-        # 正常账户
+        # Normal accounts
         account_types = ["CHECKING", "SAVINGS", "INVESTMENT", "BUSINESS"]
         for i in range(self.actual_counts['normal_users']):
             account_id = f"AC{1000000 + i}"
@@ -190,10 +190,10 @@ class LiveTransactionsDataGenerator:
         return accounts
     
     def generate_merchants(self) -> List[Dict[str, Any]]:
-        """生成商户数据"""
+        """Generate merchant data"""
         merchants = []
         
-        # 可疑商户
+        # Suspicious merchants
         suspicious_merchant_names = [
             "Global Digital Assets Exchange",
             "Crypto Freedom Trading",
@@ -228,7 +228,7 @@ class LiveTransactionsDataGenerator:
                 ]
             })
         
-        # 正常商户
+        # Normal merchants
         normal_merchant_names = [
             {"name": "Amazon.com", "category": "ECOMMERCE", "risk": "LOW"},
             {"name": "Starbucks Corp", "category": "RESTAURANTS", "risk": "LOW"},
@@ -270,10 +270,10 @@ class LiveTransactionsDataGenerator:
         return merchants
     
     def generate_cards(self) -> List[Dict[str, Any]]:
-        """生成银行卡数据"""
+        """Generate card data"""
         cards = []
         
-        # 可疑银行卡
+        # Suspicious cards
         for i, card_id in enumerate(self.suspicious_card_ids):
             cards.append({
                 "card_id": card_id,
@@ -297,7 +297,7 @@ class LiveTransactionsDataGenerator:
                 "ecommerce_transaction_count_30d": 833 + i * 40
             })
         
-        # 正常银行卡
+        # Normal cards
         normal_card_types = [
             {"type": "CREDIT", "issuer": "Chase", "prefix": "4532"},
             {"type": "DEBIT", "issuer": "Bank of America", "prefix": "4716"},
@@ -336,10 +336,10 @@ class LiveTransactionsDataGenerator:
         return cards
     
     def generate_devices(self) -> List[Dict[str, Any]]:
-        """生成设备数据"""
+        """Generate device data"""
         devices = []
         
-        # 可疑设备
+        # Suspicious devices
         suspicious_ips = [
             "185.220.101.47",  # Tor exit node
             "192.42.116.173",  # Another Tor exit
@@ -376,7 +376,7 @@ class LiveTransactionsDataGenerator:
                 "language": "en-US"
             })
         
-        # 正常设备
+        # Normal devices
         normal_devices = [
             {"os": "iOS 17.2", "browser": "Safari", "country": "USA"},
             {"os": "Windows 11", "browser": "Edge", "country": "USA"},
@@ -421,12 +421,12 @@ class LiveTransactionsDataGenerator:
         return devices
     
     def generate_live_transactions(self) -> List[Dict[str, Any]]:
-        """生成实时交易数据"""
+        """Generate live transactions data"""
         transactions = []
         
-        # 可疑交易
+        # Suspicious transactions
         for i, tx_id in enumerate(self.suspicious_transaction_ids):
-            amount = 487392.85 + i * 50000  # 递增金额
+            amount = 487392.85 + i * 50000
             btc_amount = 15.247 + i * 1.5
             
             transactions.append({
@@ -445,7 +445,7 @@ class LiveTransactionsDataGenerator:
                 "sub_type": "BTC_TO_USD",
                 "status": "COMPLETED",
                 "timestamp": f"2024-01-15T23:{47 - i % 10:02d}:12Z",
-                "location_id": f"LOC{4 + i % 4:03d}",  # 使用可疑地点
+                "location_id": f"LOC{4 + i % 4:03d}",
                 "processing_time_ms": 234 + i * 10,
                 "risk_score": round(9.6 - i * 0.1, 1),
                 "ml_fraud_score": round(94.7 - i * 0.5, 1),
@@ -495,10 +495,9 @@ class LiveTransactionsDataGenerator:
                 }
             })
             
-            # 为每个可疑交易生成相关的测试交易
+            # Related test transactions for each suspicious transaction
             for j in range(self.actual_counts['related_transactions_per_suspicious']):
-                # 生成递减的相关交易ID
-                related_tx_id = f"T8492XJ{1 + i}-{j + 1}"  # 例如: T8492XJ1-1, T8492XJ1-2
+                related_tx_id = f"T8492XJ{1 + i}-{j + 1}"
                 test_amount = [1.00, 5.00, 12847.33, 28473.92][j % 4]
                 
                 transactions.append({
@@ -522,7 +521,7 @@ class LiveTransactionsDataGenerator:
                              ["LARGE_AMOUNT", "GEOGRAPHIC_MISMATCH"]][j % 4]
                 })
         
-        # 正常交易
+        # Normal transactions
         transaction_types = ["PURCHASE", "WITHDRAWAL", "TRANSFER", "PAYMENT", "REFUND"]
         
         for i in range(self.actual_counts['normal_transactions']):
@@ -549,10 +548,10 @@ class LiveTransactionsDataGenerator:
         return transactions
     
     def generate_blacklist(self) -> List[Dict[str, Any]]:
-        """生成黑名单数据"""
+        """Generate blacklist data"""
         blacklist_items = []
         
-        # 基础黑名单项
+        # Base blacklist items
         base_items = [
             {
                 "entity_id": "BL_USER_001",
@@ -585,7 +584,7 @@ class LiveTransactionsDataGenerator:
         
         blacklist_items.extend(base_items)
         
-        # 为每个可疑商户添加黑名单项
+        # Add blacklist items for each suspicious merchant
         for i, merchant_id in enumerate(self.suspicious_merchant_ids):
             blacklist_items.append({
                 "entity_id": f"BL_MERCHANT_{i+1:03d}",
@@ -600,10 +599,9 @@ class LiveTransactionsDataGenerator:
         return blacklist_items
     
     def generate_risk_scores(self) -> List[Dict[str, Any]]:
-        """生成风险评分历史"""
+        """Generate risk scores history"""
         risk_scores = []
         
-        # 为每个可疑用户生成风险评分
         for i, user_id in enumerate(self.suspicious_user_ids):
             risk_scores.append({
                 "user_id": user_id,
@@ -627,10 +625,10 @@ class LiveTransactionsDataGenerator:
         return risk_scores
     
     def generate_fraud_alerts(self) -> List[Dict[str, Any]]:
-        """生成欺诈告警数据"""
+        """Generate fraud alert data"""
         alerts = []
         
-        # 为每个可疑交易生成主要告警
+        # Main alert for each suspicious transaction
         for i, tx_id in enumerate(self.suspicious_transaction_ids):
             alerts.append({
                 "alert_id": f"FRA_2024_{1578 + i:06d}",
@@ -655,8 +653,8 @@ class LiveTransactionsDataGenerator:
                 "sla_deadline": f"2024-01-16T{5 + i % 6:02d}:47:15Z"
             })
             
-            # 为相关交易生成次要告警
-            related_tx_id = f"T8492XJ{1 + i}-1"  # 对应第一个相关交易
+            # Second alert for the related test transaction
+            related_tx_id = f"T8492XJ{1 + i}-1"
             alerts.append({
                 "alert_id": f"FRA_2024_{1577 + i:06d}",
                 "transaction_id": related_tx_id,
@@ -669,10 +667,10 @@ class LiveTransactionsDataGenerator:
         return alerts
     
     def generate_complete_dataset(self) -> Dict[str, Any]:
-        """生成完整的数据集"""
-        print(f"正在生成live_transactions数据集 (规模倍数: {self.scale_factor}x, 可疑交易: {self.suspicious_transactions_count}个)...")
+        """Generate the complete dataset"""
+        print(f"Generating live_transactions dataset (scale factor: {self.scale_factor}x, suspicious transactions: {self.suspicious_transactions_count})...")
         
-        # 生成所有表数据
+        # Generate all tables
         tables = {
             "users": self.generate_users(),
             "accounts": self.generate_accounts(), 
@@ -686,7 +684,7 @@ class LiveTransactionsDataGenerator:
             "fraud_alerts": self.generate_fraud_alerts()
         }
         
-        # 计算记录数
+        # Table record counts
         record_counts = {table: len(data) for table, data in tables.items()}
         
         dataset = {
@@ -706,7 +704,7 @@ class LiveTransactionsDataGenerator:
             "tables": tables
         }
         
-        # 添加分析说明
+        # Add analysis
         dataset["fraud_investigation_summary"] = {
             "suspicious_transactions": [
                 {
@@ -742,33 +740,29 @@ class LiveTransactionsDataGenerator:
         return dataset
     
     def export_to_bigquery_format(self, dataset: Dict[str, Any], output_dir: str = "bigquery_tables"):
-        """导出为BigQuery兼容的JSONL格式"""
+        """Export tables as BigQuery-compatible JSONL files"""
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
             
-        print(f"\n🔄 导出BigQuery格式文件到 {output_dir}/ ...")
+        print(f"\n🔄 Exporting BigQuery files to {output_dir}/ ...")
         
-        # 导出每个表为单独的JSONL文件
         for table_name, table_data in dataset["tables"].items():
-            if not table_data:  # 跳过空表
+            if not table_data:
                 continue
                 
             output_file = os.path.join(output_dir, f"{table_name}.jsonl")
             
             with open(output_file, 'w', encoding='utf-8') as f:
                 for record in table_data:
-                    # 每行一个JSON对象（JSONL格式）
                     json.dump(record, f, ensure_ascii=False)
                     f.write('\n')
                     
-            print(f"  ✅ {table_name}.jsonl ({len(table_data)} 条记录)")
+            print(f"  ✅ {table_name}.jsonl ({len(table_data)} records)")
         
-        # 导出元数据
         metadata_file = os.path.join(output_dir, "metadata.json")
         with open(metadata_file, 'w', encoding='utf-8') as f:
             json.dump(dataset["metadata"], f, indent=2, ensure_ascii=False)
             
-        # 导出调查总结
         summary_file = os.path.join(output_dir, "fraud_investigation_summary.json")
         with open(summary_file, 'w', encoding='utf-8') as f:
             json.dump(dataset["fraud_investigation_summary"], f, indent=2, ensure_ascii=False)
@@ -779,20 +773,19 @@ class LiveTransactionsDataGenerator:
         return output_dir
     
     def export_to_csv_format(self, dataset: Dict[str, Any], output_dir: str = "csv_tables"):
-        """导出为CSV格式"""
+        """Export tables as CSV files"""
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
             
-        print(f"\n🔄 导出CSV格式文件到 {output_dir}/ ...")
+        print(f"\n🔄 Exporting CSV files to {output_dir}/ ...")
         
-        # 导出每个表为单独的CSV文件
         for table_name, table_data in dataset["tables"].items():
-            if not table_data:  # 跳过空表
+            if not table_data:
                 continue
                 
             output_file = os.path.join(output_dir, f"{table_name}.csv")
             
-            # 处理复杂字段（将列表和字典转换为JSON字符串）
+            # Convert lists/dicts to JSON strings for CSV
             processed_data = []
             for record in table_data:
                 processed_record = {}
@@ -803,18 +796,15 @@ class LiveTransactionsDataGenerator:
                         processed_record[key] = value
                 processed_data.append(processed_record)
             
-            # 使用pandas导出CSV
             if processed_data:
                 df = pd.DataFrame(processed_data)
                 df.to_csv(output_file, index=False, encoding='utf-8')
-                print(f"  ✅ {table_name}.csv ({len(processed_data)} 条记录, {len(df.columns)} 列)")
+                print(f"  ✅ {table_name}.csv ({len(processed_data)} records, {len(df.columns)} columns)")
         
-        # 导出元数据为JSON（保持可读性）
         metadata_file = os.path.join(output_dir, "metadata.json")
         with open(metadata_file, 'w', encoding='utf-8') as f:
             json.dump(dataset["metadata"], f, indent=2, ensure_ascii=False)
             
-        # 导出调查总结
         summary_file = os.path.join(output_dir, "fraud_investigation_summary.json")
         with open(summary_file, 'w', encoding='utf-8') as f:
             json.dump(dataset["fraud_investigation_summary"], f, indent=2, ensure_ascii=False)
@@ -825,68 +815,64 @@ class LiveTransactionsDataGenerator:
         return output_dir
 
 def main():
-    """主函数"""
-    parser = argparse.ArgumentParser(description='生成Live Transactions数据集')
-    parser.add_argument('--scale', type=int, default=1, help='数据规模倍数 (默认: 1)')
-    parser.add_argument('--suspicious-count', type=int, default=1, help='可疑交易数量 (默认: 1)')
-    parser.add_argument('--export-bigquery', action='store_true', help='导出BigQuery格式')
-    parser.add_argument('--export-csv', action='store_true', help='导出CSV格式')
-    parser.add_argument('--output-dir', type=str, default='bigquery_tables', help='文件输出目录')
+    """Main function"""
+    parser = argparse.ArgumentParser(description='Generate Live Transactions dataset')
+    parser.add_argument('--scale', type=int, default=1, help='Data scale factor (default: 1)')
+    parser.add_argument('--suspicious-count', type=int, default=1, help='Number of suspicious transactions (default: 1)')
+    parser.add_argument('--export-bigquery', action='store_true', help='Export in BigQuery format')
+    parser.add_argument('--export-csv', action='store_true', help='Export in CSV format')
+    parser.add_argument('--output-dir', type=str, default='bigquery_tables', help='Output directory')
     
     args = parser.parse_args()
     
-    # 生成数据集
+    # Generate dataset
     generator = LiveTransactionsDataGenerator(
         scale_factor=args.scale,
         suspicious_transactions_count=args.suspicious_count
     )
     dataset = generator.generate_complete_dataset()
     
-    # 保存完整数据集
+    # Write full dataset to file
     output_file = "live_transactions_dataset.json"
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(dataset, f, indent=2, ensure_ascii=False)
     
-    print(f"\n✅ 数据集生成完成！")
-    print(f"📁 文件保存至: {output_file}")
-    print(f"📊 数据集包含 {len(dataset['tables'])} 个表")
-    print(f"📈 总记录数: {dataset['metadata']['total_records']}")
-    print(f"🚨 可疑交易: {', '.join(dataset['metadata']['suspicious_transaction_ids'])}")
-    print(f"⚖️ 数据复杂度: {dataset['metadata']['data_complexity']}")
+    print(f"\n✅ Dataset generated.")
+    print(f"📁 File saved as: {output_file}")
+    print(f"📊 Number of tables: {len(dataset['tables'])}")
+    print(f"📈 Total records: {dataset['metadata']['total_records']}")
+    print(f"🚨 Suspicious transactions: {', '.join(dataset['metadata']['suspicious_transaction_ids'])}")
+    print(f"⚖️ Data complexity: {dataset['metadata']['data_complexity']}")
     
-    # 显示统计信息
-    print(f"\n📈 表记录统计:")
+    # Table record stats
+    print(f"\n📈 Table stats:")
     for table, count in dataset["metadata"]["record_counts"].items():
-        print(f"  • {table}: {count} 条记录")
+        print(f"  • {table}: {count} records")
     
-    # 显示可疑交易信息
-    print(f"\n🎯 可疑交易详情:")
+    # Suspicious transaction info
+    print(f"\n🎯 Suspicious transactions details:")
     for i, tx_info in enumerate(dataset["fraud_investigation_summary"]["suspicious_transactions"]):
         print(f"  • {tx_info['id']}: ${tx_info['amount_usd']:,.2f}")
     
-    # 导出BigQuery格式
+    # Export BigQuery format
     if args.export_bigquery:
         output_dir = args.output_dir if args.output_dir != 'bigquery_tables' else 'bigquery_tables'
         bigquery_dir = generator.export_to_bigquery_format(dataset, output_dir)
-        print(f"\n📤 BigQuery文件已导出到: {bigquery_dir}/")
-        
-        # 显示BigQuery导入建议
-        print(f"\n💡 BigQuery导入建议:")
-        print(f"  1. 创建数据集: bq mk --dataset your_project:live_transactions")
-        print(f"  2. 导入表例如: bq load --source_format=NEWLINE_DELIMITED_JSON your_project:live_transactions.users {bigquery_dir}/users.jsonl")
+        print(f"\n📤 BigQuery files exported to: {bigquery_dir}/")
+        print(f"\n💡 BigQuery import suggestions:")
+        print(f"  1. Create dataset: bq mk --dataset your_project:live_transactions")
+        print(f"  2. Import tables: bq load --source_format=NEWLINE_DELIMITED_JSON your_project:live_transactions.users {bigquery_dir}/users.jsonl")
     
-    # 导出CSV格式
+    # Export CSV format
     if args.export_csv:
         output_dir = args.output_dir if args.output_dir != 'bigquery_tables' else 'csv_tables'
         csv_dir = generator.export_to_csv_format(dataset, output_dir)
-        print(f"\n📤 CSV文件已导出到: {csv_dir}/")
-        
-        # 显示CSV使用建议
-        print(f"\n💡 CSV使用建议:")
-        print(f"  1. 使用pandas读取: pd.read_csv('{csv_dir}/live_transactions.csv')")
-        print(f"  2. 导入数据库: 各种数据库都支持CSV导入功能")
-        print(f"  3. Excel分析: 可直接在Excel中打开.csv文件进行分析")
-        print(f"  4. 复杂字段: JSON格式的字段可使用json.loads()解析")
+        print(f"\n📤 CSV files exported to: {csv_dir}/")
+        print(f"\n💡 CSV usage suggestions:")
+        print(f"  1. Read in pandas: pd.read_csv('{csv_dir}/live_transactions.csv')")
+        print(f"  2. DB import: All major databases support CSV import")
+        print(f"  3. Excel: Open CSV files directly in Excel for analysis")
+        print(f"  4. For complex fields: use json.loads() to parse JSON-format columns")
     
     return dataset
 

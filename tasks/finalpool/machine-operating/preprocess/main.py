@@ -119,7 +119,7 @@ def delete_and_recreate_bucket(
                 time.sleep(3)
             else:
                 print("❌ All attempts failed. Giving up.")
-                return False
+                raise e
 
 def check_bq_dataset_exists(dataset_name="machine_operating", project_id=PROJECT_ID):
     """Check if BigQuery dataset exists"""
