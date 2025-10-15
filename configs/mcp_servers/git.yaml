@@ -8,5 +8,6 @@ params:
     - "run"
     - "-m"
     - "mcp_server_git"
+  # cwd: "${agent_workspace}" # do not add this for compatibility
 client_session_timeout_seconds: 10
 cache_tools_list: true

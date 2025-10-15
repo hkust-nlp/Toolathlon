@@ -8,5 +8,6 @@ params:
     - "-y"
     - "@modelcontextprotocol/server-filesystem"
     - "${agent_workspace}"  # 仅允许对该目录下的文件进行读写
+  cwd: "${agent_workspace}"
 client_session_timeout_seconds: 300
 cache_tools_list: true

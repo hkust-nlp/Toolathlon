@@ -10,5 +10,6 @@ params:
     - "wandb_mcp_server"
   env:
     WANDB_API_KEY: "${token.wandb_api_key}"
+  cwd: "${agent_workspace}"
 client_session_timeout_seconds: 10
 cache_tools_list: true

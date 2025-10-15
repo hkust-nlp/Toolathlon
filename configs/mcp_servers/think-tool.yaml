@@ -10,5 +10,6 @@ params:
   pollingInterval: 30000
   startupTimeout: 30000
   restartOnFailure: true
+  cwd: "${agent_workspace}"
 client_session_timeout_seconds: 100
 cache_tools_list: true

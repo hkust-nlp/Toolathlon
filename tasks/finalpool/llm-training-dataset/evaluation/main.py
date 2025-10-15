@@ -7,17 +7,28 @@ from googleapiclient.errors import HttpError
 from utils.general.helper import normalize_str
 
 # 参考gpt-neo和llama的预训练数据集（只需包含即可，不要求严格一致）
-gpt_neo_sets = [
+gpt_neo_sets_list = [
     "Pile-CC", "PubMed Central", "Books3", "OpenWebText2", "ArXiv", "Github", "FreeLaw", "Stack Exchange",
     "USPTO Backgrounds", "PubMed Abstracts", "Gutenberg (PG-19)", "OpenSubtitles", "Wikipedia (en)",
     "DM Mathematics", "Ubuntu IRC", "BookCorpus2", "EuroParl", "HackerNews", "YoutubeSubtitles",
     "PhilPapers", "NIH ExPorter", "Enron Emails", "The Pile"
 ]
-gpt_neo_sets = set([ds.lower() for ds in gpt_neo_sets])
-llama_sets = [
+gpt_neo_sizes = [
+    227.12, 90.27, 100.96, 62.77, 56.21, 95.16, 51.15, 32.20, 22.90, 19.26, 10.88, 12.98, 6.38, 7.75, 5.52, 6.30, 4.59, 3.90, 3.73, 2.38, 1.89, 0.88, 825.18
+]
+# 创建名称到size的映射
+gpt_neo_size_dict = {ds.lower(): size for ds, size in zip(gpt_neo_sets_list, gpt_neo_sizes)}
+gpt_neo_sets = set([ds.lower() for ds in gpt_neo_sets_list])
+
+llama_sets_list = [
     "CommonCrawl", "C4", "Github", "Wikipedia", "Books", "ArXiv", "StackExchange"
 ]
-llama_sets = set([ds.lower() for ds in llama_sets])
+llama_sizes = [
+    3300, 783, 328, 83, 85, 92, 78
+]
+# 创建名称到size的映射
+llama_size_dict = {ds.lower(): size for ds, size in zip(llama_sets_list, llama_sizes)}
+llama_sets = set([ds.lower() for ds in llama_sets_list])
 
 def dataset_match(agent_name, expected_sets):
     """
@@ -35,6 +46,50 @@ def dataset_match(agent_name, expected_sets):
             return True
 
     return False
+
+def get_expected_size(agent_name, expected_sets, size_dict):
+    """
+    根据agent_name在expected_sets中找到匹配的数据集,并返回对应的size
+    """
+    agent_normalized = normalize_str(agent_name)
+
+    for expected_name in expected_sets:
+        expected_normalized = normalize_str(expected_name)
+
+        if agent_normalized in expected_normalized or expected_normalized in agent_normalized:
+            # 找到匹配的数据集,返回其size
+            return size_dict.get(expected_name)
+
+    return None
+
+def compare_size(agent_size_str, expected_size, tolerance=0.01):
+    """
+    比较两个size数值,允许1%的误差
+    agent_size_str: agent提供的size字符串
+    expected_size: 期望的size数值
+    tolerance: 允许的误差范围(默认0.01即1%)
+    """
+    try:
+        agent_size = float(agent_size_str)
+        expected_size = float(expected_size)
+
+        # 计算相对误差
+        if expected_size == 0:
+            return agent_size == 0
+
+        relative_error = abs(agent_size - expected_size) / expected_size
+        return relative_error <= tolerance
+    except (ValueError, TypeError):
+        return False
+
+def should_skip_size_check(dataset_name):
+    """
+    检查是否应该跳过size检查
+    对于被两个模型共用的数据集(Wikipedia, ArXiv, Books, Github)跳过size检查
+    """
+    name_lower = dataset_name.lower()
+    shared_datasets = ['wikipedia', 'arxiv', 'books', 'github']
+    return any(shared in name_lower for shared in shared_datasets)
 
 from addict import Dict
 import os
@@ -238,35 +293,76 @@ if __name__ == "__main__":
     llama_cnt = 7
     gpt_neo_cnt = 23
     agent_datasets = []  # Store (name, model) pairs for analysis
+    size_errors = []  # Store size validation errors
 
     print(f"📋 Loaded {len(ptdata_df)} datasets from agent's sheet")
+
+    # Check if data is sorted in descending order by size
+    ordering_errors = []
+    previous_size = None
+    for idx, row in ptdata_df.iterrows():
+        if len(row) > 2:
+            agent_size = row.iloc[2]
+            try:
+                current_size = float(agent_size)
+                if previous_size is not None and current_size > previous_size:
+                    ordering_errors.append((idx+1, row.iloc[0], current_size, previous_size))
+                previous_size = current_size
+            except (ValueError, TypeError):
+                pass  # Skip if size is not a valid number
 
     # 4. Process each dataset (collect data without printing)
     llama_found_datasets = []
     gpt_neo_found_datasets = []
 
     for idx, row in ptdata_df.iterrows():
-        if len(row) < 2:
-            print(f"ERROR: Row {idx+1} has insufficient columns. Expected at least 2 columns (name, use_in_llm)")
+        if len(row) < 3:
+            print(f"ERROR: Row {idx+1} has insufficient columns. Expected at least 3 columns (name, use_in_llm, size)")
             exit(1)
 
         name, use_in_llm = row.iloc[0], row.iloc[1]
+        agent_size = row.iloc[2] if len(row) > 2 else None
         agent_datasets.append((name, use_in_llm))
 
+        # Validate size if applicable
         if use_in_llm == "gpt-neo":
             if dataset_match(name, gpt_neo_sets):
                 gpt_neo_found_datasets.append(name)
+                # Check size (skip for shared datasets)
+                if not should_skip_size_check(name):
+                    expected_size = get_expected_size(name, gpt_neo_sets, gpt_neo_size_dict)
+                    if expected_size is not None and agent_size:
+                        if not compare_size(agent_size, expected_size):
+                            size_errors.append((name, agent_size, expected_size, "gpt-neo"))
             gpt_neo_cnt -= 1
         elif use_in_llm == "llama":
             if dataset_match(name, llama_sets):
                 llama_found_datasets.append(name)
+                # Check size (skip for shared datasets)
+                if not should_skip_size_check(name):
+                    expected_size = get_expected_size(name, llama_sets, llama_size_dict)
+                    if expected_size is not None and agent_size:
+                        if not compare_size(agent_size, expected_size):
+                            size_errors.append((name, agent_size, expected_size, "llama"))
             llama_cnt -= 1
         elif "llama" in use_in_llm and "gpt-neo" in use_in_llm:
             # Handle datasets used by both models
             if dataset_match(name, gpt_neo_sets):
                 gpt_neo_found_datasets.append(name)
+                # Check size for gpt-neo (skip for shared datasets)
+                if not should_skip_size_check(name):
+                    expected_size = get_expected_size(name, gpt_neo_sets, gpt_neo_size_dict)
+                    if expected_size is not None and agent_size:
+                        if not compare_size(agent_size, expected_size):
+                            size_errors.append((name, agent_size, expected_size, "gpt-neo"))
             if dataset_match(name, llama_sets):
                 llama_found_datasets.append(name)
+                # Check size for llama (skip for shared datasets)
+                if not should_skip_size_check(name):
+                    expected_size = get_expected_size(name, llama_sets, llama_size_dict)
+                    if expected_size is not None and agent_size:
+                        if not compare_size(agent_size, expected_size):
+                            size_errors.append((name, agent_size, expected_size, "llama"))
             gpt_neo_cnt -= 1
             llama_cnt -= 1
 
@@ -386,9 +482,33 @@ if __name__ == "__main__":
         print(f"❌ GPT-Neo requirement not satisfied")
         success = False
 
+    # Check size validation errors
+    if size_errors:
+        print(f"\n❌ Size validation errors found ({len(size_errors)} datasets):")
+        for name, agent_size, expected_size, model in size_errors:
+            try:
+                agent_val = float(agent_size)
+                expected_val = float(expected_size)
+                error_pct = abs(agent_val - expected_val) / expected_val * 100
+                print(f"   • '{name}' ({model}): agent={agent_size}, expected={expected_size} (error: {error_pct:.2f}%)")
+            except:
+                print(f"   • '{name}' ({model}): agent={agent_size}, expected={expected_size}")
+        success = False
+    else:
+        print(f"✅ All dataset sizes match expected values (within 1% tolerance)")
+
+    # Check ordering errors
+    if ordering_errors:
+        print(f"\n❌ Data not sorted in descending order by size ({len(ordering_errors)} violations):")
+        for row_num, name, current_size, previous_size in ordering_errors:
+            print(f"   • Row {row_num} '{name}' (size={current_size}) is larger than previous row (size={previous_size})")
+        success = False
+    else:
+        print(f"✅ All data sorted in descending order by size")
+
     if success:
-        print("🎉 EVALUATION PASSED: All expected datasets found with correct categorizations")
+        print("\n🎉 EVALUATION PASSED: All expected datasets found with correct categorizations and sizes")
         exit(0)
     else:
-        print("💥 EVALUATION FAILED: Missing datasets or incorrect categorizations")
+        print("\n💥 EVALUATION FAILED: Missing datasets, incorrect categorizations, or size mismatches")
         exit(1)

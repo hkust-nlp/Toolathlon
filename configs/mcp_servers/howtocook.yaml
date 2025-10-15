@@ -6,5 +6,6 @@ params:
   args:
     - "-y"
     - "howtocook-mcp"
+  cwd: "${agent_workspace}"
 client_session_timeout_seconds: 1000
 cache_tools_list: true

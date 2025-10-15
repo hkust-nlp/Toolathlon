@@ -9,5 +9,6 @@ params:
     - "--from"
     - "office-word-mcp-server"
     - "word_mcp_server"
+  cwd: "${agent_workspace}"
 client_session_timeout_seconds: 10
 cache_tools_list: true

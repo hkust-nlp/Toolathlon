@@ -8,4 +8,5 @@ params:
     - "https://huggingface.co/mcp"
     - "--header"
     - "Authorization: Bearer ${token.huggingface_token}"
+  cwd: "${agent_workspace}"
 cache_tools_list: true 

@@ -14,5 +14,6 @@ params:
   # env:
   #   HTTPS_PROXY: "${config.proxy}"
   #   HTTP_PROXY: "${config.proxy}"
+  cwd: "${agent_workspace}"
 client_session_timeout_seconds: 60
 cache_tools_list: true

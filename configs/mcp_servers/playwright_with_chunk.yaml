@@ -19,5 +19,6 @@ params:
     - "omit"
     - "--span-size"
     - "5000"
+  cwd: "${agent_workspace}"
 client_session_timeout_seconds: 120
 cache_tools_list: true

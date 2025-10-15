@@ -91,3 +91,6 @@ dumps_finalexp_overlong_ablation.tar.gz
 dumps_finalexp.tar.gz
 
 detect_cn.py
+
+.vscode
+.claude

@@ -19,5 +19,6 @@ params:
     MAX_STDERR_LENGTH: "2048"
     CLI_PROXY_ENABLED: "false" # set to true if you want to use a proxy
     CLI_PROXY_URL: "" # set to the proxy url if you want to use a proxy
+  cwd: "${agent_workspace}"
 client_session_timeout_seconds: 60
 cache_tools_list: true

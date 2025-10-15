@@ -7,5 +7,6 @@ params:
   args:
     - "-y"
     - "12306-mcp"
+  cwd: "${agent_workspace}"
 cache_tools_list: true
 client_session_timeout_seconds: 20

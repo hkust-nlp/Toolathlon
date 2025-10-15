@@ -7,4 +7,5 @@ params:
   args:
     - "-y"
     - "shadcn-ui-mcp-server"
+  cwd: "${agent_workspace}"
 cache_tools_list: true

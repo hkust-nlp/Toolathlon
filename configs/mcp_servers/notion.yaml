@@ -12,5 +12,6 @@ params:
     - "${token.notion_allowed_page_ids}"
   env:
     OPENAPI_MCP_HEADERS: "{\"Authorization\": \"Bearer ${token.notion_integration_key_eval}\", \"Notion-Version\": \"2022-06-28\" }"
+  cwd: "${agent_workspace}"
 client_session_timeout_seconds: 100
 cache_tools_list: true

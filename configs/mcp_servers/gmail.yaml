@@ -7,5 +7,6 @@ params:
   args:
     - "-y"
     - "@gongrzhe/server-gmail-autoauth-mcp"
+  cwd: "${agent_workspace}"
 client_session_timeout_seconds: 10
 cache_tools_list: true

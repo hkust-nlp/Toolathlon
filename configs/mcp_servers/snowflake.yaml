@@ -24,6 +24,7 @@ params:
     - "${token.snowflake_op_allowed_databases}"
     - "--allow_write"
     - "--exclude-json-results"
+  cwd: "${agent_workspace}"
 client_session_timeout_seconds: 120
 cache_tools_list: true
 

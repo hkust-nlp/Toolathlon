@@ -8,5 +8,6 @@ params:
   args:
     - "-y"
     - "@tokenizin/mcp-npx-fetch"
+  cwd: "${agent_workspace}"
 client_session_timeout_seconds: 100
 cache_tools_list: true

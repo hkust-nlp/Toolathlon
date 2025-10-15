@@ -17,5 +17,6 @@ params:
     - "${token.google_cloud_allowed_log_buckets}"
     - "--allowed-instances"
     - "${token.google_cloud_allowed_instances}"
+  # cwd: "${agent_workspace}" # do not add this for compatibility
 client_session_timeout_seconds: 30
 cache_tools_list: true

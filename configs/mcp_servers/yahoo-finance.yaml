@@ -19,5 +19,6 @@ params:
   args:
     - "run"
     - "${local_servers_paths}/yahoo-finance-mcp/server.py"
+  # cwd: "${agent_workspace}" # do not add this for compatibility
 client_session_timeout_seconds: 60
 cache_tools_list: true

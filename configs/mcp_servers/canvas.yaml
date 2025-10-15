@@ -14,5 +14,6 @@ params:
     NODE_TLS_REJECT_UNAUTHORIZED: "0"
     # 如果你不需要加载自定义CA证书，可以注释掉下面这行
     # NODE_EXTRA_CA_CERTS: "deployment/canvas/logs/cert.pem"
+  cwd: "${agent_workspace}"
 client_session_timeout_seconds: 10
 cache_tools_list: true
