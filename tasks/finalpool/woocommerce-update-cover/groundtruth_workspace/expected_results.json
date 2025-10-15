@@ -93,10 +93,10 @@
   },
   "total_products_to_update": 3,
   "analysis_period": {
-    "description": "上周（周一到周日）",
+    "description": "Last week (Monday to Sunday)",
     "start_date": "2025-09-08",
     "end_date": "2025-09-14",
-    "note": "基于随机受欢迎程度和实际模拟销量数据确定最佳销售变体，任何变体都可能成为最佳销售"
+    "note": "The best-selling variation is determined based on randomly assigned popularity and simulated actual sales data. Any variation may become the top seller."
   },
   "created_test_data": {
     "products_count": 3,

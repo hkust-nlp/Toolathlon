@@ -7,22 +7,22 @@ from pathlib import Path
 import json
 from datetime import datetime, timedelta
 
-# 添加项目根目录到 Python 路径  
+# Add project root directory to Python path  
 current_file = Path(__file__).resolve()
-project_root = current_file.parent.parent.parent.parent.parent  # 多向上一级
+project_root = current_file.parent.parent.parent.parent.parent  # Multiple levels up
 sys.path.insert(0, str(project_root))
 
-# 添加preprocess目录到路径，用于导入WooCommerceClient
+# Add preprocess directory to path, for importing WooCommerceClient
 preprocess_dir = current_file.parent.parent / "preprocess"
 sys.path.insert(0, str(preprocess_dir))
 
-# 添加任务根目录到路径，用于导入token_key_session
+# Add task root directory to path, for importing token_key_session
 task_root_dir = current_file.parent.parent
 sys.path.insert(0, str(task_root_dir))
 
 try:
     from utils.general.helper import read_json
-    # 导入WooCommerce客户端
+    # Import WooCommerce client
     from woocommerce_client import WooCommerceClient, add_woocommerce_extensions
     from token_key_session import all_token_key_session
 except ImportError as e:
@@ -35,84 +35,86 @@ except ImportError as e:
 
 async def main(args):
     """
-    Main evaluation function - Check if photo update task was completed correctly
-    
-    简化评估逻辑：
-    1. 读取expected_results.json文件
-    2. 获取每个产品的当前主图ID
-    3. 检查是否匹配期望的主图ID
+    Main evaluation function - Check if product cover update task was completed correctly
+
+    Evaluation logic:
+    1. Read expected_results.json file
+    2. For each product, get the current main image ID
+    3. Compare with expected main image ID
     """
-    print("Starting photo update task evaluation...")
-    
-    # 1. 读取预期结果文件
+    print("Starting evaluation of product cover update task...")
+
+    # 1. Read the expected results file
     expected_results_path = Path(__file__).parent.parent / "groundtruth_workspace" / "expected_results.json"
     if not expected_results_path.exists():
         print(f"Expected results file not found: {expected_results_path}")
         print("Please run the test setup script first:")
         print("cd preprocess && python setup_test_products.py")
         exit(1)
-    
+
     with open(expected_results_path, 'r', encoding='utf-8') as f:
         expected_results = json.load(f)
-    
+
     expected_updates = expected_results.get('expected_updates', {})
     print(f"Found {len(expected_updates)} products to check")
-    
-    # 2. 初始化WooCommerce客户端
+
+    # 2. Initialize WooCommerce client
     try:
-        # 从配置获取WooCommerce信息
         site_url = all_token_key_session.woocommerce_site_url
         consumer_key = all_token_key_session.woocommerce_api_key
         consumer_secret = all_token_key_session.woocommerce_api_secret
         wp_username = all_token_key_session.woocommerce_admin_username
         wp_password = all_token_key_session.woocommerce_admin_password
-        
-        print(f"🔧 连接到WooCommerce商店: {site_url}")
-        wc_client = WooCommerceClient(site_url, consumer_key, consumer_secret, wp_username=wp_username, wp_password=wp_password)
+
+        print(f"🔧 Connecting to WooCommerce store: {site_url}")
+        wc_client = WooCommerceClient(
+            site_url, consumer_key, consumer_secret,
+            wp_username=wp_username, wp_password=wp_password
+        )
         add_woocommerce_extensions(wc_client)
-        
+
     except Exception as e:
         print(f"Failed to initialize WooCommerce client: {e}")
         exit(1)
-    
-    # 3. 检查每个产品的主图是否正确更新
+
+    # 3. Check each product's main/featured image
     success_count = 0
     total_products = len(expected_updates)
     evaluation_results = []
-    
+
     for product_id_str, expected_data in expected_updates.items():
         product_id = int(product_id_str)
         product_name = expected_data.get('product_name', 'Unknown')
         expected_image_id = expected_data.get('expected_featured_image_id')
-        
-        print(f"\n检查产品: {product_name} (ID: {product_id})")
-        print(f"   期望主图ID: {expected_image_id}")
-        
+
+        print(f"\nChecking product: {product_name} (ID: {product_id})")
+        print(f"   Expected featured image ID: {expected_image_id}")
+
         try:
-            # 获取产品信息
+            # Retrieve product data
             success, product_data = wc_client.get_product(str(product_id))
-            
+
             if not success:
-                print(f"   ❌ 无法获取产品信息")
+                print(f"   ❌ Failed to retrieve product info")
                 evaluation_results.append({
                     "product_id": product_id,
                     "product_name": product_name,
                     "status": "error",
-                    "error": "无法获取产品信息"
+                    "error": "Failed to retrieve product information"
                 })
                 continue
-            
-            # 获取当前主图ID
+
+            # Get current featured image ID
             current_images = product_data.get('images', [])
             current_featured_image_id = None
             if current_images:
                 current_featured_image_id = current_images[0].get('id')
-            
-            print(f"   当前主图ID: {current_featured_image_id}")
-            
-            # 检查是否匹配
+
+            print(f"   Current featured image ID: {current_featured_image_id}")
+
+            # Compare with expected
             if expected_image_id is None:
-                print(f"   ⚠️ 没有期望的主图ID")
+                print(f"   ⚠️ No expected featured image ID specified")
                 evaluation_results.append({
                     "product_id": product_id,
                     "product_name": product_name,
@@ -121,7 +123,7 @@ async def main(args):
                     "expected_featured_image_id": expected_image_id
                 })
             elif str(current_featured_image_id) == str(expected_image_id):
-                print(f"   ✅ 主图更新正确")
+                print(f"   ✅ Featured image updated correctly")
                 success_count += 1
                 evaluation_results.append({
                     "product_id": product_id,
@@ -131,9 +133,9 @@ async def main(args):
                     "expected_featured_image_id": expected_image_id
                 })
             else:
-                print(f"   ❌ 主图更新不正确")
-                print(f"      当前: {current_featured_image_id}")
-                print(f"      期望: {expected_image_id}")
+                print(f"   ❌ Featured image not updated correctly")
+                print(f"      Current: {current_featured_image_id}")
+                print(f"      Expected: {expected_image_id}")
                 evaluation_results.append({
                     "product_id": product_id,
                     "product_name": product_name,
@@ -141,52 +143,52 @@ async def main(args):
                     "current_featured_image_id": current_featured_image_id,
                     "expected_featured_image_id": expected_image_id
                 })
-                
+
         except Exception as e:
-            print(f"   ❌ 检查产品时出错: {e}")
+            print(f"   ❌ Error occurred while checking product: {e}")
             evaluation_results.append({
                 "product_id": product_id,
                 "product_name": product_name,
                 "status": "error",
                 "error": str(e)
             })
-    
-    # 4. 生成评估报告
-    print(f"\n" + "="*60)
-    print(f"评估结果汇总")
-    print(f"="*60)
-    print(f"   检查产品总数: {total_products}")
-    print(f"   主图更新正确: {success_count}")
-    print(f"   成功率: {(success_count/total_products*100):.1f}%" if total_products > 0 else "   成功率: 0%")
-    
-    # 确定任务是否成功，失败时抛出异常
+
+    # 4. Print evaluation summary
+    print(f"\n{'='*60}")
+    print(f"Evaluation Summary")
+    print(f"{'='*60}")
+    print(f"   Total products checked: {total_products}")
+    print(f"   Correct featured image updates: {success_count}")
+    print(f"   Success rate: {(success_count/total_products*100):.1f}%" if total_products > 0 else "   Success rate: 0%")
+
+    # Determine success/failure, raise exception if failed
     if total_products == 0:
-        error_msg = "评估失败: 没有找到要检查的产品"
+        error_msg = "Evaluation failed: No products found to check"
         print(error_msg)
         raise Exception(error_msg)
     elif success_count / total_products < 1.0:
-        # 收集失败的产品信息
+        # Collect failed product info
         failed_products = []
         for result in evaluation_results:
             if result["status"] in ["failed", "error"]:
-                failed_info = f"产品 {result['product_name']} (ID: {result['product_id']})"
+                failed_info = f"Product {result['product_name']} (ID: {result['product_id']})"
                 if result["status"] == "failed":
-                    failed_info += f" - 当前主图ID: {result.get('current_featured_image_id')}, 期望: {result.get('expected_featured_image_id')}"
+                    failed_info += f" - Current featured image ID: {result.get('current_featured_image_id')}, Expected: {result.get('expected_featured_image_id')}"
                 elif result["status"] == "error":
-                    failed_info += f" - 错误: {result.get('error', '未知错误')}"
+                    failed_info += f" - Error: {result.get('error', 'Unknown error')}"
                 failed_products.append(failed_info)
-        
-        error_msg = f"❌ 任务评估失败: 主图更新不完整\n"
-        error_msg += f"成功率: {(success_count/total_products*100):.1f}% (需要 ≥80%)\n"
-        error_msg += f"成功: {success_count}/{total_products}\n"
+
+        error_msg = f"❌ Evaluation failed: Not all featured images were updated correctly\n"
+        error_msg += f"Success rate: {(success_count/total_products*100):.1f}% (Required: ≥80%)\n"
+        error_msg += f"Successes: {success_count}/{total_products}\n"
         if failed_products:
-            error_msg += f"失败的产品:\n" + "\n".join([f"  - {info}" for info in failed_products])
-        
+            error_msg += f"Failed products:\n" + "\n".join([f"  - {info}" for info in failed_products])
+
         print(error_msg)
         raise Exception(error_msg)
     else:
-        print("✅ 任务评估通过: 主图更新成功")
-        print(f"成功率: {(success_count/total_products*100):.1f}%")
+        print("✅ Evaluation passed: All featured images updated correctly")
+        print(f"Success rate: {(success_count/total_products*100):.1f}%")
 
 
 if __name__ == "__main__":

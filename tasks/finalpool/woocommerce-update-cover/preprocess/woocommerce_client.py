@@ -8,20 +8,20 @@ import sys
 import os
 
 class WooCommerceClient:
-    """WooCommerce API客户端 - 用于低销量产品筛选任务"""
+    """WooCommerce API client - For low selling product filter task"""
     
     def __init__(self, site_url: str, consumer_key: str, consumer_secret: str, version: str = "v3", 
                  wp_username: str = None, wp_password: str = None):
         """
-        初始化WooCommerce客户端
+        Initialize WooCommerce client
         
         Args:
-            site_url: WooCommerce网站URL (例如: https://your-site.com)
-            consumer_key: WooCommerce API消费者密钥
-            consumer_secret: WooCommerce API消费者密钥
-            version: API版本 (默认: v3)
-            wp_username: WordPress管理员用户名 (用于媒体上传)
-            wp_password: WordPress管理员密码 (用于媒体上传)
+            site_url: WooCommerce website URL (e.g. https://your-site.com)
+            consumer_key: WooCommerce API consumer key
+            consumer_secret: WooCommerce API consumer secret
+            version: API version (default: v3)
+            wp_username: WordPress admin username (for media upload)
+            wp_password: WordPress admin password (for media upload)
         """
         self.site_url = site_url.rstrip('/')
         self.api_base = f"{self.site_url}/wp-json/wc/{version}"
@@ -29,8 +29,8 @@ class WooCommerceClient:
         self.session = requests.Session()
         self.session.auth = self.auth
 
-        # 设置连接池和超时配置
-        self.session.verify = False  # 禁用SSL验证（对于本地开发）
+        # Set up connection pool and timeout configuration
+        self.session.verify = False  # Disable SSL verification (for local development)
         adapter = requests.adapters.HTTPAdapter(
             pool_connections=1,
             pool_maxsize=1,
@@ -39,32 +39,32 @@ class WooCommerceClient:
         self.session.mount('http://', adapter)
         self.session.mount('https://', adapter)
 
-        # WordPress用户认证 (用于媒体上传)
+        # WordPress user authentication (for media upload)
         self.wp_auth = None
         self.wp_username = wp_username
         self.wp_password = wp_password
         if wp_username and wp_password:
             self.wp_auth = HTTPBasicAuth(wp_username, wp_password)
 
-        # API调用限制 (避免超过速率限制)
-        self.request_delay = 1.0  # 增加到1秒间隔
+        # API call limit (to avoid exceeding rate limit)
+        self.request_delay = 1.0  # Increase to 1 second interval
         self.last_request_time = 0
-        self.max_retries = 3  # 最大重试次数
+        self.max_retries = 3  # Maximum retry times
     
     def _make_request(self, method: str, endpoint: str, data: Dict = None, params: Dict = None) -> Tuple[bool, Dict]:
         """
-        发送API请求（带重试机制）
+        Send API request (with retry mechanism)
 
         Args:
-            method: HTTP方法 (GET, POST, PUT, DELETE)
-            endpoint: API端点
-            data: 请求数据
-            params: URL参数
+            method: HTTP method (GET, POST, PUT, DELETE)
+            endpoint: API endpoint
+            data: Request data
+            params: URL parameters
 
         Returns:
-            (成功标志, 响应数据)
+            (Success flag, response data)
         """
-        # 控制请求频率
+        # Control request frequency
         current_time = time.time()
         time_since_last = current_time - self.last_request_time
         if time_since_last < self.request_delay:
@@ -72,17 +72,17 @@ class WooCommerceClient:
 
         url = f"{self.api_base}/{endpoint.lstrip('/')}"
 
-        # 重试机制
+        # Retry mechanism
         for attempt in range(self.max_retries + 1):
             try:
                 headers = {
                     "Content-Type": "application/json",
-                    "Connection": "close",  # 确保连接关闭，避免连接池问题
+                    "Connection": "close",  # Ensure connection is closed, to avoid connection pool problem
                     "User-Agent": "WooCommerce-Python-Client/1.0"
                 }
 
-                # 设置超时
-                timeout = (10, 30)  # (连接超时, 读取超时)
+                # Set timeout
+                timeout = (10, 30)  # (Connection timeout, read timeout)
 
                 if method.upper() == 'GET':
                     response = self.session.get(url, params=params, headers=headers, timeout=timeout)
@@ -93,18 +93,18 @@ class WooCommerceClient:
                 elif method.upper() == 'DELETE':
                     response = self.session.delete(url, params=params, headers=headers, timeout=timeout)
                 else:
-                    return False, {"error": f"不支持的HTTP方法: {method}"}
+                    return False, {"error": f"Unsupported HTTP method: {method}"}
 
                 self.last_request_time = time.time()
 
-                # 检查响应状态
+                # Check response status
                 if response.status_code >= 200 and response.status_code < 300:
                     try:
                         return True, response.json()
-                    except ValueError:  # JSON解析失败
+                    except ValueError:  # JSON parsing failed
                         return True, {"message": "Success", "status_code": response.status_code}
                 else:
-                    # HTTP错误状态码
+                    # HTTP error status code
                     error_data = {"error": f"HTTP {response.status_code}", "status_code": response.status_code}
                     try:
                         error_detail = response.json()
@@ -117,16 +117,16 @@ class WooCommerceClient:
                     requests.exceptions.Timeout,
                     ConnectionResetError) as e:
                 if attempt < self.max_retries:
-                    wait_time = (attempt + 1) * 2  # 递增等待时间
-                    print(f"   🔄 连接失败，{wait_time}秒后重试 (第{attempt + 1}次): {str(e)[:100]}")
+                    wait_time = (attempt + 1) * 2  # Incremental wait time
+                    print(f"   🔄 Connection failed, {wait_time} seconds later retry ({attempt + 1} times): {str(e)[:100]}")
                     time.sleep(wait_time)
                     continue
                 else:
-                    error_msg = f"API请求失败（已重试{self.max_retries}次）: {str(e)}"
+                    error_msg = f"API request failed (tried {self.max_retries} times): {str(e)}"
                     return False, {"error": error_msg}
 
             except requests.exceptions.RequestException as e:
-                error_msg = f"API请求失败: {str(e)}"
+                error_msg = f"API request failed: {str(e)}"
                 if hasattr(e, 'response') and e.response is not None:
                     error_msg += f" - HTTP {e.response.status_code}"
                     try:
@@ -137,17 +137,17 @@ class WooCommerceClient:
                 return False, {"error": error_msg}
 
             except Exception as e:
-                error_msg = f"未知错误: {str(e)}"
+                error_msg = f"Unknown error: {str(e)}"
                 return False, {"error": error_msg}
 
-        return False, {"error": "请求失败，已达到最大重试次数"}
+        return False, {"error": "Request failed, reached maximum retry times"}
     
     def get_product(self, product_id: str) -> Tuple[bool, Dict]:
-        """获取商品信息"""
+        """Get product information"""
         return self._make_request('GET', f'products/{product_id}')
     
     def list_products(self, page: int = 1, per_page: int = 100, **kwargs) -> Tuple[bool, List[Dict]]:
-        """获取商品列表"""
+        """Get product list"""
         params = {
             'page': page,
             'per_page': per_page,
@@ -157,7 +157,7 @@ class WooCommerceClient:
         return success, data if isinstance(data, list) else []
     
     def get_all_products(self) -> List[Dict]:
-        """获取所有商品（分页获取）"""
+        """Get all products (paginated)"""
         all_products = []
         page = 1
         per_page = 100
@@ -169,50 +169,50 @@ class WooCommerceClient:
             
             all_products.extend(products)
             
-            # 如果返回的商品数量少于per_page，说明已经是最后一页
+            # If the number of products returned is less than per_page, it means it's the last page
             if len(products) < per_page:
                 break
             
             page += 1
         
-        print(f"📦 获取到 {len(all_products)} 个商品")
+        print(f"📦 Get {len(all_products)} products")
         return all_products
     
     def create_product(self, product_data: Dict) -> Tuple[bool, Dict]:
-        """创建商品"""
+        """Create product"""
         return self._make_request('POST', 'products', data=product_data)
     
     def update_product(self, product_id: str, product_data: Dict) -> Tuple[bool, Dict]:
-        """更新商品信息"""
+        """Update product information"""
         return self._make_request('PUT', f'products/{product_id}', data=product_data)
     
     def delete_product(self, product_id: str, force: bool = True) -> Tuple[bool, Dict]:
-        """删除商品"""
+        """Delete product"""
         params = {'force': force} if force else {}
         return self._make_request('DELETE', f'products/{product_id}', params=params)
     
     def create_order(self, order_data: Dict) -> Tuple[bool, Dict]:
-        """创建订单"""
+        """Create order"""
         return self._make_request('POST', 'orders', data=order_data)
 
     def delete_order(self, order_id: int) -> Tuple[bool, Dict]:
-        """删除指定订单"""
+        """Delete specified order"""
         return self._make_request('DELETE', f'orders/{order_id}', params={"force": True})
 
     def get_product_categories(self) -> Tuple[bool, List[Dict]]:
-        """获取商品分类列表"""
+        """Get product category list"""
         return self._make_request('GET', 'products/categories')
     
     def create_category(self, category_data: Dict) -> Tuple[bool, Dict]:
-        """创建商品分类"""
+        """Create product category"""
         return self._make_request('POST', 'products/categories', data=category_data)
     
     def update_category(self, category_id: str, category_data: Dict) -> Tuple[bool, Dict]:
-        """更新商品分类"""
+        """Update product category"""
         return self._make_request('PUT', f'products/categories/{category_id}', data=category_data)
     
     def batch_update_products(self, updates: List[Dict]) -> Tuple[bool, Dict]:
-        """批量更新商品"""
+        """Batch update products"""
         batch_data = {
             "update": updates
         }
@@ -220,14 +220,14 @@ class WooCommerceClient:
 
 
 class LowSellingProductFilter:
-    """低销量产品筛选器"""
+    """Low selling product filter"""
     
     def __init__(self, wc_client: WooCommerceClient):
         """
-        初始化筛选器
+        Initialize filter
         
         Args:
-            wc_client: WooCommerce客户端实例
+            wc_client: WooCommerce client instance
         """
         self.wc_client = wc_client
         self.outlet_category_id = None
@@ -235,19 +235,19 @@ class LowSellingProductFilter:
     def analyze_products(self, days_in_stock_threshold: int = 90, 
                         sales_30_days_threshold: int = 10) -> Dict:
         """
-        分析商品，筛选出低销量产品
+        Analyze products, filter out low selling products
         
         Args:
-            days_in_stock_threshold: 在库天数阈值（默认90天）
-            sales_30_days_threshold: 30天销量阈值（默认10件）
+            days_in_stock_threshold: In stock days threshold (default: 90 days)
+            sales_30_days_threshold: 30 days sales threshold (default: 10 items)
             
         Returns:
-            包含分析结果的字典
+            Dictionary containing analysis results
         """
-        print(f"🔍 开始分析产品...")
-        print(f"   筛选条件: 在库天数 > {days_in_stock_threshold}天 且 30天销量 < {sales_30_days_threshold}件")
+        print(f"🔍 Start analyzing products...")
+        print(f"   Filter criteria: In stock days > {days_in_stock_threshold} days AND 30 days sales < {sales_30_days_threshold} items")
         
-        # 获取所有商品
+        # Get all products
         all_products = self.wc_client.get_all_products()
         
         low_selling_products = []
@@ -256,16 +256,16 @@ class LowSellingProductFilter:
         
         for product in all_products:
             try:
-                # 获取商品发布日期
+                # Get product creation date
                 date_created_str = product.get('date_created', '')
                 if not date_created_str:
                     continue
                 
-                # 解析发布日期
+                # Parse creation date
                 date_created = datetime.fromisoformat(date_created_str.replace('Z', '+00:00'))
                 days_in_stock = (current_date - date_created.replace(tzinfo=None)).days
                 
-                # 获取30天销量数据（从meta_data中）
+                # Get 30 days sales data (from meta_data)
                 sales_30_days = 0
                 meta_data = product.get('meta_data', [])
                 for meta in meta_data:
@@ -276,12 +276,12 @@ class LowSellingProductFilter:
                         except (ValueError, TypeError):
                             continue
                 
-                # 如果没有在meta_data中找到，尝试从其他字段获取
+                # If not found in meta_data, try to estimate from total sales
                 if sales_30_days == 0:
-                    # 可以根据总销量估算30天销量
+                    # We can estimate 30 days sales from total sales
                     total_sales = product.get('total_sales', 0)
                     if total_sales > 0:
-                        # 简单估算：假设销量均匀分布
+                        # Simple estimation: assume sales are evenly distributed
                         sales_30_days = max(1, int(total_sales * 30 / max(days_in_stock, 30)))
                 
                 product_info = {
@@ -299,7 +299,7 @@ class LowSellingProductFilter:
                     'status': product.get('status', '')
                 }
                 
-                # 判断是否为低销量商品
+                # Determine if it's a low selling product
                 if (days_in_stock > days_in_stock_threshold and 
                     sales_30_days < sales_30_days_threshold):
                     low_selling_products.append(product_info)
@@ -307,7 +307,7 @@ class LowSellingProductFilter:
                     normal_products.append(product_info)
                     
             except Exception as e:
-                print(f"⚠️ 处理商品 {product.get('name', 'Unknown')} 时出错: {e}")
+                print(f"⚠️ Error processing product {product.get('name', 'Unknown')}: {e}")
                 continue
         
         analysis_result = {
@@ -323,76 +323,76 @@ class LowSellingProductFilter:
             'analysis_date': current_date.isoformat()
         }
         
-        print(f"📊 分析完成:")
-        print(f"   总商品数: {analysis_result['total_products']}")
-        print(f"   低销量商品: {analysis_result['low_selling_count']}")
-        print(f"   正常商品: {analysis_result['normal_count']}")
+        print(f"📊 Analysis complete:")
+        print(f"   Total products: {analysis_result['total_products']}")
+        print(f"   Low selling products: {analysis_result['low_selling_count']}")
+        print(f"   Normal products: {analysis_result['normal_count']}")
         
         return analysis_result
     
     def ensure_outlet_category(self) -> bool:
-        """确保"奥特莱斯/清仓"分类存在"""
-        print("🏷️ 检查奥特莱斯/清仓分类...")
+        """Ensure "Outlet/Clearance" category exists"""
+        print("🏷️ Check Outlet/Clearance category...")
         
-        # 获取现有分类
+        # Get existing categories
         success, categories = self.wc_client.get_product_categories()
         if not success:
-            print(f"❌ 获取分类失败: {categories}")
+            print(f"❌ Failed to get categories: {categories}")
             return False
         
-        # 查找是否已存在奥特莱斯分类
-        outlet_names = ["奥特莱斯", "清仓", "奥特莱斯/清仓", "Outlet", "Clearance"]
+        # Check if Outlet/Clearance category exists
+        outlet_names = ["Outlet", "Clearance", "Outlet/Clearance"]
         
         for category in categories:
             if category.get('name', '') in outlet_names:
                 self.outlet_category_id = category.get('id')
-                print(f"✅ 找到现有分类: {category.get('name')} (ID: {self.outlet_category_id})")
+                print(f"✅ Found existing category: {category.get('name')} (ID: {self.outlet_category_id})")
                 return True
         
-        # 如果不存在，创建新分类
+        # If not exists, create new category
         category_data = {
-            "name": "奥特莱斯/清仓",
-            "description": "低销量商品清仓促销分类",
+            "name": "Outlet/Clearance",
+            "description": "Low selling products clearance promotion category",
             "slug": "outlet-clearance"
         }
         
         success, new_category = self.wc_client.create_category(category_data)
         if success:
             self.outlet_category_id = new_category.get('id')
-            print(f"✅ 创建新分类: 奥特莱斯/清仓 (ID: {self.outlet_category_id})")
+            print(f"✅ Created new category: Outlet/Clearance (ID: {self.outlet_category_id})")
             return True
         else:
-            print(f"❌ 创建分类失败: {new_category}")
+            print(f"❌ Failed to create category: {new_category}")
             return False
     
     def move_products_to_outlet(self, low_selling_products: List[Dict]) -> Dict:
         """
-        将低销量商品移动到奥特莱斯分类
+        Move low selling products to Outlet/Clearance category
         
         Args:
-            low_selling_products: 低销量商品列表
+            low_selling_products: Low selling products list
             
         Returns:
-            移动操作的结果
+            Move operation result
         """
         if not self.outlet_category_id:
             if not self.ensure_outlet_category():
-                return {"success": False, "error": "无法创建或找到奥特莱斯分类"}
+                return {"success": False, "error": "Failed to create or find Outlet/Clearance category"}
         
-        print(f"📦 开始移动 {len(low_selling_products)} 个商品到奥特莱斯分类...")
+        print(f"📦 Start moving {len(low_selling_products)} products to Outlet/Clearance category...")
         
-        # 准备批量更新数据
+        # Prepare batch update data
         updates = []
         for product in low_selling_products:
             product_id = product.get('id')
             if not product_id:
                 continue
             
-            # 获取现有分类，添加奥特莱斯分类
+            # Get existing categories, add Outlet/Clearance category
             existing_categories = product.get('categories', [])
             category_ids = [cat.get('id') for cat in existing_categories if cat.get('id')]
             
-            # 添加奥特莱斯分类ID（如果还没有）
+            # Add Outlet/Clearance category ID (if not exists)
             if self.outlet_category_id not in category_ids:
                 category_ids.append(self.outlet_category_id)
             
@@ -402,7 +402,7 @@ class LowSellingProductFilter:
             }
             updates.append(update_data)
         
-        # 批量更新（WooCommerce API限制，分批处理）
+        # Batch update (WooCommerce API limit, process in batches)
         batch_size = 20
         successful_moves = []
         failed_moves = []
@@ -412,7 +412,7 @@ class LowSellingProductFilter:
             success, result = self.wc_client.batch_update_products(batch)
             
             if success:
-                # 检查批量操作结果
+                # Check batch operation result
                 updated_products = result.get('update', [])
                 for updated_product in updated_products:
                     if updated_product.get('id'):
@@ -420,10 +420,10 @@ class LowSellingProductFilter:
                     else:
                         failed_moves.append(updated_product)
             else:
-                print(f"❌ 批量更新失败: {result}")
+                print(f"❌ Failed to batch update: {result}")
                 failed_moves.extend(batch)
             
-            # 避免API限制
+            # Avoid API limit
             time.sleep(1)
         
         move_result = {
@@ -436,53 +436,53 @@ class LowSellingProductFilter:
             "failed_product_data": failed_moves
         }
         
-        print(f"📊 移动结果:")
-        print(f"   成功移动: {move_result['successful_moves']} 个商品")
-        print(f"   移动失败: {move_result['failed_moves']} 个商品")
+        print(f"📊 Move result:")
+        print(f"   Successfully moved: {move_result['successful_moves']} products")
+        print(f"   Failed to move: {move_result['failed_moves']} products")
         
         return move_result
     
     def generate_report(self, analysis_result: Dict, move_result: Dict = None) -> str:
         """
-        生成分析报告
+        Generate analysis report
         
         Args:
-            analysis_result: 商品分析结果
-            move_result: 移动操作结果（可选）
+            analysis_result: Product analysis result
+            move_result: Move operation result (optional)
             
         Returns:
-            报告内容字符串
+            Report content string
         """
         report_lines = []
-        report_lines.append("# 低销量商品筛选报告")
+        report_lines.append("# Low selling product filter report")
         report_lines.append("")
-        report_lines.append(f"**分析时间**: {analysis_result.get('analysis_date', '')}")
+        report_lines.append(f"**Analysis time**: {analysis_result.get('analysis_date', '')}")
         report_lines.append("")
         
-        # 筛选条件
+        # Filter criteria
         criteria = analysis_result.get('filter_criteria', {})
-        report_lines.append("## 筛选条件")
-        report_lines.append(f"- 在库天数阈值: > {criteria.get('days_in_stock_threshold', 90)} 天")
-        report_lines.append(f"- 30天销量阈值: < {criteria.get('sales_30_days_threshold', 10)} 件")
+        report_lines.append("## Filter criteria")
+        report_lines.append(f"- In stock days threshold: > {criteria.get('days_in_stock_threshold', 90)} days")
+        report_lines.append(f"- 30 days sales threshold: < {criteria.get('sales_30_days_threshold', 10)} items")
         report_lines.append("")
         
-        # 总体统计
-        report_lines.append("## 分析结果")
-        report_lines.append(f"- 总商品数: {analysis_result.get('total_products', 0)}")
-        report_lines.append(f"- 低销量商品: {analysis_result.get('low_selling_count', 0)}")
-        report_lines.append(f"- 正常销量商品: {analysis_result.get('normal_count', 0)}")
+        # Overall statistics
+        report_lines.append("## Analysis results")
+        report_lines.append(f"- Total products: {analysis_result.get('total_products', 0)}")
+        report_lines.append(f"- Low selling products: {analysis_result.get('low_selling_count', 0)}")
+        report_lines.append(f"- Normal selling products: {analysis_result.get('normal_count', 0)}")
         report_lines.append("")
         
-        # 低销量商品详情
+        # Low selling products details
         low_selling_products = analysis_result.get('low_selling_products', [])
         if low_selling_products:
-            report_lines.append("## 低销量商品详情")
+            report_lines.append("## Low selling products details")
             report_lines.append("")
-            report_lines.append("| 商品名称 | SKU | 价格 | 库存 | 在库天数 | 30天销量 | 总销量 |")
+            report_lines.append("| Product name | SKU | Price | Stock | In stock days | 30 days sales | Total sales |")
             report_lines.append("|----------|-----|------|------|----------|----------|--------|")
             
-            for product in low_selling_products[:20]:  # 只显示前20个
-                name = product.get('name', '')[:30]  # 限制长度
+            for product in low_selling_products[:20]:  # Only show first 20
+                name = product.get('name', '')[:30]  # Limit length
                 sku = product.get('sku', '')
                 price = product.get('price', '0')
                 stock = product.get('stock_quantity', 0)
@@ -494,46 +494,46 @@ class LowSellingProductFilter:
             
             if len(low_selling_products) > 20:
                 report_lines.append(f"| ... | ... | ... | ... | ... | ... | ... |")
-                report_lines.append(f"*（显示前20个，共{len(low_selling_products)}个低销量商品）*")
+                report_lines.append(f"*(Showing first 20 out of {len(low_selling_products)} low-selling products)*")
             
             report_lines.append("")
         
-        # 移动操作结果
+        # Move operation results
         if move_result:
-            report_lines.append("## 分类移动结果")
-            report_lines.append(f"- 成功移动到奥特莱斯分类: {move_result.get('successful_moves', 0)} 个商品")
-            report_lines.append(f"- 移动失败: {move_result.get('failed_moves', 0)} 个商品")
-            report_lines.append(f"- 奥特莱斯分类ID: {move_result.get('outlet_category_id', 'N/A')}")
+            report_lines.append("## Category move results")
+            report_lines.append(f"- Successfully moved to Outlet category: {move_result.get('successful_moves', 0)} products")
+            report_lines.append(f"- Failed to move: {move_result.get('failed_moves', 0)} products")
+            report_lines.append(f"- Outlet category ID: {move_result.get('outlet_category_id', 'N/A')}")
             report_lines.append("")
         
         report_lines.append("---")
-        report_lines.append("*报告由低销量商品筛选系统自动生成*")
+        report_lines.append("*Report generated by low-selling product filter system*")
         
         return "\n".join(report_lines)
 
 
 class ImageManager:
-    """WooCommerce图片管理器 - 用于创建和上传测试图片"""
+    """WooCommerce image manager - for creating and uploading test images"""
     
     def __init__(self, wc_client: WooCommerceClient):
         """
-        初始化图片管理器
+        Initialize image manager
         
         Args:
-            wc_client: WooCommerce客户端实例
+            wc_client: WooCommerce client instance
         """
         self.wc_client = wc_client
         self.created_images = []
     
     def create_test_images(self, count: int = 6) -> List[Dict]:
         """
-        创建测试图片数据
+        Create test image data
         
         Args:
-            count: 要创建的图片数量
+            count: Number of images to create
             
         Returns:
-            图片数据列表
+            Image data list
         """
         from PIL import Image, ImageDraw, ImageFont
         import io
@@ -550,20 +550,20 @@ class ImageManager:
         for i in range(min(count, len(colors))):
             color_name, color_hex, color_english = colors[i]
             
-            # 创建一个简单的彩色图片
+            # Create a simple colored image
             img = Image.new('RGB', (400, 400), color_hex)
             draw = ImageDraw.Draw(img)
             
-            # 添加文本标识
+            # Add text identifier
             try:
-                # 尝试使用默认字体
+                # Try using default font
                 font = ImageFont.load_default()
             except:
                 font = None
             
             text = f"{color_name}\nTest Image {i+1}"
             
-            # 在图片上绘制文本
+            # Draw text on the image
             if font:
                 bbox = draw.textbbox((0, 0), text, font=font)
                 text_width = bbox[2] - bbox[0]
@@ -576,7 +576,7 @@ class ImageManager:
             
             draw.text((x, y), text, fill='white', font=font)
             
-            # 保存到临时文件
+            # Save to temporary file
             temp_file = tempfile.NamedTemporaryFile(suffix=f'_{color_english}.jpg', delete=False)
             img.save(temp_file.name, 'JPEG', quality=85)
             temp_file.close()
@@ -590,26 +590,26 @@ class ImageManager:
                 'alt_text': f'{color_name} Test Image'
             })
             
-        print(f"🎨 创建了 {len(test_images)} 个测试图片")
+        print(f"🎨 Created {len(test_images)} test images")
         self.created_images = test_images
         return test_images
     
     def clear_media_library(self) -> Dict:
         """
-        清除媒体库中的所有图片
+        Clear all images in media library
         
         Returns:
-            清除操作结果
+            Clear operation result
         """
-        print("🗑️ 开始清除媒体库图片...")
+        print("🗑️ Start clearing media library images...")
         
         try:
             import requests
             
-            # 获取媒体库中的所有媒体文件
+            # Get all media files in media library
             media_url = f"{self.wc_client.site_url}/wp-json/wp/v2/media"
             
-            # 分页获取所有媒体文件
+            # Get all media files in media library
             all_media = []
             page = 1
             per_page = 100
@@ -618,16 +618,16 @@ class ImageManager:
                 params = {
                     'page': page,
                     'per_page': per_page,
-                    'media_type': 'image'  # 只获取图片
+                    'media_type': 'image'  # Only get images
                 }
                 
-                # 使用Cookie认证方式（和上传图片时相同）
+                # Use Cookie authentication (same as when uploading images)
                 session = self._get_authenticated_session()
                 if not session:
-                    print(f"   ❌ 无法获取认证会话")
+                    print(f"   ❌ Failed to get authenticated session")
                     return {
                         'success': False,
-                        'error': '无法获取认证会话',
+                        'error': 'Failed to get authenticated session',
                         'deleted_count': 0
                     }
                 
@@ -649,16 +649,16 @@ class ImageManager:
                     
                     page += 1
                 else:
-                    print(f"   ❌ 获取媒体列表失败: HTTP {response.status_code}")
+                    print(f"   ❌ Failed to get media list: HTTP {response.status_code}")
                     return {
                         'success': False,
-                        'error': f'获取媒体列表失败: HTTP {response.status_code}',
+                        'error': f'Failed to get media list: HTTP {response.status_code}',
                         'deleted_count': 0
                     }
             
-            print(f"   📊 找到 {len(all_media)} 个图片文件")
+            print(f"   📊 Found {len(all_media)} image files")
             
-            # 删除所有找到的图片
+            # Delete all found images
             deleted_count = 0
             failed_count = 0
             
@@ -668,7 +668,7 @@ class ImageManager:
                 
                 if media_id:
                     delete_url = f"{media_url}/{media_id}"
-                    delete_params = {'force': True}  # 强制删除，不放入回收站
+                    delete_params = {'force': True}  # Force delete, not put in recycle bin
                     
                     try:
                         delete_response = session.delete(
@@ -679,16 +679,16 @@ class ImageManager:
                         
                         if delete_response.status_code == 200:
                             deleted_count += 1
-                            print(f"   ✅ 删除: {media_title}")
+                            print(f"   ✅ Delete: {media_title}")
                         else:
                             failed_count += 1
-                            print(f"   ❌ 删除失败: {media_title} - HTTP {delete_response.status_code}")
+                            print(f"   ❌ Delete failed: {media_title} - HTTP {delete_response.status_code}")
                     
                     except Exception as e:
                         failed_count += 1
-                        print(f"   ❌ 删除出错: {media_title} - {e}")
+                        print(f"   ❌ Delete error: {media_title} - {e}")
                     
-                    # 避免API限制
+                    # Avoid API limit
                     time.sleep(0.2)
             
             result = {
@@ -698,14 +698,14 @@ class ImageManager:
                 'failed_count': failed_count
             }
             
-            print(f"📊 清除完成: 成功删除 {deleted_count}/{len(all_media)} 个图片")
+            print(f"📊 Clear completed: successfully deleted {deleted_count}/{len(all_media)} images")
             if failed_count > 0:
-                print(f"   ⚠️ {failed_count} 个图片删除失败")
+                print(f"   ⚠️ {failed_count} images deleted failed")
             
             return result
             
         except Exception as e:
-            print(f"❌ 清除媒体库时出错: {e}")
+            print(f"❌ Clear media library error: {e}")
             return {
                 'success': False,
                 'error': str(e),
@@ -714,30 +714,30 @@ class ImageManager:
     
     def _get_authenticated_session(self):
         """
-        获取已认证的会话（使用Cookie认证）
+        Get authenticated session (using Cookie authentication)
         
         Returns:
-            认证成功的会话对象，失败返回None
+            Authenticated session object, return None if failed
         """
         import requests
         
         try:
-            # 创建一个会话来保持Cookie
+            # Create a session to keep Cookie
             session = requests.Session()
             
-            # 首先尝试获取WordPress登录页面的nonce
+            # First try to get nonce of WordPress login page
             login_url = f"{self.wc_client.site_url}/wp-login.php"
             
-            # 获取登录页面
+            # Get login page
             login_page = session.get(login_url, timeout=10)
             
             if login_page.status_code == 200:
-                # 提取nonce (如果有的话)
+                # Extract nonce (if any)
                 import re
                 nonce_match = re.search(r'name="_wpnonce".*?value="([^"]+)"', login_page.text)
                 nonce = nonce_match.group(1) if nonce_match else ""
                 
-                # 准备登录数据
+                # Prepare login data
                 login_data = {
                     'log': self.wc_client.wp_username,
                     'pwd': self.wc_client.wp_password,
@@ -749,48 +749,48 @@ class ImageManager:
                 if nonce:
                     login_data['_wpnonce'] = nonce
                 
-                # 执行登录
+                # Execute login
                 login_response = session.post(login_url, data=login_data, timeout=10)
                 
-                # 检查是否登录成功 (通常会重定向到wp-admin)
+                # Check if login is successful (usually redirects to wp-admin)
                 if login_response.status_code in [200, 302]:
-                    print(f"   ✅ Cookie认证会话创建成功")
+                    print(f"   ✅ Cookie authentication session created successfully")
                     
-                    # 获取REST API nonce
+                    # Get REST API nonce
                     nonce_url = f"{self.wc_client.site_url}/wp-admin/admin-ajax.php?action=rest-nonce"
                     nonce_response = session.get(nonce_url, timeout=10)
                     
-                    # 如果成功获取nonce，添加到session headers
+                    # If nonce is successfully obtained, add to session headers
                     if nonce_response.status_code == 200:
                         session.headers.update({'X-WP-Nonce': nonce_response.text.strip()})
                     
                     return session
                 else:
-                    print(f"   ❌ WordPress登录失败: {login_response.status_code}")
+                    print(f"   ❌ WordPress login failed: {login_response.status_code}")
             else:
-                print(f"   ❌ 无法访问WordPress登录页面: {login_page.status_code}")
+                print(f"   ❌ Unable to access WordPress login page: {login_page.status_code}")
                 
         except Exception as e:
-            print(f"   ❌ 创建认证会话时出错: {e}")
+            print(f"   ❌ Error creating authenticated session: {e}")
         
         return None
     
     def upload_test_images(self, test_images: List[Dict], clear_before_upload: bool = True) -> List[Dict]:
         """
-        上传测试图片到WooCommerce媒体库
+        Upload test images to WooCommerce media library
         
         Args:
-            test_images: 测试图片数据列表
-            clear_before_upload: 是否在上传前清除媒体库 (默认: True)
+            test_images: Test image data list
+            clear_before_upload: Whether to clear media library before uploading (default: True)
             
         Returns:
-            上传结果列表，包含媒体ID
+            Upload result list, including media ID
         """
-        # 在上传前先清除媒体库
+        # Clear media library before uploading
         if clear_before_upload:
             clear_result = self.clear_media_library()
             if not clear_result['success']:
-                print(f"⚠️ 清除媒体库失败，但继续上传: {clear_result.get('error', '')}")
+                print(f"⚠️ Clear media library failed, but continue uploading: {clear_result.get('error', '')}")
         
         uploaded_images = []
         
@@ -799,14 +799,14 @@ class ImageManager:
             filename = img_data['filename']
             alt_text = img_data['alt_text']
             
-            print(f"📤 上传图片: {filename}")
+            print(f"📤 Upload image: {filename}")
             
             try:
-                # 读取图片文件
+                # Read image file
                 with open(file_path, 'rb') as f:
                     file_content = f.read()
                 
-                # 上传到WordPress媒体库
+                # Upload to WordPress media library
                 upload_result = self._upload_to_media_library(
                     file_content, filename, alt_text
                 )
@@ -822,34 +822,34 @@ class ImageManager:
                         'url': upload_result.get('url', ''),
                         'file_path': file_path
                     })
-                    print(f"   ✅ 上传成功 (Media ID: {media_id})")
+                    print(f"   ✅ Upload success (Media ID: {media_id})")
                 else:
-                    print(f"   ❌ 上传失败: {upload_result.get('error', 'Unknown error')}")
+                    print(f"   ❌ Upload failed: {upload_result.get('error', 'Unknown error')}")
                     
             except Exception as e:
-                print(f"   ❌ 上传图片 {filename} 时出错: {e}")
+                print(f"   ❌ Upload image {filename} error: {e}")
             
-            time.sleep(0.5)  # 避免API限制
+            time.sleep(0.5)  # Avoid API limit
         
-        print(f"📊 图片上传完成: {len(uploaded_images)}/{len(test_images)} 成功")
+        print(f"📊 Image upload completed: {len(uploaded_images)}/{len(test_images)} success")
         return uploaded_images
     
     def _upload_to_media_library(self, file_content: bytes, filename: str, alt_text: str) -> Dict:
         """
-        上传文件到WordPress媒体库（使用Cookie认证）
+        Upload file to WordPress media library (using Cookie authentication)
         
         Args:
-            file_content: 文件内容
-            filename: 文件名
-            alt_text: 替代文本
+            file_content: File content
+            filename: File name
+            alt_text: Alternative text
             
         Returns:
-            上传结果
+            Upload result
         """
-        # WordPress媒体上传端点
+        # WordPress media upload endpoint
         media_url = f"{self.wc_client.site_url}/wp-json/wp/v2/media"
         
-        # 确保filename只包含ASCII字符，避免编码问题
+        # Ensure filename only contains ASCII characters, avoid encoding problems
         safe_filename = filename.encode('ascii', 'ignore').decode('ascii') if filename else 'image.jpg'
         
         headers = {
@@ -858,15 +858,15 @@ class ImageManager:
         }
         
         try:
-            # 直接使用Cookie认证会话
+            # Directly use Cookie authentication session
             session = self._get_authenticated_session()
             if not session:
                 return {
                     'success': False,
-                    'error': '无法获取认证会话'
+                    'error': 'Failed to get authenticated session'
                 }
             
-            print(f"   🔐 使用Cookie认证上传...")
+            print(f"   🔐 Using Cookie authentication upload...")
             response = session.post(
                 media_url,
                 headers=headers,
@@ -874,7 +874,7 @@ class ImageManager:
                 timeout=30
             )
             
-            print(f"   📊 响应状态: {response.status_code}")
+            print(f"   📊 Response status: {response.status_code}")
             
             if response.status_code == 201:
                 media_data = response.json()
@@ -903,56 +903,56 @@ class ImageManager:
 
     
     def cleanup_test_images(self):
-        """清理测试图片文件"""
+        """Clean test image files"""
         import os
         
-        print("🧹 清理测试图片文件...")
+        print("🧹 Clean test image files...")
         
         for img_data in self.created_images:
             file_path = img_data.get('file_path', '')
             if file_path and os.path.exists(file_path):
                 try:
                     os.unlink(file_path)
-                    print(f"   ✅ 删除文件: {os.path.basename(file_path)}")
+                    print(f"   ✅ Delete file: {os.path.basename(file_path)}")
                 except Exception as e:
-                    print(f"   ❌ 删除文件失败: {file_path} - {e}")
+                    print(f"   ❌ Delete file failed: {file_path} - {e}")
         
-        print(f"📊 清理完成")
+        print(f"📊 Clean completed")
 
 
-# WooCommerce客户端扩展方法
+# WooCommerce client extensions
 def add_woocommerce_extensions(wc_client):
-    """为WooCommerceClient添加扩展方法"""
+    """Add extensions to WooCommerceClient"""
     
     def get_product_attributes(self):
-        """获取商品属性列表"""
+        """Get product attributes list"""
         return self._make_request('GET', 'products/attributes')
     
     def create_product_attribute(self, attribute_data):
-        """创建商品属性"""
+        """Create product attribute"""
         return self._make_request('POST', 'products/attributes', data=attribute_data)
     
     def create_attribute_term(self, attribute_id, term_data):
-        """创建属性项"""
+        """Create attribute term"""
         return self._make_request('POST', f'products/attributes/{attribute_id}/terms', data=term_data)
     
     def create_variation(self, product_id, variation_data):
-        """为商品创建变体"""
+        """Create variation for product"""
         return self._make_request('POST', f'products/{product_id}/variations', data=variation_data)
     
     def list_variations(self, product_id, **params):
-        """获取商品变体列表"""
+        """Get product variations list"""
         return self._make_request('GET', f'products/{product_id}/variations', params=params)
     
     def update_variation(self, product_id, variation_id, variation_data):
-        """更新商品变体"""
+        """Update product variation"""
         return self._make_request('PUT', f'products/{product_id}/variations/{variation_id}', data=variation_data)
     
     def update_order(self, order_id, order_data):
-        """更新订单"""
+        """Update order"""
         return self._make_request('PUT', f'orders/{order_id}', data=order_data)
     
-    # 动态添加方法到类
+    # Dynamically add methods to class
     import types
     wc_client.get_product_attributes = types.MethodType(get_product_attributes, wc_client)
     wc_client.create_product_attribute = types.MethodType(create_product_attribute, wc_client)
