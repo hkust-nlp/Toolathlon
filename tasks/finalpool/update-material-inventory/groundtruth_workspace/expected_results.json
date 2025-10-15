@@ -1,5 +1,5 @@
 {
-  "task_description": "原材料库存自动管理任务 - 验证用groundtruth",
+  "task_description": "Groundtruth for update material inventory task",
   "test_orders_summary": {
     "total_quantities_ordered": {
       "CHAIR_001": 1,
@@ -105,7 +105,7 @@
     }
   },
   "evaluation_criteria": {
-    "description": "验证agent处理订单后WooCommerce产品库存和Google Sheets原材料库存是否正确更新",
+    "description": "Check if the agent correctly updates the WooCommerce product inventory and Google Sheets material inventory after processing orders",
     "woocommerce_tolerance": 0,
     "material_inventory_tolerance": 0.01,
     "required_accuracy": "100%"
