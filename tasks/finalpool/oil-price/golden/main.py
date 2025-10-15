@@ -345,7 +345,7 @@ async def main():
         "annualized_return_pct": ann*100,
         "sharpe_ann": sharpe,
         "win_rate_pct": win_rate,
-        "max_drawdown_pct": 0.0,  # 省略MDD细节，预处理可计算
+        "max_drawdown_pct": 0.0,  # omit MDD details, preprocess can calculate
     }
 
     replace_backtest(notion_token, backtest_db, trades, metrics)

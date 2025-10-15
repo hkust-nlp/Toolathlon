@@ -12,188 +12,18 @@ import requests
 
 from utils.mcp.tool_servers import MCPServerManager, call_tool_with_retry, ToolCallError
 
-
-# -------- Helpers to read final agent output --------
-
-def _read_final_agent_output(log_path: str | None) -> str | None:
-    if not log_path or not os.path.exists(log_path):
-        return None
-    try:
-        with open(log_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        if "messages" not in data:
-            return None
-        for message in reversed(data["messages"]):
-            if message.get("role") == "assistant" and "content" in message:
-                return str(message["content"])[:20000]
-        return None
-    except Exception:
-        return None
-
-
-# -------- Parse boxed output (robust to escaped backslashes) --------
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-def _count_backtest_trades(pages: List[Dict]) -> int:
-    cnt = 0
-    for p in pages:
-        props = p.get("properties", {})
-        t = props.get("Type", {})
-        try:
-            if t.get("type") == "select":
-                sel = t.get("select") or {}
-                name = (sel.get("name") or "").strip()
-                if name == "Trade":
-                    cnt += 1
-        except Exception:
-            continue
-    return cnt
-
-
-# -------- Time helpers --------
-
-def _month_range(start_mm: str, end_mm: str) -> List[str]:
-    sdt = datetime.strptime(start_mm + "-01", "%Y-%m-%d")
-    edt = datetime.strptime(end_mm + "-01", "%Y-%m-%d")
-    months = []
-    y, m = sdt.year, sdt.month
-    while (y < edt.year) or (y == edt.year and m <= edt.month):
-        months.append(f"{y:04d}-{m:02d}")
-        if m == 12:
-            y += 1
-            m = 1
-        else:
-            m += 1
-    return months
-
-
-# -------- Formatting & checksum --------
-
-def _fmt4(x: float) -> str:
-    return f"{x:.4f}"
-
-
-def _fmt2(x: float) -> str:
-    return f"{x:.2f}"
-
-
-
-
-
-
 # -------- Search Notion workspace for databases --------
 
 def _find_oil_price_page(token: str) -> Dict | None:
-    """Find the Oil Price page under Notion Eval Page"""
-    import requests
-    
-    url = "https://api.notion.com/v1/search"
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Notion-Version": "2022-06-28",
-        "Content-Type": "application/json"
-    }
-    
-    # Search for "Oil Price" pages
-    payload = {
-        "query": "Oil Price",
-        "filter": {
-            "value": "page",
-            "property": "object"
-        },
-        "sort": {
-            "direction": "descending",
-            "timestamp": "last_edited_time"
-        }
-    }
-    
-    try:
-        response = requests.post(url, headers=headers, json=payload)
-        response.raise_for_status()
-        data = response.json()
-        
-        print(f"🔍 调试信息: 搜索到 {len(data.get('results', []))} 个'Oil Price'页面")
-        
-        for page in data.get('results', []):
-            page_id = page.get('id', '')
-            # Get page title
-            page_title = ""
-            if 'properties' in page and 'title' in page['properties']:
-                title_prop = page['properties']['title']
-                if title_prop['type'] == 'title':
-                    title_parts = title_prop['title']
-                    page_title = ''.join([part.get('text', {}).get('content', '') for part in title_parts])
-            
-            print(f"🔍 调试信息: 检查页面: '{page_title}' (ID: {page_id})")
-            
-            # Check if this is exactly "Oil Price"
-            if page_title.strip() == "Oil Price":
-                # Check if parent is "Notion Eval Page"
-                try:
-                    page_details = _get_notion_page_properties(page_id, token)
-                    parent = page_details.get('parent', {})
-                    
-                    if parent.get('type') == 'page_id':
-                        parent_id = parent.get('page_id')
-                        parent_page = _get_notion_page_properties(parent_id, token)
-                        parent_props = parent_page.get('properties', {})
-                        parent_title_prop = parent_props.get('title', {}).get('title', [])
-                        parent_title = ''.join([part.get('text', {}).get('content', '') for part in parent_title_prop])
-                        
-                        print(f"🔍 调试信息: 父页面标题: '{parent_title}'")
-                        
-                        if 'Notion Eval Page' in parent_title:
-                            print(f"🔍 调试信息: ✅ 找到正确的Oil Price页面，在Notion Eval Page下")
-                            return {
-                                'id': page_id,
-                                'title': page_title,
-                                'url': page.get('url', ''),
-                                'parent_title': parent_title
-                            }
-                        else:
-                            print(f"🔍 调试信息: ❌ Oil Price页面不在Notion Eval Page下，父页面是: '{parent_title}'")
-                    else:
-                        print(f"🔍 调试信息: ❌ Oil Price页面没有页面父级")
-                        
-                except Exception as e:
-                    print(f"🔍 调试信息: 检查页面父级时出错: {e}")
-        
-        print(f"🔍 调试信息: 未找到符合条件的Oil Price页面")
-        return None
-        
-    except Exception as e:
-        print(f"🔍 调试信息: 搜索Oil Price页面时出错: {e}")
-        return None
 
-
-def _get_notion_page_properties(page_id: str, token: str) -> Dict:
-    """Get page properties from Notion page"""
-    import requests
-    
-    url = f"https://api.notion.com/v1/pages/{page_id}"
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Notion-Version": "2022-06-28",
-        "Content-Type": "application/json"
+    with open(os.path.join(os.path.dirname(__file__), "..", "files", "duplicated_page_id.txt"), "r") as f:
+        duplicated_page_id = f.read()
+    return {
+        "id": duplicated_page_id,
+        "title": "Oil Price",
+        "url": f"https://www.notion.so/{duplicated_page_id.replace('-', '')}",
+        "parent_title": "Notion Eval Page"
     }
-    
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    return response.json()
-
 
 def _find_databases_in_page(page_id: str, token: str) -> Dict[str, str]:
     """Find oil price related databases within the Oil Price page"""
@@ -217,8 +47,8 @@ def _find_databases_in_page(page_id: str, token: str) -> Dict[str, str]:
         response.raise_for_status()
         blocks_data = response.json()
         
-        print(f"🔍 调试信息: Oil Price页面包含 {len(blocks_data.get('results', []))} 个块")
-        print(f"🔍 调试信息: 正在查找数据库: {list(target_databases.keys())}")
+        print(f"🔍 Debug info: Oil Price page contains {len(blocks_data.get('results', []))} blocks")
+        print(f"🔍 Debug info: Searching for databases: {list(target_databases.keys())}")
         
         def search_blocks_recursively(blocks, level=0):
             indent = "  " * level
@@ -226,18 +56,18 @@ def _find_databases_in_page(page_id: str, token: str) -> Dict[str, str]:
             for block in blocks:
                 block_type = block.get('type', '')
                 block_id = block.get('id', '')
-                print(f"{indent}🔍 调试信息: 检查块类型: {block_type}, ID: {block_id}")
+                print(f"{indent}🔍 Debug info: Checking block type: {block_type}, ID: {block_id}")
                 
                 # Check if this block is a child database
                 if block_type == 'child_database':
                     db_title = block.get('child_database', {}).get('title', '')
-                    print(f"{indent}🔍 调试信息: 找到子数据库: '{db_title}'")
+                    print(f"{indent}🔍 Debug info: Found child database: '{db_title}'")
                     
                     # Check for exact match
                     for target_name, db_type in target_databases.items():
                         if db_title.strip() == target_name:
                             databases[db_type] = block_id
-                            print(f"{indent}🔍 调试信息: ✅ 找到目标数据库: '{db_title}' -> {db_type}")
+                            print(f"{indent}🔍 Debug info: ✅ Found target database: '{db_title}' -> {db_type}")
                             break
                 
                 # Also check inline databases
@@ -245,16 +75,16 @@ def _find_databases_in_page(page_id: str, token: str) -> Dict[str, str]:
                     try:
                         db_details = _get_database_details(block_id, token)
                         db_title = ''.join([part.get('text', {}).get('content', '') for part in db_details.get('title', [])])
-                        print(f"{indent}🔍 调试信息: 找到内联数据库: '{db_title}'")
+                        print(f"{indent}🔍 Debug info: Found inline database: '{db_title}'")
                         
                         # Check for exact match
                         for target_name, db_type in target_databases.items():
                             if db_title.strip() == target_name:
                                 databases[db_type] = block_id
-                                print(f"{indent}🔍 调试信息: ✅ 找到目标数据库: '{db_title}' -> {db_type}")
+                                print(f"{indent}🔍 Debug info: ✅ Found target database: '{db_title}' -> {db_type}")
                                 break
                     except Exception as e:
-                        print(f"{indent}🔍 调试信息: 获取数据库详情时出错: {e}")
+                        print(f"{indent}🔍 Debug info: Error getting database details: {e}")
                 
                 # Recursively search container blocks
                 elif block_type in ['column_list', 'column', 'table', 'table_row', 'toggle', 'callout']:
@@ -262,18 +92,18 @@ def _find_databases_in_page(page_id: str, token: str) -> Dict[str, str]:
                         children_data = requests.get(f"https://api.notion.com/v1/blocks/{block_id}/children", headers=headers).json()
                         children_blocks = children_data.get('results', [])
                         if children_blocks:
-                            print(f"{indent}🔍 调试信息: 搜索{block_type}的 {len(children_blocks)} 个子块")
+                            print(f"{indent}🔍 Debug info: Searching {block_type} of {len(children_blocks)} children blocks")
                             search_blocks_recursively(children_blocks, level + 1)
                     except Exception as e:
-                        print(f"{indent}🔍 调试信息: 获取{block_type}子块时出错: {e}")
+                        print(f"{indent}🔍 Debug info: Error getting {block_type} children blocks: {e}")
         
         search_blocks_recursively(blocks_data.get('results', []))
         
         # Report what we found
-        print(f"🔍 调试信息: 搜索完成，找到的数据库:")
+        print(f"🔍 Debug info: Search completed, found databases:")
         for db_type, db_id in databases.items():
             target_name = [name for name, type_ in target_databases.items() if type_ == db_type][0]
-            print(f"🔍 调试信息: - {target_name} ({db_type}): {db_id}")
+            print(f"🔍 Debug info: - {target_name} ({db_type}): {db_id}")
         
         # Report what we missed
         missing = []
@@ -282,10 +112,10 @@ def _find_databases_in_page(page_id: str, token: str) -> Dict[str, str]:
                 missing.append(target_name)
         
         if missing:
-            print(f"🔍 调试信息: ❌ 未找到以下数据库: {missing}")
+            print(f"🔍 Debug info: ❌ Not found databases: {missing}")
         
     except Exception as e:
-        print(f"🔍 调试信息: 搜索页面中的数据库时出错: {e}")
+        print(f"🔍 Debug info: Error searching for databases in page: {e}")
     
     return databases
 
@@ -361,7 +191,7 @@ def _extract_notion_rows(pages: List[Dict]) -> List[Dict]:
             "wti_mom_pct": get_num("WTI MoM %"),
             "brent_mom_pct": get_num("Brent MoM %"),
         }
-        # 允许首月 MoM 为 None，只要收盘价存在即可计入
+        # Allow first month MoM to be None, as long as the closing price exists
         if row["m"] and (row["wti_close"] is not None) and (row["brent_close"] is not None):
             rows.append(row)
     # sort by month asc
@@ -540,21 +370,21 @@ async def _yahoo_fetch_single_date(yserver, symbol: str, date: str) -> Dict:
 
 async def _yahoo_fetch_monthly_robust(yserver, symbol: str) -> List[Dict]:
     """Robust monthly data fetch with fallback for missing months."""
-    print(f"🔍 调试信息: 开始获取{symbol}的月度数据")
+    print(f"🔍 Debug info: Starting to fetch monthly data for {symbol}")
     
     # Step 1: Get expected months
     expected_months = _get_expected_months()
-    print(f"🔍 调试信息: 期望月份: {expected_months}")
+    print(f"🔍 Debug info: Expected months: {expected_months}")
     
     # Step 2: Try bulk fetch first
     rows = await _yahoo_fetch_monthly(yserver, symbol)
     month_map = _build_month_close_map(rows)
-    print(f"🔍 调试信息: 批量获取到的月份: {sorted(month_map.keys())}")
+    print(f"🔍 Debug info: Monthly data fetched: {sorted(month_map.keys())}")
     
     # Step 3: Identify missing months
     missing_months = [m for m in expected_months if m not in month_map]
     if missing_months:
-        print(f"🔍 调试信息: 缺失月份: {missing_months}，尝试单独获取")
+        print(f"🔍 Debug info: Missing months: {missing_months}, trying to fetch individually")
         
         # Step 4: Fetch missing months individually
         for missing_month in missing_months:
@@ -564,12 +394,12 @@ async def _yahoo_fetch_monthly_robust(yserver, symbol: str) -> List[Dict]:
                 
                 if single_data and "Close" in single_data:
                     month_map[missing_month] = single_data["Close"]
-                    print(f"🔍 调试信息: 成功补充{missing_month}数据: {single_data['Close']}")
+                    print(f"🔍 Debug info: Successfully supplemented {missing_month} data: {single_data['Close']}")
                 else:
-                    print(f"⚠️ 警告: 无法获取{missing_month}的数据")
+                    print(f"⚠️ Warning: Unable to fetch data for {missing_month}")
                     
             except Exception as e:
-                print(f"⚠️ 警告: 获取{missing_month}数据时出错: {e}")
+                print(f"⚠️ Warning: Error fetching data for {missing_month}: {e}")
     
     # Step 5: Build final result with expected months only
     final_rows = []
@@ -580,9 +410,9 @@ async def _yahoo_fetch_monthly_robust(yserver, symbol: str) -> List[Dict]:
                 "Close": month_map[month]
             })
         else:
-            print(f"❌ 错误: 最终仍缺失月份 {month}")
+            print(f"❌ Error: Still missing month {month}")
     
-    print(f"🔍 调试信息: {symbol}最终获取到{len(final_rows)}个月份的数据")
+    print(f"🔍 Debug info: {symbol} finally got {len(final_rows)} months of data")
     return final_rows
 
 def _normalize_payload(x) -> str:
@@ -658,20 +488,20 @@ def _compute_summary_from_prices(months_sorted: List[str], wti_map: Dict[str, fl
             r["brent_mom_pct"] = round((r["brent_close"]/prev["brent_close"] - 1) * 100, 2)
             r["spread_mom_pct"] = round((r["spread"]/prev["spread"] - 1) * 100, 2) if prev["spread"] != 0 else 0.0
     # z-score(6m), regime, signal
-    print(f"🔍 调试信息: 开始计算Z-Score...")
+    print(f"🔍 Debug info: Starting to calculate Z-Score...")
     for i, r in enumerate(rows):
-        print(f"  计算第{i}个月 {r['m']} 的Z-Score (spread={r['spread']})")
+        print(f"  Calculating Z-Score for {r['m']} (spread={r['spread']})")
         
         # CORRECTED: z=0 when sample < 4, so we need at least 4 samples (indices 0,1,2,3)
         # Therefore, we start calculating from index 3 (4th position)
         if i < 3:  # FIXED: was i < 5
             z = 0.0
-            print(f"    样本数{i+1} < 4，设Z=0")
+            print(f"    Sample size {i+1} < 4, set Z=0")
         else:
             # Get 6-month window (or available if less than 6)
             window_start = max(0, i + 1 - 6)  # +1 because we include current
             window = [rows[j]["spread"] for j in range(window_start, i + 1)]
-            print(f"    窗口：索引{window_start}到{i}，数据：{window}")
+            print(f"    Window: index {window_start} to {i}, data: {window}")
             
             if len(window) >= 4:
                 mean_sp = sum(window) / len(window)
@@ -682,17 +512,17 @@ def _compute_summary_from_prices(months_sorted: List[str], wti_map: Dict[str, fl
                 except Exception:
                     std = 0.0
                     
-                print(f"    均值：{mean_sp:.4f}，标准差：{std:.4f}")
+                print(f"    Mean: {mean_sp:.4f}, std: {std:.4f}")
                 
                 if std > 0:
                     z = (r["spread"] - mean_sp) / std
-                    print(f"    原始Z：({r['spread']:.4f} - {mean_sp:.4f}) / {std:.4f} = {z:.4f}")
+                    print(f"    Original Z: ({r['spread']:.4f} - {mean_sp:.4f}) / {std:.4f} = {z:.4f}")
                 else:
                     z = 0.0
-                    print(f"    标准差为0，设Z=0")
+                    print(f"    Std is 0, set Z=0")
             else:
                 z = 0.0
-                print(f"    窗口大小{len(window)} < 4，设Z=0")
+                print(f"    Window size {len(window)} < 4, set Z=0")
         
         # clamp
         if z > 3:
@@ -701,7 +531,7 @@ def _compute_summary_from_prices(months_sorted: List[str], wti_map: Dict[str, fl
             z = -3.0
         r["z_score"] = round(z, 4)
         
-        print(f"    最终Z-Score：{z:.4f}")
+        print(f"    Final Z-Score: {z:.4f}")
         
         # regime & signal
         if z >= 1:
@@ -714,7 +544,7 @@ def _compute_summary_from_prices(months_sorted: List[str], wti_map: Dict[str, fl
             r["regime"] = "Neutral"
             r["signal"] = "Flat"
             
-        print(f"    信号：{r['signal']}")
+        print(f"    Signal: {r['signal']}")
         print()
     return rows
 
@@ -793,26 +623,26 @@ def _compare_summary(expected: List[Dict], actual: List[Dict]) -> List[str]:
         m = e["m"]
         a = act_map.get(m)
         if not a:
-            errs.append(f"Notion 缺少月份: {m}")
+            errs.append(f"Notion missing month: {m}")
             continue
         # compare rounded values
         if _round4(e["wti_close"]) != _round4(a["wti_close"]):
-            errs.append(f"WTI Close 不一致: {m}")
+            errs.append(f"WTI Close inconsistent: {m}")
         if _round4(e["brent_close"]) != _round4(a["brent_close"]):
-            errs.append(f"Brent Close 不一致: {m}")
+            errs.append(f"Brent Close inconsistent: {m}")
         if e.get("wti_mom_pct") is None:
             if a.get("wti_mom_pct") not in (None,):
                 pass
         else:
             if _round2(e["wti_mom_pct"]) != _round2(a.get("wti_mom_pct")):
-                errs.append(f"WTI MoM% 不一致: {m}")
+                errs.append(f"WTI MoM% inconsistent: {m}")
         if e.get("brent_mom_pct") is None:
             if a.get("brent_mom_pct") not in (None,):
                 pass
         else:
             if _round2(e["brent_mom_pct"]) != _round2(a.get("brent_mom_pct")):
-                errs.append(f"Brent MoM% 不一致: {m}")
-        # optional: regime/signal 需从 Notion 读取 select，当前 actual 未含 regime/signal，跳过
+                errs.append(f"Brent MoM% inconsistent: {m}")
+        # optional: regime/signal need to be read from Notion select, current actual does not contain regime/signal, skip
     return errs
 
 
@@ -823,7 +653,7 @@ def _compute_backtest(expected_rows: List[Dict]) -> Tuple[List[Dict], Dict[str, 
     - Position held for next month, closed at next month-end
     - Only one position at a time
     """
-    print(f"🔍 调试信息: 开始backtest计算，总共{len(expected_rows)}个月")
+    print(f"🔍 Debug info: Starting backtest calculation, total {len(expected_rows)} months")
     
     trades: List[Dict] = []
     monthly_returns: List[float] = []
@@ -832,7 +662,7 @@ def _compute_backtest(expected_rows: List[Dict]) -> Tuple[List[Dict], Dict[str, 
     entry_spread = None
     
     # Debug: show all months and their signals
-    print(f"🔍 调试信息: 所有月份和信号:")
+    print(f"🔍 Debug info: All months and signals:")
     for i, row in enumerate(expected_rows):
         print(f"  {i:2d}. {row['m']}: Z={row.get('z_score', 0):6.4f}, Signal={row.get('signal', 'N/A'):12s}, Spread={row.get('spread', 0):6.4f}")
     print()
@@ -842,20 +672,20 @@ def _compute_backtest(expected_rows: List[Dict]) -> Tuple[List[Dict], Dict[str, 
         prev_row = expected_rows[i-1]
         curr_row = expected_rows[i]
         
-        print(f"🔍 调试信息: --- 处理月份 {curr_row['m']} (索引 {i}) ---")
-        print(f"  前月: {prev_row['m']}, 信号: {prev_row.get('signal', 'N/A')}")
-        print(f"  当月: {curr_row['m']}")
+        print(f"🔍 Debug info: --- Processing month {curr_row['m']} (index {i}) ---")
+        print(f"  Previous month: {prev_row['m']}, signal: {prev_row.get('signal', 'N/A')}")
+        print(f"  Current month: {curr_row['m']}")
         
         # Calculate returns if we currently have a position
         if current_position is not None:
-            print(f"  当前持仓: {current_position} (入场月份: {entry_month})")
+            print(f"  Current position: {current_position} (entry month: {entry_month})")
             
             # Calculate individual leg returns
             wti_return = (curr_row["wti_close"] / prev_row["wti_close"] - 1)
             brent_return = (curr_row["brent_close"] / prev_row["brent_close"] - 1)
             
-            print(f"  WTI收益: {prev_row['wti_close']:.4f} -> {curr_row['wti_close']:.4f} = {wti_return*100:.2f}%")
-            print(f"  Brent收益: {prev_row['brent_close']:.4f} -> {curr_row['brent_close']:.4f} = {brent_return*100:.2f}%")
+            print(f"  WTI return: {prev_row['wti_close']:.4f} -> {curr_row['wti_close']:.4f} = {wti_return*100:.2f}%")
+            print(f"  Brent return: {prev_row['brent_close']:.4f} -> {curr_row['brent_close']:.4f} = {brent_return*100:.2f}%")
             
             if current_position == "Long Spread":
                 # Long Brent + Short WTI (equal weight)
@@ -870,9 +700,9 @@ def _compute_backtest(expected_rows: List[Dict]) -> Tuple[List[Dict], Dict[str, 
             net_return = gross_return - 0.004
             monthly_returns.append(net_return)
             
-            print(f"  总收益计算: {current_position}")
-            print(f"    - 毛收益: {gross_return*100:.4f}%")
-            print(f"    - 扣除成本0.40%后净收益: {net_return*100:.2f}%")
+            print(f"  Total return calculation: {current_position}")
+            print(f"    - Gross return: {gross_return*100:.4f}%")
+            print(f"    - Net return after 0.40% cost: {net_return*100:.2f}%")
             
             # Record the completed trade
             exit_spread = curr_row["brent_close"] - curr_row["wti_close"]
@@ -886,9 +716,9 @@ def _compute_backtest(expected_rows: List[Dict]) -> Tuple[List[Dict], Dict[str, 
                 "leg": leg_returns_str
             })
             
-            print(f"  ✅ 交易完成: {current_position} {entry_month}->{curr_row['m']}")
-            print(f"     价差: {entry_spread:.4f} -> {exit_spread:.4f}")
-            print(f"     净收益: {net_return*100:.2f}%")
+            print(f"  ✅ Trade completed: {current_position} {entry_month}->{curr_row['m']}")
+            print(f"      Spread: {entry_spread:.4f} -> {exit_spread:.4f}")
+            print(f"      Net return: {net_return*100:.2f}%")
             
             # Close position
             current_position = None
@@ -897,7 +727,7 @@ def _compute_backtest(expected_rows: List[Dict]) -> Tuple[List[Dict], Dict[str, 
         else:
             # No position, add 0 return
             monthly_returns.append(0.0)
-            print(f"  无持仓，本月收益: 0.0%")
+            print(f"  No position, this month's return: 0.0%")
         
         # Check if we should open a new position based on PREVIOUS month's signal
         # (Signal generated at previous month-end, executed in current month)
@@ -907,21 +737,21 @@ def _compute_backtest(expected_rows: List[Dict]) -> Tuple[List[Dict], Dict[str, 
             entry_month = prev_row["m"]  # Signal generation month
             entry_spread = prev_row["brent_close"] - prev_row["wti_close"]
             
-            print(f"  🚀 开新仓: {prev_signal} (基于{prev_row['m']}月末信号)")
-            print(f"     入场价差: {entry_spread:.4f}")
-            print(f"     将在下月平仓")
+            print(f"  🚀 Open new position: {prev_signal} (based on {prev_row['m']} month-end signal)")
+            print(f"      Entry spread: {entry_spread:.4f}")
+            print(f"      Will be closed in next month")
         
         print()
     
     # Handle case where we still have an open position at the end
     if current_position is not None:
-        print(f"⚠️  警告: 期末仍有未平仓位 {current_position}，入场月份: {entry_month}")
-        print(f"   这种情况在backtest中应该避免，因为无法计算最终收益")
+        print(f"⚠️  Warning: There is still an open position {current_position} at the end, entry month: {entry_month}")
+        print(f"   This should be avoided in backtest, because the final return cannot be calculated")
     
-    print(f"🔍 调试信息: Backtest处理完成")
-    print(f"  - 总交易笔数: {len(trades)}")
-    print(f"  - 月度收益序列长度: {len(monthly_returns)}")
-    print(f"  - 月度收益: {[f'{r*100:.2f}%' for r in monthly_returns]}")
+    print(f"🔍 Debug info: Backtest completed")
+    print(f"  - Total trades: {len(trades)}")
+    print(f"  - Monthly return sequence length: {len(monthly_returns)}")
+    print(f"  - Monthly returns: {[f'{r*100:.2f}%' for r in monthly_returns]}")
     
     # Calculate performance metrics
     import math
@@ -976,7 +806,7 @@ def _compute_backtest(expected_rows: List[Dict]) -> Tuple[List[Dict], Dict[str, 
         "trades": len(trades),
     }
     
-    print(f"🔍 调试信息: 计算得出的性能指标:")
+    print(f"🔍 Debug info: Performance metrics calculated:")
     print(f"  - Total Return: {total_return*100:.2f}%")
     print(f"  - Annualized Return: {annualized_return*100:.2f}%")
     print(f"  - Sharpe Ratio: {sharpe_annual:.4f}")
@@ -994,12 +824,12 @@ def _format_leg_returns(prev_b: float, prev_w: float, cur_b: float, cur_w: float
 # -------- tokens & tool names --------
 
 def _load_tokens(token_path: Path):
-    print(f"🔍 调试信息: 尝试加载令牌文件: {token_path}")
-    print(f"🔍 调试信息: 令牌文件存在: {token_path.exists()}")
+    print(f"🔍 Debug info: Trying to load token file: {token_path}")
+    print(f"🔍 Debug info: Token file exists: {token_path.exists()}")
     if not token_path.exists():
-        raise RuntimeError(f"令牌文件不存在: {token_path}")
+        raise RuntimeError(f"Token file does not exist: {token_path}")
     ns = runpy.run_path(str(token_path))
-    print(f"🔍 调试信息: 令牌文件包含的变量: {list(ns.keys())}")
+    print(f"🔍 Debug info: Variables in token file: {list(ns.keys())}")
     if "all_token_key_session" not in ns:
         raise RuntimeError("all_token_key_session not found in token module")
     return ns["all_token_key_session"]
@@ -1023,53 +853,53 @@ async def async_main(args):
 
     # Connect MCP and load tokens first
     token_path_str = args.token_path or "configs/token_key_session.py"
-    print(f"🔍 调试信息: 令牌文件路径: {token_path_str}")
+    print(f"🔍 Debug info: Token file path: {token_path_str}")
     try:
         tokens = _load_tokens(Path(token_path_str).resolve())
         tokens_dict = tokens.to_dict() if hasattr(tokens, "to_dict") else dict(tokens)
-        print(f"🔍 调试信息: 成功加载令牌，包含键: {list(tokens_dict.keys())}")
+        print(f"🔍 Debug info: Successfully loaded tokens, keys: {list(tokens_dict.keys())}")
         notion_token = tokens_dict.get("notion_integration_key", "")
-        print(f"🔍 调试信息: Notion令牌长度: {len(str(notion_token))}")
+        print(f"🔍 Debug info: Notion token length: {len(str(notion_token))}")
     except Exception as e:
-        print(f"🔍 调试信息: 加载令牌时出错: {e}")
+        print(f"🔍 Debug info: Error loading tokens: {e}")
         tokens_dict = {}
         notion_token = ""
 
     # Find the Oil Price page under Notion Eval Page
-    print(f"🔍 调试信息: 开始查找Oil Price页面")
+    print(f"🔍 Debug info: Starting to find Oil Price page")
     
     try:
         if not notion_token:
-            errors.append("缺少 Notion integration key")
+            errors.append("Missing Notion integration key")
             summary_db_id = ""
             backtest_db_id = ""
         else:
             # Step 1: Find the Oil Price page
             oil_price_page = _find_oil_price_page(notion_token)
             if not oil_price_page:
-                errors.append("未找到Oil Price页面或该页面不在Notion Eval Page下")
+                errors.append("Oil Price page not found or not under Notion Eval Page")
                 summary_db_id = ""
                 backtest_db_id = ""
             else:
-                print(f"🔍 调试信息: ✅ 找到Oil Price页面: {oil_price_page['title']} (ID: {oil_price_page['id']})")
-                print(f"🔍 调试信息: 父页面: {oil_price_page['parent_title']}")
+                print(f"🔍 Debug info: ✅ Found Oil Price page: {oil_price_page['title']} (ID: {oil_price_page['id']})")
+                print(f"🔍 Debug info: Parent page: {oil_price_page['parent_title']}")
                 
                 # Step 2: Find databases within the Oil Price page
                 databases = _find_databases_in_page(oil_price_page['id'], notion_token)
                 summary_db_id = databases.get('summary', '')
                 backtest_db_id = databases.get('backtest', '')
                 
-                print(f"🔍 调试信息: 页面内搜索结果 - Summary DB ID: '{summary_db_id}'")
-                print(f"🔍 调试信息: 页面内搜索结果 - Backtest DB ID: '{backtest_db_id}'")
+                print(f"🔍 Debug info: Search results - Summary DB ID: '{summary_db_id}'")
+                print(f"🔍 Debug info: Search results - Backtest DB ID: '{backtest_db_id}'")
                 
                 if not summary_db_id:
-                    errors.append("未在Oil Price页面中找到'Oil Market Summary'数据库")
+                    errors.append("'Oil Market Summary' database not found in Oil Price page")
                 if not backtest_db_id:
-                    errors.append("未在Oil Price页面中找到'Spread Strategy Backtest'数据库")
+                    errors.append("'Spread Strategy Backtest' database not found in Oil Price page")
     
     except Exception as e:
-        print(f"🔍 调试信息: 查找Oil Price页面时出错: {e}")
-        errors.append(f"查找Oil Price页面失败: {e}")
+        print(f"🔍 Debug info: Error finding Oil Price page: {e}")
+        errors.append(f"Error finding Oil Price page: {e}")
         summary_db_id = ""
         backtest_db_id = ""
 
@@ -1097,28 +927,28 @@ async def async_main(args):
                         yahoo_ok = True
                         months_sorted = sorted(set(wti_map.keys()).intersection(set(brent_map.keys())))
                         
-                        # 🔍 调试：显示原始月份数据
-                        print(f"🔍 调试信息: Yahoo Finance 月份数据 (经过robust获取后):")
-                        print(f"  - WTI 月份: {sorted(wti_map.keys())}")
-                        print(f"  - Brent 月份: {sorted(brent_map.keys())}")
-                        print(f"  - 交集月份: {months_sorted}")
-                        print(f"🔍 调试信息: 使用robust获取后的月份范围: {months_sorted[0] if months_sorted else 'N/A'} 到 {months_sorted[-1] if months_sorted else 'N/A'}")
+                        # 🔍 Debug info: Display original monthly data
+                        print(f"🔍 Debug info: Yahoo Finance monthly data (after robust fetch):")
+                        print(f"  - WTI months: {sorted(wti_map.keys())}")
+                        print(f"  - Brent months: {sorted(brent_map.keys())}")
+                        print(f"  - Intersection months: {months_sorted}")
+                        print(f"🔍 Debug info: Months range after robust fetch: {months_sorted[0] if months_sorted else 'N/A'} to {months_sorted[-1] if months_sorted else 'N/A'}")
                         
                         yahoo_rows_expected = _compute_summary_from_prices(months_sorted, wti_map, brent_map)
-                        print(f"🔍 调试信息: 生成的期望行数: {len(yahoo_rows_expected)}")
+                        print(f"🔍 Debug info: Number of expected rows generated: {len(yahoo_rows_expected)}")
             except Exception:
                 pass
 
-        # Query Notion Summary database（此处仅抓取，行数校验统一放到后续 checksum 阶段避免重复）
+        # Query Notion Summary database (only fetch, row count check unified to checksum stage to avoid duplicate)
         try:
             notion_token = str(tokens_dict.get("notion_integration_key", ""))
             if summary_db_id and notion_token:
                 pages = _notion_query_database(notion_token, summary_db_id)
                 notion_rows = _extract_notion_rows(pages)
             else:
-                errors.append("无法访问 Notion：缺少 Summary 数据库ID或令牌")
+                errors.append("Cannot access Notion: missing Summary database ID or token")
         except Exception as e:
-            errors.append(f"查询 Notion Summary 失败: {e}")
+            errors.append(f"Query Notion Summary failed: {e}")
 
         # Query Notion Backtest database and extract trades/metrics
         try:
@@ -1127,30 +957,30 @@ async def async_main(args):
                 pages_bt = _notion_query_database(notion_token, backtest_db_id)
                 bt_metrics_notion, bt_trades_notion = _extract_backtest_from_pages(pages_bt)
                 backtest_trade_count = len(bt_trades_notion)
-                # 若 Yahoo 可用，严格计算 expected 并逐值比对
+                # If Yahoo is available, strictly calculate expected and compare each value
                 if yahoo_rows_expected:
-                    # 限定与 Notion Summary 同期的 12 个月
+                    # Limit to 12 months of the same period as Notion Summary
                     notion_months = [r.get("m") for r in _extract_notion_rows(_notion_query_database(notion_token, summary_db_id))] if summary_db_id else []
                     inter_months = notion_months[-12:] if notion_months else []
                     
-                    # 🔍 调试：显示月份匹配情况
-                    print(f"🔍 调试信息: Backtest计算中的月份匹配:")
-                    print(f"  - Notion中的月份: {notion_months}")
-                    print(f"  - Notion最后12个月: {inter_months}")
-                    print(f"  - Yahoo期望月份: {[r['m'] for r in yahoo_rows_expected]}")
+                    # 🔍 Debug info: Display month matching
+                    print(f"🔍 Debug info: Backtest calculation month matching:")
+                    print(f"  - Notion months: {notion_months}")
+                    print(f"  - Notion last 12 months: {inter_months}")
+                    print(f"  - Yahoo expected months: {[r['m'] for r in yahoo_rows_expected]}")
                     
-                    # 以 yahoo_rows_expected 为基准，过滤为 inter_months
+                    # Filter to inter_months based on yahoo_rows_expected
                     ymap = {r["m"]: r for r in yahoo_rows_expected}
                     expected_seq = [ymap[m] for m in inter_months if m in ymap]
                     
-                    print(f"🔍 调试信息: 最终用于backtest计算的月份序列:")
+                    print(f"🔍 Debug info: Final months sequence used for backtest calculation:")
                     for i, row in enumerate(expected_seq):
                         print(f"  {i+1:2d}. {row['m']}: WTI={row['wti_close']}, Brent={row['brent_close']}, Spread={row.get('spread', 'N/A')}")
                     
                     exp_trades, exp_metrics = _compute_backtest(expected_seq)
                     
-                    # 🔍 调试：显示计算的期望值
-                    print(f"🔍 调试信息: 计算得出的期望backtest指标:")
+                    # 🔍 Debug info: Display calculated expected values
+                    print(f"🔍 Debug info: Calculated expected backtest metrics:")
                     print(f"  - Total Return %: {exp_metrics.get('total_return_pct', 0.0):.2f}")
                     print(f"  - Annualized Return %: {exp_metrics.get('annualized_return_pct', 0.0):.2f}")
                     print(f"  - Sharpe (ann.): {exp_metrics.get('sharpe_ann', 0.0):.2f}")
@@ -1158,8 +988,8 @@ async def async_main(args):
                     print(f"  - Max Drawdown %: {exp_metrics.get('max_drawdown_pct', 0.0):.2f}")
                     print(f"  - Trades: {len(exp_trades)}")
                     
-                    # 🔍 调试：显示实际Notion的值
-                    print(f"🔍 调试信息: Notion中的实际backtest指标:")
+                    # 🔍 Debug info: Display actual Notion values
+                    print(f"🔍 Debug info: Actual Notion backtest metrics:")
                     print(f"  - Total Return %: {bt_metrics_notion.get('total_return_pct', 0.0):.2f}")
                     print(f"  - Annualized Return %: {bt_metrics_notion.get('annualized_return_pct', 0.0):.2f}")
                     print(f"  - Sharpe (ann.): {bt_metrics_notion.get('sharpe_ann', 0.0):.2f}")
@@ -1185,41 +1015,41 @@ async def async_main(args):
                     # Apply different tolerances for different metrics
                     for ev, av, name, tolerance in cmp_pairs:
                         if abs(ev - av) > tolerance:
-                            errors.append(f"Backtest 指标不一致：{name} 期望 {ev} 实际 {av}")
+                            errors.append(f"Backtest metrics inconsistent: {name} expected {ev} actual {av}")
                         else:
-                            print(f"  ✅ {name}: 期望 {ev} 实际 {av} (差异 {abs(ev-av):.4f} <= 容忍度 {tolerance})")
+                            print(f"  ✅ {name}: expected {ev} actual {av} (difference {abs(ev-av):.4f} <= tolerance {tolerance})")
 
                     # Compare period start/end & cost assumption
                     exp_period_start = expected_seq[0]["m"] if expected_seq else ""
                     exp_period_end = expected_seq[-1]["m"] if expected_seq else ""
                     if (bt_metrics_notion.get("period_start") or "") != exp_period_start:
-                        errors.append(f"Backtest 指标不一致：Period Start 期望 {exp_period_start} 实际 {bt_metrics_notion.get('period_start')}")
+                        errors.append(f"Backtest metrics inconsistent: Period Start expected {exp_period_start} actual {bt_metrics_notion.get('period_start')}")
                     if (bt_metrics_notion.get("period_end") or "") != exp_period_end:
-                        errors.append(f"Backtest 指标不一致：Period End 期望 {exp_period_end} 实际 {bt_metrics_notion.get('period_end')}")
+                        errors.append(f"Backtest metrics inconsistent: Period End expected {exp_period_end} actual {bt_metrics_notion.get('period_end')}")
                     cost = (bt_metrics_notion.get("cost_assumption") or "").strip()
                     if cost != "0.40% round-trip":
-                        errors.append(f"Backtest 指标不一致：Cost Assumption 期望 '0.40% round-trip' 实际 '{cost}'")
+                        errors.append(f"Backtest metrics inconsistent: Cost Assumption expected '0.40% round-trip' actual '{cost}'")
 
                     # Compare each trade 1:1 by chronological order
                     if len(exp_trades) != len(bt_trades_notion):
-                        errors.append(f"Backtest 交易笔数不一致（严格比较）：期望 {len(exp_trades)} 实际 {len(bt_trades_notion)}")
-                        # 🔍 调试：显示交易详情
-                        print(f"🔍 调试信息: 期望交易:")
+                        errors.append(f"Backtest trade count inconsistent (strict comparison): expected {len(exp_trades)} actual {len(bt_trades_notion)}")
+                        # 🔍 Debug info: Display trade details
+                        print(f"🔍 Debug info: Expected trades:")
                         for i, trade in enumerate(exp_trades, 1):
                             print(f"  Trade#{i}: {trade.get('signal')} {trade.get('entry_month')}->{trade.get('exit_month')} PnL: {trade.get('net_pnl_pct', 0):.2f}%")
-                        print(f"🔍 调试信息: Notion中的交易:")
+                        print(f"🔍 Debug info: Notion trades:")
                         for i, trade in enumerate(bt_trades_notion, 1):
                             print(f"  Trade#{i}: {trade.get('signal')} {trade.get('entry_month')}->{trade.get('exit_month')} PnL: {trade.get('net_pnl_pct', 0):.2f}%")
                     else:
-                        print(f"🔍 调试信息: 交易详细比较 (共{len(exp_trades)}笔):")
+                        print(f"🔍 Debug info: Trade detailed comparison (total {len(exp_trades)} trades):")
                         row_by_month = {r["m"]: r for r in expected_seq}
                         for i, (et, at) in enumerate(zip(exp_trades, bt_trades_notion), start=1):
-                            print(f"🔍 Trade#{i} 比较:")
-                            print(f"  期望: {et.get('signal')} {et.get('entry_month')}->{et.get('exit_month')} Spread: {et.get('entry_spread', 0):.4f}->{et.get('exit_spread', 0):.4f} PnL: {et.get('net_pnl_pct', 0):.2f}%")
-                            print(f"  实际: {at.get('signal')} {at.get('entry_month')}->{at.get('exit_month')} Spread: {at.get('entry_spread', 0):.4f}->{at.get('exit_spread', 0):.4f} PnL: {at.get('net_pnl_pct', 0):.2f}%")
+                            print(f"🔍 Trade#{i} comparison:")
+                            print(f"  Expected: {et.get('signal')} {et.get('entry_month')}->{et.get('exit_month')} Spread: {et.get('entry_spread', 0):.4f}->{et.get('exit_spread', 0):.4f} PnL: {et.get('net_pnl_pct', 0):.2f}%")
+                            print(f"  Actual: {at.get('signal')} {at.get('entry_month')}->{at.get('exit_month')} Spread: {at.get('entry_spread', 0):.4f}->{at.get('exit_spread', 0):.4f} PnL: {at.get('net_pnl_pct', 0):.2f}%")
                             
                             if (et.get("signal") or "") != (at.get("signal") or ""):
-                                errors.append(f"Trade#{i} Signal 不一致：期望 {et.get('signal')} 实际 {at.get('signal')}")
+                                errors.append(f"Trade#{i} Signal inconsistent: expected {et.get('signal')} actual {at.get('signal')}")
                             
                             # Entry Month tolerance: Allow 1-month difference due to different definitions
                             # (Signal generation month vs Position holding month)
@@ -1227,33 +1057,33 @@ async def async_main(args):
                             actual_entry = at.get("entry_month", "")
                             if expected_entry and actual_entry:
                                 if not _is_entry_month_compatible(expected_entry, actual_entry):
-                                    errors.append(f"Trade#{i} Entry Month 不一致：期望 {expected_entry} 实际 {actual_entry}")
+                                    errors.append(f"Trade#{i} Entry Month inconsistent: expected {expected_entry} actual {actual_entry}")
                             elif expected_entry != actual_entry:
-                                errors.append(f"Trade#{i} Entry Month 不一致：期望 {expected_entry} 实际 {actual_entry}")
+                                errors.append(f"Trade#{i} Entry Month inconsistent: expected {expected_entry} actual {actual_entry}")
                             
                             if (et.get("exit_month") or "") != (at.get("exit_month") or ""):
-                                errors.append(f"Trade#{i} Exit Month 不一致：期望 {et.get('exit_month')} 实际 {at.get('exit_month')}")
+                                errors.append(f"Trade#{i} Exit Month inconsistent: expected {et.get('exit_month')} actual {at.get('exit_month')}")
                             
                             # Entry Spread tolerance: Allow difference due to Entry Month definition difference
                             expected_entry_spread = et.get("entry_spread", 0.0)
                             actual_entry_spread = at.get("entry_spread", 0.0)
                             if not _is_spread_compatible(expected_entry_spread, actual_entry_spread, expected_entry, actual_entry, row_by_month):
-                                errors.append(f"Trade#{i} Entry Spread 不一致")
+                                errors.append(f"Trade#{i} Entry Spread inconsistent")
                             
                             if r4(et.get("exit_spread", 0.0)) != r4(at.get("exit_spread", 0.0)):
-                                errors.append(f"Trade#{i} Exit Spread 不一致")
+                                errors.append(f"Trade#{i} Exit Spread inconsistent")
                             # pnl
                             if r2(et.get("net_pnl_pct", 0.0)) != r2(at.get("net_pnl_pct", 0.0)):
-                                errors.append(f"Trade#{i} Net PnL % 不一致")
+                                errors.append(f"Trade#{i} Net PnL % inconsistent")
                             
                             # Leg returns tolerance: Skip comparison due to Entry Month definition difference
                             # The leg returns calculation depends on the entry month definition, so differences are expected
-                            print(f"  Leg Returns - 期望: '{et.get('leg', 'N/A')}' 实际: '{at.get('leg', 'N/A')}'")
-                            print(f"  💡 注意: Leg Returns差异是由于Entry Month定义不同导致的，属于可接受差异")
+                            print(f"  Leg Returns - expected: '{et.get('leg', 'N/A')}' actual: '{at.get('leg', 'N/A')}'")
+                            print(f"  💡 Note: Leg Returns difference is due to Entry Month definition difference, considered acceptable difference")
             else:
-                errors.append("无法访问 Notion：缺少 Backtest 数据库ID或令牌")
+                errors.append("Cannot access Notion: missing Backtest database ID or token")
         except Exception as e:
-            errors.append(f"查询 Notion Backtest 失败: {e}")
+            errors.append(f"Query Notion Backtest failed: {e}")
 
     # Build checksums
     notion_rows = []
@@ -1264,29 +1094,29 @@ async def async_main(args):
             pages = _notion_query_database(notion_token, summary_db_id)
             notion_rows = _extract_notion_rows(pages)
         else:
-            errors.append("无法访问 Notion：缺少 Summary 数据库ID或令牌")
+            errors.append("Cannot access Notion: missing Summary database ID or token")
     except Exception as e:
-        errors.append(f"查询 Notion Summary 失败: {e}")
+        errors.append(f"Query Notion Summary failed: {e}")
 
 
     # Compare Notion vs Yahoo intersection if yahoo data is available
     if yahoo_rows_expected and notion_rows:
-        print(f"🔍 调试信息: Summary数据比较:")
-        print(f"  - Yahoo期望行数: {len(yahoo_rows_expected)}")
-        print(f"  - Notion实际行数: {len(notion_rows)}")
-        print(f"  - Yahoo期望月份: {[r['m'] for r in yahoo_rows_expected]}")
-        print(f"  - Notion实际月份: {[r['m'] for r in notion_rows]}")
+        print(f"🔍 Debug info: Summary data comparison:")
+        print(f"  - Yahoo expected rows: {len(yahoo_rows_expected)}")
+        print(f"  - Notion actual rows: {len(notion_rows)}")
+        print(f"  - Yahoo expected months: {[r['m'] for r in yahoo_rows_expected]}")
+        print(f"  - Notion actual months: {[r['m'] for r in notion_rows]}")
         
-        # 显示缺失的月份
+        # Display missing months
         yahoo_months = set(r['m'] for r in yahoo_rows_expected)
         notion_months = set(r['m'] for r in notion_rows)
         missing_in_notion = yahoo_months - notion_months
         extra_in_notion = notion_months - yahoo_months
         
         if missing_in_notion:
-            print(f"  - Notion中缺少的月份: {sorted(missing_in_notion)}")
+            print(f"  - Notion missing months: {sorted(missing_in_notion)}")
         if extra_in_notion:
-            print(f"  - Notion中多余的月份: {sorted(extra_in_notion)}")
+            print(f"  - Notion extra months: {sorted(extra_in_notion)}")
         
         cmp_errs = _compare_summary(yahoo_rows_expected, notion_rows)
         for ce in cmp_errs:
@@ -1295,30 +1125,30 @@ async def async_main(args):
 
     # Report
     print("\n" + "=" * 60)
-    print("📊 原油价差任务（Notion-only）评估结果")
+    print("📊 Oil Spread Task (Notion-only) Evaluation Result")
     print("=" * 60)
 
     # Yahoo tool availability
-    print("✅ Yahoo Finance 工具可用性检查通过" if yahoo_ok else "⚠️ 未能确认 Yahoo Finance 工具可用性（不作失败处理）")
+    print("✅ Yahoo Finance tool availability check passed" if yahoo_ok else "⚠️ Unable to confirm Yahoo Finance tool availability (not treated as failure)")
 
     if notion_rows:
-        print(f"✅ Notion 行数: {len(notion_rows)}")
+        print(f"✅ Notion rows: {len(notion_rows)}")
     else:
-        print("⚠️ 未从 Notion 获取到有效数据")
+        print("⚠️ No valid data retrieved from Notion")
 
     if warnings:
-        print("\n⚠️ 预警:")
+        print("\n⚠️ Warnings:")
         for w in warnings:
             print(f"   • {w}")
 
     if errors:
-        print("\n❌ 发现问题:")
+        print("\n❌ Found issues:")
         for e in errors:
             print(f"   • {e}")
-        print("\n💡 评估结果: 失败 - 结果不符合规范或与落地数据不一致")
+        print("\n💡 Evaluation result: failed - results do not conform to specifications or do not match ground truth")
         raise SystemExit(1)
     else:
-        print("\n🎉 评估结果: 成功 - 结果格式正确，Notion 校验通过")
+        print("\n🎉 Evaluation result: success - results formatted correctly, Notion check passed")
 
 
 def main():
@@ -1329,7 +1159,7 @@ def main():
     parser.add_argument("--token_path", required=False, default="configs/token_key_session.py")
     parser.add_argument("--launch_time", required=False)
     args = parser.parse_args()
-    print(f"🔍 调试信息: 命令行参数:")
+    print(f"🔍 Debug info: Command line arguments:")
     print(f"  --agent_workspace: {args.agent_workspace}")
     print(f"  --token_path: {args.token_path}")
     print(f"  --res_log_file: {args.res_log_file}")
