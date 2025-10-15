@@ -1,10 +1,10 @@
 import os
 
 def check_local(agent_workspace: str, groundtruth_workspace: str):
-    agent_needed_file = os.path.join(agent_workspace,"datasets.tex")
-    groundtruth_needed_file = os.path.join(groundtruth_workspace,"datasets.tex")
+    agent_needed_file = os.path.join(agent_workspace, "datasets.tex")
+    groundtruth_needed_file = os.path.join(groundtruth_workspace, "datasets.tex")
 
-    # 比较两个latex文件中的表格和格式是否一致
+    # Compare tables and formatting in the two LaTeX files
     try:
         with open(agent_needed_file, "r", encoding="utf-8") as f:
             agent_content = f.read()
@@ -14,11 +14,11 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
     with open(groundtruth_needed_file, "r", encoding="utf-8") as f:
         groundtruth_content = f.read()
 
-    # 提取table环境内容
+    # Extract content within the table environment
     import re
 
     def extract_table_env(content):
-        # 匹配\begin{table} ... \end{table}之间的内容
+        # Match content between \begin{table} ... \end{table}
         match = re.search(r"\\begin\{table\}.*?\\end\{table\}", content, re.DOTALL)
         if match:
             return match.group(0)
@@ -30,15 +30,12 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
     if agent_table is None or groundtruth_table is None:
         return False, "Table environment not found in one or both files."
 
-    # 去除所有空白字符进行比较
+    # Remove all whitespace characters for comparison
     def normalize_latex(s):
-        # 去除所有空白字符（空格、制表符、换行）
+        # Remove all whitespace (spaces, tabs, newlines)
         return re.sub(r"\s+", "", s)
 
     if normalize_latex(agent_table) != normalize_latex(groundtruth_table):
         return False, "Table content or format does not match."
     
     return True, None
-
-
-    
