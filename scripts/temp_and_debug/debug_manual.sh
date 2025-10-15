@@ -12,7 +12,7 @@
 
 uv run demo.py \
 --eval_config scripts/temp_and_debug/debug_eval_config.json \
---task_dir finalpool/academic-warning \
+--task_dir finalpool/ab-testing \
 --debug \
 --model_short_name gpt-5 \
 --provider openrouter \

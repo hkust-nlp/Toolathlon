@@ -203,38 +203,74 @@ def manage_log_bucket(
         max_retries=10,
         ):
     """
-    Delete all existing log buckets with prefix, create a new unique log bucket,
-    and save the new log bucket name to ../groundtruth_workspace/log_bucket_name.txt file.
+    If a log bucket with given prefix exists, clear its logs and use it.
+    If no such bucket exists, create a new one, and save the bucket name
+    to ../groundtruth_workspace/log_bucket_name.txt file.
     """
     from google.cloud.logging_v2.services.config_service_v2 import ConfigServiceV2Client
     from google.cloud.logging_v2.types import LogBucket, CreateBucketRequest
 
     print(f"🔍 Managing log buckets with prefix: {bucket_name_prefix}")
 
-    # Initialize logging client
     logging_client = ConfigServiceV2Client(credentials=credentials)
     parent = f"projects/{project_id}/locations/{location}"
 
-    # List all existing log buckets
-    buckets = logging_client.list_buckets(parent=parent)
+    # List all existing log buckets and find one with the prefix
+    matched_bucket = None
+    matched_bucket_id = None
+    buckets = list(logging_client.list_buckets(parent=parent))
 
-    # Find and delete all log buckets with matching prefix
     for bucket in buckets:
         bucket_id = bucket.name.split('/')[-1]
-        if bucket_id.startswith(bucket_name_prefix):
-            # Check bucket lifecycle state before deletion
-            if bucket.lifecycle_state.name == 'ACTIVE':
-                print(f"🗑️  Deleting log bucket: {bucket_id}")
-                logging_client.delete_bucket(request={"name": bucket.name})
-                print(f"✅ Successfully deleted log bucket: {bucket_id}")
-            else:
-                print(f"⏭️  Skipping log bucket {bucket_id} (state: {bucket.lifecycle_state.name})")
+        if bucket_id.startswith(bucket_name_prefix) and bucket.lifecycle_state.name == 'ACTIVE':
+            matched_bucket = bucket
+            matched_bucket_id = bucket_id
+            break
 
-    # Generate new unique log bucket name
+    if matched_bucket is not None:
+        print(f"✅ Found existing log bucket: {matched_bucket_id}")
+        # Clear all log entries in the bucket
+        from google.cloud import logging as gcloud_logging
+
+        logging_client2 = gcloud_logging.Client(project=project_id, credentials=credentials)
+        # Remove all logs under this bucket by listing logNames for this bucket prefix
+        log_names = set()
+        log_resource_prefix = f"projects/{project_id}/logs/"
+        filter_expr = (
+            f'logName:("{log_resource_prefix}")'
+        )
+        for entry in logging_client2.list_entries(filter_=filter_expr, order_by=gcloud_logging.DESCENDING):
+            log_name = entry.log_name
+            # logs routed to this bucket must have log_name (log_id) matching the bucket id
+            # or, in practice, we just clear all custom logs, as the abtesting will use only one log-name
+            log_id = log_name.split('/')[-1]
+            # There could potentially be system logs as well, but we target our bucket logs
+            if log_id.startswith(bucket_name_prefix):
+                log_names.add(log_id)
+        
+        # Use the delete_log method to clear each log
+        for log_id in log_names:
+            print(f"🧹 Clearing log: {log_id} from bucket: {matched_bucket_id}")
+            try:
+                logging_client2.delete_log(log_id)
+                print(f"✅ Cleared log: {log_id}")
+            except Exception as e:
+                print(f"⚠️  Error clearing log '{log_id}': {e}")
+
+        # Save the bucket name to file
+        save_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "../groundtruth_workspace/log_bucket_name.txt")
+        )
+        with open(save_path, "w") as f:
+            f.write(matched_bucket_id.strip() + "\n")
+        print(f"💾 Saved log bucket name to {save_path}")
+
+        return matched_bucket_id, True
+
+    # If not found, create new
     new_bucket_id = f"{bucket_name_prefix}-{uuid.uuid4().hex[:12]}"
     print(f"📝 Creating new log bucket: {new_bucket_id}")
 
-    # Create the new log bucket
     bucket = LogBucket(retention_days=30)
     request = CreateBucketRequest(
         parent=parent,
