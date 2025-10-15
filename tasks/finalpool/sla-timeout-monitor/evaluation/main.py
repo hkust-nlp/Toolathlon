@@ -10,7 +10,7 @@ USER_SECOND_REPLY_TIME = {
     "max": 18,
 }
 
-# 读取配置文件
+
 involved_emails_file = os.path.join(os.path.dirname(__file__), "..", "files", "involved_emails.json")
 with open(involved_emails_file, "r", encoding="utf-8") as f:
     involved_emails_data = json.load(f)
@@ -20,13 +20,13 @@ sender_email = next(iter(involved_emails_data["sender"]))
 sender_config = {"email": sender_email, **involved_emails_data["sender"][sender_email]}
 
 def load_template(filename):
-    """加载邮件模板文件"""
+
     template_path = os.path.join(os.path.dirname(__file__), "..", "files", filename)
     with open(template_path, "r", encoding="utf-8") as f:
         return f.read()
 
 def check_email_sent(config, sender, expected_body, expected_subject=None, email_type="email"):
-    """检查邮件是否已发送"""
+
     ok, detail = mailbox_has_email_matching_body(config, sender, expected_body, expected_subject, folder="INBOX")
     if not ok:
         print_color(f"❌ Cannot find a {email_type} for {config['email']}", "red")
@@ -47,12 +47,12 @@ if __name__=="__main__":
     print_color("🔍 Starting SLA Timeout Monitor Evaluation", "blue")
     print_color("=" * 50, "cyan")
 
-    # 加载SLA监控数据
+
     sla_monitor_file = os.path.join(args.groundtruth_workspace, "sla_monitoring.jsonl")
     with open(sla_monitor_file, "r", encoding="utf-8") as f:
         sla_monitor_data = [json.loads(line) for line in f]
     
-    # 加载无关邮件数据
+
     interference_file = os.path.join(args.groundtruth_workspace, "interference_tickets.jsonl")
     if not os.path.exists(interference_file):
         interference_data = []
@@ -72,7 +72,7 @@ if __name__=="__main__":
         "andersonp@mcp.com": [],
     }
 
-    # 构建数据
+
     for item in sla_monitor_data:
         if item["is_overdue"]:
             should_receive_users.append(item)
@@ -90,7 +90,7 @@ if __name__=="__main__":
     print_color(f"📧 Found {len(should_receive_users)} users who should receive apology emails", "yellow")
     print_color(f"📧 Found {len(shouldnt_receive_users)} users who should NOT receive emails", "yellow")
 
-    # 检查客户道歉邮件
+
     print_color("\n📧 Checking Customer Apology Emails", "blue")
     print_color("-" * 40, "cyan")
 
@@ -103,7 +103,7 @@ if __name__=="__main__":
         config = all_email_configs[user["user_email"]]
         check_email_sent(config, sender_email, apology_email, apology_email_subject, "customer apology email")
     
-    # 检查不应收到邮件的用户
+
     print_color("\n🚫 Checking Users Who Should NOT Receive Emails", "blue")
     print_color("-" * 45, "cyan")
 
@@ -117,7 +117,7 @@ if __name__=="__main__":
         else:
             print_color(f"✅ No unexpected email for {user}", "green")
 
-    # 检查Manager提醒邮件
+
     print_color("\n👔 Checking Manager Reminder Emails", "blue")
     print_color("-" * 40, "cyan")
 
@@ -128,20 +128,20 @@ if __name__=="__main__":
 
         print_color(f"📋 Processing {manager_email} with {len(managers_to_handle[manager_email])} tickets", "cyan")
 
-        # 排列一下每个item，从max -> pro -> basic
-        # 同一级别内从创建时间最早到最晚
+        # Sort the items, from max -> pro -> basic
+        # Within the same level, from the earliest creation time to the latest
         service_level_priority = {"max": 0, "pro": 1, "basic": 2}
         managers_to_handle[manager_email].sort(key=lambda x: (
-            service_level_priority[x["service_level"]],  # 首先按服务级别排序
-            x["created_at"]  # 同一级别内按创建时间升序
+            service_level_priority[x["service_level"]],  # First sort by service level
+            x["created_at"]  # Then sort by creation time within the same level
         ))
 
-        # 生成工单列表
+        # Generate the ticket list
         filled = ""
         for item in managers_to_handle[manager_email]:
             filled += f"{item['ticket_number']}: {item['service_level']}\n"
 
-        # 生成Manager提醒邮件
+        # Generate the Manager reminder email
         manager_reminder_template = load_template("manager_reminder.txt")
         manager_reminder_email = manager_reminder_template.replace("{FULL_LIST_OF_TICKETS}", filled)
         manager_reminder_email_subject = "[Overdue Alert] Tickets Exceeding First Reply SLA"
@@ -149,7 +149,7 @@ if __name__=="__main__":
         config = all_email_configs[manager_email]
         check_email_sent(config, sender_email, manager_reminder_email, manager_reminder_email_subject, "manager reminder email")
 
-    # 检查干扰用户
+    # Check the interference users
     if interfere_users_and_managers:
         print_color("\n🔍 Checking Interference Users", "blue")
         print_color("-" * 35, "cyan")
@@ -162,7 +162,7 @@ if __name__=="__main__":
         else:
             print_color(f"✅ No unexpected email for {user}", "green")
 
-    # 所有检查完成
+    # All checks completed
     print_color("\n🎉 All SLA Timeout Monitor Evaluations Completed Successfully!", "green")
     print_color("=" * 60, "green")
         
