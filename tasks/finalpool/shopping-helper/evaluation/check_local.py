@@ -3,6 +3,9 @@ import re
 import json
 import asyncio
 from typing import List, Dict, Tuple
+import urllib.parse
+from string import punctuation
+import yfinance as yf
 
 def extract_product_info_from_recommend_file(recommend_file_path: str) -> List[Dict]:
     """Extract product information from recommend.json file"""
@@ -49,21 +52,60 @@ def extract_product_info_from_recommend_file(recommend_file_path: str) -> List[D
         print(f"❌ Error reading recommend.json file: {e}")
         return []
 
+def find_js_content_from_result(result: str) -> str:
+    if result is None:
+        return None
+        
+    endpos=result.find("### Ran Playwright code")
+    if endpos == -1:
+        return None
+    
+    startpos = result.rfind("### Result", 0, endpos)
+    if startpos == -1:
+        return None
+
+    xxx =  result[startpos+len("### Result"):endpos].strip().strip("'\"")
+    if xxx == "undefined" or xxx == "":
+        return None
+    return xxx
+
+def remove_white_space_and_punctuation(text: str) -> str:
+    removed_blank = re.sub(r'\s+', '', text)
+    removed_punctuation = removed_blank.translate(str.maketrans('', '', punctuation))
+    return removed_punctuation
+
+def transform_price_to_usd(price: str, currency: str) -> str:
+    # get XUSD from yfinance
+    ticker = f"{currency}USD=X"
+    ticker_obj = yf.Ticker(ticker)
+    hist = ticker_obj.history(period="1d")
+    if not hist.empty:
+        currency_rate = float(hist['Close'].iloc[-1])
+    else:
+        raise ValueError(f"No currency rate data from yfinance for {currency}")
+    return float(price) * currency_rate
+
 async def validate_url_with_playwright_mcp(url: str) -> Tuple[bool, str, str]:
     """Validate URL accessibility and content using Playwright MCP tool for JavaScript-rendered content"""
     print(f"    🎭 Validating URL with Playwright MCP: {url}")
-    
+
     from utils.mcp.tool_servers import MCPServerManager, call_tool_with_retry
-    
+
+    # Force USD currency for Amazon links to ensure consistent pricing display
+    if 'amazon.com' in url.lower():
+        separator = '&' if '?' in url else '?'
+        url = f"{url}{separator}currency=USD"
+        print(f"    💵 Modified Amazon URL to force USD currency: {url}")
+
     # Initialize MCP server manager with correct workspace path
     import os
     workspace_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../.."))
     mcp_manager = MCPServerManager(agent_workspace=workspace_path)
     server = mcp_manager.servers.get('playwright_with_chunk')
-    
+
     if not server:
         raise RuntimeError("Playwright MCP server not found! Ensure 'playwright_with_chunk' server is properly configured.")
-    
+
     async with server as playwright_server:
         # Navigate to the URL
         nav_result = await call_tool_with_retry(
@@ -75,22 +117,52 @@ async def validate_url_with_playwright_mcp(url: str) -> Tuple[bool, str, str]:
         # Wait a bit for dynamic content to load
         await call_tool_with_retry(
             playwright_server,
-            tool_name="browser_wait_for", 
+            tool_name="browser_wait_for",
             arguments={"time": 3}
         )
+
+        # Extract price and title using JavaScript
+        price_result = await call_tool_with_retry(
+            playwright_server,
+            tool_name="browser_evaluate",
+            arguments={"function": "() => { const el = document.getElementById('priceValue'); return el ? el.value : null; }"}
+        )
+        title_result = await call_tool_with_retry(
+            playwright_server,
+            tool_name="browser_evaluate",
+            arguments={"function": "() => { const el = document.getElementById('productTitle'); return el ? el.value : null; }"}
+        )
+        currency_result = await call_tool_with_retry(
+            playwright_server,
+            tool_name="browser_evaluate",
+            arguments={"function": "() => { const el = document.getElementById('currencyOfPreference'); return el ? el.value : null; }"}
+        )
+
         
+        extracted_price = find_js_content_from_result(price_result.content[0].text if hasattr(price_result, 'content') and price_result.content else None)
+        extracted_title = find_js_content_from_result(title_result.content[0].text if hasattr(title_result, 'content') and title_result.content else None)
+        currency_result = find_js_content_from_result(currency_result.content[0].text if hasattr(currency_result, 'content') and currency_result.content else None)
+
+        if currency_result is not None and currency_result != "USD":
+            print(f"    💵 Transforming price from {currency_result} to USD to ensure consistent pricing matching...")
+            extracted_price = transform_price_to_usd(extracted_price, currency_result)
+
+        print(f"    💰 Extracted price from DOM: {extracted_price}")
+        print(f"    📝 Extracted title from DOM: {extracted_title}")
+
         # Get page content by taking snapshots of ALL spans to ensure complete content
         print(f"    📊 Retrieving all page spans for complete content...")
         all_content = []
+        
         
         # First, take initial snapshot to see how many spans there are
         try:
             initial_snapshot = await call_tool_with_retry(
                 playwright_server,
-                tool_name="browser_snapshot_navigate_to_next_span",
+                tool_name="browser_snapshot_navigate_to_first_span",
                 arguments={}
             )
-            
+
             if hasattr(initial_snapshot, 'content') and initial_snapshot.content:
                 initial_text = initial_snapshot.content[0].text if initial_snapshot.content[0] else ""
                 all_content.append(initial_text)
@@ -98,13 +170,13 @@ async def validate_url_with_playwright_mcp(url: str) -> Tuple[bool, str, str]:
                 
                 # Extract total span count from the content
                 # Look for pattern like "Navigated to span X of Y"
-                span_match = re.search(r'span \d+ of (\d+)', initial_text)
-                total_spans = int(span_match.group(1)) if span_match else 20  # fallback to 20
+                span_match = re.search(r"(?i)span\s*\(?(\d+)\s+of\s+(\d+)\)?", initial_text)
+                total_spans = int(span_match.group(2)) if span_match else 20  # fallback to 20
                 
                 print(f"    🔢 Found {total_spans} total spans, retrieving all...")
                 
                 # Navigate through ALL spans starting from span 1
-                for span_idx in range(1, min(total_spans + 1, 50)):  # Start from span 1, not 2
+                for span_idx in range(1, total_spans + 1):  # Start from span 1, not 2
                     try:
                         span_snapshot = await call_tool_with_retry(
                             playwright_server,
@@ -115,7 +187,7 @@ async def validate_url_with_playwright_mcp(url: str) -> Tuple[bool, str, str]:
                         if hasattr(span_snapshot, 'content') and span_snapshot.content:
                             span_text = span_snapshot.content[0].text if span_snapshot.content[0] else ""
                             all_content.append(span_text)
-                            print(f"    📄 Retrieved span {span_idx}: {len(span_text)} characters")
+                            # print(f"    📄 Retrieved span {span_idx}: {len(span_text)} characters")
                         
                     except Exception as e:
                         print(f"    ⚠️ Failed to retrieve span {span_idx}: {e}")
@@ -143,6 +215,21 @@ async def validate_url_with_playwright_mcp(url: str) -> Tuple[bool, str, str]:
         print(f"    📏 Content length: {len(html_content)}")
         print(f"    🔍 Content preview: {html_content[:500]}...")
         
+        # save the html content to a file
+        # with open('html_content.txt', 'w', encoding='utf-8') as f:
+            # f.write(html_content)
+        # print(f"    ✅ Saved html content to html_content.txt")
+
+        # we do not allow "This item cannot be shipped to your selected delivery location. Please choose a different delivery location." in the html content
+        # also we do not want "Currently unavailable." in the html content
+        can_deliver = True
+        if "This item cannot be shipped to your selected delivery location. Please choose a different delivery location." in html_content:
+            can_deliver = False
+        
+        in_stock = True
+        if "Currently unavailable." in html_content:
+            in_stock = False
+
         # Analyze content
         result = {
             "status": 200,
@@ -150,12 +237,15 @@ async def validate_url_with_playwright_mcp(url: str) -> Tuple[bool, str, str]:
             "url": url,
             "content_length": len(html_content),
             "title_found": '<title>' in html_content or '<h1>' in html_content,
-            "has_price_info": any(keyword in html_content.lower() for keyword in ['price', '价格', '¥', '元', 'tb-price']),
-            "content_preview": html_content  # Full content for validation
+            "content_preview": html_content,
+            "extracted_price": float(extracted_price) if extracted_price is not None else None,
+            "extracted_title": extracted_title if extracted_title is not None else None,
+            "can_deliver": can_deliver,
+            "in_stock": in_stock
         }
         
         print(f"    ✅ Playwright MCP successfully retrieved content, length: {len(html_content)}")
-        return True, "", json.dumps(result, ensure_ascii=False, indent=2)
+        return True, "", result
 
 def check_product_requirements(product: Dict, requirements: Dict) -> Tuple[bool, List[str]]:
     """Check if product meets user requirements"""
@@ -167,7 +257,7 @@ def check_product_requirements(product: Dict, requirements: Dict) -> Tuple[bool,
             # Handle both string and numeric price values
             price_str = str(product['price']).replace(',', '')  # Remove commas
             price = float(price_str)
-            min_budget = requirements.get('min_budget', 200)
+            min_budget = requirements.get('min_budget', 0)
             max_budget = requirements.get('max_budget', 400)
             
             if price < min_budget or price > max_budget:
@@ -176,27 +266,7 @@ def check_product_requirements(product: Dict, requirements: Dict) -> Tuple[bool,
             issues.append("Invalid price format")
     else:
         issues.append("Missing price information")
-    
-    # Check if title contains relevant keywords
-    if 'title' in product and product['title']:
-        title = str(product['title']).lower()
-        required_keywords = requirements.get('keywords', ['沙发'])
-        color_keywords = requirements.get('colors', ['黑色', '黑'])
-        material_keywords = requirements.get('materials', ['真皮', '牛皮', '皮革'])
-        
-        has_product_keyword = any(keyword in title for keyword in required_keywords)
-        if not has_product_keyword:
-            issues.append(f"Title does not contain product keywords: {required_keywords}")
-            
-        has_color_keyword = any(color in title for color in color_keywords)
-        if not has_color_keyword:
-            issues.append(f"Title does not contain color keywords: {color_keywords}")
-            
-        has_material_keyword = any(material in title for material in material_keywords)
-        if not has_material_keyword:
-            issues.append(f"Title does not contain material keywords: {material_keywords}")
-    else:
-        issues.append("Missing title information")
+
     
     return len(issues) == 0, issues
 
@@ -233,17 +303,17 @@ async def check_local(agent_workspace: str, groundtruth_workspace: str, res_log:
     # Original user wanted 1500-2500 yuan, but agent found USD prices on Amazon
     # This is actually correct behavior - agent found valid products and noted currency difference
     user_requirements = {
-        'min_budget': 200,   # Adjusted to USD range for Amazon products
+        'min_budget': 0,   # Adjusted to USD range for Amazon products
         'max_budget': 400,   # More realistic range for the sofa prices found
-        'keywords': ['沙发', 'sofa', 'couch'],  # Include English keywords for Amazon
-        'colors': ['黑色', '黑', 'black'],
-        'materials': ['真皮', '牛皮', '皮革', 'leather', 'faux leather', 'pu leather']  # Include faux leather
     }
     
     valid_products = 0
     total_issues = []
     
     for i, product in enumerate(products, 1):
+        # if i>1:
+        #     print("DEBUG!!!!!!!!!!!!!!!")
+        #     break
         print(f"\n🔍 Validating product {i}:")
         
         # Check required fields
@@ -253,7 +323,13 @@ async def check_local(agent_workspace: str, groundtruth_workspace: str, res_log:
             continue
             
         url = product['canonical_url']
-        print(f"  📍 URL: {url}")
+        # print(f"  📍 URL: {url}")
+        # if the link is not a valid url, skip the validation
+        # use urllib.parse.urlparse to check if the link is a valid url
+        if not urllib.parse.urlparse(url).scheme:
+            print(f"  ❌ Product {i}: Invalid URL")
+            total_issues.append(f"Product {i}: Invalid URL")
+            continue
         
         # Validate URL accessibility (using Playwright MCP)
         print(f"  🌐 Validating URL accessibility...")
@@ -265,6 +341,15 @@ async def check_local(agent_workspace: str, groundtruth_workspace: str, res_log:
             # Continue checking other aspects, don't skip directly
         else:
             print(f"  ✅ Product {i}: URL accessible")
+        
+        if response_detail['can_deliver'] == False:
+            print(f"  ❌ Product {i}: Can not deliver to the current delivery location")
+            total_issues.append(f"Product {i}: Can not deliver to the current delivery location")
+            continue
+        if response_detail['in_stock'] == False:
+            print(f"  ❌ Product {i}: Currently unavailable, not in stock")
+            total_issues.append(f"Product {i}: Currently unavailable, not in stock")
+            continue
         
         # Check if product meets requirements
         requirements_met, requirement_issues = check_product_requirements(product, user_requirements)
@@ -295,21 +380,72 @@ async def check_local(agent_workspace: str, groundtruth_workspace: str, res_log:
         content_issues = []
         if is_url_valid and response_detail:
             try:
-                response_data = json.loads(response_detail)
-                html_content = response_data.get('content_preview', '')
+                response_data = response_detail
                 
-                # Strict validation: extracted values must appear in the complete page content
-                for field_name in ['title', 'price']:
-                    if field_name in product and product[field_name]:
-                        value = str(product[field_name])
-                        
-                        if value:
-                            # Critical validation: check if value appears in the complete page content
-                            if value in html_content:
-                                print(f"    🎯 Found {field_name} value '{value}' in complete page content!")
+                    
+                html_content = response_data.get('content_preview', '')
+                extracted_price = response_data.get('extracted_price')
+                extracted_title = response_data.get('extracted_title')
+
+                # with open('response_detail.txt', 'w', encoding='utf-8') as f:
+                    # f.write(html_content)
+
+                # Validate price using DOM-extracted value
+                # not be undefined and not be empty after removing white space and punctuation
+                if extracted_price is not None:
+                    if 'price' in product and product['price']:
+                        product_price = float(product['price'])
+                        if extracted_price:
+                            # we allow 1% difference
+                            if abs(product_price - extracted_price) / product_price > 0.01:
+                                content_issues.append(f"price value '{product_price}' not matched with DOM price '{extracted_price}'")
+                                print(f"    ❌ Price '{product_price}' NOT matched with DOM price '{extracted_price}'")
+                        else:
+                            content_issues.append("Could not extract price from DOM")
+                            print(f"    ❌ Could not extract price from DOM")
+                else:
+                    print(f"    🔍 Could not extract price from DOM so we check in html content")
+                    # find in html content
+                    if product['price'] in html_content:
+                        print(f"    🎯 Found price '{product['price']}' in HTML content")
+                    else:
+                        content_issues.append(f"price value '{product['price']}' not found in DOM price")
+                        print(f"    ❌ Price '{product['price']}' NOT found in HTML content")
+
+                # Validate title using DOM-extracted value
+                if extracted_title is not None:
+                    if 'title' in product and product['title']:
+                        product_title = str(product['title'])
+                        if extracted_title:
+                            if product_title in extracted_title:
+                                print(f"    🎯 Found title '{product_title}' in DOM-extracted title")
                             else:
-                                content_issues.append(f"{field_name} value '{value}' not found in complete page content")
-                                print(f"    ❌ {field_name} value '{value}' NOT found in complete page content")
+                                content_issues.append(f"title value '{product_title}' not found in DOM title '{extracted_title}'")
+                                print(f"    ❌ Title '{product_title}' NOT found in DOM title")
+                        else:
+                            content_issues.append("Could not extract title from DOM")
+                            print(f"    ❌ Could not extract title from DOM")
+                else:
+                    print(f"    🔍 Could not extract title from DOM so we check in html content")
+                    if product['title'] in html_content:
+                        print(f"    🎯 Found title '{product['title']}' in HTML content")
+                    else:
+                        content_issues.append(f"title value '{product['title']}' not found in DOM title")
+                        print(f"    ❌ Title '{product['title']}' NOT found in HTML content")
+                
+            
+
+                # the user requirement should also appear in the complete page content
+                for keywords in [['sofa', 'couch'], ['black'], ['faux leather', 'pu leather', 'vegan leather']]:
+                    found = False
+                    for keyword in keywords:
+                        if keyword in html_content.lower(): 
+                            print(f"    🎯 Found keyword: {keyword} in complete page content!")
+                            found = True
+                            break
+                    if not found:
+                        content_issues.append(f"{'/'.join(keywords)} not found in complete page content")
+                        print(f"    ❌ All candidate keywords: {'/'.join(keywords)} NOT found in complete page content")
                                 
             except (json.JSONDecodeError, KeyError):
                 content_issues.append("Could not analyze URL content for validation")
@@ -340,7 +476,7 @@ async def check_local(agent_workspace: str, groundtruth_workspace: str, res_log:
     
     if total_issues:
         print(f"\n⚠️ Issues found:")
-        for issue in total_issues[:10]:  # 只显示前10个问题
+        for issue in total_issues[:10]:
             print(f"  • {issue}")
         if len(total_issues) > 10:
             print(f"  • ... and {len(total_issues) - 10} more issues")

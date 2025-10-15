@@ -5,12 +5,12 @@ import json
 from .check_local import check_local
 
 def read_json(file_path: str) -> dict:
-    """读取JSON文件"""
+    """Load JSON file"""
     with open(file_path, 'r', encoding='utf-8') as f:
         return json.load(f)
 
 async def run_evaluation(agent_workspace: str, groundtruth_workspace: str, res_log_file: str):
-    """运行异步评估"""
+    """Run asynchronous evaluation"""
     res_log = read_json(res_log_file)
     
     # check local
