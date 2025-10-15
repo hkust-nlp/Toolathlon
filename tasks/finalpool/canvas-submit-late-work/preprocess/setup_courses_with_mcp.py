@@ -72,7 +72,7 @@ class CanvasCourseSetup:
             with open(script_dir / 'files' / 'canvas_users.json', 'r') as f:
                 self.users_data = json.load(f)
                 
-            logger.info("Cinema Culture Appreciation course data loaded successfully")
+            print("Cinema Culture Appreciation course data loaded successfully")
             return True
         except Exception as e:
             logger.error(f"Failed to load data: {e}")
@@ -86,7 +86,7 @@ class CanvasCourseSetup:
                 async with session.get(url, headers=self.headers) as response:
                     if response.status == 200:
                         user_data = await response.json()
-                        logger.info(f"Successfully retrieved user profile: {user_data.get('name', 'Unknown')}")
+                        print(f"Successfully retrieved user profile: {user_data.get('name', 'Unknown')}")
                         return user_data
                     else:
                         logger.error(f"Failed to get user profile: {response.status} - {await response.text()}")
@@ -112,10 +112,10 @@ class CanvasCourseSetup:
                                 course.get("course_code") == course_code):
                                 course_id = str(course.get("id"))
                                 workflow_state = course.get("workflow_state", "unknown")
-                                logger.info(f"Course already exists: {course_name} (ID: {course_id}, State: {workflow_state})")
+                                print(f"Course already exists: {course_name} (ID: {course_id}, State: {workflow_state})")
                                 return course_id
                         
-                        logger.info(f"Course not found: {course_name}")
+                        print(f"Course not found: {course_name}")
                         return None
                     else:
                         error_text = await response.text()
@@ -135,7 +135,7 @@ class CanvasCourseSetup:
             )
             
             if existing_course_id:
-                logger.info(f"Using existing course: {course_info['name']} (ID: {existing_course_id})")
+                print(f"Using existing course: {course_info['name']} (ID: {existing_course_id})")
                 return existing_course_id
             
             # Create new course if it doesn't exist
@@ -156,7 +156,7 @@ class CanvasCourseSetup:
                     if 200 == response.status:
                         course_data = await response.json()
                         course_id = course_data.get("id")
-                        logger.info(f"Created new course: {course_info['name']} (ID: {course_id})")
+                        print(f"Created new course: {course_info['name']} (ID: {course_id})")
                         return str(course_id)
                     else:
                         error_text = await response.text()
@@ -196,7 +196,7 @@ class CanvasCourseSetup:
                     if 200 <= response.status < 300:
                         question_response = await response.json()
                         question_id = question_response.get("id")
-                        logger.info(f"Created question: '{question_data['question_text'][:50]}...' (ID: {question_id}) in quiz {quiz_id}")
+                        print(f"Created question: '{question_data['question_text'][:50]}...' (ID: {question_id}) in quiz {quiz_id}")
                         return True
                     else:
                         error_text = await response.text()
@@ -235,11 +235,11 @@ class CanvasCourseSetup:
                     if 200 == response.status:
                         quiz_response = await response.json()
                         quiz_id = quiz_response.get("id")
-                        logger.info(f"Created quiz: {quiz_info['title']} (ID: {quiz_id}) in course {course_id}")
+                        print(f"Created quiz: {quiz_info['title']} (ID: {quiz_id}) in course {course_id}")
                         
                         # Create quiz questions if provided
                         if "questions" in quiz_info and quiz_info["questions"]:
-                            logger.info(f"Creating {len(quiz_info['questions'])} questions for quiz: {quiz_info['title']}")
+                            print(f"Creating {len(quiz_info['questions'])} questions for quiz: {quiz_info['title']}")
                             questions_created = 0
                             for question_data in quiz_info["questions"]:
                                 if await self.create_quiz_question(course_id, str(quiz_id), question_data):
@@ -247,11 +247,11 @@ class CanvasCourseSetup:
                                 else:
                                     logger.warning(f"Failed to create question: {question_data.get('question_text', 'Unknown')[:50]}...")
                             
-                            logger.info(f"Created {questions_created}/{len(quiz_info['questions'])} questions for quiz: {quiz_info['title']}")
+                            print(f"Created {questions_created}/{len(quiz_info['questions'])} questions for quiz: {quiz_info['title']}")
                         
                         # Publish the quiz
                         if await self.publish_quiz(course_id, quiz_id, quiz_info["title"]):
-                            logger.info(f"Published quiz: {quiz_info['title']} (ID: {quiz_id})")
+                            print(f"Published quiz: {quiz_info['title']} (ID: {quiz_id})")
                         else:
                             logger.warning(f"Failed to publish quiz: {quiz_info['title']} (ID: {quiz_id})")
                         
@@ -277,7 +277,7 @@ class CanvasCourseSetup:
                 
                 async with session.put(url, headers=self.headers, json=publish_data) as response:
                     if 200 <= response.status < 300:
-                        logger.info(f"Published quiz: {quiz_title} (ID: {quiz_id}) in course {course_id}")
+                        print(f"Published quiz: {quiz_title} (ID: {quiz_id}) in course {course_id}")
                         return True
                     else:
                         error_text = await response.text()
@@ -337,7 +337,7 @@ class CanvasCourseSetup:
                 
                 async with session.delete(url, headers=self.headers) as response:
                     if 200 <= response.status < 300:
-                        logger.info(f"Deleted quiz: {quiz_title} (ID: {quiz_id}) from course {course_id}")
+                        print(f"Deleted quiz: {quiz_title} (ID: {quiz_id}) from course {course_id}")
                         return True
                     else:
                         error_text = await response.text()
@@ -358,10 +358,10 @@ class CanvasCourseSetup:
                         quizzes = await response.json()
                         
                         if not quizzes:
-                            logger.info(f"No quizzes found in course: {course_name}")
+                            print(f"No quizzes found in course: {course_name}")
                             return True
                         
-                        logger.info(f"Found {len(quizzes)} quizzes to delete in course: {course_name}")
+                        print(f"Found {len(quizzes)} quizzes to delete in course: {course_name}")
                         
                         # Delete each quiz
                         success_count = 0
@@ -372,7 +372,7 @@ class CanvasCourseSetup:
                             if await self.delete_quiz(course_id, quiz_id, quiz_title):
                                 success_count += 1
                         
-                        logger.info(f"Deleted {success_count}/{len(quizzes)} quizzes from course: {course_name}")
+                        print(f"Deleted {success_count}/{len(quizzes)} quizzes from course: {course_name}")
                         return success_count == len(quizzes)
                     else:
                         error_text = await response.text()
@@ -395,10 +395,10 @@ class CanvasCourseSetup:
                         # Check for exact title match
                         for quiz in quizzes:
                             if quiz.get("title") == quiz_title:
-                                logger.info(f"Quiz already exists: {quiz_title} (ID: {quiz.get('id')}) in course {course_id}")
+                                print(f"Quiz already exists: {quiz_title} (ID: {quiz.get('id')}) in course {course_id}")
                                 return True
                         
-                        logger.info(f"Quiz not found: {quiz_title} in course {course_id}")
+                        print(f"Quiz not found: {quiz_title} in course {course_id}")
                         return False
                     else:
                         error_text = await response.text()
@@ -422,7 +422,7 @@ class CanvasCourseSetup:
                 
                 async with session.post(url, headers=self.headers, json=announcement_data) as response:
                     if 200 == response.status:
-                        logger.info(f"Created announcement: {announcement['title']}")
+                        print(f"Created announcement: {announcement['title']}")
                         return True
                     else:
                         error_text = await response.text()
@@ -447,7 +447,7 @@ class CanvasCourseSetup:
 
                 matched = [t for t in topics if t.get("title") == title]
                 if not matched:
-                    logger.info(f"No existing announcements to delete with title '{title}' in course {course_id}")
+                    print(f"No existing announcements to delete with title '{title}' in course {course_id}")
                     return True
 
                 success = 0
@@ -461,7 +461,7 @@ class CanvasCourseSetup:
                             err = await del_resp.text()
                             logger.error(f"Failed to delete announcement {topic_id}: {del_resp.status} - {err}")
 
-                logger.info(f"Deleted {success}/{len(matched)} announcements with title '{title}' in course {course_id}")
+                print(f"Deleted {success}/{len(matched)} announcements with title '{title}' in course {course_id}")
                 return success == len(matched)
         except Exception as e:
             logger.error(f"Error deleting announcements by title '{title}' in course {course_id}: {e}")
@@ -481,7 +481,7 @@ class CanvasCourseSetup:
                         # Find exact email match
                         for user in users:
                             if user.get("login_id") == email or user.get("email") == email:
-                                logger.info(f"Found user: {user.get('name', 'Unknown')} (ID: {user.get('id')}) for email: {email}")
+                                print(f"Found user: {user.get('name', 'Unknown')} (ID: {user.get('id')}) for email: {email}")
                                 return user
                         
                         logger.warning(f"No user found with email: {email}")
@@ -520,7 +520,7 @@ class CanvasCourseSetup:
                 
                 async with session.post(url, headers=self.headers, json=enrollment_data) as response:
                     if 200 == response.status:
-                        logger.info(f"Enrolled {user_email} (ID: {user_id}) in course {course_id}")
+                        print(f"Enrolled {user_email} (ID: {user_id}) in course {course_id}")
                         return True
                     else:
                         error_text = await response.text()
@@ -556,7 +556,7 @@ class CanvasCourseSetup:
                 
                 async with session.post(url, headers=self.headers, json=enrollment_data) as response:
                     if 200 == response.status:
-                        logger.info(f"Enrolled teacher {teacher_email} (ID: {teacher_id}) in course {course_id}")
+                        print(f"Enrolled teacher {teacher_email} (ID: {teacher_id}) in course {course_id}")
                         return True
                     else:
                         error_text = await response.text()
@@ -579,7 +579,7 @@ class CanvasCourseSetup:
                 
                 async with session.put(url, headers=self.headers, json=publish_data) as response:
                     if 200 <= response.status < 300:
-                        logger.info(f"Published course: {course_name} (ID: {course_id})")
+                        print(f"Published course: {course_name} (ID: {course_id})")
                         return True
                     else:
                         error_text = await response.text()
@@ -598,7 +598,7 @@ class CanvasCourseSetup:
                     if 200 <= response.status < 300:
                         course_data = await response.json()
                         workflow_state = course_data.get("workflow_state", "unknown")
-                        logger.info(f"Course {course_id} status: {workflow_state}")
+                        print(f"Course {course_id} status: {workflow_state}")
                         return workflow_state
                     else:
                         logger.error(f"Failed to get course status for {course_id}: {response.status}")
@@ -610,12 +610,12 @@ class CanvasCourseSetup:
     async def publish_all_courses(self) -> bool:
         """Publish all unpublished courses in the system"""
         try:
-            logger.info("Starting to publish all unpublished courses...")
+            print("Starting to publish all unpublished courses...")
             
             # Get all courses
             courses = await self.get_all_courses()
             if not courses:
-                logger.info("No courses found to publish")
+                print("No courses found to publish")
                 return True
             
             # Filter unpublished courses
@@ -632,10 +632,10 @@ class CanvasCourseSetup:
                     })
             
             if not unpublished_courses:
-                logger.info("All courses are already published")
+                print("All courses are already published")
                 return True
             
-            logger.info(f"Found {len(unpublished_courses)} unpublished courses to publish")
+            print(f"Found {len(unpublished_courses)} unpublished courses to publish")
             
             # Publish each unpublished course
             success_count = 0
@@ -669,7 +669,7 @@ class CanvasCourseSetup:
     async def setup_course(self, course_info: Dict[str, Any], create_announcements: bool = False) -> bool:
         """Set up a complete course with quizzes and enrollments"""
         try:
-            logger.info(f"Setting up course: {course_info['name']}")
+            print(f"Setting up course: {course_info['name']}")
             
             # 1. Create course or get existing course
             course_id = await self.create_course(course_info)
@@ -684,12 +684,12 @@ class CanvasCourseSetup:
             is_existing_course = existing_course_id == course_id
             
             if is_existing_course:
-                logger.info(f"Setting up existing course: {course_info['name']} (ID: {course_id})")
+                print(f"Setting up existing course: {course_info['name']} (ID: {course_id})")
                 # For existing courses, delete all existing quizzes first
-                logger.info(f"Deleting existing quizzes in course: {course_info['name']}")
+                print(f"Deleting existing quizzes in course: {course_info['name']}")
                 await self.delete_all_quizzes_in_course(course_id, course_info['name'])
             else:
-                logger.info(f"Setting up new course: {course_info['name']} (ID: {course_id})")
+                print(f"Setting up new course: {course_info['name']} (ID: {course_id})")
             
             # 2. Enroll teacher (if specified)
             teacher_enrolled = False
@@ -698,7 +698,7 @@ class CanvasCourseSetup:
                 if not teacher_enrolled:
                     logger.warning(f"Failed to enroll teacher for {course_info['name']}")
                 else:
-                    logger.info(f"Successfully enrolled teacher {course_info['teacher']} in {course_info['name']}")
+                    print(f"Successfully enrolled teacher {course_info['teacher']} in {course_info['name']}")
             
             # 3. Create announcement (only if requested and for new courses)
             if create_announcements and not is_existing_course:
@@ -706,9 +706,9 @@ class CanvasCourseSetup:
                 if not announcement_created:
                     logger.warning(f"Failed to create announcement for {course_info['name']}")
                 else:
-                    logger.info(f"Successfully created announcement for {course_info['name']}")
+                    print(f"Successfully created announcement for {course_info['name']}")
             else:
-                logger.info(f"Skipping announcement creation for course: {course_info['name']}")
+                print(f"Skipping announcement creation for course: {course_info['name']}")
             
             # 4. Create quiz (if specified)
             quiz_created = False
@@ -718,9 +718,9 @@ class CanvasCourseSetup:
                 if not quiz_created:
                     logger.warning(f"Failed to create quiz for {course_info['name']}")
                 else:
-                    logger.info(f"Successfully created quiz for {course_info['name']}")
+                    print(f"Successfully created quiz for {course_info['name']}")
             else:
-                logger.info(f"No quiz configuration found for {course_info['name']}")
+                print(f"No quiz configuration found for {course_info['name']}")
             
             # 5. Enroll students
             students_to_enroll = course_info["students"].copy()
@@ -730,7 +730,7 @@ class CanvasCourseSetup:
                 for excluded_email in course_info["exclude_students"]:
                     if excluded_email in students_to_enroll:
                         students_to_enroll.remove(excluded_email)
-                        logger.info(f"Excluded {excluded_email} from {course_info['name']}")
+                        print(f"Excluded {excluded_email} from {course_info['name']}")
             
             # Enroll each student
             enrollment_success = 0
@@ -738,7 +738,7 @@ class CanvasCourseSetup:
                 if await self.enroll_student(course_id, student_email):
                     enrollment_success += 1
             
-            logger.info(f"Successfully enrolled {enrollment_success}/{len(students_to_enroll)} students in {course_info['name']}")
+            print(f"Successfully enrolled {enrollment_success}/{len(students_to_enroll)} students in {course_info['name']}")
             
             # 6. Publish course (only for new courses)
             if not is_existing_course:
@@ -746,9 +746,9 @@ class CanvasCourseSetup:
                 if not course_published:
                     logger.warning(f"Failed to publish course {course_info['name']}")
                 else:
-                    logger.info(f"Successfully published course {course_info['name']}")
+                    print(f"Successfully published course {course_info['name']}")
             else:
-                logger.info(f"Skipping course publication for existing course: {course_info['name']}")
+                print(f"Skipping course publication for existing course: {course_info['name']}")
             
             return True
             
@@ -759,17 +759,17 @@ class CanvasCourseSetup:
     async def run_setup(self):
         """Run the complete Cinema Culture Appreciation course setup process"""
         try:
-            logger.info("Starting Canvas Cinema Culture Appreciation course setup...")
+            print("Starting Canvas Cinema Culture Appreciation course setup...")
             
             # Load data
             if not self.load_data():
                 return False
             
             # Get current user profile to verify authentication
-            logger.info("Getting current user profile...")
+            print("Getting current user profile...")
             user_profile = await self.get_current_user_profile()
             if user_profile:
-                logger.info(f"Authenticated as: {user_profile.get('name', 'Unknown user')} ({user_profile.get('email', 'No email')})")
+                print(f"Authenticated as: {user_profile.get('name', 'Unknown user')} ({user_profile.get('email', 'No email')})")
             else:
                 logger.warning("Could not retrieve user profile, but continuing with course setup...")
             
@@ -815,7 +815,7 @@ class CanvasCourseSetup:
                 async with session.get(url, headers=self.headers) as response:
                     if 200 == response.status:
                         courses = await response.json()
-                        logger.info(f"Retrieved {len(courses)} courses from Canvas")
+                        print(f"Retrieved {len(courses)} courses from Canvas")
                         return courses
                     else:
                         error_text = await response.text()
@@ -835,7 +835,7 @@ class CanvasCourseSetup:
                 
                 async with session.put(conclude_url, headers=self.headers, json=conclude_data) as response:
                     if 200 == response.status:
-                        logger.info(f"Concluded course: {course_name} (ID: {course_id})")
+                        print(f"Concluded course: {course_name} (ID: {course_id})")
                     else:
                         logger.warning(f"Failed to conclude course {course_name}: {response.status}")
                 
@@ -847,7 +847,7 @@ class CanvasCourseSetup:
                 params = {"event": "delete"}
                 async with session.delete(delete_url, headers=self.headers, params=params) as del_resp:
                     if 200 <= del_resp.status < 300:
-                        logger.info(f"Deleted course via DELETE: {course_name} (ID: {course_id})")
+                        print(f"Deleted course via DELETE: {course_name} (ID: {course_id})")
                     else:
                         err = await del_resp.text()
                         logger.warning(f"DELETE event=delete failed for course {course_name}: {del_resp.status} - {err}")
@@ -856,7 +856,7 @@ class CanvasCourseSetup:
                         put_delete_data = {"event": "delete"}
                         async with session.put(delete_url, headers=self.headers, json=put_delete_data) as put_del:
                             if 200 <= put_del.status < 300:
-                                logger.info(f"Deleted course via PUT event=delete: {course_name} (ID: {course_id})")
+                                print(f"Deleted course via PUT event=delete: {course_name} (ID: {course_id})")
                             else:
                                 put_err = await put_del.text()
                                 logger.warning(f"PUT event=delete failed for course {course_name}: {put_del.status} - {put_err}")
@@ -878,12 +878,12 @@ class CanvasCourseSetup:
                         logger.warning(f"Failed to list courses for verification: {list_resp.status}")
                 
                 if still_present:
-                    logger.info(f"Course still present after delete; marking workflow_state=deleted: {course_name} (ID: {course_id})")
+                    print(f"Course still present after delete; marking workflow_state=deleted: {course_name} (ID: {course_id})")
                     deactivate_url = f"{self.base_url}/api/v1/courses/{course_id}"
                     deactivate_data = {"course": {"workflow_state": "deleted"}}
                     async with session.put(deactivate_url, headers=self.headers, json=deactivate_data) as response:
                         if 200 <= response.status < 300:
-                            logger.info(f"Deactivated course: {course_name} (ID: {course_id})")
+                            print(f"Deactivated course: {course_name} (ID: {course_id})")
                             return True
                         else:
                             deactivate_error = await response.text()
@@ -898,12 +898,12 @@ class CanvasCourseSetup:
     async def delete_all_courses(self) -> bool:
         """Delete all courses from Canvas"""
         try:
-            logger.info("Starting deletion of all courses...")
+            print("Starting deletion of all courses...")
             
             # Get all courses
             courses = await self.get_all_courses()
             if not courses:
-                logger.info("No courses found to delete")
+                print("No courses found to delete")
                 return True
             
             # Filter out system courses (usually have specific IDs or names)
@@ -914,7 +914,7 @@ class CanvasCourseSetup:
                 
                 # Skip system courses (you can customize this filter)
                 # if course_id in ["1", "2", "3"] or "System" in course_name:
-                #     logger.info(f"Skipping system course: {course_name} (ID: {course_id})")
+                #     print(f"Skipping system course: {course_name} (ID: {course_id})")
                 #     continue
                 
                 courses_to_delete.append({
@@ -923,10 +923,10 @@ class CanvasCourseSetup:
                 })
             
             if not courses_to_delete:
-                logger.info("No user-created courses found to delete")
+                print("No user-created courses found to delete")
                 return True
             
-            logger.info(f"Found {len(courses_to_delete)} courses to delete")
+            print(f"Found {len(courses_to_delete)} courses to delete")
             
             # Delete each course
             success_count = 0
@@ -982,7 +982,7 @@ class CanvasCourseSetup:
                     if response.status == 200:
                         quiz_response = await response.json()
                         quiz_id = str(quiz_response.get("id"))
-                        logger.info(f"Created assignment quiz: {assignment_info['title']} (ID: {quiz_id})")
+                        print(f"Created assignment quiz: {assignment_info['title']} (ID: {quiz_id})")
                         
                         # Create questions for the quiz
                         for question_data in assignment_info["questions"]:
@@ -1046,7 +1046,7 @@ class CanvasCourseSetup:
                                 submit_url = f"{self.base_url}/api/v1/courses/{course_id}/quizzes/{quiz_id}/submissions/{submission_id}"
                                 async with session.put(submit_url, headers=self.headers, json=answer_data) as final_response:
                                     if final_response.status == 200:
-                                        logger.info(f"Simulated quiz attempt for {student_email} on quiz {quiz_id}")
+                                        print(f"Simulated quiz attempt for {student_email} on quiz {quiz_id}")
                                         return True
                                     else:
                                         logger.error(f"Failed to submit quiz for {student_email}: {final_response.status}")
@@ -1083,7 +1083,7 @@ class CanvasCourseSetup:
                     if 200 <= response.status < 300:
                         data = await response.json()
                         assignment_id = str(data.get("id"))
-                        logger.info(f"Created assignment: {assignment_cfg.get('name')} (ID: {assignment_id}) in course {course_id}")
+                        print(f"Created assignment: {assignment_cfg.get('name')} (ID: {assignment_id}) in course {course_id}")
                         return assignment_id
                     else:
                         error_text = await response.text()
@@ -1100,7 +1100,7 @@ class CanvasCourseSetup:
                 url = f"{self.base_url}/api/v1/courses/{course_id}/assignments/{assignment_id}"
                 async with session.delete(url, headers=self.headers) as response:
                     if 200 <= response.status < 300:
-                        logger.info(f"Deleted assignment: {name} (ID: {assignment_id}) in course {course_id}")
+                        print(f"Deleted assignment: {name} (ID: {assignment_id}) in course {course_id}")
                         return True
                     else:
                         error_text = await response.text()
@@ -1123,7 +1123,7 @@ class CanvasCourseSetup:
                     assignments = await response.json()
 
                 if not assignments:
-                    logger.info(f"No assignments found in course: {course_name}")
+                    print(f"No assignments found in course: {course_name}")
                     return True
 
                 success = 0
@@ -1133,7 +1133,7 @@ class CanvasCourseSetup:
                     if await self.delete_assignment(course_id, assignment_id, name):
                         success += 1
 
-                logger.info(f"Deleted {success}/{len(assignments)} assignments from course: {course_name}")
+                print(f"Deleted {success}/{len(assignments)} assignments from course: {course_name}")
                 return success == len(assignments)
         except Exception as e:
             logger.error(f"Error deleting assignments from course {course_name}: {e}")
@@ -1142,7 +1142,7 @@ class CanvasCourseSetup:
     async def setup_cinema_culture_course(self, course_info: Dict[str, Any]) -> bool:
         """Set up Cinema Culture Appreciation course with assignments and student simulations"""
         try:
-            logger.info(f"Setting up Cinema Culture course: {course_info['name']}")
+            print(f"Setting up Cinema Culture course: {course_info['name']}")
             
             # 1. Create course
             course_id = await self.create_course(course_info)
@@ -1172,13 +1172,13 @@ class CanvasCourseSetup:
                     assignment_id = await self.create_assignment(course_id, assignment_cfg)
                     if assignment_id:
                         created_assignments += 1
-                logger.info(f"Created {created_assignments}/{len(course_info['assignments'])} assignments for course {course_info['name']}")
+                print(f"Created {created_assignments}/{len(course_info['assignments'])} assignments for course {course_info['name']}")
             
             # 6b. Create single assignment under key `assignment` if present
             if "assignment" in course_info and isinstance(course_info["assignment"], dict):
                 assignment_id = await self.create_assignment(course_id, course_info["assignment"])
                 if assignment_id:
-                    logger.info(f"Created single assignment for course {course_info['name']}")
+                    print(f"Created single assignment for course {course_info['name']}")
                 else:
                     logger.warning(f"Failed to create single assignment for course {course_info['name']}")
             
@@ -1191,7 +1191,7 @@ class CanvasCourseSetup:
             # 8. Publish course
             await self.publish_course(course_id, course_info["name"])
             
-            logger.info(f"Successfully set up Cinema Culture course: {course_info['name']}")
+            print(f"Successfully set up Cinema Culture course: {course_info['name']}")
             return True
             
         except Exception as e:

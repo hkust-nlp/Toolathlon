@@ -331,6 +331,8 @@ async def check_film101_assignments(base_url: str, api_token: str, groundtruth_w
         if not found_required_email:
             imap_conn.logout()
             return False, 'Required email with attachment Leave Application.pdf not found; evaluation aborted'
+        else:
+            print("Required email with attachment Leave Application.pdf found")
         imap_conn.logout()
     except Exception as e:
         print(f"⚠️ Email check skipped due to error: {e}")
