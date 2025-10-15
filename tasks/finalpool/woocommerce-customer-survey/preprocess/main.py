@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 WooCommerce Customer Survey Task - Preprocess Setup
-设置初始工作环境：创建七天内和七天前的订单数据，以及邮件模板
+Set up initial work environment: generate order data for recent and earlier periods, as well as email templates
 """
 import os
 import sys
@@ -16,12 +16,12 @@ from datetime import datetime, timedelta
 import random
 from typing import Dict
 
-# 添加项目路径
+# Add project path
 current_dir = Path(__file__).parent
 task_dir = current_dir.parent
 sys.path.insert(0, str(task_dir))
 
-# 导入 WooCommerce 通用模块
+# Import WooCommerce common modules
 import sys
 from pathlib import Path
 project_root = Path(__file__).parent.parent.parent.parent
@@ -32,25 +32,25 @@ from utils.app_specific.woocommerce import (
     create_customer_survey_orders
 )
 
-# 导入 Google Drive helper
+# Import Google Drive helper
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from utils.app_specific.google_form.ops import clear_google_forms
 
 def clear_mailbox() -> Dict:
     """
-    清空邮箱 - 删除 Sent 和 Inbox 文件夹中的所有邮件
+    Clear the mailbox - delete all emails in the Sent and Inbox folders
     
     Returns:
-        清理结果字典
+        Dictionary of cleanup results
     """
-    print("📧 开始清空邮箱...")
-    
+    print("📧 Starting mailbox cleanup...")
+
     try:
-        # 导入配置
+        # Import configuration
         from token_key_session import all_token_key_session
-        
-        # 读取邮件配置文件
+
+        # Read mail config file
         try:
             with open(all_token_key_session.emails_config_file, 'r', encoding='utf-8') as f:
                 email_config = json.load(f)
@@ -59,175 +59,175 @@ def clear_mailbox() -> Dict:
             imap_server = email_config.get('imap_server', 'localhost')
             imap_port = email_config.get('imap_port', 1143)
         except Exception as e:
-            print(f"⚠️ 无法读取邮件配置文件，使用默认配置: {e}")
+            print(f"⚠️ Failed to read email config file, using default config: {e}")
             email_address = 'admin@mcp.com'
             email_password = 'admin_password'
             imap_server = 'localhost'
             imap_port = 1143
-        
-        # 连接 IMAP 服务器
+
+        # Connect to IMAP server
         mail = imaplib.IMAP4(imap_server, imap_port)
-        
-        # 登录
+
+        # Login
         mail.login(email_address, email_password)
-        
-        # 清空的文件夹列表
+
+        # Folders to clear
         folders_to_clear = ['INBOX', 'Sent']
         clear_results = {}
-        
+
         for folder in folders_to_clear:
-            print(f"🗂️ 清理文件夹: {folder}")
-            
+            print(f"🗂️ Cleaning folder: {folder}")
+
             try:
-                # 选择文件夹
+                # Select folder
                 status, _ = mail.select(folder)
                 if status != "OK":
-                    print(f"   ⚠️ 无法选择文件夹 {folder}")
+                    print(f"   ⚠️ Cannot select folder {folder}")
                     clear_results[folder] = {
                         "success": False,
-                        "error": f"无法选择文件夹 {folder}",
+                        "error": f"Cannot select folder {folder}",
                         "deleted_count": 0
                     }
                     continue
-                
-                # 搜索所有邮件
+
+                # Search all emails
                 status, messages = mail.search(None, "ALL")
                 if status != "OK":
-                    print(f"   ⚠️ 无法搜索文件夹 {folder} 中的邮件")
+                    print(f"   ⚠️ Cannot search emails in folder {folder}")
                     clear_results[folder] = {
                         "success": False,
-                        "error": f"无法搜索文件夹 {folder}",
+                        "error": f"Cannot search emails in folder {folder}",
                         "deleted_count": 0
                     }
                     continue
-                
+
                 email_ids = messages[0].split()
                 total_emails = len(email_ids)
-                
+
                 if total_emails == 0:
-                    print(f"   📭 文件夹 {folder} 已经为空")
+                    print(f"   📭 Folder {folder} is already empty")
                     clear_results[folder] = {
                         "success": True,
                         "deleted_count": 0,
-                        "message": "文件夹已为空"
+                        "message": "Folder already empty"
                     }
                     continue
-                
-                print(f"   📬 发现 {total_emails} 封邮件，开始删除...")
-                
-                # 标记所有邮件为删除
+
+                print(f"   📬 Found {total_emails} emails, deleting...")
+
+                # Mark all emails for deletion
                 deleted_count = 0
                 failed_count = 0
-                
+
                 for email_id in email_ids:
                     try:
-                        # 标记邮件为删除
+                        # Mark email as deleted
                         mail.store(email_id, '+FLAGS', '\\Deleted')
                         deleted_count += 1
                     except Exception as e:
-                        print(f"   ❌ 删除邮件 {email_id.decode()} 失败: {e}")
+                        print(f"   ❌ Failed to delete email {email_id.decode()}: {e}")
                         failed_count += 1
-                
-                # 执行删除
+
+                # Expunge (delete) marked emails
                 mail.expunge()
-                
-                print(f"   ✅ 文件夹 {folder}: 删除 {deleted_count} 封邮件，失败 {failed_count} 封")
-                
+
+                print(f"   ✅ Folder {folder}: deleted {deleted_count} emails, failed {failed_count}")
+
                 clear_results[folder] = {
                     "success": failed_count == 0,
                     "deleted_count": deleted_count,
                     "failed_count": failed_count,
                     "total_found": total_emails
                 }
-                
+
             except Exception as e:
-                print(f"   ❌ 清理文件夹 {folder} 时出错: {e}")
+                print(f"   ❌ Error cleaning folder {folder}: {e}")
                 clear_results[folder] = {
                     "success": False,
                     "error": str(e),
                     "deleted_count": 0
                 }
-        
-        # 关闭连接
+
+        # Close connection
         mail.logout()
-        
-        # 计算总结果
+
+        # Aggregate results
         total_deleted = sum(result.get('deleted_count', 0) for result in clear_results.values())
         all_success = all(result.get('success', False) for result in clear_results.values())
-        
+
         final_result = {
             "success": all_success,
             "total_deleted": total_deleted,
             "folders": clear_results,
             "timestamp": datetime.now().isoformat()
         }
-        
-        print(f"📊 邮箱清理完成:")
-        print(f"   总共删除: {total_deleted} 封邮件")
-        
+
+        print(f"📊 Mailbox cleanup completed:")
+        print(f"   Total deleted: {total_deleted} emails")
+
         if all_success:
-            print("✅ 邮箱清理成功！")
+            print("✅ Mailbox cleanup successful!")
         else:
-            print("⚠️ 邮箱清理部分完成，有部分文件夹清理失败")
-        
+            print("⚠️ Mailbox cleanup partially successful, some folders failed")
+
         return final_result
-        
+
     except Exception as e:
         error_result = {
             "success": False,
             "error": str(e),
             "timestamp": datetime.now().isoformat()
         }
-        print(f"❌ 邮箱清理过程中出错: {e}")
+        print(f"❌ Error during mailbox cleanup: {e}")
         return error_result
 
 
 
 class WooCommerceOrderManager:
-    """WooCommerce 订单管理器 - 使用通用客户端和工具"""
+    """WooCommerce Order Manager - using universal client & tools"""
 
     def __init__(self, site_url: str, consumer_key: str, consumer_secret: str):
         """
-        初始化 WooCommerce 订单管理器
+        Initialize WooCommerce Order Manager
 
         Args:
-            site_url: WooCommerce网站URL
-            consumer_key: WooCommerce API消费者密钥
-            consumer_secret: WooCommerce API消费者密钥
+            site_url: WooCommerce site URL
+            consumer_key: WooCommerce API consumer key
+            consumer_secret: WooCommerce API consumer secret
         """
         self.order_manager = OrderManager(site_url, consumer_key, consumer_secret)
         self.created_orders = []
-    
+
     def delete_existing_orders(self):
-        """删除现有的所有订单，确保创建订单前有干净的环境"""
-        print("🗑️ 删除现有订单...")
+        """Delete all existing orders to ensure a clean environment"""
+        print("🗑️ Deleting existing orders...")
 
         try:
-            # 使用通用订单管理器的批量删除功能
+            # Use the bulk delete function of the generic order manager
             result = self.order_manager.clear_all_orders(confirm=True)
 
             if result['success']:
                 deleted_count = result.get('deleted_count', 0)
-                print(f"✅ 成功删除 {deleted_count} 个现有订单")
+                print(f"✅ Successfully deleted {deleted_count} existing orders")
             else:
-                error_msg = result.get('error', '未知错误')
-                print(f"❌ 删除订单失败: {error_msg}")
+                error_msg = result.get('error', 'Unknown error')
+                print(f"❌ Failed to delete orders: {error_msg}")
 
         except Exception as e:
-            print(f"❌ 删除订单过程中出错: {e}")
-    
-    def upload_orders_to_woocommerce(self, orders_data):
-        """将订单数据上传到 WooCommerce"""
-        print("📤 开始上传订单到 WooCommerce...")
+            print(f"❌ Error deleting orders: {e}")
 
-        # 使用通用订单管理器的上传功能
+    def upload_orders_to_woocommerce(self, orders_data):
+        """Upload order data to WooCommerce"""
+        print("📤 Starting to upload orders to WooCommerce...")
+
+        # Use the generic order manager's upload functionality
         upload_result = self.order_manager.upload_orders(
             orders_data,
             virtual_product_id=1,
             batch_delay=0.8
         )
 
-        # 保持与原接口的兼容性
+        # Maintain compatibility with the original interface
         self.created_orders = upload_result.get('created_orders', [])
 
         successful_orders = upload_result.get('successful_orders', 0)
@@ -238,12 +238,12 @@ class WooCommerceOrderManager:
 
 def create_order_data():
     """
-    创建20个最近的订单（混合送达状态）：70%已完成，30%处理中
-    使用通用订单生成器
+    Create 20 recent orders (mixed delivery status): 70% completed, 30% processing.
+    Uses universal order generator function.
     """
-    print("📦 生成订单数据...")
+    print("📦 Generating order data...")
 
-    # 使用通用订单生成器
+    # Use generic order generator
     all_orders, completed_orders = create_customer_survey_orders()
 
     print(f"Created {len(all_orders)} orders")
@@ -254,116 +254,116 @@ def create_order_data():
 
 def setup_task_data():
     """
-    设置任务数据文件
+    Set up required task data files
     
     Args:
-        upload_to_woocommerce: 是否上传订单到 WooCommerce (默认True)
+        upload_to_woocommerce: Whether to upload orders to WooCommerce (default True)
     """
-    print("📝 设置任务数据文件...")
-    
-    # 生成订单数据
+    print("📝 Setting up task data files...")
+
+    # Generate order data
     orders = create_order_data()
-    
-    # 保存完整订单数据到本地 JSON 文件
+
+    # Save complete order data to local JSON file
     with open(current_dir / "completed_orders.json", 'w', encoding='utf-8') as f:
         json.dump(orders, f, ensure_ascii=False, indent=2)
     print(f"✅ Created complete order data: {len(orders)} orders")
-    
-    # 过滤出已完成的订单并保存到 groundtruth_workspace
+
+    # Filter completed orders and save to groundtruth_workspace
     completed_orders = [order for order in orders if order["status"] == "completed"]
     groundtruth_dir = current_dir.parent / "groundtruth_workspace"
     groundtruth_dir.mkdir(exist_ok=True)
-    
+
     expected_orders_file = groundtruth_dir / "expected_orders.json"
     with open(expected_orders_file, 'w', encoding='utf-8') as f:
         json.dump(completed_orders, f, ensure_ascii=False, indent=2)
     print(f"✅ Saved completed orders to groundtruth: {len(completed_orders)} orders")
-    
-    # 统计
+
+    # Aggregate status counts
     all_orders = orders
     completed_orders = [o for o in orders if o["status"] == "completed"]
     processing_orders = [o for o in orders if o["status"] == "processing"]
     onhold_orders = [o for o in orders if o["status"] == "on-hold"]
-    
-    # 详细统计各状态订单数
+
+    # Detailed statistics for each status
     status_summary = {}
     for order in orders:
         status = order["status"]
         status_summary[status] = status_summary.get(status, 0) + 1
-    
+
     print(f"   - Total orders: {len(all_orders)}")
     print(f"   - Completed orders: {len(completed_orders)} ({len(completed_orders)/len(all_orders)*100:.0f}%)")
     print(f"   - Processing orders: {len(processing_orders)}")
     print(f"   - Onhold orders: {len(onhold_orders)}")
-    
-    print(f"\n📈 订单状态详情:")
+
+    print(f"\n📈 Order status detail:")
     for status, count in sorted(status_summary.items()):
         print(f"   {status}: {count}")
-    
-    # 上传订单到 WooCommerce
+
+    # Upload orders to WooCommerce
     upload_success = False
 
     try:
-        # 导入配置
+        # Import configuration
         from token_key_session import all_token_key_session
-        
-        # 初始化 WooCommerce 订单管理器
+
+        # Initialize WooCommerce order manager
         order_manager = WooCommerceOrderManager(
             all_token_key_session.woocommerce_site_url,
             all_token_key_session.woocommerce_api_key,
             all_token_key_session.woocommerce_api_secret
         )
-        
-        # 删除现有订单
+
+        # Delete existing orders
         order_manager.delete_existing_orders()
-        
-        # 上传新订单
+
+        # Upload new orders
         successful_count, failed_count = order_manager.upload_orders_to_woocommerce(orders)
-        
+
         if failed_count == 0:
             upload_success = True
             print("✅ All orders successfully uploaded to WooCommerce")
         else:
             print(f"⚠️ Some orders failed to upload (success: {successful_count}, failed: {failed_count})")
-            
+
     except Exception as e:
         print(f"❌ Error uploading orders to WooCommerce: {e}")
         print("💡 Will continue using local JSON file as data source")
         return False
-    
+
     return True
 
 
 def main():
-    """主预处理函数"""
-    
+    """Main preprocessing function"""
+
     parser = ArgumentParser(description="Preprocess script - Set up the initial environment for the WooCommerce customer survey task")
-    parser.add_argument("--agent_workspace", required=False, help="Agent工作空间路径")
+    parser.add_argument("--agent_workspace", required=False, help="Agent workspace path")
     parser.add_argument("--launch_time", required=False, help="Launch time")
     args = parser.parse_args()
-    
+
     print("=" * 60)
     print("WooCommerce customer survey task - Preprocess")
     print("=" * 60)
-    
+
     try:
-        # 第一步：清空邮箱（如果启用）
-        
+        # Step 1: Clear mailbox (if enabled)
+
         print("\n" + "="*60)
         print("First Step: Clear mailbox")
         print("="*60)
-        
+
         mailbox_result = clear_mailbox()
-        
+
         if not mailbox_result.get('success'):
             print("Mailbox cleanup not fully successful, but continue with subsequent operations...")
             print(f"Mailbox cleanup details: {mailbox_result}")
-        
-        # 等待一下，确保邮箱操作完成
+
+        # Wait a bit to ensure mailbox operation is complete
         print("Wait 2 seconds to ensure mailbox cleanup operation is complete...")
         time.sleep(2)
-        
-        # 第二步：清空Google Forms（如果启用）
+
+        # Step 2: Clear Google Forms (if enabled)
         forms_result = None
 
         print("\n" + "="*60)
@@ -371,23 +371,22 @@ def main():
         print("="*60)
         form_name_pattern = "Customer Shopping Experience Feedback Survey"
         forms_result = clear_google_forms(form_name_pattern)
-        
+
         if not forms_result.get('success'):
             print("Google Forms cleanup not fully successful, but continue with subsequent operations...")
             print(f"Google Forms cleanup details: {forms_result}")
-        
-        # 等待一下，确保Google Forms操作完成
+
+        # Wait a bit to ensure Google Forms operation is complete
         print("Wait 2 seconds to ensure Google Forms cleanup operation is complete...")
         time.sleep(2)
-        
-        
-        # 第三步：设置任务数据文件
+
+        # Step 3: Set up task data
         print("\n" + "="*60)
         print("Third Step: Set task data")
         print("="*60)
-        
+
         success1 = setup_task_data()
-        
+
         if success1:
             print("\n🎉 Preprocessing completed! Task environment is ready")
             if forms_result and forms_result.get('success'):
@@ -401,9 +400,9 @@ def main():
         else:
             print("\n Preprocessing partially completed, please check the error information")
             return False
-        
+
     except Exception as e:
-        print(f"❌ 预处理失败: {e}")
+        print(f"❌ Preprocessing failed: {e}")
         return False
 
 

@@ -3,7 +3,7 @@
   "smtp_port": 1587,
   "email": "jason_cruz@mcp.com",
   "password": "Jcruz821xB00",
-  "name": "客服团队",
+  "name": "Customer Support Team",
   "imap_server": "localhost",
   "imap_port": 1143,
   "use_starttls": false,
