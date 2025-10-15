@@ -33,14 +33,14 @@ Please refer to my google scholar page for this part!
 
 ## Selected Projects
 
-### Project 1: High-Resolution Image Synthesis with Diffusion Models
-*Brief description of your work on improving diffusion models for high-quality image generation*
+### Project 1: Diffusion Models for High-Quality Image Synthesis
+Developed an advanced diffusion-based framework that significantly improves the fidelity and resolution of generated images. Introduced novel architectural enhancements and sampling techniques to achieve state-of-the-art results on benchmark datasets.
 
-### Project 2: Temporal-Consistent Video Generation
-*Brief description of your research on video generation using flow matching techniques*
+### Project 2: Consistent Video Generation via Flow Matching
+Proposed a flow matching approach for temporal-consistent video generation, enabling the synthesis of realistic motion and persistent object appearances across frames. The method achieves robust performance in both unconditional and conditional video generation tasks.
 
-### Project 3: Multi-Modal Generation Framework
-*Brief description of your cross-modal generation research*
+### Project 3: Cross-Modal Generative Framework
+Designed a unified generative model capable of handling multiple modalities, such as text-to-image and image-to-video generation. The framework supports smooth cross-modal translation and demonstrates strong results on several public datasets.
 
 ---
 
