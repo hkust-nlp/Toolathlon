@@ -1,5 +1,5 @@
 {
-    "needed_mcp_servers": ["filesystem"],
+    "needed_mcp_servers": ["arxiv_local"],
     "needed_local_tools": [],
     "meta": {}
 }
