@@ -7,6 +7,6 @@ import os
 file_path = os.path.abspath(__file__)
 
 all_token_key_session = Dict(
-    github_allowed_repos = "Annoy-DataSync", # 这个任务只允许操作这个repo
+    github_allowed_repos = "Annoy-DataSync", # only allowed to operate this repo
     github_read_only = "0", # if your task does not require write access to the repos, please set to 1, otherwise set to 0
 )
