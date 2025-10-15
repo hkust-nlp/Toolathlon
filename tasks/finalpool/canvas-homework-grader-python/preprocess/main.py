@@ -195,7 +195,7 @@ def import_emails():
 
 def reinitialize_course(canvas_api, canvas_utils, course_id, teacher_info, email_config):
     """
-    Reinitialize an existing CS101 course with fresh content
+    Reinitialize an existing CS5123 course with fresh content
     
     Args:
         canvas_api: CanvasAPI instance
@@ -411,29 +411,27 @@ def setup_canvas(teacher_info, email_config):
             canvas_token=canvas_token
         )
         
-        # First, check if CS101 course already exists and reinitialize it
-        print("🔍 Checking for existing CS101 Programming Fundamentals course...")
+        # First, check if CS5123 course already exists and reinitialize it
+        print("🔍 Checking for existing CS5123 Programming Fundamentals course...")
         try:
-            # Get all courses to find existing CS101 course
+            # Get all courses to find existing CS5123 course
             all_courses = canvas_api.list_courses(include_deleted=True, account_id=1)
-            existing_cs101_course = None
+            existing_cs5123_course = None
             
             if all_courses:
                 for course in all_courses:
                     course_name = course.get('name', '')
                     course_code = course.get('course_code', '')
                     
-                    # Check if it's a CS101 course
-                    if (course_code == 'CS101' or 
-                        'CS101' in course_name or
-                        'Programming Fundamentals' in course_name):
-                        existing_cs101_course = course
+                    # Check if it's a CS5123 course
+                    if (course_code == 'CS5123'):
+                        existing_cs5123_course = course
                         break
                 
-                if existing_cs101_course:
-                    course_id = existing_cs101_course['id']
-                    course_name = existing_cs101_course.get('name', 'CS101')
-                    print(f"✅ Found existing CS101 course: {course_name} (ID: {course_id})")
+                if existing_cs5123_course:
+                    course_id = existing_cs5123_course['id']
+                    course_name = existing_cs5123_course.get('name', 'CS5123')
+                    print(f"✅ Found existing CS5123 course: {course_name} (ID: {course_id})")
                     print("🔄 Reinitializing existing course instead of creating new one...")
                     
                     # Reinitialize the existing course
@@ -446,19 +444,19 @@ def setup_canvas(teacher_info, email_config):
                         print("💡 Falling back to creating new course...")
                         # Continue to create new course
                 else:
-                    print("✅ No existing CS101 course found - will create new one")
+                    print("✅ No existing CS5123 course found - will create new one")
             else:
                 print("⚠️  Could not retrieve courses list - will create new course")
         except Exception as e:
             print(f"⚠️  Error checking for existing courses: {e}")
             print("💡 Continuing with new course creation...")
         
-        print("🏗️  Creating CS101 Programming Fundamentals course...")
+        print("🏗️  Creating CS5123 Programming Fundamentals course...")
         
         # Create course
         course = canvas_utils.create_course_with_config(
-            course_name="CS101 Programming Fundamentals",
-            course_code="CS101",
+            course_name="CS5123 Programming Fundamentals",
+            course_code="CS5123",
             account_id=1,
             syllabus_body="Two Sum Problem homework assignment course"
         )
@@ -468,7 +466,7 @@ def setup_canvas(teacher_info, email_config):
             return False
         
         course_id = course['id']
-        print(f"✅ Course created: CS101 Programming Fundamentals (ID: {course_id})")
+        print(f"✅ Course created: CS5123 Programming Fundamentals (ID: {course_id})")
         
         # Add teacher to course (current user)
         try:

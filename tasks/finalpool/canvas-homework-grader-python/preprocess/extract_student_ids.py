@@ -72,10 +72,10 @@ def setup_canvas_api():
         return None, None
 
 
-def find_cs101_course(canvas_api):
-    """Find the CS101 Programming Fundamentals course"""
+def find_cs5123_course(canvas_api):
+    """Find the CS5123 Programming Fundamentals course"""
     try:
-        # Get all courses to find existing CS101 course
+        # Get all courses to find existing CS5123 course
         all_courses = canvas_api.list_courses(include_deleted=True, account_id=1)
         
         if all_courses:
@@ -83,17 +83,15 @@ def find_cs101_course(canvas_api):
                 course_name = course.get('name', '')
                 course_code = course.get('course_code', '')
                 
-                # Check if it's a CS101 course
-                if (course_code == 'CS101' or 
-                    'CS101' in course_name or
-                    'Programming Fundamentals' in course_name):
+                # Check if it's a CS5123 course
+                if (course_code == 'CS5123'):
                     return course
                     
-        print("❌ No CS101 course found")
+        print("❌ No CS5123 course found")
         return None
         
     except Exception as e:
-        print(f"❌ Error finding CS101 course: {e}")
+        print(f"❌ Error finding CS5123 course: {e}")
         return None
 
 
@@ -195,15 +193,15 @@ def main():
         course_id = args.course_id
         print(f"🎯 Using specified course ID: {course_id}")
     else:
-        # Find CS101 course
-        course = find_cs101_course(canvas_api)
+        # Find CS5123 course
+        course = find_cs5123_course(canvas_api)
         if not course:
-            print("❌ Could not find CS101 course")
+            print("❌ Could not find CS5123 course")
             print("💡 Try running with --course-id <ID> to specify course manually")
             sys.exit(1)
         
         course_id = course['id']
-        course_name = course.get('name', 'CS101')
+        course_name = course.get('name', 'CS5123')
         print(f"✅ Found course: {course_name} (ID: {course_id})")
     
     # Extract student IDs

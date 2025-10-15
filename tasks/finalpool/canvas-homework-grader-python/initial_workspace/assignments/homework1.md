@@ -1,6 +1,6 @@
 # Homework 1: Valid Parentheses
 
-**Course:** CS101 Programming Fundamentals  
+**Course:** CS5123 Programming Fundamentals  
 **Due Date:** 2 weeks after assignment  
 **Points:** 10 points  
 
@@ -98,7 +98,7 @@ if __name__ == "__main__":
 1. Name your file: `{firstname}_{lastname}_parentheses.py`
 2. Include the test cases in your submission
 3. Add comments explaining your approach
-4. Submit via email with subject line including "[CS101] Homework 1"
+4. Submit via email with subject line including "[CS5123] Homework 1"
 
 ## Grading Criteria
 

@@ -1,7 +1,7 @@
 [
   {
     "email_id": "1",
-    "subject": "[CS101] Submission - Two Sum Solution",
+    "subject": "[CS5123] Submission - Two Sum Solution",
     "from_addr": "timothy.ruiz@student.mcp.com",
     "to_addr": "teresat@mcp.com",
     "cc_addr": null,
@@ -24,7 +24,7 @@
   },
   {
     "email_id": "2",
-    "subject": "Homework 2 - Two Sum (CS101)",
+    "subject": "Homework 2 - Two Sum (CS5123)",
     "from_addr": "martha.watson@student.mcp.com",
     "to_addr": "teresat@mcp.com",
     "cc_addr": null,
@@ -47,7 +47,7 @@
   },
   {
     "email_id": "3",
-    "subject": "[CS101] HW2 Submission",
+    "subject": "[CS5123] HW2 Submission",
     "from_addr": "donald.richardson@student.mcp.com",
     "to_addr": "teresat@mcp.com",
     "cc_addr": null,
@@ -93,7 +93,7 @@
   },
   {
     "email_id": "5",
-    "subject": "[CS101] Two Sum Solution",
+    "subject": "[CS5123] Two Sum Solution",
     "from_addr": "alice.ward@student.mcp.com",
     "to_addr": "teresat@mcp.com",
     "cc_addr": null,
@@ -139,7 +139,7 @@
   },
   {
     "email_id": "7",
-    "subject": "[CS101] Homework 1 Submission - Valid Parentheses",
+    "subject": "[CS5123] Homework 1 Submission - Valid Parentheses",
     "from_addr": "timothy.ruiz@student.mcp.com",
     "to_addr": "teresat@mcp.com",
     "cc_addr": null,
@@ -162,7 +162,7 @@
   },
   {
     "email_id": "8",
-    "subject": "[CS101] Homework 1 - Valid Parentheses Solution",
+    "subject": "[CS5123] Homework 1 - Valid Parentheses Solution",
     "from_addr": "alice.ward@student.mcp.com",
     "to_addr": "teresat@mcp.com",
     "cc_addr": null,
@@ -185,7 +185,7 @@
   },
   {
     "email_id": "9",
-    "subject": "[CS101] Submission - Updated Version",
+    "subject": "[CS5123] Submission - Updated Version",
     "from_addr": "timothy.ruiz@student.mcp.com",
     "to_addr": "teresat@mcp.com",
     "cc_addr": null,
