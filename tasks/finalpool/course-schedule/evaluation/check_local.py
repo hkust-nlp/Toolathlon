@@ -41,16 +41,11 @@ def compare_exam_entry(agent_data, gt_data, entry_index):
         agent_value = agent_data[field]
         gt_value = gt_data[field]
 
-        if field == 'examRoom':
-            # Normalize room numbers (remove punctuation and spaces)
-            agent_normalized = normalize_str(str(agent_value))
-            gt_normalized = normalize_str(str(gt_value))
-            if agent_normalized != gt_normalized:
-                errors.append(f"examRoom: expected '{gt_value}' but got '{agent_value}'")
-        else:
-            # Exact match for other fields
-            if agent_value != gt_value:
-                errors.append(f"{field}: expected '{gt_value}' but got '{agent_value}'")
+        agent_normalized = normalize_str(str(agent_value))
+        gt_normalized = normalize_str(str(gt_value))
+        if agent_normalized != gt_normalized:
+            errors.append(f"{field}: expected '{gt_value}' but got '{agent_value}'")
+
 
     if errors:
         course_name = agent_data.get('courseName', 'Unknown Course')
