@@ -15,12 +15,11 @@ from utils.app_specific.notion.ops import (
     get_database_entries
 )
 
-# 通用邮件操作
+# General email operations
 from utils.app_specific.poste.ops import (
     find_emails_from_sender,
     mailbox_has_email_matching_body
 )
-
 
 NOTION_TOKEN = all_token_key_session.notion_integration_key
 involved_emails_file = os.path.join(os.path.dirname(__file__), "..", "files", "involved_emails.json")
@@ -231,7 +230,7 @@ def check_candidates_match_expected(candidates: List[Dict]) -> Tuple[bool, List[
 
 def check_notion(notion_token: str = None) -> Tuple[bool, str]:
     """
-    Check if the HR Record notion page has the correct Candidates database content
+    Check if the HR Record Notion page has the correct Candidates database content.
     """
     # Use provided token or default from configs
     if not notion_token:
@@ -276,7 +275,7 @@ def check_notion(notion_token: str = None) -> Tuple[bool, str]:
 
 def check_emails():
     """Test only the email checking functionality"""
-    # 读取 involved_emails.json
+    # Read involved_emails.json
     with open(involved_emails_file, "r") as f:
         involved_emails_data = json.load(f)
 
@@ -284,13 +283,13 @@ def check_emails():
     should_receive_emails = involved_emails_data["should_receive"]
     shouldnt_receive_emails = involved_emails_data["shouldnt_receive"]
 
-    # 读取拒信模板并标准化
+    # Read the rejection email template and normalize
     with open(REJECT_TEMPLATE_FILE, "r") as f:
         reject_template_content = f.read()
 
-    # 1) 应该收到邮件的应聘者：必须存在一封来自 sender 且正文与模板一致的邮件
+    # 1) For candidates who should receive an email: There must be an email from sender in the inbox whose body matches the template
     for rcpt, cfg in should_receive_emails.items():
-        # 补齐必要配置项
+        # Complete necessary configuration keys
         cfg = dict(cfg)
         cfg.setdefault("email", rcpt)
         cfg.setdefault("imap_server", "localhost")
@@ -306,7 +305,7 @@ def check_emails():
             subj = detail.get("subject", "")
             print(f"✅ Found a rejection email for {rcpt} from {sender}, with the subject: {subj}")
 
-    # 2) 不应该收到邮件的应聘者：不能存在来自 sender 的任意邮件
+    # 2) For candidates who should NOT receive an email: There must be no email from the sender in the inbox
     for rcpt, cfg in shouldnt_receive_emails.items():
         cfg = dict(cfg)
         cfg.setdefault("email", rcpt)
@@ -327,22 +326,20 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--agent_workspace", required=False, help="Path to agent workspace")
     parser.add_argument("--groundtruth_workspace", required=False, help="Path to agent workspace")
-    parser.add_argument("--res_log_file", required=False, help="Path to res log file")
+    parser.add_argument("--res_log_file", required=False, help="Path to result log file")
     parser.add_argument("--launch_time", required=False, help="Launch time")
     args = parser.parse_args()
 
-    # 1. check notion
+    # 1. Check Notion
     notion_check_flag, notion_check_msg = check_notion()
     if not notion_check_flag:
         print("\n❌ Notion check failed: ", notion_check_msg)
         exit(1)
 
-    # 2. check emails
+    # 2. Check emails
     emails_found, email_results = check_emails()
     if not emails_found:
         print("\n❌ Email check failed: ", email_results)
         exit(1)
 
     print("Pass all tests!")
-    
-    
