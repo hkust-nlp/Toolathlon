@@ -14,7 +14,7 @@ from utils.general.helper import normalize_str
 import os
 from typing import Union
 
-with open("tasks/finalpool/vlm-history-completer/files/folder_id.txt", "r") as f:
+with open(os.path.join(os.path.dirname(__file__), "..", "files", "folder_id.txt"), "r") as f:
     folder_id = f.read().strip()
 
 GOOGLE_CREDENTIALS_PATH = 'configs/google_credentials.json'

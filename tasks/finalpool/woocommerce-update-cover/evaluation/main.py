@@ -8,7 +8,6 @@ import json
 from datetime import datetime, timedelta
 
 # 添加项目根目录到 Python 路径  
-# 从 .../tasks/finalpool/update-photo-task/evaluation 向上到 mcpbench_dev
 current_file = Path(__file__).resolve()
 project_root = current_file.parent.parent.parent.parent.parent  # 多向上一级
 sys.path.insert(0, str(project_root))

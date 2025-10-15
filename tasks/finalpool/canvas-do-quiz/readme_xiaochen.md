@@ -1,8 +1,8 @@
-这个任务的难点在于课程太多了。模型没做完所有course的题目就认为已经做完且退出了。  
-对于检测quiz中的题目是否正确。 通过两个模型 claude4，gemini共同保证。然后在测试运行的时候会查看模型做错的题。  
-比如  
+The main challenge of this task is that there are too many courses. If the model does not finish all the quizzes for every course, it will incorrectly consider the task complete and exit.  
+To ensure the correctness of quiz answers, both Claude 4 and Gemini models are used for verification. During test runs, any incorrect answers given by the models are reviewed.  
+For example:  
 QUIZ 2: PHIL201 Advanced Logical Reasoning and Argumentation Quiz**  
-Question 1 ，手动检查了这个答案没问题。
+Question 1: The answer was checked manually and found to be correct.
 
 
 Student: Stephen Gomez (stepheng@mcp.com)

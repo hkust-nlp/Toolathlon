@@ -135,9 +135,11 @@ def main():
     Main function: Full anomaly detection workflow.
     """
     # Define file paths
-    sensor_data_path = 'tasks/finalpool/machine-operating/preprocess/live_sensor_data.csv'
-    parameters_path = 'tasks/finalpool/machine-operating/initial_workspace/machine_operating_parameters.xlsx'
-    output_path = 'tasks/finalpool/machine-operating/groundtruth_workspace/anomaly_report.csv'
+    import os
+    file_dir = os.path.dirname(os.path.abspath(__file__))
+    sensor_data_path = os.path.join(file_dir, 'live_sensor_data.csv')
+    parameters_path = os.path.join(file_dir, '../initial_workspace/machine_operating_parameters.xlsx')
+    output_path = os.path.join(file_dir, '../groundtruth_workspace/anomaly_report.csv')
 
     # Define the time window
     start_time = '2025-08-19 11:30:00'
