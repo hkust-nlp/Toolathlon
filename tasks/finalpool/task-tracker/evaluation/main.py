@@ -133,58 +133,20 @@ def check_notion_database(groundtruth_workspace) -> Tuple[bool, str]:
         from notion_client import Client
         client = Client(auth=notion_token)
 
-        print("🔍 Searching for 'Notion Eval Page'...")
+        # Read Task Tracker page ID from file
+        script_dir = Path(__file__).parent
+        page_id_file = script_dir / "../files/duplicated_page_id.txt"
 
-        # Search for the parent page "Notion Eval Page"
-        search_response = client.search(
-            query="Notion Eval Page",
-            filter={"property": "object", "value": "page"}
-        )
+        if not page_id_file.exists():
+            return False, f"❌ Page ID file not found: {page_id_file}"
 
-        notion_eval_page = None
-        for result in search_response.get('results', []):
-            if result.get('object') == 'page':
-                # Check if this is the right page
-                title = ''
-                if 'properties' in result and 'title' in result['properties']:
-                    title_parts = result['properties']['title'].get('title', [])
-                    title = ''.join([part.get('text', {}).get('content', '') for part in title_parts])
-                elif 'title' in result:
-                    title_parts = result.get('title', [])
-                    title = ''.join([part.get('text', {}).get('content', '') for part in title_parts])
-
-                if title.strip() == "Notion Eval Page":
-                    notion_eval_page = result
-                    break
-
-        if not notion_eval_page:
-            return False, "❌ Could not find 'Notion Eval Page'"
-
-        print(f"✅ Found 'Notion Eval Page' (ID: {notion_eval_page['id']})")
-
-        # Search for "Task Tracker" page within the Notion Eval Page
-        print("🔍 Searching for 'Task Tracker' page...")
-
-        # Get children of Notion Eval Page
-        children_response = client.blocks.children.list(block_id=notion_eval_page['id'])
-
-        task_tracker_page = None
-        for child in children_response.get('results', []):
-            if child.get('type') == 'child_page':
-                child_title = child.get('child_page', {}).get('title', '')
-                if child_title.strip() == "Task Tracker":
-                    task_tracker_page = child
-                    break
-
-        if not task_tracker_page:
-            return False, "❌ Could not find 'Task Tracker' page under 'Notion Eval Page'"
-
-        print(f"✅ Found 'Task Tracker' page (ID: {task_tracker_page['id']})")
+        task_tracker_page_id = page_id_file.read_text().strip()
+        print(f"✅ Read Task Tracker page ID from file: {task_tracker_page_id}")
 
         # Look for database in Task Tracker page
         print("🔍 Searching for database in Task Tracker page...")
 
-        task_tracker_children = client.blocks.children.list(block_id=task_tracker_page['id'])
+        task_tracker_children = client.blocks.children.list(block_id=task_tracker_page_id)
 
         task_database = None
         for child in task_tracker_children.get('results', []):

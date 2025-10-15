@@ -55,8 +55,7 @@ async def main():
         duplicated_page_id = f.read().strip()
     print_color(f"Notion page duplicated with ID: {duplicated_page_id}", "green")
 
-    # 用协程并发多个fork_repo
-    # 从source_repo自动解析新的target_repo名称
+
     real_forking_list = []
     for source_repo, fork_default_branch_only in FORKING_LIST:
         target_repo = source_repo.split("/")[1]
