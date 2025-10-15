@@ -6,7 +6,7 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.errors import HttpError
 from utils.general.helper import normalize_str
 
-# 参考gpt-neo和llama的预训练数据集（只需包含即可，不要求严格一致）
+# Reference pre-training datasets for GPT-Neo and LLaMA (inclusion required, strict match not necessary)
 gpt_neo_sets_list = [
     "Pile-CC", "PubMed Central", "Books3", "OpenWebText2", "ArXiv", "Github", "FreeLaw", "Stack Exchange",
     "USPTO Backgrounds", "PubMed Abstracts", "Gutenberg (PG-19)", "OpenSubtitles", "Wikipedia (en)",
@@ -16,7 +16,7 @@ gpt_neo_sets_list = [
 gpt_neo_sizes = [
     227.12, 90.27, 100.96, 62.77, 56.21, 95.16, 51.15, 32.20, 22.90, 19.26, 10.88, 12.98, 6.38, 7.75, 5.52, 6.30, 4.59, 3.90, 3.73, 2.38, 1.89, 0.88, 825.18
 ]
-# 创建名称到size的映射
+# Create mapping from name to size
 gpt_neo_size_dict = {ds.lower(): size for ds, size in zip(gpt_neo_sets_list, gpt_neo_sizes)}
 gpt_neo_sets = set([ds.lower() for ds in gpt_neo_sets_list])
 
@@ -26,22 +26,19 @@ llama_sets_list = [
 llama_sizes = [
     3300, 783, 328, 83, 85, 92, 78
 ]
-# 创建名称到size的映射
+# Create mapping from name to size
 llama_size_dict = {ds.lower(): size for ds, size in zip(llama_sets_list, llama_sizes)}
 llama_sets = set([ds.lower() for ds in llama_sets_list])
 
 def dataset_match(agent_name, expected_sets):
     """
-    使用 normalize_str 标准化后进行包含关系比较
-    如果 agent_name 或 expected_name 中的一个包含另一个，则认为匹配
+    Use normalize_str for normalization, then compare inclusion.
+    If agent_name or expected_name includes the other, consider it a match.
     """
     agent_normalized = normalize_str(agent_name)
 
     for expected_name in expected_sets:
-        # expected_sets 已经是 lowercase，需要再次 normalize
         expected_normalized = normalize_str(expected_name)
-
-        # 如果其中一个包含另一个，则认为匹配
         if agent_normalized in expected_normalized or expected_normalized in agent_normalized:
             return True
 
@@ -49,34 +46,29 @@ def dataset_match(agent_name, expected_sets):
 
 def get_expected_size(agent_name, expected_sets, size_dict):
     """
-    根据agent_name在expected_sets中找到匹配的数据集,并返回对应的size
+    Find the expected dataset in expected_sets matching agent_name and return its size.
     """
     agent_normalized = normalize_str(agent_name)
 
     for expected_name in expected_sets:
         expected_normalized = normalize_str(expected_name)
-
         if agent_normalized in expected_normalized or expected_normalized in agent_normalized:
-            # 找到匹配的数据集,返回其size
             return size_dict.get(expected_name)
 
     return None
 
 def compare_size(agent_size_str, expected_size, tolerance=0.01):
     """
-    比较两个size数值,允许1%的误差
-    agent_size_str: agent提供的size字符串
-    expected_size: 期望的size数值
-    tolerance: 允许的误差范围(默认0.01即1%)
+    Compare two size values, allowing 1% tolerance.
+    agent_size_str: size string provided by agent
+    expected_size: expected size value
+    tolerance: relative error allowed (default 0.01 == 1%)
     """
     try:
         agent_size = float(agent_size_str)
         expected_size = float(expected_size)
-
-        # 计算相对误差
         if expected_size == 0:
             return agent_size == 0
-
         relative_error = abs(agent_size - expected_size) / expected_size
         return relative_error <= tolerance
     except (ValueError, TypeError):
@@ -84,8 +76,8 @@ def compare_size(agent_size_str, expected_size, tolerance=0.01):
 
 def should_skip_size_check(dataset_name):
     """
-    检查是否应该跳过size检查
-    对于被两个模型共用的数据集(Wikipedia, ArXiv, Books, Github)跳过size检查
+    Check if size check should be skipped.
+    For datasets shared by both models (Wikipedia, ArXiv, Books, Github), skip size check.
     """
     name_lower = dataset_name.lower()
     shared_datasets = ['wikipedia', 'arxiv', 'books', 'github']
@@ -94,11 +86,13 @@ def should_skip_size_check(dataset_name):
 from addict import Dict
 import os
 
-with open("tasks/finalpool/llm-training-dataset/files/folder_id.txt", "r") as f:
+folder_id_file = os.path.join(os.path.dirname(__file__), "..", "files", "folder_id.txt")
+
+with open(folder_id_file, "r") as f:
     folder_id = f.read().strip()
 
 GOOGLE_CREDENTIALS_PATH = 'configs/google_credentials.json'
-TARGET_FOLDER_ID = folder_id  # 指定的Google Drive文件夹ID
+TARGET_FOLDER_ID = folder_id  # specified Google Drive folder ID
 SCOPES = [
     'https://www.googleapis.com/auth/drive',
     'https://www.googleapis.com/auth/spreadsheets'
@@ -110,7 +104,8 @@ class DataLoadError(Exception):
 
 def get_ptdata_sheet_content(folder_id, creds, spreadsheet_name="LLM Pre-training Data", sheet_name="ptdata"):
     """
-    获取Google Drive指定文件夹下名为"LLM Pre-training Data"的Google Sheet文件中ptdata工作表的内容（返回为pandas DataFrame）
+    Retrieve the content of the 'ptdata' sheet from a Google Sheet named 'LLM Pre-training Data'
+    under a specific Google Drive folder; return as pandas DataFrame.
     """
     try:
         drive_service = build('drive', 'v3', credentials=creds)
@@ -118,7 +113,7 @@ def get_ptdata_sheet_content(folder_id, creds, spreadsheet_name="LLM Pre-trainin
     except Exception as e:
         raise DataLoadError(f"Failed to build Google API services: {e}")
 
-    # 1. 查找文件夹下名为"LLM Pre-training Data"的表格文件
+    # 1. Find the target spreadsheet in the folder
     try:
         query = (
             f"'{folder_id}' in parents and "
@@ -133,7 +128,7 @@ def get_ptdata_sheet_content(folder_id, creds, spreadsheet_name="LLM Pre-trainin
     except HttpError as e:
         raise DataLoadError(f"Failed to access Google Drive: {e}")
 
-    # 2. 读取指定工作表内容
+    # 2. Read the sheet
     try:
         result = sheets_service.spreadsheets().values().get(
             spreadsheetId=file_id,
@@ -144,7 +139,7 @@ def get_ptdata_sheet_content(folder_id, creds, spreadsheet_name="LLM Pre-trainin
             raise DataLoadError(f"Sheet '{sheet_name}' is empty or does not exist")
         if len(values) < 2:  # Need at least header + one data row
             raise DataLoadError(f"Sheet '{sheet_name}' only contains header row, no data found")
-        # 第一行为表头
+        # First row is header
         df = pd.DataFrame(values[1:], columns=values[0])
         if df.empty:
             raise DataLoadError(f"No data rows found in sheet '{sheet_name}'")
@@ -156,7 +151,7 @@ def get_ptdata_sheet_content(folder_id, creds, spreadsheet_name="LLM Pre-trainin
 
 def print_detailed_analysis(agent_datasets, llama_sets, gpt_neo_sets, llama_found, gpt_neo_found):
     """
-    Print detailed analysis of differences between agent's result and expected datasets
+    Print detailed analysis of differences between the agent's result and the expected datasets.
     """
     print("\n" + "="*80)
     print("DETAILED ANALYSIS OF AGENT'S RESULT")
@@ -263,15 +258,15 @@ def print_detailed_analysis(agent_datasets, llama_sets, gpt_neo_sets, llama_foun
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("--spreadsheet_name", default="LLM Pre-training Data", help="Google Sheet文件名")
-    parser.add_argument("--sheet_name", default="ptdata", help="Google Sheet中的工作表名")
+    parser.add_argument("--spreadsheet_name", default="LLM Pre-training Data", help="Google Sheet file name")
+    parser.add_argument("--sheet_name", default="ptdata", help="Worksheet name in the Google Sheet")
     parser.add_argument("--agent_workspace", required=False)
     parser.add_argument("--groundtruth_workspace", required=False)
     parser.add_argument("--res_log_file", required=False)
     parser.add_argument("--launch_time", required=False, help="Launch time")
     args = parser.parse_args()
 
-    # 1. 加载Google凭证
+    # 1. Load Google credentials
     if not os.path.exists(GOOGLE_CREDENTIALS_PATH):
         print(f"ERROR: Google credentials not found at {GOOGLE_CREDENTIALS_PATH}")
         exit(1)
@@ -282,7 +277,7 @@ if __name__ == "__main__":
         print(f"ERROR: Failed to load Google credentials: {e}")
         exit(1)
 
-    # 2. 获取ptdata sheet数据
+    # 2. Load ptdata sheet data
     try:
         ptdata_df = get_ptdata_sheet_content(TARGET_FOLDER_ID, creds, args.spreadsheet_name, args.sheet_name)
     except DataLoadError as e:
