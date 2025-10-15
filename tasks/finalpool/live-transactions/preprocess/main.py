@@ -122,7 +122,7 @@ def delete_and_recreate_bucket(
 import uuid
 import time
 
-def manage_trading_log_bucket(project_id="mcp-bench0606", bucket_name_prefix="Trading_Logging", location="global", max_retries=10):
+def manage_log_bucket(project_id="mcp-bench0606", bucket_name_prefix="Trading_Logging", location="global", max_retries=10):
     """
     Delete all existing log buckets with prefix, create a new unique log bucket,
     and save the new log bucket name to ../groundtruth_workspace/log_bucket_name.txt file.
@@ -306,7 +306,7 @@ def cleanup_preprocess_environment(workspace_dir, target_transaction_id="T8492XJ
     cleanup_results["file_cleanup"] = bucket_ready
     
     # Manage Trading_Logging log bucket
-    log_bucket_results = manage_trading_log_bucket(project_id, "Trading_Logging")
+    log_bucket_results = manage_log_bucket(project_id, "Trading_Logging")
     cleanup_results["log_bucket_results"] = log_bucket_results
 
     # Manage transactions_analytics BigQuery dataset

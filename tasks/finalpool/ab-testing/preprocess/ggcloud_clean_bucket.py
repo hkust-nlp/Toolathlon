@@ -16,28 +16,33 @@ def check_storage_bucket_exists(project_id: str, bucket_name: str, credentials=N
         return False
 
 
-def delete_storage_bucket_if_exists(project_id: str, bucket_name: str, credentials=None) -> bool:
-    """Delete storage bucket and all its contents if it exists."""
+def delete_storage_bucket_if_exists(project_id: str, bucket_prefix: str, credentials=None) -> bool:
+    """
+    Delete all storage buckets whose name starts with bucket_prefix and all their contents.
+    """
     try:
         client = storage.Client(project=project_id, credentials=credentials)
-        
-        try:
-            bucket = client.get_bucket(bucket_name)
-            print(f"📦 Found existing bucket: {bucket_name}")
-            print(f"🗑️  Deleting bucket: {bucket_name} and all its contents...")
-            
-            # Use force=True to delete all objects in the bucket first, then the bucket itself.
-            bucket.delete(force=True)
-            
-            print(f"✅ Successfully deleted bucket: {bucket_name}")
-            return True
-            
-        except NotFound:
-            print(f"✅ Bucket {bucket_name} does not exist - no cleanup needed")
-            return True
-            
+        deleted_any = False
+        for bucket in client.list_buckets():
+            bucket_name = bucket.name
+            if bucket_name.startswith(bucket_prefix):
+                try:
+                    print(f"📦 Found existing bucket: {bucket_name}")
+                    print(f"🗑️  Deleting bucket: {bucket_name} and all its contents...")
+                    # Use force=True to delete the bucket and all objects in it.
+                    client.bucket(bucket_name).delete(force=True)
+                    print(f"✅ Successfully deleted bucket: {bucket_name}")
+                    deleted_any = True
+                except NotFound:
+                    print(f"✅ Bucket {bucket_name} does not exist - no cleanup needed")
+                except Exception as e:
+                    print(f"❌ Failed to delete bucket: {bucket_name}")
+                    print(f"Error: {e}")
+        if not deleted_any:
+            print(f"✅ No buckets found with prefix '{bucket_prefix}' - no cleanup needed")
+        return True
     except Exception as e:
-        print(f"❌ Failed to delete bucket: {bucket_name}")
+        print(f"❌ Failed during bucket deletion loop for prefix: {bucket_prefix}")
         print(f"Error: {e}")
         return False
 
@@ -113,7 +118,7 @@ def setup_promo_assets_bucket(project_id: str, credentials=None) -> bool:
     
     success = delete_storage_bucket_if_exists(
         project_id=project_id,
-        bucket_name="promo-assets-for-b",
+        bucket_prefix="promo-assets-for-b",
         credentials=credentials
     )
     

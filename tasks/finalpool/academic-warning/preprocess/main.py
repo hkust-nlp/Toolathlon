@@ -43,9 +43,9 @@ if __name__=="__main__":
     print("=================  clean dataset =================")
     clean_dataset(project_id, credentials)
 
-    print("======== wait 60s to make sure that the dataset is configured")
+    print("======== wait 10s to make sure that the dataset is configured")
     from time import sleep
-    sleep(60)
+    sleep(10)
 
     print("=================  upload files =================")
     upload_csvs_to_bigquery(

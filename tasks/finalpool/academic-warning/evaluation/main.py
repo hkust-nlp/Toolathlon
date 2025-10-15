@@ -50,12 +50,14 @@ def get_students_above_threshold(student_data: dict, threshold: float) -> list:
             if data["drop_ratio"] > threshold]
 
 def check_critical_logs_for_students(project_id: str, credentials, needed_students, unneeded_students) -> bool:
-    """Check BigQuery logs for CRITICAL entry for Lisa Wright (S060) only"""
+
     try:
         client = logging.Client(project=project_id, credentials=credentials)
-        
-        # Query for CRITICAL logs in exam_log containing Lisa Wright
-        log_filter = f'logName="projects/{project_id}/logs/exam_log" AND severity="CRITICAL"'
+        # from ../groundtruth_workspace/log_bucket_name.txt to read actual log bucket name
+        with open(os.path.join(os.path.dirname(__file__), "../groundtruth_workspace/log_bucket_name.txt"), "r") as f:
+            log_bucket_name = f.read().strip()
+
+        log_filter = f'logName="projects/{project_id}/logs/{log_bucket_name}" AND severity="CRITICAL"'
         
         print(f"Checking BigQuery logs CRITICAL entry...")
         entries = list(client.list_entries(
@@ -65,13 +67,13 @@ def check_critical_logs_for_students(project_id: str, credentials, needed_studen
         ))
         
         if not entries:
-            print("❌ No CRITICAL log entries found in exam_log")
+            print(f"❌ No CRITICAL log entries found in {log_bucket_name}")
             return False
         
         print(f"Found {len(entries)} CRITICAL log entries")
         
         used_entry_ids = []
-        # Check if any log mentions Lisa Wright or S060
+
         founds = [False] * len(needed_students)
         for idx, (student_name, student_id) in enumerate(needed_students):
             for eid,entry in enumerate(entries):
@@ -208,7 +210,7 @@ if __name__ == "__main__":
 
         print(f"✅ bad_student.csv accuracy {accuracy:.2%} meets 100% threshold")
 
-        # Check actual BigQuery logs for Lisa Wright only
+
         print("\n5. Checking BigQuery logs for all students...")
         # FIXME: here is a known issue that we only exclude students > 25% but <45%, actually we should exclude all students <45%
         bigquery_logs_valid = check_critical_logs_for_students(project_id, credentials, gt_45_percent, all_below_45_percent)
