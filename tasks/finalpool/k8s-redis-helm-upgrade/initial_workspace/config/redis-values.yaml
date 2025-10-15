@@ -1,7 +1,7 @@
-# 简化的Redis配置用于调试
+# Simplified Redis configuration for debugging
 master:
   persistence:
-    enabled: false  # 禁用持久化简化部署
+    enabled: false  # Disable persistence to simplify deployment
   resources:
     requests:
       memory: "128Mi"
@@ -9,7 +9,7 @@ master:
     limits:
       memory: "256Mi"
       cpu: "200m"
-  # 添加一些不影响启动速度的自定义配置
+  # Add some custom configurations that do not affect startup speed
   nodeSelector:
     kubernetes.io/os: linux
   tolerations:
@@ -30,7 +30,7 @@ master:
 replica:
   replicaCount: 2
   persistence:
-    enabled: false  # 禁用持久化
+    enabled: false  # Disable persistence
   resources:
     requests:
       memory: "128Mi"
@@ -38,7 +38,7 @@ replica:
     limits:
       memory: "256Mi"
       cpu: "200m"
-  # 副本也使用相同的调度配置
+  # Replicas use the same scheduling configuration
   nodeSelector:
     kubernetes.io/os: linux
   tolerations:
@@ -52,15 +52,15 @@ auth:
   password: "simple123"
 
 metrics:
-  enabled: false  # 暂时禁用metrics
+  enabled: false  # Temporarily disable metrics
 
-# 添加更多不影响启动的配置项
+# Additional configurations that do not affect startup
 commonLabels:
   app: redis-cluster
   environment: test
   team: platform
 
-# 服务配置
+# Service configuration
 service:
   type: ClusterIP
   port: 6379
@@ -68,7 +68,7 @@ service:
     service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
     prometheus.io/scrape: "false"
 
-# 网络策略配置
+# Network policy configuration
 networkPolicy:
   enabled: false
   ingress:
@@ -77,7 +77,7 @@ networkPolicy:
             matchLabels:
               name: shared-services
 
-# Redis配置参数（不影响启动速度）
+# Redis configuration parameters (do not affect startup speed)
 redis:
   configmap: |
     # Custom Redis configuration
@@ -87,7 +87,7 @@ redis:
     # Disable some heavy operations
     save ""
     
-# 安全上下文
+# Security context
 securityContext:
   enabled: true
   fsGroup: 1001
