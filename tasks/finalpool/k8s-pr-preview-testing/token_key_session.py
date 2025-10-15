@@ -9,6 +9,6 @@ kubeconfig_path = os.path.join(os.path.dirname(file_path), "k8s_configs", "clust
 all_token_key_session = Dict(
     # k8s
     kubeconfig_path = kubeconfig_path,
-    github_allowed_repos = "SimpleShopping", # 这个任务只允许操作上述1个repo
+    github_allowed_repos = "SimpleShopping", # only allowed to operate this repo
     github_read_only = "0", # if your task does not require write access to the repos, please set to 1, otherwise set to 0
 )
