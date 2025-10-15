@@ -48,18 +48,18 @@ def load_expense_claims(groundtruth_dir: str) -> List[Dict[str, Any]]:
         return json.load(f)
 
 def create_main_expense_pdf(filepath: str, claim: Dict[str, Any]) -> None:
-    """创建报销总表PDF（不包含发票详情）"""
+    """Create the main expense PDF (without invoice details)"""
     doc = SimpleDocTemplate(filepath, pagesize=A4)
     styles = getSampleStyleSheet()
     story = []
     
-    # 标题
+    # Title
     title_style = ParagraphStyle(
         'CustomTitle',
         parent=styles['Heading1'],
         fontSize=16,
         spaceAfter=30,
-        alignment=1  # 居中
+        alignment=1  # Center
     )
     
     story.append(Paragraph("Travel Expense Reimbursement Form", title_style))
@@ -79,8 +79,8 @@ def create_main_expense_pdf(filepath: str, claim: Dict[str, Any]) -> None:
         ('FONTSIZE', (0, 0), (-1, -1), 10),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
         ('GRID', (0, 0), (-1, -1), 1, colors.black),
-        ('BACKGROUND', (0, 0), (0, -1), colors.lightgrey),  # 左列背景
-        ('BACKGROUND', (2, 0), (2, -1), colors.lightgrey),  # 第三列背景
+        ('BACKGROUND', (0, 0), (0, -1), colors.lightgrey),  # Left column background
+        ('BACKGROUND', (2, 0), (2, -1), colors.lightgrey),  # Third column background
     ]))
     
     story.append(basic_table)
@@ -109,8 +109,8 @@ def create_main_expense_pdf(filepath: str, claim: Dict[str, Any]) -> None:
         ('FONTSIZE', (0, 0), (-1, -1), 9),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
         ('GRID', (0, 0), (-1, -1), 1, colors.black),
-        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),  # 表头背景
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),  # 表头文字颜色
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),  # Table header background
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),  # Table header text color
     ]))
     
     story.append(detail_table)
@@ -134,23 +134,23 @@ def create_main_expense_pdf(filepath: str, claim: Dict[str, Any]) -> None:
     
     story.append(signature_table)
     
-    # 构建PDF
+    # Build PDF
     doc.build(story)
 
 
 def create_invoice_pdf(filepath: str, item: Dict[str, Any], item_idx: int) -> None:
-    """创建单独的发票PDF"""
+    """Create a separate invoice PDF"""
     doc = SimpleDocTemplate(filepath, pagesize=A4)
     styles = getSampleStyleSheet()
     story = []
     
-    # 标题
+    # Title
     title_style = ParagraphStyle(
         'CustomTitle',
         parent=styles['Heading1'],
         fontSize=16,
         spaceAfter=30,
-        alignment=1  # 居中
+        alignment=1  # Center
     )
     
     invoice_title = f"Invoice #{item_idx} - {item['category']} ({item['date']})"
@@ -158,8 +158,8 @@ def create_invoice_pdf(filepath: str, item: Dict[str, Any], item_idx: int) -> No
     story.append(Spacer(1, 20))
     
     if item['receipts']:
-        # 有发票的情况 - 生成发票详情表
-        receipt = item['receipts'][0]  # 取第一个收据
+        # If there is a receipt, generate the invoice details table
+        receipt = item['receipts'][0]  # Take the first receipt
         
         invoice_data = [
             ['Invoice Number:', receipt.get('invoice_number', 'N/A'), 'Date:', receipt.get('date', 'N/A')],
@@ -174,37 +174,37 @@ def create_invoice_pdf(filepath: str, item: Dict[str, Any], item_idx: int) -> No
             ('FONTSIZE', (0, 0), (-1, -1), 10),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ('BACKGROUND', (0, 0), (0, -1), colors.lightblue),  # 左列背景
-            ('BACKGROUND', (2, 0), (2, -1), colors.lightblue),  # 第三列背景
-            ('SPAN', (-2, -1), (-1, -1)),  # 合并描述行的最后两个单元格
+            ('BACKGROUND', (0, 0), (0, -1), colors.lightblue),  # Left column background
+            ('BACKGROUND', (2, 0), (2, -1), colors.lightblue),  # Third column background
+            ('SPAN', (-2, -1), (-1, -1)),  # Merge the last two cells of the description row
         ]))
         
         story.append(invoice_table)
     else:
-        # 没有发票的情况
+        # If there is no receipt
         story.append(Paragraph("No receipt available for this item.", styles['Normal']))
     
-    # 构建PDF
+    # Build PDF
     doc.build(story)
 
 
 def create_expense_package(package_path: str, claim: Dict[str, Any]) -> None:
-    """创建报销材料tar.gz压缩包"""
-    # 创建临时目录
+    """Create the expense package tar.gz file"""
+    # Create a temporary directory
     with tempfile.TemporaryDirectory() as temp_dir:
-        # 生成报销总表
+        # Generate the main expense PDF
         main_pdf_path = os.path.join(temp_dir, f"expense_claim_{claim['claim_id']}_main.pdf")
         create_main_expense_pdf(main_pdf_path, claim)
         
-        # 生成各个发票材料
+        # Generate the invoice PDFs
         for idx, item in enumerate(claim['line_items'], 1):
             invoice_filename = f"expense_claim_{claim['claim_id']}_invoice_{idx:02d}.pdf"
             invoice_pdf_path = os.path.join(temp_dir, invoice_filename)
             create_invoice_pdf(invoice_pdf_path, item, idx)
         
-        # 创建tar.gz压缩包
+        # Create the tar.gz file
         with tarfile.open(package_path, 'w:gz') as tar:
-            # 添加所有PDF文件到压缩包
+            # Add all PDF files to the compressed package
             for filename in os.listdir(temp_dir):
                 if filename.endswith('.pdf'):
                     file_path = os.path.join(temp_dir, filename)
@@ -227,7 +227,7 @@ async def main():
     fixed_seed = 7
     print(f"seed: {fixed_seed}")
     
-    # Step 0：clear the emails
+    # Step 0: clear the emails
     print("\n" + "="*60)
     print("PREPROCESSING STEP 0: Clear Emails")
     print("="*60)
