@@ -7,13 +7,15 @@ import json
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 
-# 动态添加项目根目录到Python路径
+# Dynamically add project root directory to Python path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../..'))
 sys.path.append(project_root)
 import configs.token_key_session as configs
 
 GOOGLE_CREDENTIALS_PATH = 'configs/google_credentials.json'
-TARGET_FOLDER_ID = "1kY4IMn6aRrezElP10v1rXbFpwT271dqU"  # 指定的Google Drive文件夹ID，与preprocess保持一致
+folder_id_file = os.path.join(os.path.dirname(__file__), "..", "files", "folder_id.txt")
+with open(folder_id_file, "r") as f:
+    TARGET_FOLDER_ID = f.read().strip()
 SCOPES = [
     'https://www.googleapis.com/auth/spreadsheets',
     'https://www.googleapis.com/auth/drive'
@@ -21,29 +23,29 @@ SCOPES = [
 
 def read_google_sheets_link_from_file(file_path='google_sheets_link.txt'):
     """
-    从txt文件中读取Google Sheets链接
-    文件格式示例：https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit#gid=0
+    Read Google Sheets link from a txt file.
+    Example file content: https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit#gid=0
     """
     if not os.path.exists(file_path):
-        raise FileNotFoundError(f"Google Sheets链接文件不存在: {file_path}")
+        raise FileNotFoundError(f"Google Sheets link file does not exist: {file_path}")
     
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
             content = file.read().strip()
         
-        # 去除可能的空白字符和引号
+        # Remove potential whitespace and quotes
         content = content.strip('"\' \t\n\r')
         
         if not content:
-            raise ValueError("Google Sheets链接文件为空")
+            raise ValueError("Google Sheets link file is empty")
         
         return content
         
     except Exception as e:
-        raise Exception(f"读取Google Sheets链接文件失败: {e}")
+        raise Exception(f"Failed to read Google Sheets link file: {e}")
     
 def validate_google_sheet_link_format(url):
-    """验证Google Sheets链接格式"""
+    """Validate the format of a Google Sheets link."""
     if not isinstance(url, str):
         return False
     if not url.startswith('https://docs.google.com/spreadsheets/'):
@@ -52,72 +54,64 @@ def validate_google_sheet_link_format(url):
     return True
 
 def extract_spreadsheet_info_from_url(sheets_url):
-    """从Google Sheets URL中提取spreadsheet ID和worksheet名称"""
-    # 检查输入是URL还是spreadsheet名称
+    """Extract the spreadsheet ID from a Google Sheets URL."""
     if sheets_url.startswith('http'):
-        # 输入是完整URL
-        # 提取spreadsheet ID
         spreadsheet_match = re.search(r'/spreadsheets/d/([a-zA-Z0-9_-]+)', sheets_url)
         if not spreadsheet_match:
-            raise Exception("无法从URL中提取spreadsheet ID")
+            raise Exception("Failed to extract spreadsheet ID from URL")
         
         spreadsheet_id = spreadsheet_match.group(1)
-        print(f"✓ 从URL提取到spreadsheet ID: {spreadsheet_id}")
+        print(f"✓ Extracted spreadsheet ID from URL: {spreadsheet_id}")
     else:
-        # 输入是spreadsheet名称
         spreadsheet_id = sheets_url
-        print(f"✓ 使用spreadsheet名称作为ID: {spreadsheet_id}")
+        print(f"✓ Using spreadsheet name as ID: {spreadsheet_id}")
     
     return spreadsheet_id
 
 def find_spreadsheet_in_folder(drive_service, spreadsheet_name, folder_id):
-    """在指定文件夹中查找Google Sheets文件"""
+    """Find a Google Sheets file by name under a given folder."""
     try:
-        print(f"正在在文件夹 {folder_id} 中搜索名为 '{spreadsheet_name}' 的Google Sheets文件...")
+        print(f"Searching for spreadsheet named '{spreadsheet_name}' in folder {folder_id}...")
         
-        # 构建查询条件
         query_parts = [
             f"name='{spreadsheet_name}'",
             "mimeType='application/vnd.google-apps.spreadsheet'",
             "trashed=false"
         ]
         
-        # 添加文件夹限制
         if folder_id:
             query_parts.append(f"'{folder_id}' in parents")
         
         query = " and ".join(query_parts)
-        print(f"Drive API查询条件: {query}")
+        print(f"Drive API query: {query}")
         
         results = drive_service.files().list(q=query, fields="files(id, name, webViewLink, parents)").execute()
         files = results.get('files', [])
         
         if not files:
-            print(f"在指定文件夹中未找到名为 '{spreadsheet_name}' 的文件")
+            print(f"Did not find a file named '{spreadsheet_name}' in the specified folder.")
             return None
         
-        # 返回第一个匹配的文件
         file = files[0]
-        print(f"✓ 找到spreadsheet: {file['name']} (ID: {file['id']})")
+        print(f"✓ Found spreadsheet: {file['name']} (ID: {file['id']})")
         return file['id']
         
     except Exception as e:
-        print(f"搜索文件时出错: {e}")
+        print(f"Error while searching for spreadsheet: {e}")
         return None
 
 def read_google_sheets_content(spreadsheet_id, worksheet_name, folder_id=None):
-    """读取Google Sheets内容并返回详细信息用于验证，支持文件夹约束"""
+    """Read Google Sheets content and return details for validation. Supports folder constraint."""
     try:
-        print(f"正在连接Google Sheets: {spreadsheet_id}")
-        print(f"正在读取worksheet: {worksheet_name}")
+        print(f"Connecting to Google Sheets: {spreadsheet_id}")
+        print(f"Reading worksheet: {worksheet_name}")
         if folder_id:
-            print(f"约束文件夹: {folder_id}")
+            print(f"With folder constraint: {folder_id}")
         
-        # 读取OAuth2凭证文件
+        # Read OAuth2 credentials
         with open(GOOGLE_CREDENTIALS_PATH, 'r') as f:
             creds_data = json.load(f)
         
-        # 创建OAuth2凭证对象
         credentials = Credentials(
             token=creds_data.get('token'),
             refresh_token=creds_data.get('refresh_token'),
@@ -127,77 +121,70 @@ def read_google_sheets_content(spreadsheet_id, worksheet_name, folder_id=None):
             scopes=creds_data.get('scopes', SCOPES)
         )
         
-        # 如果token过期，自动刷新
+        # Auto refresh token if expired
         if credentials.expired and credentials.refresh_token:
             credentials.refresh(Request())
-            
-            # 更新保存的token
             creds_data['token'] = credentials.token
             with open(GOOGLE_CREDENTIALS_PATH, 'w') as f:
                 json.dump(creds_data, f, indent=2)
-            print("✓ Token已刷新并保存")
+            print("✓ Token refreshed and saved")
         
-        # 初始化gspread客户端和Google Drive API服务
         gc = gspread.authorize(credentials)
         from googleapiclient.discovery import build
         drive_service = build('drive', 'v3', credentials=credentials)
         
-        # 如果指定了文件夹且spreadsheet_id看起来像一个名称而非ID，使用文件夹搜索
-        if folder_id and not spreadsheet_id.startswith('1'):  # Google Sheets ID通常以1开头
-            print("使用文件夹约束搜索spreadsheet...")
+        # If given a folder and maybe a name instead of an ID, use folder search
+        if folder_id and not spreadsheet_id.startswith('1'):  # Google Sheets ID usually starts with '1'
+            print("Searching spreadsheet with folder constraint...")
             actual_spreadsheet_id = find_spreadsheet_in_folder(drive_service, spreadsheet_id, folder_id)
             if actual_spreadsheet_id:
                 spreadsheet_id = actual_spreadsheet_id
             else:
-                raise Exception(f"在指定文件夹 {folder_id} 中未找到名为 '{spreadsheet_id}' 的spreadsheet")
+                raise Exception(f"Could not find spreadsheet named '{spreadsheet_id}' in folder {folder_id}")
         
-        # 尝试通过ID打开spreadsheet
+        # Try to open spreadsheet by ID
         try:
             spreadsheet = gc.open_by_key(spreadsheet_id)
-            print(f"✓ 成功通过ID打开spreadsheet: {spreadsheet.title}")
+            print(f"✓ Successfully opened spreadsheet by ID: {spreadsheet.title}")
         except:
-            # 如果通过ID失败，尝试通过名称打开
+            # If fail, try to open by name or folder search
             if folder_id:
-                # 如果有文件夹约束，先在文件夹中搜索
                 actual_spreadsheet_id = find_spreadsheet_in_folder(drive_service, spreadsheet_id, folder_id)
                 if actual_spreadsheet_id:
                     spreadsheet = gc.open_by_key(actual_spreadsheet_id)
-                    print(f"✓ 成功通过文件夹搜索打开spreadsheet: {spreadsheet.title}")
+                    print(f"✓ Successfully found and opened spreadsheet by folder search: {spreadsheet.title}")
                 else:
-                    raise Exception(f"在指定文件夹中未找到spreadsheet: {spreadsheet_id}")
+                    raise Exception(f"Spreadsheet '{spreadsheet_id}' not found in specified folder.")
             else:
                 spreadsheet = gc.open(spreadsheet_id)
-                print(f"✓ 成功通过名称打开spreadsheet: {spreadsheet.title}")
+                print(f"✓ Successfully opened spreadsheet by name: {spreadsheet.title}")
         
-        # 验证spreadsheet标题
         expected_title = "inter_ucl_finals_23_25"
         if spreadsheet.title != expected_title:
-            raise Exception(f"Google Sheet文件名错误: 期望 '{expected_title}', 实际 '{spreadsheet.title}'")
-        print(f"✓ Google Sheet文件名验证通过: {spreadsheet.title}")
+            raise Exception(f"Spreadsheet title is incorrect: expected '{expected_title}', got '{spreadsheet.title}'")
+        print(f"✓ Spreadsheet title validated: {spreadsheet.title}")
         
-        # 获取worksheet
+        # Get worksheet
         try:
             worksheet = spreadsheet.worksheet(worksheet_name)
-            print(f"✓ 成功获取worksheet: {worksheet.title}")
+            print(f"✓ Successfully found worksheet: {worksheet.title}")
         except:
-            # 如果指定名称的worksheet不存在，获取第一个worksheet
             worksheet = spreadsheet.get_worksheet(0)
-            print(f"✓ 使用第一个worksheet: {worksheet.title}")
+            print(f"✓ The worksheet with the given name not found. Using the first worksheet: {worksheet.title}")
         
-        # 验证worksheet名称 - 容忍常见的连字符替换
+        # Validate worksheet title
         expected_worksheets_name = ["2023Final","2025Final","StatsDifference"]
         
         if worksheet.title not in expected_worksheets_name:
-            raise Exception(f"工作表名称错误: 期望 '{expected_worksheets_name}中的一个, 实际 '{worksheet.title}'")
-        print(f"✓ 工作表名称验证通过: {worksheet.title}")
+            raise Exception(f"Worksheet title error: expected one of '{expected_worksheets_name}', got '{worksheet.title}'")
+        print(f"✓ Worksheet title validated: {worksheet.title}")
         
-        # 获取所有数据并转换为 Pandas DataFrame
+        # Read all data as pandas DataFrame
         data = worksheet.get_all_records()
         agent_df = pd.DataFrame(data)
         
-        print(f"✓ 成功读取数据，共 {len(agent_df)} 行")
+        print(f"✓ Successfully read data, {len(agent_df)} rows")
         
-        # 获取单元格格式信息（用于检测高亮）
         worksheet_data = {
             'dataframe': agent_df,
             'worksheet_obj': worksheet,
@@ -208,25 +195,23 @@ def read_google_sheets_content(spreadsheet_id, worksheet_name, folder_id=None):
         return worksheet_data
         
     except FileNotFoundError:
-        raise Exception(f"错误：找不到凭证文件。请确保路径 '{GOOGLE_CREDENTIALS_PATH}' 正确。")
+        raise Exception(f"Error: Credentials file not found. Please check path: '{GOOGLE_CREDENTIALS_PATH}'.")
     except json.JSONDecodeError:
-        raise Exception(f"错误：凭证文件格式错误 '{GOOGLE_CREDENTIALS_PATH}'")
+        raise Exception(f"Error: Credentials file is malformed: '{GOOGLE_CREDENTIALS_PATH}'")
     except gspread.exceptions.SpreadsheetNotFound:
-        raise Exception("错误：找不到指定的表格。请检查表格ID是否正确，以及是否已将用户账号分享给该表格。")
+        raise Exception("Error: Could not find the specified spreadsheet. Check your spreadsheet ID and sharing permissions.")
     except Exception as e:
-        raise Exception(f"读取Google Sheets时发生未知错误: {e}")
+        raise Exception(f"Unknown error reading Google Sheets: {e}")
 
 
 def check_content(agent_workspace: str, groundtruth_workspace: str):
-    """主检查函数 - 增强版本，包含所有检测项目"""
-    "path reorganization"
+    """Main checking function - enhanced version, includes all check items."""
+    # Path reorganization
     txt_path = os.path.join(agent_workspace, "sheet_url.txt")
     groundtruth_sheet1_path = os.path.join(groundtruth_workspace, "groundtruth_sheet1.csv")
     groundtruth_sheet2_path = os.path.join(groundtruth_workspace, "groundtruth_sheet2.csv")
     groundtruth_sheet3_path = os.path.join(groundtruth_workspace, "groundtruth_sheet3.csv")
-    print("开始执行数据检查...")
-    
-
+    print("Starting data check...")
 
     try:
         groundtruth_sheets = []
@@ -234,22 +219,21 @@ def check_content(agent_workspace: str, groundtruth_workspace: str):
         groundtruth_sheets.append(pd.read_csv(groundtruth_sheet2_path, index_col='Team'))
         groundtruth_sheets.append(pd.read_csv(groundtruth_sheet3_path, index_col='Team'))
     except Exception as e:
-        return False, f"生成ground truth数据时出错: {e}"
+        return False, f"Error occurred while generating ground truth data: {e}"
     
-    # 从指定的txt文件获取Google Sheets链接并读取内容
+    # Read Google Sheets link from txt and fetch content
     try:
-        print("正在从指定的txt文件中获取Google Sheets链接...")
+        print("Reading Google Sheets link from specified txt file...")
         sheets_url = read_google_sheets_link_from_file(txt_path)
         
-        # 验证链接格式
+        # Validate link format
         link_format_valid = validate_google_sheet_link_format(sheets_url)
         if not link_format_valid:
-            return False, f"Google Sheet链接格式验证失败"
-        print(f"Google Sheet链接格式验证成功")
+            return False, f"Google Sheet link format validation failed"
+        print(f"Google Sheet link format valid")
         
-        # 提取链接并读取数据
+        # Extract link and read data
         spreadsheet_id = extract_spreadsheet_info_from_url(sheets_url)
-        # 定义三个目标工作表名称
         worksheet_names = ["2023Final", "2025Final", "StatsDifference"]
         agent_df_list = []
         for i in range(3):
@@ -258,31 +242,25 @@ def check_content(agent_workspace: str, groundtruth_workspace: str):
             agent_df = worksheet_data['dataframe'].set_index('Team')
             agent_df.index.name = None
             agent_df_list.append(agent_df)
-        # 检查高亮格式
-        # highlight_valid, highlight_msg = check_highlight_formatting(worksheet_data['worksheet_obj'], worksheet_data['dataframe'])
-        # if not highlight_valid:
-        #     return False, f"数据高亮检查失败: {highlight_msg}"
-        # print(f"✓ {highlight_msg}")       
-            
+        # If you want to check highlight formatting, you would do it here
+
     except Exception as e:
-        return False, f"读取Google Sheets数据时出错: {e}"
+        return False, f"Error occurred while reading Google Sheets data: {e}"
     
-    # 检查数据匹配
-    print("正在检查数据匹配...")
+    # Data matching check
+    print("Checking data match...")
 
-    
-    # 显示两个数据框的列名用于调试
+    # Display column names for debugging
     for i in range(3):
-        print(f"Ground truth数据列名: {list(groundtruth_sheets[i].columns)}")
-        print(f"Agent数据列名: {list(agent_df_list[i].columns)}")
+        print(f"Ground truth column names: {list(groundtruth_sheets[i].columns)}")
+        print(f"Agent data column names: {list(agent_df_list[i].columns)}")
 
-
-        print(f"Ground truth数据前几行:")
+        print(f"Ground truth preview:")
         print(groundtruth_sheets[i].head())
-        print(f"Agent数据前几行:")
+        print(f"Agent data preview:")
         print(agent_df_list[i].head())
     
-        # 检查并映射列名
+        # Mapping column names
         check_attributes = [
             "Possession (%)", "Attacks", "Total attempts", "Attempts on target", 
             "Attempts off target", "Blocked", "Passing accuracy (%)", "Passes completed", 
@@ -291,68 +269,65 @@ def check_content(agent_workspace: str, groundtruth_workspace: str):
         ]
         groundtruth_sheets[i].index.name = None
         ground_teams = groundtruth_sheets[i].columns.tolist()
-        agent_teams =agent_df_list[i].columns.tolist()
+        agent_teams = agent_df_list[i].columns.tolist()
 
-        print(f"从Ground truth提取的队伍: {ground_teams}")
-        print(f"从Agent提取的队伍: {agent_teams}")
+        print(f"Teams extracted from Ground truth: {ground_teams}")
+        print(f"Teams extracted from Agent: {agent_teams}")
         if not (ground_teams == agent_teams):
-            print("Agent的sheet中队伍信息与Groundtruth不符。")  
+            print("Team info in Agent's sheet does not match Ground truth sheet.")  
             return False
         check_teams = ground_teams
 
-        # 验证所有需要的列都存在
-        print(f"here: {groundtruth_sheets[i].index}")
+        # Check all required rows
+        print(f"Row index in Ground truth: {groundtruth_sheets[i].index}")
         missing_rows = [row for row in check_attributes if row not in agent_df_list[i].index]
 
         if missing_rows:
-            return False, f"Agent数据缺少以下列: {missing_rows}"
+            return False, f"Agent data is missing the following attributes: {missing_rows}"
     
         missing_ground_rows = [row for row in check_attributes if row not in groundtruth_sheets[i].index]
         if missing_ground_rows:
-            return False, f"Ground truth数据缺少以下列: {missing_ground_rows}"
+            return False, f"Ground truth data is missing the following attributes: {missing_ground_rows}"
     
-        # 第一步：检查Agent数据中的每个条目
+        # Check each entry in Agent data
         for team in check_teams:
-            print(f"\n检查队伍: {team}")
+            print(f"\nChecking team: {team}")
             
             for attribute in check_attributes:
                 agent_value = agent_df_list[i].at[attribute, team]
                 ground_value = groundtruth_sheets[i].at[attribute, team]
                 
-                # 处理缺失值
+                # Handle missing values
                 agent_is_missing = (pd.isna(agent_value) or 
-                                str(agent_value).strip() in ['缺失', 'Missing', 'missing', ''])
+                                str(agent_value).strip() in ['Missing', 'missing', '', 'None'])
                 ground_is_missing = pd.isna(ground_value)
                 
                 if agent_is_missing and ground_is_missing:
-                    print(f"  {attribute}: 双方都缺失 - ✓")
+                    print(f"  {attribute}: Both missing - ✓")
                     continue
                     
                 if agent_is_missing and not ground_is_missing:
-                    print(f"  {attribute}: Agent缺失但Ground truth有值")
-                    return False, f"队伍 {team} 属性 {attribute}: Agent缺失但Ground truth有值"
+                    print(f"  {attribute}: Agent missing but Ground truth has value")
+                    return False, f"Team {team} attribute {attribute}: Agent missing but Ground truth has value"
                     
                 if not agent_is_missing and ground_is_missing:
-                    return False, f"队伍 {team} 属性 {attribute}: Agent有值但Ground truth缺失"
+                    return False, f"Team {team} attribute {attribute}: Agent value exists but Ground truth missing"
                 
-                # 数值比较
+                # Value comparison
                 try:
-                    # 转换为数值进行比较
                     agent_num = float(agent_value)
                     ground_num = float(ground_value)
-                    
-                    # 允许0.01的微小误差（考虑浮点数精度）
                     if abs(agent_num - ground_num) > 0.01:
-                        return False, f"队伍 {team} 属性 {attribute}: Agent值 = {agent_value}, Ground truth值 = {ground_value}"
+                        return False, f"Team {team} attribute {attribute}: Agent = {agent_value}, Ground truth = {ground_value}"
                     else:
-                        print(f"  {attribute}: ✓ 匹配 ({agent_value})")
+                        print(f"  {attribute}: ✓ match ({agent_value})")
                         
                 except (ValueError, TypeError):
-                    # 如果是字符串，直接比较
+                    # Direct string compare
                     if str(agent_value).strip() != str(ground_value).strip():
-                        return False, f"队伍 {team} 属性 {attribute}: Agent值 = '{agent_value}', Ground truth值 = '{ground_value}'"
+                        return False, f"Team {team} attribute {attribute}: Agent = '{agent_value}', Ground truth = '{ground_value}'"
                     else:
-                        print(f"  {attribute}: ✓ 匹配")
+                        print(f"  {attribute}: ✓ match")
             
-    print("✓ 所有数据检查通过")
+    print("✓ All data checks passed")
     return True, "All checks passed. Agent data matches ground truth with enhanced validation."

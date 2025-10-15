@@ -1,13 +1,8 @@
-"""
-Google Sheets预处理脚本
-用于检测并删除已存在的inter-ucl-final2325 Google Sheet文件
-"""
 import sys
 import os
 import asyncio
 from argparse import ArgumentParser
 
-# 动态添加项目根目录到Python路径
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../..'))
 sys.path.append(project_root)
 
@@ -16,10 +11,8 @@ from utils.app_specific.googlesheet.drive_helper import (
     clear_folder, copy_sheet_to_folder
 )
 
-# 源Google Sheet URL (需要复制的模板)
 SOURCE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1fKZ2b4R5kFgxGFis9UuJV2ANxth0Kdu_ifK8krlui4o/edit?usp=sharing"
 
-# 目标文件夹名称
 FOLDER_NAME = "inter-ucl-final2325"
 
 async def main():
@@ -29,65 +22,65 @@ async def main():
     args = parser.parse_args()
 
     print("=" * 60)
-    print("开始Google Sheets预处理 - Inter Final Performance Analysis")
+    print("Start Google Sheets preprocess - Inter Final Performance Analysis")
     print("=" * 60)
 
-    # 获取任务根目录路径
+    # Get task root path
     task_root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     
-    # 创建files目录
+    # Create files directory
     files_dir = os.path.join(task_root_path, "files")
     os.makedirs(files_dir, exist_ok=True)
     
-    # 文件夹ID保存文件路径
+    # Folder ID save file path
     folder_id_file = os.path.join(files_dir, "folder_id.txt")
 
-    # 如果已存在folder_id.txt文件，删除它
+    # If folder_id.txt file exists, delete it
     if os.path.exists(folder_id_file):
         os.remove(folder_id_file)
-        print(f"✓ 已清理旧的文件夹ID文件")
+        print(f"✓ Old folder ID file cleaned")
 
     try:
-        # 获取Google服务
-        print("正在认证Google服务...")
+        # Get Google service
+        print("Authenticating Google service...")
         drive_service, sheets_service = get_google_service()
-        print("✓ Google服务认证成功")
+        print("✓ Google service authentication successful")
 
-        # 查找或创建目标文件夹
-        print(f"正在查找文件夹: {FOLDER_NAME}")
+        # Find or create target folder
+        print(f"Searching for folder: {FOLDER_NAME}")
         folder_id = find_folder_by_name(drive_service, FOLDER_NAME)
         
         if not folder_id:
-            print(f"未找到文件夹，正在创建: {FOLDER_NAME}")
+            print(f"Folder not found, creating: {FOLDER_NAME}")
             folder_id = create_folder(drive_service, FOLDER_NAME)
-            print(f"✓ 成功创建文件夹: {FOLDER_NAME} (ID: {folder_id})")
+            print(f"✓ Folder created: {FOLDER_NAME} (ID: {folder_id})")
         else:
-            print(f"✓ 找到现有文件夹: {FOLDER_NAME} (ID: {folder_id})")
+            print(f"✓ Existing folder found: {FOLDER_NAME} (ID: {folder_id})")
 
-        # 清理文件夹中的所有文件
-        print("正在清理文件夹中的现有文件...")
+        # Clean folder contents
+        print("Cleaning folder contents...")
         clear_folder(drive_service, folder_id)
-        print("✓ 文件夹已清理")
+        print("✓ Folder cleaned")
 
-        # 复制源Google Sheet到目标文件夹
-        print(f"正在复制源Google Sheet到文件夹...")
-        print(f"源Sheet URL: {SOURCE_SHEET_URL}")
+        # Copy source Google Sheet to target folder
+        print(f"Copying source Google Sheet to folder...")
+        print(f"Source Sheet URL: {SOURCE_SHEET_URL}")
         copied_sheet_id = copy_sheet_to_folder(drive_service, SOURCE_SHEET_URL, folder_id)
-        print(f"✓ 成功复制Google Sheet (新ID: {copied_sheet_id})")
+        print(f"✓ Successfully copied Google Sheet (new ID: {copied_sheet_id})")
 
-        # 保存文件夹ID到文件
+        # Save folder ID to file
         with open(folder_id_file, "w") as f:
             f.write(folder_id)
-        print(f"✓ 文件夹ID已保存到: {folder_id_file}")
+        print(f"✓ Folder ID saved to: {folder_id_file}")
 
         print("\n" + "=" * 60)
-        print("✓ 预处理完成：环境已准备就绪")
-        print(f"✓ 工作文件夹ID: {folder_id}")
-        print(f"✓ 模板已复制，可以开始任务")
+        print("✓ Preprocess complete: environment is ready")
+        print(f"✓ Workspace folder ID: {folder_id}")
+        print(f"✓ Template copied, can start task")
         print("=" * 60)
         
     except Exception as e:
-        print(f"\n✗ 预处理过程中发生错误: {e}")
+        print(f"\n✗ Preprocess error: {e}")
         print("=" * 60)
         sys.exit(1)
 
