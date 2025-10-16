@@ -3,7 +3,7 @@ name = "mcpbench-dev"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = "==3.12.12"
+requires-python = "==3.12.11"
 dependencies = [
     "addict==2.4.0",
     "aiofiles==24.1.0",
