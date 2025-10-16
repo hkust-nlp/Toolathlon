@@ -7,6 +7,5 @@ all_token_key_session = Dict(
     woocommerce_api_secret = "cs_woocommerce_token_JH0613Kw2AM",
     woocommerce_site_url = "http://localhost:10003/store93",
     
-    # 邮件配置 (poste/emails)
     emails_config_file = os.path.join(os.path.dirname(__file__), "email_config.json"),
 )

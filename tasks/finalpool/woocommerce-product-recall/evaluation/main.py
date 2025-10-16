@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-产品召回任务评估系统
-评估MCP服务器在产品召回流程中的执行效果
+Evaluation System for Product Recall Task
+Evaluates the effectiveness of the MCP server in the product recall workflow
 """
 import json
 import os
@@ -9,7 +9,7 @@ import sys
 from datetime import datetime
 from argparse import ArgumentParser
 
-# 添加项目路径
+# Add project path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 task_dir = os.path.dirname(current_dir)
 sys.path.insert(0, task_dir)
@@ -17,14 +17,14 @@ sys.path.insert(0, task_dir)
 from .check_remote_recall import check_remote_recall_execution
 
 def run_complete_evaluation(agent_workspace: str, groundtruth_workspace: str, res_log_file: str) -> tuple[bool, str]:
-    """运行完整的产品召回评估工作流程"""
+    """Run the complete product recall evaluation workflow"""
     
     print("🚀 Starting Product Recall Evaluation")
     print("=" * 80)
     
     results = []
     
-    # 只进行远程检查
+    # Only perform remote check
     print("\n🌐 Checking Remote Services...")
     try:
         remote_pass, remote_msg = check_remote_recall_execution(agent_workspace, groundtruth_workspace, {})
@@ -34,11 +34,11 @@ def run_complete_evaluation(agent_workspace: str, groundtruth_workspace: str, re
         results.append(("Remote Services", False, str(e)))
         print(f"❌ Remote services check error: {e}")
     
-    # 计算总体结果
+    # Calculate overall results
     passed_count = sum(1 for _, passed, _ in results if passed)
     total_count = len(results)
     
-    # 摘要
+    # Summary
     summary = []
     summary.append("\n" + "=" * 80)
     summary.append("EVALUATION SUMMARY")
@@ -63,7 +63,7 @@ def run_complete_evaluation(agent_workspace: str, groundtruth_workspace: str, re
     return overall_pass, "\n".join(summary)
 
 def main(args):
-    """主函数"""
+    """Main function"""
     try:
         success, message = run_complete_evaluation(
             args.agent_workspace, 

@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-WooCommerce清理状态验证工具
-验证商店是否已完全清理干净
+WooCommerce Clean State Verification Tool
+Verify whether the store has been fully cleaned
 """
 
 import sys
 import os
 from typing import Dict, List
 
-# 添加路径
+# Add paths
 current_dir = os.path.dirname(os.path.abspath(__file__))
 task_dir = os.path.dirname(current_dir)
 sys.path.insert(0, task_dir)
@@ -18,15 +18,15 @@ from woocommerce_client import WooCommerceClient
 
 def verify_clean_state(wc_client: WooCommerceClient) -> Dict:
     """
-    验证WooCommerce商店是否处于清洁状态
+    Verify whether the WooCommerce store is in a clean state
     
     Args:
-        wc_client: WooCommerce客户端
+        wc_client: WooCommerce client instance
         
     Returns:
-        验证结果字典
+        A dictionary containing the verification result
     """
-    print("🔍 验证WooCommerce商店清理状态...")
+    print("🔍 Verifying WooCommerce store clean state...")
     
     verification_result = {
         "is_clean": True,
@@ -39,41 +39,41 @@ def verify_clean_state(wc_client: WooCommerceClient) -> Dict:
         }
     }
     
-    # 1. 检查商品
-    print("   检查商品...")
+    # 1. Check products
+    print("   Checking products...")
     products = wc_client.get_all_products()
     product_count = len(products)
     verification_result["summary"]["products_count"] = product_count
     
     if product_count > 0:
         verification_result["is_clean"] = False
-        verification_result["issues"].append(f"仍有 {product_count} 个商品未清理")
-        print(f"   ❌ 发现 {product_count} 个商品")
+        verification_result["issues"].append(f"{product_count} products have not been cleaned")
+        print(f"   ❌ Found {product_count} products")
         
-        # 显示前5个商品作为示例
+        # Show first 5 products as examples
         for i, product in enumerate(products[:5]):
             print(f"      - {product.get('name', 'Unknown')} (ID: {product.get('id')})")
         
         if product_count > 5:
-            print(f"      ... 还有 {product_count - 5} 个商品")
+            print(f"      ... {product_count - 5} more products")
     else:
-        print("   ✅ 商品清理完成")
+        print("   ✅ All products cleaned")
     
-    # 2. 检查订单
-    print("   检查订单...")
+    # 2. Check orders
+    print("   Checking orders...")
     orders = wc_client.get_all_orders()
     order_count = len(orders)
     verification_result["summary"]["orders_count"] = order_count
     
     if order_count > 0:
         verification_result["is_clean"] = False
-        verification_result["issues"].append(f"仍有 {order_count} 个订单未清理")
-        print(f"   ❌ 发现 {order_count} 个订单")
+        verification_result["issues"].append(f"{order_count} orders have not been cleaned")
+        print(f"   ❌ Found {order_count} orders")
     else:
-        print("   ✅ 订单清理完成")
+        print("   ✅ All orders cleaned")
     
-    # 3. 检查测试客户
-    print("   检查测试客户...")
+    # 3. Check test customers
+    print("   Checking test customers...")
     try:
         success, customers = wc_client.list_customers(per_page=100)
         if success:
@@ -83,21 +83,21 @@ def verify_clean_state(wc_client: WooCommerceClient) -> Dict:
             
             if test_customer_count > 0:
                 verification_result["is_clean"] = False
-                verification_result["issues"].append(f"仍有 {test_customer_count} 个测试客户未清理")
-                print(f"   ❌ 发现 {test_customer_count} 个测试客户")
+                verification_result["issues"].append(f"{test_customer_count} test customers have not been cleaned")
+                print(f"   ❌ Found {test_customer_count} test customers")
                 for customer in test_customers:
                     print(f"      - {customer.get('email')}")
             else:
-                print("   ✅ 测试客户清理完成")
+                print("   ✅ All test customers cleaned")
     except Exception as e:
-        print(f"   ⚠️ 检查客户时出错: {e}")
+        print(f"   ⚠️ Error checking customers: {e}")
     
-    # 4. 检查自定义分类
-    print("   检查自定义分类...")
+    # 4. Check custom categories
+    print("   Checking custom categories...")
     try:
         success, categories = wc_client.get_product_categories()
         if success:
-            # 过滤掉默认分类
+            # Filter out the default category
             custom_categories = [
                 cat for cat in categories 
                 if cat.get('id') != 15 and cat.get('slug') != 'uncategorized'
@@ -107,28 +107,28 @@ def verify_clean_state(wc_client: WooCommerceClient) -> Dict:
             
             if custom_cat_count > 0:
                 verification_result["is_clean"] = False
-                verification_result["issues"].append(f"仍有 {custom_cat_count} 个自定义分类未清理")
-                print(f"   ❌ 发现 {custom_cat_count} 个自定义分类")
-                for cat in custom_categories[:3]:  # 显示前3个
+                verification_result["issues"].append(f"{custom_cat_count} custom categories have not been cleaned")
+                print(f"   ❌ Found {custom_cat_count} custom categories")
+                for cat in custom_categories[:3]:  # Show first 3
                     print(f"      - {cat.get('name')} (ID: {cat.get('id')})")
             else:
-                print("   ✅ 自定义分类清理完成")
+                print("   ✅ All custom categories cleaned")
     except Exception as e:
-        print(f"   ⚠️ 检查分类时出错: {e}")
+        print(f"   ⚠️ Error checking categories: {e}")
     
-    # 输出验证结果
-    print("\n📊 验证结果:")
+    # Print verification result
+    print("\n📊 Verification Result:")
     if verification_result["is_clean"]:
-        print("✅ 商店已完全清理干净，可以开始初始化")
+        print("✅ Store is fully clean and ready for initialization")
     else:
-        print("❌ 商店清理不完整，发现以下问题:")
+        print("❌ Store is not completely clean, issues found:")
         for issue in verification_result["issues"]:
             print(f"   - {issue}")
     
     return verification_result
 
 def main():
-    """主函数 - 独立验证清理状态"""
+    """Main function - verify clean state independently"""
     try:
         from token_key_session import all_token_key_session
         
@@ -137,10 +137,10 @@ def main():
         consumer_secret = all_token_key_session.woocommerce_api_secret
         
     except ImportError:
-        print("❌ 未找到 token_key_session 配置文件")
+        print("❌ Could not find token_key_session configuration file")
         return False
     
-    print("🔍 WooCommerce清理状态验证工具")
+    print("🔍 WooCommerce Clean State Verification Tool")
     print("=" * 50)
     
     wc_client = WooCommerceClient(site_url, consumer_key, consumer_secret)
