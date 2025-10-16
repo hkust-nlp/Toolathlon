@@ -28,13 +28,13 @@ poste_configure_dovecot=${1:-true}
 
 for attempt in {1..3}; do
     for model_provider in "${MODEL_PROVIDER_LIST[@]}"; do
-        # 解析模型名和提供商
-        MODEL_SHORT_NAME="${model_provider%%|*}"  # 从左边提取到第一个 | 之前的内容
-        PROVIDER="${model_provider##*|}"         # 从右边提取最后一个 | 之后的内容
+        # Parse model name and provider
+        MODEL_SHORT_NAME="${model_provider%%|*}"  # Extract left part up to first |
+        PROVIDER="${model_provider##*|}"         # Extract right part after last |
         
         echo "Running $MODEL_SHORT_NAME with $PROVIDER, attempt $attempt ......"
 
         bash global_preparation/deploy_containers.sh $poste_configure_dovecot
-        bash scripts/run_parallel_jh.sh "$MODEL_SHORT_NAME" "./dumps_finalexp/${MODEL_SHORT_NAME}_${attempt}" "$PROVIDER" "$TASK_LIST_FILE"
+        bash scripts/run_parallel.sh "$MODEL_SHORT_NAME" "./dumps_finalexp/${MODEL_SHORT_NAME}_${attempt}" "$PROVIDER" "$TASK_LIST_FILE"
     done
 done

@@ -1,5 +1,5 @@
 ### 2025.9.6 16:30
-- 增强demo.py功能，添加了模型配置命令行参数(model_short_name, provider, max_steps_under_single_turn_mode)
+- 增强main.py功能，添加了模型配置命令行参数(model_short_name, provider, max_steps_under_single_turn_mode)
 - 改进日志输出格式，使用彩色日志显示重要信息和状态
 - 优化容器化执行脚本，完善参数传递和路径处理
 - 添加并行执行支持和容器管理功能
@@ -224,7 +224,7 @@
 - 修改语言模式参数命名
     - 将 `--en_mode` 参数改为 `--cn_mode`，默认为英文模式，启用参数后为中文模式
     - 对应的文件后缀从 `_en` 改为 `_cn`
-    - 相关文件 `demo.py`, `utils/data_structures/task_config.py`
+    - 相关文件 `main.py`, `utils/data_structures/task_config.py`
 
 ## 2025.7.22 23:59
 - 添加YouTube字幕MCP服务器支持
@@ -268,7 +268,7 @@
 - 修正terminal服务器的使用方法, 请先 `uv tool install cli-mcp-server`
 
 ## 2025.7.15 11:00
-- 增加了英文模式，在原任务下添加带_en后缀各种脚本和文件夹即可识别，demo.py增加参数 --en_mode
+- 增加了英文模式，在原任务下添加带_en后缀各种脚本和文件夹即可识别，main.py增加参数 --en_mode
 
 ## 2025.7.12 18:00
 - 移除了code_runner server (因为没法指定工作路径，感觉有点笨)，改用一个新写的python执行工具.

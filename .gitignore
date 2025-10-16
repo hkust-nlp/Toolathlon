@@ -94,3 +94,5 @@ detect_cn.py
 
 .vscode
 .claude
+
+aux/

@@ -17,7 +17,7 @@ MCPBench-Dev is an evaluation benchmark for Model Context Protocol (MCP) agents.
 
 ### Key Architecture Files
 - `main.py`: Batch task processor for running multiple tasks concurrently
-- `demo.py`: Single task runner for development and debugging  
+- `main.py`: Single task runner for development and debugging  
 - `utils/task_runner/runner.py`: Core task execution logic with TaskRunner class
 - `utils/evaluation/evaluator.py`: Task evaluation framework
 - `utils/data_structures/`: Configuration data structures (TaskConfig, AgentConfig, etc.)
@@ -50,20 +50,20 @@ uv tool install pdf-tools-mcp@latest
 **Single Task Development/Debug:**
 ```bash
 # Basic debug run
-uv run demo.py \
+uv run main.py \
   --eval_config scripts/debug_eval_config.json \
   --task_dir finalpool/find-alita-paper \
   --debug
 
 # With manual user input (real user instead of simulated)
-uv run demo.py \
+uv run main.py \
   --eval_config scripts/debug_eval_config.json \
   --task_dir debug/debug-task \
   --debug \
   --manual
 
 # Multi-turn mode
-uv run demo.py \
+uv run main.py \
   --eval_config scripts/debug_eval_config.json \
   --task_dir debug/debug-task \
   --debug \

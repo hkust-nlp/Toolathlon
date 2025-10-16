@@ -29,7 +29,6 @@ mkdir -p $DUMP_PATH
 # Optional parameters - uncomment and modify as needed
 TASK_LIST=$4
 
-
 # Generate temporary config file with random suffix to avoid conflicts
 RANDOM_SUFFIX=$(date +%s)_$$_$(shuf -i 1000-9999 -n 1)
 TEMP_CONFIG="scripts/temp_parallel_config_${RANDOM_SUFFIX}.json"
@@ -124,11 +123,11 @@ echo "📝 Creating traj_log_all.jsonl..."
 find "$DUMP_PATH" -name "traj_log.json" -type f -exec sh -c 'cat "$1" && echo' _ {} \; > "$DUMP_PATH/traj_log_all.jsonl" 2>/dev/null
 echo "✅ Trajectory logs saved to: $DUMP_PATH/traj_log_all.jsonl"
 
-# 4. Generate enhanced statistics using separate script
+# 5. Generate enhanced statistics using separate script
 echo "📊 Generating enhanced statistics..."
 uv run scripts/generate_parallel_stats.py --dump_path "$DUMP_PATH" --tasks_folder "$TASKS_FOLDER" --temp_config "$TEMP_CONFIG" --task_list_file "${TASK_LIST:-all_tasks}"
 
-# Cleanup
+# Cleanup (optionally remove temporary config file)
 # rm -f "$TEMP_CONFIG"
 
 echo ""

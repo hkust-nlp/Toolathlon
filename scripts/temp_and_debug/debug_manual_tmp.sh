@@ -10,7 +10,7 @@
 # provider: Provider, see utils/api_model/model_provider.py
 # max_steps_under_single_turn_mode: Maximum number of steps under single-turn mode
 
-uv run demo.py \
+uv run main.py \
 --eval_config scripts/temp_and_debug/debug_eval_config.json \
 --task_dir finalpool/woocommerce-new-product \
 --debug \

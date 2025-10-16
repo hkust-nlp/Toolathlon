@@ -11,7 +11,7 @@ e.g. `groundtruth/dev/filesystem_001`
 
 Also, set the global evaluation config, see `scripts/eval_config.json`, which specify some global parameters for this benchmark.
 
-Then you can `uv run demo.py` (with some correct arguments) as a test for your newly added task.
+Then you can `uv run main.py` (with some correct arguments) as a test for your newly added task.
 
 see `scripts/debug_manual.sh` for more details
 

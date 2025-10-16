@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script for running a single task in a containerized environment
-# Usage: ./run_single_containerized.sh <task_dir> <log_path>
+# Usage: ./run_single_containerized.sh <task_dir> <tag> <modelname> [provider] [maxstep] [eval_config] [dump_path] [image_name]
 
 set -e
 
@@ -17,11 +17,10 @@ image_name=${8:-"lockon0927/mcpbench-task-image-v2:jh0913"}
 taskdomain=${task_dir_arg%/*}
 taskname=${task_dir_arg#*/}
 
-# Updated log paths to use dump_path
+# Set up log paths using dump_path
 container_log_path="${dump_path}/${taskdomain}/${taskname}/container.log"
 run_log_path="${dump_path}/${taskdomain}/${taskname}/run.log"
 output_folder="${dump_path}/${taskdomain}/${taskname}"
-
 
 if [ -z "$task_dir_arg" ] || [ -z "$tag" ] || [ -z "$modelname" ]; then
     echo "Usage: $0 <task_dir> <tag> <modelname>"
@@ -59,7 +58,7 @@ echo "Using container runtime: $CONTAINER_RUNTIME"
 
 # Use the image name from parameter
 IMAGE_NAME="$image_name"
-echo "Using Docker image: $IMAGE_NAME"
+echo "Using container image: $IMAGE_NAME"
 
 # Generate unique container name
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
@@ -68,12 +67,11 @@ CONTAINER_NAME="mcpbench-${SAFE_TASK_NAME}-${TIMESTAMP}"
 
 echo "Container name: $CONTAINER_NAME"
 
-
 # Cleanup function
 cleanup() {
     echo ""
     echo "Performing cleanup..."
-    # Stop and clean up container
+    # Stop and remove container if exists
     if $CONTAINER_RUNTIME ps -aq --filter "name=$CONTAINER_NAME" 2>/dev/null | grep -q .; then
         echo "  Stopping and removing container: $CONTAINER_NAME"
         $CONTAINER_RUNTIME stop "$CONTAINER_NAME" >/dev/null 2>&1 || true
@@ -103,7 +101,7 @@ FILES_TO_COPY=(
     "global_preparation/check_installation.py"
     "local_binary/github-mcp-server"
     "utils"
-    "demo.py"
+    "main.py"
 )
 
 # Verify all required files/directories exist
@@ -116,7 +114,7 @@ for item in "${FILES_TO_COPY[@]}"; do
     fi
 done
 
-# Verify task directory existence
+# Confirm existence of task directory
 echo "  ✓ Task directory: tasks/$task_dir_arg"
 
 # Ensure log directories exist
@@ -135,21 +133,19 @@ echo "Preparing to start container..."
 # Step 1: Start container and keep it running
 echo "Step 1: Starting container and keeping it running..."
 
-# Container startup parameters (don't execute commands, just start and keep running)
+# Container startup parameters (only start and keep alive, do not execute task yet)
 START_CONTAINER_ARGS=(
     "$CONTAINER_RUNTIME" "run"
-    "-d"  # 后台运行
+    "-d"  # Run in background
     "--name" "$CONTAINER_NAME"
-    # Use host network to allow container access to Kind cluster on host
-    "--network" "host"
+    "--network" "host" # Use host network for Kind cluster access
 )
 
 # Add socket mount based on container runtime
 if [ "$CONTAINER_RUNTIME" = "podman" ]; then
     echo "Configuring Podman environment..."
-    # Podman socket mount, allowing kind in container to create clusters on host
     PODMAN_SOCKET_FOUND=false
-    
+
     # 1. Check system-level podman socket
     if [ -S "/run/podman/podman.sock" ]; then
         START_CONTAINER_ARGS+=(
@@ -165,12 +161,12 @@ if [ "$CONTAINER_RUNTIME" = "podman" ]; then
         echo "Using user-level podman socket: /run/user/$(id -u)/podman/podman.sock"
         PODMAN_SOCKET_FOUND=true
     fi
-    
+
     if [ "$PODMAN_SOCKET_FOUND" = false ]; then
         echo "Warning: Podman socket not found, Kind may not work"
         echo "Tip: Please manually run 'systemctl --user start podman.socket' or 'sudo systemctl start podman.socket'"
     fi
-    # Set environment variable for Kind to use Podman
+    # Set env variable for Kind to use Podman
     START_CONTAINER_ARGS+=(
         "-e" "KIND_EXPERIMENTAL_PROVIDER=podman"
     )
@@ -183,31 +179,23 @@ elif [ "$CONTAINER_RUNTIME" = "docker" ]; then
 fi
 
 # Add mounts
-START_CONTAINER_ARGS+=(    
-    # Mount results directory (read-write)
-    
-    # Mount the specific task output folder to /workspace/dumps
+START_CONTAINER_ARGS+=(
+    # Mount output folder as /workspace/dumps
     "-v" "$PROJECT_ROOT/$output_folder:/workspace/dumps"
-    
     # Mount log directory
     "-v" "$RUN_LOG_DIR:/workspace/logs"
-    
-    # Working directory
+    # Set working directory
     "-w" "/workspace"
-    
-    # Image
+    # Set image
     "$IMAGE_NAME"
-    
-    # Command to keep container running
+    # Keep the container alive for later exec
     "sleep" "3600"
 )
 
 echo "Container start command: ${START_CONTAINER_ARGS[*]}"
 echo ""
 
-# exit 0
-
-# Start container
+# Start the container
 echo "Starting container..."
 CONTAINER_ID=$("${START_CONTAINER_ARGS[@]}")
 START_EXIT_CODE=$?
@@ -225,7 +213,6 @@ fi
 echo ""
 echo "Step 2: Waiting for container to be ready..."
 
-# Check container status
 MAX_WAIT=30
 WAIT_COUNT=0
 CONTAINER_READY=false
@@ -233,7 +220,7 @@ CONTAINER_READY=false
 while [ $WAIT_COUNT -lt $MAX_WAIT ]; do
     # Check if container is still running
     if $CONTAINER_RUNTIME ps -q --filter "name=$CONTAINER_NAME" | grep -q .; then
-        # Try to execute simple command in container to verify ready state
+        # Verify basic exec in container
         if $CONTAINER_RUNTIME exec "$CONTAINER_NAME" echo "container ready" >/dev/null 2>&1; then
             CONTAINER_READY=true
             break
@@ -242,7 +229,7 @@ while [ $WAIT_COUNT -lt $MAX_WAIT ]; do
         echo "✗ Container unexpectedly stopped"
         exit 1
     fi
-    
+
     echo "  Waiting for container to be ready... (${WAIT_COUNT}/${MAX_WAIT})"
     sleep 1
     WAIT_COUNT=$((WAIT_COUNT + 1))
@@ -259,8 +246,8 @@ fi
 echo ""
 echo "Step 2.5: Copying project files to container..."
 
-# First create necessary directory structure in container
-echo "  Creating directory structure..."
+# Create directory structure inside the container, if needed
+echo "  Creating directory structure in container..."
 $CONTAINER_RUNTIME exec "$CONTAINER_NAME" mkdir -p "/workspace/deployment"
 $CONTAINER_RUNTIME exec "$CONTAINER_NAME" mkdir -p "/workspace/deployment/canvas"
 $CONTAINER_RUNTIME exec "$CONTAINER_NAME" mkdir -p "/workspace/global_preparation"
@@ -271,7 +258,6 @@ for item in "${FILES_TO_COPY[@]}"; do
     if [ -e "$PROJECT_ROOT/$item" ]; then
         echo "  Copying $item to container..."
         if [ -d "$PROJECT_ROOT/$item" ]; then
-            # If it's a directory, ensure target parent directory exists
             parent_dir=$(dirname "$item")
             if [ "$parent_dir" != "." ]; then
                 $CONTAINER_RUNTIME exec "$CONTAINER_NAME" mkdir -p "/workspace/$parent_dir"
@@ -283,40 +269,36 @@ done
 
 # Copy task directory
 echo "  Copying task directory tasks/$task_dir_arg to container..."
-# Ensure target directory structure exists
 TARGET_PARENT_DIR=$(dirname "$task_dir_arg")
 if [ "$TARGET_PARENT_DIR" != "." ]; then
     $CONTAINER_RUNTIME exec "$CONTAINER_NAME" mkdir -p "/workspace/tasks/$TARGET_PARENT_DIR"
 fi
-# Copy specific task directory, maintaining complete directory structure
+# Copy actual task directory
 $CONTAINER_RUNTIME cp "$TASK_SOURCE" "$CONTAINER_NAME:/workspace/tasks/$TARGET_PARENT_DIR/"
 
-echo "✓ File copying completed" 
+echo "✓ File copying completed"
 
-# Run the above command again
+# Run the necessary configuration commands in the container
 echo ""
 echo "Step 2.6: Executing necessary configurations..."
 echo " Executing necessary configurations"
 $CONTAINER_RUNTIME exec "$CONTAINER_NAME" bash -c "mkdir -p ~/.gmail-mcp && mkdir -p ~/.calendar-mcp && cp ./configs/gcp-oauth.keys.json ~/.calendar-mcp/ && cp ./configs/gcp-oauth.keys.json ~/.gmail-mcp/ && cp ./configs/google_credentials.json  ~/.calendar-mcp/credentials.json && cp ./configs/google_credentials.json  ~/.gmail-mcp/credentials.json"
 
-
-# Add after step 2.7
+# Step 2.7: Verify Kind environment
 echo ""
 echo "Step 2.7: Verifying Kind environment..."
 
-# Check kind command
 if $CONTAINER_RUNTIME exec "$CONTAINER_NAME" which kind >/dev/null 2>&1; then
     echo "✓ Kind is installed"
     $CONTAINER_RUNTIME exec "$CONTAINER_NAME" kind version
 else
-    echo "✗ Kind not installed, installing..."
+    echo "✗ Kind is not installed, installing..."
     $CONTAINER_RUNTIME exec "$CONTAINER_NAME" bash -c "
         curl -Lo /tmp/kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64 &&
         chmod +x /tmp/kind &&
         mv /tmp/kind /usr/local/bin/kind
     "
 fi
-
 
 # Test Kind functionality
 echo "Testing Kind connection..."
@@ -327,18 +309,16 @@ else
     exit 1
 fi
 
-
 # Step 3: Execute task command in container
 echo ""
 echo "Step 3: Executing task command in container..."
 
-# Command to execute in container
-CONTAINER_CMD="uv run demo.py --eval_config $eval_config --task_dir $task_dir_arg --max_steps_under_single_turn_mode $maxstep --model_short_name $modelname --provider $provider --debug > /workspace/logs/$RUN_LOG_FILE_NAME 2>&1"
+CONTAINER_CMD="uv run main.py --eval_config $eval_config --task_dir $task_dir_arg --max_steps_under_single_turn_mode $maxstep --model_short_name $modelname --provider $provider --debug > /workspace/logs/$RUN_LOG_FILE_NAME 2>&1"
 
-echo "Executing command: $CONTAINER_CMD"
+echo "Executing command in container: $CONTAINER_CMD"
 echo ""
 
-# Execute command in container (let run_parallel.py handle container log)
+# Actually run the task inside the container
 echo "Executing task..."
 $CONTAINER_RUNTIME exec "$CONTAINER_NAME" bash -c "$CONTAINER_CMD"
 EXEC_EXIT_CODE=$?
@@ -356,7 +336,7 @@ EXIT_CODE=$EXEC_EXIT_CODE
 echo "Copying run log from container..."
 $CONTAINER_RUNTIME cp "$CONTAINER_NAME:/workspace/logs/$RUN_LOG_FILE_NAME" "$run_log_path" 2>/dev/null || echo "Warning: Could not copy run log from container"
 
-# Display log summary
+# Display last lines of container and run logs if present
 if [ -f "$container_log_path" ]; then
     echo ""
     echo "=== Container execution log (last 20 lines) ==="

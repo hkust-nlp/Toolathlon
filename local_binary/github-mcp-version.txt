@@ -1,3 +1,5 @@
-ef07feb90b95893767c106067868735d9f550ba6
+https://github.com/lockon-n/github-mcp-server
+
+corresponding commit hash: ef07feb90b95893767c106067868735d9f550ba6
 
 Note: this binary is built by go on linux, so maybe can not be used on other platforms
