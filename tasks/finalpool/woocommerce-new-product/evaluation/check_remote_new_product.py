@@ -369,9 +369,9 @@ def check_email_sending(agent_workspace: str, wc_client: WooCommerceClient) -> T
             # Validate new product appointment emails - strict per requirements
             if expected_appointment > 0:
                 # Should send to all subscribing users
-                appointment_threshold = 1
+                appointment_threshold = expected_appointment
                 if actual_appointment < appointment_threshold:
-                    return False, f"Not enough appointment emails sent: {actual_appointment} recipients, expect at least {appointment_threshold} subscribers"
+                    return False, f"Not enough appointment emails sent: {actual_appointment} recipients, expect {expected_appointment} subscribers"
             else:
                 # If no subscriber, should not send appointment emails
                 if actual_appointment > 0:
@@ -380,7 +380,7 @@ def check_email_sending(agent_workspace: str, wc_client: WooCommerceClient) -> T
             # Validate discount emails (should go to all customers)
             total_customers = len(all_customers)
             if total_customers > 0:
-                discount_threshold = 1
+                discount_threshold = total_customers
                 if actual_discount < discount_threshold:
                     return False, f"Not enough discount emails sent: {actual_discount}, expect at least {discount_threshold} ({total_customers} customers, 100%)"
 
