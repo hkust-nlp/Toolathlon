@@ -14,13 +14,13 @@ from utils.api_model.semaphore import SmartAsyncSemaphore
 from utils.logging.logging_utils import RequestLogger
 from utils.api_model.model_provider import API_MAPPINGS, calculate_cost
 
-# 设置日志
+# Set up logging
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 
 def log_retry(retry_state):
-    """记录重试信息"""
-    # 安全获取异常信息
+    """Log retry information."""
+    # Safely retrieve exception info
     exception_msg = "Unknown error"
     if retry_state.outcome:
         try:
@@ -29,22 +29,22 @@ def log_retry(retry_state):
         except Exception:
             exception_msg = "Failed to get exception info"
     
-    # 安全获取等待时间
+    # Safely retrieve waiting time
     wait_time = 0
     if retry_state.next_action and hasattr(retry_state.next_action, 'sleep'):
         wait_time = retry_state.next_action.sleep
     
     logger.warning(
-        f"API 调用失败 (尝试 {retry_state.attempt_number}): "
+        f"API call failed (attempt {retry_state.attempt_number}): "
         f"{exception_msg}, "
-        f"等待时间: {wait_time} 秒"
+        f"wait time: {wait_time} seconds"
     )
 
 
 class AsyncOpenAIClientWithRetry:
-    """异步OpenAI客户端，带并发控制和请求日志"""
+    """Asynchronous OpenAI client with concurrency control and request logging."""
     
-    # 全局并发控制
+    # Global concurrency control
     _global_semaphore = None
     _model_semaphores: Dict[str, SmartAsyncSemaphore] = {}
     _lock = threading.Lock()
@@ -69,7 +69,7 @@ class AsyncOpenAIClientWithRetry:
         self.base_url = base_url
         self.model_name = model_name
         if self.model_name is not None:
-            logger.warning("A default model name is set to the client, however, it will be override if another model name is provided in `chat_completion(...)`. Please be careful to this point!")
+            logger.warning("A default model name is set to the client, however, it will be overridden if another model name is provided in `chat_completion(...)`. Please be aware of this!")
         self.provider = provider
         self.max_retries = max_retries
         self.base_sleep = base_sleep
@@ -77,35 +77,35 @@ class AsyncOpenAIClientWithRetry:
         self.track_costs = track_costs
         self.use_model_concurrency = use_model_concurrency
         
-        # 初始化客户端
+        # Initialize OpenAI client
         self.client = AsyncOpenAI(
             api_key=api_key,
             base_url=base_url,
             timeout=timeout
         )
         
-        # 设置全局并发限制
+        # Set global concurrency limit
         if global_concurrency is not None:
             with self._lock:
                 if AsyncOpenAIClientWithRetry._global_semaphore is None:
                     AsyncOpenAIClientWithRetry._global_semaphore = SmartAsyncSemaphore(global_concurrency)
         
-        # 成本跟踪
+        # Cost tracking
         self.total_cost = 0.0
         self.cost_history: List[CostReport] = []
         self.session = None
         
-        # 初始化日志记录器
+        # Initialize logger
         self.logger = RequestLogger(log_file, enable_console_log) if log_file else None
     
     @classmethod
     def set_global_concurrency(cls, limit: int):
-        """设置全局并发限制"""
+        """Set the global concurrency limit."""
         with cls._lock:
             cls._global_semaphore = SmartAsyncSemaphore(limit)
     
     def _get_model_semaphore(self, model: str) -> Optional[SmartAsyncSemaphore]:
-        """获取模型特定的信号量"""
+        """Get the semaphore specific to the model."""
         if not self.use_model_concurrency:
             return None
             
@@ -120,17 +120,17 @@ class AsyncOpenAIClientWithRetry:
         return None
     
     async def __aenter__(self):
-        """异步上下文管理器入口"""
+        """Async context manager enter."""
         self.session = aiohttp.ClientSession()
         return self
     
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        """异步上下文管理器退出"""
+        """Async context manager exit."""
         if self.session:
             await self.session.close()
     
     def _get_actual_model_name(self, model: Optional[str] = None) -> str:
-        """获取实际的 API 模型名称"""
+        """Get the actual API model name."""
         model_key = model or self.model_name
         
         if model_key in API_MAPPINGS:
@@ -138,12 +138,12 @@ class AsyncOpenAIClientWithRetry:
             actual_model = api_models.get(self.provider)
             if actual_model:
                 return actual_model
-            logger.warning(f"模型 {model_key} 不支持提供商 {self.provider}")
+            logger.warning(f"Model {model_key} does not support provider {self.provider}")
         
         return model_key
     
     def _calculate_cost(self, model: str, input_tokens: int, output_tokens: int) -> CostReport:
-        """计算使用成本"""
+        """Calculate usage cost."""
         if model not in API_MAPPINGS:
             return CostReport(
                 input_tokens=input_tokens,
@@ -155,7 +155,7 @@ class AsyncOpenAIClientWithRetry:
                 provider=self.provider
             )
 
-        input_cost, output_cost, total_cost = calculate_cost(model,input_tokens,output_tokens)
+        input_cost, output_cost, total_cost = calculate_cost(model, input_tokens, output_tokens)
         
         report = CostReport(
             input_tokens=input_tokens,
@@ -174,19 +174,19 @@ class AsyncOpenAIClientWithRetry:
     
     @asynccontextmanager
     async def _acquire_semaphores(self, model: str):
-        """获取所需的信号量"""
+        """Acquire required semaphores."""
         semaphores = []
         
-        # 全局信号量
+        # Global semaphore
         if self._global_semaphore:
             semaphores.append(self._global_semaphore)
         
-        # 模型特定信号量
+        # Model-specific semaphore
         model_sem = self._get_model_semaphore(model)
         if model_sem:
             semaphores.append(model_sem)
         
-        # 依次获取所有信号量
+        # Acquire all semaphores in order
         acquired = []
         try:
             for sem in semaphores:
@@ -194,7 +194,7 @@ class AsyncOpenAIClientWithRetry:
                 acquired.append(sem)
             yield
         finally:
-            # 反向释放信号量
+            # Release semaphores in reverse order
             for sem in reversed(acquired):
                 await sem.__aexit__(None, None, None)
     
@@ -211,21 +211,20 @@ class AsyncOpenAIClientWithRetry:
         temperature: float = 0.7,
         max_tokens: Optional[int] = None,
         return_cost: bool = False,
-        # 新增tool相关参数
-        tools: Optional[List[Tool]] = None,
+        tools: Optional[List[Tool]] = None,  # tool related parameters
         tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
-        return_tool_calls: bool = False,  # 是否返回tool_calls
+        return_tool_calls: bool = False,  # whether to return tool_calls
         **kwargs
     ) -> Union[str, Tuple[str, CostReport], Tuple[Optional[str], Optional[List[ToolCall]], Optional[CostReport]]]:
-        """带自动重试、并发控制和日志记录的聊天完成方法"""
+        """Chat completion with auto-retry, concurrency control, and logging."""
         model_key = model or self.model_name
         
-        # 生成请求ID和索引
+        # Generate request ID and index
         request_id = str(uuid.uuid4())
         request_index = self.logger.get_next_request_index() if self.logger else 0
         start_time = time.time()
         
-        # 记录请求
+        # Log the request
         if self.logger:
             self.logger.log_request(
                 request_index=request_index,
@@ -241,7 +240,7 @@ class AsyncOpenAIClientWithRetry:
             try:
                 actual_model = self._get_actual_model_name(model)
 
-                # 构建请求参数
+                # Build request parameters
                 request_params = {
                     "model": actual_model,
                     "messages": messages,
@@ -249,7 +248,7 @@ class AsyncOpenAIClientWithRetry:
                     "max_tokens": max_tokens,
                     **kwargs
                 }
-                # 添加tools参数
+                # Add tool parameters if given
                 if tools:
                     request_params["tools"] = [tool.model_dump() for tool in tools]
                 if tool_choice is not None:
@@ -260,7 +259,7 @@ class AsyncOpenAIClientWithRetry:
 
                 response = await self.client.chat.completions.create(**request_params)
 
-                # 处理响应
+                # Handle response
                 choice = response.choices[0]
                 content = choice.message.content
                 try:
@@ -270,7 +269,7 @@ class AsyncOpenAIClientWithRetry:
                 tool_calls = None
                 duration_ms = (time.time() - start_time) * 1000
                 
-                # 处理成本
+                # Handle cost
                 cost_report = None
                 if self.track_costs and hasattr(response, 'usage'):
                     cost_report = self._calculate_cost(
@@ -279,7 +278,7 @@ class AsyncOpenAIClientWithRetry:
                         response.usage.completion_tokens
                     )
                 
-                # 提取tool_calls
+                # Extract tool_calls if available
                 if hasattr(choice.message, 'tool_calls') and choice.message.tool_calls:
                     tool_calls = [
                         ToolCall(
@@ -293,7 +292,7 @@ class AsyncOpenAIClientWithRetry:
                         for tc in choice.message.tool_calls
                     ]
 
-                # 记录响应
+                # Log the response
                 if self.logger:                    
                     self.logger.log_response(
                         request_index=request_index,
@@ -306,7 +305,7 @@ class AsyncOpenAIClientWithRetry:
                         duration_ms=duration_ms
                     )
 
-                # 根据return_tool_calls决定返回格式
+                # Decide return format based on return_tool_calls
                 if return_tool_calls:
                     if return_cost:
                         return content, tool_calls, cost_report
@@ -319,7 +318,7 @@ class AsyncOpenAIClientWithRetry:
             except Exception as e:
                 duration_ms = (time.time() - start_time) * 1000
                 
-                # 记录错误
+                # Log the error
                 if self.logger:
                     self.logger.log_error(
                         request_index=request_index,
@@ -328,11 +327,11 @@ class AsyncOpenAIClientWithRetry:
                         duration_ms=duration_ms
                     )
                 
-                logger.error(f"聊天完成请求失败: {e}")
+                logger.error(f"Chat completion request failed: {e}")
                 raise
 
     def get_cost_summary(self) -> Dict[str, Any]:
-        """获取成本摘要"""
+        """Get a summary of total costs."""
         if not self.cost_history:
             return {
                 "total_cost": 0,
@@ -373,7 +372,7 @@ class AsyncOpenAIClientWithRetry:
         tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
         **kwargs
     ) -> AsyncGenerator[Union[str, ToolCall], None]:
-        """流式响应，支持tool calls"""
+        """Streaming response, supports tool calls."""
         model_key = model or self.model_name
         
         async with self._acquire_semaphores(model_key):
@@ -403,14 +402,14 @@ class AsyncOpenAIClientWithRetry:
             async for chunk in stream:
                 delta = chunk.choices[0].delta
                 
-                # 处理文本内容
+                # Handle text content
                 if delta.content:
                     yield delta.content
                 
-                # 处理tool calls
+                # Handle tool calls
                 if hasattr(delta, 'tool_calls') and delta.tool_calls:
                     for tool_call_delta in delta.tool_calls:
-                        # 新的tool call
+                        # New tool call
                         if tool_call_delta.id:
                             if current_tool_call:
                                 tool_calls_buffer.append(current_tool_call)
@@ -423,15 +422,15 @@ class AsyncOpenAIClientWithRetry:
                                 }
                             }
                         
-                        # 累积arguments
+                        # Accumulate arguments
                         if current_tool_call and tool_call_delta.function.arguments:
                             current_tool_call["function"]["arguments"] += tool_call_delta.function.arguments
             
-            # 处理最后一个tool call
+            # Handle last tool call
             if current_tool_call:
                 tool_calls_buffer.append(current_tool_call)
             
-            # 转换并返回tool calls
+            # Convert and yield tool calls
             for tc in tool_calls_buffer:
                 yield ToolCall(
                     id=tc["id"],

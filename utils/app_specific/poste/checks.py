@@ -57,18 +57,18 @@ def count_any_sent_to_or_cc(sender_config: Dict, target_email: str) -> int:
 
 
 def verify_emails_sent_to_recipients(sender_config: Dict, expected_recipients: List[str],
-                                   content_extractor=None, content_validator=None) -> Tuple[bool, Dict]:
+                                     content_extractor=None, content_validator=None) -> Tuple[bool, Dict]:
     """
-    验证是否向预期收件人列表精确发送了邮件
+    Verify that emails were sent exactly to the expected recipients.
 
     Args:
-        sender_config: 发件人邮箱配置
-        expected_recipients: 预期收件人邮箱列表
-        content_extractor: 可选的邮件内容提取函数 (email_body -> extracted_content)
-        content_validator: 可选的内容验证函数 (extracted_content -> bool)
+        sender_config: Mail sender config dictionary
+        expected_recipients: List of expected recipient email addresses
+        content_extractor: Optional function to extract content from email body (email_body -> extracted_content)
+        content_validator: Optional function to validate extracted content (extracted_content -> bool)
 
     Returns:
-        Tuple[bool, Dict]: (是否通过验证, 详细结果字典)
+        Tuple[bool, Dict]: (Passed validation or not, details in a result dictionary)
     """
     from .ops import _extract_text_from_message
     import re
@@ -78,16 +78,20 @@ def verify_emails_sent_to_recipients(sender_config: Dict, expected_recipients: L
         imap = _connect_imap(sender_config)
         status, _ = imap.select('Sent')
         if status != 'OK':
-            return False, {"error": "无法访问已发送文件夹"}
+            return False, {"error": "Failed to access Sent folder"}
 
         status, nums = imap.search(None, 'ALL')
         if status != 'OK':
-            return False, {"error": "无法搜索邮件"}
+            return False, {"error": "Failed to search emails"}
 
         if not nums or not nums[0]:
-            return False, {"error": "已发送邮件为空", "found_recipients": [], "expected_recipients": expected_recipients}
+            return False, {
+                "error": "No emails found in the Sent folder",
+                "found_recipients": [],
+                "expected_recipients": expected_recipients
+            }
 
-        # 统计实际发送的收件人
+        # Track actually found recipients
         found_recipients = set()
         extracted_contents = []
 
@@ -101,20 +105,20 @@ def verify_emails_sent_to_recipients(sender_config: Dict, expected_recipients: L
 
                 msg = email.message_from_bytes(data[0][1])
 
-                # 获取所有收件人
+                # Gather all recipients
                 to_field = (msg.get('To') or '').lower()
                 cc_field = (msg.get('Cc') or '').lower()
                 bcc_field = (msg.get('Bcc') or '').lower()
                 all_recipients_text = f"{to_field},{cc_field},{bcc_field}"
 
-                # 检查哪些预期收件人在此邮件中
+                # Check which expected recipients are in this email
                 email_recipients = set()
                 for expected_email in expected_recipients:
                     if expected_email.lower() in all_recipients_text:
                         found_recipients.add(expected_email.lower())
                         email_recipients.add(expected_email.lower())
 
-                # 如果有内容提取和验证需求，且此邮件包含预期收件人
+                # If there's a content extraction or validation requirement, and the email has expected recipients
                 if email_recipients and (content_extractor or content_validator):
                     email_body = _extract_text_from_message(msg)
 
@@ -124,7 +128,7 @@ def verify_emails_sent_to_recipients(sender_config: Dict, expected_recipients: L
 
                     if content_validator and not content_validator(email_body):
                         return False, {
-                            "error": "邮件内容验证失败",
+                            "error": "Email content validation failed",
                             "recipients_in_email": list(email_recipients),
                             "email_body_preview": email_body[:200]
                         }
@@ -132,7 +136,7 @@ def verify_emails_sent_to_recipients(sender_config: Dict, expected_recipients: L
             except Exception as e:
                 continue
 
-        # 计算结果
+        # Compute results
         expected_lower = {email.lower() for email in expected_recipients}
         missing_recipients = expected_lower - found_recipients
         extra_recipients = found_recipients - expected_lower
@@ -149,34 +153,34 @@ def verify_emails_sent_to_recipients(sender_config: Dict, expected_recipients: L
         if extracted_contents:
             result["extracted_contents"] = extracted_contents
 
-        # 判断是否通过
+        # Determine whether the verification has passed
         if missing_recipients or extra_recipients:
             if missing_recipients and extra_recipients:
-                result["error"] = f"既有缺少的收件人({len(missing_recipients)}个)，又有额外的收件人({len(extra_recipients)}个)"
+                result["error"] = f"Both missing recipients ({len(missing_recipients)}) and extra recipients ({len(extra_recipients)}) detected"
             elif missing_recipients:
-                result["error"] = f"缺少 {len(missing_recipients)} 个预期收件人"
+                result["error"] = f"Missing {len(missing_recipients)} expected recipient(s)"
             else:
-                result["error"] = f"发送给了 {len(extra_recipients)} 个额外收件人"
+                result["error"] = f"Found {len(extra_recipients)} extra recipient(s) in sent emails"
             return False, result
 
         return True, result
 
     except Exception as e:
-        return False, {"error": f"邮件验证出错: {e}"}
+        return False, {"error": f"Email verification error: {e}"}
     finally:
         _close_imap_safely(imap)
 
 
 def extract_url_patterns_from_email(email_body: str, url_patterns: List[str]) -> List[str]:
     """
-    从邮件正文中提取匹配指定模式的URL
+    Extract URLs from the email body that match given patterns.
 
     Args:
-        email_body: 邮件正文
-        url_patterns: URL正则表达式模式列表
+        email_body: The content of the email body as a string.
+        url_patterns: A list of regex patterns for URLs.
 
     Returns:
-        List[str]: 匹配的URL列表
+        List[str]: List of matching URLs.
     """
     import re
 
@@ -184,13 +188,13 @@ def extract_url_patterns_from_email(email_body: str, url_patterns: List[str]) ->
     for pattern in url_patterns:
         matches = re.findall(pattern, email_body, re.IGNORECASE)
         for match in matches:
-            # 处理元组匹配结果
+            # Handle tuple-match results
             if isinstance(match, tuple):
                 url = next((m for m in match if m), "")
             else:
                 url = match
 
-            # 清理URL末尾的特殊字符
+            # Clean up trailing special characters from the URL
             url = re.sub(r'[^\w\-\.:/]$', '', url)
             if url and url not in found_urls:
                 found_urls.append(url)

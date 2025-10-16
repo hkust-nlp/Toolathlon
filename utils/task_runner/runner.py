@@ -10,12 +10,12 @@ from utils.task_runner.termination_checkers import default_termination_checker
 from functools import partial
 import logging
 from utils.data_structures.common import Model
-# 在 runner.py 的开头添加
+
 import os
 from pprint import pprint
 
 class TaskRunner:
-    """任务运行器"""
+    """Task runner"""
     
     @staticmethod
     async def run_single_task(
@@ -28,12 +28,12 @@ class TaskRunner:
         manual: bool=False,
         single_turn_mode: bool=False,
     ) -> TaskStatus:
-        """运行单个任务"""
-        # 构建模型提供者和客户端
+        """Run a single task"""
+        # Build model provider and client
         agent_model_provider = build_agent_model_provider(agent_config)
         user_client = build_user_client(user_config)
         
-        # 创建hooks
+        # Create hooks
         agent_hooks = AgentLifecycle()
         run_hooks = RunLifecycle(debug)
 
@@ -46,7 +46,7 @@ class TaskRunner:
         print_color("=== Actual mcp config ===", "magenta")
         pprint(mcp_config)
 
-        # 创建并运行TaskAgent
+        # Create and run TaskAgent
         task_agent = TaskAgent(
             task_config=task_config,
             agent_config=agent_config,
@@ -77,7 +77,7 @@ class TaskRunner:
         debug: bool = False,
         allow_resume: bool = False
     ) -> Dict[str, Any]:
-        """运行单个任务并返回详细结果"""
+        """Run a single task and return detailed results"""
         from utils.general.helper import read_json
         from datetime import datetime
         
@@ -88,7 +88,7 @@ class TaskRunner:
         }
         
         try:
-            # 加载任务配置
+            # Load task config
             task_config_dict = read_json(task_config_path)
             task_config = TaskConfig.from_dict(task_config_dict, 
                                                agent_config.model.short_name,
@@ -102,7 +102,7 @@ class TaskRunner:
                     can_skip = True
 
             if not can_skip:
-                # 运行任务
+                # Run task
                 task_status = await TaskRunner.run_single_task(
                     task_config=task_config,
                     agent_config=agent_config,
@@ -114,13 +114,13 @@ class TaskRunner:
                 
                 result["status"] = task_status.value
             else:
-                # 直接使用之前已经跑好的结果
+                # Use previously run results
                 result["status"] = TaskStatus.SUCCESS.value
 
             result["execution_time"] = (datetime.now() - start_time).total_seconds()
             result["log_file"] = task_config.log_file
             
-            # 读取执行日志
+            # Read execution log
             if task_config.log_file and os.path.exists(task_config.log_file):
                 dump_line = read_json(task_config.log_file)
                 result["key_stats"] = dump_line.get("key_stats", {})
@@ -139,7 +139,7 @@ class TaskRunner:
 
     @staticmethod
     def load_configs(eval_config_dict: Dict[str, Any],) -> tuple:
-        """加载配置文件"""
+        """Load config files"""
         mcp_config = MCPConfig.from_dict(eval_config_dict['mcp'])
         agent_config = AgentConfig.from_dict(eval_config_dict['agent'])
         user_config = UserConfig.from_dict(eval_config_dict['user'])

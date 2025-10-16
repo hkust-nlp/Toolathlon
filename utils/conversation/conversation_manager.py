@@ -3,9 +3,8 @@ from utils.general.base_models import Message, MessageRole, Tool
 from utils.api_model.openai_client import AsyncOpenAIClientWithRetry
 
 
-# 对话历史管理器
 class ConversationManager:
-    """对话历史管理器"""
+    """Conversation history manager"""
     
     def __init__(self, max_history: int = 10, log_file: Optional[str] = None):
         self.max_history = max_history
@@ -14,18 +13,18 @@ class ConversationManager:
         self.log_file = log_file
     
     def set_client(self, client: AsyncOpenAIClientWithRetry):
-        """设置API客户端"""
+        """Set the API client"""
         self.client = client
     
     def add_message(self, conversation_id: str, role: MessageRole, content: str):
-        """添加消息到对话历史"""
+        """Add a message to the conversation history"""
         if conversation_id not in self.conversations:
             self.conversations[conversation_id] = []
         
         message = Message(role=role, content=content)
         self.conversations[conversation_id].append(message)
         
-        # 限制历史长度
+        # Limit conversation history length
         if len(self.conversations[conversation_id]) > self.max_history:
             self.conversations[conversation_id] = self.conversations[conversation_id][-self.max_history:]
     
@@ -38,28 +37,28 @@ class ConversationManager:
         tool_functions: Optional[Dict[str, callable]] = None,
         **kwargs
     ) -> str:
-        """生成响应并更新对话历史"""
-        # 添加用户消息
+        """Generate a response and update the conversation history"""
+        # Add user message
         self.add_message(conversation_id, MessageRole.USER, user_input)
         
-        # 构建消息列表
+        # Build messages list
         messages = []
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
         
-        # 添加历史消息
+        # Add conversation history messages
         for msg in self.conversations.get(conversation_id, []):
             msg_dict = {"role": msg.role.value, "content": msg.content}
-            # 处理tool消息的特殊字段
+            # Handle tool message special fields
             if hasattr(msg, 'tool_call_id'):
                 msg_dict['tool_call_id'] = msg.tool_call_id
             if hasattr(msg, 'tool_calls'):
                 msg_dict['tool_calls'] = msg.tool_calls
             messages.append(msg_dict)
         
-        # 生成响应
+        # Generate model response
         if tools and tool_functions:
-            # 支持tool calls
+            # Support tool calls
             content, tool_calls, _ = await self.client.chat_completion(
                 messages, 
                 tools=tools,
@@ -68,7 +67,7 @@ class ConversationManager:
             )
             
             if tool_calls:
-                # 执行tool calls
+                # Execute tool calls
                 response = await self.client.execute_tool_calls(
                     tool_calls,
                     tool_functions,
@@ -78,10 +77,10 @@ class ConversationManager:
             else:
                 response = content
         else:
-            # 普通响应
+            # Standard model response
             response = await self.client.chat_completion(messages, **kwargs)
         
-        # 添加助手响应到历史
+        # Add assistant response to history
         self.add_message(conversation_id, MessageRole.ASSISTANT, response)
         
         return response

@@ -74,7 +74,7 @@ class LocalEmailManager:
             mailbox_names = []
             for mailbox in mailboxes:
                 # Parse mailbox string, extract folder name
-                # 格式通常是: (\\HasNoChildren) "." "INBOX"
+                # Format usually is: (\\HasNoChildren) "." "INBOX"
                 mailbox_str = mailbox.decode() if isinstance(mailbox, bytes) else str(mailbox)
                 self._log(f"Debug: Original mailbox information: {mailbox_str}")
 
@@ -513,7 +513,7 @@ class LocalEmailManager:
             if typ != 'OK':
                 raise RuntimeError(f"Unable to select mailbox {mailbox}")
 
-            # 搜索邮件
+            # Search emails
             if subject_keyword:
                 typ, data = mail.search(None, f'SUBJECT "{subject_keyword}"')
             else:

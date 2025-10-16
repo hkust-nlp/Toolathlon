@@ -6,25 +6,25 @@ import logging
 import os
 
 class TaskEvaluator:
-    """任务评估器"""
+    """Task evaluator"""
     
     @staticmethod
     async def evaluate_one(dump_line: Dict[str, Any]) -> Dict[str, Any]:
         """
-        单任务评估
-        预期可能会被检查的内容：
-            - user response：检查用户端的所有输出
-            - response：检查llm的所有输出
-            - tool calls：检查llm的所有tool calls
-            - tool outputs：检查所有tool outputs
-            ====== 对以下内容的检查需要从config再启动 ======
-            - local status：检查特定工作目录下的文件（比如保存了一些东西，修改了一些东西etc）
-            - remote status：手动调用MCP server检查remote status是否正常修改 [不知道是否可能]
-        利用上述内容来完成对任务执行成功与否的判断
+        Single task evaluation
+        Expected content to be checked:
+        - user response: check all outputs from user side
+        - response: check all outputs from llm
+        - tool calls: check all tool calls from llm
+        - tool outputs: check all tool outputs
+        ====== The following checks need to be started from config ======
+        - local status: check files in specific workspace directory (e.g. saved some things, modified some things etc)
+        - remote status: manually call MCP server to check if remote status is normally modified [not sure if possible]
+        Use the above content to determine whether the task execution is successful or not
         """
         task_config = TaskConfig.from_dict(dump_line['config'])
         task_status = dump_line['status']
-        # 准备评估所需的信息
+        # Prepare information for evaluation
         res_log_file = task_config.log_file
         agent_workspace = task_config.agent_workspace
         groundtruth_workspace = task_config.evaluation.groundtruth_workspace
@@ -32,14 +32,14 @@ class TaskEvaluator:
         launch_time = task_config.launch_time
         print(f"launch time in eval is {launch_time}")
 
-        # 先检查任务状态：只有 SUCCESS 才有可能通过；否则直接返回 pass = None
+        # First check task status: only SUCCESS is possible to pass; otherwise return pass = None
         if task_status != TaskStatus.SUCCESS.value:
             return {
                 "pass": None,
                 "details": f"Task status: {task_status}, only SUCCESS counts as pass; pass is null"
             }
 
-        # 评估所有内容（仅在任务状态为 SUCCESS 时进行）
+        # Evaluate all content (only when task status is SUCCESS)
         if eval_command is not None:
             # try:
             args = f"--res_log_file {res_log_file} --agent_workspace {agent_workspace} --groundtruth_workspace {groundtruth_workspace} --launch_time \"{launch_time}\""
@@ -55,7 +55,7 @@ class TaskEvaluator:
                     "failure": output,
                 }
                 
-        # 最后就是成功了
+        # Finally, it's successful
         return {
             "pass": True,
             "details": "All evaluation checks passed, and task status is success"
@@ -63,7 +63,7 @@ class TaskEvaluator:
     
     @staticmethod
     async def evaluate_from_log_file(log_file_path: str, allow_resume: bool = False) -> Dict[str, Any]:
-        """从日志文件评估任务"""
+        """Evaluate task from log file"""
         try:            
             if not os.path.exists(log_file_path):
                 return {
@@ -92,7 +92,7 @@ class TaskEvaluator:
     
     @staticmethod
     async def batch_evaluate(run_results: List[Dict[str, Any]], allow_resume: bool=False) -> List[Dict[str, Any]]:
-        """批量评估任务结果"""
+        """Batch evaluate task results"""
         eval_results = []
         
         for run_result in run_results:

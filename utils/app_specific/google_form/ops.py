@@ -9,15 +9,15 @@ GOOGLE_CREDENTIAL_FILE = "configs/google_credentials.json"
 
 def clear_google_forms(form_name_pattern: str = None) -> Dict:
     """
-    根据Google Form名称删除所有匹配的表单
+    Delete all Google Forms that match the given name pattern
     
     Args:
-        form_name_pattern: 表单名称模式，如果为None则删除所有表单
+        form_name_pattern: Pattern for the form name to match. If None, delete all forms.
     
     Returns:
-        删除结果字典
+        Dictionary with deletion results
     """
-    print("📝 开始清理Google Forms...")
+    print("📝 Starting cleanup of Google Forms...")
     
     try:
         try:
@@ -34,25 +34,25 @@ def clear_google_forms(form_name_pattern: str = None) -> Dict:
             )
             
         except Exception as e:
-            print(f"⚠️ 无法读取Google凭据配置文件: {e}")
+            print(f"⚠️ Unable to read Google credentials config file: {e}")
             return {
                 "success": False,
-                "error": f"Google凭据配置错误: {e}",
+                "error": f"Google credentials configuration error: {e}",
                 "timestamp": datetime.now().isoformat()
             }
         
-        # 构建Google Drive服务
+        # Build Google Drive service
         drive_service = build('drive', 'v3', credentials=creds)
         
-        # 构建查询字符串
+        # Build query string
         if form_name_pattern:
             query = f"name contains '{form_name_pattern}' and mimeType='application/vnd.google-apps.form'"
-            print(f"🔍 查找包含 '{form_name_pattern}' 的Google Forms...")
+            print(f"🔍 Searching for Google Forms containing '{form_name_pattern}'...")
         else:
             query = "mimeType='application/vnd.google-apps.form'"
-            print("🔍 查找所有Google Forms...")
+            print("🔍 Searching for all Google Forms...")
         
-        # 查找所有匹配的Google Forms
+        # Find all matching Google Forms
         page_token = None
         all_forms = []
         
@@ -72,22 +72,22 @@ def clear_google_forms(form_name_pattern: str = None) -> Dict:
                     break
                     
             except Exception as e:
-                print(f"⚠️ 查询Google Forms时出错: {e}")
+                print(f"⚠️ Error occurred when querying Google Forms: {e}")
                 break
         
         if not all_forms:
-            print("📭 没有找到匹配的Google Forms")
+            print("📭 No matching Google Forms found")
             return {
                 "success": True,
                 "deleted_count": 0,
                 "found_count": 0,
-                "message": "没有找到匹配的表单",
+                "message": "No matching forms found",
                 "timestamp": datetime.now().isoformat()
             }
         
-        print(f"📋 找到 {len(all_forms)} 个匹配的Google Forms")
+        print(f"📋 Found {len(all_forms)} matching Google Forms")
         
-        # 删除找到的表单
+        # Delete matched forms
         deleted_count = 0
         failed_count = 0
         deleted_forms = []
@@ -98,7 +98,7 @@ def clear_google_forms(form_name_pattern: str = None) -> Dict:
             created_time = form.get('createdTime', 'Unknown')
             
             try:
-                # 删除表单
+                # Delete form
                 drive_service.files().delete(fileId=form_id).execute()
                 deleted_count += 1
                 deleted_forms.append({
@@ -106,16 +106,16 @@ def clear_google_forms(form_name_pattern: str = None) -> Dict:
                     "name": form_name,
                     "created_time": created_time
                 })
-                print(f"   ✅ 删除表单 '{form_name}' (ID: {form_id}) [{i}/{len(all_forms)}]")
+                print(f"   ✅ Deleted form '{form_name}' (ID: {form_id}) [{i}/{len(all_forms)}]")
                 
-                # 添加短暂延迟避免API限制
+                # Add short delay to avoid API limits
                 time.sleep(0.2)
                 
             except Exception as e:
                 failed_count += 1
-                print(f"   ❌ 删除表单 '{form_name}' (ID: {form_id}) 失败: {e}")
+                print(f"   ❌ Failed to delete form '{form_name}' (ID: {form_id}): {e}")
         
-        # 计算结果
+        # Calculate result
         all_success = failed_count == 0
         
         final_result = {
@@ -128,15 +128,15 @@ def clear_google_forms(form_name_pattern: str = None) -> Dict:
             "timestamp": datetime.now().isoformat()
         }
         
-        print(f"📊 Google Forms清理完成:")
-        print(f"   找到表单: {len(all_forms)} 个")
-        print(f"   成功删除: {deleted_count} 个")
-        print(f"   删除失败: {failed_count} 个")
+        print(f"📊 Google Forms cleanup complete:")
+        print(f"   Forms found: {len(all_forms)}")
+        print(f"   Successfully deleted: {deleted_count}")
+        print(f"   Failed deletions: {failed_count}")
         
         if all_success:
-            print("✅ Google Forms清理成功！")
+            print("✅ All Google Forms deleted successfully!")
         else:
-            print("⚠️ Google Forms清理部分完成，有部分表单删除失败")
+            print("⚠️ Partial success: some forms failed to be deleted")
         
         return final_result
         
@@ -146,5 +146,5 @@ def clear_google_forms(form_name_pattern: str = None) -> Dict:
             "error": str(e),
             "timestamp": datetime.now().isoformat()
         }
-        print(f"❌ Google Forms清理过程中出错: {e}")
+        print(f"❌ Error occurred during Google Forms cleanup: {e}")
         return error_result

@@ -1,11 +1,11 @@
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Callable
 from utils.api_model.model_provider import API_MAPPINGS
 from utils.api_model.openai_client import AsyncOpenAIClientWithRetry
 import asyncio
 
-# 实用工具函数
+# Utility functions
 def format_messages_for_display(messages: List[Dict[str, str]], max_length: int = 50) -> str:
-    """格式化消息列表用于显示"""
+    """Format a list of messages for display."""
     formatted = []
     for msg in messages:
         role = msg.get('role', 'unknown')
@@ -16,45 +16,45 @@ def format_messages_for_display(messages: List[Dict[str, str]], max_length: int 
     return " | ".join(formatted)
 
 def estimate_tokens(text: str) -> int:
-    """估算文本的token数量（简单估算）"""
-    # 粗略估算：平均每4个字符算1个token
+    """Estimate the number of tokens in the text (rough estimation)."""
+    # Rough estimation: assume 1 token for every 4 characters
     return len(text) // 4
 
 def calculate_batch_cost(messages_list: List[List[Dict[str, str]]], model: str) -> float:
-    """估算批量请求的成本"""
+    """Estimate the cost for a batch of requests."""
     if model not in API_MAPPINGS:
         return 0.0
-    
+
     total_tokens = 0
     for messages in messages_list:
         for msg in messages:
             total_tokens += estimate_tokens(msg.get('content', ''))
-    
-    # 假设输入输出比例为 1:2
+
+    # Assume input:output token ratio is 1:2
     input_tokens = total_tokens
     output_tokens = total_tokens * 2
-    
+
     prices = API_MAPPINGS[model]['price']
     input_cost = (input_tokens / 1000) * prices[0]
     output_cost = (output_tokens / 1000) * prices[1]
-    
+
     return input_cost + output_cost
 
-# 批量处理辅助函数
+# Batch processing helper function
 async def batch_process_with_progress(
     client: AsyncOpenAIClientWithRetry,
     tasks: List[Dict[str, Any]],
     batch_size: int = 10,
-    progress_callback: Optional[callable] = None
+    progress_callback: Optional[Callable[[int, int], Any]] = None
 ) -> List[Any]:
-    """带进度回调的批量处理"""
+    """Batch process with progress callback."""
     results = []
     total_tasks = len(tasks)
-    
+
     for i in range(0, total_tasks, batch_size):
         batch = tasks[i:i + batch_size]
-        
-        # 使用 TaskGroup 处理批次 (Python 3.12+)
+
+        # Use TaskGroup for batch processing (Python 3.12+)
         async with asyncio.TaskGroup() as tg:
             batch_tasks = []
             for task_data in batch:
@@ -65,13 +65,13 @@ async def batch_process_with_progress(
                     )
                 )
                 batch_tasks.append(task)
-        
-        # 收集结果
+
+        # Collect results
         batch_results = [t.result() for t in batch_tasks]
         results.extend(batch_results)
-        
-        # 进度回调
+
+        # Progress callback
         if progress_callback:
             await progress_callback(len(results), total_tasks)
-    
+
     return results

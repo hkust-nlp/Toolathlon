@@ -104,7 +104,7 @@ def show(messages):
         else:
             raise ValueError
         new_item = {k:v for k,v in item.items() if k  not in ['role','text','content','tokens','logprobs']}
-        if content == "": content = "[[[[[[[[[[[[[[[空content]]]]]]]]]]]]]]]"
+        if content == "": content = "[[[[[[[[[[[[[[[Empty content]]]]]]]]]]]]]]]"
         print(f"|||{new_item}|||\n"+colored(content,color))
  
 def read_jsonl(jsonl_file_path):
@@ -164,89 +164,20 @@ def write_jsonl(data, jsonl_file_path, mode="w"):
         for item in data:
             f.write(json.dumps(item) + "\n")
 
-def update_jsonl(line_num: int, jsonl_file_path:str, key_indicator=None, json_file_path="files/test.json", ) -> None:
-    """
-    读取给定的 JSON 文件，将其压缩成一行，并替换 JSONL 文件中指定行的内容。
-    两者需要确保 `leetcode_id` 字段一致。
-    
-    Args:
-        json_file_path (str): 要读取的 JSON 文件路径。
-        line_num (int): JSONL 文件中的行号（从1开始）。
-        jsonl_file_path (str): 要更新的 JSONL 文件路径。
-        key_indicator (str): 用于检查 JSON 文件和 JSONL 文件中的记录是否匹配的字段。
-    """
-    # 读取 JSON 文件内容并压缩成一行
-    try:
-        with open(json_file_path, 'r', encoding='utf-8') as json_file:
-            new_json_data = json.load(json_file)
-    except (FileNotFoundError, json.JSONDecodeError) as e:
-        print(f"读取 JSON 文件 {json_file_path} 出错: {e}")
-        return
-
-    # 压缩 JSON 数据
-    new_json_str = json.dumps(new_json_data, separators=(',', ':'))
-
-    # 读取 JSONL 文件
-    try:
-        with open(jsonl_file_path, 'r', encoding='utf-8') as jsonl_file:
-            lines = jsonl_file.readlines()
-    except FileNotFoundError as e:
-        print(f"读取 JSONL 文件 {jsonl_file_path} 出错: {e}")
-        return
-
-    # 检查指定行号是否超出范围
-    if line_num < 1 or line_num > len(lines):
-        print(f"错误：指定的行号 {line_num} 超出了 JSONL 文件的范围。")
-        return
-
-    # 获取 JSONL 文件中指定行并加载为 JSON 对象
-    try:
-        original_json = json.loads(lines[line_num - 1].strip())
-    except json.JSONDecodeError as e:
-        print(f"解析 JSONL 文件的第 {line_num} 行内容失败: {e}")
-        return
-
-    # 检查 `key_indicator` 是否匹配
-    if key_indicator is not None:
-        if original_json.get(key_indicator) != new_json_data.get(key_indicator):
-            print(f"错误：JSON 文件和 JSONL 文件的 `{key_indicator}` 不匹配。")
-            return
-
-    # 更新 JSONL 文件中的指定行
-    lines[line_num - 1] = new_json_str + '\n'
-
-    # 将更新过的内容写回 JSONL 文件
-    try:
-        with open(jsonl_file_path, 'w', encoding='utf-8') as jsonl_file:
-            jsonl_file.writelines(lines)
-        print(f"已成功更新 JSONL 文件的第 {line_num} 行。")
-    except IOError as e:
-        print(f"写入 JSONL 文件 {jsonl_file_path} 时出错: {e}")
-
-def update_json(key, txt_file_path="files/test.txt", json_file_path="files/test.json",) -> None:
-    with open(txt_file_path, "r") as f:
-        content = f.read()
-
-    with open(json_file_path, "r") as f:
-        data = json.load(f)
-        data[key] = content
-
-    with open(json_file_path, "w") as f:
-        json.dump(data, f)
 
 def write_json(data, json_file_path, mode="w", timeout=10):
     """
-    线程/进程安全的JSON写入函数
+    Thread/process safe JSON write function
     
     Args:
-        data: dict或list，必须是JSON可序列化的
-        json_file_path: JSON文件路径
-        mode: 文件打开模式，默认"w"
-        timeout: 获取锁的超时时间（秒）
+        data: dict or list, must be JSON serializable
+        json_file_path: JSON file path
+        mode: File open mode, default "w"
+        timeout: Timeout for acquiring the lock (seconds)
     """
     assert isinstance(data, dict) or isinstance(data, list)
     
-    # 确保目录存在
+    # Ensure the directory exists
     dir_path = os.path.dirname(json_file_path)
     if dir_path and not os.path.exists(dir_path):
         os.makedirs(dir_path, exist_ok=True)
@@ -256,25 +187,25 @@ def write_json(data, json_file_path, mode="w", timeout=10):
     while True:
         try:
             with open(json_file_path, mode) as f:
-                # 获取排他锁
+                # Acquire exclusive lock
                 fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
                 try:
-                    # 写入JSON数据
+                    # Write JSON data
                     json.dump(data, f, ensure_ascii=False, indent=2)
-                    f.flush()  # 确保数据写入
-                    os.fsync(f.fileno())  # 确保写入磁盘
+                    f.flush()  # Ensure data is written to disk
+                    os.fsync(f.fileno())  # Ensure data is written to disk
                 finally:
-                    # 释放锁
+                    # Release lock
                     fcntl.flock(f.fileno(), fcntl.LOCK_UN)
                 break
                 
         except IOError as e:
             if e.errno != errno.EAGAIN and e.errno != errno.EACCES:
                 raise
-            # 检查超时
+            # Check timeout
             if time.time() - start_time > timeout:
-                raise TimeoutError(f"无法在{timeout}秒内获取文件锁: {json_file_path}")
-            # 短暂休眠后重试
+                raise TimeoutError(f"Failed to acquire file lock within {timeout} seconds: {json_file_path}")
+            # Sleep for a short time and retry
             time.sleep(0.01)
 
 def write_all(data, file_path, mode="w"):
@@ -322,12 +253,12 @@ def timer(func):
         return f"{int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}"
     def wrapper(*args, **kwargs):
         start_time = datetime.datetime.now()
-        print("开始时间：", start_time.strftime("%Y-%m-%d %H:%M:%S"))
+        print("Start time: ", start_time.strftime("%Y-%m-%d %H:%M:%S"))
         result = func(*args, **kwargs)
         end_time = datetime.datetime.now()
-        print("结束时间：", end_time.strftime("%Y-%m-%d %H:%M:%S"))
+        print("End time: ", end_time.strftime("%Y-%m-%d %H:%M:%S"))
         elapsed_time = end_time - start_time
-        print("执行时间：", format_time(elapsed_time))
+        print("Execution time: ", format_time(elapsed_time))
         return result
     return wrapper
 
@@ -356,14 +287,14 @@ def reorganize_jsonl(jsonl_file, w_blank=True):
     return dt
 
 def extract_param(command, param_name):
-    # 使用正则表达式匹配参数 --param_name 后面的值
+    # Use regex to match the value after the parameter --param_name
     pattern = f"--{param_name} (\\S+)"
     match = re.search(pattern, command)
     
     if match:
-        return match.group(1)  # 返回匹配的参数值
+        return match.group(1)  # Return the matched parameter value
     else:
-        return None  # 如果未找到，返回 None
+        return None  # Return None if not found
     
 def check_obj_size(obj,size):
     # check if the size of `obj` <= size, unit is Byte
@@ -419,48 +350,48 @@ def build_messages(prompt, response = None, system_message = None):
 
 def get_total_items_with_wc(filename):
     result = subprocess.run(['wc', '-l', filename], stdout=subprocess.PIPE, text=True)
-    total_lines = int(result.stdout.split()[0])  # wc输出的形式是: 行数 文件名, 所以只取第一部分
+    total_lines = int(result.stdout.split()[0])  # The output of wc is: number of lines filename, so only take the first part
     return total_lines
 
 async def copy_folder_contents(source_folder, target_folder, debug=False):
     """
-    将源文件夹A的所有内容复制到目标文件夹B
+    Copy all contents of source folder A to target folder B
     
-    参数:
-        source_folder: 源文件夹路径（A）
-        target_folder: 目标文件夹路径（B）
+    Args:
+        source_folder: Source folder path (A)
+        target_folder: Target folder path (B)
     """
 
-    # 如果目标文件夹不存在，创建它
+    # If target folder does not exist, create it
     if not os.path.exists(target_folder):
         os.makedirs(target_folder)
         if debug:
             print(f"Target directory `{target_folder}` has been created!")
 
-    # 如果源文件夹为null，说明不需要本地初始化
+    # If source folder is None, it means no local initialization is needed
     if source_folder is None:
         print("Source directory is None, not need to copy & paste.")
         return
 
-    # 检查源文件夹是否存在
+    # Check if source folder exists
     if not os.path.exists(source_folder):
         raise FileNotFoundError(f"Error: Source directory `{source_folder}` does not exist!")
     
-    # 检查源路径是否为文件夹
+    # Check if source path is a directory
     if not os.path.isdir(source_folder):
         raise NotADirectoryError(f"Error: `{source_folder}` is not a directory!")
     
-    # 遍历源文件夹中的所有内容
+    # Iterate through all contents of source folder
     for item in os.listdir(source_folder):
         source_path = os.path.join(source_folder, item)
         target_path = os.path.join(target_folder, item)
         
         try:
             if os.path.isdir(source_path):
-                # 如果是文件夹，递归复制
+                # If it is a folder, recursively copy
                 shutil.copytree(source_path, target_path, dirs_exist_ok=True)
             else:
-                # 如果是文件，直接复制
+                # If it is a file, copy directly
                 shutil.copy2(source_path, target_path)
         except Exception as e:
             print(f"Error in copying `{item}` : {str(e)}")
@@ -470,22 +401,22 @@ async def copy_folder_contents(source_folder, target_folder, debug=False):
 
 async def run_command(command, debug=False, show_output=False):
     """
-    异步执行命令并返回输出
+    Asynchronously execute command and return output
     
     Args:
-        command: 要执行的命令字符串
-        debug: 是否打印调试信息
-        show_output: 是否打印命令的输出
+        command: The command string to execute
+        debug: Whether to print debug information
+        show_output: Whether to print the output of the command
         
     Returns:
         tuple: (stdout, stderr, return_code)
     """
 
-    # 获取当前工作路径
+    # Get current working directory
     current_dir = os.path.abspath(os.getcwd())
     print_color(f"Current working directory to run command: {current_dir}","cyan")
 
-    # 创建子进程
+    # Create subprocess
     process = await asyncio.create_subprocess_shell(
         command,
         stdout=asyncio.subprocess.PIPE,
@@ -494,10 +425,10 @@ async def run_command(command, debug=False, show_output=False):
     if debug:
         print_color(f"Executing command : {command}","cyan")
 
-    # 等待命令执行完成
+    # Wait for command execution to complete
     stdout, stderr = await process.communicate()
     
-    # 解码输出
+    # Decode output
     stdout_decoded = stdout.decode()
     stderr_decoded = stderr.decode()
     
@@ -507,11 +438,11 @@ async def run_command(command, debug=False, show_output=False):
     if debug:
         print_color("Successfully executed!","green")
     
-    # 如果需要显示输出
+    # If output is needed to be shown
     if show_output and stdout_decoded:
         print(f"Command output:\n{stdout_decoded}")
     
-    # 返回输出和返回码，以便调用者可以进一步处理
+    # Return output and return code, so that the caller can further process
     return stdout_decoded, stderr_decoded, process.returncode
 
 async def specifical_inialize_for_mcp(task_config):
@@ -541,7 +472,7 @@ async def specifical_inialize_for_mcp(task_config):
         print("[playwright] playwright file output dir has been established")
 
 def build_user_client(user_config: UserConfig) -> AsyncOpenAIClientWithRetry:
-    """构建用户客户端"""
+    """Build user client"""
     return AsyncOpenAIClientWithRetry(
         api_key=global_configs.aihubmix_key,
         base_url="https://aihubmix.com/v1",
@@ -549,11 +480,11 @@ def build_user_client(user_config: UserConfig) -> AsyncOpenAIClientWithRetry:
     )
 
 def build_agent_model_provider(agent_config: AgentConfig, override_provider: str = None) -> ModelProvider:
-    """构建Agent模型提供者"""
+    """Build agent model provider"""
     return model_provider_mapping[agent_config.model.provider if override_provider is None else override_provider]()
 
 def setup_proxy(use_proxy: bool = False) -> None:
-    """设置代理"""
+    """Set proxy"""
     if use_proxy:
         import os
         os.environ['http_proxy'] = global_configs.proxy
@@ -561,9 +492,9 @@ def setup_proxy(use_proxy: bool = False) -> None:
         print("Proxy enabled")
 
 def path_to_module(path: Union[str, Path]) -> str:
-    """将文件路径转换为模块格式
+    """Convert file path to module format
     
-    例如:
+    Examples:
     - 'xx/yy/zz.py' -> 'xx.yy.zz'
     - 'xx\\yy\\zz.py' -> 'xx.yy.zz'
     - './xx/yy/zz.py' -> 'xx.yy.zz'
@@ -571,25 +502,25 @@ def path_to_module(path: Union[str, Path]) -> str:
     """
     p = Path(path)
     
-    # 获取不带后缀的路径
+    # Get path without suffix
     if p.suffix == '.py':
         p = p.with_suffix('')
     
-    # 将路径部分用点连接
+    # Join path parts with dots
     parts = p.parts
     
-    # 过滤掉当前目录标记 '.'
+    # Filter out current directory marker '.'
     parts = [part for part in parts if part != '.']
     
     return '.'.join(parts)
 
 def get_module_path(replace_last: str = None) -> str:
     """
-    获取以.连接的包路径（相对于当前工作目录），可选替换最后一级。
-    - replace_last: 若指定，则将最后一级（通常是文件名）替换为该值
+    Get the package path (relative to the current working directory) connected with dots, optionally replace the last level.
+    - replace_last: If specified, replace the last level (usually the file name) with the value
     """
     import inspect
-    # 获取调用栈，找到第一个不在helper.py的py文件
+    # Get call stack, find the first py file that is not helper.py
     stack = inspect.stack()
     target_file = None
     for frame in stack:
@@ -598,11 +529,11 @@ def get_module_path(replace_last: str = None) -> str:
             target_file = os.path.abspath(fname)
             break
     if target_file is None:
-        raise RuntimeError("无法自动推断目标文件路径")
+        raise RuntimeError("Cannot automatically infer target file path")
     
-    # 以当前工作目录为根目录
+    # Use current working directory as root directory
     cwd = os.getcwd()
-    # 计算相对路径
+    # Calculate relative path
     relative_path = os.path.relpath(target_file, cwd)
     module_path = os.path.splitext(relative_path)[0].replace(os.sep, ".")
     

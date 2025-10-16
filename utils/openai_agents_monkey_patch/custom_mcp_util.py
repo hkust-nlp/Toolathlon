@@ -8,7 +8,7 @@ from utils.general.helper import print_color
 
 import shortuuid
 
-MAX_SINGLE_TURN_RETURN_CHARS = int(os.getenv("BENCH_MAX_SINGLE_TURN_RETURN_CHARS", 100000)) # 单轮工具返回字符数限制
+MAX_SINGLE_TURN_RETURN_CHARS = int(os.getenv("BENCH_MAX_SINGLE_TURN_RETURN_CHARS", 100000)) # Maximum number of characters allowed in a single turn tool return
 ENABLE_OVERLONG_TOOL_OUTPUT_MANAGEMENT = os.getenv("BENCH_ENABLE_OVERLONG_TOOL_OUTPUT_MANAGEMENT", "true").lower() == "true"
 
 print_color(f"BENCH_ENABLE_OVERLONG_TOOL_OUTPUT_MANAGEMENT: {ENABLE_OVERLONG_TOOL_OUTPUT_MANAGEMENT} | MAX_SINGLE_TURN_RETURN_CHARS: {MAX_SINGLE_TURN_RETURN_CHARS}", color="blue")
@@ -82,7 +82,7 @@ async def my_invoke_mcp_tool(
         tool_output = json.dumps([item.model_dump() for item in result.content])
     else:
         # logger.error(f"Errored MCP tool result: {result}")
-        tool_output = "[]" # 返回为空是一个合理的值
+        tool_output = "[]" # Returning empty is a reasonable value
 
     current_span = get_current_span()
     if current_span:
@@ -118,7 +118,7 @@ async def my_invoke_mcp_tool(
 
     return tool_output
 
-# 替换方法
+# Replace method
 MCPUtil.invoke_mcp_tool = my_invoke_mcp_tool
-# 必须先替换上面那个
+# Must replace the one above first
 MCPUtil.to_function_tool = my_to_function_tool

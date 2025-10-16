@@ -13,7 +13,6 @@ from utils.openai_agents_monkey_patch.custom_mcp_util import *
 
 
 async def main():
-    # 解析命令行参数
     parser = argparse.ArgumentParser(description="Run demo agent evaluation")
     parser.add_argument("--with_proxy", action="store_true", 
                        help="Use proxy for HTTP/HTTPS requests")
@@ -42,10 +41,10 @@ async def main():
                        help="Provider")
     args = parser.parse_args()
     
-    # 设置代理（如果需要）
+    # Set Proxy (if needed)
     setup_proxy(args.with_proxy)
     
-    # 加载配置
+    # Load configurations
     eval_config_dict = read_json(args.eval_config)
     # task_config_dict = read_json(os.path.join(args.task_dir, "task_config.json"))
     if args.model_short_name is not None:
@@ -55,7 +54,7 @@ async def main():
     if args.max_steps_under_single_turn_mode is not None:
         eval_config_dict['global_task_config']['max_steps_under_single_turn_mode'] = args.max_steps_under_single_turn_mode
     
-    # 解析配置
+    # Parse configurations
     mcp_config, agent_config, user_config = TaskRunner.load_configs(eval_config_dict)
     # task_config = TaskConfig.from_dict(task_config_dict, 
     #                                    agent_config.model.short_name,
@@ -66,7 +65,7 @@ async def main():
                                    not args.multi_turn_mode,
                                    args.cn_mode)
 
-    # 运行任务
+    # Run task
     print_color("====== Starting Task Execution ======", "yellow")
     task_status = await TaskRunner.run_single_task(
         task_config=task_config,
@@ -82,7 +81,7 @@ async def main():
     print_color(f"\n====== Task completed with status ======", "yellow")
     print(f"Status: {task_status.value} ")
     
-    # 评估结果
+    # Evaluate results
     print_color("\n====== Starting Task Evaluation ======", "yellow")
     log_file = task_config.log_file
     dump_line = read_json(log_file)
@@ -96,7 +95,7 @@ async def main():
     if not eval_res.get('pass', False):
         print(f"Failure Reason: {eval_res.get('failure', 'Unknown')}")
 
-    # 更新评估状态
+    # Update evaluation status
     try:
         from utils.status_manager import TaskStatusManager
         status_manager = TaskStatusManager(task_config.task_root)

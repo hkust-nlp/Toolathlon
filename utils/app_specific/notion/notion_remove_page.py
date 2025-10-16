@@ -60,7 +60,7 @@ def delete_pages_by_title(parent_id, target_title, headers, dry_run=False):
         print("No child pages found")
         return 0
     
-    # 先找出所有匹配的页面
+    # Find all matching pages
     pages_to_delete = []
     for child in children:
         if child.get("type") == "child_page":
@@ -72,7 +72,7 @@ def delete_pages_by_title(parent_id, target_title, headers, dry_run=False):
         print(f"No child pages found with title '{target_title}'")
         return 0
     
-    # Show pages to be deleted
+    # Show pages to be deleted in dry run mode
     print(f"Found {len(pages_to_delete)} matching pages:")
     for page_id, title in pages_to_delete:
         print(f"  - {title} (ID: {page_id})")
@@ -161,7 +161,7 @@ Notes:
         print("Please use --token parameter or set environment variable NOTION_TOKEN")
         sys.exit(1)
     
-    # 设置请求头
+    # Set request headers
     headers = {
         "Authorization": f"Bearer {token}",
         "Notion-Version": "2022-06-28",

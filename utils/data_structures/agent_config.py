@@ -5,35 +5,35 @@ from utils.data_structures.common import Model, Generation
 
 @dataclass
 class Tool:
-    """工具调用配置"""
+    """Tool call configuration"""
     tool_choice: Union[Literal["auto", "none", "required"], str] = "auto"
     parallel_tool_calls: bool = False
     max_inner_turns: int = 20
     
     def __post_init__(self):
-        """验证工具调用参数的合理性"""
+        """Validate the reasonability of tool call parameters"""
         if self.max_inner_turns < 1:
-            raise ValueError(f"max_inner_turns 应该大于 0，但得到了 {self.max_inner_turns}")
+            raise ValueError(f"max_inner_turns should be greater than 0, but got {self.max_inner_turns}")
 
 @dataclass
 class AgentConfig:
-    """Agent配置"""
+    """Agent configuration"""
     model: Model
     generation: Generation
     tool: Tool
     
     @classmethod
     def from_dict(cls, data: dict) -> 'AgentConfig':
-        """从字典创建AgentConfig实例"""
-        # 如果data直接包含agent字段
+        """Create AgentConfig instance from dictionary"""
+        # If data directly contains agent field
         if 'agent' in data:
             data = data['agent']
         
-        # 自动注入OpenRouter配置
+        # Automatically inject OpenRouter configuration
         generation_data = data['generation'].copy()
         model_data = data['model']
         
-        # 如果使用OpenRouter provider，自动添加provider routing配置
+        # If using OpenRouter provider, automatically add provider routing configuration
         if model_data.get('provider') == 'openrouter':
             from utils.api_model.model_provider import API_MAPPINGS
             model_short_name = model_data.get('short_name')
@@ -41,10 +41,10 @@ class AgentConfig:
             if model_short_name in API_MAPPINGS:
                 mapping = API_MAPPINGS[model_short_name]
                 if 'openrouter_config' in mapping:
-                    # 自动注入完整的OpenRouter配置到extra_body
+                    # Automatically inject complete OpenRouter configuration into extra_body
                     openrouter_config = mapping['openrouter_config']
                     
-                    # 合并现有的extra_body（如果有）
+                    # Merge existing extra_body (if any)
                     existing_extra_body = generation_data.get('extra_body', {})
                     if existing_extra_body:
                         existing_extra_body.update(openrouter_config)
@@ -59,7 +59,7 @@ class AgentConfig:
         )
     
     def to_dict(self) -> dict:
-        """转换为字典"""
+        """Convert to dictionary"""
         return {
             "agent": {
                 "model": {
@@ -81,7 +81,7 @@ class AgentConfig:
         }
     
     def to_dict_without_agent_key(self) -> dict:
-        """转换为不带agent键的字典"""
+        """Convert to dictionary without agent key"""
         return {
             "model": {
                 "short_name": self.model.short_name,
@@ -101,7 +101,7 @@ class AgentConfig:
         }
     
     def get_api_params(self) -> dict:
-        """获取用于 API 调用的参数"""
+        """Get parameters for API calls"""
         return {
             "model": self.model.real_name or self.model.short_name,
             "temperature": self.generation.temperature,
@@ -110,11 +110,11 @@ class AgentConfig:
         }
     
     def copy_with_updates(self, updates: dict) -> 'AgentConfig':
-        """创建一个副本，支持嵌套更新"""
+        """Create a copy with nested updates"""
         import copy
         current_dict = self.to_dict_without_agent_key()
         
-        # 深度合并更新
+        # Deep merge updates
         def deep_merge(base: dict, update: dict) -> dict:
             result = copy.deepcopy(base)
             for key, value in update.items():
@@ -127,7 +127,7 @@ class AgentConfig:
         merged_dict = deep_merge(current_dict, updates)
         return self.__class__.from_dict(merged_dict)
     
-    # 便捷的属性访问
+    # Convenient attribute access
     @property
     def model_name(self) -> str:
         return self.model.short_name
@@ -148,7 +148,7 @@ class AgentConfig:
     def tool_choice(self) -> str:
         return self.tool.tool_choice
 
-# 便捷的构造函数
+# Convenient constructor
 def create_agent_config(
     model_name: str,
     provider: str,
@@ -159,106 +159,9 @@ def create_agent_config(
     parallel_tool_calls: bool = False,
     max_inner_turns: int = 20
 ) -> AgentConfig:
-    """便捷的构造函数，使用扁平参数"""
+    """Convenient constructor, using flat parameters"""
     return AgentConfig(
         model=Model(short_name=model_name, provider=provider),
         generation=Generation(temperature=temperature, top_p=top_p, max_tokens=max_tokens),
         tool=Tool(tool_choice=tool_choice, parallel_tool_calls=parallel_tool_calls, max_inner_turns=max_inner_turns)
     )
-
-# 使用示例
-if __name__ == "__main__":
-    # 示例1：使用您提供的格式
-    print("示例1 - 标准格式初始化：")
-    config_dict = {
-        "agent": {
-            "model": {
-                "short_name": "gpt-4o-mini",
-                "provider": "ds_internal"
-            },
-            "generation": {
-                "temperature": 0.0,
-                "top_p": 1.0,
-                "max_tokens": 4096
-            },
-            "tool": {
-                "tool_choice": "auto",
-                "parallel_tool_calls": False,
-                "max_inner_turns": 20
-            }
-        }
-    }
-    
-    # 直接传入字典
-    agent_config = AgentConfig(config_dict)
-    print(f"Model: {agent_config.model.short_name}")
-    print(f"Provider: {agent_config.model.provider}")
-    print(f"Temperature: {agent_config.generation.temperature}")
-    print(f"Tool choice: {agent_config.tool.tool_choice}")
-    
-    # 示例2：不带agent键的字典
-    print("\n示例2 - 不带agent键：")
-    config_dict_no_agent = {
-        "model": {
-            "short_name": "claude-3",
-            "provider": "anthropic"
-        },
-        "generation": {
-            "temperature": 0.7,
-            "top_p": 0.9,
-            "max_tokens": 8000
-        },
-        "tool": {
-            "tool_choice": "required",
-            "parallel_tool_calls": True,
-            "max_inner_turns": 15
-        }
-    }
-    
-    agent_config2 = AgentConfig(config_dict_no_agent)
-    print(f"Model: {agent_config2.model.short_name}")
-    print(f"Max tokens: {agent_config2.generation.max_tokens}")
-    
-    # 示例3：使用结构化初始化
-    print("\n示例3 - 结构化初始化：")
-    agent_config3 = AgentConfig(
-        model=Model(short_name="gemini-pro", provider="google"),
-        generation=Generation(temperature=0.5, max_tokens=2048),
-        tool=Tool(tool_choice="none")
-    )
-    print(agent_config3)
-    
-    # 示例4：使用便捷构造函数
-    print("\n示例4 - 便捷构造函数：")
-    agent_config4 = create_agent_config(
-        model_name="gpt-4-turbo",
-        provider="openai",
-        temperature=0.8,
-        max_tokens=4096,
-        tool_choice="auto"
-    )
-    print(f"Model: {agent_config4.model_name}")
-    print(f"Temperature: {agent_config4.temperature}")
-    
-    # 示例5：部分更新
-    print("\n示例5 - 部分更新：")
-    updated_config = agent_config.copy_with_updates({
-        "generation": {"temperature": 1.0},
-        "tool": {"max_inner_turns": 30}
-    })
-    print(f"原始 temperature: {agent_config.temperature}")
-    print(f"更新后 temperature: {updated_config.temperature}")
-    print(f"原始 max_inner_turns: {agent_config.tool.max_inner_turns}")
-    print(f"更新后 max_inner_turns: {updated_config.tool.max_inner_turns}")
-    
-    # 示例6：获取API参数
-    print("\n示例6 - API参数：")
-    api_params = agent_config.get_api_params()
-    print(api_params)
-    
-    # 示例7：转换回字典
-    print("\n示例7 - 转换为字典：")
-    dict_with_agent = agent_config.to_dict()
-    dict_without_agent = agent_config.to_dict_without_agent_key()
-    print("带agent键:", dict_with_agent.keys())
-    print("不带agent键:", dict_without_agent.keys())

@@ -3,7 +3,6 @@ from __future__ import annotations
 from agents._run_impl import *
 from agents.util import _coro, _error_tracing
 
-# 定义你的替代函数
 @classmethod
 async def my_execute_function_tool_calls(
     cls,
@@ -167,6 +166,5 @@ def my_process_model_response(
         tools_used=tools_used,
     )
 
-# 替换方法
 RunImpl.process_model_response = my_process_model_response
 RunImpl.execute_function_tool_calls = my_execute_function_tool_calls

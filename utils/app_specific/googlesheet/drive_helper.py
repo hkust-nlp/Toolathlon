@@ -57,7 +57,7 @@ def clear_folder(drive_service, folder_id):
 def copy_sheet_to_folder(drive_service, sheet_url, folder_id):
     sheet_id = sheet_url.split('/d/')[1].split('/')[0]
     
-    # 获取原始sheet的名称
+
     original_file = drive_service.files().get(fileId=sheet_id, fields='name').execute()
     original_name = original_file['name']
     
@@ -70,7 +70,7 @@ def copy_sheet_to_folder(drive_service, sheet_url, folder_id):
         body=copy_metadata
     ).execute()
     
-    # 将复制的文件重命名为原始名称，去掉"（副本）"后缀
+
     rename_metadata = {
         'name': original_name
     }

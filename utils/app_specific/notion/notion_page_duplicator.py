@@ -159,10 +159,10 @@ class NotionPageDuplicator:
             return False
 
     def clear_modal_overlay(self, page: Page, timeout: int = 10_000) -> bool:
-        """尝试清除modal overlay的综合策略"""
+        """Try to clear modal overlay strategy"""
         modal_selector = "div.notion-modal-underlay"
 
-        # 策略1: 等待10秒看是否自动消失
+        # Strategy 1: Wait 10 seconds to see if it disappears automatically
         try:
             page.wait_for_selector(modal_selector, state="detached", timeout=timeout)
             print("✅ Modal overlay cleared automatically")
@@ -170,7 +170,7 @@ class NotionPageDuplicator:
         except:
             print("⚠️ Modal overlay still present after 10s")
 
-        # 策略2: 按ESC键尝试关闭
+        # Strategy 2: Try to close by pressing ESC key
         try:
             page.keyboard.press("Escape")
             time.sleep(1)
@@ -180,9 +180,9 @@ class NotionPageDuplicator:
         except:
             print("❌ ESC key didn't work")
 
-        # 策略3: 点击modal外部区域
+        # Strategy 3: Click outside the modal area
         try:
-            # 点击页面左上角空白区域
+            # Click the blank area at the top left of the page
             page.click("body", position={"x": 50, "y": 50}, timeout=2_000)
             time.sleep(1)
             page.wait_for_selector(modal_selector, state="detached", timeout=2_000)
@@ -191,7 +191,7 @@ class NotionPageDuplicator:
         except:
             print("❌ Clicking outside didn't work")
 
-        # 策略4: 刷新页面（最后手段）
+        # Strategy 4: Refresh the page (last resort)
         try:
             print("🔄 Refreshing page as last resort...")
             current_url = page.url
@@ -384,7 +384,7 @@ class NotionPageDuplicator:
                 # Step 2: Move the duplicated page to target parent
                 print(f"Moving duplicated page to target parent: {target_parent_title}")
 
-                # 清理modal状态
+                # Clear modal state
                 if not self.clear_modal_overlay(page):
                     raise Exception("Failed to clear modal overlay after all attempts")
 

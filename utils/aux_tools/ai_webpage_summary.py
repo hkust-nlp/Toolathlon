@@ -1,5 +1,8 @@
 # stdio_servers/bash_server.py
 # -*- coding: utf-8 -*-
+
+### THIS LOCAL TOOL IS DEPRECATED, DO NOT USE IT
+
 import json
 import asyncio
 import aiohttp
@@ -10,15 +13,16 @@ from time import sleep
 from utils.api_model.openai_client import AsyncOpenAIClientWithRetry
 from configs.global_configs import global_configs
 
-# 网页抓取相关导入
+# Webpage fetching related imports
 import requests
 from bs4 import BeautifulSoup
 import re
 from urllib.parse import urljoin, urlparse
 import logging
 
-# 设置日志
+# Set logging
 logging.basicConfig(level=logging.INFO)
+
 logger = logging.getLogger(__name__)
 
 # launch a AsyncOpenAIClientWithRetry instance
@@ -32,73 +36,73 @@ class FetchUrlContentError(Exception):
     pass
 
 def clean_text(text: str) -> str:
-    """清理文本内容，移除多余的空白字符"""
+    """Clean text content, remove extra whitespace characters"""
     if not text:
         return ""
     
-    # 移除多余的空白字符
+    # Remove extra whitespace characters
     text = re.sub(r'\s+', ' ', text)
-    # 移除换行符
+    # Remove newline characters
     text = text.replace('\n', ' ').replace('\r', ' ')
-    # 移除多余的空白
+    # Remove extra whitespace
     text = re.sub(r'\s+', ' ', text)
     return text.strip()
 
 async def extract_text_from_html(html_content: str, url: str) -> str:
-    """从HTML内容中提取可读文本"""
+    """Extract readable text from HTML content"""
     try:
         soup = BeautifulSoup(html_content, 'html.parser')
         
-        # 移除不需要的元素
+        # Remove unwanted elements
         for element in soup(['script', 'style', 'nav', 'header', 'footer', 'aside', 'iframe', 'noscript']):
             element.decompose()
         
-        # 移除注释
+        # Remove comments
         for comment in soup.find_all(string=lambda text: isinstance(text, str) and text.strip().startswith('<!--')):
             comment.extract()
         
-        # 提取文本内容
+        # Extract text content
         text_parts = []
         
-        # 提取标题
+        # Extract titles
         for tag in ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']:
             for element in soup.find_all(tag):
                 text = clean_text(element.get_text())
                 if text:
                     text_parts.append(f"{tag.upper()}: {text}")
         
-        # 提取段落和其他文本内容
+        # Extract paragraphs and other text content
         for element in soup.find_all(['p', 'div', 'span', 'li', 'td', 'th']):
             text = clean_text(element.get_text())
-            if text and len(text) > 10:  # 只保留有意义的文本
+            if text and len(text) > 10:  # Only keep meaningful text
                 text_parts.append(text)
         
-        # 提取链接文本
+        # Extract link text
         for link in soup.find_all('a', href=True):
             link_text = clean_text(link.get_text())
             if link_text and len(link_text) > 3:
                 href = link.get('href')
                 if href:
-                    # 处理相对链接
+                    # Handle relative links
                     if not href.startswith(('http://', 'https://')):
                         href = urljoin(url, href)
-                    text_parts.append(f"链接: {link_text} ({href})")
+                    text_parts.append(f"Link: {link_text} ({href})")
         
-        # 合并所有文本
+        # Merge all text
         full_text = '\n\n'.join(text_parts)
         
-        # 如果文本太短，尝试提取所有文本
+        # If text is too short, try to extract all text
         if len(full_text) < 100:
             full_text = clean_text(soup.get_text())
         
         return full_text
         
     except Exception as e:
-        logger.error(f"解析HTML时出错: {e}")
-        raise FetchUrlContentError(f"解析HTML内容失败: {e}")
+        logger.error(f"Error parsing HTML: {e}")
+        raise FetchUrlContentError(f"Failed to parse HTML content: {e}")
 
 async def fetch_with_requests(url: str, timeout: int = 30) -> str:
-    """使用requests获取网页内容"""
+    """Use requests to fetch webpage content"""
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -112,28 +116,28 @@ async def fetch_with_requests(url: str, timeout: int = 30) -> str:
         response = requests.get(url, headers=headers, timeout=timeout, allow_redirects=True)
         response.raise_for_status()
         
-        # 检查内容类型
+        # Check content type
         content_type = response.headers.get('content-type', '').lower()
         if 'text/html' not in content_type:
-            raise FetchUrlContentError(f"不支持的内容类型: {content_type}")
+            raise FetchUrlContentError(f"Unsupported content type: {content_type}")
         
         return response.text
         
     except requests.exceptions.RequestException as e:
-        raise FetchUrlContentError(f"请求失败: {e}")
+        raise FetchUrlContentError(f"Request failed: {e}")
 
 async def fetch_with_playwright(url: str, timeout: int = 30) -> str:
-    """使用Playwright获取动态网页内容"""
+    """Use Playwright to fetch dynamic webpage content"""
     try:
         from playwright.async_api import async_playwright
     except ImportError:
-        raise FetchUrlContentError("Playwright未安装，无法处理动态内容。请运行: pip install playwright && playwright install")
+        raise FetchUrlContentError("Playwright is not installed, cannot handle dynamic content. Please run: pip install playwright && playwright install")
     
     try:
         async with async_playwright() as p:
-            # 启动浏览器（使用Chromium，性能更好）
+            # Launch browser (using Chromium, better performance)
             browser = await p.chromium.launch(
-                headless=True,  # 无头模式
+                headless=True,  # Headless mode
                 args=[
                     '--no-sandbox',
                     '--disable-dev-shm-usage',
@@ -143,7 +147,7 @@ async def fetch_with_playwright(url: str, timeout: int = 30) -> str:
                 ]
             )
             
-            # 创建上下文
+            # Create context
             context = await browser.new_context(
                 viewport={'width': 1920, 'height': 1080},
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
@@ -155,127 +159,127 @@ async def fetch_with_playwright(url: str, timeout: int = 30) -> str:
                 }
             )
             
-            # 创建页面
+            # Create page
             page = await context.new_page()
             
-            # 设置超时
-            page.set_default_timeout(timeout * 1000)  # Playwright使用毫秒
+            # Set timeout
+            page.set_default_timeout(timeout * 1000)  # Playwright uses milliseconds
             
-            # 访问页面
+            # Visit page
             await page.goto(url, wait_until='domcontentloaded')
             
-            # 等待页面稳定（等待网络空闲）
+            # Wait for page to stabilize (wait for network idle)
             try:
                 await page.wait_for_load_state('networkidle', timeout=10000)
             except Exception:
-                logger.warning("等待网络空闲超时，继续处理")
+                logger.warning("Network idle timeout, continue processing")
             
-            # 等待JavaScript执行完成
+            # Wait for JavaScript to complete
             await page.wait_for_timeout(2000)
             
-            # 尝试滚动页面以触发懒加载内容
+            # Try scrolling page to trigger lazy loading content
             try:
                 await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
                 await page.wait_for_timeout(1000)
                 await page.evaluate("window.scrollTo(0, 0)")
                 await page.wait_for_timeout(500)
             except Exception:
-                logger.warning("页面滚动失败，继续处理")
+                logger.warning("Page scrolling failed, continue processing")
             
-            # 获取页面源码
+            # Get page source code
             html_content = await page.content()
             
-            # 关闭浏览器
+            # Close browser
             await browser.close()
             
             return html_content
             
     except Exception as e:
-        raise FetchUrlContentError(f"Playwright执行失败: {e}")
+        raise FetchUrlContentError(f"Playwright execution failed: {e}")
 
 async def fetch_url_content(url: str) -> str:
-    """获取页面上的所有可视文本内容，自动处理js等动态内容，包含重试机制"""
+    """Get all visible text content on the page, automatically handle js etc. dynamic content, including retry mechanism"""
     if not url:
-        raise FetchUrlContentError("URL不能为空")
+        raise FetchUrlContentError("URL cannot be empty")
     
-    # 验证URL格式
+    # Validate URL format
     try:
         parsed_url = urlparse(url)
         if not parsed_url.scheme or not parsed_url.netloc:
-            raise FetchUrlContentError("无效的URL格式")
+            raise FetchUrlContentError("Invalid URL format")
     except Exception as e:
-        raise FetchUrlContentError(f"URL解析失败: {e}")
+        raise FetchUrlContentError(f"URL parsing failed: {e}")
     
     max_retries = 3
     retry_delay = 2
     
     for attempt in range(max_retries):
         try:
-            logger.info(f"尝试获取URL内容 (第{attempt + 1}次): {url}")
+            logger.info(f"Trying to fetch URL content (attempt {attempt + 1}): {url}")
             
-            # 首先尝试使用requests获取静态内容
+            # First try to use requests to fetch static content
             try:
                 html_content = await fetch_with_requests(url)
                 text_content = await extract_text_from_html(html_content, url)
                 
-                # 如果内容足够丰富，直接返回
+                # If content is rich enough, return directly
                 if len(text_content) > 100:
-                    logger.info(f"成功获取静态内容，长度: {len(text_content)}")
+                    logger.info(f"Successfully fetched static content, length: {len(text_content)}")
                     return text_content
                 else:
-                    logger.info("静态内容较少，尝试使用Playwright获取动态内容")
-                    raise FetchUrlContentError("内容不足，需要动态加载")
+                    logger.info("Static content is less, try to use Playwright to fetch dynamic content")
+                    raise FetchUrlContentError("Content is not enough, need to dynamically load")
                     
             except FetchUrlContentError as e:
-                if "内容不足" in str(e):
-                    # 尝试使用Playwright获取动态内容
+                if "Content is not enough" in str(e):
+                    # Try to use Playwright to fetch dynamic content
                     html_content = await fetch_with_playwright(url)
                     text_content = await extract_text_from_html(html_content, url)
                     
                     if len(text_content) > 50:
-                        logger.info(f"成功获取动态内容，长度: {len(text_content)}")
+                        logger.info(f"Successfully fetched dynamic content, length: {len(text_content)}")
                         return text_content
                     else:
-                        raise FetchUrlContentError("无法获取有效内容")
+                        raise FetchUrlContentError("Cannot get valid content")
                 else:
                     raise
             
         except FetchUrlContentError as e:
             if attempt == max_retries - 1:
-                raise FetchUrlContentError(f"获取内容失败 (重试{max_retries}次): {e}")
+                raise FetchUrlContentError(f"Failed to fetch content (attempt {max_retries} times): {e}")
             else:
-                logger.warning(f"第{attempt + 1}次尝试失败: {e}")
+                logger.warning(f"Attempt {attempt + 1} failed: {e}")
                 await asyncio.sleep(retry_delay)
-                retry_delay *= 2  # 指数退避
+                retry_delay *= 2  # Exponential backoff
     
-    raise FetchUrlContentError("未知错误")
+    raise FetchUrlContentError("Unknown error")
 
-# 自建AI总结网页工具
+# Self-built AI summary webpage tool
 async def on_ai_webpage_summary_tool_invoke(context: RunContextWrapper, params_str: str) -> Any:
-    """获取URL内容并请求AI模型进行总结"""
+    """Get URL content and request AI model to summarize"""
     params = json.loads(params_str)
     url = params.get("url")
     max_tokens = params.get("max_tokens", 1000)
     
     if not url:
-        return "Error: URL参数不能为空"
+        return "Error: URL parameter cannot be empty"
     
     try:
-        # 获取网页内容
+        # Get webpage content
         url_content = await fetch_url_content(url)
         
         if not url_content or len(url_content.strip()) < 10:
-            return "Error: 无法获取有效的网页内容"
+            return "Error: Cannot get valid webpage content"
         
-        # 限制内容长度，避免超出模型限制
+        # Limit content length, avoid exceeding model limit
         if len(url_content) > 180000:
-            url_content = url_content[:180000] + "\n\n[内容已截断...]"
+            url_content = url_content[:180000] + "\n\n[Content truncated...]"
         
-        # 调用AI模型进行总结
+        # Call AI model to summarize
         response = await client.chat_completion(
             model="gpt-4.1-nano-0414",
             messages=[
-                {"role": "user", "content": f"请总结以下网页内容，总结长度不超过{max_tokens}个token。只返回总结内容，不要包含其他文字，总结的语种应当与网页主要内容保持一致。\n\n网页内容：\n{url_content}"}
+                {"role": "user", "content": f"Please summarize the following webpage content, the summary length should not exceed {max_tokens} tokens. Only return the summary content, do not include any other text, the language of the summary should be consistent with the main content of the webpage.\n\nWebpage content:\n{url_content}"}
             ],
             max_tokens=max_tokens
         )
@@ -285,8 +289,8 @@ async def on_ai_webpage_summary_tool_invoke(context: RunContextWrapper, params_s
     except FetchUrlContentError as e:
         return f"Error: {e}"
     except Exception as e:
-        logger.error(f"AI总结过程中出错: {e}")
-        return f"Error: 处理过程中出现未知错误: {e}"
+        logger.error(f"Error occurred during AI summary: {e}")
+        return f"Error: Error occurred during AI summary: {e}"
 
 tool_ai_webpage_summary = FunctionTool(
     name='local-ai_webpage_summary',

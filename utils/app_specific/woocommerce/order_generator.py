@@ -112,18 +112,18 @@ class OrderDataGenerator:
         Returns:
             List of order dictionaries
         """
-        print("📦 生成订单数据...")
+        print("📦 Generating order data...")
 
         # Set random seed
         seed = config.time_seed if config.time_seed is not None else int(time.time())
         random.seed(seed)
-        print(f"  🎲 使用随机种子: {seed}")
+        print(f"  🎲 Using random seed: {seed}")
 
         orders = []
         now = datetime.now()
         completed_count = int(config.order_count * config.completed_percentage)
 
-        print(f"  创建 {config.order_count} 个订单 ({completed_count} 个已完成, {config.order_count - completed_count} 个处理中)...")
+        print(f"  Creating {config.order_count} orders ({completed_count} completed, {config.order_count - completed_count} processing)...")
 
         for i in range(config.order_count):
             # Select customer (cycle through if more orders than customers)
@@ -163,7 +163,7 @@ class OrderDataGenerator:
 
         # Shuffle orders if requested
         if config.shuffle_orders:
-            print("  🔀 打乱订单顺序...")
+            print("  🔀 Shuffling order sequence...")
             random.shuffle(orders)
 
         return orders
@@ -187,7 +187,7 @@ class OrderDataGenerator:
         Returns:
             List of historical order dictionaries
         """
-        print(f"📜 生成 {count} 个历史订单 ({days_ago_start}-{days_ago_end} 天前)...")
+        print(f"📜 Generating {count} historical orders ({days_ago_start}-{days_ago_end} days ago)...")
 
         orders = []
         now = datetime.now()

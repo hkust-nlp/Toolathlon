@@ -5,7 +5,6 @@ from typing import Any
 from agents.tool import FunctionTool, RunContextWrapper
 from time import sleep
 
-# 自建bash命令执行工具
 async def on_sleep_tool_invoke(context: RunContextWrapper, params_str: str) -> Any:
     params = json.loads(params_str)
     seconds = params.get("seconds", 1)
@@ -20,7 +19,7 @@ tool_sleep = FunctionTool(
         "properties": {
             "seconds": {
                 "type": "number",
-                "description": '''等待的秒数''',
+                "description": 'the number of seconds to sleep',
             },
         },
         "required": ["seconds"]
@@ -28,7 +27,6 @@ tool_sleep = FunctionTool(
     on_invoke_tool=on_sleep_tool_invoke
 )
 
-# 自建bash命令执行工具
 async def on_done_tool_invoke(context: RunContextWrapper, params_str: str) -> Any:
     return "you have claimed the task is done!"
 

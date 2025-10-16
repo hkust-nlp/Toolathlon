@@ -6,7 +6,7 @@ from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime
 
 class HistoryManager:
-    """管理历史文件的读取和搜索"""
+    """Manage reading and searching of history files."""
     
     def __init__(self, history_dir: Path, session_id: str):
         self.history_dir = Path(history_dir)
@@ -15,7 +15,7 @@ class HistoryManager:
         self._index_cache = None
     
     def _load_history(self) -> List[Dict[str, Any]]:
-        """加载完整历史"""
+        """Load the complete history file as a list of records."""
         if not self.history_file.exists():
             return []
         
@@ -24,7 +24,7 @@ class HistoryManager:
             for line_num, line in enumerate(f):
                 try:
                     record = json.loads(line)
-                    record['_line_index'] = line_num  # 添加行索引
+                    record['_line_index'] = line_num  # Add line index to record
                     history.append(record)
                 except json.JSONDecodeError:
                     continue
@@ -37,31 +37,31 @@ class HistoryManager:
         max_results: Optional[int] = None,
         skip: int = 0
     ) -> Tuple[List[Dict[str, Any]], int]:
-        """搜索包含关键词的记录
-        
-        返回: (匹配的记录列表, 总匹配数)
+        """
+        Search records that contain all the given keywords.
+        Returns: (list of matching records, total matching count)
         """
         history = self._load_history()
         matches = []
         
-        # 转换关键词为小写以进行不区分大小写的搜索
+        # Convert keywords to lowercase for case-insensitive search
         keywords_lower = [k.lower() for k in keywords]
         
         for record in history:
-            # 从 raw_content 中提取搜索内容
+            # Extract search content from raw_content
             search_content = self._extract_search_content(record)
             if search_content:
                 search_content_lower = search_content.lower()
-                # 检查所有关键词是否都出现
+                # Check that all keywords appear in the content
                 if all(keyword in search_content_lower for keyword in keywords_lower):
-                    # 添加匹配上下文
+                    # Add matching context to record
                     match_context = self._extract_match_context(search_content, keywords)
                     record['match_context'] = match_context
                     matches.append(record)
         
         total_matches = len(matches)
         
-        # 应用分页
+        # Apply pagination
         if skip > 0:
             matches = matches[skip:]
         if max_results is not None:
@@ -70,14 +70,13 @@ class HistoryManager:
         return matches, total_matches
     
     def _extract_search_content(self, record: Dict[str, Any]) -> str:
-        """从记录中提取搜索内容"""
+        """Extract searchable content from a record."""
         item_type = record.get('item_type', record.get('type', ''))
         
         if item_type == 'message_output_item':
-            # 从 raw_content 中提取消息内容
+            # Extract message content from raw_content
             raw_content = record.get('raw_content', {})
             if isinstance(raw_content, dict):
-                # 提取所有文本内容
                 content_parts = []
                 for content_item in raw_content.get('content', []):
                     if isinstance(content_item, dict) and content_item.get('type') == 'output_text':
@@ -85,7 +84,7 @@ class HistoryManager:
                 return ' '.join(content_parts)
         
         elif item_type in ['tool_call_item', 'tool_call_output_item']:
-            # 工具调用和输出，提取工具名称和参数
+            # For tool call and tool call output, include tool name and arguments
             raw_content = record.get('raw_content', {})
             if isinstance(raw_content, dict):
                 tool_name = raw_content.get('name', '')
@@ -93,12 +92,11 @@ class HistoryManager:
                 return f"{tool_name} {arguments}"
         
         elif item_type in ['initial_input', 'user_input']:
-            # 用户输入
+            # For user input (string or list of strings/objects)
             content = record.get('content', '')
             if isinstance(content, str):
                 return content
             elif isinstance(content, list):
-                # 如果是列表，提取所有文本内容
                 content_parts = []
                 for item in content:
                     if isinstance(item, dict):
@@ -108,11 +106,10 @@ class HistoryManager:
         return ""
 
     def _extract_role_from_record(self, record: Dict[str, Any]) -> str:
-        """从记录中提取角色信息"""
+        """Extract role info from a record."""
         item_type = record.get('item_type', record.get('type', ''))
         
         if item_type == 'message_output_item':
-            # 从 raw_content 中提取角色
             raw_content = record.get('raw_content', {})
             if isinstance(raw_content, dict):
                 return raw_content.get('role', 'unknown')
@@ -129,10 +126,10 @@ class HistoryManager:
         return 'unknown'
 
     def _extract_match_context(self, content: str, keywords: List[str], context_length: int = 50) -> str:
-        """提取关键词周围的上下文"""
+        """Extract surrounding context for the first match of any keyword."""
         content_lower = content.lower()
         
-        # 找到第一个关键词的位置
+        # Find the first keyword match position
         first_match_pos = len(content)
         matched_keyword = ""
         for keyword in keywords:
@@ -144,7 +141,7 @@ class HistoryManager:
         if first_match_pos == len(content):
             return content[:100] + "..." if len(content) > 100 else content
         
-        # 提取上下文
+        # Extract left and right context around first match
         start = max(0, first_match_pos - context_length)
         end = min(len(content), first_match_pos + len(matched_keyword) + context_length)
         
@@ -157,10 +154,12 @@ class HistoryManager:
         return context
     
     def get_turn_details(self, turn_number: int, context_turns: int = 2) -> List[Dict[str, Any]]:
-        """获取特定轮次的详细信息，包括前后文"""
+        """
+        Get the records for a specific turn, including a few turns before and after (context).
+        """
         history = self._load_history()
         
-        # 找到目标轮次的所有记录
+        # Collect the indices of all records by turn
         target_records = []
         turn_indices = {}
         
@@ -176,7 +175,7 @@ class HistoryManager:
         if not target_records:
             return []
         
-        # 获取前后文轮次
+        # Get min/max turn numbers for context
         min_turn = max(0, turn_number - context_turns)
         max_turn = turn_number + context_turns
         
@@ -191,7 +190,7 @@ class HistoryManager:
         return context_records
     
     def get_statistics(self) -> Dict[str, Any]:
-        """获取历史统计信息"""
+        """Get statistics about the history file."""
         history = self._load_history()
         
         if not history:
@@ -201,30 +200,30 @@ class HistoryManager:
                 "date_range": None
             }
         
-        # 统计各种信息
+        # Gather various statistics
         turns = set()
         roles = {}
         item_types = {}
         timestamps = []
         
         for record in history:
-            # 轮次
+            # Turn
             if 'turn' in record:
                 turns.add(record['turn'])
             
-            # 角色 - 从 raw_content 中提取
+            # Role (from raw_content)
             role = self._extract_role_from_record(record)
             roles[role] = roles.get(role, 0) + 1
             
-            # 类型
+            # Item type
             item_type = record.get('item_type', record.get('type', 'unknown'))
             item_types[item_type] = item_types.get(item_type, 0) + 1
             
-            # 时间戳
+            # Timestamp
             if 'timestamp' in record:
                 timestamps.append(record['timestamp'])
         
-        # 计算时间范围
+        # Calculate date range
         date_range = None
         if timestamps:
             timestamps.sort()
@@ -243,24 +242,23 @@ class HistoryManager:
             "file_size_bytes": self.history_file.stat().st_size if self.history_file.exists() else 0
         }
 
-    # 在 history_manager.py 中添加或更新此方法
     def _extract_searchable_content(self, record: Dict) -> str:
-        """从记录中提取可搜索的内容"""
+        """Extract all searchable content from a record."""
         content_parts = []
         
-        # 处理不同类型的记录
+        # Handle by different record types
         if record.get("type") == "initial_input":
             content_parts.append(record.get("content", ""))
         
         elif record.get("item_type") == "message_output_item":
             raw_content = record.get("raw_content", {})
             if isinstance(raw_content, dict):
-                # 提取角色
+                # Role
                 role = raw_content.get("role", "")
                 if role:
                     content_parts.append(f"[{role}]")
                 
-                # 提取文本内容
+                # Message text
                 for content_item in raw_content.get("content", []):
                     if isinstance(content_item, dict) and content_item.get("type") == "output_text":
                         content_parts.append(content_item.get("text", ""))
@@ -272,7 +270,7 @@ class HistoryManager:
                 if tool_name:
                     content_parts.append(f"[Tool: {tool_name}]")
                 
-                # 包括工具参数
+                # Tool arguments
                 args = raw_content.get("arguments", {})
                 if args:
                     content_parts.append(json.dumps(args, ensure_ascii=False))
@@ -292,7 +290,7 @@ class HistoryManager:
         return " ".join(content_parts)
 
     def _calculate_duration(self, start_time: str, end_time: str) -> str:
-        """计算时间差"""
+        """Calculate the duration string between two ISO timestamps."""
         try:
             start = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
             end = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
@@ -302,10 +300,10 @@ class HistoryManager:
             minutes, seconds = divmod(remainder, 60)
             
             if hours > 0:
-                return f"{int(hours)}小时{int(minutes)}分钟"
+                return f"{int(hours)} hours {int(minutes)} minutes"
             elif minutes > 0:
-                return f"{int(minutes)}分钟{int(seconds)}秒"
+                return f"{int(minutes)} minutes {int(seconds)} seconds"
             else:
-                return f"{int(seconds)}秒"
+                return f"{int(seconds)} seconds"
         except:
-            return "未知"
+            return "unknown"

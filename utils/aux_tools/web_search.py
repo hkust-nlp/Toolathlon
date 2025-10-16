@@ -19,12 +19,12 @@ from configs.token_key_session import all_token_key_session
 
 SERPER_API_KEY = all_token_key_session.serper_api_key
 
-# 全局实例，可复用
+# Global instance, reusable
 _global_concurrency_manager = None
 _global_retry_manager = None
 
 def get_global_concurrency_manager() -> "ConcurrencyManager":
-    """获取全局并发管理器实例"""
+    """Get global concurrency manager instance"""
     global _global_concurrency_manager
     if _global_concurrency_manager is None:
         _global_concurrency_manager = ConcurrencyManager(
@@ -35,7 +35,7 @@ def get_global_concurrency_manager() -> "ConcurrencyManager":
     return _global_concurrency_manager
 
 def get_global_retry_manager() -> "RetryManager":
-    """获取全局重试管理器实例"""
+    """Get global retry manager instance"""
     global _global_retry_manager
     if _global_retry_manager is None:
         _global_retry_manager = RetryManager(
@@ -58,41 +58,41 @@ def get_random_key(api_key):
 class ConcurrencyManager:
     def __init__(self, max_concurrent: int = 5, rate_limit: int = 100, time_window: int = 60):
         """
-        并发管理器，同时控制信号量和速率限制
+        Concurrency manager, controlling both semaphore and rate limit
         
         Args:
-            max_concurrent: 最大并发请求数
-            rate_limit: 在时间窗口内允许的最大请求数
-            time_window: 时间窗口大小(秒)
+            max_concurrent: Maximum concurrent requests
+            rate_limit: Maximum requests allowed within time window
+            time_window: Time window size (seconds)
         """
         self.semaphore = asyncio.Semaphore(max_concurrent)
         self.rate_limiter = RateLimiter(rate_limit, time_window)
         
     async def acquire(self):
-        """获取并发许可和速率限制许可"""
+        """Acquire concurrency permission and rate limit permission"""
         await self.semaphore.acquire()
         await self.rate_limiter.acquire()
         
     def release(self):
-        """释放信号量"""
+        """Release semaphore"""
         self.semaphore.release()
 
 class RetryManager:
     def __init__(self, max_retries: int = 3, base_delay: float = 1.0, max_delay: float = 60.0):
         """
-        重试管理器
+        Retry manager
         
         Args:
-            max_retries: 最大重试次数
-            base_delay: 基础延迟时间(秒)
-            max_delay: 最大延迟时间(秒)
+            max_retries: Maximum retry times
+            base_delay: Base delay time (seconds)
+            max_delay: Maximum delay time (seconds)
         """
         self.max_retries = max_retries
         self.base_delay = base_delay
         self.max_delay = max_delay
         
     async def retry_with_backoff(self, func, *args, **kwargs):
-        """使用指数退避的重试机制"""
+        """Use exponential backoff retry mechanism"""
         last_exception = None
         
         for attempt in range(self.max_retries + 1):
@@ -114,11 +114,11 @@ class RetryManager:
 class RateLimiter:
     def __init__(self, rate_limit: int, time_window: int = 60):
         """
-        初始化速率限制器
+        Initialize rate limiter
         
         Args:
-            rate_limit: 在时间窗口内允许的最大请求数
-            time_window: 时间窗口大小(秒)，默认60秒
+            rate_limit: Maximum requests allowed within time window
+            time_window: Time window size (seconds), default 60 seconds
         """
         self.rate_limit = rate_limit
         self.time_window = time_window
@@ -127,7 +127,7 @@ class RateLimiter:
         self.lock = asyncio.Lock()
 
     async def acquire(self):
-        """获取一个令牌，如果没有可用令牌则等待"""
+        """Acquire a token, if no available token, wait"""
         async with self.lock:
             while self.tokens <= 0:
                 now = time.time()
@@ -138,7 +138,7 @@ class RateLimiter:
                 )
                 self.last_update = now
                 if self.tokens <= 0:
-                    await asyncio.sleep(random.randint(5, 30))  # 等待xxx秒后重试
+                    await asyncio.sleep(random.randint(5, 30))  # Wait xxx seconds and retry
             
             self.tokens -= 1
             return True
@@ -199,7 +199,7 @@ async def search_google_async(session: aiohttp.ClientSession, query_list: list,
                              num_results: int = 10, 
                              concurrency_manager: ConcurrencyManager = None,
                              retry_manager: RetryManager = None) -> List[Dict[str, Any]]:
-    """异步版本的Google搜索"""
+    """Async version of Google search"""
     if isinstance(query_list, str):
         query_list = [query_list]
     
@@ -209,7 +209,7 @@ async def search_google_async(session: aiohttp.ClientSession, query_list: list,
         retry_manager = RetryManager()
     
     async def search_single_query(query: str) -> List[Dict[str, Any]]:
-        """搜索单个查询"""
+        """Search single query"""
         await concurrency_manager.acquire()
         try:
             async def _do_search():
@@ -236,11 +236,11 @@ async def search_google_async(session: aiohttp.ClientSession, query_list: list,
         finally:
             concurrency_manager.release()
     
-    # 并发执行所有查询
+    # Concurrent execution of all queries
     tasks = [search_single_query(query) for query in query_list]
     results_list = await asyncio.gather(*tasks, return_exceptions=True)
     
-    # 合并结果
+    # Merge results
     all_results = []
     for result in results_list:
         if isinstance(result, Exception):
@@ -254,7 +254,7 @@ async def search_google_async(session: aiohttp.ClientSession, query_list: list,
 async def on_web_search_tool_invoke(context: RunContextWrapper, params_str: str) -> Any:
     """Web search tool main function"""
     try:
-        # 解析参数
+        # Parse parameters
         params = json.loads(params_str)
         query = params.get('query', '').strip()
         num_results = min(max(params.get('num_results', 10), 1), 50)
@@ -264,11 +264,11 @@ async def on_web_search_tool_invoke(context: RunContextWrapper, params_str: str)
         
         logger.info(f"Starting web search for query: '{query}' with {num_results} results")
         
-        # 使用全局并发和重试管理器
+        # Use global concurrency and retry manager
         concurrency_manager = get_global_concurrency_manager()
         retry_manager = get_global_retry_manager()
         
-        # 使用异步搜索
+        # Use async search
         connector = aiohttp.TCPConnector(limit=10, limit_per_host=5)
         timeout = aiohttp.ClientTimeout(total=30, connect=10)
         
@@ -281,7 +281,7 @@ async def on_web_search_tool_invoke(context: RunContextWrapper, params_str: str)
                 retry_manager=retry_manager
             )
         
-        # 格式化输出
+        # Format output
         if not results:
             return "No search results found."
         
@@ -311,7 +311,7 @@ async def on_web_search_tool_invoke(context: RunContextWrapper, params_str: str)
         logger.error(f"Unexpected error during web search: {e}")
         return f"Error: Unexpected error occurred during search: {e}"
 
-# Define search tool
+# Define tools
 tool_web_search = FunctionTool(
     name='local-web_search',
     description='Search the web using Google Serper API with concurrency control and retry mechanisms. Supports various Google search operators.',
