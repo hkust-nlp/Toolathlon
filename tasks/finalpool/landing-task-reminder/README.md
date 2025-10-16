@@ -1,57 +1,57 @@
-今天我们有3位新员工入职，每位新员工的入职信息都在snowflake的数据库的。根据员工的所属组，自动生成培训任务清单（这里需要agent去读员工手册，是一个pdf，有默认公共培训任务和每个组的培训任务），发送邮件给员工所属邮箱。并将任务内容和计划完成日期自动更新到数据库。此外， 还需要检查当前日期已超过培训计划完成日期但任务状态仍为“未完成”的员工记录，像员工本人发送提醒邮件，格式为“Dear xxx, 你尚有如下入职培训任务未完成：xx\nxx\nxx\nxx 请尽快完成”并抄送其直属上司。
+Today, we have three new employees onboarding. Each new employee's onboarding information is stored in the Snowflake database. According to each employee’s group, generate an onboarding task list automatically (the agent needs to read the employee handbook, which is a PDF, including both default common training tasks and group-specific training tasks), send the task list via email to the employee, and automatically update the task content and planned completion date in the database. Additionally, the agent must check for any employees whose training plan due dates have passed and whose tasks remain "Incomplete", and send them a reminder email in the format: “Dear xxx, you still have the following onboarding training tasks to complete:\nxx\nxx\nxx\nxx Please complete them as soon as possible.” The reminder email should also CC the employee’s direct manager.
 
+Workflow for constructing the evaluation agent task:
 
-构建上述评测 Agent 任务的流程：
-
-- 新建一个配置json
-    - 3个新员工、20个老员工（其中4个还没有完成任务）、4个 manager对应4个组
-    - 每个员工都有自己的任务完成状态
-    - 任务的完成状态包括：未完成(新员工则所有任务都没有完成，老员工有部分过了ddl的任务未完成)、已完成(所有任务都完成)
-    - 由于时间的动态性，我们还需要根据当前日期，来设置过了ddl的任务；例如：ddl是当前日期 - 10天，那么过了ddl的任务就是当前日期 - 10天之前的任务
-        - 所有的时间都用负数来代替，表示当前时间 - 负数天数
-        - 经理的入职时间用当前时间 - 1000左右的天数
-        - 老员工的入职时间用当前时间 - 365天以上 1000天以下的天数
-        - 新员工的入职时间用当前时间 - 0天，表示今天入职
+- Create a configuration JSON:
+    - 3 new employees, 20 existing employees (among which 4 have pending tasks), 4 managers corresponding to 4 groups
+    - Each employee has their own training task completion status
+    - Task status includes: "Incomplete" (all tasks are incomplete for new employees, and some tasks past their deadline ("ddl") are incomplete for some existing employees), or "Complete" (all tasks finished)
+    - Due to the dynamic nature of date calculations, set the overdue tasks according to the current date. For example, if the ddl is current date minus 10 days, then tasks assigned more than 10 days ago are overdue.
+        - All times should use a negative number to indicate "current date - x days"
+        - Managers’ start dates: current date - ~1000 days
+        - Existing employees’ start dates: current date - between 365 and 1000 days
+        - New employees’ start date: current date - 0 days (i.e., today)
     
-    - 每个员工都有自己的直属上司, 每个员工都有自己的邮箱
-        对manager来说，可以report给 boss
+    - Each employee has their own direct manager and email address.
+        For managers, the "report-to" could be the boss.
 
-        table: employee-id name email report-to-(id)
-        table: employee-id landing-date landing-task-assigned
+        Table: employee-id, name, email, report-to-(id)
+        Table: employee-id, landing-date, landing-task-assigned
 
-    - 每个组都有自己的培训任务，培训任务包括：公共培训任务和每个组的培训任务，每组的任务和公共的任务table全都是是分开的，需要分开读取，结构如下
-        table: task-id task-name employee-id create-date ddl finished-flag
-- preprocess:
-    - 读取这个配置json，删除之前的 db，然后将配置json写入到db
-    - 生成一个员工手册，员工手册包括：公共培训任务和每个组的培训任务，
-    - 具体的任务：
-        - 公共培训任务：
-            - 入职培训
-            - 安全培训
-            - 保密培训
-            - 公司文化
-            - 公司战略
-        - Group-1（后台） 培训任务
-            - 后台开发流程
-            - 后台开发规范
-            - 后台开发环境
-        - Group-2（前端） 培训任务
-            - 前端开发流程
-            - 前端开发规范
-            - 前端开发环境
-        - Group-3（测试） 培训任务
-            - 测试开发流程
-            - 测试开发规范
-            - 测试开发环境
-        - Group-4（数据） 培训任务
-            - 数据开发流程
-            - 数据开发规范
-            - 数据开发环境
+    - Each group has its own training tasks. Training tasks include both common training tasks and group-specific tasks. Each table for group tasks and common tasks is separate and needs to be read separately. The structure is as follows:
+        Table: task-id, task-name, employee-id, create-date, ddl, finished-flag
+
+- Preprocessing:
+    - Load the configuration JSON, delete the existing database, and then write the configuration JSON into the database.
+    - Generate an employee handbook (PDF) including both common onboarding training tasks and each group’s training tasks.
+    - Specifically, the tasks are:
+        - Common onboarding training tasks:
+            - Orientation
+            - Safety training
+            - Confidentiality training
+            - Company culture
+            - Company strategy
+        - Group-1 (Backend) training tasks:
+            - Backend development process
+            - Backend development standards
+            - Backend development environment
+        - Group-2 (Frontend) training tasks:
+            - Frontend development process
+            - Frontend development standards
+            - Frontend development environment
+        - Group-3 (QA) training tasks:
+            - Testing development process
+            - Testing development standards
+            - Testing development environment
+        - Group-4 (Data) training tasks:
+            - Data development process
+            - Data development standards
+            - Data development environment
 
 - Evaluation:
-    - 检查邮件是否发送给了员工本人、是否抄送了直属上司
-    - 检查是否多发送了邮件
-    - 检查邮件的内容
-    - 检查db里三位新员工的任务是否被正确地添加
-    - 检查db里是不是刚好新增了这些任务，没有多也没有少
+    - Check whether the emails are sent to the correct employees and CC’d to the correct direct managers
+    - Check for duplicate or extra email notifications
+    - Verify the content of the emails
+    - Verify whether the new onboarding tasks for the three new employees are added correctly in the database
+    - Confirm that the database contains exactly the newly assigned tasks, no more and no less
 
