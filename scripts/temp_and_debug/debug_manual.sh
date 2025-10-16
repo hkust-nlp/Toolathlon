@@ -12,7 +12,7 @@
 
 uv run main.py \
 --eval_config scripts/temp_and_debug/debug_eval_config.json \
---task_dir finalpool/woocommerce-new-welcome \
+--task_dir finalpool/woocommerce-new-product \
 --debug \
 --model_short_name deepseek-v3.2-exp \
 --provider deepseek_official \

@@ -2,26 +2,26 @@
   "clear_result": {
     "success": true,
     "products": {
-      "total_found": 0,
-      "deleted": 0,
+      "total_found": 7,
+      "deleted": 7,
       "failed": 0
     },
     "customers": {
       "deleted": 0,
-      "preserved": 0,
+      "preserved": 40,
       "failed": 0
     },
     "categories": {
-      "deleted": 0,
+      "deleted": 4,
       "failed": 0
     },
-    "timestamp": "2025-10-16T07:51:19.917619"
+    "timestamp": "2025-10-16T14:20:07.790595"
   },
   "categories": {
-    "Electronics": 16,
-    "Smart Home": 17,
-    "Accessories": 18,
-    "Office Supplies": 19
+    "Electronics": 20,
+    "Smart Home": 21,
+    "Accessories": 22,
+    "Office Supplies": 23
   },
   "product_result": {
     "success": true,
@@ -29,7 +29,7 @@
     "failed_count": 0,
     "created_products": [
       {
-        "id": 9,
+        "id": 17,
         "name": "Smart Watch Pro Max",
         "type": "new_product",
         "status": "draft",
@@ -37,7 +37,7 @@
         "sale_price": null
       },
       {
-        "id": 10,
+        "id": 18,
         "name": "Wireless Noise-Canceling Headphones Ultra",
         "type": "new_product",
         "status": "pending",
@@ -45,7 +45,7 @@
         "sale_price": null
       },
       {
-        "id": 11,
+        "id": 19,
         "name": "Smart Home Control Hub",
         "type": "new_product",
         "status": "draft",
@@ -53,7 +53,7 @@
         "sale_price": null
       },
       {
-        "id": 12,
+        "id": 20,
         "name": "Bluetooth Speaker Mini",
         "type": "sale_product",
         "status": "publish",
@@ -61,7 +61,7 @@
         "sale_price": "19.99"
       },
       {
-        "id": 13,
+        "id": 21,
         "name": "USB-C Cable Set",
         "type": "sale_product",
         "status": "publish",
@@ -69,7 +69,7 @@
         "sale_price": "5.99"
       },
       {
-        "id": 14,
+        "id": 22,
         "name": "Wireless Charging Pad",
         "type": "sale_product",
         "status": "publish",
@@ -77,7 +77,7 @@
         "sale_price": "14.99"
       },
       {
-        "id": 15,
+        "id": 23,
         "name": "Laptop Stand",
         "type": "sale_product",
         "status": "publish",
@@ -89,8 +89,8 @@
     "sale_products_count": 4
   },
   "customer_result": {
-    "created_customers": 40,
-    "updated_customers": 0,
+    "created_customers": 0,
+    "updated_customers": 40,
     "failed_customers": 0,
     "new_product_subscribers": 30,
     "discount_subscribers": 32,
@@ -177,7 +177,7 @@
     ],
     "new_products": [
       {
-        "id": 9,
+        "id": 17,
         "name": "Smart Watch Pro Max",
         "type": "new_product",
         "status": "draft",
@@ -185,7 +185,7 @@
         "sale_price": null
       },
       {
-        "id": 10,
+        "id": 18,
         "name": "Wireless Noise-Canceling Headphones Ultra",
         "type": "new_product",
         "status": "pending",
@@ -193,7 +193,7 @@
         "sale_price": null
       },
       {
-        "id": 11,
+        "id": 19,
         "name": "Smart Home Control Hub",
         "type": "new_product",
         "status": "draft",
@@ -203,7 +203,7 @@
     ],
     "sale_products": [
       {
-        "id": 12,
+        "id": 20,
         "name": "Bluetooth Speaker Mini",
         "type": "sale_product",
         "status": "publish",
@@ -211,7 +211,7 @@
         "sale_price": "19.99"
       },
       {
-        "id": 13,
+        "id": 21,
         "name": "USB-C Cable Set",
         "type": "sale_product",
         "status": "publish",
@@ -219,7 +219,7 @@
         "sale_price": "5.99"
       },
       {
-        "id": 14,
+        "id": 22,
         "name": "Wireless Charging Pad",
         "type": "sale_product",
         "status": "publish",
@@ -227,7 +227,7 @@
         "sale_price": "14.99"
       },
       {
-        "id": 15,
+        "id": 23,
         "name": "Laptop Stand",
         "type": "sale_product",
         "status": "publish",
@@ -238,5 +238,5 @@
     "total_customers": 40,
     "total_products": 7
   },
-  "setup_timestamp": "2025-10-16T07:51:52.061181"
+  "setup_timestamp": "2025-10-16T14:20:28.726750"
 }
