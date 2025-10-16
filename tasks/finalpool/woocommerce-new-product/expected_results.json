@@ -79,7 +79,7 @@
   ],
   "new_products": [
     {
-      "id": 240,
+      "id": 9,
       "name": "Smart Watch Pro Max",
       "type": "new_product",
       "status": "draft",
@@ -87,7 +87,7 @@
       "sale_price": null
     },
     {
-      "id": 241,
+      "id": 10,
       "name": "Wireless Noise-Canceling Headphones Ultra",
       "type": "new_product",
       "status": "pending",
@@ -95,7 +95,7 @@
       "sale_price": null
     },
     {
-      "id": 242,
+      "id": 11,
       "name": "Smart Home Control Hub",
       "type": "new_product",
       "status": "draft",
@@ -105,7 +105,7 @@
   ],
   "sale_products": [
     {
-      "id": 243,
+      "id": 12,
       "name": "Bluetooth Speaker Mini",
       "type": "sale_product",
       "status": "publish",
@@ -113,7 +113,7 @@
       "sale_price": "19.99"
     },
     {
-      "id": 244,
+      "id": 13,
       "name": "USB-C Cable Set",
       "type": "sale_product",
       "status": "publish",
@@ -121,7 +121,7 @@
       "sale_price": "5.99"
     },
     {
-      "id": 245,
+      "id": 14,
       "name": "Wireless Charging Pad",
       "type": "sale_product",
       "status": "publish",
@@ -129,7 +129,7 @@
       "sale_price": "14.99"
     },
     {
-      "id": 246,
+      "id": 15,
       "name": "Laptop Stand",
       "type": "sale_product",
       "status": "publish",

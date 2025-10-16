@@ -1,56 +1,56 @@
 # New Customer Welcome Task
 
-## 任务描述
-检测过去7天在店铺完成第一笔订单的所有顾客，将其信息从WooCommerce同步到公司CRM数据库，并自动发送欢迎邮件。
+## Task Description
+Detect all customers who placed their very first order in the past 7 days in the store, synchronize their information from WooCommerce to the company CRM database, and automatically send a welcome email.
 
-## 任务目标
-1. **识别新客户**：从WooCommerce订单数据中识别过去7天内的首次购买客户
-2. **数据同步**：将新客户信息同步到CRM数据库
-3. **发送欢迎邮件**：向每位新客户发送个性化欢迎邮件
-4. **生成报告**：创建详细的同步报告
+## Task Objectives
+1. **Identify New Customers**: Identify customers who made their first purchase in the past 7 days from WooCommerce order data.
+2. **Data Synchronization**: Sync new customer information to the CRM database.
+3. **Send Welcome Email**: Send a personalized welcome email to each new customer.
+4. **Generate Report**: Create a detailed synchronization report.
 
-## 初始数据
+## Initial Data
 
-### WooCommerce订单数据 (`woocommerce_orders.json`)
-- 包含7个订单和5个客户的模拟数据
-- 新客户（过去7天首次下单）：
+### WooCommerce Order Data (`woocommerce_orders.json`)
+- Contains mock data for 7 orders and 5 customers.
+- New customers (placed first order in the past 7 days):
   - Customer 101: John Smith (2025-08-28)
   - Customer 102: Emily Johnson (2025-08-29)
   - Customer 103: Michael Brown (2025-08-30)
   - Customer 104: Sarah Davis (2025-09-01)
-- 老客户：
-  - Customer 90: Robert Wilson (首单在2025-07-15)
+- Existing customer (not new):
+  - Customer 90: Robert Wilson (first order on 2025-07-15)
 
-### CRM数据库 (`crm_database.json`)
-- 初始只包含一个老客户（Customer 90）
-- Agent需要将4个新客户添加到此数据库
+### CRM Database (`crm_database.json`)
+- Initially contains only one existing customer (Customer 90)
+- Agent needs to add the 4 new customers to this database
 
-### 欢迎邮件模板 (`welcome_email_template.md`)
-- 包含个性化占位符的邮件模板
-- Agent需要使用此模板发送邮件
+### Welcome Email Template (`welcome_email_template.md`)
+- Email template with personalization placeholders
+- The agent must use this template to send emails
 
-## 评估标准
+## Evaluation Criteria
 
-### 1. 新客户检测 (Customer Detection)
-- 正确识别4个新客户（ID: 101, 102, 103, 104）
-- 不应包含老客户（ID: 90）
+### 1. New Customer Detection
+- Correctly identify 4 new customers (IDs: 101, 102, 103, 104)
+- Do not include the existing customer (ID: 90)
 
-### 2. CRM同步 (CRM Sync)
-- 将4个新客户添加到CRM数据库
-- 包含完整的客户信息（姓名、邮箱、电话等）
-- 避免重复添加
+### 2. CRM Synchronization
+- Add 4 new customers to the CRM database
+- Include complete customer information (name, email, phone, etc.)
+- Prevent duplicate entries
 
-### 3. 邮件发送 (Email Sending)
-- 向4个新客户发送欢迎邮件
-- 使用提供的模板
-- 记录发送状态
+### 3. Email Sending
+- Send welcome emails to the 4 new customers
+- Use the provided template
+- Record the sending status
 
-## 所需MCP服务器
-- `woocommerce`: 获取订单和客户数据
-- `filesystem`: 读写本地JSON文件
-- `gmail`: 发送欢迎邮件
+## Required MCP Servers
+- `woocommerce`: For fetching order and customer data
+- `filesystem`: For reading/writing local JSON files
+- `gmail`: For sending welcome emails
 
-## 文件结构
+## File Structure
 ```
 new-customer-welcome/
 ├── docs/
@@ -66,45 +66,45 @@ new-customer-welcome/
 └── task_config.json
 ```
 
-## 运行评估
+## How to Run Evaluation
 ```bash
 python evaluation/main.py \
-  --agent_workspace <agent工作目录> \
-  --groundtruth_workspace <初始数据目录> \
-  --res_log <执行日志文件>
+  --agent_workspace <agent_workspace> \
+  --groundtruth_workspace <initial_data_directory> \
+  --res_log <execution_log_file>
 ```
 
-## 预期输出
-Agent应该生成：
-1. `new_customer_sync_report.json` - 包含同步结果的详细报告
-2. 更新的 `crm_database.json` - 包含新客户信息
-3. 邮件发送记录
+## Expected Output
+The Agent should generate:
+1. `new_customer_sync_report.json` - Detailed report of the synchronization results
+2. Updated `crm_database.json` - Contains the new customer information
+3. Email sending log/record
 
-请帮我完成以下新客户同步和欢迎邮件发送任务：
+Please help me complete the following new customer synchronization and welcome email task:
 
-### 任务要求
+### Task Requirements
 
-1. **检测新客户**
-   - 从WooCommerce获取过去7天内的所有订单数据
-   - 识别在这7天内的新客户
-   - 新客户定义：在过去7天内首次下单，且之前没有任何订单记录的客户
+1. **Detect New Customers**
+   - Retrieve all order data from WooCommerce within the past 7 days
+   - Identify new customers within these 7 days
+   - New customer definition: Customer whose first-ever order was within the past 7 days and had no previous orders before that period
 
-2. **同步到BigQuery数据库**
-   - 将识别出的新客户信息同步到公司的顾客数据库（BigQuery `woocommerce_crm.customers`表）
-   - 需要同步的信息包括：
-     - 客户ID（WooCommerce ID）
-     - 姓名（first_name, last_name）
-     - 邮箱地址（email）
-     - 电话号码（phone）
-     - 首单信息（订单ID、金额、日期）
-     - 客户类型标记为"new_customer"
-   - 避免重复同步已存在的客户
+2. **Synchronize to BigQuery Database**
+   - Sync identified new customer information to the company’s customer database (BigQuery table `woocommerce_crm.customers`)
+   - Required fields to sync:
+     - Customer ID (WooCommerce ID)
+     - Name (first_name, last_name)
+     - Email address
+     - Phone number
+     - First order info (order ID, amount, date)
+     - Customer type marked as "new_customer"
+   - Prevent duplicate entries for already existing customers
 
-3. **发送欢迎邮件**
-   - 使用提供的邮件模板（`welcome_email_template.md`）向每位新客户发送个性化欢迎邮件
+3. **Send Welcome Email**
+   - Use the provided email template (`welcome_email_template.md`) and send a personalized welcome email to each new customer
 
-### BigQuery配置
-- 项目ID: mcp-bench0606
-- 数据集: woocommerce_crm  
-- 表名: customers
-- 使用Google Cloud服务账号密钥进行认证
+### BigQuery Configuration
+- Project ID: mcp-bench0606
+- Dataset: woocommerce_crm  
+- Table: customers
+- Use a Google Cloud service account key for authentication

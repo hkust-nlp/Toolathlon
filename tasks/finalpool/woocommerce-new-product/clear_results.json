@@ -1,18 +1,18 @@
 {
   "success": true,
   "products": {
-    "total_found": 7,
-    "deleted": 7,
+    "total_found": 0,
+    "deleted": 0,
     "failed": 0
   },
   "customers": {
     "deleted": 0,
-    "preserved": 40,
+    "preserved": 0,
     "failed": 0
   },
   "categories": {
-    "deleted": 4,
+    "deleted": 0,
     "failed": 0
   },
-  "timestamp": "2025-09-13T22:00:17.695734"
+  "timestamp": "2025-10-16T07:51:19.917619"
 }

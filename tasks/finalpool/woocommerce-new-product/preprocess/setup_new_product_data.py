@@ -5,7 +5,7 @@ from typing import Dict
 import sys
 import os
 
-# 动态添加当前目录到路径
+# Dynamically add the current directory to sys.path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 task_dir = os.path.dirname(current_dir)
 sys.path.insert(0, task_dir)
@@ -14,16 +14,16 @@ sys.path.insert(0, current_dir)
 from woocommerce_client import WooCommerceClient
 
 class NewProductEmailSetupV2:
-    """新品邮件任务设置器 V2 - 优化客户创建逻辑"""
+    """New Product Email Task Setup V2 - Optimized Customer Creation Logic"""
 
     def __init__(self, site_url: str, consumer_key: str, consumer_secret: str):
         """
-        初始化新品邮件设置器
+        Initialize the New Product Email Setup.
 
         Args:
-            site_url: WooCommerce网站URL
-            consumer_key: WooCommerce API消费者密钥
-            consumer_secret: WooCommerce API消费者密钥
+            site_url: WooCommerce site URL
+            consumer_key: WooCommerce API consumer key
+            consumer_secret: WooCommerce API consumer secret
         """
         self.wc_client = WooCommerceClient(site_url, consumer_key, consumer_secret)
         self.created_products = []
@@ -31,23 +31,23 @@ class NewProductEmailSetupV2:
 
     def clear_all_data(self) -> Dict:
         """
-        清理商店中的所有商品、客户和分类
+        Delete all products, customers, and categories from the store.
 
         Returns:
-            清理结果字典
+            dict with clear result
         """
-        print("🧹 开始清理商店中的所有数据...")
+        print("🧹 Start clearing all data from the store...")
 
         try:
-            # 1. 获取并删除所有商品
-            print("📦 清理所有商品...")
+            # 1. Get and delete all products
+            print("📦 Clearing all products...")
             all_products = self.wc_client.get_all_products()
 
             deleted_products = 0
             failed_products = 0
 
             if all_products:
-                print(f"🗑️ 准备删除 {len(all_products)} 个商品...")
+                print(f"🗑️ Ready to delete {len(all_products)} products...")
 
                 for product in all_products:
                     product_id = product.get('id')
@@ -56,23 +56,23 @@ class NewProductEmailSetupV2:
                     try:
                         success, result = self.wc_client.delete_product(str(product_id), force=True)
                         if success:
-                            print(f"   ✅ 删除商品: {product_name} (ID: {product_id})")
+                            print(f"   ✅ Deleted product: {product_name} (ID: {product_id})")
                             deleted_products += 1
                         else:
-                            print(f"   ❌ 删除失败: {product_name} - {result}")
+                            print(f"   ❌ Failed to delete: {product_name} - {result}")
                             failed_products += 1
                     except Exception as e:
-                        print(f"   ❌ 删除商品 {product_name} 时出错: {e}")
+                        print(f"   ❌ Exception when deleting product {product_name}: {e}")
                         failed_products += 1
 
                     time.sleep(0.3)
             else:
-                print("📦 商店中没有商品需要删除")
+                print("📦 No products to delete in the store.")
 
-            # 2. 清理客户（只删除非测试客户）
-            print("👥 清理非测试客户...")
+            # 2. Delete customers (only non-test customers)
+            print("👥 Clearing non-test customers...")
 
-            # 定义我们的40个测试客户邮箱列表
+            # Define our set of 40 test customer emails
             our_test_emails = {
                 "samuel.garcia.welcome@mcptest.com",
                 "henryn.welcome@mcptest.com",
@@ -123,42 +123,42 @@ class NewProductEmailSetupV2:
             preserved_customers = 0
 
             if success and all_customers:
-                print(f"🔍 检查 {len(all_customers)} 个客户...")
+                print(f"🔍 Checking {len(all_customers)} customers...")
 
                 for customer in all_customers:
                     customer_id = customer.get('id')
                     customer_email = customer.get('email', 'Unknown')
 
-                    # 检查是否是我们的测试客户
+                    # Check if this customer is in our test email set
                     if customer_email.lower() in our_test_emails:
-                        print(f"   🛡️ 保留测试客户: {customer_email} (ID: {customer_id})")
+                        print(f"   🛡️ Preserving test customer: {customer_email} (ID: {customer_id})")
                         preserved_customers += 1
                         continue
 
-                    # 删除非测试客户
+                    # Delete non-test customer
                     try:
                         success, result = self.wc_client.delete_customer(str(customer_id), force=True)
                         if success:
-                            print(f"   ✅ 删除客户: {customer_email} (ID: {customer_id})")
+                            print(f"   ✅ Deleted customer: {customer_email} (ID: {customer_id})")
                             deleted_customers += 1
                         else:
-                            print(f"   ❌ 删除失败: {customer_email} - {result}")
+                            print(f"   ❌ Failed to delete customer: {customer_email} - {result}")
                             failed_customers += 1
                     except Exception as e:
-                        print(f"   ❌ 删除客户 {customer_email} 时出错: {e}")
+                        print(f"   ❌ Exception when deleting customer {customer_email}: {e}")
                         failed_customers += 1
 
                     time.sleep(0.3)
 
-                print(f"📊 客户处理统计:")
-                print(f"   保留测试客户: {preserved_customers} 个")
-                print(f"   删除其他客户: {deleted_customers} 个")
-                print(f"   删除失败: {failed_customers} 个")
+                print(f"📊 Customer summary stats:")
+                print(f"   Preserved test customers: {preserved_customers}")
+                print(f"   Deleted other customers: {deleted_customers}")
+                print(f"   Failed deletes: {failed_customers}")
             else:
-                print("👥 商店中没有客户需要处理")
+                print("👥 No customers to process in the store.")
 
-            # 3. 清理分类
-            print("🏷️ 清理商品分类...")
+            # 3. Delete product categories
+            print("🏷️ Clearing product categories...")
             success, categories = self.wc_client.get_product_categories()
 
             deleted_categories = 0
@@ -167,7 +167,6 @@ class NewProductEmailSetupV2:
             if success and categories:
                 test_category_names = [
                     "Electronics", "Smart Home", "Accessories", "Office Supplies",
-                    "电子产品", "智能家居", "配件", "办公用品", "测试分类"
                 ]
 
                 for category in categories:
@@ -185,13 +184,13 @@ class NewProductEmailSetupV2:
                             )
 
                             if response.status_code in [200, 204]:
-                                print(f"   ✅ 删除分类: {category_name} (ID: {category_id})")
+                                print(f"   ✅ Deleted category: {category_name} (ID: {category_id})")
                                 deleted_categories += 1
                             else:
-                                print(f"   ⚠️ 跳过分类: {category_name}")
+                                print(f"   ⚠️ Skipped category: {category_name}")
 
                         except Exception as e:
-                            print(f"   ❌ 删除分类 {category_name} 时出错: {e}")
+                            print(f"   ❌ Exception when deleting category {category_name}: {e}")
                             failed_categories += 1
 
                         time.sleep(0.3)
@@ -215,15 +214,15 @@ class NewProductEmailSetupV2:
                 "timestamp": datetime.now().isoformat()
             }
 
-            print(f"\n📊 清理完成:")
-            print(f"   商品: 删除 {deleted_products} 个，失败 {failed_products} 个")
-            print(f"   客户: 删除 {deleted_customers} 个，保留 {preserved_customers} 个，失败 {failed_customers} 个")
-            print(f"   分类: 删除 {deleted_categories} 个，失败 {failed_categories} 个")
+            print(f"\n📊 Clear finished:")
+            print(f"   Products: deleted {deleted_products}, failed {failed_products}")
+            print(f"   Customers: deleted {deleted_customers}, preserved {preserved_customers}, failed {failed_customers}")
+            print(f"   Categories: deleted {deleted_categories}, failed {failed_categories}")
 
             if clear_result["success"]:
-                print("✅ 数据清理成功！")
+                print("✅ Data clear successful!")
             else:
-                print("⚠️ 数据清理部分完成，有部分项目清理失败")
+                print("⚠️ Data clear partially finished, some items failed to clear")
 
             return clear_result
 
@@ -233,7 +232,7 @@ class NewProductEmailSetupV2:
                 "error": str(e),
                 "timestamp": datetime.now().isoformat()
             }
-            print(f"❌ 清理过程中出错: {e}")
+            print(f"❌ Exception during clear: {e}")
             return error_result
 
     def create_product_categories(self) -> Dict:
@@ -271,13 +270,13 @@ class NewProductEmailSetupV2:
 
     def create_test_products(self, categories: Dict) -> Dict:
         """
-        创建测试商品
-        包括：
-        1. 新品商品（draft/pending状态，未来30天内发布）
-        2. 折扣商品（有sale_price设置的商品）
+        Create test products.
+        Including:
+        1. New products (draft/pending status, published within next 30 days)
+        2. Sale products (products with sale_price set)
 
         Returns:
-            创建结果字典
+            dict with creation result
         """
         print("🛒 Starting to create test products...")
 
@@ -423,7 +422,7 @@ class NewProductEmailSetupV2:
                 product_name = result.get('name')
                 product_type = 'unknown'
 
-                # 提取产品类型
+                # Extract product type
                 meta_data = product_data.get('meta_data', [])
                 for meta in meta_data:
                     if meta.get('key') == 'product_type':
@@ -438,10 +437,10 @@ class NewProductEmailSetupV2:
                     'regular_price': product_data.get('regular_price'),
                     'sale_price': product_data.get('sale_price')
                 })
-                print(f"✅ 创建商品: {product_name} (ID: {product_id}, 类型: {product_type})")
+                print(f"✅ Created product: {product_name} (ID: {product_id}, type: {product_type})")
                 created_count += 1
             else:
-                print(f"❌ 创建商品失败: {product_data.get('name')} - {result}")
+                print(f"❌ Failed to create product: {product_data.get('name')} - {result}")
                 failed_count += 1
 
             time.sleep(0.5)
@@ -455,35 +454,35 @@ class NewProductEmailSetupV2:
             "sale_products_count": len([p for p in self.created_products if p.get('type') == 'sale_product'])
         }
 
-        print(f"📊 商品创建完成:")
-        print(f"   成功创建: {created_count} 个商品")
-        print(f"   创建失败: {failed_count} 个商品")
-        print(f"   新品商品: {setup_result['new_products_count']} 个")
-        print(f"   折扣商品: {setup_result['sale_products_count']} 个")
+        print(f"📊 Product creation finished:")
+        print(f"   Successfully created: {created_count} products")
+        print(f"   Failed creation: {failed_count} products")
+        print(f"   New product count: {setup_result['new_products_count']}")
+        print(f"   Sale product count: {setup_result['sale_products_count']}")
 
         return setup_result
 
     def create_test_customers_v2(self) -> Dict:
         """
-        创建或更新测试客户的订阅偏好 V2
-        新逻辑：
-        1. 使用 .welcome 后缀而不是时间戳
-        2. 检查客户是否已存在，存在则跳过创建
-        3. 基于customer_emails.txt中的40位真实客户信息
+        Create or update test customers' subscription preferences (V2 logic).
+        New logic:
+        1. Use '.welcome' suffix instead of timestamp
+        2. Check if customer exists before creating. If exists, skip creation.
+        3. Use 40 real customers from customer_emails.txt
 
-        策略：如果客户不存在则创建，如果存在则跳过
-        随机分配订阅偏好：
-        - 60% 订阅新品提醒 + 折扣提醒
-        - 20% 只订阅折扣提醒
-        - 15% 只订阅新品提醒
-        - 5% 不订阅任何提醒
+        Strategy: If customer doesn't exist, create; if exists, skip creation.
+        Randomly assign subscription preferences:
+        - 60% subscribe to new product + discount alerts
+        - 20% only discount alerts
+        - 15% only new product alerts
+        - 5% no alerts
 
         Returns:
-            创建/更新结果字典
+            dict with create/update result
         """
-        print("👥 开始创建或更新测试客户的订阅偏好 (V2 逻辑)...")
+        print("👥 Start creating or updating test customers' subscription preferences (V2 logic)...")
 
-        # 40位真实客户数据 - 使用 .welcome 后缀
+        # 40 real customer data - Using .welcome suffix
         customers_data = [
             ("Samuel", "Garcia", "samuel.garcia.welcome@mcptest.com"),
             ("Henry", "Nguyen", "henryn.welcome@mcptest.com"),
@@ -527,9 +526,9 @@ class NewProductEmailSetupV2:
             ("Emily", "Stewart", "stewarte98.welcome@mcptest.com")
         ]
 
-        # 订阅偏好分配：确保有足够的订阅用户用于测试
+        # Assign subscription patterns: make sure there are enough
         subscription_patterns = [
-            # 60% 订阅新品+折扣 (24个客户)
+            # 60% subscribe new product + discount (24 customers)
             {"new_product_alerts": True, "discount_alerts": True},
             {"new_product_alerts": True, "discount_alerts": True},
             {"new_product_alerts": True, "discount_alerts": True},
@@ -554,7 +553,7 @@ class NewProductEmailSetupV2:
             {"new_product_alerts": True, "discount_alerts": True},
             {"new_product_alerts": True, "discount_alerts": True},
             {"new_product_alerts": True, "discount_alerts": True},
-            # 20% 只订阅折扣 (8个客户)
+            # 20% only discount alerts (8 customers)
             {"new_product_alerts": False, "discount_alerts": True},
             {"new_product_alerts": False, "discount_alerts": True},
             {"new_product_alerts": False, "discount_alerts": True},
@@ -563,14 +562,14 @@ class NewProductEmailSetupV2:
             {"new_product_alerts": False, "discount_alerts": True},
             {"new_product_alerts": False, "discount_alerts": True},
             {"new_product_alerts": False, "discount_alerts": True},
-            # 15% 只订阅新品 (6个客户)
+            # 15% only new product alerts (6 customers)
             {"new_product_alerts": True, "discount_alerts": False},
             {"new_product_alerts": True, "discount_alerts": False},
             {"new_product_alerts": True, "discount_alerts": False},
             {"new_product_alerts": True, "discount_alerts": False},
             {"new_product_alerts": True, "discount_alerts": False},
             {"new_product_alerts": True, "discount_alerts": False},
-            # 5% 不订阅 (2个客户)
+            # 5% neither (2 customers)
             {"new_product_alerts": False, "discount_alerts": False},
             {"new_product_alerts": False, "discount_alerts": False}
         ]
@@ -579,41 +578,37 @@ class NewProductEmailSetupV2:
         updated_count = 0
         failed_count = 0
 
-        print(f"🎯 开始处理 {len(customers_data)} 个客户...")
+        print(f"🎯 Processing {len(customers_data)} customers...")
 
         for i, (first_name, last_name, email) in enumerate(customers_data):
-            print(f"\n📝 处理客户 {i+1}/{len(customers_data)}: {email}")
+            print(f"\n📝 Processing customer {i+1}/{len(customers_data)}: {email}")
 
-            # 分配订阅偏好
+            # Assign subscription preference
             subscription_pref = subscription_patterns[i] if i < len(subscription_patterns) else subscription_patterns[0]
-            print(f"📋 设置订阅偏好: {subscription_pref}")
+            print(f"📋 Set subscription preference: {subscription_pref}")
 
-            # 检查客户是否已经存在
-            print(f"🔍 检查客户是否已存在: {email}")
+            # Check if customer already exists
+            print(f"🔍 Checking if customer exists: {email}")
 
             try:
                 search_success, existing_customer = self.wc_client.search_customer_by_email(email)
 
                 if search_success and existing_customer:
-                    print(f"ℹ️ 客户已存在，跳过创建: {email} (ID: {existing_customer.get('id')})")
+                    print(f"ℹ️ Customer already exists, skipping creation: {email} (ID: {existing_customer.get('id')})")
 
-                    # 更新现有客户的订阅偏好
+                    # Update existing customer's subscription preference
                     customer_id = existing_customer.get('id')
                     update_data = {
-                        "meta_data": [
-                            {
-                                "key": "subscription_preferences",
-                                "value": json.dumps(subscription_pref)
-                            }
-                        ]
+                        # Not sending meta_data, as it's not supported, just leaving as placeholder
+                        # so the model should not send any one the so called subscription emails
+                        # if it sends in accident, that's a mistake.
                     }
 
                     update_success, update_result = self.wc_client.update_customer(str(customer_id), update_data)
                     if update_success:
-                        print(f"✅ 更新客户订阅偏好成功: {email}")
+                        print(f"✅ Updated customer subscription preference: {email}")
                         updated_count += 1
 
-                        # 添加到created_customers列表用于统计
                         self.created_customers.append({
                             'id': customer_id,
                             'email': email,
@@ -624,21 +619,18 @@ class NewProductEmailSetupV2:
                             'action': 'updated'
                         })
                     else:
-                        print(f"❌ 更新客户订阅偏好失败: {email} - {update_result}")
+                        print(f"❌ Failed to update customer: {email} - {update_result}")
                         failed_count += 1
                 else:
-                    # 客户不存在，创建新客户
-                    print(f"🆕 创建新客户: {email}")
+                    # Customer does not exist, create new customer
+                    print(f"🆕 Creating new customer: {email}")
                     customer_data = {
                         "email": email,
                         "first_name": first_name,
                         "last_name": last_name,
-                        "meta_data": [
-                            {
-                                "key": "subscription_preferences",
-                                "value": json.dumps(subscription_pref)
-                            }
-                        ],
+                        # No meta_data, as it's not supported
+                        # so the model should not send any one the so called subscription emails
+                        # if it sends in accident, that's a mistake.
                         "billing": {
                             "email": email,
                             "first_name": first_name,
@@ -649,10 +641,9 @@ class NewProductEmailSetupV2:
                     create_success, create_result = self.wc_client.create_customer(customer_data)
                     if create_success:
                         customer_id = create_result.get('id')
-                        print(f"✅ 创建客户成功: {email} (ID: {customer_id})")
+                        print(f"✅ Successfully created customer: {email} (ID: {customer_id})")
                         created_count += 1
 
-                        # 添加到created_customers列表用于统计
                         self.created_customers.append({
                             'id': customer_id,
                             'email': email,
@@ -663,32 +654,32 @@ class NewProductEmailSetupV2:
                             'action': 'created'
                         })
                     else:
-                        print(f"❌ 创建客户失败: {email} - {create_result}")
+                        print(f"❌ Failed to create customer: {email} - {create_result}")
                         failed_count += 1
 
             except Exception as e:
-                print(f"❌ 处理客户 {email} 时出错: {e}")
+                print(f"❌ Exception processing customer {email}: {e}")
                 failed_count += 1
 
-            time.sleep(0.2)  # 避免API限制
+            time.sleep(0.2)  # Avoid API rate limits
 
-        # 统计订阅情况
+        # Count subscription stats
         new_product_count = len([c for c in self.created_customers if c.get('new_product_alerts', False)])
         discount_count = len([c for c in self.created_customers if c.get('discount_alerts', False)])
 
-        print(f"\n📊 客户处理完成:")
-        print(f"   新建客户: {created_count} 个")
-        print(f"   更新客户: {updated_count} 个")
-        print(f"   处理失败: {failed_count} 个")
-        print(f"   新品订阅: {new_product_count} 个客户")
-        print(f"   折扣订阅: {discount_count} 个客户")
+        print(f"\n📊 Customer processing complete:")
+        print(f"   Created customers: {created_count}")
+        print(f"   Updated customers: {updated_count}")
+        print(f"   Failed: {failed_count}")
+        print(f"   New product alert subscribers: {new_product_count}")
+        print(f"   Discount alert subscribers: {discount_count}")
 
         success = failed_count == 0
 
         if not success:
-            print("❌ 新品邮件任务测试数据设置失败！")
+            print("❌ Failed to set up test data for new product email task!")
         else:
-            print("✅ 新品邮件任务测试数据设置成功！")
+            print("✅ Test data setup for new product email task successful!")
 
         return {
             "created_customers": created_count,
@@ -700,7 +691,7 @@ class NewProductEmailSetupV2:
         }
 
     def get_expected_results(self) -> Dict:
-        """获取预期结果，用于评估"""
+        """Get the expected results for evaluation."""
         new_product_subscribers = [c for c in self.created_customers if c.get('new_product_alerts')]
         all_customers = self.created_customers
         new_products = [p for p in self.created_products if p.get('type') == 'new_product']
@@ -721,73 +712,73 @@ class NewProductEmailSetupV2:
 
 
 def main():
-    """主函数 - 用于独立运行测试数据设置"""
-    # 从token配置文件读取配置
+    """Main function - used for standalone test data setup."""
+    # Read config from token config file
     from token_key_session import all_token_key_session
 
     site_url = all_token_key_session.woocommerce_site_url
     consumer_key = all_token_key_session.woocommerce_api_key
     consumer_secret = all_token_key_session.woocommerce_api_secret
 
-    print(f"🚀 初始化新品邮件任务设置器 V2: {site_url}")
+    print(f"🚀 Initializing New Product Email Setup V2: {site_url}")
 
     setup = NewProductEmailSetupV2(site_url, consumer_key, consumer_secret)
 
-    # 1. 清理现有商品和分类数据
+    # 1. Clear existing products and categories
     print("\n" + "="*60)
-    print("第一步：清理商店中的商品和分类数据")
+    print("Step 1: Clear products and categories in store")
     print("="*60)
 
     clear_result = setup.clear_all_data()
 
     if not clear_result.get('success'):
-        print("⚠️ 数据清理未完全成功，但继续创建测试数据...")
-        print(f"清理详情: {clear_result}")
+        print("⚠️ Data clear not fully successful, but continue with test data creation...")
+        print(f"Clear detail: {clear_result}")
 
-    # 等待清理操作完成
-    print("⏳ 等待3秒，确保清理操作完成...")
+    # Wait for clear operation to finish
+    print("⏳ Waiting 3 seconds to ensure clear operation is complete...")
     time.sleep(3)
 
-    # 2. 创建商品分类
+    # 2. Create product categories
     print("\n" + "="*60)
-    print("第二步：创建商品分类")
+    print("Step 2: Create product categories")
     print("="*60)
 
     categories = setup.create_product_categories()
 
-    # 3. 创建测试商品
+    # 3. Create test products
     print("\n" + "="*60)
-    print("第三步：创建测试商品")
+    print("Step 3: Create test products")
     print("="*60)
 
     product_result = setup.create_test_products(categories)
 
-    # 4. 创建或更新客户订阅偏好 (使用V2逻辑)
+    # 4. Create or update customer subscription preferences (V2 logic)
     print("\n" + "="*60)
-    print("第四步：创建或更新客户订阅偏好 (V2 逻辑)")
+    print("Step 4: Create or update customer subscription preferences (V2 logic)")
     print("="*60)
 
     customer_result = setup.create_test_customers_v2()
 
-    # 5. 保存结果
+    # 5. Save results
     if product_result.get('success') and customer_result.get('success'):
-        print("\n✅ 新品邮件任务测试数据设置完成！")
+        print("\n✅ Test data setup for new product email task completed!")
 
-        # 保存预期结果到任务目录
+        # Save expected results to task directory
         expected_results = setup.get_expected_results()
         results_dir = task_dir
         expected_results_path = os.path.join(results_dir, 'expected_results.json')
         with open(expected_results_path, 'w', encoding='utf-8') as f:
             json.dump(expected_results, f, indent=2, ensure_ascii=False)
-        print(f"📄 预期结果已保存到 {expected_results_path}")
+        print(f"📄 Expected results saved to {expected_results_path}")
 
-        # 保存清理结果到任务目录
+        # Save clear result to task directory
         clear_results_path = os.path.join(results_dir, 'clear_results.json')
         with open(clear_results_path, 'w', encoding='utf-8') as f:
             json.dump(clear_result, f, indent=2, ensure_ascii=False)
-        print(f"📄 清理结果已保存到 {clear_results_path}")
+        print(f"📄 Clear result saved to {clear_results_path}")
 
-        # 保存完整设置结果到任务目录
+        # Save full setup result to task directory
         full_setup_result = {
             "clear_result": clear_result,
             "categories": categories,
@@ -800,20 +791,20 @@ def main():
         setup_results_path = os.path.join(results_dir, 'setup_results.json')
         with open(setup_results_path, 'w', encoding='utf-8') as f:
             json.dump(full_setup_result, f, indent=2, ensure_ascii=False)
-        print(f"📄 完整设置结果已保存到 {setup_results_path}")
+        print(f"📄 Full setup result saved to {setup_results_path}")
 
         return True
     else:
-        print("❌ 新品邮件任务测试数据设置失败！")
+        print("❌ Test data setup for new product email task failed!")
         return False
 
 
 if __name__ == "__main__":
     import sys
 
-    # 检查命令行参数
+    # Check command line arguments
     if len(sys.argv) > 1 and sys.argv[1] == "--clear-only":
-        # 仅清理数据
+        # Only clear data
         from token_key_session import all_token_key_session
 
         site_url = all_token_key_session.woocommerce_site_url
@@ -826,8 +817,8 @@ if __name__ == "__main__":
         clear_results_path = os.path.join(task_dir, 'clear_results.json')
         with open(clear_results_path, 'w', encoding='utf-8') as f:
             json.dump(clear_result, f, indent=2, ensure_ascii=False)
-        print(f"📄 清理结果已保存到 {clear_results_path}")
+        print(f"📄 Clear result saved to {clear_results_path}")
 
     else:
-        # 完整流程：清理 + 创建测试数据
+        # Full workflow: clear + create test data
         main()

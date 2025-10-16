@@ -427,15 +427,8 @@ def create_new_welcome_orders(seed: Optional[int] = None) -> Tuple[List[Dict], L
 
     # Generate orders for first-time customers (all completed)
     for i, customer in enumerate(first_time_customers):
-        # Use customer's actual order date from WooCommerce data
-        order_date_str = customer.get("last_order_date")
-        if order_date_str:
-            try:
-                order_date = datetime.fromisoformat(order_date_str.replace('Z', '+00:00'))
-            except:
-                order_date = now - timedelta(days=random.randint(1, 7))
-        else:
-            order_date = now - timedelta(days=random.randint(1, 7))
+        # Dynamically generate order date within recent 1-6 days (with margin to avoid boundary overlap)
+        order_date = now - timedelta(days=random.randint(1, 6))
 
         # Get total spent and calculate appropriate product
         total_spent = float(customer.get("total_spent", "0").replace('$', '').replace(',', ''))
@@ -474,14 +467,8 @@ def create_new_welcome_orders(seed: Optional[int] = None) -> Tuple[List[Dict], L
 
     # Generate orders for returning customers (mix of completed and processing)
     for i, customer in enumerate(returning_customers[:5]):  # Only add 5 returning customers
-        order_date_str = customer.get("last_order_date")
-        if order_date_str:
-            try:
-                order_date = datetime.fromisoformat(order_date_str.replace('Z', '+00:00'))
-            except:
-                order_date = now - timedelta(days=random.randint(1, 30))
-        else:
-            order_date = now - timedelta(days=random.randint(1, 30))
+        # Dynamically generate order date from 9-30 days ago (clear separation from first-time customers)
+        order_date = now - timedelta(days=random.randint(9, 30))
 
         total_spent = float(customer.get("total_spent", "0").replace('$', '').replace(',', ''))
         orders_count = customer.get("orders_count", 2)

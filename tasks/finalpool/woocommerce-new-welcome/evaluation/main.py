@@ -14,11 +14,15 @@ from typing import Dict, List, Tuple, Any, Optional
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), 'utils', 'app_specific', 'poste'))
 from utils.app_specific.poste.checks import verify_emails_sent_to_recipients, extract_url_patterns_from_email
 
+with open("configs/gcp-service_account.keys.json", "r") as f:
+    data = json.load(f)
+    GCP_PROJECT_ID = data.get("project_id")
+
 class BigQueryDataValidator:
     """Validate BigQuery data integrity and customer updates"""
 
     def __init__(self, credentials_path: str = "configs/gcp-service_account.keys.json",
-                 project_id: str = "mcp-bench0606",
+                 project_id: str = GCP_PROJECT_ID,
                  dataset_id: str = "woocommerce_crm"):
         self.credentials_path = credentials_path
         self.project_id = project_id
@@ -326,6 +330,8 @@ class WelcomeEmailValidator:
                                                 # Extract email content and subject
                                                 email_content = _extract_text_from_message(msg)
                                                 subject = msg.get('Subject', '')
+                                                # decode the subject, it is utf8 encoded
+                                                subject = subject.decode('utf-8', errors='replace')
 
                                                 # Verify subject format
                                                 subject_ok = bool(re.search(self.expected_subject_pattern, subject, re.IGNORECASE))
