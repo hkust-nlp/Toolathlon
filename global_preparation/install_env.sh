@@ -6,25 +6,55 @@ if ! command -v uv &> /dev/null; then
     exit 1
 fi
 
-# Node.js and npm installation via NVM (only if not already installed)
+# Node.js and npm installation via NVM (with version checking)
 echo "Checking Node.js and npm installation..."
+
+NEED_INSTALL=false
+
+# Check if Node.js and npm are installed
 if ! command -v node &> /dev/null || ! command -v npm &> /dev/null; then
-    echo "Node.js or npm not found. Installing via NVM..."
-    
+    echo "Node.js or npm not found. Will install..."
+    NEED_INSTALL=true
+else
+    # Check Node.js version (require >= 22)
+    NODE_VERSION=$(node -v | sed 's/v//' | cut -d. -f1)
+    if [ "$NODE_VERSION" -lt 22 ]; then
+        echo "Node.js version $(node -v) is too old (require >= 22). Will install v22.16.0..."
+        NEED_INSTALL=true
+    fi
+
+    # Check npm version (require >= 11)
+    NPM_VERSION=$(npm -v | cut -d. -f1)
+    if [ "$NPM_VERSION" -lt 11 ]; then
+        echo "npm version $(npm -v) is too old (require >= 11). Will install v11.4.1..."
+        NEED_INSTALL=true
+    fi
+
+    if [ "$NEED_INSTALL" = false ]; then
+        echo "Node.js $(node -v) and npm $(npm -v) meet requirements."
+    fi
+fi
+
+# Install if needed
+if [ "$NEED_INSTALL" = true ]; then
     # Check if NVM is already installed
     if ! command -v nvm &> /dev/null; then
         echo "Installing NVM..."
         curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
-        
+
         # Load NVM
         export NVM_DIR="$HOME/.nvm"
         [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
         [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-        
+
         # Also add to current session
         source ~/.bashrc 2>/dev/null || true
+    else
+        # Load NVM if already installed
+        export NVM_DIR="$HOME/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
     fi
-    
+
     # Install Node.js v22.16.0 (includes npm)
     echo "Installing Node.js v22.16.0..."
     nvm install 22.16.0
@@ -33,12 +63,9 @@ if ! command -v node &> /dev/null || ! command -v npm &> /dev/null; then
     # Install npm v11.4.1
     echo "Installing npm v11.4.1..."
     npm install -g npm@11.4.1
-    
+
     echo "Node.js and npm installed successfully!"
-else
-    echo "Node.js and npm are already installed."
-    node -v
-    npm -v
+    echo "Installed versions: Node.js $(node -v), npm $(npm -v)"
 fi
 
 # uv
