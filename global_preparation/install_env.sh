@@ -9,6 +9,14 @@ fi
 # Node.js and npm installation via NVM (with version checking)
 echo "Checking Node.js and npm installation..."
 
+# Try to load NVM first if it exists
+export NVM_DIR="$HOME/.nvm"
+if [ -s "$NVM_DIR/nvm.sh" ]; then
+    \. "$NVM_DIR/nvm.sh"
+    # Try to use the target version if already installed
+    nvm use 22.16.0 2>/dev/null || true
+fi
+
 NEED_INSTALL=false
 
 # Check if Node.js and npm are installed
@@ -59,6 +67,10 @@ if [ "$NEED_INSTALL" = true ]; then
     echo "Installing Node.js v22.16.0..."
     nvm install 22.16.0
     nvm use 22.16.0
+
+    # Set as default version for all new shells
+    echo "Setting Node.js v22.16.0 as default..."
+    nvm alias default 22.16.0
 
     # Install npm v11.4.1
     echo "Installing npm v11.4.1..."
