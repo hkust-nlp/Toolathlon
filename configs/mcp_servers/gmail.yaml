@@ -1,4 +1,4 @@
-# headless gmail 集成
+# headless gmail integration
 # https://github.com/GongRzhe/Gmail-MCP-Server
 type: stdio
 name: gmail

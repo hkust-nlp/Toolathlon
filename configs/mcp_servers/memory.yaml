@@ -1,4 +1,4 @@
-# 知识图谱记忆
+# Knowledge Graph Memory
 # https://github.com/modelcontextprotocol/servers/tree/main/src/memory
 type: stdio
 name: memory

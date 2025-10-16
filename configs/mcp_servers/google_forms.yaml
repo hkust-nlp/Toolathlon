@@ -1,6 +1,3 @@
-# mcp 4 youtube
-# https://github.com/ZubeidHendricks/youtube-mcp-server
-# this servers has been mostly fixed, however, the transcript retrieval is still buddy .. .idk why
 type: stdio
 name: google_forms
 params:

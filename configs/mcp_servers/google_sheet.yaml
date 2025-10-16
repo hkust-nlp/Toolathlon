@@ -1,4 +1,4 @@
-# 谷歌表格
+# Google Sheet
 # https://github.com/xing5/mcp-google-sheets
 type: stdio
 name: google_sheet

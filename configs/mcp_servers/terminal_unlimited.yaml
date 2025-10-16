@@ -8,8 +8,8 @@ params:
     - "cli-mcp-server"
   env:
     # you can add needed commands
-    ALLOWED_DIR: "${agent_workspace}"  # 仅允许对该目录下的文件进行读写
-    ALLOWED_COMMANDS: "all"
+    ALLOWED_DIR: "${agent_workspace}"  # only allow reading and writing files in this directory
+    ALLOWED_COMMANDS: "all" # we remove the limitation on commands in `unlimited` version
     ALLOWED_FLAGS: "all"
     MAX_COMMAND_LENGTH: "2048"
     COMMAND_TIMEOUT: "60"

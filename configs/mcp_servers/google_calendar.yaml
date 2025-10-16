@@ -1,4 +1,4 @@
-# 谷歌日历
+# Google Calendar
 # https://github.com/GongRzhe/Calendar-Autoauth-MCP-Server
 type: stdio
 name: google_calendar

@@ -1,4 +1,4 @@
-# 时间服务器 - 获取当前时间
+# Time server - get current time
 type: stdio
 name: time
 params:

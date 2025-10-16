@@ -1,4 +1,4 @@
-# arxiv论文搜索、下载至本地、阅读
+# arxiv paper search, download to local, and read
 # https://github.com/blazickjp/arxiv-mcp-server
 type: stdio
 name: arxiv_local

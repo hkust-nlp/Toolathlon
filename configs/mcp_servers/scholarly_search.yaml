@@ -1,7 +1,4 @@
-# 学术搜索 - 通过关键词搜索 arxiv 和谷歌学术上的文章（但无法下载全文）
-# https://modelscope.cn/mcp/servers/@adityak74/mcp-scholarly
-# NOTE: Pypi版本有bug，github源码版本已经修复
-# 详见 `install_records/scholarly_search.md`
+# Scholarly Search - search for articles on arxiv and google scholar (but cannot download full text)
 type: stdio
 name: scholarly
 params:

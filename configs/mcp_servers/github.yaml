@@ -1,4 +1,4 @@
-# GitHub API 集成
+# GitHub API integration
 # https://github.com/modelcontextprotocol/servers/tree/main/src/github
 # make sure you have podman or docker when using this server
 # type: stdio

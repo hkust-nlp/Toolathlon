@@ -96,3 +96,5 @@ detect_cn.py
 .claude
 
 aux/
+
+configs/legacy_servers
