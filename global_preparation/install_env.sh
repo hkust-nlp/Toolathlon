@@ -25,10 +25,14 @@ if ! command -v node &> /dev/null || ! command -v npm &> /dev/null; then
         source ~/.bashrc 2>/dev/null || true
     fi
     
-    # Install Node.js LTS version (includes npm)
-    echo "Installing Node.js LTS..."
-    nvm install --lts
-    npm install -g npm@latest
+    # Install Node.js v22.16.0 (includes npm)
+    echo "Installing Node.js v22.16.0..."
+    nvm install 22.16.0
+    nvm use 22.16.0
+
+    # Install npm v11.4.1
+    echo "Installing npm v11.4.1..."
+    npm install -g npm@11.4.1
     
     echo "Node.js and npm installed successfully!"
 else
