@@ -3,6 +3,7 @@ WITH_SUDO=${1:-false}
 # check if uv is here, if not, run "curl -LsSf https://astral.sh/uv/install.sh | sh" to install first
 if ! command -v uv &> /dev/null; then
     echo "uv could not be found, please install via `curl -LsSf https://astral.sh/uv/install.sh | sh`"
+    exit 1
 fi
 
 # Node.js and npm installation via NVM (only if not already installed)
