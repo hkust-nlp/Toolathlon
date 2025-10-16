@@ -546,6 +546,14 @@ API_MAPPINGS = {
         context_window=1000000,
         openrouter_config={"provider": {"only": ["anthropic"]}}
     ),
+    'claude-4.5-haiku-1001': Dict(
+        api_model={"anthropic": "claude-haiku-4-5-20251001",
+                   "openrouter": "anthropic/claude-haiku-4.5"},
+        price=[0.003, 0.015],
+        concurrency=32,
+        context_window=1000000,
+        openrouter_config={"provider": {"only": ["anthropic"]}}
+    ),
     'claude-4-sonnet-0514': Dict(
         api_model={"aihubmix": "claude-sonnet-4-20250514",
                    "anthropic": "claude-sonnet-4-20250514",
@@ -602,7 +610,7 @@ API_MAPPINGS = {
     'grok-4-fast': Dict(
         api_model={"ds_internal": None,
                    "openrouter": "x-ai/grok-4-fast:free"},
-        price=[0.0/1000, 0.0/1000],
+        price=[0.2/1000, 0.5/1000],
         concurrency=32,
         context_window=2000000,
         openrouter_config={"provider": {"only": ["xai"]}}
@@ -617,14 +625,21 @@ API_MAPPINGS = {
         context_window=256000,
         openrouter_config={"provider": {"only": ["moonshotai"]}}
     ),
-    'glm-4.5': Dict(
-        api_model={"ds_internal": None,
-                   "aihubmix": "zai-org/GLM-4.5",
-                   "openrouter": "z-ai/glm-4.5"},
-        price=[0.5/1000, 2.0/1000],
+    # 'glm-4.5': Dict(
+    #     api_model={"ds_internal": None,
+    #                "aihubmix": "zai-org/GLM-4.5",
+    #                "openrouter": "z-ai/glm-4.5"},
+    #     price=[0.5/1000, 2.0/1000],
+    #     concurrency=32,
+    #     context_window=128000,
+    #     openrouter_config={"provider": {"only": ["z-ai/fp8"]}}
+    # ),
+    'glm-4.6': Dict(
+        api_model={"openrouter": "z-ai/glm-4.6"},
+        price=[0.6/1000, 2.2/1000],
         concurrency=32,
         context_window=128000,
-        openrouter_config={"provider": {"only": ["z-ai/fp8"]}}
+        openrouter_config={"provider": {"only": ["z-ai"]}}
     ),
     "qwen-3-coder": Dict(
         api_model={"ds_internal": None,

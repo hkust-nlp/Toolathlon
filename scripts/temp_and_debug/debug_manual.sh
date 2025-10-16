@@ -12,10 +12,10 @@
 
 uv run main.py \
 --eval_config scripts/temp_and_debug/debug_eval_config.json \
---task_dir finalpool/woocommerce-new-product \
+--task_dir debug/debug-task \
 --debug \
---model_short_name deepseek-v3.2-exp \
---provider deepseek_official \
+--model_short_name qwen-3-max \
+--provider qwen_official \
 --max_steps_under_single_turn_mode 200 \
 --multi_turn_mode \
 --manual \
