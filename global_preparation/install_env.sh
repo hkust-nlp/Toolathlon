@@ -117,6 +117,26 @@ else
     echo "  user.max_user_namespaces=10000"
 fi
 
+# install playwright system dependencies
+echo "Installing Playwright system dependencies..."
+if [ "$WITH_SUDO" = true ]; then
+    echo "Installing Playwright system dependencies with sudo..."
+    sudo apt-get update
+    sudo apt-get install -y libatk1.0-0t64 libatk-bridge2.0-0t64 libcups2t64 libatspi2.0-0t64 libxdamage1 libpango-1.0-0 libcairo2 libasound2t64
+else
+    echo "======================================================================"
+    echo "WARNING: Playwright requires system dependencies to run browsers."
+    echo "Please install them with sudo privileges:"
+    echo ""
+    echo "  sudo apt-get update"
+    echo "  sudo apt-get install -y libatk1.0-0t64 libatk-bridge2.0-0t64 libcups2t64 libatspi2.0-0t64 libxdamage1 libpango-1.0-0 libcairo2 libasound2t64"
+    echo ""
+    echo "Or use playwright install-deps:"
+    echo "  sudo playwright install-deps"
+    echo "If you cannot install the dependencies, you may encounter errors in the following steps."
+    echo "======================================================================"
+fi
+
 # install playwright
 source .venv/bin/activate
 export TMPDIR="./tmp" # make a folder for tmp files
