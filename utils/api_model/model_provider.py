@@ -398,6 +398,17 @@ class CustomModelProviderAnthropic(ModelProvider):
                                                    debug=debug,
                                                    short_model_name=short_model_name)
 
+class CustomModelProviderGoogle(ModelProvider):
+    def get_model(self, model_name: str | None, debug: bool = True, short_model_name: str | None = None) -> Model:
+        client = AsyncOpenAI(
+            api_key=global_configs.google_official_key,
+            base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+        )
+        return OpenAIChatCompletionsModelWithRetry(model=model_name, 
+                                                   openai_client=client,
+                                                   debug=debug,
+                                                   short_model_name=short_model_name)
+
 class CustomModelProviderLocalVLLM(ModelProvider):
     def get_model(self, model_name: str | None, debug: bool = True, short_model_name: str | None = None) -> Model:
         import os
@@ -463,6 +474,7 @@ model_provider_mapping = {
     "qwen_official": CustomModelProviderQwenOfficial,
     "kimi_official": CustomModelProviderKimiOfficial,
     "deepseek_official": CustomModelProviderDeepSeekOfficial,
+    "google": CustomModelProviderGoogle,
 }
 
 API_MAPPINGS = {
@@ -486,21 +498,21 @@ API_MAPPINGS = {
         price=[1.25/1000, 10/1000.0],
         concurrency=32,
         context_window=400000,
-        openrouter_config={"provider": {"only": ["openai"]}}
+        openrouter_config={"provider": {"only": ["openai/default"]}}
     ),
     'gpt-5-medium': Dict(
         api_model={"openrouter": "openai/gpt-5"},
         price=[1.25/1000, 10/1000.0],
         concurrency=32,
         context_window=400000,
-        openrouter_config={"provider": {"only": ["openai"]}}
+        openrouter_config={"provider": {"only": ["openai/default"]}}
     ),
     'gpt-5-high': Dict(
         api_model={"openrouter": "openai/gpt-5"},
         price=[1.25/1000, 10/1000.0],
         concurrency=32,
         context_window=400000,
-        openrouter_config={"provider": {"only": ["openai"]}}
+        openrouter_config={"provider": {"only": ["openai/default"]}}
     ),
     'gpt-5-mini': Dict(
         api_model={"ds_internal": "",
@@ -576,7 +588,8 @@ API_MAPPINGS = {
     'gemini-2.5-pro': Dict(
         api_model={"ds_internal": "cloudsway-gemini-2.5-pro",
                    "aihubmix": "gemini-2.5-pro",
-                   "openrouter": "google/gemini-2.5-pro"},
+                   "openrouter": "google/gemini-2.5-pro",
+                   "google": "gemini-2.5-pro"},
         price=[0.00125, 0.010],
         concurrency=32,
         context_window=1000000,
@@ -585,7 +598,8 @@ API_MAPPINGS = {
     'gemini-2.5-flash': Dict(
         api_model={"ds_internal": "cloudsway-gemini-2.5-flash",
                    "aihubmix": "gemini-2.5-flash",
-                   "openrouter": "google/gemini-2.5-flash"},
+                   "openrouter": "google/gemini-2.5-flash",
+                   "google": "gemini-2.5-flash"},
         price=[0.00015, 0.0035],
         concurrency=32,
         context_window=1000000,
@@ -609,7 +623,7 @@ API_MAPPINGS = {
     ),    
     'grok-4-fast': Dict(
         api_model={"ds_internal": None,
-                   "openrouter": "x-ai/grok-4-fast:free"},
+                   "openrouter": "x-ai/grok-4-fast"},
         price=[0.2/1000, 0.5/1000],
         concurrency=32,
         context_window=2000000,
@@ -641,11 +655,20 @@ API_MAPPINGS = {
         context_window=128000,
         openrouter_config={"provider": {"only": ["z-ai"]}}
     ),
+    "qwen-3-coder-0722": Dict(
+        api_model={"qwen_official": "qwen3-coder-plus-2025-07-22"},
+        price=[0.54/1000, 2.16/1000],
+        concurrency=32,
+        context_window=256000,
+    ),
+    "qwen-3-coder-0923": Dict(
+        api_model={"qwen_official": "qwen3-coder-plus-2025-09-23"},
+        price=[0.54/1000, 2.16/1000],
+        concurrency=32,
+        context_window=256000,
+    ),
     "qwen-3-coder": Dict(
-        api_model={"ds_internal": None,
-                   "aihubmix": "Qwen3-Coder",
-                   "openrouter": "qwen/qwen3-coder",
-                   "qwen_official": "qwen3-coder-plus"},
+        api_model={"qwen_official": "qwen3-coder-plus"},
         price=[0.54/1000, 2.16/1000],
         concurrency=32,
         context_window=256000,

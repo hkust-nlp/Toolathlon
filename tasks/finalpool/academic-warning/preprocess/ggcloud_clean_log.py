@@ -231,29 +231,16 @@ def manage_log_bucket(
         from google.cloud import logging as gcloud_logging
 
         logging_client2 = gcloud_logging.Client(project=project_id, credentials=credentials)
-        # Remove all logs under this bucket by listing logNames for this bucket prefix
-        log_names = set()
-        log_resource_prefix = f"projects/{project_id}/logs/"
-        filter_expr = (
-            f'logName:("{log_resource_prefix}")'
-        )
-        for entry in logging_client2.list_entries(filter_=filter_expr, order_by=gcloud_logging.DESCENDING):
-            log_name = entry.log_name
-            # logs routed to this bucket must have log_name (log_id) matching the bucket id
-            # or, in practice, we just clear all custom logs, as the abtesting will use only one log-name
-            log_id = log_name.split('/')[-1]
-            # There could potentially be system logs as well, but we target our bucket logs
-            if log_id.startswith(bucket_name_prefix):
-                log_names.add(log_id)
-        
-        # Use the delete_log method to clear each log
-        for log_id in log_names:
-            print(f"🧹 Clearing log: {log_id} from bucket: {matched_bucket_id}")
-            try:
-                logging_client2.delete_log(log_id)
-                print(f"✅ Cleared log: {log_id}")
-            except Exception as e:
-                print(f"⚠️  Error clearing log '{log_id}': {e}")
+
+        # Directly attempt to delete the log with the same name as the bucket
+        # This only requires 1 API call and avoids rate limits
+        print(f"🧹 Attempting to clear log: {matched_bucket_id}")
+        try:
+            logging_client2.delete_log(matched_bucket_id)
+            print(f"✅ Successfully cleared log: {matched_bucket_id}")
+        except Exception as e:
+            # If the log doesn't exist or is already empty, this is expected
+            print(f"ℹ️  No log entries to clear (log may not exist yet): {e}")
 
         # Save the bucket name to file
         save_path = os.path.abspath(

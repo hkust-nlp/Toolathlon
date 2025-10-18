@@ -14,8 +14,8 @@ uv run main.py \
 --eval_config scripts/temp_and_debug/debug_eval_config.json \
 --task_dir debug/debug-task \
 --debug \
---model_short_name qwen-3-max \
---provider qwen_official \
+--model_short_name claude-4.5-sonnet-0929 \
+--provider openrouter \
 --max_steps_under_single_turn_mode 200 \
 --multi_turn_mode \
 --manual \

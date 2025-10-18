@@ -205,7 +205,7 @@ cd ../..
 # check use podman or docker from configs/global_configs.py
 podman_or_docker=$(uv run python -c "import sys; sys.path.append('configs'); from global_configs import global_configs; print(global_configs.podman_or_docker)")
 if [ "$podman_or_docker" = "podman" ]; then
-    podman pull lockon0927/toolathlon-task-image:1016alpha
+    podman pull lockon0927/toolathlon-task-image:1016beta
 else
-    docker pull lockon0927/toolathlon-task-image:1016alpha
+    docker pull lockon0927/toolathlon-task-image:1016beta
 fi

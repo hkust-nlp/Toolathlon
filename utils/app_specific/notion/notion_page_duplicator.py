@@ -230,62 +230,73 @@ class NotionPageDuplicator:
 
                 print(f"Navigating to source page: {source_page_url}")
                 initial_url = page.url if hasattr(page, 'url') else None
-                page.goto(source_page_url, wait_until="load", timeout=60_000)
                 
-                # Wait for navigation to complete and verify we actually navigated
-                time.sleep(3)
-                page.wait_for_load_state("load", timeout=15_000)
-
-                # Verify we navigated to the correct page
-                current_url = page.url
-                print(f"Current URL after navigation: {current_url}")
-
-                # Extract the page ID from where we wanted to go
-                target_page_id = self.extract_page_id_from_url(source_page_url)
-                # Extract the page ID from where we actually are
-                current_page_id = self.extract_page_id_from_url(current_url)
-
-                # Check if we're on the right page
-                if current_page_id != target_page_id:
-                    print(f"WARNING: Navigation verification failed!")
-                    print(f"Expected to be on page: {target_page_id}")
-                    print(f"Actually on page: {current_page_id}")
-
-                    # Try one more time with a direct navigation
-                    print("Retrying navigation...")
+                attempt_num = 0
+                while attempt_num < 3:
                     page.goto(source_page_url, wait_until="load", timeout=60_000)
-                    time.sleep(5)
+                    
+                    # Wait for navigation to complete and verify we actually navigated
+                    time.sleep(3)
+                    page.wait_for_load_state("load", timeout=15_000)
 
+                    # Verify we navigated to the correct page
                     current_url = page.url
+                    print(f"Current URL after navigation: {current_url}")
+
+                    # Extract the page ID from where we wanted to go
+                    target_page_id = self.extract_page_id_from_url(source_page_url)
+                    # Extract the page ID from where we actually are
                     current_page_id = self.extract_page_id_from_url(current_url)
 
+                    # Check if we're on the right page
                     if current_page_id != target_page_id:
-                        raise Exception(f"Failed to navigate to target page. Expected: {target_page_id}, Current: {current_page_id}")
+                        print(f"WARNING: Navigation verification failed!")
+                        print(f"Expected to be on page: {target_page_id}")
+                        print(f"Actually on page: {current_page_id}")
 
-                print(f"Successfully verified navigation to target page: {current_page_id}")
+                        # Try one more time with a direct navigation
+                        print("Retrying navigation...")
+                        page.goto(source_page_url, wait_until="load", timeout=60_000)
+                        time.sleep(25)
 
-                # Save updated auth state
-                context.storage_state(path=str(self.state_file))
+                        current_url = page.url
+                        current_page_id = self.extract_page_id_from_url(current_url)
 
-                # Step 1: Duplicate the page
-                print("Opening page menu...")
-                page.wait_for_selector(PAGE_MENU_BUTTON_SELECTOR, state="visible", timeout=30_000)
-                page.click(PAGE_MENU_BUTTON_SELECTOR)
-                
-                print("Clicking 'Duplicate'...")
-                page.hover(DUPLICATE_MENU_ITEM_SELECTOR)
-                page.click(DUPLICATE_MENU_ITEM_SELECTOR)
-                
-                # Wait for duplication to complete (URL will change)
-                original_url = page.url
-                original_page_id = self.extract_page_id_from_url(original_url)
-                source_parent_id = self.extract_page_id_from_url(parent_of_source_page_url)
-                print(f"Original page ID before duplication: {original_page_id}")
-                print(f"Source parent ID: {source_parent_id}")
-                print("Waiting for duplication to complete...")
+                        if current_page_id != target_page_id:
+                            raise Exception(f"Failed to navigate to target page. Expected: {target_page_id}, Current: {current_page_id}")
 
-                # Wait for URL to change from the original page
-                page.wait_for_url(lambda url: url != original_url, timeout=300_000)
+                    print(f"Successfully verified navigation to target page: {current_page_id}")
+
+                    # Save updated auth state
+                    context.storage_state(path=str(self.state_file))
+
+                    # Step 1: Duplicate the page
+                    print("Opening page menu...")
+                    page.wait_for_selector(PAGE_MENU_BUTTON_SELECTOR, state="visible", timeout=90_000)
+                    page.click(PAGE_MENU_BUTTON_SELECTOR)
+                    
+                    print("Clicking 'Duplicate'...")
+                    page.hover(DUPLICATE_MENU_ITEM_SELECTOR)
+                    page.click(DUPLICATE_MENU_ITEM_SELECTOR)
+                    
+                    # Wait for duplication to complete (URL will change)
+                    original_url = page.url
+                    original_page_id = self.extract_page_id_from_url(original_url)
+                    source_parent_id = self.extract_page_id_from_url(parent_of_source_page_url)
+                    print(f"Original page ID before duplication: {original_page_id}")
+                    print(f"Source parent ID: {source_parent_id}")
+                    print("Waiting for duplication to complete...")
+
+                    # Wait for URL to change from the original page
+                    try:
+                        page.wait_for_url(lambda url: url != original_url, timeout=600_000)
+                        print("We have go to the new page!")
+                        break
+                    except PlaywrightTimeoutError:
+                        attempt_num+=1
+                        if attempt_num >= 3:
+                            raise Exception("Failed to duplicate the page after 3 attempts")
+                        print("Retrying duplication...")
 
                 # Keep checking until we get to a page that is neither the original nor the source parent
                 max_attempts = 10

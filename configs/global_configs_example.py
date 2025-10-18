@@ -8,5 +8,6 @@ global_configs = Dict(
     deepseek_official_key="xxx", # Fill in the deepseek_official key
     anthropic_official_key="xxx", # Fill in the anthropic_official key
     openai_official_key="xxx", # Fill in the openai_official key
-    podman_or_docker="podman", # or `docker`
+    google_official_key="xxx", # Fill in the google_official key
+    podman_or_docker="podman", # or `docker` depending on which one you want to use
 )

@@ -2,7 +2,7 @@
 
 # Configuration Variables - Modify as needed
 TASKS_FOLDER="finalpool"
-TAG="subset"
+TAG="full"
 
 # Parse input arguments for model_name and dump_path
 MODEL_NAME="${1:-gpt-5-mini}"
@@ -22,7 +22,7 @@ MAX_TOKENS="8192"
 USER_TEMPERATURE="1.0"
 USER_TOP_P="1.0"
 USER_MAX_TOKENS="1024"
-IMAGE_NAME="lockon0927/mcpbench-task-image-v2:jl0921alpha"  # Docker image to use
+IMAGE_NAME=${6:-"lockon0927/toolathlon-task-image:1016beta"}  # Docker image to use
 
 mkdir -p $DUMP_PATH
 
@@ -31,7 +31,8 @@ TASK_LIST=$4
 
 # Generate temporary config file with random suffix to avoid conflicts
 RANDOM_SUFFIX=$(date +%s)_$$_$(shuf -i 1000-9999 -n 1)
-TEMP_CONFIG="scripts/temp_parallel_config_${RANDOM_SUFFIX}.json"
+mkdir -p scripts/temp_configs
+TEMP_CONFIG="scripts/temp_configs/temp_parallel_config_${RANDOM_SUFFIX}.json"
 cat > "$TEMP_CONFIG" <<EOF
 {
     "global_task_config":{
