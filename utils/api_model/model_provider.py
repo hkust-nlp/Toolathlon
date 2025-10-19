@@ -37,45 +37,32 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
 
     def _add_cache_control_to_messages(self, messages: list, min_cache_tokens: int = 2048) -> list:
         """
-        Add cache_control breakpoints to messages for Claude models.
-        According to OpenRouter docs, only text parts can have cache_control.
-        Anthropic allows up to 4 cache control breakpoints.
+        Add cache_control breakpoints to messages every 20 blocks from the front.
+        No more than 4 breakpoints total. If message count is < 20, add at the last position only.
+        Additional logic is removed, only every 20th (and last if needed) gets cache_control.
         """
         if not messages:
             return messages
-        
-        # Collect all eligible messages and their token count
-        cacheable_messages = []
-        
-        for i, message in enumerate(messages):
-            # Add cache_control to system, user, and tool messages
-            if message.get('role') in ['system', 'user', 'tool'] and isinstance(message.get('content'), str):
-                content_length = len(message['content'])
-                # Roughly estimate token count (~4 chars = 1 token)
-                estimated_tokens = content_length // 4
-                
-                if estimated_tokens >= min_cache_tokens:
-                    cacheable_messages.append({
-                        'index': i,
-                        'tokens': estimated_tokens,
-                        'role': message.get('role')
-                    })
-        
-        # Sort by token count descending, take top 4
-        cacheable_messages.sort(key=lambda x: x['tokens'], reverse=True)
-        top_cacheable = cacheable_messages[:4]
-        
-        # Indices that should get cache_control
-        cache_indices = {item['index'] for item in top_cacheable}
-        
-        # Build modified message list
+
+        total = len(messages)
+        indices = []
+
+        # Compute target indices for cache_control
+        if total <= 20:
+            indices = [total - 1]
+        else:
+            segs = [i for i in range(19, total, 20)]
+            indices.extend(segs)
+            # Always add the last message if it's not already in segs and we haven't hit four
+            if (total - 1) not in indices and len(indices) < 4:
+                indices.append(total - 1)
+            # Cap to at most 4
+            indices = indices[:4]
+
         modified_messages = []
-        
         for i, message in enumerate(messages):
             new_message = message.copy()
-            
-            # Only add cache_control if message is in cache_indices
-            if i in cache_indices:
+            if i in indices and isinstance(message.get('content'), str):
                 new_message['content'] = [
                     {
                         'type': 'text',
@@ -86,12 +73,8 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                     }
                 ]
                 # if self.debug:
-                #     # Retrieve token count for debug output
-                #     tokens = next(item['tokens'] for item in top_cacheable if item['index'] == i)
-                #     print(f"🔄 PROMPT CACHING: Added cache_control to {message.get('role')} message with ~{tokens} tokens")
-            
+                    # print(f"🔄 PROMPT CACHING: Added cache_control to message index {i}")
             modified_messages.append(new_message)
-        
         return modified_messages
 
     def _get_model_specific_config(self):
@@ -108,7 +91,7 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
             elif "high" in self.short_model_name:
                 basic['reasoning_effort'] = "high"
             return basic
-        elif 'o4' in self.model or 'o3' in self.model:
+        elif 'o4' in self.model or 'o3' in self.model or 'gemini' in self.model: # for gemini it will raise an error stating it does not support parallel tool calls, but if I remove this parameter, it can still do so, not sure if it has a different parameter name ...
             return {
                 'use_max_completion_tokens': True,
                 'use_parallel_tool_calls': False
@@ -225,7 +208,7 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
             base_params['reasoning_effort'] = model_config['reasoning_effort']
         
         # for claude-4.5-sonnet, top_p and temperament cannot be set simultaneously
-        if "claude-sonnet-4.5" in self.model or "claude-sonnet-4-5" in self.model:
+        if "claude" in self.model and any(version in self.model for version in ["4.5", "4-5"]):
             base_params.pop('top_p')
         
         ret = await self._get_client().chat.completions.create(**base_params)

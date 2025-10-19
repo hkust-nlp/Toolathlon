@@ -213,24 +213,7 @@ code_url: {code_url}
     return True
 
 async def main(args):
-    # part 1, check log
-    logs = read_json(args.res_log_file)
-    messages = logs["messages"]
-    found=False
-    for message in messages:
-        if message['role'] != 'assistant': 
-            continue
-        if message.get('content') is None or message['content'] == "" or not isinstance(message['content'], str):
-            continue
-        if check_content(message['content']):
-            found=True
-            break
-    
-    if not found:
-        print("Unable to find the answer in assistant messages.")
-        return False
-
-    # part 2, check downloaded pdf
+    # part 1, check downloaded pdf
     # find alita_{arxiv_id_gt}{v?}.pdf under agent_workspace/ and agent_workspace/arxiv_local_storage/
     # note that the {v?} is optional
     possible_folders = [
