@@ -2,7 +2,7 @@
 
 agent_workspace=$2
 
-# 设置变量
+# Set variables
 SCRIPT_DIR=$(dirname "$0")
 k8sconfig_path_dir=${agent_workspace}/k8s_configs
 # backup_k8sconfig_path_dir=deployment/k8s/configs
@@ -11,7 +11,7 @@ mkdir -p $backup_k8sconfig_path_dir
 cluster_name="cluster-cleanup"
 resource_yaml="${SCRIPT_DIR}/../k8s_resources/k8s_deployment_cleanup.yaml"
 
-# 确认资源文件存在
+# Ensure resource file exists
 if [ ! -f "$resource_yaml" ]; then
   log_error "Resource file does not exist: $resource_yaml"
   exit 1
@@ -19,25 +19,25 @@ fi
 
 podman_or_docker=$(uv run python -c "import sys; sys.path.append('configs'); from global_configs import global_configs; print(global_configs.podman_or_docker)")
 
-# 颜色输出
+# Color output settings
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# 显示配置信息
+# Display configuration information
 echo -e "${GREEN}[INFO]${NC} Configuration:"
 echo -e "${GREEN}[INFO]${NC}   AGENT_WORKSPACE: ${agent_workspace}"
 echo -e "${GREEN}[INFO]${NC}   CONTAINER_RUNTIME: ${podman_or_docker}"
 
-# 打印带颜色的信息
+# Colored log functions
 log_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
 log_batch() { echo -e "${BLUE}[BATCH]${NC} $1"; }
 
-# 显示使用说明
+# Show usage
 show_usage() {
   echo "Usage: $0 [OPERATION] [AGENT_WORKSPACE]"
   echo ""
@@ -51,7 +51,7 @@ show_usage() {
   echo "  $0                            # Use defaults"
 }
 
-# 清理函数（仅针对指定集群）
+# Cleanup function (only for the specified cluster)
 cleanup_existing_cluster() {
   log_info "Start cleaning up existing cluster if it exists..."
   if kind get clusters | grep -q "^${cluster_name}$"; then
@@ -64,7 +64,7 @@ cleanup_existing_cluster() {
   fi
 }
 
-# 清理配置文件（仅针对指定配置文件）
+# Clean up configuration files (only for the specified config)
 cleanup_config_files() {
   local config_path="$k8sconfig_path_dir/${cluster_name}-config.yaml"
   log_info "Clean up configuration file: $config_path"
@@ -86,7 +86,7 @@ cleanup_config_files() {
   mkdir -p "$backup_k8sconfig_path_dir"
 }
 
-# 停止操作
+# Stop operation
 stop_operation() {
   log_info "========== Start stopping operation =========="
   cleanup_existing_cluster
@@ -94,7 +94,7 @@ stop_operation() {
   log_info "========== Stopping operation completed =========="
 }
 
-# 创建集群
+# Create cluster function
 create_cluster() {
   local cluster_name=$1
   local config_path=$2
@@ -108,7 +108,7 @@ create_cluster() {
   fi
 }
 
-# 验证集群
+# Verify cluster state
 verify_cluster() {
   local cluster_name=$1
   local config_path=$2
@@ -137,14 +137,14 @@ verify_cluster() {
   fi
 }
 
-# 显示 inotify 状态
+# Show inotify status
 show_inotify_status() {
   local current_instances=$(ls /proc/*/fd/* 2>/dev/null | xargs -I {} readlink {} 2>/dev/null | grep -c inotify || echo "0")
   local max_instances=$(cat /proc/sys/fs/inotify/max_user_instances 2>/dev/null || echo "unknown")
   log_info "Inotify instance usage: $current_instances / $max_instances"
 }
 
-# 应用资源YAML
+# Apply resource YAML
 apply_resources() {
   local config_path=$1
   log_info "Applying resources from $resource_yaml"
@@ -158,17 +158,17 @@ apply_resources() {
   fi
 }
 
-# 修改部署的时间戳，模拟老旧的部署
+# Set deployment timestamps, simulate old deployments
 set_deployment_timestamps() {
   local config_path=$1
   export KUBECONFIG="$config_path"
   
   log_info "Setting deployment timestamps to simulate old deployments..."
   
-  # 获取当前时间
+  # Get current date time
   current_date=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
   
-  # 设置老旧部署的时间戳（使用kubectl patch来修改lastUpdateTime）
+  # Set the old deployment timestamps (use kubectl patch to add lastUpdateTime)
   # old-frontend-prototype: 62 days old
   date=$(date -u -d "62 days ago" +"%Y-%m-%dT%H:%M:%SZ")
   kubectl -n dev-frontend patch deployment frontend-prototype \
@@ -199,7 +199,7 @@ set_deployment_timestamps() {
   kubectl -n dev-backend patch deployment pod-api-service \
     --type='json' -p='[{"op": "add", "path": "/metadata/annotations/app-version-release-date", "value": "'$recent_date'"}]'
   
-  # === 干扰项部署 ===
+  # === Interference deployments ===
   # staging-app: 45 days old (old, should be cleaned)
   date=$(date -u -d "45 days ago" +"%Y-%m-%dT%H:%M:%SZ")
   kubectl -n staging patch deployment staging-app \
@@ -227,22 +227,22 @@ set_deployment_timestamps() {
   
   log_info "Deployment timestamps have been set"
   
-  # 显示所有部署的状态
+  # Show all current deployments in dev-* namespaces
   log_info "Current deployments in dev-* namespaces:"
   for ns in dev-frontend dev-backend dev-ml dev-experimental; do
     echo "Namespace: $ns"
     kubectl -n $ns get deployments -o wide
   done
   
-  # 显示干扰项部署的状态
-  log_info "Current deployments in non-dev namespaces (干扰项):"
+  # Show status of deployments in non-dev (interference) namespaces
+  log_info "Current deployments in non-dev namespaces (interference):"
   for ns in production staging monitoring logging backup; do
     echo "Namespace: $ns"
     kubectl -n $ns get deployments -o wide 2>/dev/null || echo "No deployments in $ns"
   done
 }
 
-# 启动操作
+# Start operation
 start_operation() {
   log_info "========== Start Kind cluster deployment =========="
   cleanup_existing_cluster
@@ -258,14 +258,14 @@ start_operation() {
   verify_cluster "${cluster_name}" "$configpath"
   apply_resources "$configpath"
   
-  # 等待所有部署就绪
+  # Wait for all deployments to become ready
   log_info "Waiting for all deployments to be ready..."
   sleep 10
   
-  # 设置部署的时间戳
+  # Set the deployment timestamps
   set_deployment_timestamps "$configpath"
 
-  # 复制配置文件到备份目录
+  # Copy the config file to the backup directory
   cp "$configpath" "$backup_configpath"
   log_info "Configuration file backed up to: $backup_configpath"
 
@@ -283,7 +283,7 @@ start_operation() {
   log_info "These deployments are ready to be cleaned up by the task."
 }
 
-# 主函数
+# Main function
 main() {
   local operation=${1:-start}
   case "$operation" in
@@ -297,7 +297,7 @@ main() {
   esac
 }
 
-# 检查依赖
+# Check dependencies
 check_dependencies() {
   local deps=("kind" "kubectl" "${podman_or_docker}")
   local missing=()
@@ -313,6 +313,6 @@ check_dependencies() {
   fi
 }
 
-# 脚本入口
+# Script entry
 check_dependencies
 main "$@"

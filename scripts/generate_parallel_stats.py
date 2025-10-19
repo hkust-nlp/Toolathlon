@@ -43,7 +43,7 @@ def generate_enhanced_stats(dump_path, tasks_folder, temp_config, task_list_file
     tasks_with_valid_turns = []
     tasks_without_valid_turns = []
 
-    # 新增：基于 status.json 的统计
+    # New: based on status.json statistics
     tasks_with_preprocess_done = []
     tasks_with_preprocess_fail = []
     tasks_with_running_done = []
@@ -55,7 +55,7 @@ def generate_enhanced_stats(dump_path, tasks_folder, temp_config, task_list_file
     tasks_with_evaluation_fail = []
     tasks_with_evaluation_null = []
 
-    # 兼容性：基于原有逻辑的统计
+    # Compatibility: based on original logic statistics
     tasks_with_failed_status = []
     task_with_max_turns_exceeded = []
     tasks_with_success_status = []
@@ -74,20 +74,20 @@ def generate_enhanced_stats(dump_path, tasks_folder, temp_config, task_list_file
                 # Extract task name from path
                 # task_name = extract_task_name(eval_file, tasks_folder)
 
-                # Check if task passed (原有逻辑保持不变)
+                # Check if task passed (original logic remains unchanged)
                 if eval_data.get('pass', False):
                     successful_tasks.append(task_name)
                 else:
                     unsuccessful_tasks.append(task_name)
 
-            # 优先检查 status.json
+            # Check status.json first
             # status_file = eval_file.replace('eval_res.json', 'status.json')
             if os.path.exists(status_file):
                 try:
                     with open(status_file, 'r', encoding='utf-8') as f:
                         status_data = json.load(f)
 
-                    # 统计各阶段状态
+                    # Statistics for each stage status
                     preprocess_status = status_data.get('preprocess', None)
                     running_status = status_data.get('running', None)
                     evaluation_status = status_data.get('evaluation', None)
@@ -119,7 +119,7 @@ def generate_enhanced_stats(dump_path, tasks_folder, temp_config, task_list_file
                 except Exception as e:
                     print(f'⚠️  Error reading status.json for {task_name}: {e}')
 
-            # 尝试从 traj_log.json 获取详细统计信息
+            # Try to get detailed statistics from traj_log.json
             log_file = eval_file.replace('eval_res.json', 'traj_log.json')
             run_log = eval_file.replace('eval_res.json', 'run.log')
 
@@ -128,7 +128,7 @@ def generate_enhanced_stats(dump_path, tasks_folder, temp_config, task_list_file
                     with open(log_file, 'r', encoding='utf-8', errors='ignore') as f:
                         log_data = json.load(f)
 
-                    # 兼容性：保持原有的状态统计（用于对比）
+                    # Compatibility: keep original status statistics (for comparison)
                     task_status = log_data.get('status', 'unknown')
                     if task_status == 'failed':
                         tasks_with_failed_status.append(task_name)
@@ -171,15 +171,15 @@ def generate_enhanced_stats(dump_path, tasks_folder, temp_config, task_list_file
     # Create enhanced statistics with status.json information
     enhanced_stats = {
         'total_tasks': total_tasks,
-        'successful_tasks_count': len(successful_tasks),
-        'unsuccessful_tasks_count': len(unsuccessful_tasks),
+        # 'successful_tasks_count': len(successful_tasks),
+        # 'unsuccessful_tasks_count': len(unsuccessful_tasks),
         'average_success_rate': success_rate,
         'average_turns': average_turns,
         'average_tool_calls': average_tool_calls,
-        'successful_tasks': sorted(successful_tasks),
-        'unsuccessful_tasks': sorted(unsuccessful_tasks),
+        # 'successful_tasks': sorted(successful_tasks),
+        # 'unsuccessful_tasks': sorted(unsuccessful_tasks),
 
-        # 新增：基于 status.json 的详细统计
+        # New: based on status.json detailed statistics
         'status_breakdown': {
             'preprocess': {
                 'done_count': len(tasks_with_preprocess_done),
@@ -209,15 +209,15 @@ def generate_enhanced_stats(dump_path, tasks_folder, temp_config, task_list_file
             }
         },
 
-        # 保留原有的统计信息用于兼容性
-        'legacy_execution_status': {
-            'tasks_with_failed_status_count': len(tasks_with_failed_status),
-            'tasks_with_success_status_count': len(tasks_with_success_status),
-            'tasks_with_max_turns_exceeded_count (subset of failed)': len(task_with_max_turns_exceeded),
-            'tasks_with_failed_status': sorted(tasks_with_failed_status),
-            'tasks_with_success_status': sorted(tasks_with_success_status),
-            'tasks_with_max_turns_exceeded': sorted(task_with_max_turns_exceeded)
-        },
+        # Keep original statistics for compatibility
+        # 'legacy_execution_status': {
+        #     'tasks_with_failed_status_count': len(tasks_with_failed_status),
+        #     'tasks_with_success_status_count': len(tasks_with_success_status),
+        #     'tasks_with_max_turns_exceeded_count (subset of failed)': len(task_with_max_turns_exceeded),
+        #     'tasks_with_failed_status': sorted(tasks_with_failed_status),
+        #     'tasks_with_success_status': sorted(tasks_with_success_status),
+        #     'tasks_with_max_turns_exceeded': sorted(task_with_max_turns_exceeded)
+        # },
 
         'summary': {
             'tasks_with_valid_turns': len(tasks_with_valid_turns),
@@ -238,14 +238,14 @@ def generate_enhanced_stats(dump_path, tasks_folder, temp_config, task_list_file
     print(f'🔄 Average turns: {average_turns:.1f}')
     print(f'🔧 Average tool calls: {average_tool_calls:.1f}')
 
-    # 新增：打印基于 status.json 的统计信息
+    # New: print statistics based on status.json
     print(f'📈 Status breakdown:')
     print(f'   Preprocess: {len(tasks_with_preprocess_done)} done, {len(tasks_with_preprocess_fail)} fail')
     print(f'   Running: {len(tasks_with_running_done)} done, {len(tasks_with_running_fail)} fail, '
           f'{len(tasks_with_running_timeout)} timeout, {len(tasks_with_running_max_turns)} max_turns, {len(tasks_with_running_null)} null')
     print(f'   Evaluation: {len(tasks_with_evaluation_pass)} pass, {len(tasks_with_evaluation_fail)} fail, {len(tasks_with_evaluation_null)} null')
 
-    # 兼容性输出
+    # Compatibility output
     print(f'📈 Legacy status: {len(tasks_with_success_status)} success, {len(tasks_with_failed_status)} failed')
 
     return enhanced_stats

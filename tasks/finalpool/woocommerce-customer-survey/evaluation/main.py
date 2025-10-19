@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
-Evaluation script for WooCommerce Customer Survey task
-评估WooCommerce客户问卷调查任务的完成情况
-检查是否向 expected_orders.json 中的客户发送了邮件
+Evaluation script for WooCommerce Customer Survey task.
+Checks whether emails were sent to customers in expected_orders.json.
 """
 from argparse import ArgumentParser
 import os
@@ -17,8 +16,9 @@ from urllib.parse import urlparse, parse_qs
 from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
 import html
+from utils.general.helper import normalize_str
 
-# 添加项目路径
+# Add project path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 task_dir = os.path.dirname(current_dir)
 sys.path.insert(0, task_dir)
@@ -26,7 +26,7 @@ sys.path.insert(0, task_dir)
 try:
     from token_key_session import all_token_key_session
 except ImportError:
-    print("⚠️ 无法导入 token_key_session")
+    print("⚠️ Failed to import token_key_session")
     all_token_key_session = None
 
 # Google API imports
@@ -36,9 +36,9 @@ try:
     from googleapiclient.errors import HttpError
     GOOGLE_API_AVAILABLE = True
 except ImportError:
-    print("⚠️ Google API库未安装，请安装 google-api-python-client")
+    print("⚠️ Google API packages not installed, please install google-api-python-client")
     GOOGLE_API_AVAILABLE = False
-    # 定义空的类型以避免类型错误
+    # Dummy class definitions to prevent type errors
     class Credentials:
         pass
     class HttpError(Exception):
@@ -52,46 +52,39 @@ def read_json(file_path):
     except Exception as e:
         print(f"Warning: Could not read {file_path}: {e}")
         return {}
-    
 
 def extract_google_forms_links(email_content: str) -> List[str]:
-    """从邮件内容中提取Google Forms链接"""
+    """Extract Google Forms links from email content"""
     try:
-        # Google Forms链接的常见模式，支持更多字符和完整链接
         patterns = [
             r'https://docs\.google\.com/forms/d/([a-zA-Z0-9-_]{10,})[^\s]*',
             r'https://forms\.gle/([a-zA-Z0-9-_]{8,})[^\s]*',
-            # 也匹配完整的URL
             r'(https://docs\.google\.com/forms/d/[a-zA-Z0-9-_]{10,}[^\s]*)',
             r'(https://forms\.gle/[a-zA-Z0-9-_]{8,}[^\s]*)',
         ]
-        
         links = []
         for pattern in patterns:
             matches = re.findall(pattern, email_content)
             for match in matches:
                 if isinstance(match, tuple):
-                    # 如果是元组，取第一个元素
                     link = match[0] if match[0] else match[1]
                 else:
                     link = match
-                
-                # 构建完整链接
+
                 if link.startswith('http'):
-                    # 已经是完整链接
                     full_link = link
                 elif 'docs.google.com/forms' in pattern:
                     full_link = f"https://docs.google.com/forms/d/{link}"
                 else:
                     full_link = f"https://forms.gle/{link}"
                 
-                # 清理链接末尾可能的特殊字符
+                # Clean the link ending with possible special characters
                 full_link = re.sub(r'[^\w\-\.:/]$', '', full_link)
                 
                 if full_link not in links:
                     links.append(full_link)
         
-        # 额外的简单模式匹配，以防复杂正则missed掉
+        # Additional simple pattern matching to avoid missed complex regular expressions
         simple_patterns = [
             r'https://docs\.google\.com/forms/[^\s]+',
             r'https://forms\.gle/[^\s]+',
@@ -100,25 +93,25 @@ def extract_google_forms_links(email_content: str) -> List[str]:
         for pattern in simple_patterns:
             matches = re.findall(pattern, email_content)
             for match in matches:
-                # 清理链接
+                # Clean the link
                 clean_link = re.sub(r'[^\w\-\.:/]$', '', match)
-                if clean_link not in links and len(clean_link) > 30:  # 确保链接足够长
+                if clean_link not in links and len(clean_link) > 30:  # Ensure the link is long enough
                     links.append(clean_link)
         
-        return list(set(links))  # 去重
+        return list(set(links))  # Remove duplicates
     except Exception as e:
-        print(f"⚠️ 提取Google Forms链接时出错: {e}")
+        print(f"⚠️ Error extracting Google Forms links: {e}")
         return []
 
 
 
 def read_google_forms_from_file(agent_workspace: str) -> List[str]:
-    """从agent_workspace/drive_url.txt文件中直接读取Google Drive链接"""
+    """Read Google Drive links from agent_workspace/drive_url.txt file directly"""
     try:
         drive_url_file = os.path.join(agent_workspace, "drive_url.txt")
         
         if not os.path.exists(drive_url_file):
-            print(f"⚠️ 未找到drive_url.txt文件: {drive_url_file}")
+            print(f"⚠️ drive_url.txt file not found: {drive_url_file}")
             return []
         
         form_links = []
@@ -131,58 +124,40 @@ def read_google_forms_from_file(agent_workspace: str) -> List[str]:
                 if not line:
                     continue
                 
-                print(f"🔗 读取链接: {line}")
+                print(f"🔗 Reading link: {line}")
                 
-                # 直接添加所有有效的链接（Google Drive, Google Forms等）
+                # Add all valid links (Google Drive, Google Forms, etc.)
                 if line.startswith('http'):
                     form_links.append(line)
-                    print(f"   ✅ 添加链接")
+                    print(f"   ✅ Adding link")
                 elif line.startswith('forms.gle'):
                     full_url = f"https://{line}"
                     form_links.append(full_url)
-                    print(f"   ✅ 补充协议后添加: {full_url}")
+                    print(f"   ✅ Adding link after adding protocol: {full_url}")
                 else:
-                    print(f"   ⚠️ 跳过无效链接格式")
+                    print(f"   ⚠️ Skipping invalid link format")
         
-        print(f"📝 从drive_url.txt读取了 {len(form_links)} 个链接")
+        print(f"📝 Read {len(form_links)} links from drive_url.txt")
         for i, link in enumerate(form_links, 1):
             print(f"   {i}. {link}")
         
         return form_links
         
     except Exception as e:
-        print(f"❌ 读取drive_url.txt文件时出错: {e}")
+        print(f"❌ Error reading drive_url.txt file: {e}")
         return []
 
 
 def get_google_credentials() -> Tuple[bool, Credentials]:
-    """从配置文件获取Google认证信息"""
+    """Get Google authentication information from the configuration file"""
     try:
-        # 查找google_credentials.json文件
-        # current_dir: evaluation目录
-        # target: configs/google_credentials.json
-        # 需要向上4级：../../../.. 然后进入configs
-        possible_paths = [
-            os.path.join(current_dir, "..", "..", "..", "..", "configs", "google_credentials.json"),
-            os.path.join(current_dir, "..", "..", "..", "configs", "google_credentials.json"),
-            os.path.join(current_dir, "..", "..", "configs", "google_credentials.json"),
-            "google_credentials.json"
-        ]
-        
-        credentials_file = None
-        for path in possible_paths:
-            if os.path.exists(path):
-                credentials_file = path
-                break
-            
-        if not credentials_file:
-            return False, None
+        credentials_file = "./configs/google_credentials.json"
         
         creds_data = read_json(credentials_file)
         if not creds_data:
             return False, None
         
-        # 创建Credentials对象
+        # Create Credentials object
         credentials = Credentials(
             token=creds_data.get('token'),
             refresh_token=creds_data.get('refresh_token'),
@@ -194,25 +169,25 @@ def get_google_credentials() -> Tuple[bool, Credentials]:
         
         return True, credentials
     except Exception as e:
-        print(f"⚠️ 获取Google认证信息时出错: {e}")
+        print(f"⚠️ Error getting Google authentication information: {e}")
         return False, None
 
 
 def get_form_id_from_url(form_url: str) -> str:
-    """从Google Forms URL或Google Drive URL中提取form_id（使用高级提取方法）"""
+    """Extract form_id from Google Forms URL or Google Drive URL (using advanced extraction method)"""
     return extract_form_id_advanced(form_url) or ""
 
 
 def extract_form_id_advanced(form_url: str) -> str:
-    """高级表单ID提取，支持多种URL格式"""
+    """Advanced form ID extraction, supports multiple URL formats"""
     try:
-        # Format 1: forms.gle 短链接
+        # Format 1: forms.gle short link
         if 'forms.gle' in form_url:
             # forms.gle/ABC123... -> ABC123...
             parts = form_url.rstrip('/').split('/')
             if len(parts) >= 1:
                 form_id = parts[-1]
-                # 清理可能的查询参数
+                # Clean possible query parameters
                 if '?' in form_id:
                     form_id = form_id.split('?')[0]
                 return form_id
@@ -237,7 +212,7 @@ def extract_form_id_advanced(form_url: str) -> str:
         if match:
             return match.group(1)
 
-        # Format 6: 通用的Google Drive URL格式
+        # Format 6: General Google Drive URL format
         patterns = [
             r'https://drive\.google\.com/open\?id=([a-zA-Z0-9-_]+)',
             r'https://drive\.google\.com/file/d/([a-zA-Z0-9-_]+)',
@@ -252,12 +227,12 @@ def extract_form_id_advanced(form_url: str) -> str:
 
         return None
     except Exception as e:
-        print(f"⚠️ 提取表单ID时出错: {e}")
+        print(f"⚠️ Error extracting form ID: {e}")
         return None
 
 
 def create_readonly_credentials(original_credentials: Credentials) -> Credentials:
-    """创建只读权限的认证信息"""
+    """Create read-only credentials"""
     try:
         readonly_scopes = ["https://www.googleapis.com/auth/forms.body.readonly"]
         
@@ -274,53 +249,53 @@ def create_readonly_credentials(original_credentials: Credentials) -> Credential
 
 
 def read_google_drive_content(drive_url: str, credentials: Credentials) -> Tuple[bool, Dict]:
-    """专门读取Google Drive链接的内容（适用于Google Forms等文档）"""
+    """Read Google Drive link content (for Google Forms etc.)"""
     try:
         if not GOOGLE_API_AVAILABLE:
-            return False, {"error": "Google API库不可用"}
+            return False, {"error": "Google API library not available"}
         
-        # 使用高级ID提取
+        # Use advanced ID extraction
         file_id = extract_form_id_advanced(drive_url)
         if not file_id:
-            return False, {"error": f"无法从URL中提取文件ID: {drive_url}"}
+            return False, {"error": f"Cannot extract file ID from URL: {drive_url}"}
         
-        print(f"🔍 读取Google Drive文件内容 (ID: {file_id})")
+        print(f"🔍 Reading Google Drive file content (ID: {file_id})")
         
-        # 构建Google Drive API service
+        # Build Google Drive API service
         drive_service = build('drive', 'v3', credentials=credentials)
         
         try:
-            # 获取文件元数据
+            # Get file metadata
             file_metadata = drive_service.files().get(
                 fileId=file_id, 
                 fields='id,name,mimeType,createdTime,modifiedTime,owners,webViewLink'
             ).execute()
             
-            print(f"📄 文件信息: {file_metadata.get('name', 'Unknown')} ({file_metadata.get('mimeType', 'Unknown')})")
+            print(f"📄 File information: {file_metadata.get('name', 'Unknown')} ({file_metadata.get('mimeType', 'Unknown')})")
             
-            # 检查是否是Google Forms
+            # Check if it is a Google Forms
             if file_metadata.get('mimeType') == 'application/vnd.google-apps.form':
-                print("📝 检测到Google Forms，尝试读取表单内容...")
+                print("📝 Detected Google Forms, trying to read form content...")
                 
-                # 先尝试只读权限
+                # Try read-only permissions first
                 readonly_creds = create_readonly_credentials(credentials)
                 
                 try:
-                    print("🔒 尝试使用只读权限访问...")
+                    print("🔒 Trying to access with read-only permissions...")
                     forms_service = build('forms', 'v1', credentials=readonly_creds)
                     form = forms_service.forms().get(formId=file_id).execute()
-                    print("✅ 只读权限访问成功!")
+                    print("✅ Read-only permissions access successful!")
                     
                 except HttpError as readonly_error:
-                    print(f"⚠️ 只读权限失败: {readonly_error}")
-                    print("🔧 尝试使用完整权限...")
+                    print(f"⚠️ Read-only permissions failed: {readonly_error}")
+                    print("🔧 Trying to access with full permissions...")
                     
-                    # 使用完整权限作为备用方案
+                    # Use full permissions as a backup solution
                     forms_service = build('forms', 'v1', credentials=credentials)
                     form = forms_service.forms().get(formId=file_id).execute()
-                    print("✅ 完整权限访问成功!")
+                    print("✅ Full permissions access successful!")
                 
-                # 提取详细表单信息
+                # Extract detailed form information
                 form_info = {
                     "file_id": file_id,
                     "title": form.get('info', {}).get('title', ''),
@@ -329,12 +304,12 @@ def read_google_drive_content(drive_url: str, credentials: Credentials) -> Tuple
                     "metadata": file_metadata
                 }
                 
-                # 提取问题信息
+                # Extract question information
                 items = form.get('items', [])
-                print(f"📋 解析 {len(items)} 个表单项目...")
+                print(f"📋 Parsing {len(items)} form items...")
                 
                 for i, item in enumerate(items):
-                    # 处理问题项目
+                    # Process question items
                     if 'questionItem' in item:
                         question_item = item['questionItem']
                         question = question_item.get('question', {})
@@ -347,7 +322,7 @@ def read_google_drive_content(drive_url: str, credentials: Credentials) -> Tuple
                             "options": []
                         }
                         
-                        # 确定问题类型和选项
+                        # Determine question type and options
                         if 'choiceQuestion' in question:
                             question_info["type"] = "choice"
                             choice_question = question['choiceQuestion']
@@ -382,7 +357,7 @@ def read_google_drive_content(drive_url: str, credentials: Credentials) -> Tuple
                         
                         form_info["questions"].append(question_info)
                         
-                    # 处理其他类型的项目（如页面分隔符、图片等）
+                    # Process other types of items (such as page breaks, images, etc.)
                     elif 'pageBreakItem' in item:
                         form_info["questions"].append({
                             "title": item.get('title', ''),
@@ -397,11 +372,11 @@ def read_google_drive_content(drive_url: str, credentials: Credentials) -> Tuple
                             "description": item.get('description', '')
                         })
                 
-                print(f"✅ 成功解析Google Forms: {len(form_info['questions'])} 个项目")
+                print(f"✅ Successfully parsed Google Forms: {len(form_info['questions'])} items")
                 return True, form_info
                 
             else:
-                # 不是Google Forms，返回文件基本信息
+                # Not a Google Forms, return file basic information
                 file_info = {
                     "file_id": file_id,
                     "title": file_metadata.get('name', ''),
@@ -410,48 +385,48 @@ def read_google_drive_content(drive_url: str, credentials: Credentials) -> Tuple
                     "modified_time": file_metadata.get('modifiedTime', ''),
                     "web_view_link": file_metadata.get('webViewLink', ''),
                     "metadata": file_metadata,
-                    "note": "非Google Forms文件"
+                    "note": "Not a Google Forms file"
                 }
-                print(f"ℹ️ 文件不是Google Forms，返回基本信息")
+                print(f"ℹ️ File is not a Google Forms, returning basic information")
                 return True, file_info
                 
         except HttpError as e:
-            error_msg = f"Google Drive API错误: {e}"
+            error_msg = f"Google Drive API error: {e}"
             if "404" in str(e):
-                error_msg = f"文件不存在或无权限访问: {drive_url}"
+                error_msg = f"File does not exist or no permission to access: {drive_url}"
             elif "403" in str(e):
-                error_msg = f"权限不足，无法访问文件: {drive_url}"
+                error_msg = f"Permission denied, cannot access file: {drive_url}"
             return False, {"error": error_msg}
             
     except Exception as e:
-        return False, {"error": f"读取Google Drive内容时出错: {e}"}
+        return False, {"error": f"Error reading Google Drive content: {e}"}
 
 
 def read_google_form_content(form_url: str, credentials: Credentials) -> Tuple[bool, Dict]:
-    """使用Google Forms API读取表单内容；若失败则使用HTML回退解析"""
+    """Read Google Forms content using Google Forms API; if failed, use HTML fallback parsing"""
     try:
         if not GOOGLE_API_AVAILABLE:
-            # 直接走HTML回退
+            # Directly use HTML fallback
             return read_google_form_content_via_html(form_url)
         
-        # 提取表单ID
+        # Extract form ID
         form_id = get_form_id_from_url(form_url)
         if not form_id:
-            # 尝试HTML解析，或返回错误
+            # Try HTML parsing, or return error
             html_ok, html_info = read_google_form_content_via_html(form_url)
             if html_ok:
                 return True, html_info
-            return False, {"error": f"无法从URL中提取表单ID: {form_url}"}
+            return False, {"error": f"Cannot extract form ID from URL: {form_url}"}
         
-        print(f"🔍 读取Google Forms内容 (ID: {form_id})")
+        print(f"🔍 Reading Google Forms content (ID: {form_id})")
         
-        # 构建Forms API service
+        # Build Forms API service
         service = build('forms', 'v1', credentials=credentials)
         
-        # 获取表单信息
+        # Get form information
         form = service.forms().get(formId=form_id).execute()
         
-        # 提取关键信息
+        # Extract key information
         form_info = {
             "form_id": form_id,
             "title": form.get('info', {}).get('title', ''),
@@ -459,7 +434,7 @@ def read_google_form_content(form_url: str, credentials: Credentials) -> Tuple[b
             "questions": []
         }
         
-        # 提取问题信息
+        # Extract question information
         items = form.get('items', [])
         for item in items:
             if 'questionItem' in item:
@@ -473,7 +448,7 @@ def read_google_form_content(form_url: str, credentials: Credentials) -> Tuple[b
                     "options": []
                 }
                 
-                # 确定问题类型和选项
+                # Determine question type and options
                 if 'choiceQuestion' in question:
                     question_info["type"] = "choice"
                     choice_question = question['choiceQuestion']
@@ -494,26 +469,26 @@ def read_google_form_content(form_url: str, credentials: Credentials) -> Tuple[b
         return True, form_info
         
     except HttpError as e:
-        # 403/404等权限或不存在时，尝试HTML回退
+        # Try HTML fallback
         html_ok, html_info = read_google_form_content_via_html(form_url)
         if html_ok:
             return True, html_info
-        error_msg = f"Google API错误: {e}"
+        error_msg = f"Google API error: {e}"
         if "404" in str(e):
-            error_msg = f"表单不存在或无权限访问: {form_url}"
+            error_msg = f"Form does not exist or no permission to access: {form_url}"
         elif "403" in str(e):
-            error_msg = f"权限不足，无法访问表单: {form_url}"
+            error_msg = f"Permission denied, cannot access form: {form_url}"
         return False, {"error": error_msg}
     except Exception as e:
-        # 其他异常也尝试HTML回退
+        # Other exceptions also try HTML fallback
         html_ok, html_info = read_google_form_content_via_html(form_url)
         if html_ok:
             return True, html_info
-        return False, {"error": f"读取表单内容时出错: {e}"}
+        return False, {"error": f"Error reading form content: {e}"}
 
 
 def read_google_form_content_via_html(form_url: str) -> Tuple[bool, Dict]:
-    """在无法通过API访问时，从公开页面抓取Google表单的基本信息（标题与问题）"""
+    """Read Google form basic information (title and questions) from public page when API access fails"""
     try:
         headers = {
             'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127 Safari/537.36'
@@ -522,23 +497,23 @@ def read_google_form_content_via_html(form_url: str) -> Tuple[bool, Dict]:
         with urlopen(req, timeout=15) as resp:
             charset = resp.headers.get_content_charset() or 'utf-8'
             html_text = resp.read().decode(charset, errors='ignore')
-        # 简单解析标题
+        # Simple parse title
         title_match = re.search(r'<title>(.*?)</title>', html_text, flags=re.IGNORECASE | re.DOTALL)
         title = html.unescape(title_match.group(1)).strip() if title_match else ''
-        # 简单解析问题文本（Google Forms常见HTML结构包含 aria-label 或 data-params 中的文本）
-        # 这里使用保守的匹配，提取多种可能的题目容器中的文本
+        # Simple parse question text (Google Forms common HTML structure contains text in aria-label or data-params)
+        # Here use conservative matching, extract text from multiple possible question containers
         question_texts = []
-        # aria-label 作为问题标题
+        # aria-label as question title
         question_texts += re.findall(r'aria-label="([^"]{5,200})"', html_text)
-        # data-params 中的可见文本片段
+        # Visible text fragments in data-params
         question_texts += re.findall(r'\[\"([\w\s\-\?\.,!]{5,200})\",\d+\]', html_text)
-        # 去重与清洗
+        # Remove duplicates and clean
         clean_questions = []
         for qt in question_texts:
             q = html.unescape(qt).strip()
             if len(q) >= 5 and q not in clean_questions:
                 clean_questions.append(q)
-        # 构造最小表单信息
+        # Construct minimal form information
         form_info = {
             'form_id': get_form_id_from_url(form_url) or '',
             'title': title,
@@ -547,45 +522,46 @@ def read_google_form_content_via_html(form_url: str) -> Tuple[bool, Dict]:
         }
         return True, form_info
     except (HTTPError, URLError) as e:
-        return False, {"error": f"HTML访问错误: {e}"}
+        return False, {"error": f"HTML access error: {e}"}
     except Exception as e:
-        return False, {"error": f"HTML解析错误: {e}"}
+        return False, {"error": f"HTML parsing error: {e}"}
 
 
 def validate_form_content(form_info: Dict) -> Tuple[bool, str]:
-    """验证表单内容是否严格符合 form_requiremente.md 的要求"""
+    """Validate form content strictly meets the requirements of form_requiremente.md"""
     try:
         title = form_info.get('title', '')
         description = form_info.get('description', '')
         questions = form_info.get('questions', [])
 
-        print(f"🔍 开始严格验证表单内容...")
-        print(f"📋 表单标题: '{title}'")
-        print(f"📝 表单描述: '{description}'")
-        print(f"❓ 问题数量: {len(questions)}")
+        print(f"🔍 Start strictly validating form content...")
+        print(f"📋 Form title: '{title}'")
+        print(f"📝 Form description: '{description}'")
+        print(f"❓ Question number: {len(questions)}")
 
         print(form_info)
         
         errors = []
         
-        # 1. 验证标题
+        # 1. Validate title
         expected_title = "Customer Shopping Experience Feedback Survey"
         if title != expected_title:
-            errors.append(f"标题不匹配: 期望 '{expected_title}', 实际 '{title}'")
+            errors.append(f"Title mismatch: expected '{expected_title}', actual '{title}'")
         
-        # 2. 验证描述（可以为空或包含相关内容）
+        # 2. Validate description (can be empty or contain related content)
         expected_desc_keywords = ["thank you", "purchase", "shopping experience", "feedback"]
         if description and not any(keyword.lower() in description.lower() for keyword in expected_desc_keywords):
-            errors.append(f"描述内容不符合要求: '{description}'")
+            errors.append(f"Description content does not meet the requirements: '{description}'")
         
-        # 3. 验证问题数量
+        # 3. Validate question number
         if len(questions) != 6:
-            errors.append(f"问题数量错误: 期望6个问题, 实际{len(questions)}个")
+            errors.append(f"Question number error: expected 6 questions, actual {len(questions)}")
         
-        # 4. 定义必需的问题模板
+        # 4. Define required questions template
         required_questions = [
             {
                 "keywords": ["overall", "shopping experience", "rate"],
+                "question_text": "Please rate your overall shopping experience.",
                 "type": "choice",
                 "required": True,
                 "options_count": 5,
@@ -593,6 +569,7 @@ def validate_form_content(form_info: Dict) -> Tuple[bool, str]:
             },
             {
                 "keywords": ["quality", "product", "satisfied"],
+                "question_text": "Are you satisfied with the quality of the product you received?",
                 "type": "choice", 
                 "required": True,
                 "options_count": 5,
@@ -600,6 +577,7 @@ def validate_form_content(form_info: Dict) -> Tuple[bool, str]:
             },
             {
                 "keywords": ["delivery", "service", "satisfied"],
+                "question_text": "Are you satisfied with the delivery service?",
                 "type": "choice",
                 "required": True, 
                 "options_count": 5,
@@ -610,6 +588,7 @@ def validate_form_content(form_info: Dict) -> Tuple[bool, str]:
                 "type": "choice",
                 "required": False,
                 "options_count": 6,
+                "question_text": "If you contacted customer service, how would you rate the experience?",
                 "name": "Customer Service Experience Evaluation"
             },
             {
@@ -617,6 +596,7 @@ def validate_form_content(form_info: Dict) -> Tuple[bool, str]:
                 "type": "text",
                 "required": False,
                 "options_count": 0,
+                "question_text": "Please provide any suggestions or feedback for improvement.",
                 "name": "Suggestions for Improvement"
             },
             {
@@ -624,17 +604,18 @@ def validate_form_content(form_info: Dict) -> Tuple[bool, str]:
                 "type": "choice",
                 "required": True,
                 "options_count": 5,
+                "question_text": "Would you be willing to recommend our store to your friends?",
                 "name": "Willingness to Recommend"
             }
         ]
         
-                # 5. 验证每个必需问题
+        # 5. Validate each required question
         found_questions = []
         
-        print(f"🔍 逐一验证6个必需问题...")
+        print(f"🔍 Validate each required question...")
         
         for i, req_q in enumerate(required_questions, 1):
-            print(f"  {i}. 寻找 '{req_q['name']}'...")
+            print(f"  {i}. Find '{req_q['name']}'...")
             found = False
             
             for j, actual_q in enumerate(questions):
@@ -643,53 +624,35 @@ def validate_form_content(form_info: Dict) -> Tuple[bool, str]:
                 question_required = actual_q.get('required', False)
                 question_options = actual_q.get('options', [])
                 
-                # 检查是否包含关键词
-                if any(keyword.lower() in question_text for keyword in req_q["keywords"]):
-                    print(f"     ✅ 匹配到问题 {j+1}: '{actual_q.get('title', '')}'")
+                # Check if contains keywords
+                if normalize_str(question_text) == normalize_str(req_q["question_text"]):
+                    print(f"     ✅ Match to question {j+1}: '{actual_q.get('title', '')}'")
                     found_questions.append(req_q["name"])
                     
-                    # 验证问题类型
+                    # Validate question type
                     if question_type != req_q["type"]:
-                        errors.append(f"{req_q['name']}: 类型错误, 期望 '{req_q['type']}', 实际 '{question_type}'")
-                        print(f"     ❌ 类型错误: 期望 '{req_q['type']}', 实际 '{question_type}'")
+                        errors.append(f"{req_q['name']}: Type error: expected '{req_q['type']}', actual '{question_type}'")
+                        print(f"     ❌ Type error: expected '{req_q['type']}', actual '{question_type}'")
                     else:
-                        print(f"     ✅ 类型正确: {question_type}")
+                        print(f"     ✅ Type correct: {question_type}")
                     
-                    # # 验证是否必需
-                    # if question_required != req_q["required"]:
-                    #     errors.append(f"{req_q['name']}: 必需性错误, 期望 {req_q['required']}, 实际 {question_required}")
-                    #     print(f"     ❌ 必需性错误: 期望 {req_q['required']}, 实际 {question_required}")
-                    # else:
-                    #     print(f"     ✅ 必需性正确: {question_required}")
-                    
-                    # # 验证选项数量（针对选择题）
-                    # if req_q["type"] == "choice":
-                    #     if len(question_options) != req_q["options_count"]:
-                    #         print(question_options)
-                    #         print(req_q["options_count"])
-                    #         errors.append(f"{req_q['name']}: 选项数量错误, 期望 {req_q['options_count']} 个, 实际 {len(question_options)} 个")
-                    #         print(f"     ❌ 选项数量错误: 期望 {req_q['options_count']} 个, 实际 {len(question_options)} 个")
-                    #     else:
-                    #         print(f"     ✅ 选项数量正确: {len(question_options)} 个")
-                    #         print(f"        选项: {question_options}")
-                    
-                    # 验证文本问题是否为长文本（针对改进建议问题）
+                    # Validate text question is long text (for suggestions for improvement question)
                     if req_q["name"] == "Suggestions for Improvement" and req_q["type"] == "text":
                         paragraph_setting = actual_q.get('paragraph', False)
                         if not paragraph_setting:
-                            print(f"     ⚠️ 注意: 应该设置为长文本格式（paragraph=True）")
-                            # 不作为错误，因为功能上仍然可用
+                            print(f"     ⚠️ Note: should be set to long text format (paragraph=True)")
+                            # Not as error, because it is still available functionally
                         else:
-                            print(f"     ✅ 已设置为长文本格式")
+                            print(f"     ✅ Set to long text format")
                     
                     found = True
                     break
             
             if not found:
-                print(f"     ❌ 未找到匹配的问题")
-                errors.append(f"缺少必需问题: {req_q['name']}")
+                print(f"     ❌ No matching question found")
+                errors.append(f"Missing required question: {req_q['name']}")
         
-        # 6. 验证特定选项内容
+        # 6. Validate specific option content
         satisfaction_options = ["very satisfied", "satisfied", "neutral", "dissatisfied", "very dissatisfied"]
         recommend_options = ["very willing", "willing", "might", "not very willing", "unwilling"]
         
@@ -697,38 +660,38 @@ def validate_form_content(form_info: Dict) -> Tuple[bool, str]:
             question_text = question.get('title', '').lower()
             options = [opt.lower() for opt in question.get('options', [])]
             
-            # 验证满意度问题的选项
+            # Validate satisfaction question options
             if any(keyword in question_text for keyword in ["quality", "delivery"]) and "satisfied" in question_text:
                 if not all(opt in ' '.join(options) for opt in ["satisfied", "dissatisfied", "neutral"]):
-                    errors.append(f"满意度问题选项不完整: {question.get('title', '')}")
+                    errors.append(f"Satisfaction question options incomplete: {question.get('title', '')}")
             
-            # 验证推荐问题的选项
+            # Validate recommendation question options
             if "recommend" in question_text and "willing" in question_text:
                 if not all(opt in ' '.join(options) for opt in ["willing", "unwilling"]):
-                    errors.append(f"推荐问题选项不完整: {question.get('title', '')}")
+                    errors.append(f"Recommendation question options incomplete: {question.get('title', '')}")
         
-        # 7. 汇总验证结果
+        # 7. Summarize validation results
         if errors:
-            return False, f"表单验证失败:\n" + "\n".join([f"  - {error}" for error in errors])
+            return False, f"Form validation failed:\n" + "\n".join([f"  - {error}" for error in errors])
         
-        return True, f"✅ 表单完全符合要求: '{title}' ({len(questions)}个问题，包含所有必需元素: {', '.join(found_questions)})"
+        return True, f"✅ Form completely meets requirements: '{title}' ({len(questions)} questions, including all required elements: {', '.join(found_questions)})"
             
     except Exception as e:
-        return False, f"验证表单内容时出错: {e}"
+        return False, f"Error validating form content: {e}"
 
 def load_expected_orders(groundtruth_workspace: str) -> Tuple[bool, Dict[str, Any]]:
-    """从 groundtruth_workspace 加载预期的已完成订单数据"""
+    """Load expected completed orders data from groundtruth_workspace"""
     try:
         expected_orders_file = os.path.join(groundtruth_workspace, "expected_orders.json")
         
         if not os.path.exists(expected_orders_file):
-            return False, {"error": f"未找到预期订单文件: {expected_orders_file}"}
+            return False, {"error": f"Expected orders file not found: {expected_orders_file}"}
         
         expected_orders = read_json(expected_orders_file)
         if not expected_orders:
-            return False, {"error": "无法读取预期订单数据"}
+            return False, {"error": "Cannot read expected orders data"}
         
-        # 提取预期的客户邮箱列表
+        # Extract expected customer email list
         expected_emails = []
         for order in expected_orders:
             customer_email = order.get("customer_email")
@@ -741,114 +704,98 @@ def load_expected_orders(groundtruth_workspace: str) -> Tuple[bool, Dict[str, An
             "expected_count": len(expected_emails)
         }
     except Exception as e:
-        return False, {"error": f"无法加载预期订单数据: {e}"}
+        return False, {"error": f"Cannot load expected orders data: {e}"}
     
 def check_google_forms_from_file(agent_workspace: str) -> Tuple[bool, str]:
-    """从agent_workspace/drive_url.txt文件中读取并验证Google Drive内容"""
+    """Read and validate Google Drive content from agent_workspace/drive_url.txt file"""
     try:
-        print("📝 开始检查Google Drive内容...")
+        print("📝 Start checking Google Drive content...")
         
-        # 从文件读取Google Drive链接
+        # Read Google Drive links from file
         form_links = read_google_forms_from_file(agent_workspace)
         
         if not form_links:
-            return False, "未找到任何Google Drive链接"
+            return False, "No Google Drive links found"
         
-        # 获取Google认证
+        # Get Google authentication
         google_creds_success, google_credentials = get_google_credentials()
         if not google_creds_success:
-            print("⚠️ 无法获取Google认证，将仅验证链接格式")
+            print("⚠️ Cannot get Google authentication, will only validate link format")
         
         valid_forms_count = 0
         total_forms = len(form_links)
         validation_results = []
         
         for i, link in enumerate(form_links, 1):
-            print(f"\n🔍 验证链接 {i}/{total_forms}: {link}")
+            print(f"\n🔍 Validate link {i}/{total_forms}: {link}")
             
-            # 如果有Google认证，使用专门的Google Drive内容读取函数
+            # If there is Google authentication, use the dedicated Google Drive content reading function
             if google_creds_success and google_credentials:
                 drive_success, drive_info = read_google_drive_content(link, google_credentials)
                 
                 if drive_success:
-                    # 检查是否是Google Forms
-                    if drive_info.get("questions") is not None:  # 有questions字段说明是Forms
-                        # 验证表单是否符合要求
+                    # Check if it is a Google Forms
+                    if drive_info.get("questions") is not None:  # If there is questions field, it is a Google Forms
+                        # Validate form content
                         valid, validation_msg = validate_form_content(drive_info)
                         if valid:
                             valid_forms_count += 1
                             print(f"   ✅ {validation_msg}")
-                            validation_results.append(f"链接 {i}: 有效 - {validation_msg}")
+                            validation_results.append(f"Link {i}: valid - {validation_msg}")
                         else:
                             print(f"   ❌ {validation_msg}")
-                            validation_results.append(f"链接 {i}: 无效 - {validation_msg}")
+                            validation_results.append(f"Link {i}: invalid - {validation_msg}")
                     else:
-                        # 不是Google Forms，但文件存在
-                        print(f"   ⚠️ 文件存在但不是Google Forms: {drive_info.get('mime_type', 'Unknown')}")
-                        validation_results.append(f"链接 {i}: 文件存在但不是Google Forms")
+                        # Not a Google Forms, but file exists
+                        print(f"   ⚠️ File exists but is not a Google Forms: {drive_info.get('mime_type', 'Unknown')}")
+                        validation_results.append(f"Link {i}: file exists but is not a Google Forms")
                 else:
-                    error_msg = drive_info.get("error", "未知错误")
-                    if "权限" in error_msg or "404" in error_msg or "403" in error_msg:
-                        print(f"   ⚠️ 无法访问文件（权限限制）: {error_msg}")
-                        print(f"   📝 但链接格式正确，认为格式有效")
-                        valid_forms_count += 1
-                        validation_results.append(f"链接 {i}: 格式有效（无法访问内容）")
-                    else:
-                        print(f"   ❌ 无法读取文件内容: {error_msg}")
-                        validation_results.append(f"链接 {i}: 无效 - {error_msg}")
+                    pass
             else:
-                # 没有Google认证，仅验证链接格式
-                if ('drive.google.com' in link or 'docs.google.com' in link or 
-                    'forms.gle' in link or 'docs.google.com/forms' in link):
-                    valid_forms_count += 1
-                    print(f"   ✅ 链接格式有效")
-                    validation_results.append(f"链接 {i}: 链接格式有效")
-                else:
-                    print(f"   ❌ 不是有效的Google链接")
-                    validation_results.append(f"链接 {i}: 链接格式无效")
+                pass
         
-        # 生成结果报告
-        print(f"\n📊 Google Drive内容检查结果:")
-        print(f"   🔗 总计链接: {total_forms} 个")
-        print(f"   ✅ 有效链接: {valid_forms_count} 个")
+        # Generate result report
+        print(f"\n📊 Google Drive content check result:")
+        print(f"   🔗 Total links: {total_forms} links")
+        print(f"   ✅ Valid links: {valid_forms_count} links")
         
         if valid_forms_count > 0:
-            success_msg = f"成功验证 {valid_forms_count}/{total_forms} 个Google Drive链接\n详细结果:\n" + "\n".join(validation_results)
+            success_msg = f"Successfully validated {valid_forms_count}/{total_forms} Google Drive links\nDetailed results:\n" + "\n".join(validation_results)
             return True, success_msg
         else:
-            fail_msg = f"没有找到有效的Google Drive内容\n详细结果:\n" + "\n".join(validation_results)
+            fail_msg = f"No valid Google Drive content found\nDetailed results:\n" + "\n".join(validation_results)
             return False, fail_msg
             
     except Exception as e:
-        error_msg = f"检查Google Drive内容时出错: {e}"
+        error_msg = f"Error checking Google Drive content: {e}"
         print(f"❌ {error_msg}")
         return False, error_msg
 
 
 def check_email_sending(expected_data: Dict[str, Any]) -> Tuple[bool, str]:
-    """检查是否向预期的客户发送了邮件（使用通用邮件验证函数）"""
+    """Check if the email was sent to the expected customer (using generic email verification function)"""
     try:
         if not all_token_key_session:
-            return False, "无法获取邮件配置"
+            return False, "Cannot get email configuration"
 
-        # 读取邮件配置
+        # Read email configuration
         try:
             email_config = read_json(all_token_key_session.emails_config_file)
             if not email_config:
-                return False, "无法读取邮件配置文件"
+                return False, "Cannot read email configuration file"
         except Exception as e:
-            return False, f"无法读取邮件配置文件: {e}"
+            return False, f"Cannot read email configuration file: {e}"
 
-        # 获取预期的客户邮箱列表
+        # Get expected customer email list
         expected_emails = expected_data.get("expected_emails", [])
         if not expected_emails:
-            return False, "没有预期的客户邮箱"
+            return False, "No expected customer email"
 
-        print(f"🎯 预期收件人: {len(expected_emails)} 个")
+        print(f"🎯 Expected recipients: {len(expected_emails)} links")
         for email_addr in expected_emails:
             print(f"   📧 {email_addr}")
 
-        # 定义Google Forms链接提取函数
+        # Define Google Forms link extraction function
         def extract_google_forms_links(email_body: str) -> List[str]:
             google_forms_patterns = [
                 r'https://docs\.google\.com/forms/d/([a-zA-Z0-9-_]{10,})[^\s]*',
@@ -860,15 +807,15 @@ def check_email_sending(expected_data: Dict[str, Any]) -> Tuple[bool, str]:
             ]
             return extract_url_patterns_from_email(email_body, google_forms_patterns)
 
-        # 定义内容验证函数
+        # Define content validation function
         def validate_google_forms_content(email_body: str) -> bool:
             return len(extract_google_forms_links(email_body)) > 0
 
-        # 导入通用邮件验证函数
+        # Import generic email verification function
         sys.path.insert(0, os.path.join(os.path.dirname(current_dir), "..", "..", ".."))
         from utils.app_specific.poste.checks import verify_emails_sent_to_recipients, extract_url_patterns_from_email
 
-        # 使用通用函数验证邮件发送
+        # Use generic function to verify email sending
         success, result = verify_emails_sent_to_recipients(
             sender_config=email_config,
             expected_recipients=expected_emails,
@@ -876,26 +823,26 @@ def check_email_sending(expected_data: Dict[str, Any]) -> Tuple[bool, str]:
             content_validator=validate_google_forms_content
         )
 
-        # 处理结果
+        # Process result
         if success:
             forms_count = len(result.get("extracted_contents", []))
-            success_msg = f"准确向所有 {result['expected_count']} 个预期收件人发送了邮件，无遗漏无冗余"
+            success_msg = f"Accurately sent emails to all {result['expected_count']} expected recipients, no missing or redundant"
             if forms_count > 0:
-                success_msg += f"，包含 {forms_count} 个Google Forms链接"
+                success_msg += f", including {forms_count} Google Forms links"
             return True, success_msg
         else:
-            error_msg = result.get("error", "未知错误")
+            error_msg = result.get("error", "Unknown error")
             if "found_recipients" in result:
                 missing = result.get("missing_recipients", [])
                 extra = result.get("extra_recipients", [])
                 if missing:
-                    error_msg += f"，缺少收件人: {', '.join(missing)}"
+                    error_msg += f", missing recipients: {', '.join(missing)}"
                 if extra:
-                    error_msg += f"，额外收件人: {', '.join(extra)}"
+                    error_msg += f", extra recipients: {', '.join(extra)}"
             return False, error_msg
 
     except Exception as e:
-        return False, f"邮件发送检查出错: {e}"
+        return False, f"Error checking email sending: {e}"
 
 def run_complete_evaluation(agent_workspace: str, groundtruth_workspace: str, res_log: Dict) -> Tuple[bool, str]:
     """Run complete evaluation workflow"""
@@ -910,14 +857,14 @@ def run_complete_evaluation(agent_workspace: str, groundtruth_workspace: str, re
     try:
         load_success, expected_data = load_expected_orders(groundtruth_workspace)
         if load_success:
-            results.append(("Data Loading", True, f"成功加载 {expected_data['expected_count']} 个预期客户邮箱"))
-            print(f"✅ 成功加载 {expected_data['expected_count']} 个预期客户邮箱")
+            results.append(("Data Loading", True, f"Successfully loaded {expected_data['expected_count']} expected customer emails"))
+            print(f"✅ Successfully loaded {expected_data['expected_count']} expected customer emails")
             
-            print(f"📋 预期收件人列表:")
+            print(f"📋 Expected recipients list:")
             for i, email in enumerate(expected_data['expected_emails'], 1):
                 print(f"   {i}. {email}")
         else:
-            error_msg = expected_data.get("error", "未知错误")
+            error_msg = expected_data.get("error", "Unknown error")
             results.append(("Data Loading", False, error_msg))
             print(f"❌ {error_msg}")
     except Exception as e:
@@ -935,8 +882,8 @@ def run_complete_evaluation(agent_workspace: str, groundtruth_workspace: str, re
             results.append(("Email Sending Check", False, str(e)))
             print(f"❌ Email checking error: {e}")
     else:
-        results.append(("Email Sending Check", False, "跳过邮件检查（数据加载失败）"))
-        print("❌ 跳过邮件检查（数据加载失败）")
+        results.append(("Email Sending Check", False, "Skip email checking (data loading failed)"))
+        print("❌ Skip email checking (data loading failed)")
     
     # Step 3: Check Google Drive content from drive_url.txt file
     print("\n📝 STEP 3: Checking Google Drive content from drive_url.txt...")

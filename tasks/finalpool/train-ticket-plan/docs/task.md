@@ -3,4 +3,4 @@ My friend and I have planned a trip to qufu(曲阜). We will depart on the eveni
 "thursday": null,
 "sunday": null
 }
-Finally, please write the returned JSON content into a file named 'train-ticket-plan.json'. Please use the official English translation for each railway station.
+Finally, please fill in the file `train-ticket-plan.json` with your result, and strictly follow the format in `format.json`. Please use the official English translation for each railway station.

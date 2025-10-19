@@ -1,63 +1,63 @@
 # Update Photo Task
 
-## 任务概述
+## Overview
 
-这是一个基于上周销量数据自动更新 WooCommerce 商品主图的任务。任务目标是检测 MCP Server 能否分析销量数据，找出每个可变商品销量最高的规格，并将该规格的图片设置为商品主图。
+This task is to automatically update the featured images of WooCommerce products based on last week's sales data. The goal is to verify whether the MCP Server can analyze sales data, identify the best-selling variation for each variable product, and set that variation's image as the product's featured image.
 
-## 任务描述
+## Task Description
 
-根据上周销量数据更新 WooCommerce 商品主图，将销量最高的规格图片设为商品主图。
+Update the featured image of each WooCommerce variable product according to last week's sales data. The variation with the highest sales should have its image set as the featured image for the parent product.
 
-### 具体步骤
+### Steps
 
-1. **确定时间范围**
-   - 获取上周（周一至周日）的完整日期范围
-   - 使用系统当前时间计算上周的起始和结束日期
+1. **Determine the Time Range**
+   - Get the complete date range for last week (Monday to Sunday).
+   - Use the current system time to calculate last week's start and end dates.
 
-2. **销量数据分析**
-   - 遍历所有"可变商品"（Variable Products）
-   - 获取每个商品下各个规格（Variation）在上周的销量数据
-   - 找出每个商品销量最高的规格
+2. **Analyze Sales Data**
+   - Iterate over all variable products.
+   - For each product, get sales data for each variation during the relevant week.
+   - Identify the best-selling variation for each product.
 
-3. **图片更新操作**
-   - 获取销量最高规格的"变量图片"（Variation Image）
-   - 将该图片设置为父商品的"主图"（Featured Image）
-   - 如果销量最高的规格没有独立图片，跳过该商品
+3. **Update Product Image**
+   - Get the image of the top-selling variation.
+   - Set this image as the parent product's featured image.
+   - If the best-selling variation does not have a separate image, skip that product.
 
-4. **结果输出**
-   - 统计更新成功的商品数量
-   - 提供操作摘要报告
+4. **Output Results**
+   - Count the number of products updated successfully.
+   - Provide a summary report of the operation.
 
-## 技术要求
+## Technical Requirements
 
-- 使用 WooCommerce MCP 服务器
-- 正确处理日期范围计算
-- 妥善处理异常情况（如无销量数据、无图片等）
-- 提供清晰的进度反馈
+- Use the WooCommerce MCP server.
+- Correctly handle date range calculation.
+- Robustly deal with edge cases (e.g., no sales data, no images).
+- Provide clear progress feedback.
 
-## 预期结果
+## Expected Output
 
-完成后应输出包含以下信息的报告：
-- 处理的商品总数
-- 成功更新的商品数量  
-- 跳过的商品数量及原因
-- 操作完成时间
+After completion, the report should include:
+- The total number of products processed
+- The number of products successfully updated
+- The number of products skipped and the reasons
+- Operation completion time
 
-## 文件结构
+## File Structure
 
 ```
 update-photo-task/
-├── README.md                    # 本文件
-├── task_config.json            # 任务配置
+├── README.md                    # This file
+├── task_config.json             # Task configuration
 ├── docs/
-│   ├── task.md                 # 任务详细说明
-│   └── user_system_prompt.md   # 用户系统提示
+│   ├── task.md                  # Detailed task description
+│   └── user_system_prompt.md    # User/system prompt
 ├── evaluation/
-│   ├── main.py                 # 主评估脚本
-│   └── check_content.py        # 内容检查脚本
+│   ├── main.py                  # Main evaluation script
+│   └── check_content.py         # Content check script
 ├── preprocess/
-│   ├── setup_test_products.py  # 测试产品设置
-│   └── woocommerce_client.py   # WooCommerce 客户端
-├── initial_workspace/          # 初始工作空间
-└── groundtruth_workspace/      # 标准答案工作空间
+│   ├── setup_test_products.py   # Test product setup
+│   └── woocommerce_client.py    # WooCommerce client
+├── initial_workspace/           # Initial workspace
+└── groundtruth_workspace/       # Ground truth (expected results)
 ```

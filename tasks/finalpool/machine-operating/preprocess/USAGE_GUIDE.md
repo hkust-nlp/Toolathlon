@@ -1,100 +1,100 @@
-n# 🏭 工厂物联网传感器数据生成器 - 使用指南
+# 🏭 Factory IoT Sensor Data Generator - User Guide
 
-## 📋 概述
+## 📋 Overview
 
-扩展后的数据生成器现在支持灵活的配置和大规模数据生成，可以根据需要调整数据量、复杂度和特征。
+The extended data generator now supports flexible configuration and large-scale data production. You can freely adjust the generated data volume, complexity, and features as needed.
 
-## 🚀 快速开始
+## 🚀 Quick Start
 
-### 基础用法
+### Basic Usage
 ```bash
-# 使用默认设置生成数据
+# Generate data with default settings
 python main.py
 
-# 查看所有选项
+# View all available options
 python main.py --help
 ```
 
-### 预设模式
+### Preset Modes
 ```bash
-# 小规模数据集 (适合快速测试)
+# Small-scale dataset (for quick testing)
 python main.py --preset small
 
-# 中等规模数据集 (6小时，10台额外机器)
+# Medium-scale dataset (6 hours, 10 extra machines)
 python main.py --preset medium
 
-# 大规模数据集 (24小时，25台额外机器)
+# Large-scale dataset (24 hours, 25 extra machines)
 python main.py --preset large
 
-# 极限数据集 (72小时，50台额外机器，所有高级功能)
+# Extreme dataset (72 hours, 50 extra machines, all advanced features)
 python main.py --preset extreme
 ```
 
-## ⚙️ 配置选项
+## ⚙️ Configuration Options
 
-### 基础配置
+### Basic Settings
 
-| 参数 | 描述 | 默认值 | 示例 |
-|-----|------|--------|-----|
-| `--hours` | 数据时间跨度（小时） | 2 | `--hours 24` |
-| `--interval` | 采样间隔（分钟） | 5 | `--interval 1` |
-| `--anomaly-rate` | 异常概率 | 0.15 | `--anomaly-rate 0.25` |
-| `--seed` | 随机种子 | 42 | `--seed 123` |
+| Parameter      | Description                 | Default | Example                          |
+|----------------|----------------------------|---------|-----------------------------------|
+| `--hours`      | Duration (hours)           | 2       | `--hours 24`                      |
+| `--interval`   | Sampling interval (minutes)| 5       | `--interval 1`                    |
+| `--anomaly-rate` | Anomaly probability      | 0.15    | `--anomaly-rate 0.25`             |
+| `--seed`       | Random seed                | 42      | `--seed 123`                      |
 
-### 扩展配置
+### Extended Settings
 
-| 参数 | 描述 | 默认值 | 示例 |
-|-----|------|--------|-----|
-| `--machines` | 额外添加的机器数量 | 0 | `--machines 20` |
-| `--sensors` | 额外的传感器类型 | 无 | `--sensors humidity,power,efficiency` |
-| `--complexity` | 复杂度倍数 | 1.0 | `--complexity 2.0` |
-| `--prefix` | 输出文件前缀 | 无 | `--prefix large_dataset` |
+| Parameter      | Description                                | Default | Example                                |
+|----------------|--------------------------------------------|---------|-----------------------------------------|
+| `--machines`   | Number of additional machines              | 0       | `--machines 20`                        |
+| `--sensors`    | Additional sensor types (comma-separated)  | None    | `--sensors humidity,power,efficiency`   |
+| `--complexity` | Complexity multiplier                      | 1.0     | `--complexity 2.0`                      |
+| `--prefix`     | Prefix for output files                    | None    | `--prefix large_dataset`                |
 
-### 高级功能
+### Advanced Features
 
-| 参数 | 描述 | 默认 | 效果 |
-|-----|------|------|-----|
-| `--multi-anomaly` | 多重异常模式 | 禁用 | 添加间歇性故障、热失控等复杂异常 |
-| `--cascade-failure` | 级联故障模式 | 禁用 | 异常可能影响相关设备 |
-| `--seasonal-patterns` | 季节性模式 | 禁用 | 添加时间相关的模式变化 |
-| `--noise` | 噪声注入 | 禁用 | 在正常数据中添加微小随机噪声 |
+| Parameter            | Description                   | Default   | Effect                                                        |
+|----------------------|------------------------------|-----------|---------------------------------------------------------------|
+| `--multi-anomaly`    | Multiple anomaly mode         | Off       | Add intermittent faults, thermal runaway, and other patterns  |
+| `--cascade-failure`  | Cascade failure mode          | Off       | Anomaly may affect related equipment                          |
+| `--seasonal-patterns`| Seasonal patterns             | Off       | Introduce time-dependent patterns                             |
+| `--noise`            | Noise injection               | Off       | Add minor random noise to normal data                         |
 
-## 📊 数据规模估算
+## 📊 Data Volume Estimation
 
-### 记录数计算公式
+### Record Count Formula
 ```
-总记录数 = (时间(小时) × 60 / 采样间隔(分钟)) × 机器数量 × 传感器类型数
+Total Records = (Duration(hours) × 60 / Sampling Interval(min)) × Number of Machines × Number of Sensor Types
 ```
 
-### 规模示例
+### Scale Examples
 
-| 配置 | 时间 | 间隔 | 机器数 | 传感器数 | 估计记录数 | 文件大小 |
-|-----|------|------|--------|----------|-----------|----------|
-| 默认 | 2小时 | 5分钟 | 10台 | 6种 | 1,440 | ~100KB |
-| Medium | 6小时 | 5分钟 | 20台 | 8种 | 11,520 | ~800KB |
-| Large | 24小时 | 2分钟 | 35台 | 10种 | 252,000 | ~18MB |
-| Extreme | 72小时 | 1分钟 | 60台 | 12种 | 3,110,400 | ~220MB |
+| Mode    | Hours | Interval | Machines | Sensors | Est. Records | File Size |
+|---------|-------|----------|----------|---------|--------------|-----------|
+| Default | 2     | 5 min    | 10       | 6       | 1,440        | ~100KB    |
+| Medium  | 6     | 5 min    | 20       | 8       | 11,520       | ~800KB    |
+| Large   | 24    | 2 min    | 35       | 10      | 252,000      | ~18MB     |
+| Extreme | 72    | 1 min    | 60       | 12      | 3,110,400    | ~220MB    |
 
-## 🔧 实用示例
+## 🔧 Usage Examples
 
-### 1. 快速测试数据集
+### 1. Quick Test Dataset
 ```bash
 python main.py --hours 0.5 --prefix quick_test
 ```
 
-### 2. 高频采样数据集
+### 2. High-Frequency Sampling Dataset
 ```bash
 python main.py --hours 4 --interval 1 --machines 5 --prefix high_freq
 ```
 
-### 3. 多传感器复杂数据集
+### 3. Multi-Sensor Complex Dataset
 ```bash
 python main.py --hours 8 --machines 15 \
   --sensors humidity,power,efficiency,noise_level \
   --complexity 1.8 --prefix multi_sensor
 ```
 
-### 4. 高难度异常检测训练集
+### 4. Hard Anomaly Detection Training Set
 ```bash
 python main.py --hours 12 --machines 20 \
   --sensors humidity,power,efficiency \
@@ -102,122 +102,122 @@ python main.py --hours 12 --machines 20 \
   --anomaly-rate 0.3 --prefix training_hard
 ```
 
-### 5. 大规模生产数据集
+### 5. Large-Scale Production Dataset
 ```bash
 python main.py --hours 48 --interval 2 --machines 30 \
   --sensors humidity,power,efficiency,noise_level,oil_pressure \
   --complexity 2.0 --prefix production_scale
 ```
 
-## 📈 可用传感器类型
+## 📈 Available Sensor Types
 
-### 基础传感器（默认包含）
-- `temperature` - 温度（°C）
-- `pressure` - 压力（bar）
-- `vibration` - 振动（mm/s）
-- `rpm` - 转速（rpm）
-- `current` - 电流（A）
-- `flow_rate` - 流量（L/min）
+### Basic Sensors (included by default)
+- `temperature` - Temperature (°C)
+- `pressure` - Pressure (bar)
+- `vibration` - Vibration (mm/s)
+- `rpm` - Rotational speed (rpm)
+- `current` - Current (A)
+- `flow_rate` - Flow rate (L/min)
 
-### 扩展传感器（可选添加）
-- `humidity` - 湿度（%RH）
-- `power` - 功率（kW）
-- `efficiency` - 效率（%）
-- `noise_level` - 噪音水平（dB）
-- `oil_pressure` - 油压（psi）
-- `speed` - 速度（m/s）
+### Additional Sensors (optional)
+- `humidity` - Humidity (%RH)
+- `power` - Power (kW)
+- `efficiency` - Efficiency (%)
+- `noise_level` - Noise level (dB)
+- `oil_pressure` - Oil pressure (psi)
+- `speed` - Speed (m/s)
 
-## 🎯 不同应用场景的配置建议
+## 🎯 Configuration Recommendations for Different Scenarios
 
-### 算法开发和测试
+### Algorithm Development and Testing
 ```bash
-# 小规模，快速迭代
+# Small scale, fast iteration
 python main.py --preset small --prefix dev_test
 
-# 中等规模，功能验证
+# Medium scale, feature verification
 python main.py --hours 4 --machines 5 --sensors humidity,power --prefix feature_test
 ```
 
-### 异常检测训练
+### Anomaly Detection Training
 ```bash
-# 高异常率，复杂模式
+# High anomaly rate, complex patterns
 python main.py --hours 12 --machines 15 \
   --multi-anomaly --cascade-failure \
   --anomaly-rate 0.35 --complexity 2.0 --prefix anomaly_training
 
-# 真实场景模拟
+# Real-world simulation
 python main.py --hours 24 --interval 3 --machines 25 \
   --sensors humidity,power,efficiency --noise \
   --prefix realistic_scenario
 ```
 
-### 性能测试
+### Performance Testing
 ```bash
-# 大数据量测试
+# Large dataset performance test
 python main.py --hours 48 --interval 1 --machines 40 \
   --sensors humidity,power,efficiency,noise_level,oil_pressure,speed \
   --prefix performance_test
 
-# 极限数据量
+# Maximum size stress test
 python main.py --preset extreme --prefix stress_test
 ```
 
-### 可视化和仪表板开发
+### Visualization & Dashboard Development
 ```bash
-# 实时模拟数据
+# Real-time simulation data
 python main.py --hours 6 --interval 2 --machines 10 \
   --sensors humidity,power --noise --prefix dashboard_demo
 
-# 多样化展示数据
+# Diverse showcase data
 python main.py --hours 12 --machines 8 \
   --sensors humidity,power,efficiency,noise_level \
   --multi-anomaly --prefix visualization_rich
 ```
 
-## 🚨 注意事项
+## 🚨 Tips & Precautions
 
-### 性能考虑
-- **大数据集生成**：时间可能较长，建议先用小规模测试
-- **内存使用**：极大数据集可能消耗大量内存
-- **存储空间**：确保有足够的磁盘空间
+### Performance Considerations
+- **Large dataset generation**: Can take a long time; test with small data first
+- **Memory usage**: Huge datasets may consume substantial RAM
+- **Storage requirements**: Ensure enough disk space is available
 
-### 最佳实践
-1. **逐步扩展**：从小规模开始，逐步增加复杂度
-2. **使用前缀**：为不同用途的数据集使用不同前缀
-3. **验证数据**：生成后使用 `verify_data.py` 验证数据质量
-4. **监控资源**：生成大数据集时监控系统资源使用
+### Best Practices
+1. **Scale up gradually**: Start small, increase complexity progressively
+2. **Use prefixes**: Distinguish datasets for different use cases with unique prefixes
+3. **Verify output**: Run `verify_data.py` after generation to check data quality
+4. **Monitor resources**: Watch system utilization during large-scale generation
 
-### 错误处理
-- 如果遇到内存不足，减少时间跨度或采样频率
-- 如果生成时间过长，考虑使用预设模式
-- 如果异常率不符合预期，调整复杂度倍数
+### Error Handling
+- If you encounter out-of-memory errors, reduce duration or increase sampling interval
+- If generation is too slow, try preset modes
+- If the anomaly rate is not as expected, adjust the complexity multiplier
 
-## 📝 输出文件说明
+## 📝 Output Files Description
 
-每次运行会生成三个文件：
+Each run produces three files:
 
 1. **`[prefix_]live_sensor_data.csv`**
-   - 主要的传感器数据文件
-   - 包含时间戳、机器ID、传感器类型、读数值
+   - Main sensor data file
+   - Includes timestamp, machine ID, sensor type, reading value
 
 2. **`[prefix_]machine_operating_parameters.xlsx`**
-   - 机器操作参数配置文件
-   - 包含正常操作范围、单位、维护信息
-   - 两个工作表：Operating Parameters 和 Machine Summary
+   - Machine operating parameter configuration
+   - Contains normal operation range, unit, maintenance info
+   - Two sheets: Operating Parameters and Machine Summary
 
 3. **`[prefix_]data_generation_stats.json`**
-   - 数据生成统计信息
-   - 包含记录总数、时间范围、机器和传感器统计
+   - Data generation statistics
+   - Includes total records, time range, machine and sensor statistics
 
-## 🔗 相关工具
+## 🔗 Related Tools
 
-- `verify_data.py` - 验证生成数据的质量和完整性
-- `anomaly_detection.py` - 对生成的数据进行异常检测
-- `demo_large_scale.py` - 演示不同规模的数据生成
+- `verify_data.py` - Verify the quality and integrity of generated data
+- `anomaly_detection.py` - Detect anomalies in generated sensor data
+- `demo_large_scale.py` - Demo of data generation at various scales
 
-## 💡 提示
+## 💡 Additional Tips
 
-- 使用 `--help` 查看最新的参数说明
-- 大数据集建议在后台运行：`nohup python main.py --preset large &`
-- 可以结合 shell 脚本批量生成不同配置的数据集
-- 生成的数据具有确定性（相同种子产生相同结果） 
+- Use `--help` to view the latest parameter instructions
+- For large datasets, consider running in the background: `nohup python main.py --preset large &`
+- Utilize shell scripts to batch generate datasets with different settings
+- Data generation is deterministic (the same seed produces the same result) 

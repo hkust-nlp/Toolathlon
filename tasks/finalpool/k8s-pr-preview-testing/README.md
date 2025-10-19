@@ -1,2 +1,2 @@
-模型需要能启动一个NodePort服务（而不是原来写的clusterip），从而让外部能访问到这个链接。
-有一个concern，现在所需端口硬编码为了30123，希望不要有啥问题...
+The model needs to start a NodePort service (instead of the previously used ClusterIP), so that the application can be accessed externally.
+There is a concern that the required port is currently hardcoded to 30123. Hopefully, this will not cause any issues.

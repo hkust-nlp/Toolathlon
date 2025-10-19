@@ -32,7 +32,7 @@ async def main():
     print(f"agent_workspace: {agent_workspace}")
     print(f"launch_time: {launch_time}")
     
-    # 设置随机种子保证一致性
+    # Set random seed for consistency
     generate_test_invoices.random.seed(42)
     
     if not args.skip_pdf:

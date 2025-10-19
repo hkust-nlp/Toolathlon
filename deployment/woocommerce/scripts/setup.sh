@@ -33,11 +33,11 @@ stop_services() {
     echo "Stopping WooCommerce service..."
     
     if [ "$podman_or_docker" = "podman" ]; then
-        # Podman: 停止并删除 pod
+        # Podman: stop and remove pod
         podman pod stop woo-pod 2>/dev/null
         podman pod rm -f woo-pod 2>/dev/null
     else
-        # Docker: 停止并删除容器和网络
+        # Docker: stop and remove containers and network
         docker stop woo-wp woo-db 2>/dev/null
         docker rm -f woo-wp woo-db 2>/dev/null
         docker network rm woo-net 2>/dev/null
@@ -86,19 +86,19 @@ PRESET_NUM_SITES=20
 
 # 1. Create new deployment
 echo "Creating new pod/network..."
-# 原来的 podman pod create
+# original podman pod create
 if [ "$podman_or_docker" = "podman" ]; then
-    # Podman: 创建 pod
+    # Podman: create pod
     podman pod create --name woo-pod -p ${PORT}:80
 else
-    # Docker: 创建 network（因为 docker 没有 pod 概念）
+    # Docker: create network (because docker has no pod concept)
     docker network create woo-net 2>/dev/null
 fi
 
 # 2. Start MySQL
 echo "Starting MySQL..."
 if [ "$podman_or_docker" = "podman" ]; then
-    # Podman: 使用 --pod
+    # Podman: use --pod
     podman run -d \
       --pod woo-pod \
       --name woo-db \
@@ -108,10 +108,10 @@ if [ "$podman_or_docker" = "podman" ]; then
       -e MYSQL_PASSWORD=wppass123 \
       mysql:8.0
     
-    # Podman pod 内部用 127.0.0.1
+    # Podman pod internal use 127.0.0.1
     DB_HOST="127.0.0.1"
 else
-    # Docker: 使用 --network
+    # Docker: use --network
     docker run -d \
       --network woo-net \
       --name woo-db \
@@ -121,7 +121,7 @@ else
       -e MYSQL_PASSWORD=wppass123 \
       mysql:8.0
     
-    # Docker network 用容器名
+    # Docker network use container name
     DB_HOST="woo-db"
 fi
 
@@ -138,7 +138,7 @@ done
 # 4. Start WordPress
 echo "Starting WordPress..."
 if [ "$podman_or_docker" = "podman" ]; then
-    # Podman: 使用 --pod (端口已在 pod 上映射)
+    # Podman: use --pod (port is already mapped in pod)
     podman run -d \
       --pod woo-pod \
       --name woo-wp \
@@ -148,7 +148,7 @@ if [ "$podman_or_docker" = "podman" ]; then
       -e WORDPRESS_DB_NAME=wordpress \
       wordpress:6.8.2-php8.2-apache
 else
-    # Docker: 使用 --network 且需要单独映射端口
+    # Docker: use --network and need to map port separately
     docker run -d \
       --network woo-net \
       --name woo-wp \
@@ -173,7 +173,7 @@ done
 # 6. Install WP-CLI
 echo "Installing WP-CLI..."
 
-# 检查本地是否已有 wp-cli.phar
+# Check if local already has wp-cli.phar
 mkdir -p deployment/woocommerce/cache
 
 if [ -f "./deployment/woocommerce/cache/wp-cli.phar" ]; then
@@ -185,10 +185,10 @@ if [ -f "./deployment/woocommerce/cache/wp-cli.phar" ]; then
     '
 else
     echo "Downloading wp-cli.phar..."
-    # 先下载到本地
+    # Download to local first
     curl -o deployment/woocommerce/cache/wp-cli.phar https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
     
-    # 复制到容器
+    # Copy to container
     $podman_or_docker cp deployment/woocommerce/cache/wp-cli.phar woo-wp:/tmp/wp-cli.phar
     $podman_or_docker exec woo-wp bash -c '
         chmod +x /tmp/wp-cli.phar
@@ -229,9 +229,9 @@ $podman_or_docker exec woo-wp bash -c 'echo "SetEnvIf Authorization (.+) HTTPS=o
 echo "Adding WooCommerce sales display hooks..."
 $podman_or_docker exec woo-wp bash -c 'cat >> /var/www/html/wp-content/themes/twentytwentyfive/functions.php << "EOF"
 
-// 在shop页面显示总销量
+// Display total sales in shop page
 add_action( '\''woocommerce_after_shop_loop_item_title'\'', '\''wc_product_sold_count'\'', 5 );
-// 在产品详情页面显示总销量
+// Display total sales in product detail page
 add_action( '\''woocommerce_single_product_summary'\'', '\''wc_product_sold_count'\'', 11 );
 function wc_product_sold_count() {
     global $product;
@@ -308,11 +308,11 @@ echo "========================================="
 
 echo "Starting to convert to multisite..."
 
-# 13. 转换为多站点
+# 13. Convert to multisite
 
 $podman_or_docker exec woo-wp wp core multisite-convert --title="My Multisite Network" --allow-root --path=/var/www/html
 
-# 14. 更新.htaccess文件（子文件夹模式）
+# 14. Update .htaccess file (subfolder mode)
 
 $podman_or_docker exec woo-wp bash -c 'cat > /var/www/html/.htaccess << '\''EOF'\''
 # BEGIN WordPress Multisite
@@ -336,19 +336,19 @@ RewriteRule . index.php [L]
 SetEnvIf Authorization (.+) HTTPS=on
 EOF'
 
-# 15. 网络激活WooCommerce插件
+# 15. Network activate WooCommerce plugin
 
 $podman_or_docker exec woo-wp wp plugin activate woocommerce --network --allow-root --path=/var/www/html
 
-# 16. 验证多站点配置
+# 16. Verify multisite configuration
 
-# 16.1 检查多站点状态
+# 16.1 Check multisite status
 $podman_or_docker exec woo-wp wp eval "echo is_multisite() ? 'Multisite enabled' : 'Single site';" --allow-root --path=/var/www/html
 
-# 16.2 列出所有站点
+# 16.2 List all sites
 $podman_or_docker exec woo-wp wp site list --allow-root --path=/var/www/html
 
-# 16.3 检查插件状态
+# 16.3 Check plugin status
 $podman_or_docker exec woo-wp wp plugin list --network --allow-root --path=/var/www/html
 
 echo "========================================="
@@ -402,20 +402,20 @@ echo "Creating $NUM_SITES sites using users $START_USER to $((START_USER + NUM_S
 BASE_URL="http://localhost:$PORT"
 OUTPUT_FILE="deployment/woocommerce/configs/multisite-api-keys.json"
 
-# 验证输入是数字
+# Validate input is a positive integer
 if ! [[ "$NUM_SITES" =~ ^[0-9]+$ ]] || [ "$NUM_SITES" -lt 1 ]; then
     echo "Error: Please provide a positive integer for number of sites"
     exit 1
 fi
 
-# 检查容器是否运行
+# Check if container is running
 if ! $podman_or_docker exec woo-wp wp --version --allow-root --path=/var/www/html &>/dev/null; then
     echo "Error: WooCommerce container is not running or wp-cli is not available"
     echo "Please run setup-woocommerce.sh first"
     exit 1
 fi
 
-# 检查是否已经转换为多站点
+# Check if already converted to multisite
 if ! $podman_or_docker exec woo-wp wp eval "echo is_multisite() ? 'true' : 'false';" --allow-root --path=/var/www/html 2>/dev/null | grep -q "true"; then
     echo "Error: WordPress is not configured as multisite"
     echo "Please convert to multisite first using: wp core multisite-convert"
@@ -426,13 +426,13 @@ echo "Creating $NUM_SITES WooCommerce subsites..."
 echo "Base URL: $BASE_URL"
 echo ""
 
-# 创建输出目录
+# Create output directory
 mkdir -p deployment/woocommerce/configs
 
-# 开始JSON数组
+# Start JSON array
 echo "[" > "$OUTPUT_FILE"
 
-# 创建子站点并生成API密钥
+# Create subsites and generate API keys
 echo "Creating $NUM_SITES WooCommerce subsites using real user data..."
 
 # Create temporary file to store user data from JSON
@@ -449,7 +449,7 @@ while IFS='|' read -r user_id first_name last_name full_name email password cons
     
     echo "Creating site: $SITE_SLUG ($SITE_TITLE)"
     
-    # 创建子站点
+    # Create subsites
     SITE_RESULT=$($podman_or_docker exec woo-wp wp site create \
         --slug="$SITE_SLUG" \
         --title="$SITE_TITLE" \
@@ -460,14 +460,14 @@ while IFS='|' read -r user_id first_name last_name full_name email password cons
     if echo "$SITE_RESULT" | grep -q "Success"; then
         echo "  ✓ Site created successfully"
         
-        # 使用预设的API密钥而不是随机生成
+        # Use predefined API keys instead of randomly generating
         echo "  Using predefined API keys..."
         
-        # 直接使用从JSON读取的预设API密钥
+        # Use predefined API keys from JSON
         CONSUMER_KEY="$consumer_key"
         CONSUMER_SECRET="$consumer_secret"
         
-        # 将API密钥插入到数据库中
+        # Insert API keys into database
         API_INSERT_RESULT=$($podman_or_docker exec woo-wp wp eval '
 $user_id = 1;
 $consumer_key = "'"$CONSUMER_KEY"'";
@@ -496,7 +496,7 @@ if($result === false) {
         if [ "$API_INSERT_RESULT" = "SUCCESS" ]; then
             echo "  ✓ API keys configured"
             
-            # 添加到JSON文件
+            # Add to JSON file
             if [ $CREATED_COUNT -gt 0 ]; then
                 echo "," >> "$OUTPUT_FILE"
             fi
@@ -531,7 +531,7 @@ done < "$TEMP_USERS"
 # Clean up temp file
 rm -f "$TEMP_USERS"
 
-# 结束JSON数组
+# End JSON array
 echo "" >> "$OUTPUT_FILE"
 echo "]" >> "$OUTPUT_FILE"
 

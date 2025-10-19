@@ -72,7 +72,7 @@ async def git_mirror_clone(token: str, full_name: str, local_dir: str) -> None:
     if os.path.exists(local_dir):
         shutil.rmtree(local_dir)
     cmd = f"git clone --mirror {src_url} {local_dir}"
-    # 避免打印 token，关闭 debug 输出
+
     await run_command(cmd, debug=False, show_output=False)
     print_color(f"Mirrored {full_name} -> {local_dir}", "cyan")
 

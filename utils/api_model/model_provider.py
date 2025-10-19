@@ -16,7 +16,7 @@ from agents.models.openai_chatcompletions import *
 from agents.model_settings import ModelSettings
 
 class ContextTooLongError(Exception):
-    """上下文过长异常"""
+    """Context length exceeded error"""
     def __init__(self, message, token_count=None, max_tokens=None):
         super().__init__(message)
         self.token_count = token_count
@@ -37,21 +37,21 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
 
     def _add_cache_control_to_messages(self, messages: list, min_cache_tokens: int = 2048) -> list:
         """
-        为Claude模型添加cache_control breakpoints到消息中
-        根据OpenRouter文档，只有文本部分可以添加cache_control
-        Anthropic限制最多4个cache control breakpoints
+        Add cache_control breakpoints to messages for Claude models.
+        According to OpenRouter docs, only text parts can have cache_control.
+        Anthropic allows up to 4 cache control breakpoints.
         """
         if not messages:
             return messages
         
-        # 收集所有符合条件的消息及其token数
+        # Collect all eligible messages and their token count
         cacheable_messages = []
         
         for i, message in enumerate(messages):
-            # 对system、user和tool消息添加缓存控制
+            # Add cache_control to system, user, and tool messages
             if message.get('role') in ['system', 'user', 'tool'] and isinstance(message.get('content'), str):
                 content_length = len(message['content'])
-                # 粗略估算token数量（约4字符=1token）
+                # Roughly estimate token count (~4 chars = 1 token)
                 estimated_tokens = content_length // 4
                 
                 if estimated_tokens >= min_cache_tokens:
@@ -61,20 +61,20 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                         'role': message.get('role')
                     })
         
-        # 按token数降序排序，取前4个
+        # Sort by token count descending, take top 4
         cacheable_messages.sort(key=lambda x: x['tokens'], reverse=True)
         top_cacheable = cacheable_messages[:4]
         
-        # 创建需要添加cache_control的索引集合
+        # Indices that should get cache_control
         cache_indices = {item['index'] for item in top_cacheable}
         
-        # 构建修改后的消息列表
+        # Build modified message list
         modified_messages = []
         
         for i, message in enumerate(messages):
             new_message = message.copy()
             
-            # 只有在cache_indices中的消息才添加cache_control
+            # Only add cache_control if message is in cache_indices
             if i in cache_indices:
                 new_message['content'] = [
                     {
@@ -86,7 +86,7 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                     }
                 ]
                 # if self.debug:
-                #     # 获取对应的token数用于调试输出
+                #     # Retrieve token count for debug output
                 #     tokens = next(item['tokens'] for item in top_cacheable if item['index'] == i)
                 #     print(f"🔄 PROMPT CACHING: Added cache_control to {message.get('role')} message with ~{tokens} tokens")
             
@@ -95,7 +95,7 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
         return modified_messages
 
     def _get_model_specific_config(self):
-        """获取模型特定的配置参数"""
+        """Get model-specific configuration parameters"""
         if 'gpt-5' in self.model:
             basic = {
                 'use_max_completion_tokens': True,
@@ -148,7 +148,7 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                 },
             )
         
-        # 为Claude模型添加prompt caching支持
+        # Add prompt caching for Claude models
         model_config = self._get_model_specific_config()
         if model_config.get('supports_prompt_caching', False):
             # if self.debug:
@@ -190,7 +190,7 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
             self._get_client(), model_settings, stream=stream
         )
         
-        # 构建基础参数
+        # Build base parameters
         base_params = {
             'model': self.model,
             'messages': converted_messages,
@@ -211,7 +211,7 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
             'metadata': self._non_null_or_not_given(model_settings.metadata),
         }
         
-        # 根据模型类型添加特定参数
+        # Add model-specific parameters
         if model_config['use_max_completion_tokens']:
             base_params['max_completion_tokens'] = self._non_null_or_not_given(model_settings.max_tokens)
         else:
@@ -224,16 +224,9 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
         if model_config.get('reasoning_effort') is not None:
             base_params['reasoning_effort'] = model_config['reasoning_effort']
         
-        # from pprint import pprint
-        
-        # pprint(base_params)
-        
-        # DEBUG: Print the actual parameters being sent to OpenAI SDK
-        # print("🔍 DEBUG: OpenAI SDK call parameters:")
-        # print(f"  Model: {base_params.get('model')}")
-        # print(f"  Temperature: {base_params.get('temperature')}")
-        # print(f"  Extra Body: {base_params.get('extra_body')}")
-        # print("=" * 50)
+        # for claude-4.5-sonnet, top_p and temperament cannot be set simultaneously
+        if "claude-sonnet-4.5" in self.model or "claude-sonnet-4-5" in self.model:
+            base_params.pop('top_p')
         
         ret = await self._get_client().chat.completions.create(**base_params)
 
@@ -270,13 +263,13 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
             except Exception as e:
                 error_str = str(e)
                 
-                # 检测各种形式的上下文超长错误
+                # Detect various forms of context too long errors
                 context_too_long = False
                 current_tokens, max_tokens = None, None
                 
-                # 1. 检查错误码是否为 400（通常表示请求无效）
+                # 1. Check if error code is 400 (usually means bad request)
                 if "Error code: 400" in error_str:
-                    # 直接在错误字符串中查找关键词
+                    # Directly search for keywords in error string
                     lower_error = error_str.lower()
                     if any(pattern in lower_error for pattern in [
                         'token count exceeds',
@@ -295,33 +288,33 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                     ]):
                         context_too_long = True
                         
-                        # 尝试提取具体的 token 数量信息
-                        # 模式1: "input token count exceeds the maximum number of tokens allowed (1048576)"
+                        # Try to extract token numbers from message
+                        # Pattern 1: "input token count exceeds the maximum number of tokens allowed (1048576)"
                         match = re.search(r'maximum number of tokens allowed \((\d+)\)', error_str)
                         if match:
                             max_tokens = int(match.group(1))
                         
-                        # 模式2: "123456 tokens > 100000 maximum"
+                        # Pattern 2: "123456 tokens > 100000 maximum"
                         match = re.search(r'(\d+) tokens > (\d+) maximum', error_str)
                         if match:
                             current_tokens, max_tokens = int(match.group(1)), int(match.group(2))
                         
-                        # 模式3: "maximum length 10485760, but got a string with length 30893644"
+                        # Pattern 3: "maximum length 10485760, but got a string with length 30893644"
                         match = re.search(r'maximum length (\d+).*length (\d+)', error_str)
                         if match:
                             max_tokens, current_tokens = int(match.group(1)), int(match.group(2))
                         
-                        # 模式4：xAI
+                        # Pattern 4: xAI
                         match = re.search(r'This model\'s maximum prompt length is (\d+).*request contains (\d+)', error_str)
                         if match:
                             max_tokens, current_tokens = int(match.group(1)), int(match.group(2))
                         
-                        # 模式5: kimi
+                        # Pattern 5: kimi
                         match = re.search(r'Your request exceeded model token limit: (\d+)', error_str)
                         if match:
                             max_tokens = int(match.group(1))
                 
-                # 2. 尝试解析结构化错误（如果是 OpenAI API 错误对象）
+                # 2. Try parsing structured error (OpenAI API error object)
                 if hasattr(e, 'response') and hasattr(e.response, 'json'):
                     try:
                         error_data = e.response.json()
@@ -340,8 +333,8 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                     except:
                         pass
                 
-                # 3. 额外的安全网：检查任何包含特定关键词的错误
-                elif not context_too_long:  # 如果还没有检测到
+                # 3. Extra safety: check for any error containing a certain keyword
+                elif not context_too_long:
                     lower_error = error_str.lower()
                     if any(pattern in lower_error for pattern in [
                         'context too long',
@@ -355,12 +348,12 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                     ]):
                         context_too_long = True
                 
-                # 如果检测到上下文超长，直接抛出不重试
+                # If context too long detected, do not retry, raise
                 if context_too_long:
                     if self.debug:
                         print(f"Context too long detected: {error_str}")
                     
-                    # 创建更详细的错误信息
+                    # Create more detailed error message
                     error_msg = f"Context too long: {error_str}"
                     if current_tokens and max_tokens:
                         error_msg = f"Context too long: current={current_tokens} tokens, max={max_tokens} tokens. Original error: {error_str}"
@@ -373,11 +366,11 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                         max_tokens=max_tokens
                     )
                 
-                # 其他错误：继续重试逻辑
+                # For other errors: continue retry logic
                 if self.debug:
                     print(f"Error in get_response: {e}, retry {i+1}/{self.retry_times}, waiting {self.retry_delay} seconds...")
                 
-                # 如果是最后一次重试，则抛出原异常
+                # Raise if it's the last try
                 if i == self.retry_times - 1:
                     raise Exception(f"Failed to get response after {self.retry_times} retries, error: {e}")
                 
@@ -399,6 +392,17 @@ class CustomModelProviderAnthropic(ModelProvider):
         client = AsyncOpenAI(
             api_key=global_configs.anthropic_official_key,
             base_url="https://api.anthropic.com/v1/",
+        )
+        return OpenAIChatCompletionsModelWithRetry(model=model_name, 
+                                                   openai_client=client,
+                                                   debug=debug,
+                                                   short_model_name=short_model_name)
+
+class CustomModelProviderGoogle(ModelProvider):
+    def get_model(self, model_name: str | None, debug: bool = True, short_model_name: str | None = None) -> Model:
+        client = AsyncOpenAI(
+            api_key=global_configs.google_official_key,
+            base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
         )
         return OpenAIChatCompletionsModelWithRetry(model=model_name, 
                                                    openai_client=client,
@@ -470,6 +474,7 @@ model_provider_mapping = {
     "qwen_official": CustomModelProviderQwenOfficial,
     "kimi_official": CustomModelProviderKimiOfficial,
     "deepseek_official": CustomModelProviderDeepSeekOfficial,
+    "google": CustomModelProviderGoogle,
 }
 
 API_MAPPINGS = {
@@ -493,21 +498,21 @@ API_MAPPINGS = {
         price=[1.25/1000, 10/1000.0],
         concurrency=32,
         context_window=400000,
-        openrouter_config={"provider": {"only": ["openai"]}}
+        openrouter_config={"provider": {"only": ["openai/default"]}}
     ),
     'gpt-5-medium': Dict(
         api_model={"openrouter": "openai/gpt-5"},
         price=[1.25/1000, 10/1000.0],
         concurrency=32,
         context_window=400000,
-        openrouter_config={"provider": {"only": ["openai"]}}
+        openrouter_config={"provider": {"only": ["openai/default"]}}
     ),
     'gpt-5-high': Dict(
         api_model={"openrouter": "openai/gpt-5"},
         price=[1.25/1000, 10/1000.0],
         concurrency=32,
         context_window=400000,
-        openrouter_config={"provider": {"only": ["openai"]}}
+        openrouter_config={"provider": {"only": ["openai/default"]}}
     ),
     'gpt-5-mini': Dict(
         api_model={"ds_internal": "",
@@ -554,6 +559,14 @@ API_MAPPINGS = {
         context_window=1000000,
         openrouter_config={"provider": {"only": ["anthropic"]}}
     ),
+    'claude-4.5-haiku-1001': Dict(
+        api_model={"anthropic": "claude-haiku-4-5-20251001",
+                   "openrouter": "anthropic/claude-haiku-4.5"},
+        price=[0.003, 0.015],
+        concurrency=32,
+        context_window=1000000,
+        openrouter_config={"provider": {"only": ["anthropic"]}}
+    ),
     'claude-4-sonnet-0514': Dict(
         api_model={"aihubmix": "claude-sonnet-4-20250514",
                    "anthropic": "claude-sonnet-4-20250514",
@@ -578,7 +591,8 @@ API_MAPPINGS = {
     'gemini-2.5-pro': Dict(
         api_model={"ds_internal": "cloudsway-gemini-2.5-pro",
                    "aihubmix": "gemini-2.5-pro",
-                   "openrouter": "google/gemini-2.5-pro"},
+                   "openrouter": "google/gemini-2.5-pro",
+                   "google": "gemini-2.5-pro"},
         price=[0.00125, 0.010],
         concurrency=32,
         context_window=1000000,
@@ -587,7 +601,8 @@ API_MAPPINGS = {
     'gemini-2.5-flash': Dict(
         api_model={"ds_internal": "cloudsway-gemini-2.5-flash",
                    "aihubmix": "gemini-2.5-flash",
-                   "openrouter": "google/gemini-2.5-flash"},
+                   "openrouter": "google/gemini-2.5-flash",
+                   "google": "gemini-2.5-flash"},
         price=[0.00015, 0.0035],
         concurrency=32,
         context_window=1000000,
@@ -611,8 +626,8 @@ API_MAPPINGS = {
     ),    
     'grok-4-fast': Dict(
         api_model={"ds_internal": None,
-                   "openrouter": "x-ai/grok-4-fast:free"},
-        price=[0.0/1000, 0.0/1000],
+                   "openrouter": "x-ai/grok-4-fast"},
+        price=[0.2/1000, 0.5/1000],
         concurrency=32,
         context_window=2000000,
         openrouter_config={"provider": {"only": ["xai"]}}
@@ -627,20 +642,36 @@ API_MAPPINGS = {
         context_window=256000,
         openrouter_config={"provider": {"only": ["moonshotai"]}}
     ),
-    'glm-4.5': Dict(
-        api_model={"ds_internal": None,
-                   "aihubmix": "zai-org/GLM-4.5",
-                   "openrouter": "z-ai/glm-4.5"},
-        price=[0.5/1000, 2.0/1000],
+    # 'glm-4.5': Dict(
+    #     api_model={"ds_internal": None,
+    #                "aihubmix": "zai-org/GLM-4.5",
+    #                "openrouter": "z-ai/glm-4.5"},
+    #     price=[0.5/1000, 2.0/1000],
+    #     concurrency=32,
+    #     context_window=128000,
+    #     openrouter_config={"provider": {"only": ["z-ai/fp8"]}}
+    # ),
+    'glm-4.6': Dict(
+        api_model={"openrouter": "z-ai/glm-4.6"},
+        price=[0.6/1000, 2.2/1000],
         concurrency=32,
         context_window=128000,
-        openrouter_config={"provider": {"only": ["z-ai/fp8"]}}
+        openrouter_config={"provider": {"only": ["z-ai"]}}
+    ),
+    "qwen-3-coder-0722": Dict(
+        api_model={"qwen_official": "qwen3-coder-plus-2025-07-22"},
+        price=[0.54/1000, 2.16/1000],
+        concurrency=32,
+        context_window=256000,
+    ),
+    "qwen-3-coder-0923": Dict(
+        api_model={"qwen_official": "qwen3-coder-plus-2025-09-23"},
+        price=[0.54/1000, 2.16/1000],
+        concurrency=32,
+        context_window=256000,
     ),
     "qwen-3-coder": Dict(
-        api_model={"ds_internal": None,
-                   "aihubmix": "Qwen3-Coder",
-                   "openrouter": "qwen/qwen3-coder",
-                   "qwen_official": "qwen3-coder-plus"},
+        api_model={"qwen_official": "qwen3-coder-plus"},
         price=[0.54/1000, 2.16/1000],
         concurrency=32,
         context_window=256000,

@@ -1,4 +1,4 @@
-# 时间服务器 - 获取当前时间
+# Time server - get current time
 type: stdio
 name: time
 params:
@@ -8,4 +8,5 @@ params:
     - "-m"
     - "mcp_server_time"
     - "--local-timezone=${token.timezone}"
+  cwd: "${agent_workspace}"
 cache_tools_list: true

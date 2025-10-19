@@ -3,7 +3,8 @@
     "woocommerce",
     "filesystem",
     "terminal",
-    "google-cloud"
+    "google-cloud",
+    "emails"
   ],
   "needed_local_tools": [
     "python_execute",

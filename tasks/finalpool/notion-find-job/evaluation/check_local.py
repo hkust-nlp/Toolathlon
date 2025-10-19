@@ -43,7 +43,7 @@ def check_application_emails_in_mailboxes() -> Tuple[bool, List[str]]:
         email_config = {}
         try:
             # Load email configuration if it exists
-            config_path = 'tasks/finalpool/notion-find-job/receivers_config.json'
+            config_path = os.path.join(os.path.dirname(__file__), '..', 'receivers_config.json')
             if os.path.exists(config_path):
                 with open(config_path, 'r') as f:
                     email_config = json.load(f)

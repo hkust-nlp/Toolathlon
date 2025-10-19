@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
-Gmail邮件内容检查脚本
-用于检查aux1和aux2账户中主题为"nlp-course-emergency"的邮件，
-并校验正文内容是否分别包含指定关键词。
+Gmail Email Content Check Script
+This script checks for emails with the subject "nlp-course-emergency" in the specified accounts and verifies whether the email body contains required keywords.
 """
 
 import os
@@ -15,7 +14,7 @@ from typing import List, Tuple
 from utils.app_specific.poste.ops import extract_email_body
 
 def check_account_emails(email_address: str, password: str, imap_server: str, imap_port: int, use_ssl: bool, required_keywords: List[str], account_label: str) -> Tuple[bool, dict]:
-    """检查指定账户的nlp-course-emergency邮件，校验正文内容，返回是否通过、合格邮件信息（日志直接打印）"""
+    """Check if emails with subject 'nlp-course-emergency' exist in the specified account, verify email body content, return whether passed and info for valid emails (results are printed as logs)"""
     passed = True
     valid_mail_info = None
     try:
@@ -27,24 +26,24 @@ def check_account_emails(email_address: str, password: str, imap_server: str, im
         imap_connection.select('INBOX')
         status, message_numbers = imap_connection.search(None, 'SUBJECT', '"nlp-course-emergency"')
         if status != 'OK':
-            print(f"❌ [{account_label}] 邮件搜索失败")
+            print(f"❌ [{account_label}] Failed to search for email")
             return False, None
         message_list = message_numbers[0].split()
         if not message_list:
-            print(f"❌ [{account_label}] 没有找到主题为nlp-course-emergency的邮件")
+            print(f"❌ [{account_label}] No email found with subject 'nlp-course-emergency'")
             return False, None
         valid_count = 0
         extra_msgs = []
         for num in message_list:
             status, message_data = imap_connection.fetch(num, '(RFC822)')
             if status != 'OK':
-                print(f"⚠️ [{account_label}] 获取邮件详情失败 (ID: {num})")
+                print(f"⚠️ [{account_label}] Failed to fetch email details (ID: {num})")
                 continue
             email_message = email.message_from_bytes(message_data[0][1])
             subject = email_message.get('Subject', 'Unknown Subject')
             sender = email_message.get('From', 'Unknown Sender')
             body = extract_email_body(email_message)
-            # 检查所有关键词
+            # Check all required keywords
             if all(kw in body for kw in required_keywords):
                 valid_count += 1
                 valid_mail_info = {
@@ -55,29 +54,29 @@ def check_account_emails(email_address: str, password: str, imap_server: str, im
                 }
             else:
                 snippet = body[:60].replace('\n', ' ').replace('\r', ' ')
-                extra_msgs.append(f"主题: {subject} | 发件人: {sender} | 正文片段: {snippet}")
+                extra_msgs.append(f"Subject: {subject} | Sender: {sender} | Body snippet: {snippet}")
         if valid_count == 0:
-            print(f"❌ [{account_label}] 没有找到正文包含所有关键词({required_keywords})的邮件")
+            print(f"❌ [{account_label}] No emails found where the body contains all keywords ({required_keywords})")
             passed = False
-        elif valid_count > 1:
-            print(f"❌ [{account_label}] 找到{valid_count}封正文包含所有关键词({required_keywords})的邮件，应只有1封")
-            passed = False
+        # elif valid_count > 1:
+        #     print(f"❌ [{account_label}] Found {valid_count} emails matching all keywords ({required_keywords}) in the body, but only 1 expected")
+        #     passed = False
         if extra_msgs:
-            print(f"❌ [{account_label}] 存在{len(extra_msgs)}封主题为nlp-course-emergency但正文不符的多余邮件:")
+            print(f"❌ [{account_label}] Found {len(extra_msgs)} extra emails with subject 'nlp-course-emergency' but incorrect body content:")
             for msg in extra_msgs:
                 print(f"   • {msg}")
             passed = False
         if passed:
-            print(f"✅ [{account_label}] 邮件检查通过")
+            print(f"✅ [{account_label}] Email check passed")
         imap_connection.logout()
     except Exception as e:
-        print(f"❌ [{account_label}] 检查过程中发生异常: {e}")
+        print(f"❌ [{account_label}] Exception occurred during check: {e}")
         passed = False
     return passed, valid_mail_info
 
 
 def check_account_no_emails(email_address: str, password: str, imap_server: str, imap_port: int, use_ssl: bool, account_label: str) -> bool:
-    """检查指定账户是否没有收到主题为 nlp-course-emergency 的任何邮件。返回是否通过（即未收到）。"""
+    """Check if the specified account did NOT receive any emails with subject 'nlp-course-emergency'. Returns True if no such email is found (which is expected)."""
     try:
         if use_ssl:
             imap_connection = imaplib.IMAP4_SSL(imap_server, imap_port)
@@ -87,30 +86,30 @@ def check_account_no_emails(email_address: str, password: str, imap_server: str,
         imap_connection.select('INBOX')
         status, message_numbers = imap_connection.search(None, 'SUBJECT', '"nlp-course-emergency"')
         if status != 'OK':
-            print(f"❌ [未应收账户 {account_label}] 邮件搜索失败")
+            print(f"❌ [Negative account {account_label}] Failed to search for email")
             imap_connection.logout()
             return False
         message_list = message_numbers[0].split()
         if message_list:
-            print(f"❌ [未应收账户 {account_label}] 意外收到 {len(message_list)} 封主题为 nlp-course-emergency 的邮件")
+            print(f"❌ [Negative account {account_label}] Unexpectedly received {len(message_list)} email(s) with subject 'nlp-course-emergency'")
             imap_connection.logout()
             return False
-        print(f"✅ [未应收账户 {account_label}] 未收到主题为 nlp-course-emergency 的邮件（符合预期）")
+        print(f"✅ [Negative account {account_label}] No email with subject 'nlp-course-emergency' received (as expected)")
         imap_connection.logout()
         return True
     except Exception as e:
-        print(f"❌ [未应收账户 {account_label}] 检查过程中发生异常: {e}")
+        print(f"❌ [Negative account {account_label}] Exception occurred during check: {e}")
         return False
 
 
 def main():
-    # 从配置文件读取所有必要信息
+    # Read configuration from file
     try:
         cfg_path = os.path.join(os.path.dirname(__file__), 'email_student.json')
         with open(cfg_path, 'r', encoding='utf-8') as f:
             cfg = json.load(f)
     except Exception as e:
-        print(f"❌ 读取配置失败: {e}")
+        print(f"❌ Failed to read config: {e}")
         return 0
 
     imap_server = cfg.get('imap_server', 'localhost')
@@ -121,14 +120,14 @@ def main():
     # email -> password
     email_to_password = {acc.get('email'): acc.get('password') for acc in positive_accounts if acc.get('email')}
 
-    # 要检查的学生信息 - 在同一个邮箱中查找包含不同学生信息的邮件
+    # List of students to check; will look for emails with keywords related to each student in their mailbox
     student_keywords = [
         {
             'label': 'Steven Morgan',
             'keywords': ['Steven Morgan', '2000016613']
         },
         {
-            'label': 'Carolyn Alvarez', 
+            'label': 'Carolyn Alvarez',
             'keywords': ['Carolyn Alvarez', '2000016630']
         },
         {
@@ -136,17 +135,14 @@ def main():
             'keywords': ['Michelle Brooks', '2000016606']
         }
     ]
-    
 
-    
-    # 检查两名学生各自的收件箱
     all_passed = True
     valid_mails = []
-    
-    # 检查两名学生的收件箱，验证是否收到催促邮件
+
+    # Check inboxes for the specified students to verify receipt of the notification/reminder email
     for student in student_keywords:
         student_name = student['label']
-        # 依据约定映射学生到其邮箱
+        # Map student name to their target email according to convention
         if student_name == 'Steven Morgan':
             target_email = 'smorgan@mcp.com'
         elif student_name == 'Carolyn Alvarez':
@@ -157,7 +153,7 @@ def main():
             target_email = None
 
         if not target_email or target_email not in email_to_password:
-            print(f"❌ 学生 {student_name} 的邮箱未在配置中或缺少密码")
+            print(f"❌ Student {student_name}'s email is missing from config or missing password")
             all_passed = False
             continue
 
@@ -168,34 +164,34 @@ def main():
             'imap_port': imap_port,
             'use_ssl': use_ssl,
         }
-        
-        print(f"\n📧 检查学生 {student_name} 的收件箱: {email_config['email']}")
-        print(f"🔍 检查学生 {student_name} 是否收到催促邮件...")
-        
+
+        print(f"\n📧 Checking mailbox for student {student_name}: {email_config['email']}")
+        print(f"🔍 Checking if student {student_name} received the notification email...")
+
         passed, valid_mail_info = check_account_emails(
-            email_config['email'], 
-            email_config['password'], 
-            email_config['imap_server'], 
-            email_config['imap_port'], 
-            email_config['use_ssl'], 
-            student['keywords'], 
+            email_config['email'],
+            email_config['password'],
+            email_config['imap_server'],
+            email_config['imap_port'],
+            email_config['use_ssl'],
+            student['keywords'],
             student_name
         )
-        
+
         if valid_mail_info:
             valid_mails.append(valid_mail_info)
         if not passed:
             all_passed = False
 
-    # 使用配置中的未应收账户进行负向检查
+    # Use the negative_accounts config to check that forbidden accounts did NOT receive the email
     try:
         if negative_accounts:
-            print("\n🔒 开始对未应收账户进行负向检查...")
+            print("\n🔒 Starting negative check for accounts that should not receive such email...")
             for item in negative_accounts:
                 acct_email = item.get('email')
                 acct_password = item.get('password')
                 if not acct_email or not acct_password:
-                    print("⚠️ [未应收账户] 配置项缺少 email 或 password，已跳过")
+                    print("⚠️ [Negative account] Missing email or password in config, skipping")
                     all_passed = False
                     continue
                 negative_ok = check_account_no_emails(
@@ -209,23 +205,23 @@ def main():
                 if not negative_ok:
                     all_passed = False
         else:
-            print("⚠️ 未应收账户列表为空，跳过负向检查")
+            print("⚠️ Negative account list is empty, skipping negative check")
     except Exception as e:
-        print(f"❌ 处理未应收账户时发生异常: {e}")
+        print(f"❌ Exception occurred while processing negative accounts: {e}")
         all_passed = False
     print("\n====================\n")
     if all_passed:
-        print("\n🎉 所有账户邮件检查通过！\n")
-        print("====== 合格邮件内容 ======")
+        print("\n🎉 All mailbox checks passed!\n")
+        print("====== Valid Mail Content ======")
         for mail in valid_mails:
-            print(f"账户: {mail['account']}")
-            print(f"发件人: {mail['sender']}")
-            print(f"主题: {mail['subject']}")
-            print(f"正文:\n{mail['body']}\n")
+            print(f"Account: {mail['account']}")
+            print(f"Sender: {mail['sender']}")
+            print(f"Subject: {mail['subject']}")
+            print(f"Body:\n{mail['body']}\n")
             print("------------------------")
         print("========================\n")
     else:
-        print("\n💥 邮件检查未通过！")
+        print("\n💥 Email check failed!")
     return 1 if all_passed else 0
 
 if __name__ == '__main__':

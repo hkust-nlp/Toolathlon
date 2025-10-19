@@ -1409,25 +1409,21 @@ async def run_with_args(delete=False, create_announcements=False, submit_assignm
 
 async def main(delete=False, create_announcements=False, submit_assignments=False, agent_workspace=None):
     """Main function that can accept external arguments"""
-    # 如果没有传入参数，则从命令行解析
     if delete is False and create_announcements is False and submit_assignments is False and agent_workspace is None:
         import argparse
         
-        # 创建参数解析器
         parser = argparse.ArgumentParser(description='Canvas Course Setup Tool')
         parser.add_argument('--delete', action='store_true', help='Delete all courses')
         parser.add_argument('--create_announcements', action='store_true', help='Create announcements along with quizzes')
         parser.add_argument('--submit_assignments', action='store_true', help='Submit assignments for students in CS101 and CS201')
         parser.add_argument('--agent_workspace', help='Agent workspace path')
         
-        # 解析参数
         args = parser.parse_args()
         delete = args.delete
         create_announcements = args.create_announcements
         submit_assignments = args.submit_assignments
         agent_workspace = args.agent_workspace
     
-    # 调用run_with_args函数
     await run_with_args(delete=delete, create_announcements=create_announcements, submit_assignments=submit_assignments, agent_workspace=agent_workspace)
 
 if __name__ == "__main__":

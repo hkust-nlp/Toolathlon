@@ -9,5 +9,6 @@ params:
     - "${local_servers_paths}/youtube-mcp-server/dist/index.js"
   env:
     YOUTUBE_API_KEY: "${token.google_cloud_console_api_key}"
+  # cwd: "${agent_workspace}" # do not add this for compatibility
 client_session_timeout_seconds: 20
 cache_tools_list: true

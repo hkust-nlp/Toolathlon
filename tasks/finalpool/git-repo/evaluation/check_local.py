@@ -30,9 +30,14 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
     if "URL" not in agent_result:
         return False, "URL field not found in agent's result.json"
     
-    expected_url = groundtruth_result.get("URL")
-    if agent_result["URL"] != expected_url:
-        return False, f"URL mismatch. Expected: {expected_url}, Got: {agent_result['URL']}"
+    expected_url = groundtruth_result.get("URL", "").strip()
+    agent_url = agent_result.get("URL", "").strip()
+    if expected_url.startswith("https://"):
+        expected_url = expected_url[len("https://"):]
+    if agent_url.startswith("https://"):
+        agent_url = agent_url[len("https://"):]
+    if agent_url != expected_url:
+        return False, f"URL mismatch. Expected: {expected_url}, Got: {agent_url}"
     
     return True, None
   

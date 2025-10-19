@@ -8,19 +8,19 @@ from datetime import datetime
 from pathlib import Path
 
 
-# 搜索会话缓存
+# Search session cache
 search_sessions = {}
 
-# 轮内搜索缓存
+# Turn-level search cache
 turn_search_sessions = {}
 
 def truncate_content(content: str, max_length: int = 1000, head_tail_length: int = 500) -> str:
-    """截断过长的内容，保留头尾"""
+    """Truncate long content, keep head and tail"""
     if len(content) <= max_length:
         return content
     
     if len(content) <= head_tail_length * 2:
-        # 如果内容不够长，直接返回
+        # If content is not long enough, return directly
         return content
     
     head = content[:head_tail_length]
@@ -28,16 +28,16 @@ def truncate_content(content: str, max_length: int = 1000, head_tail_length: int
     return f"{head}\n... [{len(content) - head_tail_length * 2} characters omitted] ...\n{tail}"
 
 def search_in_text(text: str, pattern: str, is_regex: bool = True) -> List[Tuple[int, int]]:
-    """在文本中搜索模式，返回匹配位置列表"""
+    """Search pattern in text, return list of matching positions"""
     matches = []
     
     try:
         if is_regex:
-            # 正则表达式搜索
+            # Regex search
             for match in re.finditer(pattern, text, re.IGNORECASE | re.MULTILINE):
                 matches.append((match.start(), match.end()))
         else:
-            # 普通文本搜索
+            # Plain text search
             pattern_lower = pattern.lower()
             text_lower = text.lower()
             start = 0
@@ -48,35 +48,35 @@ def search_in_text(text: str, pattern: str, is_regex: bool = True) -> List[Tuple
                 matches.append((pos, pos + len(pattern)))
                 start = pos + 1
     except re.error as e:
-        # 如果正则表达式无效，回退到普通搜索
+        # If regex is invalid, fall back to plain text search
         return search_in_text(text, pattern, is_regex=False)
     
     return matches
 
 def get_match_context(text: str, start: int, end: int, context_size: int = 500) -> str:
-    """获取匹配位置的上下文"""
-    # 计算上下文边界
+    """Get context around matching positions"""
+    # Calculate context boundaries
     context_start = max(0, start - context_size // 2)
     context_end = min(len(text), end + context_size // 2)
     
-    # 调整到词边界
+    # Adjust to word boundaries
     if context_start > 0:
-        # 找到前面最近的空格或换行
+        # Find previous nearest space or newline
         while context_start > 0 and text[context_start] not in ' \n\t':
             context_start -= 1
     
     if context_end < len(text):
-        # 找到后面最近的空格或换行
+        # Find next nearest space or newline
         while context_end < len(text) and text[context_end] not in ' \n\t':
             context_end += 1
     
-    # 提取上下文
+    # Extract context
     prefix = "..." if context_start > 0 else ""
     suffix = "..." if context_end < len(text) else ""
     
     context = text[context_start:context_end].strip()
     
-    # 高亮匹配部分（调整偏移量）
+    # Highlight matching part (adjust offset)
     highlight_start = start - context_start
     highlight_end = end - context_start
     
@@ -90,28 +90,28 @@ def get_match_context(text: str, start: int, end: int, context_size: int = 500) 
     return prefix + context + suffix
 
 async def on_search_history_invoke(context: RunContextWrapper, params_str: str) -> Any:
-    """搜索历史记录，支持正则表达式"""
+    """Search history records, support regular expressions"""
     params = json.loads(params_str)
     
     ctx = context.context if hasattr(context, 'context') else {}
 
-    # 获取参数
+    # Get parameters
     keywords = params.get("keywords", [])
     page = params.get("page", 1)
     per_page = params.get("per_page", 10)
     search_id = params.get("search_id")
-    use_regex = params.get("use_regex", False)  # 是否使用正则表达式
+    use_regex = params.get("use_regex", False)  # Whether to use regular expressions
     
-    # 获取历史管理器
+    # Get history manager
     session_id = ctx.get("_session_id", "unknown")
     history_dir = ctx.get("_history_dir", "conversation_histories")
     manager = HistoryManager(history_dir, session_id)
     
-    # 如果提供了search_id，从缓存获取之前的搜索策略
+    # If search_id is provided, get previous search strategy from cache
     if search_id and search_id in search_sessions:
         cached_search = search_sessions[search_id]
         
-        # 检查是否同时提供了搜索参数
+        # Check if search parameters are provided
         warning = None
         if keywords and keywords != cached_search["keywords"]:
             warning = f"Provided keywords '{keywords}' ignored, using cached search conditions '{cached_search['keywords']}'"
@@ -122,7 +122,7 @@ async def on_search_history_invoke(context: RunContextWrapper, params_str: str) 
         use_regex = cached_search.get("use_regex", False)
         per_page = cached_search.get("per_page", per_page)
     else:
-        # 新搜索，生成search_id
+        # New search, generate search_id
         import uuid
         search_id = f"search_{uuid.uuid4().hex[:8]}"
         warning = None
@@ -133,16 +133,16 @@ async def on_search_history_invoke(context: RunContextWrapper, params_str: str) 
                 "message": "Please provide keywords for search"
             }
     
-    # 执行搜索
+    # Execute search
     skip = (page - 1) * per_page
     
-    # 如果使用正则表达式，需要自定义搜索逻辑
+    # If using regular expressions, need custom search logic
     if use_regex:
-        # 加载所有历史
+        # Load all history
         history = manager._load_history()
         matches = []
         
-        # 编译正则表达式
+        # Compile regular expressions
         patterns = []
         for keyword in keywords:
             try:
@@ -153,34 +153,34 @@ async def on_search_history_invoke(context: RunContextWrapper, params_str: str) 
                     "message": f"Invalid regex pattern: {keyword}"
                 }
         
-        # 搜索匹配
+        # Search matches
         for record in history:
             content = manager._extract_searchable_content(record)
             if content:
-                # 检查是否所有模式都匹配
+                # Check if all patterns match
                 if all(pattern.search(content) for pattern in patterns):
-                    # 获取第一个匹配的上下文
+                    # Get context of first match
                     match = patterns[0].search(content)
                     if match:
                         match_context = get_match_context(
                             content, 
                             match.start(), 
                             match.end(),
-                            250  # 搜索结果使用较小的上下文
+                            250  # Search result uses smaller context
                         )
                         matches.append({
                             **record,
                             "match_context": match_context[:500] + "..." if len(match_context) > 500 else match_context
                         })
         
-        # 分页
+        # Pagination
         total_matches = len(matches)
         matches = matches[skip:skip + per_page]
     else:
-        # 使用原有的关键词搜索
+        # Use existing keywords search
         matches, total_matches = manager.search_by_keywords(keywords, per_page, skip)
     
-    # 缓存搜索会话
+    # Cache search session
     search_sessions[search_id] = {
         "keywords": keywords,
         "use_regex": use_regex,
@@ -190,16 +190,16 @@ async def on_search_history_invoke(context: RunContextWrapper, params_str: str) 
         "last_updated": datetime.now().isoformat()
     }
     
-    # 清理过期的搜索会话（保留最近10个）
+    # Clean expired search sessions (keep last 10)
     if len(search_sessions) > 10:
         oldest_ids = sorted(search_sessions.keys())[:len(search_sessions) - 10]
         for old_id in oldest_ids:
             del search_sessions[old_id]
     
-    # 格式化结果
+    # Format results
     results = []
     for match in matches:
-        # 从 raw_content 中提取角色信息
+        # Extract role information from raw_content
         role = "unknown"
         if match.get("item_type") == "message_output_item":
             raw_content = match.get("raw_content", {})
@@ -232,7 +232,7 @@ async def on_search_history_invoke(context: RunContextWrapper, params_str: str) 
         "per_page": per_page,
         "has_more": page < total_pages,
         "results": results,
-        "warning": warning,  # 添加这一行
+        "warning": warning,  # Add this line
         "search_info": {
             "is_cached_search": search_id in search_sessions,
             "last_updated": search_sessions[search_id]["last_updated"] if search_id in search_sessions else None,
@@ -241,12 +241,12 @@ async def on_search_history_invoke(context: RunContextWrapper, params_str: str) 
     }
 
 async def on_view_history_turn_invoke(context: RunContextWrapper, params_str: str) -> Any:
-    """查看特定轮次的详细内容"""
+    """View detailed content of specific turns"""
     params = json.loads(params_str)
     
     turn = params.get("turn")
     context_turns = params.get("context_turns", 2)
-    truncate = params.get("truncate", True)  # 默认开启截断
+    truncate = params.get("truncate", True)  # Default enable truncation
     
     if turn is None:
         return {
@@ -254,13 +254,13 @@ async def on_view_history_turn_invoke(context: RunContextWrapper, params_str: st
             "message": "Please provide the turn number"
         }
     
-    # 获取历史管理器
+    # Get history manager
     ctx = context.context if hasattr(context, 'context') else {}
     session_id = ctx.get("_session_id", "unknown")
     history_dir = ctx.get("_history_dir", "conversation_histories")
     manager = HistoryManager(history_dir, session_id)
     
-    # 获取轮次详情
+    # Get turn details
     records = manager.get_turn_details(turn, context_turns)
     
     if not records:
@@ -269,7 +269,7 @@ async def on_view_history_turn_invoke(context: RunContextWrapper, params_str: st
             "message": f"No records found for turn {turn}"
         }
     
-    # 格式化输出
+    # Format output
     formatted_records = []
     for record in records:
         formatted = {
@@ -278,7 +278,7 @@ async def on_view_history_turn_invoke(context: RunContextWrapper, params_str: st
             "is_target": record.get("is_target_turn", False)
         }
         
-        # 根据类型格式化内容
+        # Format content by type
         if record.get("type") == "initial_input":
             formatted["type"] = "Initial Input"
             content = record.get("content", "")
@@ -289,7 +289,7 @@ async def on_view_history_turn_invoke(context: RunContextWrapper, params_str: st
             raw_content = record.get("raw_content", {})
             if isinstance(raw_content, dict):
                 formatted["role"] = raw_content.get("role", "unknown")
-                # 提取文本内容
+                # Extract text content
                 content_parts = []
                 for content_item in raw_content.get("content", []):
                     if isinstance(content_item, dict) and content_item.get("type") == "output_text":
@@ -306,7 +306,7 @@ async def on_view_history_turn_invoke(context: RunContextWrapper, params_str: st
             raw_content = record.get("raw_content", {})
             if isinstance(raw_content, dict):
                 formatted["tool_name"] = raw_content.get("name", "unknown")
-                # 如果有参数，也可以显示
+                # If there are arguments, also display them
                 args = raw_content.get("arguments", {})
                 if args:
                     args_str = json.dumps(args, ensure_ascii=False, indent=2)
@@ -336,7 +336,7 @@ async def on_view_history_turn_invoke(context: RunContextWrapper, params_str: st
     }
 
 async def on_search_in_turn_invoke(context: RunContextWrapper, params_str: str) -> Any:
-    """在特定轮次内搜索内容"""
+    """Search content in specific turns"""
     params = json.loads(params_str)
     
     turn = params.get("turn")
@@ -344,7 +344,7 @@ async def on_search_in_turn_invoke(context: RunContextWrapper, params_str: str) 
     page = params.get("page", 1)
     per_page = params.get("per_page", 10)
     search_id = params.get("search_id")
-    jump_to = params.get("jump_to")  # "first", "last", "next", "prev" 或具体页码
+    jump_to = params.get("jump_to")  # "first", "last", "next", "prev" or specific page number
     
     if turn is None:
         return {
@@ -352,11 +352,11 @@ async def on_search_in_turn_invoke(context: RunContextWrapper, params_str: str) 
             "message": "Please provide the turn number"
         }
     
-    # 处理搜索缓存
+    # Process search cache
     if search_id and search_id in turn_search_sessions:
         cached = turn_search_sessions[search_id]
         
-        # 检查是否同时提供了搜索参数
+        # Check if search parameters are provided
         warning = None
         if params.get("turn") is not None and params["turn"] != cached["turn"]:
             warning = f"Provided turn '{params['turn']}' ignored, using cached turn '{cached['turn']}'"
@@ -368,7 +368,7 @@ async def on_search_in_turn_invoke(context: RunContextWrapper, params_str: str) 
         matches = cached["matches"]
         total_matches = len(matches)
         
-        # 处理页面跳转
+        # Process page jump
         if jump_to:
             if jump_to == "first":
                 page = 1
@@ -381,7 +381,7 @@ async def on_search_in_turn_invoke(context: RunContextWrapper, params_str: str) 
             elif isinstance(jump_to, int):
                 page = max(1, min(jump_to, (total_matches + per_page - 1) // per_page))
         
-        # 更新当前页
+        # Update current page
         cached["current_page"] = page
     else:
         if not pattern:
@@ -390,16 +390,16 @@ async def on_search_in_turn_invoke(context: RunContextWrapper, params_str: str) 
                 "message": "Please provide the search pattern"
             }
         
-        warning = None  # 新搜索没有警告
+        warning = None  # New search has no warning
         
-        # 获取历史管理器
+        # Get history manager
         ctx = context.context if hasattr(context, 'context') else {}
         session_id = ctx.get("_session_id", "unknown")
         history_dir = ctx.get("_history_dir", "conversation_histories")
         manager = HistoryManager(history_dir, session_id)
         
-        # 获取轮次的所有记录
-        records = manager.get_turn_details(turn, 0)  # 只获取目标轮次
+        # Get all records of the turn
+        records = manager.get_turn_details(turn, 0)  # Only get target turn
         
         if not records:
             return {
@@ -407,11 +407,11 @@ async def on_search_in_turn_invoke(context: RunContextWrapper, params_str: str) 
                 "message": f"No records found for turn {turn}"
             }
         
-        # 搜索所有匹配
+        # Search all matches
         all_matches = []
         
         for record in records:
-            # 提取可搜索的内容
+            # Extract searchable content
             content = ""
             record_type = ""
             
@@ -430,7 +430,7 @@ async def on_search_in_turn_invoke(context: RunContextWrapper, params_str: str) 
             elif record.get("item_type") == "tool_call_item":
                 raw_content = record.get("raw_content", {})
                 if isinstance(raw_content, dict):
-                    # 包括工具名称和参数
+                    # Include tool name and arguments
                     content = f"Tool: {raw_content.get('name', 'unknown')}\n"
                     args = raw_content.get("arguments", {})
                     if args:
@@ -443,7 +443,7 @@ async def on_search_in_turn_invoke(context: RunContextWrapper, params_str: str) 
                 record_type = "Tool Output"
             
             if content:
-                # 在内容中搜索
+                # Search in content
                 matches = search_in_text(content, pattern, is_regex=True)
                 
                 for start, end in matches:
@@ -456,14 +456,14 @@ async def on_search_in_turn_invoke(context: RunContextWrapper, params_str: str) 
                         "item_type": record.get("item_type", record.get("type", "unknown"))
                     })
         
-        # 生成搜索ID并缓存
+        # Generate search ID and cache
         import uuid
         search_id = f"turn_search_{uuid.uuid4().hex[:8]}"
         
         matches = all_matches
         total_matches = len(matches)
         
-        # 缓存搜索结果
+        # Cache search results
         turn_search_sessions[search_id] = {
             "turn": turn,
             "pattern": pattern,
@@ -472,15 +472,15 @@ async def on_search_in_turn_invoke(context: RunContextWrapper, params_str: str) 
             "created_at": datetime.now().isoformat()
         }
         
-        # 清理过期缓存
+        # Clean expired cache
         if len(turn_search_sessions) > 20:
             oldest_ids = sorted(turn_search_sessions.keys(), 
                               key=lambda x: turn_search_sessions[x].get("created_at", ""))[:10]
             for old_id in oldest_ids:
                 del turn_search_sessions[old_id]
     
-    # 分页处理
-    per_page = min(per_page, 20)  # 限制最大每页20条
+    # Pagination
+    per_page = min(per_page, 20)  # Limit maximum 20 per page
     total_pages = max(1, (total_matches + per_page - 1) // per_page)
     page = max(1, min(page, total_pages))
     
@@ -494,7 +494,7 @@ async def on_search_in_turn_invoke(context: RunContextWrapper, params_str: str) 
         "turn": turn,
         "pattern": pattern,
         "total_matches": total_matches,
-        "warning": warning,  # 添加这一行
+        "warning": warning,  # Add this line
         "pagination": {
             "current_page": page,
             "total_pages": total_pages,
@@ -508,8 +508,8 @@ async def on_search_in_turn_invoke(context: RunContextWrapper, params_str: str) 
     }
 
 async def on_history_stats_invoke(context: RunContextWrapper, params_str: str) -> Any:
-    """获取历史统计信息"""
-    # 获取历史管理器
+    """Get history statistics"""
+    # Get history manager
     ctx = context.context if hasattr(context, 'context') else {}
     session_id = ctx.get("_session_id", "unknown")
     history_dir = ctx.get("_history_dir", "conversation_histories") 
@@ -517,7 +517,7 @@ async def on_history_stats_invoke(context: RunContextWrapper, params_str: str) -
     
     stats = manager.get_statistics()
     
-    # 添加当前会话信息
+    # Add current session information
     meta = ctx.get("_context_meta", {})
     stats["current_session"] = {
         "active_turns": meta.get("turns_in_current_sequence", 0),
@@ -528,25 +528,25 @@ async def on_history_stats_invoke(context: RunContextWrapper, params_str: str) -
     return stats
 
 async def on_browse_history_invoke(context: RunContextWrapper, params_str: str) -> Any:
-    """按顺序浏览历史"""
+    """Browse history in order"""
     params = json.loads(params_str)
     
     start_turn = params.get("start_turn", 0)
     end_turn = params.get("end_turn")
     limit = params.get("limit", 20)
     direction = params.get("direction", "forward")
-    truncate = params.get("truncate", True)  # 默认开启截断
+    truncate = params.get("truncate", True)  # Default enable truncation
     
-    # 获取历史管理器
+    # Get history manager
     ctx = context.context if hasattr(context, 'context') else {}
     session_id = ctx.get("_session_id", "unknown")
     history_dir = ctx.get("_history_dir", "conversation_histories")
     manager = HistoryManager(history_dir, session_id)
     
-    # 加载历史并按轮次分组
+    # Load history and group by turns
     history = manager._load_history()
     
-    # 按轮次分组
+    # Group by turns
     turns_map = {}
     for record in history:
         turn = record.get("turn", -1)
@@ -554,7 +554,7 @@ async def on_browse_history_invoke(context: RunContextWrapper, params_str: str) 
             turns_map[turn] = []
         turns_map[turn].append(record)
     
-    # 获取所有轮次并排序
+    # Get all turns and sort
     all_turns = sorted([t for t in turns_map.keys() if t >= 0])
     
     if not all_turns:
@@ -563,27 +563,27 @@ async def on_browse_history_invoke(context: RunContextWrapper, params_str: str) 
             "message": "No history records"
         }
     
-    # 确定实际的结束轮次
+    # Determine actual end turn
     if end_turn is None:
         end_turn = all_turns[-1]
     
-    # 过滤轮次范围
+    # Filter turn range
     selected_turns = [t for t in all_turns if start_turn <= t <= end_turn]
     
-    # 根据方向排序
+    # Sort by direction
     if direction == "backward":
         selected_turns.reverse()
     
-    # 应用限制
+    # Apply limit
     if len(selected_turns) > limit:
         selected_turns = selected_turns[:limit]
     
-    # 收集结果
+    # Collect results
     results = []
     for turn in selected_turns:
         turn_records = turns_map[turn]
         
-        # 整理每轮的信息
+        # Collect information of each turn
         turn_summary = {
             "turn": turn,
             "timestamp": turn_records[0].get("timestamp", "unknown") if turn_records else "unknown",
@@ -597,14 +597,14 @@ async def on_browse_history_invoke(context: RunContextWrapper, params_str: str) 
                 content = ""
                 if isinstance(raw_content, dict):
                     role = raw_content.get("role", "unknown")
-                    # 提取文本内容
+                    # Extract text content
                     content_parts = []
                     for content_item in raw_content.get("content", []):
                         if isinstance(content_item, dict) and content_item.get("type") == "output_text":
                             content_parts.append(content_item.get("text", ""))
                     content = " ".join(content_parts)
                 
-                # 应用截断
+                # Apply truncation
                 display_content = truncate_content(content, 1000, 500) if truncate else content
                 
                 turn_summary["messages"].append({
@@ -627,7 +627,7 @@ async def on_browse_history_invoke(context: RunContextWrapper, params_str: str) 
                 raw_content = record.get("raw_content", {})
                 if isinstance(raw_content, dict):
                     output = str(raw_content.get("output", ""))
-                    # 对工具输出也应用截断
+                    # Apply truncation to tool output
                     display_output = truncate_content(output, 500, 250) if truncate else output
                     
                     turn_summary["messages"].append({
@@ -639,7 +639,7 @@ async def on_browse_history_invoke(context: RunContextWrapper, params_str: str) 
         
         results.append(turn_summary)
     
-    # 导航信息
+    # Navigation information
     has_more_forward = end_turn < all_turns[-1] if direction == "forward" else start_turn > all_turns[0]
     has_more_backward = start_turn > all_turns[0] if direction == "forward" else end_turn < all_turns[-1]
     
@@ -662,7 +662,7 @@ async def on_browse_history_invoke(context: RunContextWrapper, params_str: str) 
         "results": results
     }
 
-# 定义工具
+# Define tools
 tool_search_history = FunctionTool(
     name='local-search_history',
     description='Search history conversation records. Support multiple keyword search or regular expression search, return records containing all keywords. Support paging to browse all results.',
@@ -833,11 +833,11 @@ tool_history_stats = FunctionTool(
     on_invoke_tool=on_history_stats_invoke
 )
 
-# 导出所有历史工具
+# Export all history tools
 history_tools = [
     tool_search_history,
     tool_view_history_turn,
     tool_browse_history,
     tool_history_stats,
-    tool_search_in_turn  # 新增的工具
+    tool_search_in_turn
 ]

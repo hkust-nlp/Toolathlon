@@ -2,11 +2,10 @@
 
 agent_workspace=$2
 
-# set the dirname of the abs path of this script
+# Set the dirname of the absolute path of this script
 SCRIPT_DIR=$(dirname "$0")
 
 k8sconfig_path_dir=${agent_workspace}/k8s_configs
-# backup_k8sconfig_path_dir=deployment/k8s/configs
 backup_k8sconfig_path_dir=${SCRIPT_DIR}/../k8s_configs
 mkdir -p $backup_k8sconfig_path_dir
 cluster_name="cluster-mysql"
@@ -18,21 +17,21 @@ podman_or_docker=$(uv run python -c "import sys; sys.path.append('configs'); fro
 echo "podman_or_docker: $podman_or_docker"
 schema_path="$SCRIPT_DIR/../data/f1_schema.sql"
 
-# 颜色输出
+# Color output settings
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# 打印带颜色的信息
+# Output log functions with color
 log_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
 log_batch() { echo -e "${BLUE}[BATCH]${NC} $1"; }
 
 
-# 清理函数（仅针对指定集群）
+# Cleanup function (targeting only the specified cluster)
 cleanup_existing_cluster() {
   log_info "Start cleaning up existing cluster if it exists..."
   if kind get clusters | grep -q "^${cluster_name}$"; then
@@ -45,7 +44,7 @@ cleanup_existing_cluster() {
   fi
 }
 
-# 清理配置文件（仅针对指定配置文件）
+# Cleanup config files (targeting only the specified config file)
 cleanup_config_files() {
   local config_path="$k8sconfig_path_dir/${cluster_name}-config.yaml"
   log_info "Clean up configuration file: $config_path"
@@ -66,7 +65,7 @@ cleanup_config_files() {
   fi
 }
 
-# 创建集群
+# Create cluster
 create_cluster() {
   local cluster_name=$1
   local config_path=$2
@@ -80,7 +79,7 @@ create_cluster() {
   fi
 }
 
-# 验证集群
+# Verify cluster
 verify_cluster() {
   local cluster_name=$1
   local config_path=$2
@@ -109,14 +108,14 @@ verify_cluster() {
   fi
 }
 
-# 显示 inotify 状态
+# Show inotify status
 show_inotify_status() {
   local current_instances=$(ls /proc/*/fd/* 2>/dev/null | xargs -I {} readlink {} 2>/dev/null | grep -c inotify || echo "0")
   local max_instances=$(cat /proc/sys/fs/inotify/max_user_instances 2>/dev/null || echo "unknown")
   log_info "Inotify instance usage: $current_instances / $max_instances"
 }
 
-# 应用资源YAML
+# Apply resource YAML
 apply_resources() {
   local config_path=$1
   log_info "Applying resources from $resource_yaml"
@@ -131,13 +130,13 @@ apply_resources() {
 }
 
 load_f1_csv() {
-  local ns="${1:-data}"          # 命名空间
+  local ns="${1:-data}"
   local loader_pod="${2:-csv-loader}"
   local mysql_svc="${3:-mysql-f1}"
   local db="${4:-f1}"
 
   log_info "Loading CSVs into '$db' via pod '$loader_pod'..."
-  # 说明：如果你的 CSV 是 Windows 换行，请把 LINES TERMINATED BY 改为 '\r\n'
+  # Note: If your CSVs use Windows line endings, change LINES TERMINATED BY to '\r\n'
   if ! kubectl -n "$ns" exec -i "$loader_pod" -- sh -lc '
 mysql -h '"$mysql_svc"' -uroot -p"$MYSQL_ROOT_PASSWORD" --local-infile=1 '"$db"' <<'"'"'SQL'"'"'
 SET NAMES utf8mb4;
@@ -281,11 +280,11 @@ SQL
 }
 
 create_mysql_readonly_user() {
-  local namespace="${1:-data}"   # 命名空间
-  local mysql_sts="${2:-mysql-f1}"  # StatefulSet 名称
-  local database="${3:-f1}"      # 数据库名
-  local username="${4:-reader}" # 新用户名称
-  local password="${5:-mcpbench0606}" # 新用户密码
+  local namespace="${1:-data}"
+  local mysql_sts="${2:-mysql-f1}"
+  local database="${3:-f1}"
+  local username="${4:-reader}"
+  local password="${5:-mcpbench0606}"
 
   log_info "Creating read-only MySQL user '$username' for database '$database' in ns=$namespace..."
 
@@ -303,7 +302,7 @@ create_mysql_readonly_user() {
   fi
 }
 
-# 停止操作
+# Stop operation
 stop_operation() {
   log_info "========== Start stopping operation =========="
   cleanup_existing_cluster
@@ -311,7 +310,7 @@ stop_operation() {
   log_info "========== Stopping operation completed =========="
 }
 
-# 显示使用说明
+# Show usage instructions
 show_usage() {
   echo "Usage: $0 [start|stop] [agent_workspace]"
   echo ""
@@ -325,7 +324,7 @@ show_usage() {
   echo "  $0 stop                      # Clean up cluster"
 }
 
-# 启动操作
+# Start operation
 start_operation() {
   log_info "========== Start Kind cluster deployment =========="
   cleanup_existing_cluster
@@ -341,15 +340,15 @@ start_operation() {
   apply_resources "$configpath"
 
   log_info "========== Initializing MySQL-f1 database =========="
-  export MYSQL_ROOT_PASSWORD="mcpbench0606"   # 或从安全位置读取
+  export MYSQL_ROOT_PASSWORD="mcpbench0606"   # Or load securely as needed
 
-  # 确保 MySQL StatefulSet 就绪
+  # Ensure MySQL StatefulSet is ready
   kubectl --kubeconfig="$configpath" -n data rollout status statefulset/mysql-f1
 
-  # 确保 csv-loader Pod 就绪
+  # Ensure csv-loader Pod is ready
   kubectl --kubeconfig="$configpath" -n data wait --for=condition=Ready pod/csv-loader --timeout=120s
 
-  # 拷贝 CSV 到 csv-loader
+  # Copy CSV files to csv-loader
   kubectl --kubeconfig="$configpath" -n data cp "$dataset_path_dir/f1/." csv-loader:/csv
 
   kubectl -n data exec -i mysql-f1-0 -- mysql -h mysql-f1 -uroot -p"$MYSQL_ROOT_PASSWORD" f1 < "$schema_path"
@@ -358,7 +357,7 @@ start_operation() {
 
   create_mysql_readonly_user
 
-  # 复制配置文件到备份目录
+  # Copy the config file to the backup directory
   mkdir -p "$backup_k8sconfig_path_dir"
   backup_configpath="$backup_k8sconfig_path_dir/${cluster_name}-config.yaml"
   cp "$configpath" "$backup_configpath"
@@ -383,7 +382,7 @@ start_operation() {
 
 
 
-# 主函数
+# Main function
 main() {
   local operation=${1:-start}
 
@@ -402,7 +401,7 @@ main() {
   esac
 }
 
-# 检查依赖
+# Check dependencies
 check_dependencies() {
   local deps=("kind" "kubectl" "$podman_or_docker")
   local missing=()
@@ -418,6 +417,6 @@ check_dependencies() {
   fi
 }
 
-# 脚本入口
+# Script entrypoint
 check_dependencies
 main "$@"

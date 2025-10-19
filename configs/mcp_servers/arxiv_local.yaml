@@ -1,4 +1,4 @@
-# arxiv论文搜索、下载至本地、阅读
+# arxiv paper search, download to local, and read
 # https://github.com/blazickjp/arxiv-mcp-server
 type: stdio
 name: arxiv_local
@@ -14,5 +14,6 @@ params:
   # env:
   #   HTTPS_PROXY: "${config.proxy}"
   #   HTTP_PROXY: "${config.proxy}"
+  cwd: "${agent_workspace}"
 client_session_timeout_seconds: 60
 cache_tools_list: true

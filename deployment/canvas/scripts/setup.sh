@@ -27,11 +27,11 @@ case $operation in
     # Start Canvas Docker container
     echo "Starting Canvas Docker container (port: $http_port)..."
     $podman_or_docker run --name $container_name -p ${http_port}:3000 -d lbjay/canvas-docker
-    
+
     # Wait for container to start
     echo "Waiting for Canvas container to start..."
     sleep 5
-    
+
     # Check if container started successfully
     if $podman_or_docker ps | grep $container_name > /dev/null; then
       echo "Canvas Docker container started successfully"
@@ -39,6 +39,18 @@ case $operation in
       echo "Canvas Docker container failed to start"
       exit 1
     fi
+
+    # Configure Canvas domain to use the correct external port
+    echo "Configuring Canvas domain to use port ${http_port}..."
+    $podman_or_docker exec $container_name bash -c "sed -i 's/domain: \"localhost:3000\"/domain: \"localhost:${http_port}\"/' /opt/canvas/canvas-lms/config/domain.yml"
+
+    # Restart Canvas services inside container to apply config
+    echo "Restarting Canvas services to apply domain configuration..."
+    $podman_or_docker exec $container_name supervisorctl restart all 2>/dev/null || true
+
+    # Wait for services to restart
+    echo "Waiting for Canvas services to fully restart..."
+    sleep 10
     
     # Start HTTPS proxy (using nohup)
     echo "Starting HTTPS proxy (port: $https_port)..."

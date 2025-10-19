@@ -70,7 +70,7 @@ def load_employees_from_groundtruth(groundtruth_dir: str) -> List[Tuple[str, str
 def load_manager_mapping(groundtruth_dir: str):
     """Load both manager_mapping.json and manager_mapping_no_error.json, return combined employee email mapping and manager information.
 
-    返回:
+    Returns:
       - employee_email_by_id: { employee_id -> email }
       - manager_info_list: [ { 'name', 'email' } ] and deduplicate
       - employees_to_manager: { employee_id -> { name, email } }

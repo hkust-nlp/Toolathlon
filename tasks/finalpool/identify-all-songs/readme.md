@@ -1,6 +1,6 @@
-### 1.agent识别歌曲有时候比较烂，一共20首歌只识别出10首
-### 2.有些歌曲带一些特殊符号/不同版本，用groundtruth evaluate说实话有点不准，可能要放宽一点条件
-比如groundtruth：
+### 1. Sometimes the agent does not perform well in recognizing songs. Out of 20 songs, it may only recognize about 10.
+### 2. Some songs contain special symbols or are different versions, which makes ground truth evaluation less precise. We may need to relax the matching criteria somewhat.
+For example, ground truth:
 
 ```yaml
 - Song1: Sweet But Psycho
@@ -24,7 +24,7 @@
 - Song19: Stressed Out
 - Song20: Prayer In C
 ```
-agent_Return:
+Agent return:
 ```yaml
 - Song1: Sweet but Psycho
 - Song2: abcdefu
@@ -47,7 +47,7 @@ agent_Return:
 - Song19: Stressed Out
 - Song20: Forgive You
 ```
-gt modified by wenshuo
+Ground truth modified by wenshuo:
 
 ```yaml
 - Song1: Sweet but Psycho
@@ -72,4 +72,4 @@ gt modified by wenshuo
 - Song20: Prayer In C
 ```
 
-### 3.因为这个视频的视频简介包含了具体的歌名和顺序，所以检验了agent是否能提取网页中的视频简介作为信息。事实上是(gpt-5, claude-4等)agent不能自行展开简介，所以大部分的内容不会被agent获取到，因此这个任务的难度不会收到太大的影响。
+### 3. Since the video description actually contains the full list of music titles in order, we checked whether the agent is able to extract information from a video's webpage description. In reality, LLM-based agents (such as GPT-5, Claude-4, etc.) cannot expand and read YouTube descriptions on their own, so most of this content cannot be obtained by the agent. Therefore, the difficulty of this task is not significantly reduced.

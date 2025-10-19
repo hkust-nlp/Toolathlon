@@ -32,7 +32,6 @@ if __name__=="__main__":
 
     try:
         print("agent_workspace: ", args.agent_workspace)
-        print("开始测试local")
         local_pass, local_error = check_local(args.agent_workspace, args.groundtruth_workspace)
         if not local_pass:
             print("local check failed: ", local_error)

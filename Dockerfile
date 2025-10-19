@@ -3,7 +3,7 @@ FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TESSDATA_PREFIX=""
 
-# 安装基础依赖和 Playwright 系统依赖
+# install base dependencies and Playwright system dependencies
 RUN apt-get update && apt-get install -y \
     curl \
     wget \
@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
     rsync \
-    # Playwright 系统依赖
+    # Playwright system dependencies
     libnss3 \
     libnspr4 \
     libatk1.0-0 \
@@ -39,70 +39,70 @@ RUN apt-get update && apt-get install -y \
     libasound2 \
     && rm -rf /var/lib/apt/lists/*
 
-# 安装 uv (Python package manager)
+# install uv (Python package manager)
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 ENV PATH="/root/.local/bin:$PATH"
 
-# 安装 Node.js 和 npm
+# install Node.js and npm
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/* \
     && npm install -g npm@latest
 
-# 安装 Docker CLI (用于远程 Docker daemon 连接)
+# install Docker CLI (for remote Docker daemon connection)
 RUN wget -q https://download.docker.com/linux/static/stable/x86_64/docker-24.0.7.tgz \
     && tar xzf docker-24.0.7.tgz \
     && mv docker/docker /usr/local/bin/ \
     && chmod +x /usr/local/bin/docker \
     && rm -rf docker docker-24.0.7.tgz
 
-# 安装 Podman (remote client)
+# install Podman (remote client)
 RUN wget -q https://github.com/containers/podman/releases/download/v4.7.0/podman-remote-static-linux_amd64.tar.gz \
     && tar -xzf podman-remote-static-linux_amd64.tar.gz -C /tmp \
     && mv /tmp/bin/podman-remote-static-linux_amd64 /usr/local/bin/podman \
     && chmod +x /usr/local/bin/podman \
     && rm -rf podman-remote-static-linux_amd64.tar.gz /tmp/bin
 
-# 安装 kubectl
+# install kubectl
 RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
     && chmod +x kubectl \
     && mv kubectl /usr/local/bin/
 
-# 安装 kind
+# install kind
 RUN curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64 \
     && chmod +x ./kind \
     && mv ./kind /usr/local/bin/kind
 
-# 安装 Helm
+# install Helm
 RUN curl -Lo helm.tar.gz https://get.helm.sh/helm-v3.14.0-linux-amd64.tar.gz \
     && tar -zxf helm.tar.gz \
     && mv linux-amd64/helm /usr/local/bin/helm \
     && chmod +x /usr/local/bin/helm \
     && rm -rf helm.tar.gz linux-amd64
 
-# 设置工作目录
+# set working directory
 WORKDIR /workspace
 
-# 复制依赖文件（分开复制以优化缓存）
+# copy dependency files (separated to optimize cache)
 COPY package*.json ./
 COPY uv.lock pyproject.toml ./
 
-# 安装 Python 依赖
+# install Python dependencies
 RUN uv sync --frozen
 
-# 安装 Node.js 依赖
+# install Node.js dependencies
 RUN npm install
 
-# 安装 Playwright browsers
+# install Playwright browsers
 RUN . .venv/bin/activate && playwright install chromium
 
-# 安装 playwright for node_modules（如果需要）
+# install playwright for node_modules (if needed)
 RUN if [ -d "node_modules/@lockon0927/playwright-mcp-with-chunk" ]; then \
         cd node_modules/@lockon0927/playwright-mcp-with-chunk && \
         npx playwright install chromium; \
     fi
 
-# 安装 uv tools（合并为一个 RUN 命令减少层数）
+# install uv tools (combined into a single RUN command to reduce layers)
 RUN uv tool install office-powerpoint-mcp-server@2.0.6 \
     && uv tool install office-word-mcp-server@1.1.9 \
     && uv tool install git+https://github.com/lockon-n/wandb-mcp-server@83f6d7fe2ad2e6b6278aef4a792f35dd765fd315 \
@@ -110,21 +110,21 @@ RUN uv tool install office-powerpoint-mcp-server@2.0.6 \
     && uv tool install pdf-tools-mcp@0.1.4 \
     && uv tool install git+https://github.com/jkawamoto/mcp-youtube-transcript@28081729905a48bef533d864efbd867a2bfd14cd \
     && uv tool install mcp-google-sheets@0.4.1 \
-    && uv tool install google-cloud-mcp@1.0.0 \
+    && uv tool install git+https://github.com/lockon-n/google-cloud-mcp@7df9ca22115002e0cea75deec595492c520df3e1 \
     && uv tool install emails-mcp@0.1.12 \
     && uv tool install git+https://github.com/lockon-n/mcp-snowflake-server@bca38f3ef5305ac53b9935bd09edbfac442b6a36 \
     && uv tool install git+https://github.com/lockon-n/mcp-scholarly@82a6ca268ae0d2e10664be396e1a0ea7aba23229
 
-# 创建 local_servers 目录
+# create local_servers directory
 RUN mkdir -p local_servers
 
-# 克隆和安装 Git-based servers
+# clone and install Git-based servers
 WORKDIR /workspace/local_servers
 
 # Yahoo Finance MCP
 RUN git clone https://github.com/lockon-n/yahoo-finance-mcp \
     && cd yahoo-finance-mcp \
-    && git checkout 27445a684dd2c65a6664620c5d057f66c42ea81f \
+    && git checkout 469103ba1464486cb7b8bd2c1f6355f42ca64a5b \
     && uv sync
 
 # YouTube MCP Server
@@ -148,15 +148,15 @@ RUN git clone https://github.com/matteoantoci/google-forms-mcp.git \
     && npm run build \
     && npm audit fix --force || true
 
-# 返回工作目录
+# return to working directory
 WORKDIR /workspace
 
-# 创建 local_binary 目录
+# create local_binary directory
 RUN mkdir -p local_binary
 
-# 健康检查（可选）
+# health check (optional)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD uv --version && node --version || exit 1
 
-# 设置默认命令
+# set default command
 CMD ["/bin/bash"]

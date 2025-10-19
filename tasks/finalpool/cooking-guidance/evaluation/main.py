@@ -18,11 +18,11 @@ if __name__ == "__main__":
         local_pass, local_error = check_local(args.agent_workspace, args.groundtruth_workspace, res_log)
 
         if not local_pass:
-            print(f"\n❌ 本地文件检查失败: {local_error}")
+            print(f"\n❌ Local file check failed: {local_error}")
             exit(1)
         else:
-            print(f"\n✅ 本地文件检查通过")
+            print(f"\n✅ Local file check passed")
             
     except Exception as e:
-        print(f"\n⚠️ 本地文件检查异常: {e}")
+        print(f"\n⚠️ Exception during local file check: {e}")
         exit(1)

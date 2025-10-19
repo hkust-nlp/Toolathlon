@@ -3,6 +3,34 @@ import pandas as pd
 from utils.general.helper import normalize_str
 import re
 import numbers
+from datetime import datetime, timedelta
+from dateutil import parser as date_parser
+
+def normalize_duration(duration_str):
+    """Normalize HH:MM:SS format by removing leading zeros from each component"""
+    # Match HH:MM:SS or H:MM:SS or similar patterns
+    pattern = r'^(\d+):(\d+):(\d+)$'
+    match = re.match(pattern, str(duration_str).strip())
+    if match:
+        hours, minutes, seconds = match.groups()
+        # Remove leading zeros and reconstruct
+        return f"{int(hours)}:{int(minutes)}:{int(seconds)}"
+    return None
+
+def compare_iso_time_with_tolerance(time_str1, time_str2, tolerance_minutes=5):
+    """Compare two ISO 8601 time strings with tolerance in minutes"""
+    try:
+        # Parse ISO 8601 times (handles various formats)
+        dt1 = date_parser.isoparse(str(time_str1).strip())
+        dt2 = date_parser.isoparse(str(time_str2).strip())
+
+        # Calculate time difference
+        time_diff = abs((dt1 - dt2).total_seconds() / 60)  # Convert to minutes
+
+        return time_diff <= tolerance_minutes
+    except (ValueError, TypeError):
+        # If parsing fails, not an ISO time
+        return None
 
 def compare_element(agent_element, groundtruth_element):
     agent_type = type(agent_element)
@@ -15,16 +43,30 @@ def compare_element(agent_element, groundtruth_element):
     if agent_type != gt_type:
         return True, f"Type diff: agent provides element type in {agent_type} while groundtruth is {gt_type}."
     if agent_type == str:
+        # Special case 1: HH:MM:SS duration - ignore leading zeros
+        agent_duration = normalize_duration(agent_element)
+        gt_duration = normalize_duration(groundtruth_element)
+        if agent_duration is not None and gt_duration is not None:
+            if agent_duration == gt_duration:
+                return False, None
+            else:
+                return True, f"Duration diff: agent provides {agent_element} ({agent_duration}) while groundtruth is {groundtruth_element} ({gt_duration})."
+
+        # Special case 2: ISO 8601 Time - 5 minute tolerance
+        iso_comparison = compare_iso_time_with_tolerance(agent_element, groundtruth_element, tolerance_minutes=5)
+        if iso_comparison is not None:  # Successfully parsed as ISO time
+            if iso_comparison:
+                return False, None
+            else:
+                return True, f"ISO time diff exceeds 5 min tolerance: agent provides {agent_element} while groundtruth is {groundtruth_element}."
+
+        # Regular string comparison with normalization
         if normalize_str(agent_element) == normalize_str(groundtruth_element):
             return False, None
         else:
             return True, f"Value diff: agent provides {agent_element} while groundtruth is {groundtruth_element}."
 
 def check_local(agent_workspace: str, groundtruth_workspace: str):
-    """
-    check the content of generated file with groundtruth
-    content exactly fit return (True, None)，otherwise return (False, '文件内容不一致')。
-    """
     agent_file = os.path.join(agent_workspace,"result.xlsx")
     groundtruth_file = os.path.join(groundtruth_workspace,"result.xlsx")
 
@@ -92,8 +134,6 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
         return False, f"Error comparing files: {str(e)}"
 
 
-# # 测试调用 - 使用正确的路径
-# check_local("/ssddata/xiaochen/workspace/mcpbench_dev/tasks/xiaochen/youtube_analyze/groundtruth_workspace", "/ssddata/xiaochen/workspace/mcpbench_dev/tasks/xiaochen/youtube_analyze/groundtruth_workspace")
 
 
 

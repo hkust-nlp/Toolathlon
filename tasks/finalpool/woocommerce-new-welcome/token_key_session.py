@@ -15,5 +15,4 @@ all_token_key_session = Dict(
 
     # poste emails
     emails_config_file = os.path.join(os.path.dirname(__file__), "emails_config.json"),
-
 )

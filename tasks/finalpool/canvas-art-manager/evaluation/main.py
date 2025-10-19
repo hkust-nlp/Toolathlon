@@ -4,16 +4,15 @@ import requests
 from pathlib import Path
 import argparse
 
-
 from utils.app_specific.canvas import CanvasAPI
 
 def parse_admin3_courses(md_path):
     """
-    解析course_schedule.md，返回admin3负责的课程列表，每项为dict: {"course_name", "class_time", "instructor"}
+    Parse course_schedule.md and return the list of courses managed by admin3. Each entry is a dict: {"course_name", "class_time", "instructor"}
     """
     courses = []
     if not os.path.isfile(md_path):
-        print(f"课程表文件不存在: {md_path}")
+        print(f"Course schedule file does not exist: {md_path}")
         return courses
     with open(md_path, encoding="utf-8") as f:
         for line in f:
@@ -33,7 +32,7 @@ def parse_admin3_courses(md_path):
 
 def get_course_teachers(canvas_api, course_id):
     """
-    获取指定课程的教师列表（返回教师名字列表）
+    Get the list of teachers for the specified course (returns a list of teacher names)
     """
     enrollments = canvas_api.get_course_enrollments(course_id)
     teachers = []
@@ -84,68 +83,68 @@ if __name__ == "__main__":
     parser.add_argument("--launch_time", required=False)
     parser.add_argument("--groundtruth_workspace", help="Groundtruth workspace (not used in this evaluation)")
     args = parser.parse_args()
-    # 配置
+    # Configuration
     canvas_url = os.environ.get("CANVAS_URL") or "http://localhost:10001"
     md_path = os.path.join(os.path.dirname(__file__), "course_schedule.md")
 
     admin3_courses = parse_admin3_courses(md_path)
     if not admin3_courses:
-        print("未找到admin3负责的课程。")
+        print("No courses managed by admin3 found.")
         sys.exit(0)
 
-    print(f"admin3负责的课程共{len(admin3_courses)}门：")
+    print(f"Total courses managed by admin3: {len(admin3_courses)}")
     for c in admin3_courses:
-        print(f"- {c['course_name']} (教师: {c['instructor']})")
+        print(f"- {c['course_name']} (Instructor: {c['instructor']})")
 
     all_ok = True
     for c in admin3_courses:
         instructor = c["instructor"]
         course_full_name = f"{c['course_name']}"
         if instructor not in teacher_keys:
-            print(f"❌ 未找到教师 {instructor} 的token，无法检查课程 {course_full_name}")
+            print(f"❌ Cannot find token for instructor {instructor}, cannot verify course {course_full_name}")
             all_ok = False
             continue
         teacher_token = teacher_keys[instructor]
-        # 用老师自己的token查他能看到的课程
+        # Use the instructor's own token to list their visible courses
         canvas_api = CanvasAPI(canvas_url, teacher_token)
         teacher_courses = canvas_api.list_courses()
         teacher_course_names = {cc["name"] for cc in teacher_courses}
         if course_full_name not in teacher_course_names:
-            print(f"❌ 教师 {instructor} 未找到课程: {course_full_name}")
+            print(f"❌ Instructor {instructor} could not find course: {course_full_name}")
             all_ok = False
         else:
-            print(f"✅ 教师 {instructor} 的课程 {course_full_name} 已创建")
+            print(f"✅ Course {course_full_name} for instructor {instructor} has been created")
     if all_ok:
-        print("所有admin3负责的课程均已由对应教师创建。")
+        print("All courses managed by admin3 have been created by their respective instructors.")
     else:
         exit(1)
 
-    # 检查所有存在的课程是否发布
-    print("\n=== 检查所有admin3负责的课程是否已发布 ===")
+    # Check whether all courses exist and are published
+    print("\n=== Checking if all courses managed by admin3 are published ===")
     unpublished_courses = []
     for c in admin3_courses:
         instructor = c["instructor"]
         course_full_name = f"{c['course_name']}"
         if instructor not in teacher_keys:
-            continue  # 已在上面报错
+            continue  # Already reported above
         teacher_token = teacher_keys[instructor]
         canvas_api = CanvasAPI(canvas_url, teacher_token)
         teacher_courses = canvas_api.list_courses()
-        # 找到该课程的详细信息
+        # Find detailed info for the course
         course_info = next((cc for cc in teacher_courses if cc["name"] == course_full_name), None)
         if not course_info:
-            continue  # 已在上面报错
-        # 检查published字段
+            continue  # Already reported above
+        # Check the published field
         published = course_info.get("workflow_state") == "available" or course_info.get("published") is True
         if published:
-            print(f"✅ 课程已发布: {course_full_name}")
+            print(f"✅ Course published: {course_full_name}")
         else:
-            print(f"❌ 课程未发布: {course_full_name}")
+            print(f"❌ Course not published: {course_full_name}")
             unpublished_courses.append(course_full_name)
     if not unpublished_courses:
-        print("所有admin3负责的课程均已发布。")
+        print("All courses managed by admin3 are published.")
     else:
-        print("以下课程尚未发布：")
+        print("The following courses are not published yet:")
         for cname in unpublished_courses:
             print(f"- {cname}")
         exit(1)

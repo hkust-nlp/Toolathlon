@@ -9,74 +9,74 @@ from utils.general.helper import normalize_str
 
 def safe_read_excel_sheet(workbook_path, sheet_name):
     """
-    安全读取Excel工作表，提供详细的错误信息
+    Safely reads an Excel sheet, providing detailed error messages.
     """
     try:
         df = pd.read_excel(workbook_path, sheet_name=sheet_name)
         return df, None
     except ValueError as e:
         if "Worksheet named" in str(e):
-            return None, f"工作表 '{sheet_name}' 不存在"
-        return None, f"读取工作表 '{sheet_name}' 时出错: {str(e)}"
+            return None, f"Worksheet '{sheet_name}' does not exist"
+        return None, f"Error reading sheet '{sheet_name}': {str(e)}"
     except Exception as e:
-        return None, f"读取Excel文件时发生未知错误: {str(e)}"
+        return None, f"Unknown error occurred while reading Excel file: {str(e)}"
 
 def validate_dataframe_not_empty(df, sheet_name, context=""):
     """
-    验证DataFrame不为空，并提供详细的诊断信息
+    Validate that a DataFrame is not empty. Provide detailed diagnostic info.
     """
     if df is None:
-        return False, f"{sheet_name} 数据为None"
+        return False, f"{sheet_name} is None"
 
     if df.empty:
-        return False, f"{sheet_name} 表为空（0行数据）{context}"
+        return False, f"{sheet_name} is empty (0 rows){context}"
 
-    return True, f"{sheet_name} 包含 {len(df)} 行 {len(df.columns)} 列数据"
+    return True, f"{sheet_name} contains {len(df)} rows and {len(df.columns)} columns"
 
 def check_sheet1(workbook_path, df1):
     """
-    验证 sheet "Basic Info & Holding Trend" 中关键列：
-      - 对于前三列（Price、Shares、Market Cap），要求 |act/gt - 1| <= 5%
-      - 对于后四列（Top20/Top10/Top5 占比 & QoQ 变化），要求 |act - gt| <= 3 （percentage points）
+    Validate critical columns in the sheet 'Basic Info & Holding Trend':
+      - For the first three columns (Price, Shares, Market Cap): |act/gt - 1| <= 5%
+      - For the last four columns (Top20/Top10/Top5 and QoQ Change): |act - gt| <= 3 (percentage points)
     """
-    print(f"\n--- 开始验证 Sheet 1: Basic Info & Holding Trend ---")
+    print(f"\n--- Validating Sheet 1: Basic Info & Holding Trend ---")
 
-    # 1. 安全读取工作表
+    # 1. Safe read
     df_act, error_msg = safe_read_excel_sheet(workbook_path, "Basic Info & Holding Trend")
     if df_act is None:
-        print(f"❌ 无法读取目标工作表: {error_msg}")
+        print(f"❌ Failed to read target sheet: {error_msg}")
         return False
 
-    # 2. 验证实际结果不为空
-    is_valid, msg = validate_dataframe_not_empty(df_act, "实际结果表")
-    print(f"  实际结果表状态: {msg}")
+    # 2. Validate actual is not empty
+    is_valid, msg = validate_dataframe_not_empty(df_act, "Actual Sheet")
+    print(f"  Actual sheet status: {msg}")
     if not is_valid:
-        print(f"❌ Basic Info & Holding Trend 校验失败: {msg}")
+        print(f"❌ Validation failed for Basic Info & Holding Trend: {msg}")
         return False
 
-    # 3. 验证Ground Truth不为空
-    is_valid, msg = validate_dataframe_not_empty(df1, "Ground Truth表")
-    print(f"  Ground Truth表状态: {msg}")
+    # 3. Validate GT is not empty
+    is_valid, msg = validate_dataframe_not_empty(df1, "Ground Truth Sheet")
+    print(f"  Ground Truth sheet status: {msg}")
     if not is_valid:
-        print(f"❌ Basic Info & Holding Trend 校验失败: {msg}")
+        print(f"❌ Validation failed for Basic Info & Holding Trend: {msg}")
         return False
-    # 4. 数据预处理
-    df_act.columns = df_act.columns.str.strip()  # 去除列名前后空格
+    # 4. Preprocess columns
+    df_act.columns = df_act.columns.str.strip()
     df_gt = df1.copy()
     df_gt.columns = df_gt.columns.str.strip()
 
-    print(f"  实际结果列名: {df_act.columns.tolist()}")
-    print(f"  Ground Truth列名: {df_gt.columns.tolist()}")
+    print(f"  Actual columns: {df_act.columns.tolist()}")
+    print(f"  Ground Truth columns: {df_gt.columns.tolist()}")
 
-    # 5. 检查必需的Quarter列
+    # 5. Check for required 'Quarter'
     if "Quarter" not in df_act.columns:
-        print(f"❌ 实际结果表缺少 'Quarter' 列")
+        print(f"❌ Actual sheet missing 'Quarter' column")
         return False
     if "Quarter" not in df_gt.columns:
-        print(f"❌ Ground Truth表缺少 'Quarter' 列")
+        print(f"❌ Ground Truth sheet missing 'Quarter' column")
         return False
 
-    # 6. 按 Quarter 对齐
+    # 6. Align by Quarter
     df_cmp = pd.merge(
         df_gt,
         df_act,
@@ -85,16 +85,16 @@ def check_sheet1(workbook_path, df1):
         how="inner"
     )
 
-    # 7. 检查合并后的结果
+    # 7. Check merged results
     if df_cmp.empty:
-        print(f"❌ 按Quarter合并后无匹配数据")
-        print(f"  GT季度: {sorted(df_gt['Quarter'].unique()) if not df_gt.empty else '无'}")
-        print(f"  实际季度: {sorted(df_act['Quarter'].unique()) if not df_act.empty else '无'}")
+        print(f"❌ No matching data after merging by Quarter")
+        print(f"  GT Quarters: {sorted(df_gt['Quarter'].unique()) if not df_gt.empty else 'None'}")
+        print(f"  Actual Quarters: {sorted(df_act['Quarter'].unique()) if not df_act.empty else 'None'}")
         return False
 
-    print(f"  成功匹配 {len(df_cmp)} 个季度进行比较")
+    print(f"  Matched {len(df_cmp)} quarters for comparison")
 
-    # 8. 检查实际结果是否包含有效数据（非全NaN）
+    # 8. Check for non-empty data (not all NaN)
     numeric_cols = [
         "NVDA End-of-Quarter Stock Price (USD)",
         "Outstanding Shares (Million Shares)",
@@ -113,16 +113,16 @@ def check_sheet1(workbook_path, df1):
             total_nan_count += nan_count
             total_cells += len(df_act[col])
             if nan_count == len(df_act[col]):
-                print(f"  ⚠️  列 '{col}' 全部为空值")
+                print(f"  ⚠️  Column '{col}' is entirely NaN")
 
     nan_percentage = (total_nan_count / total_cells * 100) if total_cells > 0 else 100
-    print(f"  数据完整度: {total_cells - total_nan_count}/{total_cells} 个有效值 ({100-nan_percentage:.1f}% 完整)")
+    print(f"  Data completeness: {total_cells - total_nan_count}/{total_cells} valid values ({100-nan_percentage:.1f}% complete)")
 
-    if nan_percentage > 0:  # 如果超过0%的数据是NaN
-        print(f"❌ 实际结果数据严重不完整: {nan_percentage:.1f}% 的数据为空值")
+    if nan_percentage > 0:
+        print(f"❌ Actual data is incomplete: {nan_percentage:.1f}% of values are NaN")
         return False
 
-    # 4. 定义要验证的列
+    # 4. Columns to check
     rel_cols = [
         "NVDA End-of-Quarter Stock Price (USD)",
         "Outstanding Shares (Million Shares)",
@@ -137,136 +137,131 @@ def check_sheet1(workbook_path, df1):
 
     errors = []
 
-    # 5. 相对误差检查（<=5%）
+    # 5. Relative error check (<=5%)
     for col in rel_cols:
         gt_col  = f"{col}_gt"
         act_col = f"{col}_act"
-        # 防止除以零
+        # Avoid divide by zero
         denom = df_cmp[gt_col].replace(0, float("nan"))
         rel_err = (df_cmp[act_col] - df_cmp[gt_col]).abs() / denom
         bad = df_cmp[rel_err > 0.05]
         if not bad.empty:
-            errors.append(f"{col}: {len(bad)} 行相对误差超过 5%")
-            # 打印详细的不匹配信息
-            print(f"    详细错误信息 - {col}:")
+            errors.append(f"{col}: {len(bad)} rows have relative error exceeding 5%")
+            print(f"    Detail error - {col}:")
             for idx, row in bad.iterrows():
                 quarter = row['Quarter']
                 gt_val = row[gt_col]
                 act_val = row[act_col]
                 error_pct = ((act_val - gt_val) / gt_val * 100) if gt_val != 0 else float('inf')
-                print(f"      季度 {quarter}: GT={gt_val:.4f}, 实际={act_val:.4f}, 误差={error_pct:.2f}%")
+                print(f"      Quarter {quarter}: GT={gt_val:.4f}, Actual={act_val:.4f}, Error={error_pct:.2f}%")
 
-    # 6. 相对误差检查（<=10%）
+    # 6. Relative error check (<=10%)
     for col in abs_cols:
         gt_col  = f"{col}_gt"
         act_col = f"{col}_act"
         rel_err = ((df_cmp[act_col] - df_cmp[gt_col]).abs() / df_cmp[gt_col].abs() * 100).replace([float('inf'), -float('inf')], float('nan'))
         bad = df_cmp[rel_err > 10]
         if not bad.empty:
-            errors.append(f"{col}: {len(bad)} 行相对误差超过 10%")
-            # 打印详细的不匹配信息
-            print(f"    详细错误信息 - {col}:")
+            errors.append(f"{col}: {len(bad)} rows have relative error exceeding 10%")
+            print(f"    Detail error - {col}:")
             for idx, row in bad.iterrows():
                 quarter = row['Quarter']
                 gt_val = row[gt_col]
                 act_val = row[act_col]
                 rel_diff = abs(act_val - gt_val) / abs(gt_val) * 100 if gt_val != 0 else float('inf')
-                print(f"      季度 {quarter}: GT={gt_val:.2f}%, 实际={act_val:.2f}%, 相对误差={rel_diff:.2f}%")
+                print(f"      Quarter {quarter}: GT={gt_val:.2f}%, Actual={act_val:.2f}%, Relative Error={rel_diff:.2f}%")
 
-    # 7. 输出结果
+    # 7. Output result
     if errors:
-        print("❌ Basic Info & Holding Trend 校验失败：")
+        print("❌ Basic Info & Holding Trend validation failed:")
         for e in errors:
             print("  -", e)
         return False
     else:
-        print("✅ Basic Info & Holding Trend 校验通过。")
+        print("✅ Basic Info & Holding Trend validation passed.")
         return True
 
 def check_sheet2(workbook_path: Path, df2: pd.DataFrame) -> bool:
     """
-    验证 sheet "Key Shareholders Details" 中数据：
-    1. 检查是否存在完全重复的行，如果有则返回False
-    2. 使用normalize_str规范化股东名称，以quarter+shareholder name为key查找每行数据
-    3. 检查各数值列是否满足容差要求
+    Validate the sheet 'Key Shareholders Details' as follows:
+    1. Check for fully duplicated rows (Fail if such rows exist)
+    2. Use normalize_str to normalize shareholder names, use quarter+shareholder as the key for matching
+    3. Check all numeric columns for value tolerances
     """
-    print(f"\n--- 开始验证 Sheet 2: Key Shareholders Details ---")
+    print(f"\n--- Validating Sheet 2: Key Shareholders Details ---")
 
-    # 1. 安全读取工作表
+    # 1. Safe read
     df_act, error_msg = safe_read_excel_sheet(workbook_path, "Top 20 Key Shareholders Details")
     if df_act is None:
-        print(f"❌ 无法读取目标工作表: {error_msg}")
+        print(f"❌ Failed to read target sheet: {error_msg}")
         return False
 
-    # 2. 验证实际结果不为空
-    is_valid, msg = validate_dataframe_not_empty(df_act, "实际结果表")
-    print(f"  实际结果表状态: {msg}")
+    # 2. Validate actual is not empty
+    is_valid, msg = validate_dataframe_not_empty(df_act, "Actual Sheet")
+    print(f"  Actual sheet status: {msg}")
     if not is_valid:
-        print(f"❌ Key Shareholders Details 校验失败: {msg}")
+        print(f"❌ Validation failed for Key Shareholders Details: {msg}")
         return False
 
-    # 3. 验证Ground Truth不为空
-    is_valid, msg = validate_dataframe_not_empty(df2, "Ground Truth表")
-    print(f"  Ground Truth表状态: {msg}")
+    # 3. Validate GT is not empty
+    is_valid, msg = validate_dataframe_not_empty(df2, "Ground Truth Sheet")
+    print(f"  Ground Truth sheet status: {msg}")
     if not is_valid:
-        print(f"❌ Key Shareholders Details 校验失败: {msg}")
+        print(f"❌ Validation failed for Key Shareholders Details: {msg}")
         return False
 
-    # 4. 复制数据并清理列名
+    # 4. Copy and clean columns
     df_gt = df2.copy()
     df_act.columns = df_act.columns.str.strip()
     df_gt.columns = df_gt.columns.str.strip()
 
-    print(f"  实际结果列名: {df_act.columns.tolist()}")
-    print(f"  Ground Truth列名: {df_gt.columns.tolist()}")
+    print(f"  Actual columns: {df_act.columns.tolist()}")
+    print(f"  Ground Truth columns: {df_gt.columns.tolist()}")
 
-    # 5. 检查必需列是否存在
+    # 5. Check required columns
     required_cols = ['Quarter', 'Shareholder Name']
     for col in required_cols:
         if col not in df_act.columns:
-            print(f"❌ 实际结果表缺少必需列: '{col}'")
+            print(f"❌ Actual sheet missing required column: '{col}'")
             return False
         if col not in df_gt.columns:
-            print(f"❌ Ground Truth表缺少必需列: '{col}'")
+            print(f"❌ Ground Truth sheet missing required column: '{col}'")
             return False
 
-    # 6. 步骤1: 检查实际结果中是否存在完全重复的行
-    print(f"  检查重复行...")
+    # 6. Step 1: Check for duplicated rows in actual
+    print(f"  Checking for duplicated rows...")
     duplicate_count = df_act.duplicated().sum()
     if duplicate_count > 0:
-        print(f"❌ 实际结果中发现 {duplicate_count} 行完全重复的数据")
-        # 显示重复行的详细信息
+        print(f"❌ Found {duplicate_count} duplicated rows in actual results")
         duplicated_rows = df_act[df_act.duplicated(keep=False)].sort_values(['Quarter', 'Shareholder Name'])
-        print(f"  重复行详情:")
+        print(f"  Details of duplicated rows:")
         for i, (_, row) in enumerate(duplicated_rows.iterrows()):
-            if i < 10:  # 只显示前10行
+            if i < 10:
                 print(f"    {row['Quarter']} - {row['Shareholder Name']}")
             elif i == 10:
-                print(f"    ... (还有 {len(duplicated_rows) - 10} 行)")
+                print(f"    ... (more {len(duplicated_rows) - 10} rows)")
                 break
         return False
 
-    print(f"✅ 未发现重复行")
+    print(f"✅ No duplicated rows found")
 
-    # 7. 步骤2: 使用normalize_str规范化股东名称并创建查找键
-    print(f"  规范化股东名称...")
-    # 安全处理可能的NaN值
+    # 7. Step 2: Normalize shareholder names and create lookup keys
+    print(f"  Normalizing shareholder names...")
     df_gt['normalized_name'] = df_gt['Shareholder Name'].astype(str).apply(lambda x: normalize_str(x) if x != 'nan' else '')
     df_act['normalized_name'] = df_act['Shareholder Name'].astype(str).apply(lambda x: normalize_str(x) if x != 'nan' else '')
 
     df_gt['lookup_key'] = df_gt['Quarter'].astype(str) + "_" + df_gt['normalized_name']
     df_act['lookup_key'] = df_act['Quarter'].astype(str) + "_" + df_act['normalized_name']
 
-    print(f"  创建查找索引...")
-    # 为实际结果创建查找字典
+    print(f"  Building lookup index...")
     act_lookup = {}
     for _, row in df_act.iterrows():
         key = row['lookup_key']
         if key in act_lookup:
-            print(f"⚠️  警告: 实际结果中发现重复的key: {key}")
+            print(f"⚠️  Warning: duplicate key in actual results: {key}")
         act_lookup[key] = row
 
-    # 8. 定义数值列和容差
+    # 8. Numeric columns and tolerance
     numeric_cols = [
         'Shares Held (Million Shares)',
         'Holding Value (Billion USD)',
@@ -274,93 +269,92 @@ def check_sheet2(workbook_path: Path, df2: pd.DataFrame) -> bool:
         'Change from Last Quarter (Million Shares)'
     ]
 
-    # 检查所有数值列是否存在
+    # Check numeric columns exist
     missing_cols_gt = [col for col in numeric_cols if col not in df_gt.columns]
     missing_cols_act = [col for col in numeric_cols if col not in df_act.columns]
 
     if missing_cols_gt:
-        print(f"❌ Ground Truth表缺少数值列: {missing_cols_gt}")
+        print(f"❌ Ground Truth sheet missing numeric columns: {missing_cols_gt}")
         return False
     if missing_cols_act:
-        print(f"❌ 实际结果表缺少数值列: {missing_cols_act}")
+        print(f"❌ Actual sheet missing numeric columns: {missing_cols_act}")
         return False
 
-    # 9. 逐行检查GT中的每一条记录是否在实际结果中存在且满足容差
-    print(f"  开始逐行验证 {len(df_gt)} 条GT记录...")
+    # 9. Row-by-row validation
+    print(f"  Begin validating {len(df_gt)} GT records ...")
 
-    not_found_or_invalid_count = 0  # 未找到或不满足容差的记录数
+    not_found_or_invalid_count = 0
 
     for i, gt_row in df_gt.iterrows():
         key = gt_row['lookup_key']
         quarter = gt_row['Quarter']
         shareholder = gt_row['Shareholder Name']
 
-        # 查找对应的实际结果行
+        # Lookup actual row
         if key not in act_lookup:
             not_found_or_invalid_count += 1
-            if not_found_or_invalid_count <= 10:  # 只显示前10个
-                print(f"    未找到记录: {quarter} - {shareholder} (规范化: {gt_row['normalized_name']})")
+            if not_found_or_invalid_count <= 10:
+                print(f"    Missing record: {quarter} - {shareholder} (normalized: {gt_row['normalized_name']})")
             elif not_found_or_invalid_count == 11:
-                print(f"    ... (还有更多未找到的记录)")
+                print(f"    ... (more missing records)")
             continue
 
         act_row = act_lookup[key]
 
-        # 检查数值列的容差，任何一个不满足就算作无效
+        # Tolerance checking for numeric columns
         record_valid = True
         for col in numeric_cols:
             gt_val = gt_row[col]
             act_val = act_row[col]
 
-            # 跳过两者都是NaN的情况
+            # Skip if both are NaN
             if pd.isna(gt_val) and pd.isna(act_val):
                 continue
             elif pd.isna(gt_val) or pd.isna(act_val):
                 record_valid = False
                 break
 
-            # 计算相对误差
-            if abs(gt_val) < 1e-8:  # GT接近0
-                if abs(act_val) > 1e-8:  # 实际值不为0
+            if abs(gt_val) < 1e-8:
+                if abs(act_val) > 1e-8:
                     record_valid = False
                     break
             else:
                 rel_error = abs(act_val - gt_val) / abs(gt_val)
-                if rel_error > 0.05:  # 超过5%容差
+                if rel_error > 0.05:
                     record_valid = False
                     break
 
         if not record_valid:
             not_found_or_invalid_count += 1
-            if not_found_or_invalid_count <= 20:  # 显示前20个容差不满足的记录
-                print(f"    容差不满足: {quarter} - {shareholder}")
+            if not_found_or_invalid_count <= 20:
+                print(f"    Tolerance violation: {quarter} - {shareholder}")
 
-    # 10. 汇总结果 - 只有一个指标：有效记录比例
+    # 10. Aggregate result - only one metric: percentage of valid
     total_gt_records = len(df_gt)
     valid_records = total_gt_records - not_found_or_invalid_count
     valid_percentage = (valid_records / total_gt_records * 100) if total_gt_records > 0 else 0
 
-    print(f"  验证统计:")
-    print(f"    GT总记录数: {total_gt_records}")
-    print(f"    有效记录数: {valid_records}")
-    print(f"    有效率: {valid_percentage:.1f}%")
+    print(f"  Validation stats:")
+    print(f"    GT total records: {total_gt_records}")
+    print(f"    Valid records: {valid_records}")
+    print(f"    Valid percent: {valid_percentage:.1f}%")
 
     errors = []
 
-    # 检查是否达到90%的有效率
+    # Require >= 90% valid
     if valid_percentage < 90.0:
-        errors.append(f"有效率 {valid_percentage:.1f}% < 90%，有 {not_found_or_invalid_count} 条记录未找到或不满足容差")
+        errors.append(f"Valid rate {valid_percentage:.1f}% < 90%, {not_found_or_invalid_count} records not found or not within tolerance")
     else:
-        print(f"✅ 有效率达到要求 ({valid_percentage:.1f}% >= 90%)")
+        print(f"✅ Valid rate meets requirement ({valid_percentage:.1f}% >= 90%)")
 
-    # 11. 输出最终结果
+    # 11. Output
     if errors:
-        print("❌ Key Shareholders Details 校验失败：")
+        print("❌ Key Shareholders Details validation failed:")
         for e in errors:
             print("  -", e)
         return False
     else:
-        print("✅ Key Shareholders Details 校验通过。")
+        print("✅ Key Shareholders Details validation passed.")
         return True
 
 def check_sheet3(workbook_path: Path, df3: pd.DataFrame) -> bool:
@@ -375,41 +369,41 @@ def check_sheet3(workbook_path: Path, df3: pd.DataFrame) -> bool:
       * Large Adjustment Count (Over 10M Shares)
       * Quarterly Net Fund Inflow (Billion USD)
     """
-    print(f"\n--- 开始验证 Sheet 3: Position Adjustment Summary ---")
+    print(f"\n--- Validating Sheet 3: Position Adjustment Summary ---")
 
     try:
-        # 1. 安全读取工作表
+        # 1. Safe read
         df_act, error_msg = safe_read_excel_sheet(workbook_path, "Position Adjustment Summary")
         if df_act is None:
-            print(f"❌ 无法读取目标工作表: {error_msg}")
+            print(f"❌ Failed to read target sheet: {error_msg}")
             return False
 
-        # 2. 验证实际结果不为空
-        is_valid, msg = validate_dataframe_not_empty(df_act, "实际结果表")
-        print(f"  实际结果表状态: {msg}")
+        # 2. Validate actual not empty
+        is_valid, msg = validate_dataframe_not_empty(df_act, "Actual Sheet")
+        print(f"  Actual sheet status: {msg}")
         if not is_valid:
-            print(f"❌ Position Adjustment Summary 校验失败: {msg}")
+            print(f"❌ Validation failed for Position Adjustment Summary: {msg}")
             return False
 
-        # 3. 验证Ground Truth不为空
-        is_valid, msg = validate_dataframe_not_empty(df3, "Ground Truth表")
-        print(f"  Ground Truth表状态: {msg}")
+        # 3. Validate GT not empty
+        is_valid, msg = validate_dataframe_not_empty(df3, "Ground Truth Sheet")
+        print(f"  Ground Truth sheet status: {msg}")
         if not is_valid:
-            print(f"❌ Position Adjustment Summary 校验失败: {msg}")
+            print(f"❌ Validation failed for Position Adjustment Summary: {msg}")
             return False
 
-        # 4. Use ground truth dataframe
+        # 4. Use GT DataFrame
         df_gt = df3.copy()
 
-        # 5. 检查Quarter列
+        # 5. Check 'Quarter' columns
         if "Quarter" not in df_act.columns:
-            print(f"❌ 实际结果表缺少 'Quarter' 列")
+            print(f"❌ Actual sheet missing 'Quarter' column")
             return False
         if "Quarter" not in df_gt.columns:
-            print(f"❌ Ground Truth表缺少 'Quarter' 列")
+            print(f"❌ Ground Truth sheet missing 'Quarter' column")
             return False
 
-        # 6. Merge dataframes on 'Quarter' column
+        # 6. Merge by Quarter
         df_cmp = pd.merge(
             df_gt,
             df_act,
@@ -418,16 +412,16 @@ def check_sheet3(workbook_path: Path, df3: pd.DataFrame) -> bool:
             how="inner"
         )
 
-        # 7. Check if merge resulted in empty dataframe
+        # 7. Check for empty merge
         if df_cmp.empty:
-            print("❌ 按Quarter合并后无匹配数据")
-            print(f"  GT季度: {sorted(df_gt['Quarter'].unique()) if not df_gt.empty else '无'}")
-            print(f"  实际季度: {sorted(df_act['Quarter'].unique()) if not df_act.empty else '无'}")
+            print("❌ No matching data after merging by Quarter")
+            print(f"  GT Quarters: {sorted(df_gt['Quarter'].unique()) if not df_gt.empty else 'None'}")
+            print(f"  Actual Quarters: {sorted(df_act['Quarter'].unique()) if not df_act.empty else 'None'}")
             return False
 
-        print(f"  成功匹配 {len(df_cmp)} 个季度进行比较")
+        print(f"  Matched {len(df_cmp)} quarters for comparison")
 
-        # 8. 检查实际结果数据完整性
+        # 8. Data completeness
         numeric_cols = [
             'New Entry Shareholders Count',
             'Increase Shareholders Count',
@@ -447,13 +441,13 @@ def check_sheet3(workbook_path: Path, df3: pd.DataFrame) -> bool:
                 total_nan_count += nan_count
                 total_cells += len(df_act[col])
                 if nan_count == len(df_act[col]):
-                    print(f"  ⚠️  列 '{col}' 全部为空值")
+                    print(f"  ⚠️  Column '{col}' is entirely NaN")
 
         nan_percentage = (total_nan_count / total_cells * 100) if total_cells > 0 else 100
-        print(f"  数据完整度: {total_cells - total_nan_count}/{total_cells} 个有效值 ({100-nan_percentage:.1f}% 完整)")
+        print(f"  Data completeness: {total_cells - total_nan_count}/{total_cells} valid values ({100-nan_percentage:.1f}% complete)")
 
-        if nan_percentage > 0:  # 如果超过0%的数据是NaN
-            print(f"❌ Position Adjustment Summary 数据严重不完整: {nan_percentage:.1f}% 的数据为空值")
+        if nan_percentage > 0:
+            print(f"❌ Position Adjustment Summary data is incomplete: {nan_percentage:.1f}% of values are NaN")
             return False
 
         # 9. Columns to check
@@ -469,58 +463,51 @@ def check_sheet3(workbook_path: Path, df3: pd.DataFrame) -> bool:
 
         errors = []
 
-        # 9. 预先检查所有必需列是否存在
+        # 9. Check all required columns exist
         missing_cols_gt = [col for col in cols if col not in df_gt.columns]
         missing_cols_act = [col for col in cols if col not in df_act.columns]
 
         if missing_cols_gt:
-            print(f"❌ Ground Truth表缺少列: {missing_cols_gt}")
-            print(f"  GT可用列: {df_gt.columns.tolist()}")
+            print(f"❌ Ground Truth sheet missing columns: {missing_cols_gt}")
+            print(f"  GT available columns: {df_gt.columns.tolist()}")
             return False
 
         if missing_cols_act:
-            print(f"❌ 实际结果表缺少列: {missing_cols_act}")
-            print(f"  实际结果可用列: {df_act.columns.tolist()}")
+            print(f"❌ Actual sheet missing columns: {missing_cols_act}")
+            print(f"  Actual available columns: {df_act.columns.tolist()}")
             return False
 
-        # 10. Check relative error <= 5% for each column
+        # 10. Check for relative error <=5%
         for col in cols:
             gt_col = f"{col}_gt"
             act_col = f"{col}_act"
 
-            # 双重确认合并后的列存在
             if gt_col not in df_cmp or act_col not in df_cmp:
-                errors.append(f"{col}: 合并后数据缺少对应列")
+                errors.append(f"{col}: merged data missing expected columns")
                 continue
 
             gt_vals = df_cmp[gt_col].astype(float)
             act_vals = df_cmp[act_col].astype(float)
-            # print(f"Validating column: {col}")
-            # print(f"GT values: {gt_vals.tolist()}")
-            # print(f"ACT values: {act_vals.tolist()}")
 
-            # Calculate error: use absolute error if ground truth is 0, else relative
             def is_bad(gt: float, act: float) -> bool:
-                if abs(gt) < 1e-8:  # Handle ground truth near zero
-                    return abs(act - gt) > 1e-8  # Non-zero difference is considered an error
-                return abs(act - gt) / abs(gt) > 0.05  # Relative error > 5%
+                if abs(gt) < 1e-8:
+                    return abs(act - gt) > 1e-8
+                return abs(act - gt) / abs(gt) > 0.05
 
             bad_mask = [is_bad(gt, act) for gt, act in zip(gt_vals, act_vals)]
             bad_count = sum(bad_mask)
             if bad_count:
                 errors.append(f"{col}: {bad_count} rows have error exceeding 5%")
-                # 打印详细的不匹配信息
-                print(f"    详细错误信息 - {col}:")
+                print(f"    Detail error - {col}:")
                 for i, (gt, act, is_bad_val) in enumerate(zip(gt_vals, act_vals, bad_mask)):
                     if is_bad_val:
                         quarter = df_cmp.iloc[i]['Quarter']
                         if abs(gt) < 1e-8:
-                            print(f"      季度 {quarter}: GT={gt:.4f}, 实际={act:.4f}, 绝对差值={abs(act-gt):.4f}")
+                            print(f"      Quarter {quarter}: GT={gt:.4f}, Actual={act:.4f}, Abs Error={abs(act-gt):.4f}")
                         else:
                             error_pct = abs(act - gt) / abs(gt) * 100
-                            print(f"      季度 {quarter}: GT={gt:.4f}, 实际={act:.4f}, 误差={error_pct:.2f}%")
+                            print(f"      Quarter {quarter}: GT={gt:.4f}, Actual={act:.4f}, Error={error_pct:.2f}%")
 
-        # 6. Output results
         if errors:
             print("❌ Position Adjustment Summary validation failed:")
             for error in errors:
@@ -536,46 +523,46 @@ def check_sheet3(workbook_path: Path, df3: pd.DataFrame) -> bool:
 
 def check_sheet4(workbook_path: Path, df4: pd.DataFrame) -> bool:
     """
-    验证 sheet "Sheet4" 中两项指标：
-      - Top 5 Most Active Adjustment Institutions：交集 >= 3
-      - List of Large Institutions with Continuous Increase：交集 >= 2
-    Value 字符串优先尝试 json.loads，若失败则用 ast.literal_eval。
+    Check two metrics in sheet 'Sheet4':
+      - Top 5 Most Active Adjustment Institutions: intersection >= 3
+      - List of Large Institutions with Continuous Increase: intersection >= 2
+    Values are attempted to be parsed with json.loads then ast.literal_eval if failed.
     """
-    print(f"\n--- 开始验证 Sheet 4: Conclusions & Trends ---")
+    print(f"\n--- Validating Sheet 4: Conclusions & Trends ---")
 
-    # 1. 安全读取工作表
+    # 1. Safe read
     df_act, error_msg = safe_read_excel_sheet(workbook_path, "Conclusions & Trends")
     if df_act is None:
-        print(f"❌ 无法读取目标工作表: {error_msg}")
+        print(f"❌ Failed to read target sheet: {error_msg}")
         return False
 
-    # 2. 验证实际结果不为空
-    is_valid, msg = validate_dataframe_not_empty(df_act, "实际结果表")
-    print(f"  实际结果表状态: {msg}")
+    # 2. Validate actual not empty
+    is_valid, msg = validate_dataframe_not_empty(df_act, "Actual Sheet")
+    print(f"  Actual sheet status: {msg}")
     if not is_valid:
-        print(f"❌ Conclusions & Trends 校验失败: {msg}")
+        print(f"❌ Validation failed for Conclusions & Trends: {msg}")
         return False
 
-    # 3. 验证Ground Truth不为空
-    is_valid, msg = validate_dataframe_not_empty(df4, "Ground Truth表")
-    print(f"  Ground Truth表状态: {msg}")
+    # 3. Validate GT not empty
+    is_valid, msg = validate_dataframe_not_empty(df4, "Ground Truth Sheet")
+    print(f"  Ground Truth sheet status: {msg}")
     if not is_valid:
-        print(f"❌ Conclusions & Trends 校验失败: {msg}")
+        print(f"❌ Validation failed for Conclusions & Trends: {msg}")
         return False
 
-    # 4. 数据预处理
+    # 4. Preprocess
     df_act.columns = df_act.columns.str.strip()
 
-    # 5. 检查必需列
+    # 5. Required columns
     required_cols = ['Indicator', 'Value (e.g. ["xxx", "xxx", ...])']
     for col in required_cols:
         if col not in df_act.columns:
-            print(f"❌ 实际结果表缺少必需列: '{col}'")
-            print(f"  可用列: {df_act.columns.tolist()}")
+            print(f"❌ Actual sheet missing required column: '{col}'")
+            print(f"  Available columns: {df_act.columns.tolist()}")
             return False
         if col not in df4.columns:
-            print(f"❌ Ground Truth表缺少必需列: '{col}'")
-            print(f"  可用列: {df4.columns.tolist()}")
+            print(f"❌ Ground Truth sheet missing required column: '{col}'")
+            print(f"  Available columns: {df4.columns.tolist()}")
             return False
 
     errors = []
@@ -585,100 +572,99 @@ def check_sheet4(workbook_path: Path, df4: pd.DataFrame) -> bool:
     ]
 
     def parse_list(s: str):
-        # Python 字面量
-        print(s)
-        return ast.literal_eval(s)
+        # Try to eval as standard Python literal list
+        # Fallback from JSON to literal_eval
+        try:
+            return json.loads(s)
+        except Exception:
+            return ast.literal_eval(s)
 
     for indicator, min_correct in checks:
-        # 2. GT 列表
+        # 2. GT List
         try:
             gt_val = df4.loc[df4['Indicator']==indicator, 'Value (e.g. ["xxx", "xxx", ...])'].iat[0]
             gt_list = parse_list(gt_val)
         except Exception as e:
-            errors.append(f"{indicator}: GT 解析失败 ({e})")
+            errors.append(f"{indicator}: GT list parse failed ({e})")
             continue
 
-        # 3. ACT 列表
+        # 3. ACT List
         act_row = df_act.loc[df_act['Indicator']==indicator, 'Value (e.g. ["xxx", "xxx", ...])']
         if act_row.empty:
-            errors.append(f"{indicator}: 实际结果中缺少此指标")
-            print(f"  实际结果中可用的指标: {df_act['Indicator'].tolist()}")
+            errors.append(f"{indicator}: Missing indicator in actual results")
+            print(f"  Available indicators in actual: {df_act['Indicator'].tolist()}")
             continue
         try:
             act_val = act_row.iat[0]
             if pd.isna(act_val) or str(act_val).strip() == '':
-                errors.append(f"{indicator}: 实际结果值为空")
+                errors.append(f"{indicator}: Actual value is empty")
                 continue
             act_list = parse_list(str(act_val))
         except Exception as e:
-            errors.append(f"{indicator}: 实际结果解析失败 ({e})")
-            print(f"  原始值: {repr(act_row.iat[0])}")
+            errors.append(f"{indicator}: Failed to parse actual value ({e})")
+            print(f"  Raw value: {repr(act_row.iat[0])}")
             continue
-        
-        # print(f"GT {indicator}: {gt_list}")
-        # print(f"ACT {indicator}: {act_list}")
-        # 4. 计算交集
+
+        # 4. Compute intersection
         common = set(gt_list) & set(act_list)
         if len(common) < min_correct:
             errors.append(
-                f"{indicator}: 交集元素 {common} 个数 {len(common)} < 要求 {min_correct}"
+                f"{indicator}: Intersection {common} count {len(common)} < required {min_correct}"
             )
-            # 打印详细的不匹配信息
-            print(f"    详细错误信息 - {indicator}:")
-            print(f"      GT 列表: {gt_list}")
-            print(f"      ACT 列表: {act_list}")
-            print(f"      交集: {list(common)} (共 {len(common)} 个)")
-            print(f"      要求最少: {min_correct} 个")
+            print(f"    Detailed info - {indicator}:")
+            print(f"      GT list: {gt_list}")
+            print(f"      ACT list: {act_list}")
+            print(f"      Intersection: {list(common)} (total {len(common)})")
+            print(f"      Required at least: {min_correct}")
 
-            # 显示缺失的项目
+            # Show missing items
             gt_only = set(gt_list) - set(act_list)
             act_only = set(act_list) - set(gt_list)
             if gt_only:
-                print(f"      GT 中有但 ACT 中缺少: {list(gt_only)}")
+                print(f"      In GT but missing in ACT: {list(gt_only)}")
             if act_only:
-                print(f"      ACT 中有但 GT 中缺少: {list(act_only)}")
+                print(f"      In ACT but missing in GT: {list(act_only)}")
 
-    # 5. 输出
     if errors:
-        print("❌ Sheet4 校验失败：")
+        print("❌ Sheet 4 validation failed:")
         for e in errors:
             print("  -", e)
         return False
     else:
-        print("✅ Sheet4 校验通过。")
+        print("✅ Sheet 4 validation passed.")
         return True
 
 def load_groundtruth_from_file(groundtruth_workspace):
     """
-    从生成的Excel文件中加载groundtruth数据
+    Load ground truth data from the generated Excel file.
     """
     print("\n" + "=" * 60)
-    print("加载 Ground Truth 数据...")
+    print("Loading Ground Truth data...")
     print("=" * 60)
     
     gt_file = Path(groundtruth_workspace) / "results.xlsx"
     
     if not gt_file.exists():
-        print(f"错误: Ground Truth 文件不存在: {gt_file}")
+        print(f"Error: Ground Truth file not found: {gt_file}")
         return None, None, None, None
     
     try:
-        # 读取所有工作表
+        # Read all sheets
         df1 = pd.read_excel(gt_file, sheet_name='Basic Info & Holding Trend')
         df2 = pd.read_excel(gt_file, sheet_name='Top 20 Key Shareholders Details')
         df3 = pd.read_excel(gt_file, sheet_name='Position Adjustment Summary')
         df4 = pd.read_excel(gt_file, sheet_name='Conclusions & Trends')
         
-        print(f"✅ 成功加载 Ground Truth 数据:")
-        print(f"  - Sheet 1 形状: {df1.shape}")
-        print(f"  - Sheet 2 形状: {df2.shape}")
-        print(f"  - Sheet 3 形状: {df3.shape}")
-        print(f"  - Sheet 4 形状: {df4.shape}")
+        print(f"✅ Successfully loaded Ground Truth data:")
+        print(f"  - Sheet 1 shape: {df1.shape}")
+        print(f"  - Sheet 2 shape: {df2.shape}")
+        print(f"  - Sheet 3 shape: {df3.shape}")
+        print(f"  - Sheet 4 shape: {df4.shape}")
         
         return df1, df2, df3, df4
         
     except Exception as e:
-        print(f"❌ 加载 Ground Truth 数据时出错: {e}")
+        print(f"❌ Error loading Ground Truth data: {e}")
         return None, None, None, None
 
 if __name__ == "__main__":
@@ -689,18 +675,18 @@ if __name__ == "__main__":
     parser.add_argument("--launch_time", required=False, help="Launch time")
     args = parser.parse_args()
     
-    print(f"使用 agent workspace: {args.agent_workspace}")
-    print(f"使用 groundtruth workspace: {args.groundtruth_workspace}")
+    print(f"Using agent workspace: {args.agent_workspace}")
+    print(f"Using groundtruth workspace: {args.groundtruth_workspace}")
 
-    # 从生成的文件中加载 Ground Truth 数据
+    # Load GT data from the generated Excel files
     df1, df2, df3, df4 = load_groundtruth_from_file(args.groundtruth_workspace)
     if df1 is None:
-        print("加载 Ground Truth 数据失败，退出")
+        print("Failed to load Ground Truth data. Exiting.")
         exit(1)
 
-    # 查找并验证 agent 的结果文件
+    # Locate and validate agent's result file
     print("\n" + "=" * 60)
-    print("验证 Agent 结果...")
+    print("Validating Agent results...")
     print("=" * 60)
 
     workspace_path = Path(args.agent_workspace)
@@ -709,83 +695,83 @@ if __name__ == "__main__":
         target_file = workspace_path / "results_template.xlsx"
 
     if not target_file.exists():
-        print(f"❌ Agent 结果文件不存在")
-        print(f"  搜索路径: {workspace_path}")
-        print(f"  尝试过的文件名:")
+        print(f"❌ Agent result file not found")
+        print(f"  Search path: {workspace_path}")
+        print(f"  Tried filenames:")
         print(f"    - results.xlsx")
         print(f"    - results_template.xlsx")
 
-        # 列出目录中实际存在的Excel文件
+        # List actual Excel files in directory
         excel_files = list(workspace_path.glob("*.xlsx")) + list(workspace_path.glob("*.xls"))
         if excel_files:
-            print(f"  目录中发现的Excel文件: {[f.name for f in excel_files]}")
+            print(f"  Excel files found in directory: {[f.name for f in excel_files]}")
         else:
-            print(f"  目录中未发现任何Excel文件")
+            print(f"  No Excel files found in directory")
         exit(1)
 
-    print(f"✅ 找到 Agent 结果文件: {target_file}")
+    print(f"✅ Found Agent result file: {target_file}")
 
-    # 验证文件可读性
+    # Check file readability
     try:
-        # 尝试获取工作表名称
+        # Try listing sheet names
         xl_file = pd.ExcelFile(target_file)
         sheet_names = xl_file.sheet_names
-        print(f"  文件包含的工作表: {sheet_names}")
+        print(f"  Sheets in file: {sheet_names}")
         xl_file.close()
     except Exception as e:
-        print(f"❌ 无法读取Excel文件: {str(e)}")
+        print(f"❌ Failed to read Excel file: {str(e)}")
         exit(1)
 
-    # 进行比较验证
+    # Run validations
     print("\n" + "=" * 60)
-    print("开始比较验证...")
+    print("Starting comparison & validation...")
     print("=" * 60)
 
-    # 逐个验证工作表，即使某个失败也继续验证其他的
+    # Validate each sheet - even if one fails, continue the rest
     validation_results = {}
 
-    print("\n🔍 开始逐表验证...")
+    print("\n🔍 Start sheet-by-sheet validation ...")
     try:
         validation_results['sheet1'] = check_sheet1(target_file, df1)
     except Exception as e:
-        print(f"❌ Sheet 1 验证过程中发生异常: {str(e)}")
+        print(f"❌ Exception during Sheet 1 validation: {str(e)}")
         validation_results['sheet1'] = False
 
     try:
         validation_results['sheet2'] = check_sheet2(target_file, df2)
     except Exception as e:
-        print(f"❌ Sheet 2 验证过程中发生异常: {str(e)}")
+        print(f"❌ Exception during Sheet 2 validation: {str(e)}")
         validation_results['sheet2'] = False
 
     try:
         validation_results['sheet3'] = check_sheet3(target_file, df3)
     except Exception as e:
-        print(f"❌ Sheet 3 验证过程中发生异常: {str(e)}")
+        print(f"❌ Exception during Sheet 3 validation: {str(e)}")
         validation_results['sheet3'] = False
 
     try:
         validation_results['sheet4'] = check_sheet4(target_file, df4)
     except Exception as e:
-        print(f"❌ Sheet 4 验证过程中发生异常: {str(e)}")
+        print(f"❌ Exception during Sheet 4 validation: {str(e)}")
         validation_results['sheet4'] = False
 
-    # 提取结果
+    # Gather results
     sheet1_pass = validation_results.get('sheet1', False)
     sheet2_pass = validation_results.get('sheet2', False)
     sheet3_pass = validation_results.get('sheet3', False)
     sheet4_pass = validation_results.get('sheet4', False)
 
-    # 最终结果
+    # Final outcome
     print("\n" + "=" * 60)
-    print("验证结果摘要:")
+    print("Validation result summary:")
     print("=" * 60)
-    print(f"Sheet 1 (基本信息): {'✅ 通过' if sheet1_pass else '❌ 失败'}")
-    print(f"Sheet 2 (股东详情): {'✅ 通过' if sheet2_pass else '❌ 失败'}")
-    print(f"Sheet 3 (持仓调整): {'✅ 通过' if sheet3_pass else '❌ 失败'}")
-    print(f"Sheet 4 (结论趋势): {'✅ 通过' if sheet4_pass else '❌ 失败'}")
+    print(f"Sheet 1 (Basic Info): {'✅ Passed' if sheet1_pass else '❌ Failed'}")
+    print(f"Sheet 2 (Shareholder Details): {'✅ Passed' if sheet2_pass else '❌ Failed'}")
+    print(f"Sheet 3 (Position Adjustment): {'✅ Passed' if sheet3_pass else '❌ Failed'}")
+    print(f"Sheet 4 (Conclusions & Trends): {'✅ Passed' if sheet4_pass else '❌ Failed'}")
 
     if sheet1_pass and sheet2_pass and sheet3_pass and sheet4_pass:
-        print("\n🎉 所有工作表验证通过!")
+        print("\n🎉 All sheets validated successfully!")
     else:
-        print("\n❌ 某些工作表验证失败，请检查上面的详细输出")
+        print("\n❌ Some sheets failed validation, please check detailed output above.")
         exit(1)

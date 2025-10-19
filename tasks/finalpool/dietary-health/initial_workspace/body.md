@@ -1,4 +1,4 @@
 | Dimension | Specific Data |
 | :-------- | :------------ |
-| Height    | 176cm         |
+| Height    | 152cm         |
 | Weight    | 65kg          |

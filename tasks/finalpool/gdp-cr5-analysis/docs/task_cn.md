@@ -1,1 +1,0 @@
-请阅读google sheet中名为`GDP2022`的表格，根据世界银行中列出的7个主要地区，计算各地区GDP的CR5指数，并在Google sheet中新建一个spread sheet，命名为GDP CR5 Analysis，并在其中新建名为“gdp_cr5_analysis”的表格，保存数据如下：Region、Top5_Countries、Top5_GDP_Sum、Region_GDP_Total、CR5_Ratio，分别代表地区名称、排名前5的国家名称（以逗号分隔）、排名前5的国家GDP总和、地区GDP总量、CR5指数（百分比，四舍五入到小数点后两位）。按CR5指数降序排列。（如果您不确定世界银行将某个国家划分到哪个地区，可以自行搜索。）

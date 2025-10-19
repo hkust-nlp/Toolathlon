@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-预处理脚本 - 设置更新商品主图任务的初始环境
+Preprocessing Script - Set up initial environment for update product cover task
 """
 
 import os
@@ -11,17 +11,17 @@ from argparse import ArgumentParser
 from pathlib import Path
 from datetime import datetime
 
-# 添加项目路径
+# Add project path
 current_dir = Path(__file__).parent
 task_dir = current_dir.parent
 sys.path.insert(0, str(task_dir))
 
 def setup_test_products():
-    """设置测试商品和数据"""
-    print("🛒 初始化测试商品和销量数据...")
+    """Set up test products and data"""
+    print("🛒 Initializing test products and sales data...")
     
     try:
-        # 确保能找到同目录下的模块
+        # Ensure modules in the same directory can be found
         import sys
         import os
         current_script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -31,68 +31,68 @@ def setup_test_products():
         from setup_test_products import TestProductSetup
         from token_key_session import all_token_key_session
         
-        # 从配置获取WooCommerce信息
+        # Get WooCommerce information from configuration
         site_url = all_token_key_session.woocommerce_site_url
         consumer_key = all_token_key_session.woocommerce_api_key
         consumer_secret = all_token_key_session.woocommerce_api_secret
         wp_username = all_token_key_session.woocommerce_admin_username
         wp_password = all_token_key_session.woocommerce_admin_password
         
-        print(f"🔧 连接到WooCommerce商店: {site_url}")
+        print(f"🔧 Connect to WooCommerce store: {site_url}")
         setup = TestProductSetup(site_url, consumer_key, consumer_secret, wp_username, wp_password)
         
-        # 步骤1: 清理现有数据
-        print("\n📋 步骤1: 清理商店中的现有数据")
+        # Step 1: Clean existing data
+        print("\n📋 Step 1: Clean existing data in the store")
         clear_result = setup.clear_all_products()
         if not clear_result.get('success'):
-            print("⚠️ 清理未完全成功，但继续下一步...")
+            print("⚠️ Clean not fully successful, but continue to the next step...")
         
         time.sleep(3)
         
-        # 步骤2: 设置商品属性
-        print("\n📋 步骤2: 设置商品属性")
+        # Step 2: Set product attributes
+        print("\n📋 Step 2: Set product attributes")
         attr_result = setup.setup_product_attributes()
         if not attr_result.get('success'):
-            print("❌ 属性设置失败！")
+            print("❌ Attribute setting failed!")
             return False
         
         time.sleep(2)
         
-        # 步骤3: 创建测试商品
-        print("\n📋 步骤3: 创建测试商品和销量数据")
+        # Step 3: Create test products
+        print("\n📋 Step 3: Create test products and data")
         product_result = setup.create_test_products()
         
         if product_result.get('success'):
-            print("✅ 测试数据设置完成！")
+            print("✅ Test data setup completed!")
             
-            # 保存预期结果
+            # Save expected results
             expected_results = setup.get_expected_results()
             results_path = task_dir / "groundtruth_workspace" / "expected_results.json"
             
-            # 确保目录存在
+            # Ensure directory exists
             results_path.parent.mkdir(parents=True, exist_ok=True)
             
             with open(results_path, 'w', encoding='utf-8') as f:
                 json.dump(expected_results, f, indent=2, ensure_ascii=False)
-            print(f"📄 预期结果已保存到: {results_path}")
+            print(f"📄 Expected results saved to: {results_path}")
             
             return True
         else:
-            print("❌ 测试商品创建失败！")
+            print("❌ Test product creation failed!")
             return False
             
     except Exception as e:
-        print(f"❌ 测试商品设置失败: {e}")
+        print(f"❌ Test product setup failed: {e}")
         import traceback
         traceback.print_exc()
         return False
 
 def clear_store_only():
-    """仅清理商店数据"""
-    print("🧹 清理WooCommerce商店数据...")
+    """Only clear store data"""
+    print("🧹 Clean WooCommerce store data...")
     
     try:
-        # 确保能找到同目录下的模块
+        # Ensure modules in the same directory can be found
         import sys
         import os
         current_script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -102,61 +102,61 @@ def clear_store_only():
         from setup_test_products import TestProductSetup
         from token_key_session import all_token_key_session
         
-        # 从配置获取WooCommerce信息
+        # Get WooCommerce information from configuration
         site_url = all_token_key_session.woocommerce_site_url
         consumer_key = all_token_key_session.woocommerce_api_key
         consumer_secret = all_token_key_session.woocommerce_api_secret
         wp_username = all_token_key_session.woocommerce_admin_username
         wp_password = all_token_key_session.woocommerce_admin_password
         
-        print(f"🔧 连接到WooCommerce商店: {site_url}")
+        print(f"🔧 Connect to WooCommerce store: {site_url}")
         setup = TestProductSetup(site_url, consumer_key, consumer_secret, wp_username, wp_password)
         
         clear_result = setup.clear_all_products()
         
         if clear_result.get('success'):
-            print("✅ 商店清理完成")
+            print("✅ Store clear completed")
             return True
         else:
-            print("⚠️ 商店清理部分完成")
+            print("⚠️ Store clear partially completed")
             return False
             
     except Exception as e:
-        print(f"❌ 商店清理失败: {e}")
+        print(f"❌ Store clear failed: {e}")
         import traceback
         traceback.print_exc()
         return False
 
 
 if __name__ == "__main__":
-    parser = ArgumentParser(description="预处理脚本 - 设置更新商品主图任务的初始环境")
-    parser.add_argument("--agent_workspace", required=False, help="Agent工作空间路径")
+    parser = ArgumentParser(description="Preprocessing script - set up initial environment for update product cover task")
+    parser.add_argument("--agent_workspace", required=False, help="Agent workspace path")
     parser.add_argument("--launch_time", required=False, help="Launch time")
     
     args = parser.parse_args()
 
     print("=" * 60)
-    print("🎯 更新商品主图任务 - 预处理")
+    print("🎯 Update product cover task - preprocessing")
     print("=" * 60)
 
-    # 完整设置模式
-    print("\n📋 步骤2: 设置测试商品和数据")
+    # Full setup mode
+    print("\n📋 Step 2: Set up test products and data")
     success = setup_test_products()
 
     print("\n" + "=" * 60)
-    print("📊 预处理结果汇总")
+    print("📊 Preprocessing result summary")
     print("=" * 60)
-    print(f"✅ 测试数据设置: {'成功' if success else '失败'}")
+    print(f"✅ Test data setup: {'success' if success else 'failed'}")
 
     if success:
-        print("\n🎉 预处理完成！更新商品主图系统已准备就绪")
-        print("📝 下一步可以运行主图更新程序进行测试")
-        print("\n📊 创建的测试数据包括:")
-        print("   - 可变商品（彩虹运动鞋）")
-        print("   - 多个颜色规格的变体")
-        print("   - 模拟的上周销量数据")
-        print("   - 预期的主图更新结果")
+        print("\n🎉 Preprocessing completed! Update product cover system is ready")
+        print("📝 Next, you can run the update product cover program to test")
+        print("\n📊 The test data includes:")
+        print("   - Variable products (rainbow sneakers)")
+        print("   - Multiple color variations")
+        print("   - Simulated last week's sales data")
+        print("   - Expected update product cover results")
         exit(0)
     else:
-        print("\n⚠️ 预处理部分完成，请检查错误信息")
+        print("\n⚠️ Preprocessing partially completed, please check the error information")
         exit(1)

@@ -16,7 +16,7 @@ if __name__=="__main__":
     asyncio.run(run_command(f"bash {script_path} start {args.agent_workspace}", debug=True,show_output=True))
     print("Cluster constructed")
 
-    # 删掉agent_workspace下的k8s_configs
+    # Delete k8s_configs in agent_workspace
     shutil.rmtree(os.path.join(args.agent_workspace, "k8s_configs"))
     print("Deleted local k8s_configs successfully! We will only use the k8s mcp in this task!","green")
 

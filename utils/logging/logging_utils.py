@@ -2,7 +2,7 @@ import json
 import os
 import csv
 import sqlite3
-from typing import Optional, List, Dict, Any, Union
+from typing import Optional, List, Dict, Any, Union, Callable
 from datetime import datetime
 import threading
 from pathlib import Path
@@ -10,36 +10,35 @@ from utils.general.base_models import CostReport, Tool, ToolCall
 import time
 import logging
 
-# 设置日志
+# Configure logging
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 
 class RequestLogger:
     """
-    请求日志记录器，支持并发安全的文件写入
+    Request logger supporting concurrent file-safe writing.
     """
     
     def __init__(self, log_file: Optional[str] = None, enable_console: bool = False):
         """
-        初始化日志记录器
+        Initialize the logger.
         
         Args:
-            log_file: 日志文件路径，如果为None则不记录到文件
-            enable_console: 是否同时输出到控制台
+            log_file: Path to the log file. If None, file logging is disabled.
+            enable_console: Whether to also print logs to the console.
         """
         self.log_file = log_file
         self.enable_console = enable_console
         self._lock = threading.Lock()
         self._request_counter = 0
         
-        # 确保日志目录存在
+        # Ensure directory exists if logging to file
         if self.log_file:
             Path(self.log_file).parent.mkdir(parents=True, exist_ok=True)
-            # 写入日志头信息
             self._write_header()
     
     def _write_header(self):
-        """写入日志文件头信息"""
+        """Write log file header."""
         header = {
             "log_created_at": datetime.now().isoformat(),
             "log_type": "openai_chat_completion_log",
@@ -50,7 +49,9 @@ class RequestLogger:
             f.write("=" * 80 + '\n')
     
     def get_next_request_index(self) -> int:
-        """获取下一个请求索引（线程安全）"""
+        """
+        Thread-safe increment and return next request index.
+        """
         with self._lock:
             self._request_counter += 1
             return self._request_counter
@@ -63,11 +64,11 @@ class RequestLogger:
         model: str,
         temperature: float,
         max_tokens: Optional[int],
-        tools: Optional[List[Tool]] = None,  # 新增
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,  # 新增
+        tools: Optional[List[Tool]] = None,
+        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
         **kwargs
     ):
-        """记录请求信息"""
+        """Log a request entry."""
         log_entry = {
             "type": "REQUEST",
             "request_index": request_index,
@@ -91,11 +92,10 @@ class RequestLogger:
         content: str,
         reasoning_content: str,
         tool_calls: Optional[List[ToolCall]] = None,
-        # usage: Optional[Dict[str, Any]] = None,
         cost_report: Optional[CostReport] = None,
         duration_ms: Optional[float] = None
     ):
-        """记录响应信息"""
+        """Log a response entry."""
         log_entry = {
             "type": "RESPONSE",
             "request_index": request_index,
@@ -104,7 +104,6 @@ class RequestLogger:
             "content": content,
             "reasoning_content": reasoning_content,
             "tool_calls": None if tool_calls is None else [tc.model_dump() for tc in tool_calls],
-            # "usage": usage,
             "cost_report": cost_report.model_dump() if cost_report else None,
             "duration_ms": duration_ms
         }
@@ -118,7 +117,7 @@ class RequestLogger:
         error: Exception,
         duration_ms: Optional[float] = None
     ):
-        """记录错误信息"""
+        """Log an error entry."""
         log_entry = {
             "type": "ERROR",
             "request_index": request_index,
@@ -132,23 +131,26 @@ class RequestLogger:
         self._write_log(log_entry)
     
     def _write_log(self, log_entry: Dict[str, Any]):
-        """写入日志（线程安全）"""
+        """
+        Thread-safe write log entry to file and/or console.
+        """
         with self._lock:
-            # 写入文件
+            # Write to file if enabled
             if self.log_file:
                 with open(self.log_file, 'a', encoding='utf-8') as f:
                     f.write(json.dumps(log_entry, ensure_ascii=False, indent=2) + '\n')
                     f.write("-" * 40 + '\n')
             
-            # 输出到控制台
+            # Print to console if enabled
             if self.enable_console:
                 print(f"[{log_entry['type']}] Request #{log_entry['request_index']} - {log_entry['timestamp']}")
                 if log_entry['type'] == 'ERROR':
                     print(f"  Error: {log_entry['error_message']}")
 
-# 高级日志记录器，支持SQLite存储
 class AdvancedRequestLogger(RequestLogger):
-    """高级请求日志记录器，支持SQLite存储以便查询"""
+    """
+    Advanced request logger supporting SQLite storage for easy query and aggregation.
+    """
     
     def __init__(self, log_file: Optional[str] = None, db_file: Optional[str] = None):
         super().__init__(log_file)
@@ -158,11 +160,11 @@ class AdvancedRequestLogger(RequestLogger):
             self._init_database()
     
     def _init_database(self):
-        """初始化SQLite数据库"""
+        """Initialize SQLite database tables if needed."""
         conn = sqlite3.connect(self.db_file)
         cursor = conn.cursor()
         
-        # 创建表
+        # Requests table
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS requests (
                 request_index INTEGER PRIMARY KEY,
@@ -176,6 +178,7 @@ class AdvancedRequestLogger(RequestLogger):
             )
         ''')
         
+        # Responses table
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS responses (
                 request_index INTEGER PRIMARY KEY,
@@ -196,7 +199,9 @@ class AdvancedRequestLogger(RequestLogger):
     
     def log_request(self, request_index: int, request_id: str, messages: List[Dict[str, str]], 
                    model: str, temperature: float, max_tokens: Optional[int], **kwargs):
-        """记录请求到文件和数据库"""
+        """
+        Log request to file and database.
+        """
         super().log_request(request_index, request_id, messages, model, temperature, max_tokens, **kwargs)
         
         if self.db_file:
@@ -221,9 +226,8 @@ class AdvancedRequestLogger(RequestLogger):
             conn.commit()
             conn.close()
 
-# 日志分析工具
 class LogAnalyzer:
-    """日志文件分析工具"""
+    """Log file analysis tool."""
     
     def __init__(self, log_file: str):
         self.log_file = log_file
@@ -231,7 +235,7 @@ class LogAnalyzer:
         self._load_logs()
     
     def _load_logs(self):
-        """加载日志文件"""
+        """Load log entries from file."""
         with open(self.log_file, 'r', encoding='utf-8') as f:
             lines = f.readlines()
         
@@ -250,7 +254,7 @@ class LogAnalyzer:
                 current_entry += line
     
     def get_request_response_pairs(self) -> List[Dict[str, Any]]:
-        """获取请求-响应对"""
+        """Extract request-response pairs as a list of dicts."""
         pairs = []
         request_map = {}
         
@@ -270,7 +274,7 @@ class LogAnalyzer:
         return pairs
     
     def get_statistics(self) -> Dict[str, Any]:
-        """获取统计信息"""
+        """Get summary statistics from the log."""
         pairs = self.get_request_response_pairs()
         
         total_requests = len(pairs)
@@ -302,7 +306,7 @@ class LogAnalyzer:
         }
     
     def _count_by_model(self, pairs: List[Dict[str, Any]]) -> Dict[str, int]:
-        """按模型统计请求数"""
+        """Count requests by model."""
         model_counts = {}
         for pair in pairs:
             model = pair['request'].get('model', 'unknown')
@@ -310,7 +314,7 @@ class LogAnalyzer:
         return model_counts
     
     def export_to_csv(self, output_file: str):
-        """导出到CSV文件"""
+        """Export request/response summary to a CSV file."""
         pairs = self.get_request_response_pairs()
         
         with open(output_file, 'w', newline='', encoding='utf-8') as f:
@@ -325,21 +329,19 @@ class LogAnalyzer:
                 request = pair['request']
                 response = pair['response']
                 
-                # 提取用户消息
+                # Get user message
                 user_message = ""
                 for msg in request.get('messages', []):
                     if msg.get('role') == 'user':
                         user_message = msg.get('content', '')
                         break
                 
-                # 提取助手响应
-                assistant_response = ""
+                # Get assistant response or error message
                 if pair['success']:
                     assistant_response = response.get('content', '')
                 else:
                     assistant_response = f"ERROR: {response.get('error_message', 'Unknown error')}"
                 
-                # 提取成本信息
                 cost_report = response.get('cost_report', {})
                 
                 writer.writerow([
@@ -356,30 +358,29 @@ class LogAnalyzer:
                     cost_report.get('total_cost', '')
                 ])
 
-# 实时日志监控器
 class LogMonitor:
-    """实时监控日志文件的变化"""
+    """Realtime log file monitor."""
     
-    def __init__(self, log_file: str, callback: callable):
+    def __init__(self, log_file: str, callback: Callable[[str], None]):
         self.log_file = log_file
         self.callback = callback
         self._stop_event = threading.Event()
         self._monitor_thread = None
     
     def start(self):
-        """开始监控"""
+        """Start monitoring the log file."""
         self._monitor_thread = threading.Thread(target=self._monitor_loop)
         self._monitor_thread.daemon = True
         self._monitor_thread.start()
     
     def stop(self):
-        """停止监控"""
+        """Stop monitoring."""
         self._stop_event.set()
         if self._monitor_thread:
             self._monitor_thread.join()
     
     def _monitor_loop(self):
-        """监控循环"""
+        """Internal loop for monitoring file changes."""
         last_position = 0
         
         while not self._stop_event.is_set():
@@ -392,7 +393,7 @@ class LogMonitor:
                             self.callback(new_content)
                             last_position = f.tell()
             except Exception as e:
-                logger.error(f"监控日志文件时出错: {e}")
+                logger.error(f"Error while monitoring log file: {e}")
             
-            time.sleep(0.5)  # 每0.5秒检查一次
+            time.sleep(0.5)  # Check every 0.5 second
 

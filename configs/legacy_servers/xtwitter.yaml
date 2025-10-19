@@ -1,0 +1,39 @@
+# 
+# 
+
+# 1525181195658854402-xkeM55kSq8Bdhc5pKC3fFBGbqyg36u
+# pTOdpm4y5D7QJxD6SaIjVstQujzFwCw9f47Z4Edk7Ylcs
+
+
+# {
+#   "mcpServers": {
+#     "twitter-mcp": {
+#       "command": "npx",
+#       "args": ["-y", "@enescinar/twitter-mcp"],
+#       "env": {
+#         "API_KEY": "your_api_key_here",
+#         "API_SECRET_KEY": "your_api_secret_key_here",
+#         "ACCESS_TOKEN": "your_access_token_here",
+#         "ACCESS_TOKEN_SECRET": "your_access_token_secret_here"
+#       }
+#     }
+#   }
+# }
+
+
+# a x, twitter mcp server
+# https://github.com/EnesCinr/twitter-mcp
+type: stdio
+name: xtwitter
+params:
+  command: npx
+  args:
+    - "-y"
+    - "@enescinar/twitter-mcp"
+  env:
+    API_KEY: "kHfL2uvZbA69S5KPK4BcrSMNm"
+    API_SECRET_KEY: "qVSR6e5sgTfQdbnh6LKC99RWHspL0NX3UY5jlDvpXlq8EkCrRo"
+    ACCESS_TOKEN: "1525181195658854402-xkeM55kSq8Bdhc5pKC3fFBGbqyg36u"
+    ACCESS_TOKEN_SECRET: "pTOdpm4y5D7QJxD6SaIjVstQujzFwCw9f47Z4Edk7Ylcs"
+client_session_timeout_seconds: 10
+cache_tools_list: true

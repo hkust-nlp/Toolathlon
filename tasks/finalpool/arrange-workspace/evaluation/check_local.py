@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """
-本地文件结构检查工具
+Local file structure check tool
 
-该脚本用于检查本地工作空间的文件结构是否与预定义的GT（Ground Truth）结构匹配。
-主要功能包括：
-1. 扫描指定目录下的所有文件和文件夹
-2. 与预定义的目录结构进行对比
-3. 报告缺失或多余的目录和文件
-4. 根据匹配情况返回相应的退出码
+This script is used to check if the file structure of the local workspace matches the predefined GT (Ground Truth) structure.
+The main functions include:
+1. Scan all files and directories in the specified directory
+2. Compare with the predefined directory structure
+3. Report missing or extra directories and files
+4. Return the appropriate exit code based on the matching situation
 
-使用方法：
-    python check_local.py <目录路径>
+Usage:
+    python check_local.py <directory path>
 
-示例：
+Example:
     python check_local.py /path/to/workspace
 """
 
@@ -21,9 +21,9 @@ import sys
 from pathlib import Path
 from typing import Set, Dict, List, Tuple
 
-# 需要忽略的临时目录和文件模式
+# Temporary directories and files to ignore
 TEMP_PATTERNS_TO_IGNORE = {
-    # 临时目录模式
+    # Temporary directory patterns
     ".pdf_tools_tempfiles",
     ".temp",
     ".tmp",
@@ -39,9 +39,9 @@ TEMP_PATTERNS_TO_IGNORE = {
     ".pytest_cache"
 }
 
-# GT结构定义 - 预定义的标准目录结构
+# GT structure definition - predefined standard directory structure
 GT_STRUCTURE = {
-    # 目录结构
+    # Directory structure
     "directories": {
         "Entertainment",
         # "Entertainment/Games", 
@@ -67,7 +67,7 @@ GT_STRUCTURE = {
         # "Work/Projects/Year-2025/representation"
     },
     
-    # 文件结构
+    # File structure
     "files": {
         "Entertainment/Movies/Movie_The_Wandering_Earth.mp4",
         "Entertainment/Movies/TV_Show_Friends_S01E01.mkv",
@@ -90,7 +90,7 @@ GT_STRUCTURE = {
 
         "Entertainment/Pictures/Year-2025/Landscape/sichuan_lake.png", 
 
-        # 三个关于模型说明的图片
+        # Three pictures about model explanation
         "School/Courses_Materials/course_model_weight_1.png",
         "School/Courses_Materials/course_model_weight_2.png",
         "School/Courses_Materials/course_model_weight_3.png",
@@ -117,7 +117,7 @@ GT_STRUCTURE = {
         # "School/Language_Exam_Preparation/Part3_Universal_Views_Current_Topics.pdf",
 
 
-        # 两个关于出差说明的pdf Miss
+        # Two pdfs about business trip
         # "Work/Business_Trip/English Check-in Voucher.pdf",
         # "Work/Business_Trip/4. E-Notes for Terms N 26 Feb 2025 (1).pdf",
 
@@ -138,21 +138,21 @@ GT_STRUCTURE = {
 
 def should_ignore_path(path: str) -> bool:
     """
-    判断路径是否应该被忽略（临时文件/目录）
+    Check if the path should be ignored (temporary files/directories)
 
     Args:
-        path: 相对路径
+        path: relative path
 
     Returns:
-        bool: True表示应该忽略，False表示不应该忽略
+        bool: True if should ignore, False if should not ignore
     """
-    # 检查路径本身或路径的任何部分是否在忽略列表中
+    # Check if the path itself or any part of the path is in the ignore list
     path_parts = path.split('/')
     for part in path_parts:
         if part in TEMP_PATTERNS_TO_IGNORE:
             return True
 
-    # 检查完整路径是否在忽略列表中
+    # Check if the full path is in the ignore list
     if path in TEMP_PATTERNS_TO_IGNORE:
         return True
 
@@ -161,13 +161,13 @@ def should_ignore_path(path: str) -> bool:
 
 def scan_directory_structure(root_path: str) -> Dict[str, Set[str]]:
     """
-    扫描指定目录下的所有目录和文件结构
+    Scan all directories and files in the specified directory
     
     Args:
-        root_path: 要扫描的根目录路径
+        root_path: the path of the root directory to scan
         
     Returns:
-        包含目录和文件集合的字典，键为"directories"和"files"
+        A dictionary containing the set of directories and files, with keys "directories" and "files"
     """
     root = Path(root_path)
     if not root.exists():
@@ -176,11 +176,11 @@ def scan_directory_structure(root_path: str) -> Dict[str, Set[str]]:
     directories = set()
     files = set()
     
-    # 递归遍历所有子目录和文件
+    # Recursively traverse all subdirectories and files
     for item in root.rglob("*"):
         relative_path = item.relative_to(root).as_posix()
 
-        # 跳过需要忽略的临时文件和目录
+        # Skip temporary files and directories that need to be ignored
         if should_ignore_path(relative_path):
             continue
 
@@ -195,112 +195,112 @@ def scan_directory_structure(root_path: str) -> Dict[str, Set[str]]:
 def compare_structures(actual_structure: Dict[str, Set[str]], 
                       gt_structure: Dict[str, Set[str]]) -> Tuple[bool, Dict]:
     """
-    比较实际目录结构与GT结构的差异
+    Compare the actual directory structure with the GT structure
     
     Args:
-        actual_structure: 实际扫描得到的目录结构
-        gt_structure: 预定义的GT结构
+        actual_structure: the actual directory structure scanned
+        gt_structure: the predefined GT structure
         
     Returns:
-        元组：(是否完全匹配, 详细的比较结果字典)
+        A tuple: (whether completely matches, detailed comparison result dictionary)
     """
     result = {
         "match": True,
         "directories": {
-            "missing": gt_structure["directories"] - actual_structure["directories"],  # 缺失的目录
-            "extra": actual_structure["directories"] - gt_structure["directories"],   # 多余的目录
-            "match": actual_structure["directories"] == gt_structure["directories"]   # 目录是否匹配
+            "missing": gt_structure["directories"] - actual_structure["directories"],  # missing directories
+            "extra": actual_structure["directories"] - gt_structure["directories"],   # extra directories
+            "match": actual_structure["directories"] == gt_structure["directories"]   # whether directories match
         },
         "files": {
-            "missing": gt_structure["files"] - actual_structure["files"],             # 缺失的文件
-            "extra": actual_structure["files"] - gt_structure["files"],               # 多余的文件
-            "match": actual_structure["files"] == gt_structure["files"]               # 文件是否匹配
+            "missing": gt_structure["files"] - actual_structure["files"],             # missing files
+            "extra": actual_structure["files"] - gt_structure["files"],               # extra files
+            "match": actual_structure["files"] == gt_structure["files"]               # whether files match
         }
     }
     
-    # 只有当目录和文件都匹配时，整体才算匹配
+    # Only when the directories and files are all matched, the overall match
     result["match"] = result["directories"]["match"] and result["files"]["match"]
     return result["match"], result
 
 
 def print_comparison_result(comparison_result: Dict):
     """
-    打印比较结果的详细信息
+    Print the detailed information of the comparison result
     
     Args:
-        comparison_result: 比较结果字典
+        comparison_result: the comparison result dictionary
     """
-    print("=== 结构比较结果 ===")
+    print("=== Structure comparison result ===")
     
     if comparison_result["match"]:
-        print("✅ 目录结构完全匹配GT结构！")
+        print("✅ Directory structure completely matches GT structure!")
         return
     
-    print("❌ 目录结构与GT结构不匹配")
+    print("❌ Directory structure does not match GT structure")
     print()
     
-    # 目录比较结果
-    print("📁 目录比较:")
+    # Directory comparison result
+    print("📁 Directory comparison:")
     if comparison_result["directories"]["match"]:
-        print("  ✅ 目录匹配")
+        print("  ✅ Directory matches")
     else:
-        print("  ❌ 目录不匹配")
+        print("  ❌ Directory does not match")
         
         if comparison_result["directories"]["missing"]:
-            print("  🔴 缺失目录:")
+            print("  🔴 Missing directory:")
             for dir_path in sorted(comparison_result["directories"]["missing"]):
                 print(f"    - {dir_path}")
         
         if comparison_result["directories"]["extra"]:
-            print("  🟡 多余目录:")
+            print("  🟡 Extra directory:")
             for dir_path in sorted(comparison_result["directories"]["extra"]):
                 print(f"    + {dir_path}")
     
     print()
     
-    # 文件比较结果
-    print("📄 文件比较:")
+    # File comparison result
+    print("📄 File comparison:")
     if comparison_result["files"]["match"]:
-        print("  ✅ 文件匹配")
+        print("  ✅ File matches")
     else:
-        print("  ❌ 文件不匹配")
+        print("  ❌ File does not match")
         
         if comparison_result["files"]["missing"]:
-            print("  🔴 缺失文件:")
+            print("  🔴 Missing file:")
             for file_path in sorted(comparison_result["files"]["missing"]):
                 print(f"    - {file_path}")
         
         if comparison_result["files"]["extra"]:
-            print("  🟡 多余文件:")
+            print("  🟡 Extra file:")
             for file_path in sorted(comparison_result["files"]["extra"]):
                 print(f"    + {file_path}")
 
 
 def check_file_structure(path_to_check: str) -> bool:
     """
-    检查指定路径的文件结构是否与GT结构匹配
+    Check if the file structure of the specified path matches the GT structure
     
     Args:
-        path_to_check: 要检查的目录路径
+        path_to_check: the path of the directory to check
         
     Returns:
-        bool: True表示结构匹配，False表示不匹配
+        bool: True if the structure matches, False if the structure does not match
     """
     if not os.path.exists(path_to_check):
-        print(f"❌ 错误: 路径不存在 - {path_to_check}")
+        print(f"❌ Error: path does not exist - {path_to_check}")
         return False
     
-    print(f"🔍 正在检查: {path_to_check}")
-    print(f"📊 GT结构包含 {len(GT_STRUCTURE['directories'])} 个目录和 {len(GT_STRUCTURE['files'])} 个文件")
+    print(f"🔍 Checking: {path_to_check}")
+    print(f"📊 GT structure contains {len(GT_STRUCTURE['directories'])} directories and {len(GT_STRUCTURE['files'])} files")
     print()
     
-    # 扫描实际目录结构
+    # Scan the actual directory structure
     actual_structure = scan_directory_structure(path_to_check)
     
-    # 比较结构
+    # Compare the structure
     is_match, comparison_result = compare_structures(actual_structure, GT_STRUCTURE)
     
-    # 打印结果
+    # Print the result
     print_comparison_result(comparison_result)
     
     return is_match
@@ -308,14 +308,14 @@ def check_file_structure(path_to_check: str) -> bool:
 
 def run_check_local(agent_workspace: str, groundtruth_workspace: str) -> tuple[bool, str]:
     """
-    运行本地检查的包装函数
+    Wrapper function for running local check
     
     Args:
-        agent_workspace: agent工作空间路径
-        groundtruth_workspace: 真实结果工作空间路径（未使用）
+        agent_workspace: agent workspace path
+        groundtruth_workspace: groundtruth workspace path (not used)
         
     Returns:
-        tuple: (是否通过检查, 错误信息)
+        tuple: (whether the check passes, error message)
     """
     if not agent_workspace:
         return False, "Agent workspace path is required"
@@ -332,17 +332,17 @@ def run_check_local(agent_workspace: str, groundtruth_workspace: str) -> tuple[b
 
 def main():
     """
-    主函数 - 处理命令行参数并执行检查
+    Main function - handle command line arguments and execute check
     """
     if len(sys.argv) != 2:
-        print("用法错误: python check_local.py <目录路径>")
-        print("示例: python check_local.py /path/to/workspace")
+        print("Usage error: python check_local.py <directory path>")
+        print("Example: python check_local.py /path/to/workspace")
         sys.exit(1)
     
     path_to_check = sys.argv[1]
     is_match = check_file_structure(path_to_check)
     
-    # 根据匹配结果设置退出码
+    # Set the exit code based on the matching result
     sys.exit(0 if is_match else 1)
 
 

@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-"""
-检查Google Sheets库存更新的评估脚本
-"""
+
 
 import os
 import sys
@@ -9,7 +7,6 @@ import json
 import logging
 from typing import Dict, List, Tuple, Optional
 
-# 添加preprocess路径以导入客户端
 current_dir = os.path.dirname(os.path.abspath(__file__))
 preprocess_dir = os.path.join(os.path.dirname(current_dir), 'preprocess')
 sys.path.insert(0, preprocess_dir)
@@ -75,7 +72,6 @@ def check_sheets_inventory_updates(spreadsheet_id: str, expected_final_inventory
         return False, {'error': 'GoogleSheetsClient not available'}
     
     try:
-        # 初始化Google Sheets客户端
         sheets_client = GoogleSheetsClient()
         if not sheets_client.authenticate():
             return False, {'error': 'Google Sheets authentication failed'}

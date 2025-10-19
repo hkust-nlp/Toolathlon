@@ -1,4 +1,4 @@
-# 谷歌表格
+# Google Sheet
 # https://github.com/xing5/mcp-google-sheets
 type: stdio
 name: google_sheet
@@ -10,5 +10,6 @@ params:
     CREDENTIALS_PATH: "${token.google_oauth2_credentials_path}"
     TOKEN_PATH: "${token.google_oauth2_token_path}"
     DRIVE_FOLDER_ID: "${token.google_sheets_folder_id}"
+  # cwd: "${agent_workspace}" # do not add this for compatibility
 client_session_timeout_seconds: 60
 cache_tools_list: true

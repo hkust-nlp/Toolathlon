@@ -29,7 +29,7 @@ async def main():
 
     print_color("Setting up Kubernetes cluster successfully!","green")
 
-    # 删掉agent_workspace下的k8s_configs
+    # Delete k8s_configs under agent_workspace
     shutil.rmtree(os.path.join(args.agent_workspace, "k8s_configs"))
     print_color("Deleted local k8s_configs successfully! We will only use the k8s mcp in this task!","green")
 

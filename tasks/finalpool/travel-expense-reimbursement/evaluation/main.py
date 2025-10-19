@@ -27,7 +27,7 @@ def main():
 
     expense_claims = read_json(os.path.join(args.groundtruth_workspace, "expense_claims.json"))
 
-    # part 1 构建三类数据
+    # part 1 Build three types of data
     goto_db_items = []
     form_error_items = []
     only_policy_violation_items = []
@@ -43,11 +43,11 @@ def main():
                 only_policy_violation_items.append(claim)
         employee_email_to_manager_email[claim['employee_email']] = claim['manager_email']
 
-    # 对每一类数据进行检查
+    # Check each type of data
 
-    # part 2 需入库数据
+    # part 2 Data to be stored in the database
     num_goto_db_items = len(goto_db_items)
-    # 检查{DB_NAME}.{SCHEMA_NAME}.{EXPENSE_TABLE_NAME}表的行数, 应该和num_goto_db_items一致
+    # Check the row count of the {DB_NAME}.{SCHEMA_NAME}.{EXPENSE_TABLE_NAME} table, it should be consistent with num_goto_db_items
     table_fq = fq_table_name(DB_NAME, SCHEMA_NAME, EXPENSE_TABLE_NAME)
     try:
         db_count = get_table_row_count(DB_NAME, SCHEMA_NAME, EXPENSE_TABLE_NAME)
@@ -60,16 +60,16 @@ def main():
         print_color(f"[ERROR] Failed to check row count: {e}", "red")
         return False
 
-    # 如果通过行数检查
-    # 则检查每一行数据
+    # If the row count check passes, check each row of data
+    # Then check each row of data
     for claim in goto_db_items:
         flag = 1 if len(claim['_policy_violations']) > 0 else 0
-        # 加上FLAG之后，应该有12，分别是:
+        # After adding FLAG, there should be 12 fields:
         # CLAIM_ID, DEPARTMENT, DEST_CITY, DEST_COUNTRY, EMPLOYEE_ID, EMPLOYEE_NAME, FLAG, ID, NIGHTS, TOTAL_CLAIMED, TRIP_END, TRIP_START
-        # 在claim里应该除了flag都已经有了，都是小写版本的key
-        # 我们就要找到除了ID以外，其他字段组成的这一行是不是在{DB_NAME}.{SCHEMA_NAME}.{EXPENSE_TABLE_NAME}表中
-        # 如果不在，则说明有错误
-        # 如果存在，则通过
+        # In claim, all fields except flag should already exist, all keys are lowercase
+        # We need to find if the row consisting of other fields is in the {DB_NAME}.{SCHEMA_NAME}.{EXPENSE_TABLE_NAME} table
+        # If not, then there is an error
+        # If exists, then pass
         where_parts = []
         where_parts.append(f"CLAIM_ID = '{escape_sql_literal(claim['claim_id'])}'")
         where_parts.append(f"DEPARTMENT = '{escape_sql_literal(claim.get('department',''))}'")
@@ -95,7 +95,7 @@ def main():
             return False
     print_color("[PASS] All rows validated in database", "green")
     
-    # part 2.5 通讯录数据一致性检查
+    # part 2.5 Check the consistency of the contacts data
     contacts_table_fq = fq_table_name(DB_NAME, SCHEMA_NAME, TABLE_NAME)
     try:
         contacts_groundtruth = read_json(os.path.join(args.groundtruth_workspace, "enterprise_contacts.json"))
@@ -139,8 +139,8 @@ def main():
             return False
     print_color("[PASS] All contacts validated in database", "green")
 
-    # part 3 简化版邮件检测
-    # 1) 构造所有需要存在的邮件（精确主题 + TO 员工 + CC 经理）
+    # part 3 Simplified email detection
+    # 1) Construct all emails that need to exist (exact subject + TO employee + CC manager)
     expected_emails = []
     for claim in only_policy_violation_items:
         expected_emails.append({
@@ -157,10 +157,10 @@ def main():
             'subject_lower': f"expense claim review required: {str(claim['claim_id']).lower()}"
         })
 
-    # 2) 取发件箱全部邮件（不再按地址过滤）
+    # 2) Take all emails from the sender's inbox (no longer filter by address)
     sent_msgs = find_sent_emails(sender_config)
 
-    # 3) 先匹配并消耗所有“需要的”邮件
+    # 3) First match and consume all "needed" emails
     id_to_msg = {m['id']: m for m in sent_msgs}
     remaining_ids = set(id_to_msg.keys())
 
@@ -178,11 +178,11 @@ def main():
             return False
         remaining_ids.remove(matched_id)
 
-    # 4) 若还有剩余触达受监控地址的邮件，则为多余 → 失败
+    # 4) If there are any remaining emails reaching the monitored addresses, they are extra → failure
     if remaining_ids:
         extra = [id_to_msg[mid] for mid in remaining_ids]
         print_color(f"[FAIL] Extra unexpected email(s) found: {len(extra)}", "red")
-        # 打印最多前三条便于调试
+        # Print the first three for debugging
         for i, em in enumerate(extra[:3]):
             print_color(f"  - Extra[{i+1}] subject='{em.get('subject','')}', to='{em.get('to','')}', cc='{em.get('cc','')}'", "blue")
         return False

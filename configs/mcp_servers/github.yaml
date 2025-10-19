@@ -1,4 +1,4 @@
-# GitHub API 集成
+# GitHub API integration
 # https://github.com/modelcontextprotocol/servers/tree/main/src/github
 # make sure you have podman or docker when using this server
 # type: stdio
@@ -29,5 +29,6 @@ params:
     GITHUB_PERSONAL_ACCESS_TOKEN: "${token.github_token}" 
     GITHUB_ALLOWED_REPOS: "${token.github_allowed_repos}" # to control the access to specific repos
     GITHUB_READ_ONLY: "${token.github_read_only}" # to control whether to ban write
+  # cwd: "${agent_workspace}" # do not add this for compatibility
 client_session_timeout_seconds: 50
 cache_tools_list: true

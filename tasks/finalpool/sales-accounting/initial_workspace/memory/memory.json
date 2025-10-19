@@ -26,3 +26,8 @@
 {"type": "relation", "from": "Transaction005", "to": "Liu Qi", "relationType": "Customer"}
 {"type": "relation", "from": "Transaction005", "to": "AirPods Pro", "relationType": "Product"}
 {"type": "relation", "from": "Liu Qi", "to": "AirPods Pro", "relationType": "Purchase"}
+{"type": "entity", "name": "Zhang San", "entityType": "Customer", "observations": ["Regular customer", "Purchased one iPhone 15 Pro unit", "Paid 9999 yuan"]}
+{"type": "entity", "name": "Transaction006", "entityType": "Sales Transaction", "observations": ["Date 2024-01-16", "Product iPhone 15 Pro", "Quantity 1", "Customer Zhang San", "Amount 9999 yuan"]}
+{"type": "relation", "from": "Transaction006", "to": "Zhang San", "relationType": "Customer"}
+{"type": "relation", "from": "Transaction006", "to": "iPhone 15 Pro", "relationType": "Product"}
+{"type": "relation", "from": "Zhang San", "to": "iPhone 15 Pro", "relationType": "Purchase"}

@@ -8,7 +8,7 @@ from pathlib import Path
 import json
 
 def get_project_id_from_key(credentials_path: str) -> str | None:
-    """从服务账号密钥文件中读取项目ID"""
+    """Read project_id from service account key file"""
     try:
         with open(credentials_path, 'r') as f:
             data = json.load(f)
@@ -17,78 +17,76 @@ def get_project_id_from_key(credentials_path: str) -> str | None:
         return None
 
 def setup_bigquery_client(credentials_file: str = None):
-    """设置 BigQuery 客户端"""
+    """Setup BigQuery client"""
     if credentials_file:
         credentials_path = Path(credentials_file)
-
         # Make sure the path is absolute
         if not credentials_path.is_absolute():
             credentials_path = Path.cwd() / credentials_path
 
         if not credentials_path.exists():
-            print(f"❌ 错误：凭证文件不存在: {credentials_path}")
-            raise FileNotFoundError(f"凭证文件不存在: {credentials_path}")
+            print(f"❌ Error: Credentials file does not exist: {credentials_path}")
+            raise FileNotFoundError(f"Credentials file does not exist: {credentials_path}")
 
-        print(f"✅ 使用凭证文件: {credentials_path}")
+        print(f"✅ Using credentials file: {credentials_path}")
 
         project_id = get_project_id_from_key(str(credentials_path))
         if not project_id:
-            print(f"❌ 无法从凭证文件中读取项目ID")
-            raise ValueError("无法从凭证文件中读取项目ID")
+            print(f"❌ Cannot read project_id from credentials file")
+            raise ValueError("Cannot read project_id from credentials file")
 
         credentials = service_account.Credentials.from_service_account_file(str(credentials_path))
         client = bigquery.Client(credentials=credentials, project=project_id)
-        print(f"✅ 连接到 BigQuery 项目: {project_id}")
+        print(f"✅ Connected to BigQuery project: {project_id}")
         return client
     else:
         # Try to use default credentials (for local development or if ADC is set up)
         try:
             client = bigquery.Client()
-            print("✅ 使用默认凭证连接 BigQuery")
+            print("✅ Using default credentials to connect to BigQuery")
             return client
         except Exception as e:
-            print(f"❌ 无法连接 BigQuery：{e}")
-            print("请提供凭证文件或设置 Application Default Credentials")
+            print(f"❌ Failed to connect to BigQuery: {e}")
+            print("Please provide a credentials file or set Application Default Credentials")
             raise
 
 async def verify_daily_leaderboard(client: bigquery.Client, today_str: str):
     """
-    验证每日排行榜生成：
-    1. 检查 leaderboard_YYYYMMDD 表是否存在
-    2. 确认包含100条记录
-    3. 验证记录按分数降序排列
-    4. 验证排行榜中的玩家是否真的是当天分数最高的100人
-    5. 验证排行榜中的分数是否与原始数据一致
+    Verify daily leaderboard:
+    1. Check if leaderboard_YYYYMMDD table exists
+    2. Confirm it contains 100 records
+    3. Verify that records are sorted by score descending
+    4. Check that the leaderboard contains the true top 100 players of the day
+    5. Verify leaderboard scores match original data
     """
-    print(f"🔍 验证 {today_str} 的每日排行榜...")
+    print(f"🔍 Verifying daily leaderboard for {today_str}...")
     
     table_name = f"leaderboard_{today_str.replace('-', '')}"
     
     try:
-        # First check if table exists and has required columns
+        # Check if table exists and has required columns
         try:
             table_id = f"game_analytics.{table_name}"
             try:
                 table = client.get_table(table_id)
                 schema_fields = [field.name.lower() for field in table.schema]
 
-                # Check if required fields exist
                 required_fields = ['player_id', 'total_score', 'rank']
                 missing_fields = [field for field in required_fields if field not in schema_fields]
 
                 if missing_fields:
-                    print(f"❌ 排行榜表 {table_name} 缺少必需字段: {missing_fields}")
-                    print("   任务要求表必须包含 player_id, total_score, rank 三个字段")
+                    print(f"❌ Leaderboard table {table_name} is missing required fields: {missing_fields}")
+                    print("   Table must contain player_id, total_score, and rank fields.")
                     return False
             except NotFound:
-                print(f"❌ 排行榜表 {table_name} 不存在")
+                print(f"❌ Leaderboard table {table_name} does not exist")
                 return False
                     
         except Exception as e:
-            print(f"❌ 无法检查表 {table_name} 的结构: {e}")
+            print(f"❌ Failed to check schema of table {table_name}: {e}")
             return False
         
-        # Query the leaderboard table with required rank field
+        # Query the leaderboard table
         query = f"""
             SELECT player_id, total_score, rank
             FROM `game_analytics.{table_name}`
@@ -107,33 +105,32 @@ async def verify_daily_leaderboard(client: bigquery.Client, today_str: str):
             })
 
         if len(leaderboard_results) == 0:
-            print(f"❌ 排行榜表 {table_name} 不存在或为空")
+            print(f"❌ Leaderboard table {table_name} does not exist or is empty")
             return False
         
-        # Check if we have exactly 100 records
+        # Check for exactly 100 records
         if len(leaderboard_results) != 100:
-            print(f"❌ 排行榜应包含100条记录，实际有 {len(leaderboard_results)} 条")
+            print(f"❌ Leaderboard must contain 100 records, but found {len(leaderboard_results)} rows")
             return False
         
-        # Verify records are sorted by score (descending)
+        # Check records are sorted by score descending
         for i in range(len(leaderboard_results) - 1):
             current_score = leaderboard_results[i]['total_score']
             next_score = leaderboard_results[i + 1]['total_score']
             if current_score < next_score:
-                print(f"❌ 排行榜排序错误：第{i+1}名分数({current_score}) < 第{i+2}名分数({next_score})")
+                print(f"❌ Sorting error: rank {i+1} score({current_score}) < rank {i+2} score({next_score})")
                 return False
         
-        # Verify rank numbers are consecutive 1-100
+        # Check rank numbers are consecutive 1-100
         for i, record in enumerate(leaderboard_results):
             expected_rank = i + 1
             if record['rank'] != expected_rank:
-                print(f"❌ 排名错误：期望第{expected_rank}名，实际为第{record['rank']}名")
+                print(f"❌ Rank mismatch: expected {expected_rank}, got {record['rank']}")
                 return False
         
-        # NEW: Verify against daily_scores_stream original data
-        print("🔍 验证排行榜数据与原始数据的一致性...")
+        # Verify against daily_scores_stream source data
+        print("🔍 Checking leaderboard consistency with original data...")
         
-        # Query daily_scores_stream to get actual top 100 players
         daily_query = f"""
             SELECT
                 player_id,
@@ -156,74 +153,74 @@ async def verify_daily_leaderboard(client: bigquery.Client, today_str: str):
             })
 
         if len(daily_top100) == 0:
-            print(f"❌ 无法解析每日分数查询结果 - 未找到有效的数据行")
+            print(f"❌ No valid rows found in original top 100 player query")
             return False
             
         if len(daily_top100) != 100:
-            print(f"❌ 从原始数据查询到的top100玩家数量不正确：{len(daily_top100)}")
+            print(f"❌ Incorrect number of top 100 players from original data: {len(daily_top100)}")
             return False
         
-        # Verify that leaderboard contains exactly the same top 100 players with correct scores
+        # Check leaderboard and actual top100 are identical (by player and score)
         leaderboard_dict = {record['player_id']: record['total_score'] for record in leaderboard_results}
         daily_dict = {record['player_id']: record['total_score'] for record in daily_top100}
         
-        # Check if all top 100 players from daily data are in leaderboard
+        # Check for missing top 100 players
         missing_players = []
         for player_id in daily_dict:
             if player_id not in leaderboard_dict:
                 missing_players.append(player_id)
         
         if missing_players:
-            print(f"❌ 排行榜缺少真正的top100玩家：{missing_players[:10]}{'...' if len(missing_players) > 10 else ''}")
+            print(f"❌ Missing top 100 players from leaderboard: {missing_players[:10]}{'...' if len(missing_players) > 10 else ''}")
             return False
         
-        # Check if leaderboard has any players not in actual top 100
+        # Check for extra players in leaderboard not in actual top 100
         extra_players = []
         for player_id in leaderboard_dict:
             if player_id not in daily_dict:
                 extra_players.append(player_id)
         
         if extra_players:
-            print(f"❌ 排行榜包含非top100玩家：{extra_players[:10]}{'...' if len(extra_players) > 10 else ''}")
+            print(f"❌ Leaderboard contains players not in true top 100: {extra_players[:10]}{'...' if len(extra_players) > 10 else ''}")
             return False
         
-        # Verify scores match exactly
+        # Check all scores match exactly
         score_mismatches = []
         for player_id in daily_dict:
             daily_score = daily_dict[player_id]
             leaderboard_score = leaderboard_dict[player_id]
             if daily_score != leaderboard_score:
-                score_mismatches.append(f"玩家{player_id}: 原始分数={daily_score}, 排行榜分数={leaderboard_score}")
+                score_mismatches.append(f"Player {player_id}: original score={daily_score}, leaderboard score={leaderboard_score}")
         
         if score_mismatches:
-            print("❌ 排行榜分数与原始数据不一致:")
+            print("❌ Score mismatches between leaderboard and original data:")
             for mismatch in score_mismatches[:10]:
                 print(f"   {mismatch}")
             if len(score_mismatches) > 10:
-                print(f"   ... 还有 {len(score_mismatches) - 10} 个分数不匹配项")
+                print(f"   ... {len(score_mismatches) - 10} more mismatches")
             return False
         
-        print(f"✅ 每日排行榜完整验证通过：")
-        print(f"   - {len(leaderboard_results)}条记录，正确排序")
-        print(f"   - 包含真正的top100玩家")
-        print(f"   - 所有分数与原始数据一致")
+        print(f"✅ Daily leaderboard validation PASSED:")
+        print(f"   - {len(leaderboard_results)} records, sorted correctly")
+        print(f"   - All true top 100 players included")
+        print(f"   - All scores match original data")
         return True
         
     except Exception as e:
-        print(f"❌ 查询排行榜表失败: {e}")
+        print(f"❌ Failed to query leaderboard table: {e}")
         return False
     except Exception as e:
-        print(f"❌ 验证排行榜时出错: {e}")
+        print(f"❌ Error verifying leaderboard: {e}")
         return False
 
 async def verify_historical_data_integrity(client: bigquery.Client, today_str: str):
     """
-    验证历史数据完整性：
-    1. 检查时间序列的连续性和正确性
-    2. 验证数据没有被意外删改
-    3. 确保历史数据记录完整
+    Verify historical data integrity:
+    1. Check for continuous and correct date sequence
+    2. Verify data hasn't been accidentally deleted or mutated
+    3. Ensure records are complete for historical days
     """
-    print(f"🔍 验证历史数据完整性...")
+    print(f"🔍 Verifying historical data integrity...")
 
     try:
         # Check temporal sequence and data integrity
@@ -256,14 +253,15 @@ async def verify_historical_data_integrity(client: bigquery.Client, today_str: s
         integrity_results = list(integrity_job.result())
 
         if not integrity_results:
-            print("❌ 无法获取历史数据完整性信息")
+            print("❌ Unable to fetch historical integrity information")
             return False
 
-        print(f"📊 历史数据完整性检查结果：")
+        print(f"📊 Historical data integrity check results:")
 
-        # Verify expected historical data pattern
+        # Expected pattern
         expected_days = 10
-        expected_players_per_day = 100
+        expected_players_per_day = 100  # Historical days
+        expected_players_today = 200  # Today's record count
 
         issues = []
 
@@ -273,48 +271,49 @@ async def verify_historical_data_integrity(client: bigquery.Client, today_str: s
             unique_players = row['unique_players']
             day_gap = row['day_gap']
 
-            print(f"   日期: {date_str}, 记录数: {record_count}, 独立玩家: {unique_players}")
+            print(f"   Date: {date_str}, rows: {record_count}, unique players: {unique_players}")
 
-            # Check record count per day
-            if record_count != expected_players_per_day:
-                issues.append(f"日期 {date_str}: 记录数异常 (期望{expected_players_per_day}, 实际{record_count})")
+            if date_str == today_str:
+                if record_count != expected_players_today:
+                    issues.append(f"Date {date_str}: Today's record count abnormal (expected {expected_players_today}, got {record_count})")
+            else:
+                if record_count != expected_players_per_day:
+                    issues.append(f"Date {date_str}: Historical record count abnormal (expected {expected_players_per_day}, got {record_count})")
 
-            # Check unique players count
             if unique_players != record_count:
-                issues.append(f"日期 {date_str}: 玩家ID重复 (记录{record_count}, 独立玩家{unique_players})")
+                issues.append(f"Date {date_str}: Player ID not unique (rows {record_count}, unique {unique_players})")
 
-            # Check temporal sequence (skip first record)
             if i > 0 and day_gap is not None and day_gap != 1:
-                issues.append(f"日期 {date_str}: 时间序列不连续 (间隔{day_gap}天)")
+                issues.append(f"Date {date_str}: Non-continuous date sequence (gap {day_gap} days)")
 
-        # Check total number of historical days
+        # Check number of days
         if len(integrity_results) < expected_days:
-            issues.append(f"历史数据天数不足 (期望{expected_days}天, 实际{len(integrity_results)}天)")
+            issues.append(f"Insufficient number of historical days (expected {expected_days}, got {len(integrity_results)})")
 
         if issues:
-            print("❌ 历史数据完整性检查发现问题：")
+            print("❌ Issues found during historical integrity check:")
             for issue in issues:
                 print(f"   - {issue}")
             return False
 
-        print("✅ 历史数据完整性检查通过")
+        print("✅ Historical data integrity check PASSED")
         return True
 
     except Exception as e:
-        print(f"❌ 验证历史数据完整性失败: {e}")
+        print(f"❌ Failed to verify historical data integrity: {e}")
         return False
 
 async def verify_historical_stats_update(client: bigquery.Client, today_str: str):
     """
-    验证历史数据更新：
-    1. 查询 player_historical_stats 表中当日的所有记录
-    2. 与 daily_scores_stream 中的原始数据进行比较
-    3. 验证每个玩家的数据是否正确完整插入
+    Verify update of historical stats:
+    1. Query all records for today in player_historical_stats
+    2. Compare with data in daily_scores_stream
+    3. Check all player stats are accurately inserted
     """
-    print(f"🔍 验证 {today_str} 的历史统计数据更新...")
+    print(f"🔍 Verifying historical stats update for {today_str}...")
 
     try:
-        # Query historical stats for today
+        # Query today's historical stats
         historical_query = f"""
             SELECT player_id, total_score, game_count
             FROM `game_analytics.player_historical_stats`
@@ -334,7 +333,7 @@ async def verify_historical_stats_update(client: bigquery.Client, today_str: str
             })
 
         if len(historical_stats) == 0:
-            print(f"❌ 历史统计表中没有 {today_str} 的数据")
+            print(f"❌ No historical stats found for {today_str}")
             return False
         
         # Query daily scores to verify aggregation
@@ -361,126 +360,123 @@ async def verify_historical_stats_update(client: bigquery.Client, today_str: str
             })
 
         if len(daily_aggregated) == 0:
-            print(f"❌ 无法解析每日分数查询结果 - 未找到有效的数据行")
+            print(f"❌ No valid records in daily scores aggregation query")
             return False
         
         # Compare results
         if len(historical_stats) != len(daily_aggregated):
-            print(f"❌ 历史统计记录数({len(historical_stats)}) 与每日聚合数据({len(daily_aggregated)})不一致")
+            print(f"❌ Hist stats record count ({len(historical_stats)}) != daily aggregation ({len(daily_aggregated)})")
             return False
         
-        # Create lookup dictionaries for comparison
+        # Create lookup dicts for comparison
         historical_dict = {record['player_id']: record for record in historical_stats}
         daily_dict = {record['player_id']: record for record in daily_aggregated}
         
-        # Verify each player's data
         mismatches = []
         for player_id in daily_dict:
             if player_id not in historical_dict:
-                mismatches.append(f"玩家 {player_id} 在历史统计中缺失")
+                mismatches.append(f"Player {player_id} missing in historical stats")
                 continue
                 
             daily_data = daily_dict[player_id]
             historical_data = historical_dict[player_id]
             
             if daily_data['total_score'] != historical_data['total_score']:
-                mismatches.append(f"玩家 {player_id} 总分不匹配：每日聚合={daily_data['total_score']}, 历史统计={historical_data['total_score']}")
+                mismatches.append(f"Player {player_id} total_score mismatch: daily={daily_data['total_score']}, hist={historical_data['total_score']}")
                 
             if daily_data['game_count'] != historical_data['game_count']:
-                mismatches.append(f"玩家 {player_id} 游戏次数不匹配：每日聚合={daily_data['game_count']}, 历史统计={historical_data['game_count']}")
+                mismatches.append(f"Player {player_id} game_count mismatch: daily={daily_data['game_count']}, hist={historical_data['game_count']}")
         
         if mismatches:
-            print("❌ 历史统计数据验证失败:")
-            for mismatch in mismatches[:10]:  # Show first 10 mismatches
+            print("❌ Failed to verify historical stats update:")
+            for mismatch in mismatches[:10]:
                 print(f"   {mismatch}")
             if len(mismatches) > 10:
-                print(f"   ... 还有 {len(mismatches) - 10} 个不匹配项")
+                print(f"   ... {len(mismatches) - 10} more mismatches")
             return False
         
-        print(f"✅ 历史统计数据验证通过：{len(historical_stats)} 个玩家的数据正确更新")
+        print(f"✅ Historical stats update verification PASSED: {len(historical_stats)} player stats updated correctly")
         return True
         
     except Exception as e:
-        print(f"❌ 查询历史统计数据失败: {e}")
+        print(f"❌ Failed to query historical stats: {e}")
         return False
     except Exception as e:
-        print(f"❌ 验证历史统计数据时出错: {e}")
+        print(f"❌ Exception during historical stats verification: {e}")
         return False
 
 async def main(args):
-    """主评估函数"""
-    print("🎯 开始验证游戏统计任务...")
+    """Main evaluation function"""
+    print("🎯 Starting game statistics validation...")
 
-    # Setup BigQuery client with credentials
+    # Setup BigQuery client
     try:
         client = setup_bigquery_client(args.credentials_file)
     except Exception as e:
-        print(f"❌ BigQuery 客户端设置失败: {e}")
+        print(f"❌ Failed to setup BigQuery client: {e}")
         return 1
 
-    # Use launch_time parameter if provided, otherwise use current date
+    # Decide date to run
     if args.launch_time:
-        # 2025-09-17 01:59:33 Wednesday 格式
-        # 先去掉最后那个单词
+        # For format: 2025-09-17 01:59:33 Wednesday
+        # Drop the last word
         args.launch_time = " ".join(args.launch_time.split(" ")[:-1])
         try:
-            # Parse launch_time (assuming it's in YYYY-MM-DD format)
             launch_datetime = datetime.strptime(args.launch_time, '%Y-%m-%d')
             today_str = launch_datetime.strftime('%Y-%m-%d')
         except ValueError:
             try:
-                # Try YYYY-MM-DD HH:MM:SS format
                 launch_datetime = datetime.strptime(args.launch_time, '%Y-%m-%d %H:%M:%S')
                 today_str = launch_datetime.strftime('%Y-%m-%d')
             except ValueError:
-                print(f"❌ 无法解析 launch_time 参数: {args.launch_time}")
-                print("   支持的格式: YYYY-MM-DD 或 YYYY-MM-DD HH:MM:SS")
+                print(f"❌ Could not parse launch_time argument: {args.launch_time}")
+                print("   Supported formats: YYYY-MM-DD or YYYY-MM-DD HH:MM:SS")
                 return 1
     else:
         from datetime import date
         today = date.today()
         today_str = today.strftime('%Y-%m-%d')
 
-    print(f"📅 验证日期: {today_str}")
+    print(f"📅 Date to validate: {today_str}")
     print("=" * 60)
 
     # Run core verification tasks
     verification_results = []
 
-    # 1. Verify historical data integrity first
-    print("🗺️  步骤1: 验证历史数据完整性")
+    # 1. Historical data integrity
+    print("🗺️  Step 1: Historical Data Integrity")
     integrity_success = await verify_historical_data_integrity(client, today_str)
     verification_results.append(("Historical Data Integrity", integrity_success))
 
-    # 2. Verify daily leaderboard
-    print("\n🏆 步骤2: 验证每日排行榜")
+    # 2. Daily leaderboard
+    print("\n🏆 Step 2: Daily Leaderboard")
     leaderboard_success = await verify_daily_leaderboard(client, today_str)
     verification_results.append(("Daily Leaderboard", leaderboard_success))
 
-    # 3. Verify historical stats update
-    print("\n🗃️  步骤3: 验证历史统计更新")
+    # 3. Historical stats update
+    print("\n🗃️  Step 3: Historical Stats Update")
     historical_success = await verify_historical_stats_update(client, today_str)
     verification_results.append(("Historical Stats Update", historical_success))
 
-    # Summary of results
+    # Summary
     print("\n" + "=" * 60)
-    print("📄 验证结果总结:")
+    print("📄 Validation Results Summary:")
     print("=" * 60)
 
     all_passed = True
     for test_name, passed in verification_results:
-        status = "✅ 通过" if passed else "❌ 失败"
+        status = "✅ PASSED" if passed else "❌ FAILED"
         print(f"   {test_name}: {status}")
         if not passed:
             all_passed = False
 
     print("\n" + "=" * 60)
     if all_passed:
-        print("🎉 所有验证通过！游戏统计任务完成。")
+        print("🎉 All validations passed! Game statistics task complete.")
         return 0
     else:
         failed_count = sum(1 for _, passed in verification_results if not passed)
-        print(f"❌ {failed_count}/{len(verification_results)} 项验证失败，请检查任务执行情况。")
+        print(f"❌ {failed_count}/{len(verification_results)} validations failed. Please check your task execution.")
         return 1
 
 if __name__ == "__main__":

@@ -2,75 +2,75 @@
 
 ## Overview
 
-这个目录包含了完整的 Canvas LMS 管理工具集
+This directory contains a comprehensive set of tools for managing Canvas LMS.
 
-## 工具列表
+## Tool List
 
 ### 1. Assignment Manager (`assignment_manager.py`)
-**功能**: 全面的作业管理工具
-- ✅ 从 Markdown 文件创建作业
-- ✅ 批量作业创建
-- ✅ 作业发布管理
-- ✅ 向学生发送私信
-- ✅ 获取对话历史记录
+**Features:** Comprehensive assignment management
+- ✅ Create assignments from Markdown files
+- ✅ Bulk assignment creation
+- ✅ Manage assignment publishing
+- ✅ Send private messages to students
+- ✅ Retrieve conversation history
 
-**使用方法**:
+**Usage:**
 ```bash
-# 作为模块运行
+# Run as a module
 python -m utils.app_specific.canvas.tools.assignment_manager --course-id 59 --create-assignments --md-dir assignments/
 
-# 直接运行（需要在项目根目录）
-python utils/app_specific/canvas/tools/assignment_manager.py --course-id 59 --message-students --subject "Welcome" --body "欢迎加入课程！"
+# Run directly (must be run from the project root)
+python utils/app_specific/canvas/tools/assignment_manager.py --course-id 59 --message-students --subject "Welcome" --body "Welcome to the course!"
 ```
 
 ### 2. Course Manager (`course_manager.py`)
-**功能**: 综合课程管理工具
-- ✅ 创建课程
-- ✅ 列出所有课程
-- ✅ 删除/结束课程
-- ✅ 发布/取消发布课程
-- ✅ 获取课程详细信息
+**Features:** Comprehensive course management
+- ✅ Create new courses
+- ✅ List all courses
+- ✅ Delete/end courses
+- ✅ Publish/unpublish courses
+- ✅ Retrieve course details
 
-**使用方法**:
+**Usage:**
 ```bash
-# 列出所有课程
+# List all courses
 python -m utils.app_specific.canvas.tools.course_manager --list-courses
 
-# 创建新课程
-python -m utils.app_specific.canvas.tools.course_manager --create-course --name "新课程" --code "NEW101" --publish
+# Create a new course
+python -m utils.app_specific.canvas.tools.course_manager --create-course --name "New Course" --code "NEW101" --publish
 ```
 
 ### 3. Course Initializer (`initialize_course.py`)
-**功能**: 快速课程初始化工具
-- ✅ 一键创建完整课程
-- ✅ 自动添加教师
-- ✅ 批量注册学生
-- ✅ 课程发布
+**Features:** Rapid course initialization
+- ✅ One-click full course creation
+- ✅ Auto-add teachers
+- ✅ Bulk student registration
+- ✅ Publish course
 
-**使用方法**:
+**Usage:**
 ```bash
-# 创建课程并添加前5个学生
-python -m utils.app_specific.canvas.tools.initialize_course --name "Python编程" --code "PY101" --csv student_list.csv --limit 5
+# Create a course and add the first 5 students from CSV
+python -m utils.app_specific.canvas.tools.initialize_course --name "Python Programming" --code "PY101" --csv student_list.csv --limit 5
 ```
 
 ### 4. Course Cleanup (`delete_all_courses_auto.py`)
-**功能**: 批量删除课程工具
-- ✅ 自动删除所有课程
-- ✅ 支持自定义URL和Token
-- ✅ 详细的删除统计
+**Features:** Bulk course deletion
+- ✅ Automatically delete all courses
+- ✅ Support for custom URL and token
+- ✅ Detailed deletion statistics
 
-**使用方法**:
+**Usage:**
 ```bash
-# 删除所有课程（谨慎使用！）
+# Delete all courses (use with caution!)
 python -m utils.app_specific.canvas.tools.delete_all_courses_auto --url http://localhost:10001 --token mcpcanvasadmintoken1
 ```
 
-## 编程接口使用
+## Programming API Usage
 
-### 导入工具模块
+### Importing Tool Modules
 
 ```python
-# 导入主要的工具函数
+# Import main tool functions
 from utils.app_specific.canvas.tools import (
     assignment_manager_main,
     course_manager_main,
@@ -78,85 +78,85 @@ from utils.app_specific.canvas.tools import (
     delete_all_courses
 )
 
-# 直接使用 Canvas API
+# Use Canvas API directly
 from utils.app_specific.canvas import CanvasAPI, CourseInitializer
 
-# 初始化 API
+# Initialize the API
 canvas = CanvasAPI("http://localhost:10001", "mcpcanvasadmintoken1")
 initializer = CourseInitializer(canvas)
 
-# 快速创建课程
+# Quickly create a course
 course = initializer.initialize_course(
-    course_name="测试课程",
+    course_name="Test Course",
     course_code="TEST001", 
     csv_file_path="students.csv",
     student_limit=5
 )
 ```
 
-### 与 Canvas 任务集成
+### Integration with Canvas Tasks
 
-这些工具现在可以在所有 Canvas 相关任务中使用：
+These tools can now be used in all Canvas-related tasks:
 
 ```python
-# 在任何 Canvas 任务中
+# In any Canvas-related task
 from utils.app_specific.canvas import CanvasAPI, tools
 
-# 使用工具
+# Use tools
 canvas = CanvasAPI(url, token)
-# 可以直接使用所有功能，不需要本地副本
+# All features are available without local copies
 ```
 
-## 配置
+## Configuration
 
-所有工具都支持以下配置方式：
+All tools support the following configuration methods:
 
-1. **命令行参数**: `--url` 和 `--token`
-2. **默认值**: `http://localhost:10001` 和 `mcpcanvasadmintoken1`
-3. **配置文件**: 从 `token_key_session.py` 自动读取（向后兼容）
+1. **Command-line arguments**: `--url` and `--token`
+2. **Default values**: `http://localhost:10001` and `mcpcanvasadmintoken1`
+3. **Config file**: Automatically reads from `token_key_session.py` (for backward compatibility)
 
-## 与原始任务的兼容性
+## Backward Compatibility
 
-原始的 `canvas-notification-python` 任务中的文件现在都使用 utils 模块：
+Files from the original `canvas-notification-python` tasks now use the utils module:
 
 ```python
-# 原来的导入方式（已更新为 fallback）
+# Previous import method (now updated with fallback support)
 from utils.app_specific.canvas import CanvasAPI
-# 如果 utils 不可用，会fallback到本地 canvas_api.py
+# If the utils module is unavailable, local canvas_api.py will be used as fallback
 ```
 
-## 优势
+## Advantages
 
-### 1. **代码重用**
-- 所有 Canvas 任务共享同一套工具
-- 减少重复代码
-- 统一的 API 接口
+### 1. **Code Reuse**
+- All Canvas tasks share the same toolset
+- Less code duplication
+- Unified API interface
 
-### 2. **维护性**
-- 单一源代码管理
-- 更容易添加新功能
-- 集中的bug修复
+### 2. **Maintainability**
+- Single source code management
+- Easier to add new features
+- Centralized bug fixes
 
-### 3. **扩展性**
-- 可以轻松添加新工具
-- 支持多种使用模式
-- 模块化设计
+### 3. **Extensibility**
+- Easily add new tools
+- Supports multiple usage modes
+- Modular design
 
-### 4. **向后兼容**
-- 现有任务无需修改即可使用
-- Fallback 机制保证稳定性
-- 渐进式迁移支持
+### 4. **Backward Compatibility**
+- Existing tasks can use the new modules without modification
+- Fallback mechanism ensures stability
+- Supports gradual migration
 
-## 使用建议
+## Recommendations
 
-1. **新任务**: 直接从 `utils.app_specific.canvas` 导入
-2. **现有任务**: 已自动更新为使用 utils 模块，保持 fallback
-3. **命令行使用**: 推荐使用 `-m` 参数运行模块
-4. **开发**: 在 utils 中添加新功能，所有任务都能受益
+1. **New tasks:** Import directly from `utils.app_specific.canvas`
+2. **Existing tasks:** Already updated to use the utils module with fallback
+3. **Command-line usage:** Recommended to run modules with the `-m` flag
+4. **Development:** Add new features directly in utils for all tasks to benefit
 
-## 注意事项
+## Notes
 
-- ⚠️ **删除工具**: `delete_all_courses_auto.py` 会删除所有课程，使用时请谨慎
-- 🔧 **权限**: 确保使用的token有足够权限执行相关操作
-- 📁 **路径**: 运行工具时注意当前工作目录和文件路径
-- 🔗 **连接**: 确保 Canvas 服务器正在运行并可访问
+- ⚠️ **Deletion tool:** `delete_all_courses_auto.py` will delete all courses; use with caution
+- 🔧 **Permissions:** Ensure your token has sufficient permissions
+- 📁 **Paths:** Pay attention to current working directory and file paths when running tools
+- 🔗 **Connection:** Make sure the Canvas server is running and reachable

@@ -10,21 +10,24 @@ import subprocess
 import socket
 import pymysql
 import os
+
 task_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 KUBECONFIG_PATH = os.path.join(task_dir, "k8s_configs", "cluster-mysql-config.yaml")
 
 def normalize_str(s: str) -> str:
-    """去掉前后空格、双引号，压缩中间空格，并转为小写"""
+    """
+    Remove leading/trailing spaces and quotes, compress internal spaces, convert to lowercase.
+    """
     if s is None:
         return ""
-    # 去掉双引号
     s = s.strip().strip('"').strip("'")
-    # 压缩多余空格
     s = re.sub(r'\s+', ' ', s)
     return s.lower()
 
 def compare_csv(gt_path: str, target_path: str) -> bool:
-    """比较 target 是否与 gt 一致"""
+    """
+    Compare whether target CSV matches the groundtruth (first question).
+    """
     with open(gt_path, newline='', encoding='utf-8') as f_gt, \
          open(target_path, newline='', encoding='utf-8') as f_tg:
         gt_reader = csv.DictReader(f_gt)
@@ -34,29 +37,31 @@ def compare_csv(gt_path: str, target_path: str) -> bool:
         tg_rows = list(tg_reader)
 
     if len(gt_rows) != len(tg_rows):
-        print(f"行数不一致: gt={len(gt_rows)}, target={len(tg_rows)}")
+        print(f"Line count mismatch: gt={len(gt_rows)}, target={len(tg_rows)}")
         return False
 
     for i, (gt_row, tg_row) in enumerate(zip(gt_rows, tg_rows), start=1):
-        # year 必须严格相等（字符串对比即可）
+        # year must match exactly (string match)
         if gt_row['year'].strip() != tg_row['year'].strip():
-            print(f"第{i}行 year 不匹配: gt={gt_row['year']}, target={tg_row['year']}")
+            print(f"Line {i}: year mismatch: gt={gt_row['year']}, target={tg_row['year']}")
             return False
 
-        # driver 忽略大小写、空格、引号
+        # driver: ignore case, space, quotes
         if normalize_str(gt_row['driver']) != normalize_str(tg_row['driver']):
-            print(f"第{i}行 driver 不匹配: gt={gt_row['driver']}, target={tg_row['driver']}")
+            print(f"Line {i}: driver mismatch: gt={gt_row['driver']}, target={tg_row['driver']}")
             return False
 
-        # constructor 同上
+        # constructor: same as above
         if normalize_str(gt_row['constructor']) != normalize_str(tg_row['constructor']):
-            print(f"第{i}行 constructor 不匹配: gt={gt_row['constructor']}, target={tg_row['constructor']}")
+            print(f"Line {i}: constructor mismatch: gt={gt_row['constructor']}, target={tg_row['constructor']}")
             return False
 
     return True
 
 def compare_csv_for_second_question(gt_path: str, target_path: str) -> bool:
-    """比较 target 是否与 gt 一致"""
+    """
+    Compare whether target CSV matches the groundtruth (second question).
+    """
     with open(gt_path, newline='', encoding='utf-8') as f_gt, \
          open(target_path, newline='', encoding='utf-8') as f_tg:
         gt_reader = csv.DictReader(f_gt)
@@ -66,19 +71,20 @@ def compare_csv_for_second_question(gt_path: str, target_path: str) -> bool:
         tg_rows = list(tg_reader)
 
     if len(gt_rows) != len(tg_rows):
-        print(f"行数不一致: gt={len(gt_rows)}, target={len(tg_rows)}")
+        print(f"Line count mismatch: gt={len(gt_rows)}, target={len(tg_rows)}")
         return False
 
     for i, (gt_row, tg_row) in enumerate(zip(gt_rows, tg_rows), start=1):
-        # year 必须严格相等（字符串对比即可）
+        # compare driver_id strictly
         if gt_row['driver_id'].strip() != tg_row['driver_id'].strip():
-            print(f"第{i}行 driver_id 不匹配: gt={gt_row['driver_id']}, target={tg_row['driver_id']}")
+            print(f"Line {i}: driver_id mismatch: gt={gt_row['driver_id']}, target={tg_row['driver_id']}")
             return False
 
     return True
 
 def check_safe_connection(res_log_file):
-    """Check if port 30124 is actively forwarded to MySQL service by:
+    """
+    Check if port 30124 is actively forwarded to MySQL service by:
     1. Checking for active kubectl port-forward processes targeting port 30124
     2. Testing direct connectivity to localhost:30124
     3. Verifying MySQL connection using reader/mcpbench0606 credentials
@@ -202,7 +208,7 @@ if __name__ == "__main__":
     print("√ CSV file for the second question matches.")
     print("√√ CSV files for both questions match.")
 
-    # 检查安全连接
+    # Check safe connection
     if args.res_log_file:
         print("Checking safe connection...")
         safe_connection = check_safe_connection(args.res_log_file)

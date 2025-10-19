@@ -89,6 +89,8 @@ gcloud services enable distance-matrix-backend.googleapis.com # Distance Matrix 
 gcloud services enable mapsgrounding.googleapis.com      # Maps Grounding API
 gcloud services enable places-backend.googleapis.com     # Places API
 gcloud services enable routes.googleapis.com             # Routes API
+gcloud services enable geocoding-backend.googleapis.com                     # Geocoding API
+gcloud services enable elevation-backend.googleapis.com                     # Elevation API
 
 # Data and Document APIs
 echo "Enabling Data and Document APIs..."

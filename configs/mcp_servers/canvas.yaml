@@ -10,9 +10,10 @@ params:
   env:
     CANVAS_API_TOKEN: "${token.canvas_api_token}"
     CANVAS_DOMAIN: "${token.canvas_domain}"
-    # 跳过自签名证书检测，设置NODE_TLS_REJECT_UNAUTHORIZED=0
+    # skip self-signed certificate detection, set NODE_TLS_REJECT_UNAUTHORIZED=0
     NODE_TLS_REJECT_UNAUTHORIZED: "0"
-    # 如果你不需要加载自定义CA证书，可以注释掉下面这行
+    # if you don't need to load custom CA certificates, you can comment out the following line
     # NODE_EXTRA_CA_CERTS: "deployment/canvas/logs/cert.pem"
+  cwd: "${agent_workspace}"
 client_session_timeout_seconds: 10
 cache_tools_list: true

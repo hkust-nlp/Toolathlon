@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class UserRuntimeConfig:
-    """用户配置"""
+    """User configuration"""
     global_config: UserConfig
 
     starting_system_prompt: str
@@ -22,11 +22,11 @@ class UserRuntimeConfig:
     max_history: int = 50
 
     metadata: Optional[Dict[str, Any]] = None
-    track_costs: bool = True  # 是否追踪成本
+    track_costs: bool = True  # Whether to track costs
 
 @dataclass
 class UserCostTracker:
-    """用户成本追踪器"""
+    """User cost tracker"""
     total_cost: float = 0.0
     total_input_tokens: int = 0
     total_output_tokens: int = 0
@@ -34,13 +34,13 @@ class UserCostTracker:
     cost_by_model: Dict[str, Dict[str, float]] = field(default_factory=dict)
     
     def add_cost_report(self, report: CostReport):
-        """添加成本报告"""
+        """Add a cost report"""
         self.total_cost += report.total_cost
         self.total_input_tokens += report.input_tokens
         self.total_output_tokens += report.output_tokens
         self.cost_history.append(report)
         
-        # 按模型统计
+        # Track cost by model
         model = report.model
         if model not in self.cost_by_model:
             self.cost_by_model[model] = {
@@ -56,7 +56,7 @@ class UserCostTracker:
         self.cost_by_model[model]["count"] += 1
     
     def get_summary(self) -> Dict[str, Any]:
-        """获取成本摘要"""
+        """Get cost summary"""
         return {
             "total_cost": round(self.total_cost,4),
             "total_input_tokens": self.total_input_tokens,
@@ -67,7 +67,7 @@ class UserCostTracker:
         }
 
 class User:
-    """LLM 模拟的用户类，带成本追踪"""
+    """LLM-simulated user class with cost tracking"""
     
     def __init__(
         self, 
@@ -75,43 +75,42 @@ class User:
         user_config: UserRuntimeConfig
     ):
         """
-        初始化用户
+        Initialize user
         
         Args:
-            client: 外部传入的 OpenAI 客户端，用于共享并发控制
-            user_config: 用户配置
+            client: External OpenAI client for shared concurrency control
+            user_config: User configuration
         """
         self.client = client
         self.config = user_config
         self.user_id = user_config.user_id or self._generate_user_id()
         
-        # 初始化对话历史
+        # Initialize conversation history
         self.conversation_history: List[Message] = []
         
-        # 添加系统提示
+        # Add system prompt
         if self.config.starting_system_prompt:
             self._add_system_prompt(self.config.starting_system_prompt)
             logger.info(f"Created user {self.user_id} with system prompt: {self.config.starting_system_prompt[:50]}...")
         
-        # 用户状态
+        # User state
         self.is_initialized = False
         self.interaction_count = 0
         self.total_tokens_used = 0
         self.created_at = datetime.now()
         self.last_interaction_at = None
         
-        # 成本追踪
+        # Cost tracking
         self.cost_tracker = UserCostTracker() if self.config.track_costs else None
-        
-        
+    
     
     def _generate_user_id(self) -> str:
-        """生成用户ID"""
+        """Generate a user ID"""
         import uuid
         return f"user_{uuid.uuid4().hex[:8]}"
     
     def _add_system_prompt(self, prompt: str):
-        """添加系统提示到对话历史"""
+        """Add system prompt to conversation history"""
         system_message = Message.system(
             content=prompt,
             metadata={
@@ -121,7 +120,7 @@ class User:
         self.conversation_history.append(system_message)
     
     def _add_to_history(self, message: Message):
-        """添加消息到对话历史，并管理历史长度"""
+        """Add message to conversation history and manage history length"""
         message.update_metadata({
             "user_id": self.user_id,
             "interaction_count": self.interaction_count
@@ -129,23 +128,23 @@ class User:
         
         self.conversation_history.append(message)
         
-        # 保持系统消息并限制历史长度
+        # Keep system messages and limit history length
         if len(self.conversation_history) > self.config.max_history:
-            # 保留第一条系统消息
+            # Keep system messages
             system_messages = [msg for msg in self.conversation_history if msg.role == MessageRole.SYSTEM]
             other_messages = [msg for msg in self.conversation_history if msg.role != MessageRole.SYSTEM]
             
-            # 保留系统消息和最近的消息
+            # Keep system messages and most recent messages
             keep_count = self.config.max_history - len(system_messages)
             self.conversation_history = system_messages + other_messages[-keep_count:]
     
     def receive_message(self, content: str, metadata: Optional[Dict[str, Any]] = None) -> None:
         """
-        接收外部消息并添加到对话历史
+        Receive incoming message and add to conversation history
         
         Args:
-            content: 消息内容
-            metadata: 可选的元数据
+            content: Message content
+            metadata: Optional metadata
         """
         user_message = Message.user(
             content=content,
@@ -157,16 +156,18 @@ class User:
     
     def initialize_conversation(self) -> None:
         """
-        初始化对话
-        如果当前只有系统提示，添加一个初始用户消息
+        Initialize conversation.
+        If only system prompts exist, add an initial user message.
         """
-        # 检查是否只有系统消息
+        # Check if only system messages exist
         non_system_messages = [msg for msg in self.conversation_history if msg.role != MessageRole.SYSTEM]
         
         if not non_system_messages and not self.is_initialized:
             initial_message = Message.user(
-                content=random.choice(["Hi, what can I help you today?",
-                                       "您好，请问有什么我可以帮助您的吗？"]),
+                content=random.choice([
+                    "Hi, what can I help you today?",
+                    "Hello, is there anything I can help you with?"
+                ]),
                 metadata={
                     "message_type": "initialization",
                     "auto_generated": True
@@ -179,22 +180,22 @@ class User:
     
     async def interact(self, **kwargs) -> str:
         """
-        基于当前对话历史生成响应
+        Generate a response based on conversation history
         
         Args:
-            **kwargs: 传递给 chat_completion 的额外参数
+            **kwargs: additional params for chat_completion
         
         Returns:
-            生成的响应内容
+            Response content
         """
-        # 确保对话已初始化
+        # Ensure conversation is initialized
         if not self.is_initialized and len(self.conversation_history) <= 1:
             self.initialize_conversation()
         
-        # 准备消息列表
+        # Prepare message list
         messages = self._prepare_messages_for_api()
         
-        # 合并配置参数
+        # Merge config params
         request_params = {
             "temperature": self.config.global_config.generation.temperature,
             "max_tokens": self.config.global_config.generation.max_tokens,
@@ -203,15 +204,15 @@ class User:
         if self.config.global_config.model.short_name:
             request_params["model"] = self.config.global_config.model.short_name
         
-        # 覆盖任何传入的参数
+        # Override incoming params
         request_params.update(kwargs)
         
-        # 如果需要追踪成本，强制返回成本信息
+        # If tracking costs, force return_cost
         if self.config.track_costs and self.cost_tracker is not None:
             request_params["return_cost"] = True
         
         try:
-            # 调用 API
+            # Call API
             self.last_interaction_at = datetime.now()
             
             if request_params.get("return_cost", False):
@@ -219,7 +220,7 @@ class User:
                     messages,
                     **request_params
                 )
-                # 更新成本追踪
+                # Update cost tracking
                 if cost_report and self.cost_tracker:
                     self.cost_tracker.add_cost_report(cost_report)
                     self.total_tokens_used += cost_report.input_tokens + cost_report.output_tokens
@@ -235,7 +236,7 @@ class User:
                     **request_params
                 )
             
-            # 创建助手消息并添加到历史
+            # Create assistant message and add to history
             assistant_message = Message.assistant(
                 content=response,
                 metadata={
@@ -259,15 +260,15 @@ class User:
             raise
     
     def _prepare_messages_for_api(self) -> List[Dict[str, Any]]:
-        """准备用于 API 调用的消息列表"""
+        """Prepare messages for API call"""
         return [msg.to_api_dict() for msg in self.conversation_history]
     
     def get_total_cost(self) -> float:
-        """获取总成本"""
+        """Get total cost"""
         return self.cost_tracker.total_cost if self.cost_tracker else 0.0
     
     def get_cost_summary(self, detailed=False) -> Dict[str, Any]:
-        """获取详细的成本摘要"""
+        """Get detailed cost summary"""
         if not self.cost_tracker:
             return {
                 "tracking_enabled": False,
@@ -285,22 +286,22 @@ class User:
         summary["user_id"] = self.user_id
         summary["interaction_count"] = self.interaction_count
         
-        # 添加每次交互的平均成本
+        # Add average cost per interaction
         if self.interaction_count > 0:
             summary["average_cost_per_interaction"] = self.cost_tracker.total_cost / self.interaction_count
         
         return summary
     
     def get_cost_history(self) -> List[CostReport]:
-        """获取成本历史记录"""
+        """Get cost history"""
         return self.cost_tracker.cost_history if self.cost_tracker else []
     
     def clear_history(self, keep_system: bool = True) -> None:
         """
-        清除对话历史
+        Clear conversation history
         
         Args:
-            keep_system: 是否保留系统消息
+            keep_system: whether to keep system messages
         """
         if keep_system:
             self.conversation_history = [
@@ -315,29 +316,29 @@ class User:
         logger.info(f"User {self.user_id} history cleared (keep_system={keep_system})")
     
     def get_conversation_history(self) -> List[Message]:
-        """获取完整的对话历史"""
+        """Get full conversation history"""
         return self.conversation_history.copy()
     
     def get_last_message(self) -> Optional[Message]:
-        """获取最后一条消息"""
+        """Get the last message"""
         return self.conversation_history[-1] if self.conversation_history else None
     
     def get_last_user_message(self) -> Optional[Message]:
-        """获取最后一条用户消息"""
+        """Get last user message"""
         for msg in reversed(self.conversation_history):
             if msg.role == MessageRole.USER:
                 return msg
         return None
     
     def get_last_assistant_message(self) -> Optional[Message]:
-        """获取最后一条助手消息"""
+        """Get last assistant message"""
         for msg in reversed(self.conversation_history):
             if msg.role == MessageRole.ASSISTANT:
                 return msg
         return None
 
     def get_statistics(self) -> Dict[str, Any]:
-        """获取用户统计信息（包含成本）"""
+        """Get user statistics (including cost)"""
         message_counts = {
             "system": 0,
             "user": 0,
@@ -364,34 +365,34 @@ class User:
             }
         }
         
-        # 添加成本信息
+        # Add cost info
         if self.cost_tracker:
             stats["cost_summary"] = self.get_cost_summary()
         
         return stats
 
     def get_state(self) -> Dict:
-        """获取当前状态用于保存"""
+        """Get current state for saving"""
         return {
             'conversation_history': self.conversation_history.copy(),
-            # 添加其他需要保存的状态
+            # Add other status to save as needed
         }
     
     def set_state(self, state: Dict) -> None:
-        """从保存的状态恢复"""
+        """Restore from saved state"""
         self.conversation_history = state.get('conversation_history', [])
-        # 恢复其他状态
+        # Restore other state as needed
 
     def export_conversation(self, format: str = "json", include_costs: bool = True) -> Union[str, List[Dict[str, Any]]]:
         """
-        导出对话历史
+        Export conversation history
         
         Args:
-            format: 导出格式，支持 'json' 或 'list'
-            include_costs: 是否包含成本信息
+            format: export format, supports 'json' or 'list'
+            include_costs: whether to include cost information
         
         Returns:
-            导出的对话数据
+            Exported conversation data
         """
         if format == "list":
             return self._prepare_messages_for_api()
@@ -411,7 +412,7 @@ class User:
                 "messages": self._prepare_messages_for_api()
             }
             
-            # 添加成本信息
+            # Add cost information
             if include_costs and self.cost_tracker:
                 export_data["cost_summary"] = self.get_cost_summary()
                 export_data["cost_history"] = [
@@ -434,23 +435,23 @@ class User:
         cost_str = f" (${self.get_total_cost():.4f})" if self.cost_tracker else ""
         return f"User {self.user_id}{cost_str}"
 
-# 成本分析工具
+# Cost analyzer tool
 class CostAnalyzer:
-    """分析用户群体的成本"""
+    """Analyze user group costs"""
     
     def __init__(self, users: List[User]):
         self.users = users
     
     def get_total_cost(self) -> float:
-        """获取所有用户的总成本"""
+        """Get total cost for all users"""
         return sum(user.get_total_cost() for user in self.users)
     
     def get_cost_by_user(self) -> Dict[str, float]:
-        """获取每个用户的成本"""
+        """Get cost for each user"""
         return {user.user_id: user.get_total_cost() for user in self.users}
     
     def get_cost_by_model(self) -> Dict[str, Dict[str, Any]]:
-        """按模型汇总成本"""
+        """Summarize cost by model"""
         model_costs = {}
         
         for user in self.users:
@@ -474,13 +475,13 @@ class CostAnalyzer:
         return model_costs
     
     def get_top_spenders(self, n: int = 10) -> List[Tuple[str, float]]:
-        """获取花费最多的用户"""
+        """Get top n users by spending"""
         user_costs = [(user.user_id, user.get_total_cost()) for user in self.users]
         user_costs.sort(key=lambda x: x[1], reverse=True)
         return user_costs[:n]
     
     def get_cost_statistics(self) -> Dict[str, Any]:
-        """获取成本统计信息"""
+        """Get cost statistics"""
         costs = [user.get_total_cost() for user in self.users]
         
         if not costs:
@@ -506,11 +507,11 @@ class CostAnalyzer:
         }
     
     def generate_cost_report(self, output_file: Optional[str] = None) -> str:
-        """生成成本报告"""
+        """Generate cost report"""
         report = []
         report.append("=== User Cost Analysis Report ===\n")
         
-        # 总体统计
+        # Overall statistics
         stats = self.get_cost_statistics()
         report.append("Overall Statistics:")
         report.append(f"  Total Users: {stats['user_count']}")
@@ -521,7 +522,7 @@ class CostAnalyzer:
         report.append(f"  Standard Deviation: ${stats['std_dev']:.4f}")
         report.append("")
         
-        # 按模型统计
+        # By model statistics
         model_costs = self.get_cost_by_model()
         if model_costs:
             report.append("Cost by Model:")
@@ -533,14 +534,14 @@ class CostAnalyzer:
                 report.append(f"    Avg Cost per Request: ${stats['total_cost']/stats['request_count']:.4f}")
             report.append("")
         
-        # Top花费用户
+        # Top 5 spenders
         top_spenders = self.get_top_spenders(5)
         report.append("Top 5 Spenders:")
         for user_id, cost in top_spenders:
             report.append(f"  {user_id}: ${cost:.4f}")
         report.append("")
         
-        # 详细用户列表
+        # Detailed user list
         report.append("Detailed User Costs:")
         for user in sorted(self.users, key=lambda u: u.get_total_cost(), reverse=True):
             summary = user.get_cost_summary()
@@ -553,7 +554,7 @@ class CostAnalyzer:
         
         report_text = "\n".join(report)
         
-        # 保存到文件
+        # Save to file if output_file is provided
         if output_file:
             with open(output_file, 'w', encoding='utf-8') as f:
                 f.write(report_text)
@@ -562,9 +563,9 @@ class CostAnalyzer:
         return report_text
 
 
-# 用户池管理器
+# User pool manager
 class UserPool:
-    """管理多个用户的池"""
+    """Manager for multiple users"""
     
     def __init__(self, client: AsyncOpenAIClientWithRetry):
         self.client = client
@@ -572,7 +573,7 @@ class UserPool:
         self._lock = asyncio.Lock()
     
     async def create_user(self, user_config: UserRuntimeConfig) -> User:
-        """创建新用户"""
+        """Create a new user"""
         user = User(self.client, user_config)
         
         async with self._lock:
@@ -581,12 +582,12 @@ class UserPool:
         return user
     
     async def get_user(self, user_id: str) -> Optional[User]:
-        """获取用户"""
+        """Get user by user_id"""
         async with self._lock:
             return self.users.get(user_id)
     
     async def remove_user(self, user_id: str) -> bool:
-        """移除用户"""
+        """Remove user"""
         async with self._lock:
             if user_id in self.users:
                 del self.users[user_id]
@@ -594,7 +595,7 @@ class UserPool:
             return False
     
     async def create_users_batch(self, configs: List[UserRuntimeConfig]) -> List[User]:
-        """批量创建用户"""
+        """Create multiple users in batch"""
         users = []
         for config in configs:
             user = await self.create_user(config)
@@ -602,20 +603,20 @@ class UserPool:
         return users
     
     async def interact_all_users(self, **kwargs) -> Dict[str, str]:
-        """让所有用户进行一轮交互"""
+        """Let all users perform one interaction"""
         results = {}
         
-        # 获取所有用户
+        # Get all users
         async with self._lock:
             user_list = list(self.users.values())
         
-        # 并发交互
+        # Concurrent interactions
         tasks = []
         for user in user_list:
             task = asyncio.create_task(user.interact(**kwargs))
             tasks.append((user.user_id, task))
         
-        # 收集结果
+        # Collect results
         for user_id, task in tasks:
             try:
                 response = await task
@@ -627,21 +628,21 @@ class UserPool:
         return results
     
     def get_all_statistics(self) -> Dict[str, Dict[str, Any]]:
-        """获取所有用户的统计信息"""
+        """Get statistics for all users"""
         stats = {}
         for user_id, user in self.users.items():
             stats[user_id] = user.get_statistics()
         return stats
     
     async def broadcast_message(self, content: str, metadata: Optional[Dict[str, Any]] = None):
-        """向所有用户广播消息"""
+        """Broadcast a message to all users"""
         async with self._lock:
             for user in self.users.values():
                 user.receive_message(content, metadata)
 
-# 用户行为模拟器
+# User behavior simulator
 class UserBehaviorSimulator:
-    """模拟真实用户行为"""
+    """Simulate realistic user behaviors"""
     
     def __init__(self, user: User):
         self.user = user
@@ -653,28 +654,28 @@ class UserBehaviorSimulator:
         self.current_behavior = "moderate"
     
     def set_behavior(self, behavior_type: str):
-        """设置行为模式"""
+        """Set user behavior pattern"""
         if behavior_type in self.behavior_patterns:
             self.current_behavior = behavior_type
         else:
             raise ValueError(f"Unknown behavior type: {behavior_type}")
     
     async def simulate_interaction(self, incoming_message: str) -> Optional[str]:
-        """模拟用户交互，包括延迟和可能不响应"""
+        """Simulate user interaction, including delay and possible no response"""
         import random
         
         pattern = self.behavior_patterns[self.current_behavior]
         
-        # 模拟思考时间
+        # Simulate thinking time
         think_time = random.uniform(pattern["min_delay"], pattern["max_delay"])
         await asyncio.sleep(think_time)
         
-        # 决定是否响应
+        # Decide whether to respond
         if random.random() > pattern["response_probability"]:
             logger.info(f"User {self.user.user_id} chose not to respond")
             return None
         
-        # 接收消息并生成响应
+        # Receive message and generate response
         self.user.receive_message(incoming_message)
         response = await self.user.interact()
         
@@ -685,7 +686,7 @@ class UserBehaviorSimulator:
         messages: List[str], 
         response_handler: Optional[callable] = None
     ) -> List[Tuple[str, Optional[str]]]:
-        """模拟整个对话流程"""
+        """Simulate a full conversation flow"""
         results = []
         
         for message in messages:
@@ -697,25 +698,25 @@ class UserBehaviorSimulator:
         
         return results
 
-# 扩展的用户池管理器，带成本追踪
+# Extended user pool manager with cost tracking
 class UserPoolWithCostTracking(UserPool):
-    """带成本追踪的用户池管理器"""
+    """User pool manager with cost tracking"""
     
     def __init__(self, client: AsyncOpenAIClientWithRetry):
         super().__init__(client)
         self.cost_analyzer = None
     
     def get_cost_analyzer(self) -> CostAnalyzer:
-        """获取成本分析器"""
+        """Get cost analyzer"""
         users = list(self.users.values())
         return CostAnalyzer(users)
     
     def get_total_pool_cost(self) -> float:
-        """获取整个用户池的总成本"""
+        """Get total cost of the user pool"""
         return sum(user.get_total_cost() for user in self.users.values())
     
     def get_cost_summary(self) -> Dict[str, Any]:
-        """获取用户池的成本摘要"""
+        """Get cost summary for the user pool"""
         analyzer = self.get_cost_analyzer()
         return {
             "pool_stats": analyzer.get_cost_statistics(),
@@ -724,13 +725,13 @@ class UserPoolWithCostTracking(UserPool):
         }
     
     async def monitor_costs(self, threshold: float, callback: callable):
-        """监控成本，当超过阈值时触发回调"""
+        """Monitor costs, trigger callback when threshold is exceeded"""
         while True:
             total_cost = self.get_total_pool_cost()
             if total_cost > threshold:
                 await callback(total_cost, self.get_cost_summary())
                 break
-            await asyncio.sleep(1)  # 每秒检查一次
+            await asyncio.sleep(1)  # Check every second
 
 
 if __name__ == "__main__":

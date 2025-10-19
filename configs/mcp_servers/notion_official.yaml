@@ -1,0 +1,12 @@
+# notion
+# https://github.com/lockon-n/notion-mcp-server
+
+type: stdio
+name: notion_official
+params:
+  command: "npx"
+  args:
+    - "mcp-remote"
+    - "https://mcp.notion.com/mcp"
+client_session_timeout_seconds: 100
+cache_tools_list: true

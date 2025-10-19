@@ -2,11 +2,10 @@
 
 agent_workspace=$2
 
-# 设置变量
+# Set variables
 SCRIPT_DIR=$(dirname "$0")
 
 k8sconfig_path_dir=${agent_workspace}/k8s_configs
-# backup_k8sconfig_path_dir=deployment/k8s/configs
 backup_k8sconfig_path_dir=${SCRIPT_DIR}/../k8s_configs
 mkdir -p $backup_k8sconfig_path_dir
 cluster_name="cluster-safety-audit"
@@ -16,20 +15,20 @@ podman_or_docker=$(uv run python -c "import sys; sys.path.append('configs'); fro
 
 echo "podman_or_docker: $podman_or_docker"
 
-# 颜色输出
+# Color codes for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# 打印带颜色的信息
+# Colored logging functions
 log_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
 log_batch() { echo -e "${BLUE}[BATCH]${NC} $1"; }
 
-# 清理函数（仅针对指定集群）
+# Clean up existing cluster if it exists (only for the designated cluster)
 cleanup_existing_cluster() {
   log_info "Start cleaning up existing cluster if it exists..."
   if kind get clusters | grep -q "^${cluster_name}$"; then
@@ -42,7 +41,7 @@ cleanup_existing_cluster() {
   fi
 }
 
-# 清理配置文件（仅针对指定配置文件）
+# Clean up config files (only for the designated config)
 cleanup_config_files() {
   local config_path="$k8sconfig_path_dir/${cluster_name}-config.yaml"
   log_info "Clean up configuration file: $config_path"
@@ -63,7 +62,7 @@ cleanup_config_files() {
   fi
 }
 
-# 创建集群
+# Create cluster
 create_cluster() {
   local cluster_name=$1
   local config_path=$2
@@ -77,7 +76,7 @@ create_cluster() {
   fi
 }
 
-# 验证集群
+# Verify cluster status
 verify_cluster() {
   local cluster_name=$1
   local config_path=$2
@@ -106,14 +105,14 @@ verify_cluster() {
   fi
 }
 
-# 显示 inotify 状态
+# Show inotify usage status
 show_inotify_status() {
   local current_instances=$(ls /proc/*/fd/* 2>/dev/null | xargs -I {} readlink {} 2>/dev/null | grep -c inotify || echo "0")
   local max_instances=$(cat /proc/sys/fs/inotify/max_user_instances 2>/dev/null || echo "unknown")
   log_info "Inotify instance usage: $current_instances / $max_instances"
 }
 
-# 应用资源YAML
+# Apply resources YAML
 apply_resources() {
   local config_path=$1
   log_info "Applying resources from $resource_yaml"
@@ -127,7 +126,7 @@ apply_resources() {
   fi
 }
 
-# 停止操作
+# Stop operation
 stop_operation() {
   log_info "========== Start stopping operation =========="
   cleanup_existing_cluster
@@ -135,7 +134,7 @@ stop_operation() {
   log_info "========== Stopping operation completed =========="
 }
 
-# 显示使用说明
+# Show help
 show_usage() {
   echo "Usage: $0 [start|stop]"
   echo ""
@@ -148,7 +147,7 @@ show_usage() {
   echo "  $0 stop    # Clean up cluster"
 }
 
-# 启动操作
+# Start operation
 start_operation() {
   log_info "========== Start Kind cluster deployment for security audit =========="
   cleanup_existing_cluster
@@ -165,7 +164,7 @@ start_operation() {
   verify_cluster "${cluster_name}" "$configpath"
   apply_resources "$configpath"
 
-  # 复制配置文件到备份目录
+  # Copy the config file to the backup directory
   cp "$configpath" "$backup_configpath"
 
   echo ""
@@ -183,7 +182,7 @@ start_operation() {
   show_inotify_status
 }
 
-# 主函数
+# Main function
 main() {
   local operation=${1:-start}
 
@@ -202,7 +201,7 @@ main() {
   esac
 }
 
-# 检查依赖
+# Dependency check
 check_dependencies() {
   local deps=("kind" "kubectl" "$podman_or_docker")
   local missing=()
@@ -218,6 +217,6 @@ check_dependencies() {
   fi
 }
 
-# 脚本入口
+# Script entry
 check_dependencies
 main "$@"

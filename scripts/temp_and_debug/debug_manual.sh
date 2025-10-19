@@ -10,12 +10,12 @@
 # provider: Provider, see utils/api_model/model_provider.py
 # max_steps_under_single_turn_mode: Maximum number of steps under single-turn mode
 
-uv run demo.py \
+uv run main.py \
 --eval_config scripts/temp_and_debug/debug_eval_config.json \
 --task_dir  finalpool/upenn-campus-route \
 --debug \
 --model_short_name claude-4-sonnet-0514 \
 --provider aihubmix \
 --max_steps_under_single_turn_mode 200 \
-# --multi_turn_mode \
-# --manual \
+--multi_turn_mode \
+--manual \

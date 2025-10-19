@@ -2,7 +2,7 @@ import sys
 from argparse import ArgumentParser
 from pathlib import Path
 
-# 添加当前目录到Python路径
+
 sys.path.append(str(Path(__file__).parent))
 from check_email_content import EmailContentChecker 
 
@@ -16,17 +16,16 @@ if __name__=="__main__":
 
     args = parser.parse_args()
 
-    # 获取文件路径
     task_dir = Path(__file__).parent.parent
     receiver_config_file = task_dir / "files" / "receiver_config.json"
     template_file = task_dir / "initial_workspace" / "template.txt"
     groundtruth_file = task_dir / "groundtruth_workspace" / "expected_author_info.json"
     
-    print(f"配置文件路径: {receiver_config_file}")
-    print(f"模板文件路径: {template_file}")
-    print(f"真值文件路径: {groundtruth_file}")
+    print(f"Config file path: {receiver_config_file}")
+    print(f"Template file path: {template_file}")
+    print(f"Groundtruth file path: {groundtruth_file}")
     
-    # 实例化检查器
+    # Instantiate checker
     checker = EmailContentChecker(
         str(receiver_config_file), 
         str(template_file),
@@ -35,9 +34,9 @@ if __name__=="__main__":
     success = checker.run() 
     
     if success:
-        print("\n检查成功")
+        print("\nCheck succeeded")
     else:
-        print("\n检查失败")
+        print("\nCheck failed")
         exit(1)
     
     

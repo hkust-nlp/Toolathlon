@@ -8,12 +8,10 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.utils import formataddr, formatdate
 import random
+random.seed(42)
 import asyncio
+from utils.app_specific.poste.email_import_utils import clear_all_email_folders
 
-from .clean_local_emails import clean_emails
-from .inject_fake_emails import inject_fake_emails
-
-# Import setup_calendar_events with error handling
 from .setup_calendar_events import setup_calendar_events
 CALENDAR_AVAILABLE = True
 
@@ -105,11 +103,11 @@ def load_user_emails_mapping(user_list_file):
     
     return email_mapping
 
-def create_unified_email_list(student_emails_file, fake_emails_file, user_list_file, num_fake_emails=None):
+def create_unified_email_list(current_time, student_emails_file, fake_emails_file, user_list_file, num_fake_emails=None):
     """
     Create a unified email list mixing student and fake emails with proper formatting and timestamps
     """
-    current_date = datetime.now()
+    current_date = current_time
     all_emails = []
     
     # Load email mapping from user_list.csv
@@ -203,15 +201,15 @@ def create_unified_email_list(student_emails_file, fake_emails_file, user_list_f
     
     print(f"✅ Loaded {len(selected_fake_emails)} fake emails")
     
-    # 3. Sort all emails by send_time (newest first)
-    print(f"📅 Sorting {len(all_emails)} total emails by timestamp (newest first)...")
-    all_emails.sort(key=lambda x: x.get('send_time'), reverse=True)
+    # 3. Sort all emails by send_time (newest last)
+    print(f"📅 Sorting {len(all_emails)} total emails by timestamp (newest last)...")
+    all_emails.sort(key=lambda x: x.get('send_time'), reverse=False)
     
     if all_emails:
-        newest_time = all_emails[0].get('send_time')
-        oldest_time = all_emails[-1].get('send_time')
-        print(f"   📧 Newest: {all_emails[0].get('sender_name', 'Unknown')} ({newest_time.strftime('%Y-%m-%d %H:%M') if newest_time else 'No time'})")
-        print(f"   📧 Oldest: {all_emails[-1].get('sender_name', 'Unknown')} ({oldest_time.strftime('%Y-%m-%d %H:%M') if oldest_time else 'No time'})")
+        newest_time = all_emails[-1].get('send_time')
+        oldest_time = all_emails[0].get('send_time')
+        print(f"   📧 Newest: {all_emails[-1].get('sender_name', 'Unknown')} ({newest_time.strftime('%Y-%m-%d %H:%M') if newest_time else 'No time'})")
+        print(f"   📧 Oldest: {all_emails[0].get('sender_name', 'Unknown')} ({oldest_time.strftime('%Y-%m-%d %H:%M') if oldest_time else 'No time'})")
     
     student_count = sum(1 for email in all_emails if email.get('email_type') == 'student')
     fake_count = sum(1 for email in all_emails if email.get('email_type') == 'fake')
@@ -244,7 +242,8 @@ async def main():
     print(f"📧 Using email config: {email_config['email']}")
     
     # Save today's date for evaluation first
-    today = datetime.now().strftime('%Y-%m-%d')
+    current_time = datetime.now()
+    today = current_time.strftime('%Y-%m-%d')
     today_file_path = base_path / "groundtruth_workspace" / "today.txt"
     with open(today_file_path, 'w', encoding='utf-8') as f:
         f.write(today)
@@ -253,7 +252,7 @@ async def main():
     # Set up Google Calendar events if requested
     if args.setup_calendar and CALENDAR_AVAILABLE:
         print("\n📅 Setting up Google Calendar events...")
-        calendar_success = await setup_calendar_events("../configs/credentials.json")
+        calendar_success = await setup_calendar_events("configs/google_credentials.json")
         
         if not calendar_success:
             print("❌ Failed to set up calendar events")
@@ -261,7 +260,7 @@ async def main():
     
     # Clean existing emails first
     print("\n🧹 Cleaning existing emails...")
-    clean_emails(email_config, clean=True)
+    clear_all_email_folders(str(email_config_file))
     
     # Create unified email list (mixing student and fake emails properly)
     print(f"\n📧 Creating unified email list...")
@@ -270,7 +269,7 @@ async def main():
     user_list_file = base_path / "files" / "user_list.csv"
     num_fake = args.num_fake_emails if hasattr(args, 'num_fake_emails') and args.num_fake_emails else None
     
-    all_emails = create_unified_email_list(student_emails_file, fake_emails_file, user_list_file, num_fake)
+    all_emails = create_unified_email_list(current_time, student_emails_file, fake_emails_file, user_list_file, num_fake)
     
     # Inject all emails in sorted order
     print(f"\n📥 Injecting {len(all_emails)} emails in chronological order...")

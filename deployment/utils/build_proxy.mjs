@@ -14,7 +14,7 @@ const PROXY_PORT = process.argv[2] || 4443;
 const TARGET_PORT = process.argv[3] || 3000;
 const TARGET_HOST = process.argv[4] || 'localhost';
 const TARGET_PROTOCOL = process.argv[5] || 'http';
-const CERT_DIR = process.argv[6] || __dirname; // 新增：证书保存目录
+const CERT_DIR = process.argv[6] || __dirname; 
 
 // Use absolute paths
 const DEPLOYMENT_DIR = path.resolve(CERT_DIR);
@@ -32,7 +32,6 @@ Configuration:
 if (!fs.existsSync(CERT_FILE) || !fs.existsSync(KEY_FILE)) {
   console.log('Generating self-signed certificate...');
   try {
-    // 确保证书目录存在
     if (!fs.existsSync(DEPLOYMENT_DIR)) {
       fs.mkdirSync(DEPLOYMENT_DIR, { recursive: true });
       console.log(`Created certificate directory: ${DEPLOYMENT_DIR}`);

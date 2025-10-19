@@ -5,6 +5,7 @@ import json
 import re
 from datetime import datetime, timedelta, timezone
 import os
+from utils.general.helper import normalize_str
 
 def check_local_email(target_email="jjones@mcp.com", agent_email="donna_castillo56@mcp.com"):
     """Check if email was sent to target recipient with correct content via local IMAP"""
@@ -68,6 +69,16 @@ def check_local_email(target_email="jjones@mcp.com", agent_email="donna_castillo
         ]
 
         missing_participants = [name for name in required_participants if name not in body]
+
+        if "童雨轩" in missing_participants:
+            # check english name
+            if "yuxuantong" in normalize_str(body) or "tongyuxuan" in normalize_str(body):
+                missing_participants.remove("童雨轩")
+            
+        if "黄裕振" in missing_participants:
+            # check english name
+            if "yuzhenhuang" in normalize_str(body) or "huangyuzhen" in normalize_str(body):
+                missing_participants.remove("黄裕振")
 
         if missing_participants:
             return False, f"Missing participants in email: {missing_participants}"

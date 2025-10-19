@@ -1,4 +1,4 @@
-# 谷歌日历
+# Google Calendar
 # https://github.com/GongRzhe/Calendar-Autoauth-MCP-Server
 type: stdio
 name: google_calendar
@@ -7,5 +7,6 @@ params:
   args:
     - "-y"
     - "@gongrzhe/server-calendar-autoauth-mcp"
+  cwd: "${agent_workspace}"
 client_session_timeout_seconds: 10
 cache_tools_list: true

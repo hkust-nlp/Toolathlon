@@ -47,7 +47,7 @@ def check_filled_excel(excel_path, expected_data):
         for i, paper in enumerate(expected_data["papers"]):
             paper_matched_in_excel = False
             for idx, row in df.iterrows():
-                # 使用标题进行匹配 (using robust title comparison)
+                # Check title (using robust title comparison)
                 if compare_titles(row["Title"], paper["title"]):
                     paper_matched_in_excel = True
                     print(f"Checking paper: {paper['title'][:50]}...")

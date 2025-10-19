@@ -6,15 +6,26 @@ from google.api_core import exceptions
 import sys
 import subprocess
 from datetime import datetime, timedelta
+import os
+from google.oauth2 import service_account
+import json
 
+# Set path to credentials file
+CREDENTIALS_PATH = "configs/gcp-service_account.keys.json"
+if os.path.exists(CREDENTIALS_PATH):
+    credentials = service_account.Credentials.from_service_account_file(CREDENTIALS_PATH)
+else:
+    credentials = None
+
+# Parse project_id from service account file
+with open(CREDENTIALS_PATH, 'r') as f:
+    service_account_info = json.load(f)
+    PROJECT_ID = service_account_info.get('project_id')
 
 def get_project_id():
     """Get the current Google Cloud project ID"""
     try:
-        project_id = subprocess.check_output(
-            ["gcloud", "config", "get-value", "project"],
-            text=True
-        ).strip()
+        project_id = PROJECT_ID
         if not project_id or project_id == "(unset)":
             raise ValueError("No project ID configured")
         return project_id
@@ -145,54 +156,136 @@ def clear_log_entries(project_id: str, log_name: str, credentials=None) -> bool:
         return False
 
 
+# def manage_log_bucket(
+#     project_id: str,
+#     bucket_name: str,
+#     clear_logs_if_exists: bool = True,
+#     retention_days: int = 30,
+#     description: str = None,
+#     credentials=None
+# ) -> bool:
+#     """
+#     Manage log bucket: check if exists, clear logs if requested, create if doesn't exist
+#     """
+#     try:
+#         # Check if bucket exists
+#         exists = check_log_bucket_exists(project_id, bucket_name, credentials)
+
+#         if exists:
+#             print(f"✅ Log bucket '{bucket_name}' exists")
+
+#             if clear_logs_if_exists:
+#                 print(f"🧹 Clearing all log entries from bucket '{bucket_name}'...")
+#                 if not clear_log_entries(project_id, bucket_name, credentials):
+#                     return False
+#             else:
+#                 print(f"ℹ️  Keeping existing bucket and logs as requested.")
+#                 return True
+#         else:
+#             print(f"ℹ️  Log bucket '{bucket_name}' does not exist")
+#             # Create new bucket
+#             print(f"🔨 Creating log bucket '{bucket_name}'...")
+#             return create_log_bucket(project_id, bucket_name, retention_days, description, credentials)
+
+#         return True
+
+#     except Exception as e:
+#         print(f"❌ Error managing log bucket: {e}")
+#         return False
+
+import uuid
 def manage_log_bucket(
-    project_id: str,
-    bucket_name: str,
-    clear_logs_if_exists: bool = True,
-    retention_days: int = 30,
-    description: str = None,
-    credentials=None
-) -> bool:
+        project_id=PROJECT_ID, 
+        bucket_name_prefix="abtesting_logging", 
+        location="global", 
+        max_retries=10,
+        ):
     """
-    Manage log bucket: check if exists, clear logs if requested, create if doesn't exist
+    If a log bucket with given prefix exists, clear its logs and use it.
+    If no such bucket exists, create a new one, and save the bucket name
+    to ../groundtruth_workspace/log_bucket_name.txt file.
     """
-    try:
-        # Check if bucket exists
-        exists = check_log_bucket_exists(project_id, bucket_name, credentials)
+    from google.cloud.logging_v2.services.config_service_v2 import ConfigServiceV2Client
+    from google.cloud.logging_v2.types import LogBucket, CreateBucketRequest
 
-        if exists:
-            print(f"✅ Log bucket '{bucket_name}' exists")
+    print(f"🔍 Managing log buckets with prefix: {bucket_name_prefix}")
 
-            if clear_logs_if_exists:
-                print(f"🧹 Clearing all log entries from bucket '{bucket_name}'...")
-                if not clear_log_entries(project_id, bucket_name, credentials):
-                    return False
-            else:
-                print(f"ℹ️  Keeping existing bucket and logs as requested.")
-                return True
-        else:
-            print(f"ℹ️  Log bucket '{bucket_name}' does not exist")
-            # Create new bucket
-            print(f"🔨 Creating log bucket '{bucket_name}'...")
-            return create_log_bucket(project_id, bucket_name, retention_days, description, credentials)
+    logging_client = ConfigServiceV2Client(credentials=credentials)
+    parent = f"projects/{project_id}/locations/{location}"
 
-        return True
+    # List all existing log buckets and find one with the prefix
+    matched_bucket = None
+    matched_bucket_id = None
+    buckets = list(logging_client.list_buckets(parent=parent))
 
-    except Exception as e:
-        print(f"❌ Error managing log bucket: {e}")
-        return False
+    for bucket in buckets:
+        bucket_id = bucket.name.split('/')[-1]
+        if bucket_id.startswith(bucket_name_prefix) and bucket.lifecycle_state.name == 'ACTIVE':
+            matched_bucket = bucket
+            matched_bucket_id = bucket_id
+            break
+
+    if matched_bucket is not None:
+        print(f"✅ Found existing log bucket: {matched_bucket_id}")
+        # Clear all log entries in the bucket
+        from google.cloud import logging as gcloud_logging
+
+        logging_client2 = gcloud_logging.Client(project=project_id, credentials=credentials)
+
+        # Directly attempt to delete the log with the same name as the bucket
+        # This only requires 1 API call and avoids rate limits
+        print(f"🧹 Attempting to clear log: {matched_bucket_id}")
+        try:
+            logging_client2.delete_log(matched_bucket_id)
+            print(f"✅ Successfully cleared log: {matched_bucket_id}")
+        except Exception as e:
+            # If the log doesn't exist or is already empty, this is expected
+            print(f"ℹ️  No log entries to clear (log may not exist yet): {e}")
+
+        # Save the bucket name to file
+        save_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "../groundtruth_workspace/log_bucket_name.txt")
+        )
+        with open(save_path, "w") as f:
+            f.write(matched_bucket_id.strip() + "\n")
+        print(f"💾 Saved log bucket name to {save_path}")
+
+        return matched_bucket_id, True
+
+    # If not found, create new
+    new_bucket_id = f"{bucket_name_prefix}-{uuid.uuid4().hex[:12]}"
+    print(f"📝 Creating new log bucket: {new_bucket_id}")
+
+    bucket = LogBucket(retention_days=30)
+    request = CreateBucketRequest(
+        parent=parent,
+        bucket_id=new_bucket_id,
+        bucket=bucket
+    )
+    logging_client.create_bucket(request=request)
+    print(f"✅ Successfully created log bucket: {new_bucket_id}")
+
+    # Save log bucket name to file
+    save_path = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "../groundtruth_workspace/log_bucket_name.txt")
+    )
+    with open(save_path, "w") as f:
+        f.write(new_bucket_id.strip() + "\n")
+    print(f"💾 Saved new log bucket name to {save_path}")
+
+    return new_bucket_id, True
 
 
 def setup_exam_log_bucket(project_id: str, credentials=None) -> bool:
     """Specific setup for exam_log bucket used in academic-warning task"""
 
-    success = manage_log_bucket(
+    new_log_bucket_id, success = manage_log_bucket(
         project_id=project_id,
-        bucket_name="exam_log",
-        clear_logs_if_exists=True,
-        retention_days=30,
-        description="Log bucket for academic warning system exam logs",
-        credentials=credentials
+        bucket_name_prefix="exam_log",
+        # clear_logs_if_exists=True,
+        # retention_days=30,
+        # description="Log bucket for academic warning system exam logs",
+        # credentials=credentials
     )
 
     if success:
@@ -258,13 +351,13 @@ def clean_log(project_id: str, credentials=None):
     print("\n1. Setting up clean exam_log bucket...")
     success = setup_exam_log_bucket(project_id, credentials)
 
-    if success:
-        # Write a test entry to verify
-        print("\n2. Writing test entry to verify setup...")
-        write_test_log_entry(project_id, "exam_log", credentials)
+    # if success:
+    #     # Write a test entry to verify
+    #     print("\n2. Writing test entry to verify setup...")
+    #     write_test_log_entry(project_id, "exam_log", credentials)
 
     # List all log buckets to verify
-    print("\n3. Listing all log buckets...")
+    print("\n2. Listing all log buckets...")
     list_log_buckets(project_id, credentials)
 
     print("\n✅ Log bucket management complete!")

@@ -1,4 +1,4 @@
-# 请将该文件填写上实际内容后，复制一份，去掉_example的后缀
+# Please fill in the actual content of this file, and copy it, removing the _example suffix
 from addict import Dict
 global_configs = Dict(
     aihubmix_key="xxx", # Fill in the aihubmix key
@@ -8,5 +8,6 @@ global_configs = Dict(
     deepseek_official_key="xxx", # Fill in the deepseek_official key
     anthropic_official_key="xxx", # Fill in the anthropic_official key
     openai_official_key="xxx", # Fill in the openai_official key
-    podman_or_docker="podman", # or `docker`
+    google_official_key="xxx", # Fill in the google_official key
+    podman_or_docker="podman", # or `docker` depending on which one you want to use
 )

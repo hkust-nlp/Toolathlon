@@ -1,5 +1,5 @@
 """
-远程检查模块 - 检查WooCommerce API、博客文章发布和邮件发送
+Remote Check Module - Checks WooCommerce API, Blog Post Publishing, and Email Sending
 """
 
 import os
@@ -10,7 +10,7 @@ from requests.auth import HTTPBasicAuth
 from datetime import datetime
 from typing import Dict, List, Tuple
 
-# 添加项目路径
+# Add project path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 task_dir = os.path.dirname(current_dir)
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(task_dir)))
@@ -29,68 +29,68 @@ except ImportError:
 
 def check_remote(agent_workspace: str, groundtruth_workspace: str, res_log: Dict) -> Tuple[bool, str]:
     """
-    检查远程服务状态 - WooCommerce Product Categories、博客文章、邮件发送
+    Check remote service status - WooCommerce Product Categories, Blog Posts, Email Sending
     
     Args:
-        agent_workspace: Agent工作空间路径
-        groundtruth_workspace: Ground truth工作空间路径
-        res_log: 执行日志
+        agent_workspace: path to agent workspace
+        groundtruth_workspace: path to ground truth workspace
+        res_log: execution log
         
     Returns:
-        (检查是否通过, 错误信息)
+        (pass or not, error info)
     """
-    print("🌐 检查远程服务状态...")
+    print("🌐 Checking remote service status...")
     
     try:
-        # 初始化WooCommerce客户端
+        # Initialize WooCommerce Client
         site_url = all_token_key_session.woocommerce_site_url
         consumer_key = all_token_key_session.woocommerce_api_key
         consumer_secret = all_token_key_session.woocommerce_api_secret
         
         if not all([site_url, consumer_key, consumer_secret]):
-            return False, "WooCommerce API配置不完整"
+            return False, "WooCommerce API configuration is incomplete"
         
         wc_client = WooCommerceClient(site_url, consumer_key, consumer_secret)
         
-        # 检查1:  Product Categories和移动
-        print("  🏷️ 检查 Product Categories和移动...")
+        # Check 1: Product Categories and moving products
+        print("  🏷️ Checking Product Categories and product moving...")
         category_pass, category_msg = check_product_categories(wc_client)
         if not category_pass:
-            return False, f" Product Categories检查失败: {category_msg}"
+            return False, f" Product Categories check failed: {category_msg}"
         else:
             print(f"    ✅ {category_msg}")
         
-        # NOTE: 博客文章发布检查不了，跳过！因为woocommerce并不管理wordpress，博客是附属在wordpress上的...
-        blog_msg = "博客文章发布检查不了，跳过！因为woocommerce并不管理wordpress，博客是附属在wordpress上的..."
+        # NOTE: Blog post publishing cannot be checked, skipping. WooCommerce does not manage WordPress; blog is on WordPress...
+        blog_msg = "Skipped blog post publishing check; WooCommerce does not manage WordPress, blog is part of WordPress..."
         print(f"\n    ✅ {blog_msg}")
-        # # 检查2: 博客文章发布
-        # print("  📝 检查博客文章发布...")
+        # # Check 2: Blog post publishing
+        # print("  📝 Checking blog post publishing...")
         # blog_pass, blog_msg = check_blog_post(site_url, consumer_key, consumer_secret, wc_client)
         # if not blog_pass:
-        #     return False, f"博客文章检查失败: {blog_msg}"
+        #     return False, f"Blog post check failed: {blog_msg}"
         # else:
         #     print(f"    ✅ {blog_msg}")
         
-        # 检查3: 邮件发送
-        print("  📧 检查邮件发送...")
+        # Check 3: Email sending
+        print("  📧 Checking email sending...")
         email_pass, email_msg = check_email_sending(agent_workspace, wc_client)
         if not email_pass:
-            return False, f"邮件发送检查失败: {email_msg}"
+            return False, f"Email sending check failed: {email_msg}"
         else:
             print(f"    ✅ {email_msg}")
         
-        print("✅ 远程检查全部通过")
-        return True, f"远程检查通过: {category_msg}; {blog_msg}; {email_msg}"
+        print("✅ All remote checks passed")
+        return True, f"Remote check passed: {category_msg}; {blog_msg}; {email_msg}"
         
     except Exception as e:
-        return False, f"远程检查过程中出错: {str(e)}"
+        return False, f"Error during remote check: {str(e)}"
 
 def get_low_selling_products_from_wc(wc_client: WooCommerceClient) -> List[Dict]:
     """
-    从WooCommerce获取低销量商品
+    Get low-selling products from WooCommerce
 
     Returns:
-        List[Dict]: 低销量商品列表，按在库时间从长到短排序，相同时间按折扣力度排序
+        List[Dict]: List of low-selling products, sorted by stock time descending, then by discount ratio
     """
     all_products = wc_client.get_all_products()
     current_date = datetime.now()
@@ -98,7 +98,7 @@ def get_low_selling_products_from_wc(wc_client: WooCommerceClient) -> List[Dict]
     other_products = []
 
     for product in all_products:
-        # 计算在库天数
+        # Calculate days in stock
         date_created_str = product.get('date_created', '')
         if not date_created_str:
             continue
@@ -106,7 +106,7 @@ def get_low_selling_products_from_wc(wc_client: WooCommerceClient) -> List[Dict]
         date_created = datetime.fromisoformat(date_created_str.replace('Z', '+00:00'))
         days_in_stock = (current_date - date_created.replace(tzinfo=None)).days
 
-        # 获取30天销量
+        # Get sales in past 30 days
         sales_30_days = 0
         meta_data = product.get('meta_data', [])
         for meta in meta_data:
@@ -117,14 +117,14 @@ def get_low_selling_products_from_wc(wc_client: WooCommerceClient) -> List[Dict]
                 except (ValueError, TypeError):
                     continue
 
-        # 判断是否为低销量商品
+        # Check if it's a low-selling product
         product_name = product.get('name', '')
         regular_price = float(product.get('regular_price', 0)) if product.get('regular_price') else 0.0
         sale_price = float(product.get('sale_price', 0)) if product.get('sale_price') else regular_price
-        # 计算折扣力度
+        # Calculate discount ratio
         discount_ratio = sale_price / regular_price if regular_price > 0 else 1.0
         item = {
-            'product': product,  # 保留完整商品信息
+            'product': product,  # Keep full product info
             'name': product_name,
             'regular_price': regular_price,
             'sale_price': sale_price,
@@ -137,25 +137,25 @@ def get_low_selling_products_from_wc(wc_client: WooCommerceClient) -> List[Dict]
         else:
             other_products.append(item)
 
-    # 排序：1.在库时间从长到短 2.折扣力度从低到高
+    # Sort: 1. Days in stock descending 2. Discount ratio ascending
     low_selling_products.sort(key=lambda x: (-x['days_in_stock'], x['discount_ratio']))
 
     return low_selling_products, other_products
 
 def check_product_categories(wc_client: WooCommerceClient) -> Tuple[bool, str]:
-    """检查 Product Categories和低销量商品移动"""
+    """Check Product Categories and low-selling product moves"""
     try:
-        # 使用共享函数获取低销量商品
+        # Use shared function to get low-selling products
         low_selling_products, other_products = get_low_selling_products_from_wc(wc_client)
 
-        # 获取 Product Categories
+        # Get Product Categories
         success, categories = wc_client.get_product_categories()
         if not success:
-            return False, f"无法获取 Product Categories: {categories}"
+            return False, f"Cannot get Product Categories: {categories}"
 
-        # 查找Outlet分类
+        # Find Outlet category
         outlet_category = None
-        outlet_names = ["Outlet/Clearance"] # 这里应该只保留Outlet/Clearance
+        outlet_names = ["Outlet/Clearance"] # Only keeps Outlet/Clearance
 
         for category in categories:
             if category.get('name', '') in outlet_names:
@@ -163,23 +163,22 @@ def check_product_categories(wc_client: WooCommerceClient) -> Tuple[bool, str]:
                 break
 
         if not outlet_category:
-            return False, "未找到Outlet/Clearance分类"
-        print(f"🔍 找到Outlet/Clearance分类: {outlet_category.get('name')}")
+            return False, "Outlet/Clearance category not found"
+        print(f"🔍 Found Outlet/Clearance category: {outlet_category.get('name')}")
 
         outlet_category_id = outlet_category.get('id')
 
-        # 检查低销量 Product Categories情况
+        # Check low-selling product categories
         total_low_selling = len(low_selling_products)
         low_selling_in_outlet = 0
         low_selling_not_in_outlet = []
-        normal_selling_in_outlet = []  # 错误放入Outlet的正常商品
+        normal_selling_in_outlet = []  # Non-low-selling products incorrectly placed in Outlet
 
-        # 检查每个低销量商品是否在Outlet分类中
+        # Check if each low-selling product is in Outlet category
         for item in low_selling_products:
             product = item['product']
             product_name = item['name']
 
-            # 检查是否在Outlet分类中
             product_categories = product.get('categories', [])
             is_in_outlet = any(cat.get('id') == outlet_category_id for cat in product_categories)
 
@@ -188,19 +187,17 @@ def check_product_categories(wc_client: WooCommerceClient) -> Tuple[bool, str]:
             else:
                 low_selling_not_in_outlet.append(product_name)
 
-        # 检查是否有非低销量商品被错误地放入Outlet分类
+        # Check if there are non-low-selling products incorrectly in Outlet category
         all_products = wc_client.get_all_products()
         for product in all_products:
-            # 检查是否在Outlet分类中
             product_categories = product.get('categories', [])
             is_in_outlet = any(cat.get('id') == outlet_category_id for cat in product_categories)
 
             if is_in_outlet:
-                # 检查是否是低销量商品
                 is_low_selling = any(item['name'] == product.get('name') for item in low_selling_products)
 
                 if not is_low_selling:
-                    # 计算该商品的实际数据用于错误报告
+                    # Gather real data for error reporting
                     date_created_str = product.get('date_created', '')
                     if date_created_str:
                         date_created = datetime.fromisoformat(date_created_str.replace('Z', '+00:00'))
@@ -224,52 +221,51 @@ def check_product_categories(wc_client: WooCommerceClient) -> Tuple[bool, str]:
                         'sales_30_days': sales_30_days
                     })
 
-        # 检查结果
+        # Check results
         if total_low_selling == 0:
-            return False, "没有找到符合条件的低销量商品（在库>90天，30天销量<10）"
+            return False, "No low-selling products found (in stock >90 days, sales in 30d <10)"
 
-        # 检查是否有非低销量商品被错误地放入Outlet分类
         if normal_selling_in_outlet:
             error_details = []
             for item in normal_selling_in_outlet:
-                error_details.append(f"{item['name']} (在库{item['days_in_stock']}天，30天销量{item['sales_30_days']})")
-            return False, f"发现 {len(normal_selling_in_outlet)} 个非低销量商品被错误地放入Outlet分类: {'; '.join(error_details)}"
+                error_details.append(f"{item['name']} (in stock {item['days_in_stock']} days, sales in 30d {item['sales_30_days']})")
+            return False, f"Found {len(normal_selling_in_outlet)} non-low-selling products incorrectly categorized as Outlet: {'; '.join(error_details)}"
 
         if low_selling_in_outlet == 0:
-            return False, f"没有低销量商品被移动到Outlet分类。发现 {total_low_selling} 个低销量商品，但都没有在Outlet分类中"
+            return False, f"No low-selling products were moved to Outlet category. Found {total_low_selling} low-selling products, but none are in Outlet"
 
         if low_selling_in_outlet < total_low_selling:
             missing_count = total_low_selling - low_selling_in_outlet
-            return False, f"只有部分低销量商品被移动到Outlet分类。总共 {total_low_selling} 个低销量商品，仅 {low_selling_in_outlet} 个在Outlet分类中，缺少 {missing_count} 个。未移动的商品: {', '.join(low_selling_not_in_outlet)}"
+            return False, f"Only some low-selling products were moved to Outlet category. Total {total_low_selling} low-selling products, only {low_selling_in_outlet} in Outlet, missing {missing_count}. Not moved: {', '.join(low_selling_not_in_outlet)}"
 
-        return True, f"✅ 所有 {total_low_selling} 个低销量商品都已正确移动到Outlet分类，且Outlet分类中没有非低销量商品"
+        return True, f"✅ All {total_low_selling} low-selling products are correctly categorized as Outlet, and no non-low-selling products in Outlet"
 
     except Exception as e:
-        return False, f" Product Categories检查出错: {str(e)}"
+        return False, f" Product Categories check error: {str(e)}"
 
 def check_blog_post(site_url: str, consumer_key: str, consumer_secret: str, wc_client: WooCommerceClient) -> Tuple[bool, str]:
-    """检查博客文章是否发布"""
+    """Check if promotional blog post was published"""
     try:
         from utils.general.helper import normalize_str
 
-        # 使用共享函数获取低销量商品（已排序）
+        # Get low-selling products (already sorted)
         low_selling_products, other_products = get_low_selling_products_from_wc(wc_client)
 
         if not low_selling_products:
-            return False, "没有找到低销量商品，无法生成期望的博客内容"
+            return False, "No low-selling products found, cannot generate expected blog content"
 
-        # 读取博客模板
+        # Read blog template
         template_path = os.path.join(task_dir, 'initial_workspace', 'blog_template.md')
         with open(template_path, 'r', encoding='utf-8') as f:
             template_content = f.read()
 
-        # 生成商品列表行
+        # Prepare product lines
         product_lines = []
         for item in low_selling_products:
             line = f"{item['name']} - Original Price: ${item['regular_price']:.2f} - Promotional Price: ${item['sale_price']:.2f}"
             product_lines.append(line)
 
-        # 替换模板中的占位符
+        # Replace placeholders in template
         expected_content = template_content.replace(
             "[Product Name 1] - Original Price: [Original Price] - Promotional Price: [Promotional Price]\n"
             "[Product Name 2] - Original Price: [Original Price] - Promotional Price: [Promotional Price]\n"
@@ -282,7 +278,7 @@ def check_blog_post(site_url: str, consumer_key: str, consumer_secret: str, wc_c
         wp_api_base = f"{site_url}/wp-json/wp/v2"
         wp_auth = HTTPBasicAuth(consumer_key, consumer_secret)
 
-        # 获取最近的文章
+        # Get recent posts
         response = requests.get(
             f"{wp_api_base}/posts",
             auth=wp_auth,
@@ -290,11 +286,11 @@ def check_blog_post(site_url: str, consumer_key: str, consumer_secret: str, wc_c
         )
 
         if response.status_code != 200:
-            return False, f"无法获取博客文章: HTTP {response.status_code}"
+            return False, f"Cannot get blog posts: HTTP {response.status_code}"
 
         posts = response.json()
 
-        # 检查最近24小时内的文章
+        # Check for posts within last 24 hours
         current_date = datetime.now()
 
         for post in posts:
@@ -302,7 +298,7 @@ def check_blog_post(site_url: str, consumer_key: str, consumer_secret: str, wc_c
             post_content = post.get('content', {}).get('rendered', '')
             post_date_str = post.get('date', '')
 
-            # 检查发布时间
+            # Check posting time
             if post_date_str:
                 post_date = datetime.fromisoformat(post_date_str.replace('Z', '+00:00'))
                 hours_since_post = (current_date - post_date.replace(tzinfo=None)).total_seconds() / 3600
@@ -310,18 +306,18 @@ def check_blog_post(site_url: str, consumer_key: str, consumer_secret: str, wc_c
                 if hours_since_post > 24:
                     continue
 
-            # 使用normalize_str进行标题匹配
+            # Match by normalized title
             if normalize_str(post_title) == normalize_str(expected_title):
-                # 使用normalize_str进行内容匹配
+                # Match content
                 if normalize_str(post_content) == normalize_str(expected_content):
-                    return True, f"找到匹配的博客文章: 标题'{post_title}'，包含{len(low_selling_products)}个低销量商品"
+                    return True, f"Found matching blog post: Title '{post_title}' with {len(low_selling_products)} low-selling products"
                 else:
-                    return False, f"找到标题匹配的博客文章，但内容不匹配。期望{len(low_selling_products)}个商品的促销信息"
+                    return False, f"Found matching blog post title, but content doesn't match. Expected promotion info for {len(low_selling_products)} products"
 
-        return False, f"未找到标题为'{expected_title}'的博客文章"
+        return False, f"No blog post found with title '{expected_title}'"
 
     except Exception as e:
-        return False, f"博客文章检查出错: {str(e)}"
+        return False, f"Blog post check error: {str(e)}"
 
 def check_email_sending(agent_workspace: str, wc_client: WooCommerceClient) -> Tuple[bool, str]:
     """Check email sending records using general email manager"""

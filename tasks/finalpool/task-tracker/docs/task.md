@@ -1,4 +1,4 @@
-Please find all developers' branches in the `BenchTasksCollv3` project for the most recent commits that added new tasks. For each person’s new tasks, check the development status (do not check the file content). If the implementation satisfies the requirements, it is considered implemented; otherwise, it is considered implementing. Update our Notion page: `Task Tracker` based on the new tasks, and create a new branch in GitHub named finalpool, adding all of the implemented tasks in Notion Page to finalpool, with the relative path in the project being `tasks/finalpool`.
+Please find all developers' branches in the `BenchTasksCollv3` project for the most recent commits that added new tasks. For each person’s new tasks, check the development status for each task. If the implementation satisfies the requirements, it is considered implemented; otherwise, it is considered implementing. Update all these new tasks on our Notion page `Task Tracker`, and create a new branch in GitHub named finalpool, adding all of the implemented tasks till now in Notion Page to finalpool, with the relative path in the project being `tasks/finalpool`.
 
 Tips:
 

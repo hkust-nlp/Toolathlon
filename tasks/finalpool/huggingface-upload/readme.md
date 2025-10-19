@@ -1,0 +1,1 @@
+readme.md has some figures, the model should include them in the uploaded repo as well otherwise others wont see these on the web. which is bad!

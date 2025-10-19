@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-预处理脚本 - 设置产品召回任务初始环境
+Preprocessing Script - Initialize Product Recall Task Environment
 """
 
 import os
@@ -12,51 +12,51 @@ from argparse import ArgumentParser
 from pathlib import Path
 from datetime import datetime
 
-# 添加项目路径
+# Add project path
 current_dir = Path(__file__).parent
 task_dir = current_dir.parent
 sys.path.insert(0, str(task_dir))
 
-# 添加邮件管理相关导入
+# Mail management imports
 from token_key_session import all_token_key_session
 from utils.app_specific.poste.local_email_manager import LocalEmailManager
 
 from utils.app_specific.google_form.ops import clear_google_forms
 
-# 导入 Google Drive helper
+# Google Drive imports
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 import random
 random.seed(42)
 def clear_all_email_folders():
     """
-    清理INBOX、Draft、Sent三个文件夹的邮件
+    Clear all emails in INBOX, Drafts, and Sent folders.
     """
-    # 获取邮件配置文件路径
+    # Get the email config file path
     emails_config_file = all_token_key_session.emails_config_file
-    print(f"使用邮件配置文件: {emails_config_file}")
+    print(f"Using email config file: {emails_config_file}")
 
-    # 初始化邮件管理器
+    # Initialize the email manager
     email_manager = LocalEmailManager(emails_config_file, verbose=True)
 
-    # 需要清理的文件夹（尝试清理这些文件夹，如果不存在会在清理时处理错误）
+    # Folders to clear (try to clear these folders, errors are handled if non-existent)
     folders_to_clear = ['INBOX', 'Drafts', 'Sent']
 
-    print(f"将清理以下文件夹: {folders_to_clear}")
+    print(f"Will clear the following folders: {folders_to_clear}")
 
     for folder in folders_to_clear:
         try:
-            print(f"清理 {folder} 文件夹...")
+            print(f"Clearing folder {folder} ...")
             email_manager.clear_all_emails(mailbox=folder)
-            print(f"✅ {folder} 文件夹清理完成")
+            print(f"✅ Folder {folder} cleared")
         except Exception as e:
-            print(f"⚠️ 清理 {folder} 文件夹时出错: {e}")
+            print(f"⚠️ Error clearing folder {folder}: {e}")
 
-    print("📧 所有邮箱文件夹清理完成")
+    print("📧 All mailbox folders have been cleared")
 
 def setup_recall_test_data():
-    """设置产品召回测试数据"""
-    print("🛒 设置产品召回测试数据...")
+    """Set up product recall test data"""
+    print("🛒 Setting up product recall test data...")
     
     try:
         from .setup_recall_data import main as setup_recall_main
@@ -64,71 +64,71 @@ def setup_recall_test_data():
         from token_key_session import all_token_key_session
         from .woocommerce_client import WooCommerceClient
         
-        # 初始化WooCommerce客户端进行验证
+        # Initialize WooCommerce client to verify
         wc_client = WooCommerceClient(
             all_token_key_session.woocommerce_site_url,
             all_token_key_session.woocommerce_api_key,
             all_token_key_session.woocommerce_api_secret
         )
         
-        # 验证清理状态
-        print("🔍 验证WooCommerce清理状态...")
+        # Verify clean state
+        print("🔍 Verifying WooCommerce clean state...")
         verification = verify_clean_state(wc_client)
         
         if not verification["is_clean"]:
-            print("⚠️ WooCommerce尚未完全清理，建议先运行清理操作")
-            print("发现的问题:")
+            print("⚠️ WooCommerce store is not completely clean. It is recommended to run the clean operation first.")
+            print("Issues found:")
             for issue in verification["issues"]:
                 print(f"  - {issue}")
         
-        # 运行召回数据设置
+        # Run recall data setup
         success = setup_recall_main()
         
         if success:
-            print("✅ 产品召回测试数据设置完成")
+            print("✅ Product recall test data setup complete")
             
-            # 设置完成后再次验证
-            print("\n🔍 验证设置结果...")
+            # After setup, verify again
+            print("\n🔍 Verifying setup results...")
             # final_verification = verify_clean_state(wc_client)
             
-            # 检查是否有预期的测试数据
+            # Check that the expected test data exists
             products = wc_client.get_all_products()
             orders = wc_client.get_all_orders()
             
-            print(f"📊 设置完成摘要:")
-            print(f"   - 创建了 {len(products)} 个商品")
-            print(f"   - 创建了 {len(orders)} 个订单")
+            print(f"📊 Setup summary:")
+            print(f"   - {len(products)} products created")
+            print(f"   - {len(orders)} orders created")
             
             recalled_products = [
                 p for p in products
                 if any(meta.get('key') == 'recall_status' and meta.get('value') == 'need_recall'
                        for meta in p.get('meta_data', []))
             ]
-            print(f"   - 其中 {len(recalled_products)} 个是召回商品")
+            print(f"   - {len(recalled_products)} recalled products")
             
         else:
-            print("⚠️ 产品召回测试数据设置部分完成")
+            print("⚠️ Product recall test data setup partially completed")
         return success
         
     except Exception as e:
-        print(f"❌ 产品召回测试数据设置失败: {e}")
-        print("ℹ️ 请确保已正确配置 token_key_session.py 文件")
+        print(f"❌ Failed to set up product recall test data: {e}")
+        print("ℹ️ Please make sure 'token_key_session.py' is correctly configured")
         return False
 
 if __name__ == "__main__":
     
-    parser = ArgumentParser(description="预处理脚本 - 设置产品召回任务的初始环境")
-    parser.add_argument("--agent_workspace", required=False, help="Agent工作空间路径")
-    parser.add_argument("--setup_data", default=True, help="同时设置WooCommerce测试数据")
+    parser = ArgumentParser(description="Preprocessing script - Initialize environment for product recall task")
+    parser.add_argument("--agent_workspace", required=False, help="Agent workspace path")
+    parser.add_argument("--setup_data", default=True, help="Also set up WooCommerce test data")
     parser.add_argument("--launch_time", required=False, help="Launch time")
-    parser.add_argument("--no-clear-mailbox", action="store_true", help="不清空邮箱")
-    parser.add_argument("--no-clear-forms", action="store_true", help="不清空Google Forms")
-    parser.add_argument("--form-name-pattern", type=str, help="要删除的Google Forms名称模式（如果指定，只删除匹配的表单）")
+    parser.add_argument("--no-clear-mailbox", action="store_true", help="Do not clear mailbox")
+    parser.add_argument("--no-clear-forms", action="store_true", help="Do not clear Google Forms")
+    parser.add_argument("--form-name-pattern", type=str, help="Pattern of Google Forms to delete (if set, only deletes forms matching)")
 
     args = parser.parse_args()
     
     print("=" * 60)
-    print("🎯 产品召回任务 - 预处理")
+    print("🎯 Product Recall Task - Preprocessing")
     print("=" * 60)
 
     clear_mailbox_enabled = not args.no_clear_mailbox
@@ -136,78 +136,78 @@ if __name__ == "__main__":
     form_name_pattern = args.form_name_pattern or "Product Recall Information Confirmation Form"
     
     if not clear_mailbox_enabled:
-        print("🔧 参数: 跳过邮箱清空操作")
+        print("🔧 Arg: Skip mailbox clearing operation")
     if not clear_forms_enabled:
-        print("🔧 参数: 跳过Google Forms清空操作")
+        print("🔧 Arg: Skip Google Forms clearing operation")
     if form_name_pattern:
-        print(f"🔧 参数: 只删除包含 '{form_name_pattern}' 的Google Forms")
+        print(f"🔧 Arg: Only delete Google Forms containing '{form_name_pattern}'")
 
     try:
-        # 第一步：清理邮箱
+        # Step 1: Clear mailbox
         if clear_mailbox_enabled:
             print("=" * 60)
-            print("第一步：清理邮箱文件夹")
+            print("Step 1: Clearing mailbox folders")
             print("=" * 60)
             clear_all_email_folders()
             
-            # 等待一下，确保邮箱操作完成
-            print("⏳ 等待2秒，确保邮箱清理操作完成...")
+            # Wait to ensure mailbox operation completes
+            print("⏳ Waiting 2 seconds to ensure mailbox clearing is complete...")
             time.sleep(2)
         else:
-            print("\n🔧 跳过邮箱清空操作")
+            print("\n🔧 Mailbox clearing operation skipped")
 
-        # 第二步：清空Google Forms（如果启用）
+        # Step 2: Clear Google Forms (if enabled)
         forms_result = None
         if clear_forms_enabled:
             print("\n" + "=" * 60)
-            print("第二步：清空Google Forms")
+            print("Step 2: Clearing Google Forms")
             print("=" * 60)
             
             forms_result = clear_google_forms(form_name_pattern)
             
             if not forms_result.get('success'):
-                print("⚠️ Google Forms清理未完全成功，但继续后续操作...")
-                print(f"Google Forms清理详情: {forms_result}")
+                print("⚠️ Google Forms clearing was not fully successful, proceeding with subsequent operations...")
+                print(f"Details: {forms_result}")
             
-            # 等待一下，确保Google Forms操作完成
-            print("⏳ 等待2秒，确保Google Forms清理操作完成...")
+            # Wait to ensure Google Forms operation completes
+            print("⏳ Waiting 2 seconds to ensure Google Forms clearing is complete...")
             time.sleep(2)
         else:
-            print("\n🔧 跳过Google Forms清空操作")
+            print("\n🔧 Google Forms clearing operation skipped")
         
-        # 第三步：设置产品召回测试数据
+        # Step 3: Set up product recall test data
         success = True
         if args.setup_data:
             print("\n" + "=" * 60)
-            print("第三步：设置产品召回测试数据")
+            print("Step 3: Setting up product recall test data")
             print("=" * 60)
             success = setup_recall_test_data()
     
         if success:
-            print("\n🎉 预处理完成！agent工作空间已准备就绪")
-            print("\n📝 任务数据摘要：")
+            print("\n🎉 Preprocessing complete! Agent workspace is now ready.")
+            print("\n📝 Task data summary:")
             step_num = 1
             if clear_mailbox_enabled:
-                print(f"{step_num}. ✅ 清空了邮箱（INBOX、Drafts 和 Sent 文件夹）")
+                print(f"{step_num}. ✅ Cleared mailbox (INBOX, Drafts, Sent folders)")
                 step_num += 1
             if clear_forms_enabled:
                 if forms_result and forms_result.get('success'):
                     deleted_count = forms_result.get('deleted_count', 0)
                     found_count = forms_result.get('found_count', 0)
-                    print(f"{step_num}. ✅ 清空了匹配 '{form_name_pattern}' 的Google Forms（找到 {found_count} 个，删除 {deleted_count} 个）")
+                    print(f"{step_num}. ✅ Cleared Google Forms matching '{form_name_pattern}' (found {found_count}, deleted {deleted_count})")
                 else:
-                    print(f"{step_num}. ⚠️ Google Forms清理部分完成")
+                    print(f"{step_num}. ⚠️ Google Forms clearing partially complete")
                 step_num += 1
-            print(f"{step_num}. ✅ 设置了产品召回测试数据和环境")
-            print("\n🎯 任务目标：")
-            print("- 检测召回产品并下架")
-            print("- 创建产品召回信息确认表（Google Forms）")
-            print("- 向受影响客户发送召回通知邮件")
+            print(f"{step_num}. ✅ Product recall test data and environment set up")
+            print("\n🎯 Task objectives:")
+            print("- Detect recalled products and unlist them")
+            print("- Create product recall information confirmation form (Google Forms)")
+            print("- Send recall notification emails to affected customers")
             exit(0)
         else:
-            print("\n⚠️ 预处理部分完成，请检查错误信息")
+            print("\n⚠️ Preprocessing partially completed, please check error messages")
             exit(1)
     
     except Exception as e:
-        print(f"❌ 预处理失败: {e}")
+        print(f"❌ Preprocessing failed: {e}")
         exit(1)

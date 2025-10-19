@@ -1,52 +1,52 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-考试通知邮件发送脚本
-通过Poste.io的SMTP/IMAP服务发送考试通知邮件
+Exam Notification Email Script
+Send exam notification emails using Poste.io SMTP/IMAP services
 
-新功能：干扰邮件注入
-====================
-为了模拟真实的邮箱环境，现在可以在考试通知邮件前后注入一些无关的干扰邮件。
+New Feature: Distraction Email Injection
+=======================================
+To simulate a realistic inbox, random irrelevant distraction emails can be injected before and after the exam notification email.
 
-干扰邮件类型（25种）：
-📦 购物电商：Amazon, eBay, Target, Etsy
-🎬 娱乐媒体：Netflix, YouTube, Spotify, TikTok
-👥 社交网络：LinkedIn, Facebook, Instagram, Twitter
-💰 金融银行：Chase Bank, PayPal, Wells Fargo
-🍕 外卖配送：Uber Eats, DoorDash, Grubhub
-✈️ 旅行住宿：Booking.com, Airbnb, Delta Airlines
-📰 新闻资讯：The New York Times, Medium
-🎯 团购优惠：Groupon, LivingSocial
-💬 社区论坛：Reddit, Stack Overflow
-💪 健康健身：MyFitnessPal, Headspace
-🎮 游戏娱乐：Steam, Twitch
+Distraction Email Types (25 types):
+📦 Online Shopping: Amazon, eBay, Target, Etsy
+🎬 Entertainment Media: Netflix, YouTube, Spotify, TikTok
+👥 Social Networks: LinkedIn, Facebook, Instagram, Twitter
+💰 Financial & Banking: Chase Bank, PayPal, Wells Fargo
+🍕 Food Delivery: Uber Eats, DoorDash, Grubhub
+✈️ Travel & Accommodation: Booking.com, Airbnb, Delta Airlines
+📰 News: The New York Times, Medium
+🎯 Deals: Groupon, LivingSocial
+💬 Community Forums: Reddit, Stack Overflow
+💪 Health & Fitness: MyFitnessPal, Headspace
+🎮 Gaming: Steam, Twitch
 
-邮件数量和时间分布：
-- 考试邮件前：随机注入6-12封邮件，时间分布在考试邮件前0.5-5天
-- 考试邮件后：随机注入4-8封邮件，时间分布在考试邮件后1-48小时
-- 总计：10-20封干扰邮件 + 1封考试通知邮件
+Email count and time distribution:
+- Before exam notification: 6-12 distraction emails, randomly injected 0.5-5 days before the exam message
+- After exam notification: 4-8 emails, injected 1-48 hours after the exam message
+- Total: 10-20 distraction emails + 1 genuine exam notification
 
-使用方法：
+Usage:
 ```python
-# 推荐用法：清除收件箱 + 干扰邮件（模拟真实环境）
+# Recommended: Clear inbox + inject distractions (for realistic simulation)
 inject_exam_emails_from_config('config.json', clear_inbox=True, add_distractions=True)
 
-# 只注入考试邮件，无干扰
+# Only inject the exam mail, no distraction
 inject_exam_emails_from_config('config.json', clear_inbox=True, add_distractions=False)
 ```
 
-测试模式：
+Test mode:
 ```bash
 python send_exam_notification_smtp.py --test
 ```
 
-运行效果示例：
+Sample output:
 ```
-📋 模式: 清除收件箱后注入新邮件
-🎭 干扰模式: 启用 - 将添加无关邮件增加真实性
+📋 Mode: Clear inbox and inject new emails
+🎭 Distraction mode: Enabled - Add distraction emails for realism
 
-🎭 步骤1: 注入干扰邮件（考试通知前）...
-📮 正在注入 9 封干扰邮件（考试通知前）...
+🎭 Step 1: Injecting distraction emails (before exam notice)...
+📮 Injecting 9 distraction emails (before exam)...
   ✅ Amazon: Your order has been shipped! Track your package... (11-27 09:15)
   ✅ Chase Bank: Account Alert: Large purchase detected... (11-28 14:32)
   ✅ Netflix: New shows added to your list - Watch now!... (11-29 11:45)
@@ -57,11 +57,11 @@ python send_exam_notification_smtp.py --test
   ✅ Target: Weekend sale: Up to 50% off home essentials... (12-01 06:22)
   ✅ PayPal: You've received $25.00 from Mom... (12-01 07:55)
 
-📧 步骤2: 注入考试通知邮件...
-✅ 邮件注入成功！
+📧 Step 2: Injecting exam notification email...
+✅ Email injection successful!
 
-🎭 步骤3: 注入干扰邮件（考试通知后）...
-📮 正在注入 6 封干扰邮件（考试通知后）...
+🎭 Step 3: Injecting distraction emails (after exam notice)...
+📮 Injecting 6 distraction emails (after exam)...
   ✅ DoorDash: Your order from Thai Garden is on the way! 🚗... (12-01 12:30)
   ✅ Facebook: You have 3 friend requests and 8 notification... (12-01 15:45)
   ✅ YouTube: Your video got 1,000 views! 🎉... (12-01 20:15)
@@ -69,10 +69,10 @@ python send_exam_notification_smtp.py --test
   ✅ LinkedIn: Someone viewed your profile... (12-02 14:20)
   ✅ Twitch: Your favorite streamer is live! 🔴... (12-02 19:45)
 
-🎭 已添加干扰邮件以模拟真实邮箱环境
+🎭 Distraction emails added for a realistic inbox
 ```
 
-总计邮件数：15封干扰邮件 + 1封考试通知 = 16封邮件
+Total emails: 15 distraction + 1 exam notification = 16 emails
 """
 
 import smtplib
@@ -89,14 +89,13 @@ from pathlib import Path
 from typing import Dict, Any, Optional, Tuple
 
 class ExamNotificationSender:
-    """考试通知邮件发送器"""
+    """Exam notification email sender"""
     
     def __init__(self, config_file: str):
         """
-        初始化邮件发送器
-        :param config_file: 配置文件路径
+        Initialize email sender
+        :param config_file: Config file path
         """
-        # 先创建logger，再加载配置
         self.logger = logging.getLogger('ExamNotificationSender')
         self.setup_logging()
         self.config = self._load_config(config_file)
@@ -104,127 +103,109 @@ class ExamNotificationSender:
         self.imap_connection = None
         
     def _load_config(self, config_file: str) -> Dict[str, Any]:
-        """加载配置文件"""
+        """Load config from file"""
         try:
             with open(config_file, 'r', encoding='utf-8') as f:
                 config = json.load(f)
-            self.logger.info("配置文件加载成功")
+            self.logger.info("Config file loaded successfully")
             return config
         except Exception as e:
-            raise Exception(f"加载配置文件失败: {e}")
+            raise Exception(f"Failed to load config file: {e}")
     
     def get_recipient_credentials(self) -> Dict[str, str]:
-        """获取收件人的邮箱凭据"""
+        """Get recipient mailbox credentials"""
         try:
-            # 直接从配置中获取收件人信息
             recipient = self.config['recipient']
-            
-            # 检查是否包含密码信息
             if 'password' in recipient:
                 credentials = {
                     'email': recipient['email'],
                     'password': recipient['password']
                 }
-                self.logger.info(f"成功获取收件人凭据: {recipient['email']}")
+                self.logger.info(f"Successfully got credentials for recipient: {recipient['email']}")
                 return credentials
             else:
-                self.logger.warning("收件人配置中缺少密码信息")
+                self.logger.warning("Recipient config missing password")
                 return None
             
         except Exception as e:
-            self.logger.error(f"获取收件人凭据失败: {e}")
+            self.logger.error(f"Failed to get recipient credentials: {e}")
             return None
     
     def setup_logging(self):
-        """设置日志系统"""
-        # 使用默认配置初始化日志系统
+        """Set up logger system"""
         log_file = 'email_send.log'
         log_level = logging.INFO
         
-        # 配置日志格式
         formatter = logging.Formatter(
             '%(asctime)s - %(levelname)s - %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S'
         )
         
-        # 文件处理器
         file_handler = logging.FileHandler(log_file, encoding='utf-8')
         file_handler.setFormatter(formatter)
         
-        # 控制台处理器
         console_handler = logging.StreamHandler()
         console_handler.setFormatter(formatter)
         
-        # 配置logger
         self.logger.setLevel(log_level)
         self.logger.addHandler(file_handler)
         self.logger.addHandler(console_handler)
         
-        self.logger.info("日志系统初始化完成")
+        self.logger.info("Logging system initialized")
     
     def connect_smtp(self) -> bool:
-        """连接SMTP服务器"""
+        """Connect to SMTP server"""
         try:
             server_config = self.config['server_config']
-            self.logger.info(f"正在连接SMTP服务器: {server_config['smtp_server']}:{server_config['smtp_port']}")
+            self.logger.info(f"Connecting to SMTP server: {server_config['smtp_server']}:{server_config['smtp_port']}")
             
-            # 创建SMTP连接
             self.smtp_connection = smtplib.SMTP(
                 server_config['smtp_server'],
                 server_config['smtp_port'],
                 timeout=server_config.get('timeout', 30)
             )
-            
-            # 设置调试级别
             self.smtp_connection.set_debuglevel(1)
-            
-            # 发送EHLO命令
             self.smtp_connection.ehlo()
             
-            # 检查是否支持STARTTLS
             if self.smtp_connection.has_extn('STARTTLS'):
-                self.logger.info("服务器支持STARTTLS，正在启用...")
+                self.logger.info("Server supports STARTTLS, enabling...")
                 self.smtp_connection.starttls()
                 self.smtp_connection.ehlo()
-                self.logger.info("STARTTLS启用成功")
+                self.logger.info("STARTTLS enabled")
             else:
-                self.logger.info("服务器不支持STARTTLS")
+                self.logger.info("Server does not support STARTTLS")
             
-            self.logger.info("SMTP服务器连接成功")
+            self.logger.info("SMTP server connected")
             return True
             
         except Exception as e:
-            self.logger.error(f"SMTP服务器连接失败: {e}")
+            self.logger.error(f"Failed to connect to SMTP server: {e}")
             return False
     
     def authenticate_smtp(self) -> bool:
-        """SMTP服务器认证"""
+        """SMTP server authentication"""
         try:
             sender_account = self.config['sender_account']
-            self.logger.info(f"正在认证SMTP账户: {sender_account['email']}")
+            self.logger.info(f"Authenticating SMTP account: {sender_account['email']}")
             
-            # 检查服务器是否支持AUTH
             if not self.smtp_connection.has_extn('AUTH'):
-                self.logger.warning("服务器不支持AUTH扩展，尝试直接发送邮件...")
-                return True  # 如果服务器不需要认证，直接返回成功
+                self.logger.warning("Server doesn't support AUTH extension, will try sending without auth...")
+                return True
             
-            # 执行SMTP认证
             self.smtp_connection.login(
                 sender_account['email'],
                 sender_account['password']
             )
-            
-            self.logger.info("SMTP认证成功")
+            self.logger.info("SMTP authentication succeeded")
             return True
             
         except Exception as e:
-            self.logger.error(f"SMTP认证失败: {e}")
-            # 如果认证失败，尝试不认证发送
-            self.logger.info("尝试不认证发送邮件...")
+            self.logger.error(f"SMTP authentication failed: {e}")
+            self.logger.info("Trying sending mail without authentication...")
             return True
     
     def load_email_template(self) -> str:
-        """加载邮件模板"""
+        """Load email template"""
         try:
             template_file = self.config['email_content']['template_file']
             template_path = Path(__file__).parent.parent / 'files' / template_file
@@ -232,11 +213,10 @@ class ExamNotificationSender:
             with open(template_path, 'r', encoding='utf-8') as f:
                 template = f.read()
             
-            self.logger.info("邮件模板加载成功")
+            self.logger.info("Email template loaded")
             return template
         except Exception as e:
-            self.logger.error(f"加载邮件模板失败: {e}")
-            # 返回默认模板
+            self.logger.error(f"Failed to load email template: {e}")
             default_template = """Dear {recipient_name},
 
 This is a notification about your upcoming exam:
@@ -255,14 +235,11 @@ Course Instructor"""
             return default_template
     
     def format_email_content(self, template: str) -> str:
-        """格式化邮件内容"""
+        """Format exam email content with config"""
         try:
-            # 获取配置信息
             sender_account = self.config['sender_account']
             recipient = self.config['recipient']
             exam_info = self.config['email_content']['exam_info']
-            
-            # 替换模板变量
             content = template.format(
                 recipient_name=recipient['name'],
                 course_name=exam_info['course_name'],
@@ -275,49 +252,41 @@ Course Instructor"""
                 sender_name=sender_account['name'],
                 send_time=time.strftime('%Y-%m-%d %H:%M:%S')
             )
-            
-            self.logger.info("邮件内容格式化完成")
+            self.logger.info("Email content formatted")
             return content
-            
         except Exception as e:
-            self.logger.error(f"邮件内容格式化失败: {e}")
+            self.logger.error(f"Failed to format email content: {e}")
             raise
     
     def send_email(self, content: str) -> bool:
-        """发送邮件"""
+        """Send mail"""
         try:
             sender_account = self.config['sender_account']
             recipient = self.config['recipient']
             subject = self.config['email_content']['subject']
             
-            # 创建邮件对象
             msg = MIMEMultipart()
             msg['From'] = f"{sender_account['name']} <{sender_account['email']}>"
             msg['To'] = f"{recipient['name']} <{recipient['email']}>"
             msg['Subject'] = subject
             
-            # 添加邮件正文
             text_part = MIMEText(content, 'plain', 'utf-8')
             msg.attach(text_part)
             
-            # 发送邮件
-            self.logger.info(f"正在发送邮件给: {recipient['email']}")
+            self.logger.info(f"Sending mail to: {recipient['email']}")
             self.smtp_connection.send_message(msg)
             
-            self.logger.info("邮件发送成功")
+            self.logger.info("Mail sent successfully")
             return True
-            
         except Exception as e:
-            self.logger.error(f"邮件发送失败: {e}")
+            self.logger.error(f"Failed to send mail: {e}")
             return False
     
     def connect_imap(self) -> bool:
-        """连接IMAP服务器"""
+        """Connect to IMAP server"""
         try:
             server_config = self.config['server_config']
-            self.logger.info(f"正在连接IMAP服务器: {server_config['imap_server']}:{server_config['imap_port']}")
-            
-            # 创建IMAP连接
+            self.logger.info(f"Connecting to IMAP server: {server_config['imap_server']}:{server_config['imap_port']}")
             if server_config.get('use_ssl', False):
                 self.imap_connection = imaplib.IMAP4_SSL(
                     server_config['imap_server'],
@@ -328,47 +297,38 @@ Course Instructor"""
                     server_config['imap_server'],
                     server_config['imap_port']
                 )
-            
-            self.logger.info("IMAP服务器连接成功")
+            self.logger.info("IMAP server connected")
             return True
-            
         except Exception as e:
-            self.logger.error(f"IMAP服务器连接失败: {e}")
+            self.logger.error(f"Failed to connect to IMAP server: {e}")
             return False
     
     def authenticate_imap(self) -> bool:
-        """IMAP服务器认证"""
+        """Authenticate IMAP server"""
         try:
             sender_account = self.config['sender_account']
-            self.logger.info(f"正在认证IMAP账户: {sender_account['email']}")
-            
-            # 执行IMAP认证
+            self.logger.info(f"Authenticate IMAP account: {sender_account['email']}")
             self.imap_connection.login(
                 sender_account['email'],
                 sender_account['password']
             )
-            
-            self.logger.info("IMAP认证成功")
+            self.logger.info("IMAP authentication succeeded")
             return True
-            
         except Exception as e:
-            self.logger.error(f"IMAP认证失败: {e}")
+            self.logger.error(f"IMAP authentication failed: {e}")
             return False
     
     def delete_recipient_inbox_emails(self) -> bool:
-        """删除收件人收件箱中的所有邮件"""
+        """Delete all emails in recipient inbox"""
         try:
-            # 获取收件人凭据
             recipient_credentials = self.get_recipient_credentials()
             if not recipient_credentials:
-                self.logger.warning("无法获取收件人凭据，跳过删除操作")
+                self.logger.warning("Failed to get recipient credentials, skipping deletion")
                 return False
             
-            # 使用收件人凭据连接IMAP服务器
             server_config = self.config['server_config']
-            self.logger.info(f"正在连接收件人IMAP服务器: {server_config['imap_server']}:{server_config['imap_port']}")
+            self.logger.info(f"Connecting to recipient IMAP server: {server_config['imap_server']}:{server_config['imap_port']}")
             
-            # 创建新的IMAP连接（使用收件人凭据）
             if server_config.get('use_ssl', False):
                 recipient_imap = imaplib.IMAP4_SSL(
                     server_config['imap_server'],
@@ -380,205 +340,172 @@ Course Instructor"""
                     server_config['imap_port']
                 )
             
-            # 使用收件人凭据认证
             recipient_imap.login(
                 recipient_credentials['email'],
                 recipient_credentials['password']
             )
             
-            self.logger.info("收件人IMAP连接成功")
-            
-            # 选择收件箱
+            self.logger.info("Recipient IMAP connected")
             recipient_imap.select('INBOX')
-            
-            # 搜索所有邮件
             _, message_numbers = recipient_imap.search(None, 'ALL')
             
             if message_numbers[0]:
-                # 获取所有邮件编号
                 email_nums = message_numbers[0].split()
                 total_emails = len(email_nums)
-                
                 if total_emails > 0:
-                    self.logger.info(f"找到 {total_emails} 封邮件，开始删除...")
-                    
-                    # 删除所有邮件
+                    self.logger.info(f"Found {total_emails} emails, deleting...")
                     for email_num in email_nums:
                         recipient_imap.store(email_num, '+FLAGS', '\\Deleted')
-                    
-                    # 永久删除标记的邮件
                     recipient_imap.expunge()
-                    
-                    self.logger.info(f"成功删除收件箱中的 {total_emails} 封邮件")
+                    self.logger.info(f"Deleted {total_emails} email(s) in inbox")
                 else:
-                    self.logger.info("收件箱中没有邮件需要删除")
+                    self.logger.info("Inbox empty, nothing to delete")
             else:
-                self.logger.info("收件箱中没有邮件")
+                self.logger.info("Inbox empty")
             
-            # 关闭收件人IMAP连接
             recipient_imap.close()
             recipient_imap.logout()
-            
             return True
-            
         except Exception as e:
-            self.logger.error(f"删除收件人收件箱邮件失败: {e}")
+            self.logger.error(f"Failed to delete recipient inbox emails: {e}")
             return False
     
     def verify_email_sent(self) -> bool:
-        """验证邮件是否发送成功"""
+        """Verify that mail was sent successfully (via IMAP Sent box)"""
         try:
-            self.logger.info("正在验证邮件发送状态...")
-            
-            # 选择发件箱
+            self.logger.info("Verifying mail send status...")
             self.imap_connection.select('Sent')
-            
-            # 搜索最近的邮件
             search_criteria = f'TO "{self.config["recipient"]["email"]}"'
             _, message_numbers = self.imap_connection.search(None, search_criteria)
-            
             if message_numbers[0]:
-                # 获取最新的邮件
                 latest_email_num = message_numbers[0].split()[-1]
                 _, msg_data = self.imap_connection.fetch(latest_email_num, '(RFC822)')
-                
-                # 解析邮件内容
                 email_body = msg_data[0][1]
                 email_message = email.message_from_bytes(email_body)
-                
-                # 检查邮件主题
                 subject = email_message.get('Subject', '')
                 expected_subject = self.config['email_content']['subject']
-                
                 if expected_subject in subject:
-                    self.logger.info("邮件发送验证成功")
+                    self.logger.info("Mail send verification succeeded")
                     return True
                 else:
-                    self.logger.warning(f"邮件主题不匹配: 期望 '{expected_subject}', 实际 '{subject}'")
+                    self.logger.warning(f"Subject mismatch: expected '{expected_subject}', got '{subject}'")
                     return False
             else:
-                self.logger.warning("未找到发送给目标收件人的邮件")
+                self.logger.warning("No sent mail found to recipient")
                 return False
-                
         except Exception as e:
-            self.logger.error(f"邮件验证失败: {e}")
+            self.logger.error(f"Mail verification failed: {e}")
             return False
     
     def cleanup(self):
-        """清理连接"""
+        """Cleanup connections"""
         try:
             if self.smtp_connection:
                 self.smtp_connection.quit()
-                self.logger.info("SMTP连接已关闭")
-            
+                self.logger.info("SMTP connection closed")
             if self.imap_connection:
                 self.imap_connection.close()
                 self.imap_connection.logout()
-                self.logger.info("IMAP连接已关闭")
-                
+                self.logger.info("IMAP connection closed")
         except Exception as e:
-            self.logger.error(f"清理连接时出错: {e}")
+            self.logger.error(f"Cleanup error: {e}")
     
     def send_exam_notification(self) -> bool:
-        """发送考试通知邮件的主流程"""
+        """Main process: send exam notification email"""
         try:
-            self.logger.info("开始发送考试通知邮件...")
+            self.logger.info("Starting to send exam notification email...")
             
-            # 1. 连接SMTP服务器
             if not self.connect_smtp():
                 return False
             
-            # 2. SMTP认证
             if not self.authenticate_smtp():
                 return False
             
-            # 3. 删除收件人收件箱中的所有邮件
-            self.logger.info("开始删除收件人收件箱邮件...")
+            self.logger.info("Deleting emails in recipient's inbox...")
             delete_success = self.delete_recipient_inbox_emails()
             if delete_success:
-                self.logger.info("收件人收件箱邮件删除完成")
+                self.logger.info("Recipient inbox emails deleted")
             else:
-                self.logger.warning("收件人收件箱邮件删除失败，但继续执行邮件发送")
+                self.logger.warning("Failed to delete recipient inbox, will continue anyway")
             
-            # 4. 加载和格式化邮件模板
             template = self.load_email_template()
             content = self.format_email_content(template)
             
-            # 5. 发送邮件
+            # 5. Send email
             if not self.send_email(content):
                 return False
             
-            # 邮件发送成功
-            self.logger.info("🎉 考试通知邮件发送成功！")
-            print("✅ 邮件发送成功！")
-            print(f"📧 发件人: {self.config['sender_account']['email']}")
-            print(f"📧 收件人: {self.config['recipient']['email']}")
-            print(f"📝 主题: {self.config['email_content']['subject']}")
-            print(f"📅 考试时间: {self.config['email_content']['exam_info']['exam_date']} {self.config['email_content']['exam_info']['exam_time']}")
-            print(f"📍 考试地点: {self.config['email_content']['exam_info']['exam_location']}")
+            # Email sent successfully
+            self.logger.info("🎉 Exam notification email sent successfully!")
+            print("✅ Email sent successfully!")
+            print(f"📧 Sender: {self.config['sender_account']['email']}")
+            print(f"📧 Recipient: {self.config['recipient']['email']}")
+            print(f"📝 Subject: {self.config['email_content']['subject']}")
+            print(f"📅 Exam time: {self.config['email_content']['exam_info']['exam_date']} {self.config['email_content']['exam_info']['exam_time']}")
+            print(f"📍 Exam location: {self.config['email_content']['exam_info']['exam_location']}")
             
             return True
             
         except Exception as e:
-            self.logger.error(f"发送考试通知邮件时发生错误: {e}")
-            print(f"❌ 邮件发送失败: {e}")
+            self.logger.error(f"Error sending exam notification email: {e}")
+            print(f"❌ Email sent failed: {e}")
             return False
         
         finally:
             self.cleanup()
 
 def main():
-    """主函数"""
+    """Main function"""
     try:
-        # 配置文件路径
+        # Config file path
         config_file = Path(__file__).parent.parent / 'files' / 'email_config.json'
         
-        # 创建邮件发送器
+        # Create email sender
         sender = ExamNotificationSender(str(config_file))
         
-        # 发送考试通知邮件
+        # Send exam notification email
         success = sender.send_exam_notification()
         
         if success:
-            print("\n🎯 考试通知邮件处理完成！")
+            print("\n🎯 Exam notification email processing completed!")
         else:
-            print("\n💥 考试通知邮件处理失败！")
+            print("\n💥 Exam notification email processing failed!")
             exit(1)
             
     except Exception as e:
-        print(f"❌ 程序执行失败: {e}")
+        print(f"❌ Program execution failed: {e}")
         exit(1)
 
 if __name__ == "__main__":
     main()
 
 class ExamNotificationInjector:
-    """考试通知邮件直接注入器 - 直接将邮件注入到收件箱，支持自定义时间戳"""
+    """Exam notification email direct injector - directly inject email into inbox, support custom timestamp"""
     
     def __init__(self, config_file: str):
         """
-        初始化邮件注入器
-        :param config_file: 配置文件路径
+        Initialize email injector
+        :param config_file: Config file path
         """
         self.logger = logging.getLogger('ExamNotificationInjector')
         self.setup_logging()
         self.config = self._load_config(config_file)
         
     def _load_config(self, config_file: str) -> Dict[str, Any]:
-        """加载配置文件"""
+        """Load config file"""
         try:
             with open(config_file, 'r', encoding='utf-8') as f:
                 config = json.load(f)
-            self.logger.info("配置文件加载成功")
+            self.logger.info("Config file loaded successfully")
             return config
         except Exception as e:
-            raise Exception(f"加载配置文件失败: {e}")
+            raise Exception(f"Failed to load config file: {e}")
     
     def setup_logging(self):
-        """设置日志"""
+        """Setup logging"""
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         
-        # 控制台处理器
+        # Console handler
         console_handler = logging.StreamHandler()
         console_handler.setFormatter(formatter)
         
@@ -586,7 +513,7 @@ class ExamNotificationInjector:
         self.logger.setLevel(logging.INFO)
     
     def load_email_template(self) -> str:
-        """加载邮件模板"""
+        """Load email template"""
         try:
             template_file = self.config['email_content']['template_file']
             template_path = Path(__file__).parent.parent / 'files' / template_file
@@ -594,11 +521,10 @@ class ExamNotificationInjector:
             with open(template_path, 'r', encoding='utf-8') as f:
                 template = f.read()
             
-            self.logger.info("邮件模板加载成功")
+            self.logger.info("Email template loaded successfully")
             return template
         except Exception as e:
-            self.logger.error(f"加载邮件模板失败: {e}")
-            # 返回默认模板
+            self.logger.error(f"Failed to load email template: {e}")
             return """Dear {recipient_name},
 
 This is a notification about your upcoming exam:
@@ -616,7 +542,7 @@ Best regards,
 Course Instructor"""
     
     def format_email_content(self, template: str) -> str:
-        """格式化邮件内容"""
+        """Format email content"""
         try:
             exam_info = self.config['email_content']['exam_info']
             recipient = self.config['recipient']
@@ -634,26 +560,26 @@ Course Instructor"""
                 send_time=time.strftime('%Y-%m-%d %H:%M:%S')
             )
             
-            self.logger.info("邮件内容格式化成功")
+            self.logger.info("Email content formatted successfully")
             return content
         except Exception as e:
-            self.logger.error(f"格式化邮件内容失败: {e}")
+            self.logger.error(f"Failed to format email content: {e}")
             raise
     
     def inject_email_to_imap(self, content: str, custom_timestamp: Optional[float] = None) -> bool:
         """
-        直接将邮件注入到IMAP服务器收件箱
-        :param content: 邮件内容
-        :param custom_timestamp: 自定义时间戳 (Unix timestamp)，如果为None则使用当前时间
+        Directly inject email into IMAP server inbox
+        :param content: Email content
+        :param custom_timestamp: Custom timestamp (Unix timestamp), if None then use current time
         """
         try:
-            # 获取配置
+            # Get config
             server_config = self.config['server_config']
             sender_account = self.config['sender_account']
             recipient = self.config['recipient']
             subject = self.config['email_content']['subject']
             
-            # 连接到IMAP服务器
+            # Connect to IMAP server
             if server_config.get("use_ssl"):
                 imap = imaplib.IMAP4_SSL(server_config["imap_server"], server_config["imap_port"])
             else:
@@ -662,58 +588,58 @@ Course Instructor"""
             if server_config.get("use_starttls"):
                 imap.starttls()
             
-            # 使用收件人凭据登录
+            # Use recipient credentials to login
             imap.login(recipient['email'], recipient['password'])
             self.logger.info(f"✅ Connected to IMAP server as {recipient['email']}")
             
-            # 选择收件箱
+            # Select inbox
             imap.select("INBOX")
             
-            # 创建邮件消息
+            # Create email message
             msg = MIMEMultipart()
             msg['From'] = f"{sender_account['name']} <{sender_account['email']}>"
             msg['To'] = f"{recipient['name']} <{recipient['email']}>"
             msg['Subject'] = subject
             
-            # 设置时间戳
+            # Set timestamp
             if custom_timestamp:
                 from email.utils import formatdate
                 msg['Date'] = formatdate(custom_timestamp)
-                self.logger.info(f"使用自定义时间戳: {formatdate(custom_timestamp)}")
+                self.logger.info(f"Using custom timestamp: {formatdate(custom_timestamp)}")
             else:
                 from email.utils import formatdate
                 msg['Date'] = formatdate()
-                self.logger.info("使用当前时间戳")
+                self.logger.info("Using current timestamp")
             
-            # 添加邮件正文
+            # Add email body
             text_part = MIMEText(content, 'plain', 'utf-8')
             msg.attach(text_part)
             
-            # 将邮件注入到收件箱
+            # Inject email into inbox
             email_string = msg.as_string()
             imap.append("INBOX", None, None, email_string.encode('utf-8'))
             
-            # 关闭连接
+            # Close connection
             imap.close()
             imap.logout()
             
-            self.logger.info("✅ 邮件成功注入到收件箱")
+            self.logger.info("✅ Email successfully injected into inbox")
             return True
             
         except Exception as e:
-            self.logger.error(f"邮件注入失败: {e}")
+            self.logger.error(f"Email injection failed: {e}")
             return False
     
     def delete_recipient_inbox_emails(self) -> bool:
-        """删除收件人收件箱中的所有邮件"""
+        """Delete all emails in recipient inbox"""
         try:
-            # 获取收件人凭据
+            # Get recipient credentials
             recipient = self.config['recipient']
             server_config = self.config['server_config']
             
-            self.logger.info(f"正在连接收件人IMAP服务器: {server_config['imap_server']}:{server_config['imap_port']}")
+            self.logger.info(f"Connecting to recipient IMAP server: {server_config['imap_server']}:{server_config['imap_port']}")
             
-            # 创建新的IMAP连接（使用收件人凭据）
+            # Create new IMAP connection (using recipient credentials)
             if server_config.get('use_ssl', False):
                 recipient_imap = imaplib.IMAP4_SSL(
                     server_config['imap_server'],
@@ -725,61 +651,61 @@ Course Instructor"""
                     server_config['imap_port']
                 )
             
-            # 使用收件人凭据认证
+            # Use recipient credentials to authenticate
             recipient_imap.login(
                 recipient['email'],
                 recipient['password']
             )
             
-            self.logger.info("收件人IMAP连接成功")
-            print("🗑️ 正在清除收件箱中的所有邮件...")
+            self.logger.info("Recipient IMAP connection successful")
+            print("🗑️ Clearing all emails in recipient inbox...")
             
-            # 选择收件箱
+            # Select inbox
             recipient_imap.select('INBOX')
             
-            # 搜索所有邮件
+            # Search all emails
             _, message_numbers = recipient_imap.search(None, 'ALL')
             
             if message_numbers[0]:
-                # 获取所有邮件编号
+                # Get all email numbers
                 email_nums = message_numbers[0].split()
                 total_emails = len(email_nums)
                 
                 if total_emails > 0:
-                    self.logger.info(f"找到 {total_emails} 封邮件，开始删除...")
-                    print(f"📧 找到 {total_emails} 封邮件，正在删除...")
+                    self.logger.info(f"Found {total_emails} emails, starting deletion...")
+                    print(f"📧 Found {total_emails} emails, starting deletion...")
                     
-                    # 删除所有邮件
+                    # Delete all emails
                     for email_num in email_nums:
                         recipient_imap.store(email_num, '+FLAGS', '\\Deleted')
                     
-                    # 永久删除标记的邮件
+                    # Permanent delete marked emails
                     recipient_imap.expunge()
                     
-                    self.logger.info(f"成功删除收件箱中的 {total_emails} 封邮件")
-                    print(f"✅ 成功删除收件箱中的 {total_emails} 封邮件")
+                    self.logger.info(f"Successfully deleted {total_emails} emails in recipient inbox")
+                    print(f"✅ Successfully deleted {total_emails} emails in recipient inbox")
                 else:
-                    self.logger.info("收件箱中没有邮件需要删除")
-                    print("📭 收件箱中没有邮件需要删除")
+                    self.logger.info("No emails need to be deleted in recipient inbox")
+                    print("📭 No emails need to be deleted in recipient inbox")
             else:
-                self.logger.info("收件箱中没有邮件")
-                print("📭 收件箱中没有邮件")
+                self.logger.info("No emails in recipient inbox")
+                print("📭 No emails in recipient inbox")
             
-            # 关闭收件人IMAP连接
+            # Close recipient IMAP connection
             recipient_imap.close()
             recipient_imap.logout()
             
             return True
             
         except Exception as e:
-            self.logger.error(f"删除收件人收件箱邮件失败: {e}")
-            print(f"❌ 删除收件箱邮件失败: {e}")
+            self.logger.error(f"Failed to delete recipient inbox emails: {e}")
+            print(f"❌ Failed to delete recipient inbox emails: {e}")
             return False
 
     def generate_distraction_emails(self) -> list:
-        """生成干扰邮件模板"""
+        """Generate distraction email templates"""
         distraction_emails = [
-            # ===== 购物电商 =====
+            # ===== Shopping e-commerce =====
             {
                 "from_name": "Amazon",
                 "from_email": "no-reply@amazon.com",
@@ -856,7 +782,7 @@ Thanks for supporting small businesses,
 Etsy Team"""
             },
 
-            # ===== 娱乐媒体 =====
+            # ===== Entertainment media =====
             {
                 "from_name": "Netflix",
                 "from_email": "info@netflix.com", 
@@ -934,7 +860,7 @@ Your content is resonating with viewers! Keep up the great work.
 TikTok Creator Fund Team"""
             },
 
-            # ===== 社交网络 =====
+            # ===== Social networks =====
             {
                 "from_name": "LinkedIn",
                 "from_email": "notifications@linkedin.com",
@@ -1019,7 +945,7 @@ Your engagement is up 67% this week. Keep the conversations going!
 Twitter Team"""
             },
 
-            # ===== 金融银行 =====
+            # ===== Financial & banking =====
             {
                 "from_name": "Chase Bank",
                 "from_email": "alerts@chase.com",
@@ -1077,7 +1003,7 @@ View your complete statement online or in the Wells Fargo mobile app.
 Wells Fargo Customer Service"""
             },
 
-            # ===== 外卖配送 =====
+            # ===== Food delivery =====
             {
                 "from_name": "Uber Eats",
                 "from_email": "orders@ubereats.com",
@@ -1136,7 +1062,7 @@ Order now and save!
 Grubhub Team"""
             },
 
-            # ===== 旅行住宿 =====
+            # ===== Travel & accommodation =====
             {
                 "from_name": "Booking.com",
                 "from_email": "customer.service@booking.com",
@@ -1200,7 +1126,7 @@ Safe travels!
 Delta Air Lines"""
             },
 
-            # ===== 新闻资讯 =====
+            # ===== News & information =====
             {
                 "from_name": "The New York Times",
                 "from_email": "nyt@nytimes.com",
@@ -1251,7 +1177,7 @@ Happy reading!
 Medium Team"""
             },
 
-            # ===== 团购优惠 =====
+            # ===== Deals & discounts =====
             {
                 "from_name": "Groupon",
                 "from_email": "deals@groupon.com",
@@ -1305,7 +1231,7 @@ Get outside and explore,
 LivingSocial Adventures"""
             },
 
-            # ===== 社区论坛 =====
+            # ===== Community forums =====
             {
                 "from_name": "Reddit",
                 "from_email": "noreply@reddit.com",
@@ -1349,7 +1275,7 @@ Keep coding and keep learning!
 Stack Overflow Team"""
             },
 
-            # ===== 健康健身 =====
+            # ===== Health & fitness =====
             {
                 "from_name": "MyFitnessPal",
                 "from_email": "noreply@myfitnesspal.com",
@@ -1397,7 +1323,7 @@ Mindfully yours,
 Headspace Team"""
             },
 
-            # ===== 游戏娱乐 =====
+            # ===== Gaming & entertainment =====
             {
                 "from_name": "Steam",
                 "from_email": "noreply@steampowered.com",
@@ -1444,13 +1370,13 @@ Twitch Notifications"""
         return distraction_emails
 
     def inject_distraction_email(self, email_template: dict, timestamp: float) -> bool:
-        """注入单个干扰邮件"""
+        """Inject single distraction email"""
         try:
-            # 获取配置
+            # Get config
             server_config = self.config['server_config']
             recipient = self.config['recipient']
             
-            # 连接到IMAP服务器
+            # Connect to IMAP server
             if server_config.get("use_ssl"):
                 imap = imaplib.IMAP4_SSL(server_config["imap_server"], server_config["imap_port"])
             else:
@@ -1459,62 +1385,62 @@ Twitch Notifications"""
             if server_config.get("use_starttls"):
                 imap.starttls()
             
-            # 使用收件人凭据登录
+            # Use recipient credentials to login
             imap.login(recipient['email'], recipient['password'])
             
-            # 选择收件箱
+            # Select inbox
             imap.select("INBOX")
             
-            # 创建邮件消息
+            # Create email message
             msg = MIMEMultipart()
             msg['From'] = f"{email_template['from_name']} <{email_template['from_email']}>"
             msg['To'] = f"{recipient['name']} <{recipient['email']}>"
             msg['Subject'] = email_template['subject']
             
-            # 设置时间戳
+            # Set timestamp
             from email.utils import formatdate
             msg['Date'] = formatdate(timestamp)
             
-            # 添加邮件正文
+            # Add email body
             text_part = MIMEText(email_template['content'], 'plain', 'utf-8')
             msg.attach(text_part)
             
-            # 将邮件注入到收件箱
+            # Inject email into inbox
             email_string = msg.as_string()
             imap.append("INBOX", None, None, email_string.encode('utf-8'))
             
-            # 关闭连接
+            # Close connection
             imap.close()
             imap.logout()
             
             return True
             
         except Exception as e:
-            self.logger.error(f"注入干扰邮件失败: {e}")
+            self.logger.error(f"Failed to inject distraction email: {e}")
             return False
 
     def inject_exam_notification(self, custom_timestamp: Optional[float] = None, clear_inbox: bool = False, add_distractions: bool = True) -> bool:
         """
-        注入考试通知邮件到收件箱
-        :param custom_timestamp: 自定义时间戳 (Unix timestamp)
-        :param clear_inbox: 是否在注入前清除收件箱中的所有邮件
-        :param add_distractions: 是否添加干扰邮件
+        Inject exam notification email into inbox
+        :param custom_timestamp: Custom timestamp (Unix timestamp)
+        :param clear_inbox: Whether to clear all emails in inbox before injection
+        :param add_distractions: Whether to add distraction emails
         """
         try:
-            self.logger.info("开始注入考试通知邮件...")
+            self.logger.info("Starting to inject exam notification email...")
             
-            # 0. 如果启用清除选项，先清除收件箱
+            # 0. If clear inbox option is enabled, clear inbox first
             if clear_inbox:
-                print("\n🗑️ 步骤0: 清除收件箱邮件...")
+                print("\n🗑️ Step 0: Clear inbox emails...")
                 delete_success = self.delete_recipient_inbox_emails()
                 if delete_success:
-                    print("✅ 收件箱邮件清除完成")
-                    self.logger.info("收件箱邮件清除完成")
+                    print("✅ Inbox emails cleared successfully")
+                    self.logger.info("Inbox emails cleared successfully")
                 else:
-                    print("⚠️ 收件箱邮件清除失败，但继续执行邮件注入")
-                    self.logger.warning("收件箱邮件清除失败，但继续执行邮件注入")
+                    print("⚠️ Inbox emails clear failed, but continue with email injection")
+                    self.logger.warning("Inbox emails clear failed, but continue with email injection")
             
-            # 确定考试邮件的时间戳
+            # Determine exam email timestamp
             if custom_timestamp:
                 exam_timestamp = custom_timestamp
             else:
@@ -1522,64 +1448,64 @@ Twitch Notifications"""
             
             random.seed(42) # fix a seed to make the results reproducible
 
-            # 1. 注入干扰邮件（考试邮件之前）
+            # 1. Inject distraction emails (before exam email)
             if add_distractions:
-                print("\n🎭 步骤1: 注入干扰邮件（考试通知前）...")
+                print("\n🎭 Step 1: Inject distraction emails (before exam notification)...")
                 self.inject_distraction_emails_before(exam_timestamp)
             
-            # 2. 加载和格式化考试邮件模板
-            print("\n📧 步骤2: 注入考试通知邮件...")
+            # 2. Load and format exam email template
+            print("\n📧 Step 2: Inject exam notification email...")
             template = self.load_email_template()
             content = self.format_email_content(template)
             
-            # 3. 注入考试邮件
+            # 3. Inject exam email
             if not self.inject_email_to_imap(content, exam_timestamp):
                 return False
             
-            # 4. 注入干扰邮件（考试邮件之后）
+            # 4. Inject distraction emails (after exam email)
             if add_distractions:
-                print("\n🎭 步骤3: 注入干扰邮件（考试通知后）...")
+                print("\n🎭 Step 3: Inject distraction emails (after exam notification)...")
                 self.inject_distraction_emails_after(exam_timestamp)
             
-            # 邮件注入成功
-            self.logger.info("🎉 考试通知邮件注入成功！")
-            print("\n✅ 邮件注入成功！")
-            print(f"📧 发件人: {self.config['sender_account']['email']}")
-            print(f"📧 收件人: {self.config['recipient']['email']}")
-            print(f"📝 主题: {self.config['email_content']['subject']}")
-            print(f"📅 考试时间: {self.config['email_content']['exam_info']['exam_date']} {self.config['email_content']['exam_info']['exam_time']}")
-            print(f"📍 考试地点: {self.config['email_content']['exam_info']['exam_location']}")
+            # Email injection successful
+            self.logger.info("🎉 Exam notification email injection successful!")
+            print("\n✅ Email injection successful!")
+            print(f"📧 Sender: {self.config['sender_account']['email']}")
+            print(f"📧 Recipient: {self.config['recipient']['email']}")
+            print(f"📝 Subject: {self.config['email_content']['subject']}")
+            print(f"📅 Exam time: {self.config['email_content']['exam_info']['exam_date']} {self.config['email_content']['exam_info']['exam_time']}")
+            print(f"📍 Exam location: {self.config['email_content']['exam_info']['exam_location']}")
             
             if custom_timestamp:
                 from datetime import datetime
                 dt = datetime.fromtimestamp(custom_timestamp)
-                print(f"⏰ 邮件时间戳: {dt.strftime('%Y-%m-%d %H:%M:%S')}")
+                print(f"⏰ Email timestamp: {dt.strftime('%Y-%m-%d %H:%M:%S')}")
             
             if add_distractions:
-                print("🎭 已添加干扰邮件以模拟真实邮箱环境")
+                print("🎭 Added distraction emails to simulate real inbox environment")
             
             return True
             
         except Exception as e:
-            self.logger.error(f"注入考试通知邮件时发生错误: {e}")
-            print(f"❌ 邮件注入失败: {e}")
+            self.logger.error(f"Error injecting exam notification email: {e}")
+            print(f"❌ Email injection failed: {e}")
             return False
 
     def inject_distraction_emails_before(self, exam_timestamp: float):
-        """在考试邮件之前注入干扰邮件"""
+        """Inject distraction emails before exam email"""
         try:
             distraction_emails = self.generate_distraction_emails()
             
-            # 在考试邮件前1-5天注入6-12封干扰邮件，增加数量使邮箱更加混乱
+            # Inject 6-12 distraction emails 1-5 days before exam email, increase number to make inbox more chaotic
             num_emails = random.randint(6, 12)
             selected_emails = random.sample(distraction_emails, min(num_emails, len(distraction_emails)))
             
-            print(f"📮 正在注入 {len(selected_emails)} 封干扰邮件（考试通知前）...")
+            print(f"📮 Injecting {len(selected_emails)} distraction emails (before exam notification)...")
             
             for i, email_template in enumerate(selected_emails):
-                # 在考试邮件前0.5-5天的随机时间，扩大时间范围
-                days_before = random.uniform(0.5, 5.0)  # 0.5-5天前
-                hours_offset = random.uniform(0, 24)    # 再加上0-24小时的随机偏移
+                # Random time 0.5-5 days before exam email, expand time range
+                days_before = random.uniform(0.5, 5.0)  # 0.5-5 days before exam email
+                hours_offset = random.uniform(0, 24)    # Add 0-24 hour random offset
                 total_seconds_before = (days_before * 24 * 3600) + (hours_offset * 3600)
                 
                 distraction_timestamp = exam_timestamp - total_seconds_before
@@ -1590,33 +1516,33 @@ Twitch Notifications"""
                     dt = datetime.fromtimestamp(distraction_timestamp)
                     print(f"  ✅ {email_template['from_name']}: {email_template['subject'][:50]}... ({dt.strftime('%m-%d %H:%M')})")
                 else:
-                    print(f"  ❌ 失败: {email_template['from_name']}")
+                    print(f"  ❌ Failed: {email_template['from_name']}")
                 
-                # 添加小延迟避免服务器压力
+                # Add small delay to avoid server pressure
                 time.sleep(0.3)
                 
         except Exception as e:
-            self.logger.error(f"注入考试前干扰邮件失败: {e}")
-            print("⚠️ 部分干扰邮件注入失败，但继续执行")
+            self.logger.error(f"Failed to inject distraction emails before exam email: {e}")
+            print("⚠️ Some distraction emails injection failed, but continue execution")
 
     def inject_distraction_emails_after(self, exam_timestamp: float):
-        """在考试邮件之后注入干扰邮件"""
+        """Inject distraction emails after exam email"""
         try:
             distraction_emails = self.generate_distraction_emails()
             
-            # 在考试邮件后几小时到2天内注入4-8封干扰邮件，增加数量
+            # Inject 4-8 distraction emails 1-2 hours after exam email, increase number
             num_emails = random.randint(4, 8)
-            # 选择不同的邮件，避免与之前选择的重复
+            # Select different emails to avoid duplicates
             remaining_emails = [e for e in distraction_emails]
-            random.shuffle(remaining_emails)  # 打乱顺序确保多样性
+            random.shuffle(remaining_emails)  # Shuffle to ensure diversity
             selected_emails = remaining_emails[:min(num_emails, len(remaining_emails))]
             
-            print(f"📮 正在注入 {len(selected_emails)} 封干扰邮件（考试通知后）...")
+            print(f"📮 Injecting {len(selected_emails)} distraction emails (after exam notification)...")
             
             for i, email_template in enumerate(selected_emails):
-                # 在考试邮件后1小时到2天的随机时间，扩大时间范围
-                hours_after = random.uniform(1, 48)     # 1-48小时后（2天）
-                minutes_offset = random.uniform(0, 60)  # 再加上0-60分钟的随机偏移
+                # Random time 1-2 hours after exam email, expand time range
+                hours_after = random.uniform(1, 48)     # 1-48 hours after exam email (2 days)
+                minutes_offset = random.uniform(0, 60)  # Add 0-60 minute random offset
                 total_seconds_after = (hours_after * 3600) + (minutes_offset * 60)
                 
                 distraction_timestamp = exam_timestamp + total_seconds_after
@@ -1627,141 +1553,141 @@ Twitch Notifications"""
                     dt = datetime.fromtimestamp(distraction_timestamp)
                     print(f"  ✅ {email_template['from_name']}: {email_template['subject'][:50]}... ({dt.strftime('%m-%d %H:%M')})")
                 else:
-                    print(f"  ❌ 失败: {email_template['from_name']}")
+                    print(f"  ❌ Failed: {email_template['from_name']}")
                 
-                # 添加小延迟避免服务器压力
+                # Add small delay to avoid server pressure
                 time.sleep(0.3)
                 
         except Exception as e:
-            self.logger.error(f"注入考试后干扰邮件失败: {e}")
-            print("⚠️ 部分干扰邮件注入失败，但继续执行")
+            self.logger.error(f"Failed to inject distraction emails after exam email: {e}")
+            print("⚠️ Some distraction emails injection failed, but continue execution")
 
 
 def inject_exam_emails_from_config(config_file_path: str, custom_timestamp: Optional[float] = None, clear_inbox: bool = False, add_distractions: bool = True):
     """
-    一键从email_config.json导入考试通知邮件
-    :param config_file_path: email_config.json文件路径
-    :param custom_timestamp: 自定义时间戳 (Unix timestamp)，如果为None则使用当前时间
-    :param clear_inbox: 是否在注入前清除收件箱中的所有邮件
-                       - True: 清除收件箱后再注入新邮件（推荐用于测试环境）
-                       - False: 直接注入新邮件，保留现有邮件
-    :param add_distractions: 是否添加干扰邮件
-                           - True: 在考试通知前后添加无关邮件，模拟真实邮箱环境
-                           - False: 只注入考试通知邮件
+    Inject exam notification email from email_config.json
+    :param config_file_path: email_config.json file path
+    :param custom_timestamp: Custom timestamp (Unix timestamp), if None use current time
+    :param clear_inbox: Whether to clear all emails in inbox before injection
+                       - True: Clear inbox before injection (recommended for test environment)
+                       - False: Directly inject new email, keep existing emails
+    :param add_distractions: Whether to add distraction emails
+                           - True: Add irrelevant emails before and after exam notification to simulate real inbox environment
+                           - False: Only inject exam notification email
     
-    使用示例:
-    # 清除收件箱后注入邮件，包含干扰邮件（推荐）
+    Example usage:
+    # Clear inbox before injection, include distraction emails (recommended)
     inject_exam_emails_from_config('config.json', clear_inbox=True, add_distractions=True)
     
-    # 保留现有邮件，只注入考试通知邮件
+    # Keep existing emails, only inject exam notification email
     inject_exam_emails_from_config('config.json', clear_inbox=False, add_distractions=False)
     """
     try:
-        print("开始一键导入考试通知邮件...")
+        print("Starting to inject exam notification email...")
         if clear_inbox:
-            print("📋 模式: 清除收件箱后注入新邮件")
+            print("📋 Mode: Clear inbox before injection (recommended for test environment)")
         else:
-            print("📋 模式: 保留现有邮件，直接注入新邮件")
+            print("📋 Mode: Keep existing emails, directly inject exam notification email")
             
         if add_distractions:
-            print("🎭 干扰模式: 启用 - 将添加无关邮件增加真实性")
+            print("🎭 Distraction mode: Enabled - Add irrelevant emails to increase realism")
         else:
-            print("🎯 干扰模式: 关闭 - 只注入考试通知邮件")
+            print("🎯 Distraction mode: Closed - Only inject exam notification email")
         
-        # 创建邮件注入器
+        # Create email injector
         injector = ExamNotificationInjector(config_file_path)
         
-        # 注入考试通知邮件
+        # Inject exam notification email
         success = injector.inject_exam_notification(custom_timestamp, clear_inbox, add_distractions)
         
         if success:
-            print("\n🎯 考试通知邮件导入完成！")
+            print("\n🎯 Exam notification email injection completed!")
             return True
         else:
-            print("\n💥 考试通知邮件导入失败！")
+            print("\n💥 Exam notification email injection failed!")
             return False
             
     except Exception as e:
-        print(f"❌ 程序执行失败: {e}")
+        print(f"❌ Program execution failed: {e}")
         return False
 
 
 def main_inject():
-    """主函数 - 邮件注入模式"""
+    """Main function - email injection mode"""
     try:
-        # 配置文件路径
+        # Config file path
         config_file = Path(__file__).parent.parent / 'files' / 'email_config.json'
         
-        # 示例：使用自定义时间戳（这里设置为2024年12月1日 10:00:00）
+        # Example: Use custom timestamp (here set to 2024-12-1 10:00:00)
         from datetime import datetime
         custom_time = datetime(2024, 12, 1, 10, 0, 0)
         custom_timestamp = custom_time.timestamp()
         
-        print(f"📅 设置邮件时间为: {custom_time.strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"📅 Set email time to: {custom_time.strftime('%Y-%m-%d %H:%M:%S')}")
         
-        # 一键导入邮件 - 启用清除收件箱选项和干扰邮件
+        # Inject exam notification email - enable clear inbox option and distraction emails
         success = inject_exam_emails_from_config(str(config_file), custom_timestamp, clear_inbox=True, add_distractions=True)
         
         if not success:
             exit(1)
             
     except Exception as e:
-        print(f"❌ 程序执行失败: {e}")
+        print(f"❌ Program execution failed: {e}")
         exit(1)
 
 def test_inject_with_options():
-    """测试函数 - 演示不同的邮件注入选项"""
+    """Test function - demonstrate different email injection options"""
     try:
         config_file = Path(__file__).parent.parent / 'files' / 'email_config.json'
         
         print("=" * 60)
-        print("📧 邮件注入功能测试")
+        print("📧 Email injection feature test")
         print("=" * 60)
         
         while True:
-            print("\n请选择操作:")
-            print("1. 清除收件箱后注入邮件 + 干扰邮件 (推荐)")
-            print("2. 清除收件箱后注入邮件 (无干扰)")
-            print("3. 直接注入邮件 + 干扰邮件 (保留现有邮件)")
-            print("4. 直接注入邮件 (保留现有邮件，无干扰)")
-            print("5. 只清除收件箱 (不注入邮件)")
-            print("6. 退出")
+            print("\nPlease select operation:")
+            print("1. Clear inbox before injection + distraction emails (recommended)")
+            print("2. Clear inbox before injection (no distractions)")
+            print("3. Direct injection email + distraction emails (keep existing emails)")
+            print("4. Direct injection email (keep existing emails, no distractions)")
+            print("5. Only clear inbox (no email injection)")
+            print("6. Exit")
             
-            choice = input("\n请输入选项 (1-6): ").strip()
+            choice = input("\nPlease enter option (1-6): ").strip()
             
             if choice == '1':
-                print("\n🗑️+🎭 选择: 清除收件箱后注入邮件 + 干扰邮件")
+                print("\n🗑️+🎭 Select: Clear inbox before injection + distraction emails")
                 inject_exam_emails_from_config(str(config_file), clear_inbox=True, add_distractions=True)
             
             elif choice == '2':
-                print("\n🗑️ 选择: 清除收件箱后注入邮件 (无干扰)")
+                print("\n🗑️ Select: Clear inbox before injection (no distractions)")
                 inject_exam_emails_from_config(str(config_file), clear_inbox=True, add_distractions=False)
             
             elif choice == '3':
-                print("\n📧+🎭 选择: 直接注入邮件 + 干扰邮件")
+                print("\n📧+🎭 Select: Direct injection email + distraction emails")
                 inject_exam_emails_from_config(str(config_file), clear_inbox=False, add_distractions=True)
                 
             elif choice == '4':
-                print("\n📧 选择: 直接注入邮件 (无干扰)")
+                print("\n📧 Select: Direct injection email (no distractions)")
                 inject_exam_emails_from_config(str(config_file), clear_inbox=False, add_distractions=False)
             
             elif choice == '5':
-                print("\n🗑️ 选择: 只清除收件箱")
+                print("\n🗑️ Select: Only clear inbox (no email injection)")
                 injector = ExamNotificationInjector(str(config_file))
                 injector.delete_recipient_inbox_emails()
             
             elif choice == '6':
-                print("\n👋 退出测试")
+                print("\n👋 Exit test")
                 break
             
             else:
-                print("\n❌ 无效选项，请重新选择")
+                print("\n❌ Invalid option, please select again")
     
     except Exception as e:
-        print(f"❌ 测试过程中发生错误: {e}")
+        print(f"❌ Error during test: {e}")
 
 if __name__ == "__main__":
-    # 如果直接运行此文件，启动测试模式
+    # If run this file directly, start test mode
     import sys
     if len(sys.argv) > 1 and sys.argv[1] == '--test':
         test_inject_with_options()

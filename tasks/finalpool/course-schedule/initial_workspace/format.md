@@ -1,5 +1,5 @@
 The format should be as follows: 
- {
+{
       "courseName": "数字集成电路设计",
       "teacher": "于敦山",
       "examAdministrator": "丁玉",

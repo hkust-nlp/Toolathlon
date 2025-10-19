@@ -19,37 +19,37 @@ def calculate_file_hash(file_path):
             sha256_hash.update(chunk)
     return sha256_hash.hexdigest()
 
-def extract_results_from_readme(file_path):
-    """Extract {RESULT} values from README.md file."""
-    try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            content = f.read()
+# def extract_results_from_readme(file_path):
+#     """Extract {RESULT} values from README.md file."""
+#     try:
+#         with open(file_path, 'r', encoding='utf-8') as f:
+#             content = f.read()
         
-        # Find all table rows with {RESULT} or actual values in the MyAwesomeModel column
-        # Look for pattern: | task_name | value1 | value2 | value3 | result_value |
-        table_rows = []
-        lines = content.split('\n')
+#         # Find all table rows with {RESULT} or actual values in the MyAwesomeModel column
+#         # Look for pattern: | task_name | value1 | value2 | value3 | result_value |
+#         table_rows = []
+#         lines = content.split('\n')
         
-        for line in lines:
-            # Skip header and separator lines
-            if '|---|' in line or '| **' in line:
-                continue
+#         for line in lines:
+#             # Skip header and separator lines
+#             if '|---|' in line or '| **' in line:
+#                 continue
             
-            # Look for data rows with 5 columns (including task name and MyAwesomeModel column)
-            if '|' in line:
-                columns = [col.strip() for col in line.split('|')]
-                if len(columns) >= 6:  # Empty, category/task, Model1, Model2, Model1-v2, MyAwesomeModel, Empty
-                    task_name = columns[2].strip()  # Task name column
-                    result_value = columns[5].strip()  # MyAwesomeModel column
+#             # Look for data rows with 5 columns (including task name and MyAwesomeModel column)
+#             if '|' in line:
+#                 columns = [col.strip() for col in line.split('|')]
+#                 if len(columns) >= 6:  # Empty, category/task, Model1, Model2, Model1-v2, MyAwesomeModel, Empty
+#                     task_name = columns[2].strip()  # Task name column
+#                     result_value = columns[5].strip()  # MyAwesomeModel column
                     
-                    if task_name and result_value:
-                        table_rows.append((task_name, result_value))
+#                     if task_name and result_value:
+#                         table_rows.append((task_name, result_value))
         
-        return table_rows
+#         return table_rows
         
-    except Exception as e:
-        print(f"Error extracting results from {file_path}: {e}")
-        return []
+#     except Exception as e:
+#         print(f"Error extracting results from {file_path}: {e}")
+#         return []
 
 def compare_readme_results(file1, file2):
     """Compare README files by focusing on the result values instead of exact text match."""
@@ -61,40 +61,54 @@ def compare_readme_results(file1, file2):
         print(f"Error: Second README file not found: {file2}")
         return False
     
-    results1 = extract_results_from_readme(file1)
-    results2 = extract_results_from_readme(file2)
+    file1_content = open(file1, 'r', encoding='utf-8').read()
+    file2_content = open(file2, 'r', encoding='utf-8').read()
     
-    if len(results1) != len(results2):
-        print(f"Different number of result rows: {len(results1)} vs {len(results2)}")
+    import re
+    # remove all blank spaces by re
+    # since we ask the agent to only update the scores and do nothing else, then the resulted file should exactly be the same as the groundtruth file
+    no_blank_file1_content = re.sub(r'\s+', '', file1_content)
+    no_blank_file2_content = re.sub(r'\s+', '', file2_content)
+    if no_blank_file1_content != no_blank_file2_content:
+        print(f"README files are different")
         return False
     
-    # Convert to dictionaries for easier comparison
-    dict1 = dict(results1)
-    dict2 = dict(results2)
-    
-    mismatches = []
-    for task_name in dict1:
-        if task_name not in dict2:
-            mismatches.append(f"Task '{task_name}' missing in second file")
-            continue
-            
-        value1 = dict1[task_name]
-        value2 = dict2[task_name]
-        
-        # Check if both still have {RESULT} (incomplete) or both have actual values
-        if value1 == "{RESULT}" and value2 == "{RESULT}":
-            continue  # Both incomplete, that's fine
-        elif value1 == "{RESULT}" or value2 == "{RESULT}":
-            mismatches.append(f"Task '{task_name}': one file has result, other has {{RESULT}}")
-        elif value1 != value2:
-            mismatches.append(f"Task '{task_name}': {value1} != {value2}")
-    
-    if mismatches:
-        print(f"README result mismatches: {mismatches}")
-        return False
-    
-    print(f"README results match for {len(results1)} tasks")
     return True
+    
+    # results1 = extract_results_from_readme(file1)
+    # results2 = extract_results_from_readme(file2)
+    
+    # if len(results1) != len(results2):
+    #     print(f"Different number of result rows: {len(results1)} vs {len(results2)}")
+    #     return False
+    
+    # # Convert to dictionaries for easier comparison
+    # dict1 = dict(results1)
+    # dict2 = dict(results2)
+    
+    # mismatches = []
+    # for task_name in dict1:
+    #     if task_name not in dict2:
+    #         mismatches.append(f"Task '{task_name}' missing in second file")
+    #         continue
+            
+    #     value1 = dict1[task_name]
+    #     value2 = dict2[task_name]
+        
+    #     # Check if both still have {RESULT} (incomplete) or both have actual values
+    #     if value1 == "{RESULT}" and value2 == "{RESULT}":
+    #         continue  # Both incomplete, that's fine
+    #     elif value1 == "{RESULT}" or value2 == "{RESULT}":
+    #         mismatches.append(f"Task '{task_name}': one file has result, other has {{RESULT}}")
+    #     elif value1 != value2:
+    #         mismatches.append(f"Task '{task_name}': {value1} != {value2}")
+    
+    # if mismatches:
+    #     print(f"README result mismatches: {mismatches}")
+    #     return False
+    
+    # print(f"README results match for {len(results1)} tasks")
+    # return True
 
 def download_huggingface_repo(repo_id, local_dir):
     """Download a HuggingFace repository to local directory."""

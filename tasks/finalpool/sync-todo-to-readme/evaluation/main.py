@@ -6,31 +6,35 @@ from typing import List, Tuple, Set
 from configs.token_key_session import all_token_key_session
 GITHUB_REPO_NAME = "LUFFY"
 GITHUB_TOKEN = all_token_key_session.github_token
-GITHUB_NEEDED_FILE="README.md"
+GITHUB_NEEDED_FILE = "README.md"
 BRANCH = "dev"
 
 from utils.app_specific.github.helper_funcs import read_file_content, get_user_name
 
+
 def parse_todo_line(line: str) -> Tuple[str, int, str]:
     """
-    解析 TODO 行，提取文件路径、行号和注释内容
-    格式: - [ ] **文件路径:行号** - TODO注释内容
+    Parse a TODO line, extracting the file path, line number, and comment content.
+    Format: - [ ] **filepath:lineno** - TODO comment
     """
     pattern = r'^- \[ \] \*\*(.*?):(\d+)\*\* - (.+)$'
     match = re.match(pattern, line.strip())
     if not match:
         return None, None, None
-    
+
     file_path = match.group(1)
     line_number = int(match.group(2))
     todo_content = match.group(3)
-    
+
     return file_path, line_number, todo_content
 
-def extract_todos_from_readme(file_path: str=None, from_remote_repo:bool=False) -> List[Tuple[str, int, str]]:
-    """从README.md文件中提取"### 📝 Complete TODO List"部分的所有TODO项目"""
+
+def extract_todos_from_readme(file_path: str = None, from_remote_repo: bool = False) -> List[Tuple[str, int, str]]:
+    """
+    Extract all TODO items from the '### 📝 Complete TODO List' section in README.md.
+    """
     todos = []
-    
+
     if from_remote_repo:
         user_name = get_user_name(GITHUB_TOKEN)
         github_repo_full = f"{user_name}/{GITHUB_REPO_NAME}"
@@ -39,116 +43,134 @@ def extract_todos_from_readme(file_path: str=None, from_remote_repo:bool=False) 
     else:
         with open(file_path, 'r', encoding='utf-8') as f:
             content = f.read()
-        
+
     lines = content.strip().split('\n')
-    
-    # 查找"### 📝 Complete TODO List"部分
+
+    # Search for the "### 📝 Complete TODO List" section
     todo_section_started = False
     todo_section_ended = False
-    
+
     for i, line in enumerate(lines, 1):
         line_stripped = line.strip()
-        
-        # 检测TODO列表开始
-        if '### 📝 Complete TODO List' in line or '### Complete TODO List' in line or '📝 Complete TODO List' in line:
+
+        # Section start detection
+        if (
+            '### 📝 Complete TODO List' in line
+            or '### Complete TODO List' in line
+            or '📝 Complete TODO List' in line
+        ):
             todo_section_started = True
             continue
-        
-        # 如果还没开始TODO部分，跳过
+
+        # Skip until todo section starts
         if not todo_section_started:
             continue
-            
-        # 检测TODO部分结束（遇到下一个section或文件结束）
+
+        # End of section detected (next markdown section without TODO)
         if line_stripped.startswith('##') and 'TODO' not in line_stripped:
             todo_section_ended = True
             break
-            
-        # 解析TODO行
+
+        # Parse TODO line
         if line_stripped.startswith('- [ ]'):
             file_path_todo, line_num, todo_content = parse_todo_line(line_stripped)
             if file_path_todo is not None:
                 todos.append((file_path_todo, line_num, todo_content))
             else:
-                print(f"警告: 第 {i} 行格式不正确: {line_stripped}")
-        
+                print(f"Warning: Malformed line at {i}: {line_stripped}")
+
     return todos
 
+
 def extract_todos_from_groundtruth(file_path: str) -> List[Tuple[str, int, str]]:
-    """从groundtruth README.md文件中提取所有TODO项目"""
+    """
+    Extract all TODO items from the groundtruth README.md file.
+    """
     return extract_todos_from_readme(file_path)
 
+
 def normalize_todo_content(content: str) -> str:
-    """标准化 TODO 内容，移除多余空格和标点符号差异"""
+    """
+    Normalize TODO content by removing redundant whitespace and punctuation differences.
+    """
     return re.sub(r'\s+', ' ', content.strip())
 
+
 def verify_todo_ordering(todos: List[Tuple[str, int, str]]) -> Tuple[bool, str]:
-    """验证TODO项目是否按正确顺序排列：文件路径字典序，同文件内行号递增"""
+    """
+    Verify that TODO items are sorted correctly: file path lex order, then line number increasing within the same file.
+    """
     if not todos:
-        return True, "空列表，顺序验证通过"
-    
+        return True, "Empty list, ordering check passed"
+
     errors = []
-    
+
     for i in range(len(todos) - 1):
         curr_file, curr_line, _ = todos[i]
         next_file, next_line, _ = todos[i + 1]
-        
-        # 文件路径字典序检查
+
+        # Check lexicographical order of file paths
         if curr_file > next_file:
-            errors.append(f"文件路径顺序错误: '{curr_file}' 应该在 '{next_file}' 之后")
-        # 同文件内行号递增检查    
+            errors.append(f"File order error: '{curr_file}' should be before '{next_file}'")
+        # Check line number increasing within the same file
         elif curr_file == next_file and curr_line >= next_line:
-            errors.append(f"同文件内行号顺序错误: {curr_file}:{curr_line} 应该在 {next_file}:{next_line} 之后")
-    
+            errors.append(
+                f"Line number order error: {curr_file}:{curr_line} should be before {next_file}:{next_line}"
+            )
+
     if errors:
         return False, "\n".join(errors)
-    return True, "顺序验证通过"
+    return True, "Ordering check passed"
 
-def compare_todos(submission_todos: List[Tuple[str, int, str]], 
-                 groundtruth_todos: List[Tuple[str, int, str]]) -> Tuple[float, dict]:
-    """比较提交的 TODO 项目和标准答案"""
-    
-    # 首先验证提交的TODO项目顺序
+
+def compare_todos(
+    submission_todos: List[Tuple[str, int, str]],
+    groundtruth_todos: List[Tuple[str, int, str]],
+) -> Tuple[float, dict]:
+    """
+    Compare submitted TODO items to the groundtruth.
+    """
+
+    # Check ordering of the submission
     submission_order_valid, submission_order_msg = verify_todo_ordering(submission_todos)
-    
-    # 验证标准答案的TODO项目顺序（用于调试）
+
+    # For debugging, also check ordering of groundtruth
     gt_order_valid, gt_order_msg = verify_todo_ordering(groundtruth_todos)
-    
-    # 创建标准答案的集合（用于快速查找）
+
+    # Build set for groundtruth for fast lookup
     gt_set = set()
     for file_path, line_num, content in groundtruth_todos:
         normalized_content = normalize_todo_content(content)
         gt_set.add((file_path, line_num, normalized_content))
-    
-    # 检查提交的每个 TODO 项目
+
     correct_todos = set()
     submission_set = set()
-    
+
     for file_path, line_num, content in submission_todos:
         normalized_content = normalize_todo_content(content)
         submission_item = (file_path, line_num, normalized_content)
         submission_set.add(submission_item)
-        
+
         if submission_item in gt_set:
             correct_todos.add(submission_item)
-    
-    # 计算指标
+
+    # Metrics
     total_gt = len(gt_set)
     total_submission = len(submission_set)
     correct_count = len(correct_todos)
-    
-    # 精确率、召回率、F1分数
+
+    # Precision, Recall, F1
     precision = correct_count / total_submission if total_submission > 0 else 0
     recall = correct_count / total_gt if total_gt > 0 else 0
     f1_score = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
-    
-    # 完全匹配（所有 TODO 都正确且没有多余的且顺序正确）
+
+    # Exact match: all TODOs correct, no extras, order is correct
     exact_match = (submission_set == gt_set) and submission_order_valid
-    
-    # 丢失的 TODO 项目
+
+    # Missing and extra TODOs
     missing_todos = gt_set - submission_set
-    # 多余的 TODO 项目  
     extra_todos = submission_set - gt_set
-    
+
     metrics = {
         'exact_match': exact_match,
         'precision': precision,
@@ -162,94 +184,100 @@ def compare_todos(submission_todos: List[Tuple[str, int, str]],
         'order_valid': submission_order_valid,
         'order_message': submission_order_msg,
         'gt_order_valid': gt_order_valid,
-        'gt_order_message': gt_order_msg
+        'gt_order_message': gt_order_msg,
     }
-    
+
     return f1_score, metrics
 
+
 def evaluate_readme_todos(groundtruth_path: str) -> Tuple[bool, str]:
-    """评估README.md文件中的TODO列表更新"""
-    
-    # 提取 TODO 项目
+    """
+    Evaluate README.md TODO list update against the groundtruth.
+    """
+
+    # Extract TODO items
     submission_todos = extract_todos_from_readme(file_path=None, from_remote_repo=True)
     groundtruth_todos = extract_todos_from_groundtruth(file_path=groundtruth_path)
-    
+
     if not submission_todos:
-        return False, "remote repo的README.md文件中没有找到有效的TODO项目"
-    
+        return False, "No valid TODO items found in README.md of remote repo"
+
     if not groundtruth_todos:
-        return False, "标准答案README.md文件中没有找到TODO项目"
-    
-    # 比较 TODO 项目
+        return False, "No TODO items found in groundtruth README.md"
+
+    # Compare TODO lists
     f1_score, metrics = compare_todos(submission_todos, groundtruth_todos)
-    
-    # 评估标准：F1分数 >= 1.0 且精确率 >= 1.0 且召回率 >= 1.0 且顺序正确
-    # (更高的标准，因为这是测试TODO列表的精确更新)
-    success = (metrics['f1_score'] >= 1.0 and 
-               metrics['precision'] >= 1.0 and 
-               metrics['recall'] >= 1.0 and
-               metrics['order_valid'])
-    
-    # 构建详细的反馈信息
+
+    # Pass if (strict) F1 = 1, precision=1, recall=1, order valid.
+    success = (
+        metrics['f1_score'] >= 1.0
+        and metrics['precision'] >= 1.0
+        and metrics['recall'] >= 1.0
+        and metrics['order_valid']
+    )
+
+    # Build detailed feedback
     feedback = []
-    feedback.append("=== README.md TODO列表评估结果 ===")
-    feedback.append(f"F1分数: {metrics['f1_score']:.3f}")
-    feedback.append(f"精确率: {metrics['precision']:.3f}")
-    feedback.append(f"召回率: {metrics['recall']:.3f}")
-    feedback.append(f"正确项目数: {metrics['correct_count']}/{metrics['total_gt']}")
-    feedback.append(f"提交项目数: {metrics['total_submission']}")
-    feedback.append(f"完全匹配: {metrics['exact_match']}")
-    feedback.append(f"顺序验证: {metrics['order_valid']}")
-    
+    feedback.append("=== README.md TODO List Evaluation Result ===")
+    feedback.append(f"F1 score: {metrics['f1_score']:.3f}")
+    feedback.append(f"Precision: {metrics['precision']:.3f}")
+    feedback.append(f"Recall: {metrics['recall']:.3f}")
+    feedback.append(f"Correct items: {metrics['correct_count']}/{metrics['total_gt']}")
+    feedback.append(f"Submitted items: {metrics['total_submission']}")
+    feedback.append(f"Exact Match: {metrics['exact_match']}")
+    feedback.append(f"Order Valid: {metrics['order_valid']}")
+
     if not metrics['order_valid']:
-        feedback.append(f"顺序错误详情: {metrics['order_message']}")
-    
+        feedback.append(f"Ordering error details: {metrics['order_message']}")
+
     if not metrics['gt_order_valid']:
-        feedback.append(f"\u26a0️  标准答案顺序验证失败: {metrics['gt_order_message']}")
-    
+        feedback.append(f"\u26a0️  Groundtruth ordering validation failed: {metrics['gt_order_message']}")
+
     if metrics['missing_todos']:
-        feedback.append(f"\n❌ 丢失的 TODO 项目 ({len(metrics['missing_todos'])} 个):")
-        for file_path, line_num, content in sorted(metrics['missing_todos'])[:10]:  # 只显示前10个
+        feedback.append(f"\n❌ Missing TODO items ({len(metrics['missing_todos'])}):")
+        for file_path, line_num, content in sorted(metrics['missing_todos'])[:10]:  # Only show the first 10
             feedback.append(f"  - {file_path}:{line_num} - {content}")
         if len(metrics['missing_todos']) > 10:
-            feedback.append(f"  ... 还有 {len(metrics['missing_todos']) - 10} 个")
-    
+            feedback.append(f"  ... {len(metrics['missing_todos']) - 10} more")
+
     if metrics['extra_todos']:
-        feedback.append(f"\n⚠️  多余的 TODO 项目 ({len(metrics['extra_todos'])} 个):")
-        for file_path, line_num, content in sorted(metrics['extra_todos'])[:10]:  # 只显示前10个
+        feedback.append(f"\n⚠️  Extra TODO items ({len(metrics['extra_todos'])}):")
+        for file_path, line_num, content in sorted(metrics['extra_todos'])[:10]:
             feedback.append(f"  - {file_path}:{line_num} - {content}")
         if len(metrics['extra_todos']) > 10:
-            feedback.append(f"  ... 还有 {len(metrics['extra_todos']) - 10} 个")
-    
+            feedback.append(f"  ... {len(metrics['extra_todos']) - 10} more")
+
     if success:
-        feedback.append(f"\n✅ 评估通过: agent成功更新了README.md中的TODO列表")
+        feedback.append(f"\n✅ Evaluation Passed: Agent successfully updated TODO list in README.md")
     else:
-        feedback.append(f"\n❌ 评估失败: README.md中的TODO列表更新不够准确")
-        feedback.append(f"   需要: F1≥1.0, 精确率≥1.0, 召回率≥1.0, 顺序正确")
-    
+        feedback.append(f"\n❌ Evaluation Failed: The TODO list update in README.md is not sufficiently accurate")
+        feedback.append(f"   Required: F1≥1.0, Precision≥1.0, Recall≥1.0, and correct ordering")
+
     return success, "\n".join(feedback)
 
+
 def main():
-    parser = ArgumentParser(description="评估README.md文件中的TODO列表更新")
+    parser = ArgumentParser(description="Evaluate TODO list update in README.md")
     parser.add_argument("--agent_workspace", required=False)
     parser.add_argument("--groundtruth_workspace", required=False)
     parser.add_argument("--res_log_file", required=False)
-    parser.add_argument("--verbose", "-v", action="store_true", help="显示详细信息")
+    parser.add_argument("--verbose", "-v", action="store_true", help="Show detailed output")
     parser.add_argument("--launch_time", required=False, help="Launch time")
     args = parser.parse_args()
-    
+
     success, feedback = evaluate_readme_todos(args.groundtruth_workspace + "/README.md")
-    
+
     if args.verbose or not success:
         print(feedback)
         print()
-    
+
     if success:
-        print("✅ 任务完成: remote repo README.md中的TODO列表已正确更新")
+        print("✅ Task complete: TODO list in remote repo README.md has been correctly updated")
         return 0
     else:
-        print("❌ 任务失败: remote repo README.md中的TODO列表更新不正确")
+        print("❌ Task failed: TODO list update in remote repo README.md is incorrect")
         return 1
 
+
 if __name__ == "__main__":
-    exit(main()) 
+    exit(main())

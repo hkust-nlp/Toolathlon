@@ -10,42 +10,42 @@ from configs.token_key_session import all_token_key_session
 # Define a constant for the repository name to ensure consistency
 REPO_NAME = "MyAwesomeModel-TestRepo"
 
-def local_cleanup(agent_workspace: str):
-    """Clean up local download directories and any temporary files."""
-    print("--- Starting Local Preprocessing Cleanup ---")
+# def local_cleanup(agent_workspace: str):
+#     """Clean up local download directories and any temporary files."""
+#     print("--- Starting Local Preprocessing Cleanup ---")
     
-    # Common download directory patterns to clean
-    download_dirs_to_clean = [
-        os.path.join(agent_workspace, "downloads"),
-        os.path.join(agent_workspace, "hf_downloads"), 
-        os.path.join(agent_workspace, REPO_NAME),
-        os.path.join(agent_workspace, f"huggingface_{REPO_NAME}"),
-        # Clean any directory that might contain our repo
-        os.path.join(agent_workspace, "MyAwesomeModel-TestRepo")
-    ]
+#     # Common download directory patterns to clean
+#     download_dirs_to_clean = [
+#         os.path.join(agent_workspace, "downloads"),
+#         os.path.join(agent_workspace, "hf_downloads"), 
+#         os.path.join(agent_workspace, REPO_NAME),
+#         os.path.join(agent_workspace, f"huggingface_{REPO_NAME}"),
+#         # Clean any directory that might contain our repo
+#         os.path.join(agent_workspace, "MyAwesomeModel-TestRepo")
+#     ]
     
-    for download_dir in download_dirs_to_clean:
-        if os.path.exists(download_dir):
-            try:
-                print(f"Removing existing download directory: {download_dir}")
-                shutil.rmtree(download_dir)
-                print(f"Successfully removed: {download_dir}")
-            except Exception as e:
-                print(f"Warning: Could not remove {download_dir}: {e}")
+#     for download_dir in download_dirs_to_clean:
+#         if os.path.exists(download_dir):
+#             try:
+#                 print(f"Removing existing download directory: {download_dir}")
+#                 shutil.rmtree(download_dir)
+#                 print(f"Successfully removed: {download_dir}")
+#             except Exception as e:
+#                 print(f"Warning: Could not remove {download_dir}: {e}")
     
-    # Also clean any temporary files in the workspace
-    temp_patterns = [".tmp", "tmp_", "temp_"]
-    for item in os.listdir(agent_workspace):
-        item_path = os.path.join(agent_workspace, item)
-        if os.path.isdir(item_path) and any(pattern in item.lower() for pattern in temp_patterns):
-            try:
-                print(f"Removing temporary directory: {item_path}")
-                shutil.rmtree(item_path)
-                print(f"Successfully removed: {item_path}")
-            except Exception as e:
-                print(f"Warning: Could not remove {item_path}: {e}")
+#     # Also clean any temporary files in the workspace
+#     temp_patterns = [".tmp", "tmp_", "temp_"]
+#     for item in os.listdir(agent_workspace):
+#         item_path = os.path.join(agent_workspace, item)
+#         if os.path.isdir(item_path) and any(pattern in item.lower() for pattern in temp_patterns):
+#             try:
+#                 print(f"Removing temporary directory: {item_path}")
+#                 shutil.rmtree(item_path)
+#                 print(f"Successfully removed: {item_path}")
+#             except Exception as e:
+#                 print(f"Warning: Could not remove {item_path}: {e}")
     
-    print("--- Local Preprocessing Cleanup Finished ---")
+#     print("--- Local Preprocessing Cleanup Finished ---")
 
 def remote_cleanup(hf_token: str):
     """Connects to the Hub and deletes the target repository if it exists."""
@@ -85,17 +85,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Define the source and destination paths
-    source_file = 'configs/token_key_session.py'
     destination_dir = args.agent_workspace
-    destination_file = os.path.join(destination_dir, '.tokens')
 
     # Ensure the destination directory exists
     os.makedirs(destination_dir, exist_ok=True)
-
-    # Copy the source file to the destination with the new name
-    shutil.copy(source_file, destination_file)
-
-    print(f"Successfully copied '{source_file}' to '{destination_file}'")
 
     # The token is expected to be in an environment variable
     
@@ -105,7 +98,7 @@ if __name__ == "__main__":
         raise ValueError("HUGGING_FACE_TOKEN is required for remote cleanup.")
 
     # Step 1: Clean up the local environment
-    local_cleanup(args.agent_workspace)
+    # local_cleanup(args.agent_workspace)
     
     # Step 2: Clean up the remote environment
     remote_cleanup(hf_token)

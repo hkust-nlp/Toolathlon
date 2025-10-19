@@ -10,15 +10,15 @@ from utils.general.helper import normalize_str
 
 def clear_folder(folder_name: str, config: Dict) -> None:
     """
-    Clear the specified IMAP folder under the given email configuration.
+    Clear the specified IMAP folder with the provided email configuration.
 
     Expected config keys:
-    - "email": Email account
-    - "password": Password
+    - "email": Email account address
+    - "password": Account password
     - "imap_server": IMAP server
     - "imap_port": IMAP port
-    - "use_ssl": Whether to use SSL (bool)
-    - "use_starttls": Whether to use STARTTLS (bool)
+    - "use_ssl": Use SSL or not (bool)
+    - "use_starttls": Use STARTTLS or not (bool)
     """
 
     server = config.get("imap_server")
@@ -47,7 +47,7 @@ def clear_folder(folder_name: str, config: Dict) -> None:
             print_color(f"Failed to select folder: {folder_name}", "red")
             return
 
-        # If folder is empty, some servers may return BAD/NO for 1:* sequence, check in advance
+        # If the folder is empty, some servers may return BAD/NO for 1:* sequence; check beforehand
         s_status, s_data = imap.search(None, "ALL")
         if s_status == "OK":
             if not s_data or s_data[0] is None or s_data[0].strip() == b"":
@@ -68,7 +68,7 @@ def clear_folder(folder_name: str, config: Dict) -> None:
                 try:
                     imap.close()
                 except Exception:
-                    # If not selected or already closed by server, ignore
+                    # Ignore if not selected or already closed by server
                     pass
                 imap.logout()
         except Exception:
@@ -78,10 +78,10 @@ def clear_folder(folder_name: str, config: Dict) -> None:
 
 def _connect_imap(config: Dict) -> imaplib.IMAP4:
     """
-    使用配置建立 IMAP 连接并登录。
+    Establish an IMAP connection and log in with the given configuration.
 
-    期望的 config 字段：
-    - "email" 或 "username"
+    Expected config keys:
+    - "email" or "username"
     - "password"
     - "imap_server"
     - "imap_port"
@@ -138,7 +138,9 @@ def _decode_mime_words(value: str) -> str:
 
 
 def _extract_text_from_message(msg: email.message.Message) -> str:
-    """优先提取 text/plain，如果没有则尝试解码 text/html 并去除简单标签。"""
+    """
+    Prefer extracting text/plain. If not found, try decoding text/html and remove basic HTML tags.
+    """
     try:
         if msg.is_multipart():
             for part in msg.walk():
@@ -147,19 +149,19 @@ def _extract_text_from_message(msg: email.message.Message) -> str:
                 if content_type == "text/plain" and "attachment" not in content_disposition:
                     charset = part.get_content_charset() or "utf-8"
                     return part.get_payload(decode=True).decode(charset, errors="replace")
-            # fallback: 取第一个 text/html
+            # Fallback: use the first text/html part
             for part in msg.walk():
                 if part.get_content_type() == "text/html":
                     charset = part.get_content_charset() or "utf-8"
                     html = part.get_payload(decode=True).decode(charset, errors="replace")
-                    # 简单去标签
+                    # Simple HTML tag removal
                     return _strip_html(html)
         else:
             content_type = msg.get_content_type()
             charset = msg.get_content_charset() or "utf-8"
             payload = msg.get_payload(decode=True)
             if payload is None:
-                # 有些服务器不需要 decode=True
+                # Some servers do not require decode=True
                 payload = msg.get_payload()
                 if isinstance(payload, str):
                     return payload
@@ -173,7 +175,9 @@ def _extract_text_from_message(msg: email.message.Message) -> str:
 
 
 def _strip_html(html: str) -> str:
-    # 非严格 HTML 去标签，适合简单比较
+    """
+    Non-strict HTML tag stripper, suitable for basic comparison.
+    """
     import re
     text = re.sub(r"<br\s*/?>", "\n", html, flags=re.IGNORECASE)
     text = re.sub(r"<[^>]+>", "", text)
@@ -182,16 +186,16 @@ def _strip_html(html: str) -> str:
 
 def find_emails_from_sender(config: Dict, sender_query: str, folder: str = "INBOX", fetch_limit: int = 200) -> List[Dict]:
     """
-    根据收件箱配置，在指定文件夹内查找来自某个发件人的邮件。
+    Find emails from a specific sender in a given folder, according to the mailbox configuration.
 
     Args:
-        config: 邮箱 IMAP 配置（需包含 email/password/imap_server/imap_port 等）
-        sender_query: 可为发件邮箱或名称，用于 IMAP FROM 搜索
-        folder: 目标文件夹，默认 INBOX
-        fetch_limit: 最多抓取的邮件数量（从搜索结果尾部截取）
+        config: IMAP mailbox configuration (must include email/password/imap_server/imap_port, etc.)
+        sender_query: May be the sender's email or name, used in IMAP FROM search
+        folder: Target folder (default "INBOX")
+        fetch_limit: Maximum emails to fetch (tail slice from the result)
 
     Returns:
-        List[Dict]: [{"subject": str, "body": str, "raw_subject": str}] 按时间（大致）从新到旧
+        List[Dict]: [{"subject": str, "body": str, "raw_subject": str}] in order from newest to oldest (approximate)
     """
     imap = None
     results: List[Dict] = []
@@ -207,7 +211,7 @@ def find_emails_from_sender(config: Dict, sender_query: str, folder: str = "INBO
             return []
 
         msg_ids = data[0].split()
-        # 取最近的若干封
+        # Take the latest fetch_limit emails
         msg_ids = msg_ids[-fetch_limit:]
 
         for msg_id in msg_ids:
@@ -224,7 +228,7 @@ def find_emails_from_sender(config: Dict, sender_query: str, folder: str = "INBO
                 "body": body,
                 "raw_subject": raw_subject
             })
-        # 倒序（新邮件在后）转为新到旧
+        # Reverse so newest messages come first
         results.reverse()
         return results
     except imaplib.IMAP4.error as e:
@@ -237,10 +241,10 @@ def find_emails_from_sender(config: Dict, sender_query: str, folder: str = "INBO
         _close_imap_safely(imap)
 
 
-def mailbox_has_email_matching_body(config: Dict, sender_query: str, expected_body: str, subject:str = None,folder: str = "INBOX") -> Tuple[bool, Dict]:
+def mailbox_has_email_matching_body(config: Dict, sender_query: str, expected_body: str, subject: str = None, folder: str = "INBOX") -> Tuple[bool, Dict]:
     """
-    检查邮箱中是否存在来自 sender_query 且正文与 expected_body（normalize_str 后）一致的邮件。
-    如果subject不为None，还需要检查邮件主题是否匹配。
+    Check whether there is an email from sender_query whose body matches expected_body (after normalize_str).
+    If subject is not None, the email subject must also match.
 
     Returns:
         (matched: bool, detail: Dict)
@@ -254,8 +258,8 @@ def mailbox_has_email_matching_body(config: Dict, sender_query: str, expected_bo
         subject_matched = True
 
         if expected_subject_norm is not None:
-            # item["subject"] 已经是解码后的主题，直接标准化后比较
-            # 如果没有解码后的主题，回退到解码原始主题
+            # item["subject"] is already a decoded subject, compare using normalized version;
+            # if not present, fall back to decoded original subject
             email_subject = item.get("subject", "")
             if not email_subject and item.get("raw_subject"):
                 email_subject = _decode_mime_words(item.get("raw_subject", ""))
@@ -272,7 +276,6 @@ def decode_email_subject(subject: str) -> str:
     if not subject:
         return ""
     try:
-        # Decode MIME-encoded subject
         decoded_parts = email.header.decode_header(subject)
         decoded_subject = ""
         for part, charset in decoded_parts:
@@ -283,11 +286,14 @@ def decode_email_subject(subject: str) -> str:
                 decoded_subject += str(part)
         return decoded_subject.lower()
     except Exception:
-        # Fallback to original subject if decoding fails
+        # On failure, fall back to original subject
         return subject.lower()
 
 def check_sender_outbox(sender_config: dict, interference_emails: set) -> Tuple[bool, list]:
-    """Scan sender outbox to ensure no emails were sent to interference addresses."""
+    """
+    Scan the sender's outbox to ensure no emails were sent to the provided interference addresses.
+    Returns (True, []) if none detected; otherwise (False, list of unexpected sends).
+    """
     passed = True
     unexpected_sends = []
 
@@ -337,72 +343,10 @@ def check_sender_outbox(sender_config: dict, interference_emails: set) -> Tuple[
 
     return passed, unexpected_sends
 
-
-
-def clear_all_mail_folders(config: Dict, folders: List[str] = None) -> Dict:
-    """
-    清空多个邮箱文件夹
-
-    Args:
-        config: 邮箱配置字典
-        folders: 要清空的文件夹列表，默认为 ['INBOX', 'Sent', 'Drafts']
-
-    Returns:
-        Dict: 清理结果
-    """
-    if folders is None:
-        folders = ['INBOX', 'Sent', 'Drafts']
-
-    results = {
-        "success": True,
-        "cleared_folders": [],
-        "failed_folders": [],
-        "errors": []
-    }
-
-    for folder in folders:
-        try:
-            clear_folder(folder, config)
-            results["cleared_folders"].append(folder)
-            print_color(f"Successfully cleared folder: {folder}", "green")
-        except Exception as e:
-            results["failed_folders"].append(folder)
-            results["errors"].append(f"{folder}: {e}")
-            results["success"] = False
-            print_color(f"Failed to clear folder {folder}: {e}", "red")
-
-    return results
-
-
-def setup_clean_mailbox_environment(config: Dict) -> Dict:
-    """
-    设置干净的邮箱环境 - 清空所有常用文件夹
-
-    Args:
-        config: 邮箱配置字典
-
-    Returns:
-        Dict: 清理结果和状态
-    """
-    print_color("Setting up clean mailbox environment...", "blue")
-
-    # 常用的邮箱文件夹
-    standard_folders = ['INBOX', 'Sent', 'Drafts']
-
-    result = clear_all_mail_folders(config, standard_folders)
-
-    if result["success"]:
-        print_color("✅ Mailbox environment setup complete", "green")
-    else:
-        print_color("⚠️ Mailbox setup completed with some errors", "yellow")
-        for error in result["errors"]:
-            print_color(f"   {error}", "red")
-
-    return result
-
-
 def extract_email_body(email_message) -> str:
-    """Prefer text/plain; fallback to text/html with tags removed."""
+    """
+    Prefer plain text (text/plain); fallback to decoded HTML (text/html) with tags removed.
+    """
     body = ""
     if email_message.is_multipart():
         for part in email_message.walk():

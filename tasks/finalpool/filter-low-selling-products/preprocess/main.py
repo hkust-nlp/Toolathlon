@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-预处理脚本 - 设置初始工作环境
+Preprocessing Script - Set up initial working environment
 """
 
 import os
@@ -9,17 +9,17 @@ import shutil
 from argparse import ArgumentParser
 from pathlib import Path
 
-# 添加项目路径
+# Add project path
 current_dir = Path(__file__).parent
 task_dir = current_dir.parent
 sys.path.insert(0, str(task_dir))
 
 def setup_woocommerce_test_data():
-    """设置WooCommerce测试数据"""
-    print("🛒 设置WooCommerce测试商品数据...")
+    """Set up WooCommerce test data"""
+    print("🛒 Setting up WooCommerce test product data...")
     
     try:
-        # 确保能找到同目录下的模块
+        # Ensure the module in the same directory can be found
         import sys
         import os
         current_script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -29,30 +29,30 @@ def setup_woocommerce_test_data():
         from setup_test_products import main as setup_test_main
         success = setup_test_main()
         if success:
-            print("✅ WooCommerce测试数据设置完成")
+            print("✅ WooCommerce test data setup completed")
         else:
-            print("⚠️ WooCommerce测试数据设置部分完成")
+            print("⚠️ WooCommerce test data setup partially completed")
         return success
     except Exception as e:
-        print(f"❌ WooCommerce测试数据设置失败: {e}")
+        print(f"❌ WooCommerce test data setup failed: {e}")
         return False
 
 if __name__ == "__main__":
-    parser = ArgumentParser(description="预处理脚本 - 设置低销量产品筛选任务的初始环境")
-    parser.add_argument("--agent_workspace", required=True, help="Agent工作空间路径")
+    parser = ArgumentParser(description="Preprocessing Script - Initialize workspace for low-selling product filter task")
+    parser.add_argument("--agent_workspace", required=True, help="Agent workspace path")
     parser.add_argument("--launch_time", required=False, help="Launch time")
 
     args = parser.parse_args()
     
     print("=" * 60)
-    print("🎯 低销量产品筛选任务 - 预处理")
+    print("🎯 Low-selling Product Filter Task - Preprocessing")
     print("=" * 60)
     
     success2 = setup_woocommerce_test_data()
     
     if success2:
-        print("\n🎉 预处理完成！agent工作空间已准备就绪")
+        print("\n🎉 Preprocessing completed! Agent workspace is ready.")
         exit(0)
     else:
-        print("\n⚠️ 预处理部分完成，请检查错误信息")
+        print("\n⚠️ Preprocessing partially completed, please check the error messages.")
         exit(1)

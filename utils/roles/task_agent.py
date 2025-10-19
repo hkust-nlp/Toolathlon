@@ -103,10 +103,10 @@ class TaskStatus(Enum):
     FAILED = "failed"
     TIMEOUT = "timeout"
     MAX_TURNS_REACHED = "max_turns_reached"
-    INTERRUPTED = "interrupted"  # 新增状态：表示任务被中断
+    INTERRUPTED = "interrupted"  # New status: task interrupted
 
 class CustomJSONEncoder(json.JSONEncoder):
-    """自定义JSON编码器，用于处理将Python中的布尔值转换为小写的'true'和'false'形式输出，以及处理 UUID 对象"""
+    """Custom JSON Encoder: write Python booleans as lowercase 'true'/'false'."""
     def default(self, o):
         if isinstance(o, bool):
             return str(o).lower()
@@ -115,7 +115,7 @@ class CustomJSONEncoder(json.JSONEncoder):
         return super().default(o)
 
 class TaskAgent:
-    """封装了任务执行的Agent类"""
+    """Encapsulates an agent class to execute tasks."""
     
     def __init__(
         self,
@@ -158,7 +158,7 @@ class TaskAgent:
         self.usage = Usage()
         self.task_status = TaskStatus.FAILED
         
-        # 新增统计信息
+        # Stats info
         self.stats = {
             "interaction_turns": 0,
             "tool_calls": 0,
@@ -173,29 +173,26 @@ class TaskAgent:
         self.allow_resume = allow_resume
         self.manual = manual
         if self.manual:
-            # 全局会话，避免重复创建
+            # global prompt session
             self._session = PromptSession()
         
-        # 新增：检查点文件路径
+        # Checkpoint file path
         self.checkpoint_file = None
-        self.checkpoint_interval = 1  # 每隔多少轮保存一次检查点
+        self.checkpoint_interval = 1  # Save checkpoint every N turns
 
         self.single_turn_mode = single_turn_mode
 
         self.shared_context = {}
 
-        # 保存第一轮用户输入，用于上下文重置
+        # Save first-round user input for context reset
         self.first_user_input = None
-        self.cumulative_inner_steps = 0  # 累积的inner steps计数
+        self.cumulative_inner_steps = 0  # Total count of assistant "inner steps"
 
-        # 初始化状态管理器
+        # Task status manager
         self.status_manager = TaskStatusManager(task_config.task_root)
 
-    
-
-
-    async def ainput(self,prompt='> '):
-        """异步版本的 input() 函数"""
+    async def ainput(self, prompt='> '):
+        """Async version of input()."""
         with patch_stdout():
             return await self._session.prompt_async(prompt)
 
@@ -243,24 +240,19 @@ class TaskAgent:
             print_color("[Patch] Applied AgentErrorEvent patch for Claude API compatibility", "green")
 
     def _default_termination_checker(self, content: str, recent_tools: List[Dict], check_target: str = "user") -> bool:
-        """默认的终止条件检查器"""
-        if check_target=='user':
+        """Default termination checker."""
+        if check_target == 'user':
             return '#### STOP' in content
         return False
     
     def _get_checkpoint_path(self) -> str:
-        """获取检查点文件路径"""
+        """Get checkpoint file path."""
         if self.checkpoint_file is None:
             self.checkpoint_file = os.path.join(self.task_config.task_root, "checkpoint.pkl")
         return self.checkpoint_file
     
     async def _save_checkpoint(self) -> None:
-        """
-        保存当前执行状态到检查点
-
-        Note: OpenHands Conversation 自动保存状态到 persistence_dir
-        这里只保存兼容性数据
-        """
+        """Save current state to checkpoint."""
         if not self.allow_resume:
             return
 
@@ -290,12 +282,7 @@ class TaskAgent:
             self._debug_print(f"Failed to save checkpoint: {e}")
 
     async def _load_checkpoint(self) -> bool:
-        """
-        从检查点恢复执行状态
-
-        Note: OpenHands Conversation 会从 persistence_dir 自动恢复
-        这里只恢复兼容性数据
-        """
+        """Restore state from checkpoint, if possible."""
         if not self.allow_resume:
             return False
 
@@ -307,29 +294,29 @@ class TaskAgent:
         try:
             with open(checkpoint_path, 'rb') as f:
                 checkpoint_data = pickle.load(f)
-
-            # 检查版本兼容性
+            
+            # Version check
             version = checkpoint_data.get('version', '1.0')
             if version in ['1.0', '2.0']:
                 self._debug_print("Old checkpoint version detected, cannot resume with OpenHands")
                 return False
 
-            # 恢复状态
+            # Restore state
             self.logs_to_record = checkpoint_data['logs_to_record']
             self.all_tools = checkpoint_data['all_tools']
             self.stats = checkpoint_data['stats']
 
-            # 恢复会话信息
+            # Restore session info
             self.session_id = checkpoint_data.get('session_id')
             self.initial_run_time = checkpoint_data.get('initial_run_time', 'unknown')
-
-            # 恢复Usage对象
+            
+            # Restore usage object
             usage_data = checkpoint_data['usage']
             self.usage.input_tokens = usage_data['input_tokens']
             self.usage.output_tokens = usage_data['output_tokens']
             self.usage.requests = usage_data['requests']
-
-            # 恢复用户模拟器状态
+            
+            # Restore user simulator state
             if self.user_simulator:
                 if hasattr(self.user_simulator, 'set_state'):
                     self.user_simulator.set_state(checkpoint_data['user_simulator_state'])
@@ -346,7 +333,7 @@ class TaskAgent:
             return False
     
     def _remove_checkpoint(self) -> None:
-        """删除检查点文件"""
+        """Remove checkpoint file."""
         checkpoint_path = self._get_checkpoint_path()
         if os.path.exists(checkpoint_path):
             try:
@@ -354,10 +341,9 @@ class TaskAgent:
                 self._debug_print("Checkpoint removed")
             except Exception as e:
                 self._debug_print(f"Failed to remove checkpoint: {e}")
-    
 
     async def initialize_workspace(self, show_traceback=False) -> bool:
-        """初始化工作空间"""
+        """Initialize workspace."""
         self._debug_print(f"\n\nStarting to initialize workspace for {self.task_config.id} ...")
         
         log_file = self.task_config.log_file
@@ -365,12 +351,12 @@ class TaskAgent:
         initial_state_workspace = self.task_config.initialization.workspace
 
         try:
-            # 如果允许恢复，检查是否已有工作空间和检查点
+            # If resume is allowed and checkpoint exists, skip reinitializing
             if self.allow_resume and os.path.exists(agent_workspace) and os.path.exists(self._get_checkpoint_path()):
                 self._debug_print("Found existing workspace and checkpoint, will attempt to resume")
                 return True
             
-            # 否则，执行正常的初始化流程
+            # Otherwise do a normal workspace init
             if os.path.exists(agent_workspace):
                 self._debug_print("Reset/Remove an existing agent workspace.")
                 shutil.rmtree(agent_workspace)
@@ -379,29 +365,27 @@ class TaskAgent:
                 self._debug_print("Reset/Remove an existing log file.")
                 os.remove(log_file)
             
-            # 删除旧的检查点（如果有）
+            # Remove old checkpoint
             self._remove_checkpoint()
             
-            # 复制初始状态文件
+            # Copy initial state files
             await copy_folder_contents(initial_state_workspace, agent_workspace, self.debug)
 
-            # 执行预处理命令（如果有）
+            # Pre-processing command if any
             if self.task_config.initialization.process_command is not None:
                 args = f"--agent_workspace {self.task_config.agent_workspace} --launch_time \"{self.task_config.launch_time}\""
                 command = f"{self.task_config.initialization.process_command} {args}"
-                output, error, returncode = await run_command(command,debug=self.debug)
+                output, error, returncode = await run_command(command, debug=self.debug)
                 if self.debug:
                     print_color("== PreProcess STDOUT ==", "red")
-                # self._debug_print("== PreProcess STDOUT ==")
                 self._debug_print(output)
                 if self.debug:
                     print_color("== PreProcess STDERR ==", "red")
-                # self._debug_print("== PreProcess STDERR ==")
                 self._debug_print(error)
                 if returncode != 0:
                     raise RuntimeError(f"PreProcess command failed! returncode: {returncode}")
                 
-            # MCP服务器特定的初始化操作
+            # MCP-specific workspace initialization
             await specifical_inialize_for_mcp(self.task_config)
 
         except Exception as e:
@@ -413,20 +397,19 @@ class TaskAgent:
         self._debug_print(f"Successfully initialize workspace for {self.task_config.id}!")
         return True
 
-    
     async def setup_mcp_servers(self, local_token_key_session: Dict) -> None:
         """
-        设置并初始化 MCP 服务器（使用 OpenHands SDK）
+        Setup and initialize MCP servers (using OpenHands SDK)
 
-        这个方法会：
-        1. 将 YAML 配置转换为 OpenHands 格式
-        2. 使用 OpenHands SDK 的 create_mcp_tools 创建工具
-        3. 存储工具列表供 setup_agent 使用
+        This method will:
+        1. Convert YAML config to OpenHands format
+        2. Use OpenHands SDK's create_mcp_tools to create tools
+        3. Store tool list for setup_agent use
         """
         if self.debug:
             print_color("\n=== Starting to setup MCP servers (OpenHands) ===", "blue")
 
-        # 创建 OpenHands 格式的 MCP 配置
+        # Create OpenHands MCP config
         self.openhands_mcp_config = create_openhands_mcp_config(
             agent_workspace=self.task_config.agent_workspace,
             config_dir=self.mcp_config.server_config_path,
@@ -440,8 +423,8 @@ class TaskAgent:
             for server_name in self.openhands_mcp_config.get('mcpServers', {}).keys():
                 print_color(f"  - {server_name}", "blue")
 
-        # 使用 OpenHands SDK 创建 MCP 工具
-        # 注意：这会临时连接服务器获取工具列表，然后断开
+        # Use OpenHands SDK to create MCP tools
+        # Note: This will temporarily connect to servers to get tool list, then disconnect
         if openhands_create_mcp_tools is not None:
             try:
                 self.mcp_tools = openhands_create_mcp_tools(
@@ -451,7 +434,7 @@ class TaskAgent:
 
                 if self.debug:
                     print_color(f"Successfully created {len(self.mcp_tools)} MCP tools from OpenHands SDK", "green")
-                    # 显示前几个工具
+                    # Show first few tools
                     tool_names = [t.name for t in self.mcp_tools[:5]]
                     print_color(f"Sample tools: {tool_names}", "blue")
                     if len(self.mcp_tools) > 5:
@@ -467,29 +450,29 @@ class TaskAgent:
             print_color("Warning: OpenHands SDK not available, no MCP tools created", "yellow")
             self.mcp_tools = []
 
-        # 保留对原 MCPServerManager 的引用（兼容性）
-        # 但不再实际使用它进行连接
+        # Keep reference to original MCPServerManager (compatibility)
+        # But no longer actually use it for connections
         self.mcp_manager = None
     
     async def setup_agent(self) -> None:
         """
-        初始化 OpenHands Agent 和 Conversation
+        Initialize OpenHands Agent and Conversation
 
-        替换原有的 OpenAI Agents SDK，使用 OpenHands SDK：
-        1. 创建 OpenHands LLM
-        2. 收集本地工具 + MCP 工具
-        3. 转换本地工具为 OpenHands 格式
-        4. 创建 OpenHands Agent
-        5. 创建 Conversation
+        Replace original OpenAI Agents SDK with OpenHands SDK:
+        1. Create OpenHands LLM
+        2. Collect local tools + MCP tools
+        3. Convert local tools to OpenHands format
+        4. Create OpenHands Agent
+        5. Create Conversation
         """
-        self._debug_print(">>初始化 OpenHands agent 和 conversation")
+        self._debug_print(">>Initialize OpenHands agent and conversation")
 
         # Monkey patch AgentErrorEvent for Claude API compatibility
         # This fixes the issue where Claude API rejects tool_result messages
         # with tool_use_id that don't have a corresponding tool_use block
         self._patch_agent_error_event_for_claude()
 
-        # 1. 创建 OpenHands LLM（替代原来的 Model）
+        # 1. Create OpenHands LLM (replace original Model)
         self.llm = create_openhands_llm_from_config(
             agent_config=self.agent_config,
             agent_model_provider=self.agent_model_provider,
@@ -499,7 +482,7 @@ class TaskAgent:
         if self.debug:
             print_color(f"Created OpenHands LLM: {self.llm.model}", "blue")
 
-        # 2. 收集本地 FunctionTool 对象
+        # 2. Collect local FunctionTool objects
         local_function_tools = []
         if self.task_config.needed_local_tools is not None:
             for tool_name in self.task_config.needed_local_tools:
@@ -509,30 +492,30 @@ class TaskAgent:
                 else:
                     local_function_tools.append(tool_or_toolsets)
 
-        # 3. 转换本地工具为 OpenHands ToolSpec 并注册
-        # 这会创建完整的 Tool 对象，注册到 OpenHands 工具注册表，并返回 ToolSpec 列表
+        # 3. Convert local tools to OpenHands ToolSpec and register
+        # This will create full Tool objects, register to OpenHands tool registry, and return ToolSpec list
         local_toolspecs = register_function_tools(local_function_tools) if local_function_tools else []
 
         if self.debug and local_toolspecs:
             print_color(f"Registered {len(local_toolspecs)} local tools to OpenHands registry", "blue")
-            for spec in local_toolspecs[:3]:  # 显示前3个
+            for spec in local_toolspecs[:3]:  # Show first 3
                 print_color(f"  - {spec.name}", "blue")
 
-        # 4. 处理并注册 MCP tools
+        # 4. Process and register MCP tools
         all_toolspecs = local_toolspecs
         if hasattr(self, 'mcp_tools') and self.mcp_tools:
-            # MCP tools 是 Tool 实例，需要注册到全局注册表
+            # MCP tools are Tool instances, need to register to global registry
             from openhands.sdk.tool import ToolSpec, register_tool
 
             mcp_toolspecs = []
             for mcp_tool in self.mcp_tools:
-                # 注册 MCP Tool 实例到全局注册表
+                # Register MCP Tool instance to global registry
                 register_tool(mcp_tool.name, mcp_tool)
 
-                # 创建 ToolSpec（不带 params，因为是固定实例）
+                # Create ToolSpec (no params, because it's fixed instance)
                 mcp_toolspecs.append(ToolSpec(
                     name=mcp_tool.name,
-                    params={}  # 固定实例不支持 params
+                    params={}  # Fixed instance doesn't support params
                 ))
 
             all_toolspecs = local_toolspecs + mcp_toolspecs
@@ -544,8 +527,8 @@ class TaskAgent:
             if self.debug:
                 print_color(f"Agent will use {len(local_toolspecs)} local tools (no MCP tools)", "yellow")
 
-        # 5. 创建 OpenHands Agent（使用 ToolSpec 列表）
-        # 创建 AgentContext 添加 builtin tools 使用说明（修复 kind 字段问题）
+        # 5. Create OpenHands Agent (using ToolSpec list)
+        # Create AgentContext to add builtin tools usage instructions (fix kind field problem)
         from openhands.sdk.context import AgentContext
 
         context = AgentContext(
@@ -583,24 +566,24 @@ WITHOUT calling finish, the system will NOT recognize task completion!
 
         self.agent = OpenHandsAgent(
             llm=self.llm,
-            tools=all_toolspecs,  # 传入 ToolSpec 列表
-            # agent_context=context,  # 添加工具使用说明
-            # system_message=self.task_config.system_prompts.agent,
-            # filter_tools_regex="^(?!think|finish).*$",  # 过滤掉 think 和 finish 工具（存在 kind 验证问题）
+            tools=all_toolspecs,  # Pass ToolSpec list
+            agent_context=context,  # Add tool usage instructions
+            system_message=self.task_config.system_prompts.agent,
+            filter_tools_regex="^(?!think|finish).*$",  # Filter out think and finish tools (exist kind validation problem)
         )
 
-        # 6. 创建 Conversation（显式启用 stuck detection）
+        # 6. Create Conversation (explicitly enable stuck detection)
         persistence_dir = Path(self.task_config.agent_workspace) / 'conversation_state'
         persistence_dir.mkdir(parents=True, exist_ok=True)
 
         self.conversation = Conversation(
             agent=self.agent,
-            workspace=str(self.task_config.agent_workspace),  # 正确参数名：workspace
+            workspace=str(self.task_config.agent_workspace),  # Correct parameter name: workspace
             persistence_dir=str(persistence_dir),
-            max_iteration_per_run=self.agent_config.tool.max_inner_turns,  # 单次 run() 的最大步数
+            max_iteration_per_run=self.agent_config.tool.max_inner_turns,  # Maximum steps per single run()
             callbacks=[self._on_event],
-            visualize=False,  # 禁用默认可视化
-            stuck_detection=True,  # 显式启用 stuck detection
+            visualize=False,  # Disable default visualization
+            stuck_detection=True,  # Explicitly enable stuck detection
         )
 
         if self.debug:
@@ -608,8 +591,8 @@ WITHOUT calling finish, the system will NOT recognize task completion!
             print_color(f"  Max iteration per run: {self.conversation.max_iteration_per_run}", "green")
             print_color(f"  Stuck detection: {self.conversation.stuck_detector is not None}", "green")
 
-        # 7. 维护 self.all_tools（用于 User simulator）
-        # 从本地 FunctionTool 提取 OpenAI 格式
+        # 7. Maintain self.all_tools (for User simulator)
+        # Extract OpenAI format from local FunctionTool
         for function_tool in local_function_tools:
             self.all_tools.append({
                 "type": "function",
@@ -620,7 +603,7 @@ WITHOUT calling finish, the system will NOT recognize task completion!
                 }
             })
 
-        # 从 MCP tools 提取 OpenAI 格式
+        # Extract OpenAI format from MCP tools
         if hasattr(self, 'mcp_tools') and self.mcp_tools:
             for mcp_tool in self.mcp_tools:
                 if hasattr(mcp_tool, 'to_openai_tool'):
@@ -632,20 +615,20 @@ WITHOUT calling finish, the system will NOT recognize task completion!
 
     def _on_event(self, event) -> None:
         """
-        OpenHands 事件回调
+        OpenHands event callback
 
-        处理 Conversation 产生的事件，用于：
-        1. 维护 logs_to_record（用于最终记录）
-        2. 更新统计信息
-        3. 调试输出
+        Handle events produced by Conversation, for:
+        1. Maintain logs_to_record (for final recording)
+        2. Update statistics
+        3. Debug output
         """
-        # 更新 logs_to_record
+        # Update logs_to_record
         if isinstance(event, MessageEvent):
             if event.source == "user":
-                # 用户消息已经在 run_interaction_loop 中添加
+                # User message already added in run_interaction_loop
                 pass
             elif event.source == "agent":
-                # Agent 消息 - 使用辅助方法提取文本
+                # Agent message - use helper method to extract text
                 content = self._extract_text_from_message_event(event)
 
                 self.logs_to_record.append({
@@ -658,29 +641,29 @@ WITHOUT calling finish, the system will NOT recognize task completion!
                     print_color(f"[Agent Message] {preview}", "yellow")
 
         elif isinstance(event, ActionEvent):
-            # 工具调用（所有工具，包括本地和 MCP）
-            # 注意：不再手动更新 self.stats，统计信息由 OpenHands conversation.state 管理
+            # Tool calls (all tools, including local and MCP)
+            # Note: No longer manually update self.stats, statistics are managed by OpenHands conversation.state
             if self.debug:
                 print_color(f"[Action] {event.tool_name}", "cyan")
 
         elif isinstance(event, ObservationEvent):
-            # 工具结果（正常情况）
+            # Tool result (normal case)
             if self.debug:
-                # 显示工具结果的前100个字符
+                # Show first 100 characters of tool result
                 content = str(event.observation.to_llm_content) if hasattr(event.observation, 'to_llm_content') else str(event.observation)
                 preview = content[:100] + "..." if len(content) > 100 else content
                 print_color(f"[Observation] {event.tool_name}: {preview}", "green")
 
         elif isinstance(event, (AgentErrorEvent, UserRejectObservation)):
-            # 错误或拒绝
+            # Error or rejection
             if self.debug:
                 if isinstance(event, AgentErrorEvent):
                     print_color(f"[Agent Error] {event.tool_name}: {event.error}", "red")
                 else:
                     print_color(f"[User Reject] {event.tool_name}: {event.rejection_reason}", "red")
 
-        # 追踪 token 使用（从 LLM 响应事件）
-        # OpenHands 在 conversation.state 中维护统计，这里只做调试输出
+        # Track token usage (from LLM response event)
+        # OpenHands maintains statistics in conversation.state, here only do debug output
         if self.debug and hasattr(event, 'usage'):
             usage = event.usage
             if usage:
@@ -688,30 +671,30 @@ WITHOUT calling finish, the system will NOT recognize task completion!
 
     def _extract_stats_from_conversation(self) -> None:
         """
-        从 conversation.state 提取统计信息到 self.stats 和 self.usage
+        Extract statistics from conversation.state to self.stats and self.usage
 
-        这个方法用于兼容性 - 在需要时从 OpenHands 的单一数据源提取信息
+        This method is for compatibility - when needed, extract information from OpenHands' single data source
         """
         if not self.conversation or not hasattr(self.conversation, 'state'):
             return
 
-        # 获取 OpenHands 的统计信息
+        # Get statistics from OpenHands
         metrics = self.conversation.state.stats.get_combined_metrics()
 
-        # 更新 self.usage（兼容性）
+        # Update self.usage (compatibility)
         if metrics.accumulated_token_usage:
             self.usage.input_tokens = metrics.accumulated_token_usage.prompt_tokens
             self.usage.output_tokens = metrics.accumulated_token_usage.completion_tokens
-            # 通过 costs 列表估算请求数
+            # Estimate number of requests through costs list
             self.usage.requests = len(metrics.costs)
 
-        # 更新 self.stats（兼容性）
+        # Update self.stats (compatibility)
         self.stats["total_tokens"] = self.usage.input_tokens + self.usage.output_tokens
         self.stats["input_tokens"] = self.usage.input_tokens
         self.stats["output_tokens"] = self.usage.output_tokens
         self.stats["agent_llm_requests"] = self.usage.requests
 
-        # 从事件中统计工具调用次数
+        # Count tool calls from events
         if hasattr(self.conversation.state, 'events'):
             action_events = [e for e in self.conversation.state.events if isinstance(e, ActionEvent)]
             self.stats["cumulative_tool_calls"] = len(action_events)
@@ -720,9 +703,9 @@ WITHOUT calling finish, the system will NOT recognize task completion!
     @staticmethod
     def _extract_text_from_message_event(event: MessageEvent) -> str:
         """
-        从 MessageEvent 提取文本内容
+        Extract text content from MessageEvent
 
-        MessageEvent.llm_message.content 是 List[TextContent | ImageContent]
+        MessageEvent.llm_message.content is List[TextContent | ImageContent]
         """
         text_parts = []
         for content_item in event.llm_message.content:
@@ -731,7 +714,7 @@ WITHOUT calling finish, the system will NOT recognize task completion!
         return "".join(text_parts)
 
     async def setup_user_simulator(self) -> None:
-        """初始化用户模拟器"""
+        """Initialize user simulator."""
         user_runtime_config = UserRuntimeConfig(
             global_config=self.user_config,
             starting_system_prompt=self.task_config.system_prompts.user,
@@ -745,23 +728,23 @@ WITHOUT calling finish, the system will NOT recognize task completion!
     async def run_interaction_loop(self,
                                    abs_original_task_root: str) -> None:
         """
-        运行交互循环（完全 OpenHands SDK 版本 - 方案 A）
+        Run interaction loop (fully OpenHands SDK version - Scheme A)
 
-        充分利用 OpenHands 的完整循环机制：
-        - conversation.run() 处理内层循环（max_iteration_per_run）
-        - 外层循环管理 user-agent 交互轮次（max_turns）
-        - 自动 stuck detection 和状态管理
-        - AgentExecutionStatus 驱动的终止条件
+       充分利用 OpenHands 的完整循环机制：
+        - conversation.run() handles inner loop (max_iteration_per_run)
+        - outer loop manages user-agent interaction turns (max_turns)
+        - automatic stuck detection and state management
+        - AgentExecutionStatus-driven termination conditions
 
-        循环语义：
-        - max_turns: 最大 user-agent 交互轮次（外层循环）
-        - max_iteration_per_run: 单次 run() 内的最大 agent 步数（内层循环，已在 Conversation 初始化时设置）
+        Loop semantics:
+        - max_turns: Maximum user-agent interaction turns (outer loop)
+        - max_iteration_per_run: Maximum agent steps per single run() (inner loop, set in Conversation initialization)
         """
-        # 初始化 session id（保持兼容性）
+        # Initialize session id (for compatibility)
         self.session_id = f"task_{self.task_config.id}_session"
         self.initial_run_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        # 确定最大用户交互轮次
+        # Determine maximum user interaction turns
         max_user_turns = 1 if self.single_turn_mode else self.task_config.max_turns
 
         if self.debug:
@@ -770,11 +753,11 @@ WITHOUT calling finish, the system will NOT recognize task completion!
             print_color(f"  Max iterations per run: {self.conversation.max_iteration_per_run}", "blue")
             print_color(f"  Stuck detection: {self.conversation.stuck_detector is not None}", "blue")
 
-        # 主交互循环 - 每轮对应一次用户输入和 agent 完整响应
+        # Main interaction loop - each turn corresponds to one user input and agent full response
         for turn in range(max_user_turns):
             try:
-                # === 阶段 1: 获取用户输入 ===
-                # 这部分是user simulator的部分 保持了原本框架的逻辑
+                # === Stage 1: Get user input ===
+                # This part is the user simulator part, keeping the original framework logic
                 if self.single_turn_mode:
                     user_query = self.task_config.task_str
                 elif self.manual:
@@ -783,31 +766,31 @@ WITHOUT calling finish, the system will NOT recognize task completion!
                     user_query = await self.user_simulator.interact()
                     self._debug_print(f"USER: {user_query}")
 
-                # 保存第一轮用户输入
+                # Save first user input for context reset
                 if self.first_user_input is None:
                     self.first_user_input = user_query
 
-                # 检查用户输入的终止条件
+                # Check termination condition for user input
                 if self.termination_checker(user_query, [], 'user'):
                     self._debug_print("Termination condition met by user input")
                     self.task_status = TaskStatus.SUCCESS
                     break
 
-                # 记录用户消息
+                # Record user message
                 self.logs_to_record.append({"role": "user", "content": user_query})
 
-                # === 阶段 2: 发送消息并运行 OpenHands 完整循环 ===
+                # === Stage 2: Send message and run OpenHands full loop ===
                 self.conversation.send_message(user_query)
 
-                # 记录当前事件数量（用于提取新事件）
+                # Record current event number (for extracting new events)
                 events_before = len(self.conversation.state.events)
 
-                # 运行 OpenHands 完整循环
-                # conversation.run() 会处理：
-                # 1. max_iteration_per_run 限制（内层循环）
-                # 2. AgentExecutionStatus.FINISHED 检测
-                # 3. Stuck detection（重复模式、错误循环等）
-                # 4. 错误恢复（AgentErrorEvent 转换为 user message）
+                # Run OpenHands full loop
+                # conversation.run() handles:
+                # 1. max_iteration_per_run limit (inner loop)
+                # 2. AgentExecutionStatus.FINISHED detection
+                # 3. Stuck detection (repetitive pattern, error loop, etc.)
+                # 4. Error recovery (AgentErrorEvent converted to user message)
                 try:
                     self.conversation.run()
                 except Exception as e:
@@ -815,104 +798,90 @@ WITHOUT calling finish, the system will NOT recognize task completion!
                     if self.debug:
                         import traceback
                         traceback.print_exc()
-                    # 标记为失败并继续处理
+                    # Mark as failed and continue processing
                     self.task_status = TaskStatus.FAILED
                     raise
 
-                # === 阶段 3: 提取新事件和 agent 响应 ===
+                # === Stage 3: Extract new events and agent response ===
                 new_events = self.conversation.state.events[events_before:]
 
-                # 提取最后一条 agent 消息
+                # Extract last agent message
                 last_agent_message = None
                 for event in reversed(new_events):
                     if isinstance(event, MessageEvent) and event.source == "agent":
                         last_agent_message = self._extract_text_from_message_event(event)
                         break
 
-                # 发送 agent 响应给 user simulator
+                # Send agent response to user simulator
                 if last_agent_message and not self.manual and not self.single_turn_mode:
                     self.user_simulator.receive_message(last_agent_message)
 
-                # 更新交互轮次
+                # Update interaction turns
                 self.stats["interaction_turns"] = turn + 1
 
-                # === 阶段 4: 检查 OpenHands 状态驱动的终止条件 ===
+                # === Stage 4: Check termination conditions driven by OpenHands status ===
                 agent_status = self.conversation.state.agent_status
 
-                # 终止条件 1: Agent 完成任务
+                # Termination condition 1: Agent finished task
                 if agent_status == AgentExecutionStatus.FINISHED:
                     self._debug_print("Agent finished task successfully")
                     self.task_status = TaskStatus.SUCCESS
                     break
 
-                # 终止条件 2: Stuck 检测触发
+                # Termination condition 2: Stuck detection triggered
                 if agent_status == AgentExecutionStatus.STUCK:
                     self._debug_print("Agent stuck detected by OpenHands")
                     if self.debug and self.conversation.stuck_detector:
-                        # 打印 stuck 详情
+                        # Print stuck details
                         print_color("[Stuck Detection] Agent is stuck in repetitive pattern", "red")
                     self.task_status = TaskStatus.FAILED
                     break
 
-                # 终止条件 3: 自定义终止检查器（兼容性）
-                # 这个兼容是和原本框架的local tool中的claim-done进行兼容，可以删除忽略
-                # if last_agent_message:
-                #     # 从新事件中提取工具调用
-                #     recent_tool_calls = [
-                #         {"type": "function", "function": {"name": e.tool_name}}
-                #         for e in new_events if isinstance(e, ActionEvent)
-                #     ]
-
-                #     if self.termination_checker(last_agent_message, recent_tool_calls, 'agent'):
-                #         self._debug_print("Termination condition met by agent response")
-                #         self.task_status = TaskStatus.SUCCESS
-                #         break
-
-                # === 阶段 5: 单轮模式特殊处理 ===
+                # === Stage 5: Special handling for single-turn mode ===
                 if self.single_turn_mode:
-                    # 单轮模式：执行一次后立即退出
+                    # Single-turn mode: exit after first turn
                     self._debug_print("Single-turn mode: exiting after first turn")
-                    # 根据 agent 状态决定任务状态
+                    # Determine task status based on agent status
                     if agent_status == AgentExecutionStatus.FINISHED:
                         self.task_status = TaskStatus.SUCCESS
                     elif agent_status == AgentExecutionStatus.STUCK:
                         self.task_status = TaskStatus.FAILED
                     else:
-                        # Agent 未明确完成，可能是达到 max_iteration_per_run
+                        # Agent not explicitly finished, possibly reached max_iteration_per_run
                         self.task_status = TaskStatus.MAX_TURNS_REACHED
                     break
 
-                # === 阶段 6: 定期保存检查点 ===
+                # === Stage 6: Save checkpoint periodically ===
                 if self.allow_resume and (turn + 1) % self.checkpoint_interval == 0:
                     await self._save_checkpoint()
                     if self.debug:
                         print_color(f"[Checkpoint] Saved at turn {turn + 1}", "green")
 
             except KeyboardInterrupt:
-                # 处理用户中断
+                # User interrupted
                 self._debug_print("\nInterrupted by user")
                 if self.allow_resume:
                     await self._save_checkpoint()
                 self.task_status = TaskStatus.INTERRUPTED
                 raise
             except Exception as e:
-                # 处理其他异常
+                # Handle other exceptions
                 self._debug_print(f"\nError during interaction turn {turn + 1}: {e}")
                 if self.allow_resume:
                     await self._save_checkpoint()
                 self.task_status = TaskStatus.FAILED
                 raise
 
-        # === 最终状态检查 ===
-        # 如果循环正常结束但没有设置任务状态，说明达到了最大轮次
+        # === Final status check ===
+        # If loop ends normally but task status is not set, it means maximum turns reached
         if self.task_status is None and self.stats["interaction_turns"] >= max_user_turns:
             self._debug_print(f"Maximum user turns ({max_user_turns}) reached")
             self.task_status = TaskStatus.MAX_TURNS_REACHED
 
-        # 从 conversation.state 提取最终统计信息（单一数据源）
+        # Extract final statistics from conversation.state (single data source)
         self._extract_stats_from_conversation()
 
-        # 打印最终状态摘要
+        # Print final status summary
         if self.debug:
             print_color("\n=== Interaction Loop Completed ===", "blue")
             print_color(f"  Final status: {self.task_status}", "blue")
@@ -921,11 +890,11 @@ WITHOUT calling finish, the system will NOT recognize task completion!
             print_color(f"  Total tool calls: {self.stats.get('cumulative_tool_calls', 0)}", "blue")
 
     def get_cost_summary(self) -> Tuple[Dict, Dict]:
-        """获取成本摘要（从 OpenHands conversation.state 提取）"""
-        # 确保统计信息是最新的
+        """Get cost summary (from OpenHands conversation.state)"""
+        # Ensure statistics are up to date
         self._extract_stats_from_conversation()
 
-        # 添加空值检查，防止 user_simulator 为 None
+        # Add null check for self.user_simulator
         if self.user_simulator is None:
             user_cost = {"total_cost": 0, "total_input_tokens": 0, "total_output_tokens": 0, "total_requests": 0}
         else:
@@ -936,9 +905,8 @@ WITHOUT calling finish, the system will NOT recognize task completion!
             self.usage.input_tokens,
             self.usage.output_tokens
         )
-
         agent_cost = {
-            "total_cost": round(total_cost,4),
+            "total_cost": round(total_cost, 4),
             "total_input_tokens": self.usage.input_tokens,
             "total_output_tokens": self.usage.output_tokens,
             "total_requests": self.usage.requests,
@@ -948,14 +916,14 @@ WITHOUT calling finish, the system will NOT recognize task completion!
     
     async def save_results(self) -> None:
         """
-        保存运行结果到日志文件（OpenHands 版本）
+        Save running results to log file (OpenHands version)
 
-        统计信息来源：
-        - self.stats 和 self.usage: 通过 _extract_stats_from_conversation() 从 conversation.state 提取
-        - session_stats: 直接从 conversation.state.events 计算
-        - logs_to_record: 在 _on_event 回调中维护
+        Statistics sources:
+        - self.stats and self.usage: extracted from conversation.state by _extract_stats_from_conversation()
+        - session_stats: calculated directly from conversation.state.events
+        - logs_to_record: maintained in _on_event callback
         """
-        # 确保统计信息是最新的
+        # Ensure statistics are up to date
         self._extract_stats_from_conversation()
 
         res_log_file = self.task_config.log_file
@@ -963,13 +931,13 @@ WITHOUT calling finish, the system will NOT recognize task completion!
         if not os.path.exists(os.path.dirname(res_log_file)):
             os.makedirs(os.path.dirname(res_log_file))
 
-        # 使用 logs_to_record（已经在 _on_event 和 run_interaction_loop 中维护）
+        # Use logs_to_record (maintained in _on_event and run_interaction_loop)
         complete_messages = self.logs_to_record
 
-        # 从 conversation.state 计算 session stats
+        # Calculate session stats from conversation.state
         session_stats = {}
         if hasattr(self, 'conversation') and self.conversation:
-            # 统计事件数量
+            # Count events
             total_events = len(self.conversation.state.events)
             action_events = sum(1 for e in self.conversation.state.events if isinstance(e, ActionEvent))
             message_events = sum(1 for e in self.conversation.state.events if isinstance(e, MessageEvent))
@@ -1004,76 +972,74 @@ WITHOUT calling finish, the system will NOT recognize task completion!
             json_output = json.dumps(result, ensure_ascii=False, cls=CustomJSONEncoder)
             f.write(json_output)
 
-    
     async def cleanup(self) -> None:
         """
-        清理资源
+        Clean up resources
 
-        注意：使用 OpenHands MCP 后，不再需要手动断开 MCP 服务器
-        因为 OpenHands 的工具在每次调用时自动连接/断开
+        Note: After using OpenHands MCP, manual disconnection of MCP servers is no longer required
+        because OpenHands tools automatically connect/disconnect when called
         """
-        # OpenHands MCP 工具会自动管理连接，无需手动清理
-        # 保留方法以维持兼容性
+        # OpenHands MCP tools automatically manage connections, no need to manually clean up
+        # Keep method for compatibility
         if self.debug:
             print_color("Cleanup: OpenHands MCP tools handle connections automatically", "blue")
         pass
     
     async def run(self) -> TaskStatus:
-        """运行整个任务"""
+        """Run the whole task, including initialization, main loop, and saving results."""
 
-        # 保存当前工作目录
+        # Cache current working directory
         current_dir = os.path.abspath(os.getcwd())
 
         try:
-            # 设置日志文件路径
+            # Set log file and workspace dir
             self.task_config.log_file = os.path.join(self.task_config.task_root, "traj_log.json")
             self.task_config.agent_workspace = os.path.join(self.task_config.task_root, "workspace")
 
-            # 开始预处理
+            # Preprocess status
             self.status_manager.update_preprocess("running")
 
-            # 初始化工作区（如果允许恢复且有检查点，则跳过重新初始化）
+            # Initialize workspace (skip if checkpoint will be used)
             if not await self.initialize_workspace():
                 self.status_manager.update_preprocess("fail")
                 return TaskStatus.FAILED
 
-            # 预处理成功
             self.status_manager.update_preprocess("done")
             
-            # 在这里读取预处理后task-specific的token_key_session.py，并赋值给task_config.local_token_key_session
+            # After preprocess, load task-specific local_token_key_session
             self.task_config.load_local_token_key_session()
 
-            # 设置MCP服务器
+            # Setup MCP servers
             await self.setup_mcp_servers(self.task_config.local_token_key_session)
             
-            # 设置Agent
+            # Setup agent (LLM assistant)
             await self.setup_agent()
             
-            # 设置用户模拟器
+            # Setup user simulator
             await self.setup_user_simulator()
             
-            # 切换工作目录为agent_workspace
+            # Switch working dir to agent_workspace
             os.chdir(self.task_config.agent_workspace)
             self._debug_print(f"Switched working directory to {self.task_config.agent_workspace}")
 
-            # 开始运行任务
+            # Enter running status
             self.status_manager.update_running("running")
 
-            # 运行交互循环
+            # Main interaction loop
             await self.run_interaction_loop(os.path.abspath(self.task_config.task_root))
 
-            # 切换回原工作目录
+            # Switch back to the original cwd
             os.chdir(current_dir)
             self._debug_print(f"Switched back working directory to {current_dir}")
             
-            # 如果没有设置其他状态，则为成功
+            # If not interrupted or max turns reached, mark done
             if self.task_status not in [TaskStatus.MAX_TURNS_REACHED, TaskStatus.INTERRUPTED]:
                 self.task_status = TaskStatus.SUCCESS
                 self.status_manager.update_running("done")
             elif self.task_status == TaskStatus.MAX_TURNS_REACHED:
                 self.status_manager.update_running("max_turn_exceeded")
             
-            # 任务完成，删除检查点
+            # Remove checkpoint after successful completion
             if self.task_status == TaskStatus.SUCCESS:
                 self._remove_checkpoint()
                 
@@ -1083,10 +1049,9 @@ WITHOUT calling finish, the system will NOT recognize task completion!
                 self.task_status = TaskStatus.INTERRUPTED
                 
         except Exception as e:
-            # a strange logic, 
-            #  - max-turn update the task status in `self._debug_print(f"[THIS IS A TAG FOR MAX TURNS EXCEEDED] Max turns exceeded: {e}")`
-            #  - but it will will raise an error in `raise RuntimeError(f"Failed to get agent response within {max_inner_steps} inner steps")`, leading us to this block
-            #  - so we need to use status_manager to update status here
+            # max-turn logic updates the status in the interaction loop
+            # but RuntimeError("Failed to get agent response...") brings us here,
+            # so update status here as well
             self._debug_print("Error when running agent -", e)
             if self.debug:
                 traceback.print_exc()
@@ -1094,35 +1059,32 @@ WITHOUT calling finish, the system will NOT recognize task completion!
                 self.status_manager.update_running("max_turn_exceeded")
             else:
                 self.task_status = TaskStatus.FAILED
-                # 运行阶段失败（预处理已经成功了，否则不会到这里）
                 self.status_manager.update_running("fail")
             
         finally:
-            # 切换回原工作目录，in all cases
+            # Always restore working dir
             os.chdir(current_dir)
             self._debug_print(f"Switched back working directory to {current_dir}")
 
-            # 计算最终的成本摘要（这会更新token统计）
+            # Gather final cost summary (updates token stats)
             user_cost, agent_cost = self.get_cost_summary()
-            
             self.user_cost = user_cost
             self.agent_cost = agent_cost
 
-            # 打印成本摘要
-            self._debug_print(f"===LLM-simulator（{self.user_config.model.short_name}）Cost Summary===")
+            # Print cost/statistics summary (in English)
+            self._debug_print(f"=== LLM-simulator ({self.user_config.model.short_name}) Cost Summary ===")
             for k, v in user_cost.items():
                 self._debug_print(f"{k} : {v}")
-            self._debug_print(f"===Agent（{self.agent_config.model.short_name}）Cost Summary===")
+            self._debug_print(f"=== Agent ({self.agent_config.model.short_name}) Cost Summary ===")
             for k, v in agent_cost.items():
                 self._debug_print(f"{k} : {v}")
-            self._debug_print("===Key Statistics===")
+            self._debug_print("=== Key Statistics ===")
             for k, v in self.stats.items():
                 self._debug_print(f"{k} : {v}")
             
-            # 保存结果
+            # Save final results to file
             await self.save_results()
-            
-            # 清理资源
+            # Cleanup/close resources
             await self.cleanup()
             
         return self.task_status

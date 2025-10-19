@@ -1,6 +1,4 @@
 {
-    "task": "GDP CR5地区分析",
-    "description": "2022年全球GDP数据按7大地区的CR5集中度指标分析",
     "expected_regions": [
         "East Asia & Pacific",
         "Europe & Central Asia", 

@@ -11,77 +11,62 @@ from google.oauth2 import service_account
 from google.api_core.exceptions import Conflict, GoogleAPICallError, NotFound
 import random
 import numpy as np
+random.seed(42)
 
 # Enable verbose logging for debugging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 def generate_player_skill_level():
-    """生成玩家技能等级，模拟真实的技能分布"""
-    # 使用正态分布生成技能等级，大部分玩家在中等水平
-    skill = np.random.normal(50, 15)  # 平均50，标准差15
-    return max(10, min(90, skill))  # 限制在10-90之间
+    """Generate player's skill level, simulating a realistic skill distribution."""
+    # Use normal distribution centered at 50 with a standard deviation of 15
+    skill = np.random.normal(50, 15)
+    return max(10, min(90, skill))  # Clamp skill between 10 and 90
 
 def generate_realistic_score(base_skill, game_difficulty=1.0, variability=0.3):
-    """基于技能等级生成更真实的得分"""
-    # 基础得分基于技能
+    """Generate a realistic score based on skill level."""
     base_score = base_skill * 10 + random.randint(-50, 50)
-    
-    # 游戏难度影响
     difficulty_modifier = random.uniform(0.8, 1.2) * game_difficulty
-    
-    # 随机波动（模拟运气、状态等因素）
     random_factor = random.uniform(1 - variability, 1 + variability)
-    
     final_score = int(base_score * difficulty_modifier * random_factor)
     return max(0, final_score)
 
 def get_realistic_region_distribution():
-    """返回更真实的地区分布权重"""
+    """Return a region weighted more realistically."""
     regions = ["US", "EU", "ASIA", "CN"]
-    weights = [0.3, 0.25, 0.25, 0.2]  # 美国稍多，其他相对均匀
+    weights = [0.3, 0.25, 0.25, 0.2]  # US is slightly more likely, others even
     return random.choices(regions, weights=weights)[0]
 
 def generate_game_timestamps(base_time, game_count):
-    """为一个玩家的多场游戏生成不同的时间戳"""
+    """Generate timestamps for multiple games of a player."""
     timestamps = []
     current_time = base_time
-    
     for i in range(game_count):
-        # 每场游戏间隔随机时间（1-60分钟）
         if i > 0:
             interval_minutes = random.randint(1, 60)
             current_time += timedelta(minutes=interval_minutes)
         timestamps.append(current_time)
-    
     return timestamps
 
 def generate_historical_stats_data(days_back=10, players_per_day=100):
-    """生成历史统计数据（前N天的前100名玩家数据）"""
+    """Generate historical stats data (top 100 players of each of the last N days)."""
     historical_data = []
     today = date.today()
-    
-    print(f"📊 生成历史统计数据：过去 {days_back} 天，每天 {players_per_day} 名玩家")
-    
+
+    print(f"📊 Generating historical statistics: past {days_back} days, {players_per_day} players per day")
+
     for day_offset in range(1, days_back + 1):
         target_date = today - timedelta(days=day_offset)
-        print(f"   生成 {target_date} 的数据...")
-        
-        # 为这一天生成玩家数据
+        print(f"   Generating data for {target_date} ...")
+
         day_players = []
         for rank in range(1, players_per_day + 1):
-            # 生成玩家技能等级（排名越靠前技能越高）
             base_skill = 95 - (rank - 1) * 0.5 + random.uniform(-5, 5)
             base_skill = max(20, min(95, base_skill))
-            
-            # 生成该玩家当天的总得分
             online_score = generate_realistic_score(base_skill, 1.0, 0.2) * random.randint(3, 8)
             task_score = generate_realistic_score(base_skill, 1.2, 0.25) * random.randint(2, 6)
             total_score = online_score + task_score
-            
-            # 游戏场数
             game_count = random.randint(3, 12)
-            
             day_players.append({
                 "player_id": f"player_{rank:03d}_{target_date.strftime('%m%d')}",
                 "player_region": get_realistic_region_distribution(),
@@ -91,143 +76,136 @@ def generate_historical_stats_data(days_back=10, players_per_day=100):
                 "total_score": total_score,
                 "game_count": game_count
             })
-        
-        # 根据总分排序（确保排名正确）
+        day_players.sort(key=lambda x: x["total_score"], reverse=True)
+
+        # Ensure all total_scores are unique by adjusting task_score
+        seen_scores = set()
+        for player in day_players:
+            offset = 0
+            while player["total_score"] in seen_scores:
+                offset += 1
+                player["total_task_score"] += 1
+                player["total_score"] = player["total_online_score"] + player["total_task_score"]
+            seen_scores.add(player["total_score"])
+
+        # Re-sort after adjustments
         day_players.sort(key=lambda x: x["total_score"], reverse=True)
         historical_data.extend(day_players)
-    
-    print(f"✅ 生成了 {len(historical_data)} 条历史统计记录")
+
+    print(f"✅ Generated {len(historical_data)} historical stats records")
     return historical_data
 
 def setup_or_clear_dataset(client: bigquery.Client, project_id: str):
     """
-    Setup or clear existing game_analytics dataset
-    - If dataset exists: clear all table contents but keep the dataset and tables
-    - If dataset doesn't exist: create it (tables will be created later)
+    Set up or clear the existing game_analytics dataset.
+    - If dataset exists: delete all tables in the dataset.
+    - If dataset doesn't exist: create it (tables will be created later).
     """
     dataset_id = f"{project_id}.game_analytics"
-    print(f"🧹 检查并设置数据集: {dataset_id}")
+    print(f"🧹 Checking and setting up dataset: {dataset_id}")
 
     try:
-        # Try to get dataset info to see if it exists
         try:
             dataset = client.get_dataset(dataset_id)
-            print(f"ℹ️  找到现有数据集: {dataset_id}")
+            print(f"ℹ️  Found existing dataset: {dataset_id}")
 
-            # List all tables in the dataset
             tables = list(client.list_tables(dataset_id))
             if tables:
-                print(f"ℹ️  数据集包含 {len(tables)} 个表:")
+                print(f"ℹ️  Dataset contains {len(tables)} table(s):")
                 for table in tables:
                     print(f"   - {table.table_id}")
 
-                # Clear contents of all tables instead of deleting them
                 for table in tables:
-                    table_id = f"{dataset_id}.{table.table_id}"
-                    print(f"🗑️  清空表 {table.table_id} 的内容...")
-
-                    # Use DELETE query to clear table contents
-                    delete_query = f"DELETE FROM `{table_id}` WHERE true"
-                    query_job = client.query(delete_query)
-                    query_job.result()  # Wait for completion
-
-                    print(f"✅ 已清空表 {table.table_id}")
+                    table_id_fq = f"{dataset_id}.{table.table_id}"
+                    print(f"🗑️  Deleting table {table.table_id}...")
+                    client.delete_table(table_id_fq, not_found_ok=True)
+                    print(f"✅ Deleted table {table.table_id}")
             else:
-                print(f"ℹ️  数据集为空，无需清理")
+                print(f"ℹ️  Dataset is empty, nothing to clear")
 
         except NotFound:
-            print(f"ℹ️  数据集 {dataset_id} 不存在，将创建新数据集")
-            # Create the dataset since it doesn't exist
+            print(f"ℹ️  Dataset {dataset_id} does not exist, creating new dataset...")
             dataset = bigquery.Dataset(dataset_id)
             dataset.location = "US"
             dataset.description = "Game analytics dataset for daily scoring and leaderboards"
             client.create_dataset(dataset, timeout=30)
-            print(f"✅ 数据集 '{dataset.dataset_id}' 已成功创建")
+            print(f"✅ Dataset '{dataset.dataset_id}' created")
 
     except Exception as e:
-        print(f"❌ 数据集设置过程出错: {e}")
+        print(f"❌ Error while setting up dataset: {e}")
         logger.exception("Dataset setup failed")
         raise
 
 def cleanup_existing_dataset(client: bigquery.Client, project_id: str):
     """
-    Clean up existing game_analytics dataset if it exists
+    Clean up existing game_analytics dataset if it exists.
     """
     dataset_id = f"{project_id}.game_analytics"
-    print(f"🧹 检查并清理现有数据集: {dataset_id}")
-    
+    print(f"🧹 Checking and cleaning existing dataset: {dataset_id}")
+
     try:
-        # First try to get dataset info to see if it exists
         try:
             dataset = client.get_dataset(dataset_id)
-            print(f"ℹ️  找到现有数据集: {dataset_id}")
-            
-            # List all tables in the dataset
+            print(f"ℹ️  Found existing dataset: {dataset_id}")
+
             tables = list(client.list_tables(dataset_id))
             if tables:
-                print(f"ℹ️  数据集包含 {len(tables)} 个表:")
+                print(f"ℹ️  Dataset contains {len(tables)} table(s):")
                 for table in tables:
                     print(f"   - {table.table_id}")
         except NotFound:
-            print(f"ℹ️  数据集 {dataset_id} 不存在，无需清理")
+            print(f"ℹ️  Dataset {dataset_id} does not exist, nothing to clean")
             return
-        
-        # Delete dataset with all contents
-        print(f"🗑️  删除数据集及其所有内容...")
+
+        print(f"🗑️  Deleting dataset and all contents...")
         client.delete_dataset(
-            dataset_id, 
-            delete_contents=True, 
+            dataset_id,
+            delete_contents=True,
             not_found_ok=True
         )
-        print(f"✅ 已成功清理数据集 '{dataset_id}' 及其所有内容")
-        
-        # Wait a moment for deletion to propagate
+        print(f"✅ Successfully cleaned dataset '{dataset_id}' and all its contents")
+
         import time
         time.sleep(2)
-        
+
     except NotFound:
-        print(f"ℹ️  数据集 {dataset_id} 不存在，无需清理")
+        print(f"ℹ️  Dataset {dataset_id} does not exist, nothing to clean")
     except Exception as e:
-        print(f"❌ 数据集清理过程出错: {e}")
+        print(f"❌ Error while cleaning dataset: {e}")
         logger.exception("Dataset cleanup failed")
         raise
 
 def setup_bigquery_resources(credentials_path: str, project_id: str):
     """
-    Setup BigQuery dataset and tables, then populate with sample data
+    Setup BigQuery dataset and tables, then populate with sample data.
     """
     print("=" * 60)
-    print("🎯 开始设置 BigQuery 游戏统计资源")
+    print("🎯 Starting BigQuery game statistics resource setup")
     print("=" * 60)
-    
+
     try:
-        print(f"🔗 正在使用凭证 '{credentials_path}' 连接到项目 '{project_id}'...")
-        
-        # Use the newer authentication method
+        print(f"🔗 Connecting to project '{project_id}' using credentials '{credentials_path}'...")
+
         credentials = service_account.Credentials.from_service_account_file(credentials_path)
         client = bigquery.Client(credentials=credentials, project=project_id)
-        
-        print("✅ 连接成功！")
-        
-        # Test connection by listing datasets
-        print("🔍 测试连接 - 列出现有数据集...")
+
+        print("✅ Connection successful!")
+
+        print("🔍 Testing connection - listing datasets...")
         try:
             datasets = list(client.list_datasets())
-            print(f"ℹ️  项目中现有 {len(datasets)} 个数据集")
+            print(f"ℹ️  There are {len(datasets)} dataset(s) in the project")
             for dataset in datasets:
                 print(f"   - {dataset.dataset_id}")
         except Exception as e:
-            print(f"⚠️  列出数据集时出错: {e}")
+            print(f"⚠️  Error while listing datasets: {e}")
 
-        # Setup or clear existing dataset (don't delete it)
         setup_or_clear_dataset(client, project_id)
 
-        # Create dataset if needed (handled in setup_or_clear_dataset)
         dataset_id = f"{project_id}.game_analytics"
 
-        # Create daily_scores_stream table (or skip if exists)
         table_id_stream = f"{dataset_id}.daily_scores_stream"
-        print(f"🗂️  检查并创建表: {table_id_stream}")
+        print(f"🗂️  Checking and creating table: {table_id_stream}")
         schema_stream = [
             bigquery.SchemaField("player_id", "STRING", mode="REQUIRED"),
             bigquery.SchemaField("player_region", "STRING", mode="NULLABLE"),
@@ -245,68 +223,60 @@ def setup_bigquery_resources(credentials_path: str, project_id: str):
         )
         try:
             client.create_table(table_stream)
-            print(f"✅ 表 '{table_id_stream}' 已成功创建。")
+            print(f"✅ Table '{table_id_stream}' created.")
         except Conflict:
-            print(f"ℹ️  表 '{table_id_stream}' 已存在，跳过创建。")
+            print(f"ℹ️  Table '{table_id_stream}' already exists, skipping creation.")
         except Exception as e:
-            print(f"❌ 创建表 '{table_id_stream}' 失败: {e}")
+            print(f"❌ Failed to create table '{table_id_stream}': {e}")
             raise
 
-        # Create player_historical_stats table (or skip if exists)
         table_id_stats = f"{dataset_id}.player_historical_stats"
-        print(f"🗂️  检查并创建表: {table_id_stats}")
+        print(f"🗂️  Checking and creating table: {table_id_stats}")
         schema_stats = [
             bigquery.SchemaField("player_id", "STRING", mode="REQUIRED"),
             bigquery.SchemaField("player_region", "STRING", mode="NULLABLE"),
             bigquery.SchemaField("date", "DATE", mode="REQUIRED"),
             bigquery.SchemaField("total_online_score", "INTEGER"),
             bigquery.SchemaField("total_task_score", "INTEGER"),
-            bigquery.SchemaField("total_score", "INTEGER", description="当日总分 (online + task)"),
+            bigquery.SchemaField("total_score", "INTEGER", description="Total score for the day (online + task)"),
             bigquery.SchemaField("game_count", "INTEGER"),
         ]
         table_stats = bigquery.Table(table_id_stats, schema=schema_stats)
         try:
             client.create_table(table_stats)
-            print(f"✅ 表 '{table_id_stats}' 已成功创建。")
+            print(f"✅ Table '{table_id_stats}' created.")
         except Conflict:
-            print(f"ℹ️  表 '{table_id_stats}' 已存在，跳过创建。")
+            print(f"ℹ️  Table '{table_id_stats}' already exists, skipping creation.")
         except Exception as e:
-            print(f"❌ 创建表 '{table_id_stats}' 失败: {e}")
+            print(f"❌ Failed to create table '{table_id_stats}': {e}")
             raise
 
-        # Populate with sample data for current date
         today = date.today()
-        current_time = datetime.now()
-        print(f"📈 开始生成样本数据，当前日期: {today}")
-        
-        # Generate improved sample data for daily_scores_stream
+        print(f"📈 Generating sample data, current date: {today}")
+
         sample_rows = []
         player_count = 200
-        print(f"👥 为 {player_count} 个玩家生成改进的游戏数据...")
-        
-        # 为每个玩家预先生成技能等级
+        print(f"👥 Generating improved game data for {player_count} players...")
+
         player_skills = {}
         for player_id in range(1, player_count + 1):
             player_skills[player_id] = generate_player_skill_level()
-        
+
         for player_id in range(1, player_count + 1):
-            # 更真实的游戏场次分布
-            games_count = random.choices([3, 4, 5, 6, 7, 8, 9, 10], 
+            games_count = random.choices([3, 4, 5, 6, 7, 8, 9, 10],
                                        weights=[5, 10, 15, 20, 20, 15, 10, 5])[0]
-            
-            # 为该玩家生成游戏时间戳
-            start_time = current_time - timedelta(hours=random.randint(0, 12))
+            start_hour = random.randint(0, 23)
+            start_minute = random.randint(0, 59)
+            start_time = datetime.combine(today, datetime.min.time()) + timedelta(hours=start_hour, minutes=start_minute)
             timestamps = generate_game_timestamps(start_time, games_count)
-            
             player_skill = player_skills[player_id]
             player_region = get_realistic_region_distribution()
-            
+
             for game_num in range(games_count):
-                # 使用改进的得分生成函数
-                game_difficulty = random.uniform(0.8, 1.5)  # 随机游戏难度
+                game_difficulty = random.uniform(0.8, 1.5)
                 online_score = generate_realistic_score(player_skill, game_difficulty, 0.3)
                 task_score = generate_realistic_score(player_skill, game_difficulty * 1.2, 0.4)
-                
+
                 sample_rows.append({
                     "player_id": f"player_{player_id:03d}",
                     "player_region": player_region,
@@ -317,33 +287,54 @@ def setup_bigquery_resources(credentials_path: str, project_id: str):
                     "game_id": f"game_{player_id:03d}_{game_num:02d}_{today.strftime('%Y%m%d')}",
                     "timestamp": timestamps[game_num].isoformat()
                 })
-        
-        print(f"📝 生成了 {len(sample_rows)} 条改进的样本记录")
+        print(f"📝 Generated {len(sample_rows)} improved sample records")
 
-        # Insert sample data using batch loading
-        print(f"💾 插入样本数据到 daily_scores_stream...")
+        # Ensure each player's total score is unique
+        print("🔍 Checking and adjusting for unique total scores per player...")
+        player_totals = {}
+        for row in sample_rows:
+            pid = row["player_id"]
+            if pid not in player_totals:
+                player_totals[pid] = {"total_online": 0, "total_task": 0, "rows": []}
+            player_totals[pid]["total_online"] += row["scores"]["online_score"]
+            player_totals[pid]["total_task"] += row["scores"]["task_score"]
+            player_totals[pid]["rows"].append(row)
+
+        seen_totals = set()
+        for pid, data in player_totals.items():
+            total_score = data["total_online"] + data["total_task"]
+            offset = 0
+            while total_score in seen_totals:
+                offset += 1
+                total_score = data["total_online"] + data["total_task"] + offset
+
+            # If we need to adjust, add the offset to the last game's task_score
+            if offset > 0:
+                last_row = data["rows"][-1]
+                last_row["scores"]["task_score"] += offset
+                print(f"   Adjusted {pid}: added {offset} to last game's task_score")
+
+            seen_totals.add(total_score)
+
+        print(f"💾 Inserting sample data into daily_scores_stream...")
         try:
             table_ref = client.get_table(table_id_stream)
-            print(f"✅ 获取到表引用: {table_ref.table_id}")
+            print(f"✅ Got table reference: {table_ref.table_id}")
 
-            # Use load_table_from_json instead of insert_rows_json
-            print("🔄 使用批量加载方式插入数据...")
+            print("🔄 Using batch load to insert data...")
             job_config = bigquery.LoadJobConfig(
-                write_disposition="WRITE_TRUNCATE",  # Overwrite existing data
+                write_disposition="WRITE_TRUNCATE",
                 source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
             )
-
             load_job = client.load_table_from_json(
                 sample_rows, table_ref, job_config=job_config
             )
+            print(f"   Started batch load job: {load_job.job_id}")
+            load_job.result()  # Wait for completion
 
-            print(f"   开始批量加载作业: {load_job.job_id}")
-            load_job.result()  # Wait for the job to complete
+            print(f"🎉 Successfully loaded {len(sample_rows)} sample records to daily_scores_stream")
 
-            print(f"🎉 成功批量加载 {len(sample_rows)} 条样本数据到 daily_scores_stream 表")
-            
-            # Verify data insertion
-            print("🔍 验证数据插入...")
+            print("🔍 Verifying data insertion...")
             query = f"""
             SELECT COUNT(*) as total_rows, 
                    COUNT(DISTINCT player_id) as unique_players,
@@ -356,42 +347,35 @@ def setup_bigquery_resources(credentials_path: str, project_id: str):
             results = list(query_job.result())
             if results:
                 result = results[0]
-                print(f"✅ 验证成功: {result.total_rows} 行数据, {result.unique_players} 个独特玩家, 日期: {result.data_date}")
+                print(f"✅ Verification successful: {result.total_rows} rows, {result.unique_players} unique players, date: {result.data_date}")
             else:
-                print("⚠️  验证查询未返回结果")
-                
+                print("⚠️  No result returned from verification query")
         except Exception as e:
-            print(f"❌ 插入数据时出现错误: {e}")
+            print(f"❌ Error inserting data: {e}")
             logger.exception("Data insertion failed")
-            raise Exception(f"插入数据失败: {e}")
+            raise Exception(f"Failed to insert data: {e}")
 
-        # Generate and insert historical data for player_historical_stats
-        print(f"\n📈 开始生成并插入历史统计数据...")
+        print(f"\n📈 Generating and inserting historical statistics data...")
         try:
             historical_data = generate_historical_stats_data(days_back=10, players_per_day=100)
-            
-            # Insert historical data using batch loading
             table_ref_stats = client.get_table(table_id_stats)
-            print(f"💾 插入历史统计数据到 player_historical_stats...")
+            print(f"💾 Inserting historical statistics data to player_historical_stats...")
 
-            # Use load_table_from_json instead of insert_rows_json
-            print("🔄 使用批量加载方式插入历史数据...")
+            print("🔄 Using batch load to insert historical data...")
             job_config = bigquery.LoadJobConfig(
-                write_disposition="WRITE_TRUNCATE",  # Overwrite existing data
+                write_disposition="WRITE_TRUNCATE",
                 source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
             )
 
             load_job = client.load_table_from_json(
                 historical_data, table_ref_stats, job_config=job_config
             )
+            print(f"   Started batch load job for historical data: {load_job.job_id}")
+            load_job.result()
 
-            print(f"   开始历史数据批量加载作业: {load_job.job_id}")
-            load_job.result()  # Wait for the job to complete
+            print(f"🎉 Successfully loaded {len(historical_data)} historical statistics records to player_historical_stats")
 
-            print(f"🎉 成功批量加载 {len(historical_data)} 条历史统计数据到 player_historical_stats 表")
-            
-            # Verify historical data insertion
-            print("🔍 验证历史数据插入...")
+            print("🔍 Verifying historical data insertion...")
             query = f"""
             SELECT COUNT(*) as total_rows, 
                    COUNT(DISTINCT date) as unique_dates,
@@ -403,29 +387,28 @@ def setup_bigquery_resources(credentials_path: str, project_id: str):
             results = list(query_job.result())
             if results:
                 result = results[0]
-                print(f"✅ 历史数据验证成功: {result.total_rows} 行数据, {result.unique_dates} 个不同日期")
-                print(f"   日期范围: {result.earliest_date} 到 {result.latest_date}")
+                print(f"✅ Historical data verification succeeded: {result.total_rows} rows, {result.unique_dates} distinct dates")
+                print(f"   Date range: {result.earliest_date} to {result.latest_date}")
             else:
-                print("⚠️  历史数据验证查询未返回结果")
-                
+                print("⚠️  No result returned from historical data verification query")
         except Exception as e:
-            print(f"❌ 插入历史数据时出现错误: {e}")
+            print(f"❌ Error inserting historical data: {e}")
             logger.exception("Historical data insertion failed")
-            raise Exception(f"插入历史数据失败: {e}")
+            raise Exception(f"Failed to insert historical data: {e}")
 
         return client, dataset_id
 
     except GoogleAPICallError as e:
-        print(f"❌ Google Cloud API 调用失败: {e}")
+        print(f"❌ Google Cloud API call failed: {e}")
         logger.exception("Google Cloud API call failed")
         raise
     except Exception as e:
-        print(f"❌ 设置过程中发生错误: {e}")
+        print(f"❌ Error during setup: {e}")
         logger.exception("Setup process failed")
         raise
 
 def get_project_id_from_key(credentials_path: str) -> str | None:
-    """从服务账号密钥文件中读取项目ID"""
+    """Read project_id from a service account key file."""
     try:
         with open(credentials_path, 'r') as f:
             data = json.load(f)
@@ -440,37 +423,37 @@ if __name__ == "__main__":
     parser.add_argument("--launch_time", required=False, help="Launch time (can contain spaces)")
     args = parser.parse_args()
 
-    print("🎮 开始设置 BigQuery 游戏统计资源...")
+    print("🎮 Starting BigQuery game statistics resource setup...")
     print("=" * 60)
-    
+
     # Get credentials file path
     credentials_path = Path(args.credentials_file)
-    
+
     # Make sure the path is absolute
     if not credentials_path.is_absolute():
         credentials_path = Path.cwd() / credentials_path
-    
+
     if not credentials_path.exists():
-        print(f"❌ 错误：凭证文件不存在: {credentials_path}")
-        print("请确保服务账号密钥文件存在于指定路径")
+        print(f"❌ Error: Credentials file does not exist: {credentials_path}")
+        print("Please make sure the service account key file exists at the specified path")
         exit(1)
     else:
-        print(f"✅ 找到凭证文件: {credentials_path}")
-    
+        print(f"✅ Credentials file found: {credentials_path}")
+
     project_id = get_project_id_from_key(str(credentials_path))
-    
+
     if project_id:
-        print(f"🆔 从凭证文件中成功读取项目ID: {project_id}")
+        print(f"🆔 Project ID successfully read from credentials file: {project_id}")
         try:
             client, dataset_id = setup_bigquery_resources(str(credentials_path), project_id)
             print("\n" + "=" * 60)
-            print("🎉 所有 BigQuery 资源设置完毕！")
-            print("📊 已为当日生成样本游戏数据")
-            print("🎯 任务：代理需要生成排行榜并更新历史统计数据")
+            print("🎉 All BigQuery resources have been set up!")
+            print("📊 Sample game data for today has been generated")
+            print("🎯 Task: The agent should generate leaderboards and update historical statistics")
             print("=" * 60)
         except Exception as e:
-            print(f"\n❌ 设置失败: {e}")
+            print(f"\n❌ Setup failed: {e}")
             exit(1)
     else:
-        print(f"❌ 无法从凭证文件中读取项目ID。")
+        print(f"❌ Could not read project_id from credentials file.")
         exit(1)

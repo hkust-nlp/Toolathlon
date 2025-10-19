@@ -15,6 +15,7 @@ import csv
 import json
 from typing import Tuple, Dict
 from pathlib import Path
+import os
 
 # Add utils directory to path to import Canvas API
 current_file = Path(__file__).absolute()
@@ -38,7 +39,7 @@ class HomeworkGraderEvaluator:
             teacher_token = self.load_canvas_token()
             
         self.canvas = CanvasAPI(canvas_url, teacher_token)
-        self.course_name = "CS101 Programming Fundamentals"
+        self.course_name = "CS5123 Programming Fundamentals"
         self.assignment_name = "homework2"  # Exact name from Canvas
         self.course_id = None
         self.assignment_id = None
@@ -111,8 +112,8 @@ class HomeworkGraderEvaluator:
             return {}
     
     def find_course_and_assignment(self) -> bool:
-        """Find the CS101 course and Homework 2 assignment using same logic as preprocessing"""
-        print(f"🔍 Finding CS101 course (flexible search)...")
+        """Find the CS5123 course and Homework 2 assignment using same logic as preprocessing"""
+        print(f"🔍 Finding CS5123 course (flexible search)...")
         
         # Get all courses including deleted ones (same as preprocessing)
         courses = self.canvas.list_courses(include_deleted=True, account_id=1)
@@ -127,10 +128,8 @@ class HomeworkGraderEvaluator:
             course_name = course.get('name', '')
             course_code = course.get('course_code', '')
             
-            # Check if it's a CS101 course (same criteria as preprocessing)
-            is_cs101 = (course_code == 'CS101' or 
-                       'CS101' in course_name or
-                       'Programming Fundamentals' in course_name)
+            # Check if it's a CS5123 course (same criteria as preprocessing)
+            is_cs5123 = (course_code == 'CS5123')
             
             # Also check if it's taught by Teresa Torres (like preprocessing does)
             is_teresa_course = False
@@ -144,20 +143,20 @@ class HomeworkGraderEvaluator:
             except:
                 pass  # Skip enrollment check if it fails
             
-            # Accept the course if it's CS101 OR taught by Teresa Torres
-            if is_cs101 or is_teresa_course:
+            # Accept the course if it's CS5123 OR taught by Teresa Torres
+            if is_cs5123 or is_teresa_course:
                 found_course = course
                 if is_teresa_course:
                     print(f"   📚 Found course taught by Teresa Torres: {course_name}")
                 break
         
         if not found_course:
-            print(f"❌ CS101 course not found")
+            print(f"❌ CS5123 course not found")
             print(f"Available courses: {[c.get('name') for c in courses[:5]]}")  # Show first 5 courses
             return False
         
         self.course_id = found_course['id']
-        actual_course_name = found_course.get('name', 'CS101')
+        actual_course_name = found_course.get('name', 'CS5123')
         print(f"✅ Found course: {actual_course_name} (ID: {self.course_id})")
         
         # Optional: Verify teacher enrollment (like preprocessing checks)

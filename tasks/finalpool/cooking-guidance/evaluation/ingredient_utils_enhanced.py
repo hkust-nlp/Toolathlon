@@ -355,17 +355,22 @@ class EnhancedChineseIngredientProcessor:
         """Enhanced quantity extraction using cooking guide patterns"""
         if not quantity_str:
             return 0.0, ""
-        
+
         qty_str = str(quantity_str).strip()
-        
+
         # Handle qualitative quantities first (expanded set)
         for qual, value in self.qualitative_quantities.items():
             if qual in qty_str:
                 return value, ""
-        
+
         # Enhanced cleaning - remove cooking guide artifacts
         clean_str = qty_str.split('（')[0].split('(')[0]
-        
+
+        # Remove quantity description patterns that shouldn't be parsed
+        clean_str = re.sub(r'.*的用量为\s*', '', clean_str)
+        clean_str = re.sub(r'.*的数量为\s*', '', clean_str)
+        clean_str = re.sub(r'.*需要\s*', '', clean_str)
+
         # Remove common recipe prefixes from cooking guide
         clean_str = re.sub(r'^[-~约大概左右]*\s*', '', clean_str)
         clean_str = re.sub(r'^[\u4e00-\u9fff]+\s+', '', clean_str)  # Remove Chinese chars before numbers
@@ -587,11 +592,11 @@ class EnhancedChineseIngredientProcessor:
         # Extract base ingredient name
         name_match = re.search(r'([\u4e00-\u9fff]+)', raw_text)
         base_name = name_match.group(1) if name_match else ""
-        
+
         quantity, unit = self.extract_quantity_info(raw_text)
         normalized_name = self.normalize_ingredient_name(base_name)
         normalized_unit = self.normalize_unit(unit)
-        
+
         return IngredientInfo(
             name=base_name,
             normalized_name=normalized_name,

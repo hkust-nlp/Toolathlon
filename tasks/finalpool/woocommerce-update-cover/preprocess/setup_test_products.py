@@ -8,7 +8,6 @@ import sys
 import os
 from pathlib import Path
 
-# 添加当前目录到路径
 current_dir = os.path.dirname(os.path.abspath(__file__))
 task_dir = os.path.dirname(current_dir)
 sys.path.append(task_dir)
@@ -16,20 +15,10 @@ sys.path.append(task_dir)
 from preprocess.woocommerce_client import WooCommerceClient, ImageManager, add_woocommerce_extensions
 
 class TestProductSetup:
-    """测试产品设置器 - 为更新商品主图任务创建测试数据"""
     
     def __init__(self, site_url: str, consumer_key: str, consumer_secret: str, 
                  wp_username: str = None, wp_password: str = None):
-        """
-        初始化测试产品设置器
-        
-        Args:
-            site_url: WooCommerce网站URL
-            consumer_key: WooCommerce API消费者密钥
-            consumer_secret: WooCommerce API消费者密钥
-            wp_username: WordPress管理员用户名 (用于媒体上传)
-            wp_password: WordPress管理员密码 (用于媒体上传)
-        """
+
         self.wc_client = add_woocommerce_extensions(
             WooCommerceClient(site_url, consumer_key, consumer_secret, wp_username=wp_username, wp_password=wp_password)
         )
@@ -37,7 +26,6 @@ class TestProductSetup:
         self.created_products = []
         self.created_attributes = []
         self.created_orders = []
-        # 使用时间戳生成唯一的图片ID
         import time
         timestamp = int(time.time())
         self.image_ids = {
@@ -46,15 +34,15 @@ class TestProductSetup:
             "Green": 35 + timestamp,
             "Yellow": 36 + timestamp,
         }
-        print(f"🎨 图片ID已初始化（时间戳: {timestamp}）: {self.image_ids}")
+        print(f"🎨Image IDs initialized (timestamp: {timestamp}): {self.image_ids}")
     
     def clear_all_products(self) -> Dict:
-        """清理商店中的所有商品、属性和媒体"""
-        print("🧹 开始清理商店中的所有商品和相关数据...")
+        """Clear all products, attributes, and media in the store"""
+        print("🧹 Start clearing all products and related data in the store...")
         
         try:
-            # 1. 删除所有商品
-            print("📦 清理商品...")
+            # 1. Delete all products
+            print("📦 Clear products...")
             all_products = self.wc_client.get_all_products()
 
             deleted_products = 0
@@ -68,25 +56,25 @@ class TestProductSetup:
                     try:
                         success, result = self.wc_client.delete_product(str(product_id), force=True)
                         if success:
-                            print(f"   ✅ 删除商品: {product_name} (ID: {product_id})")
+                            print(f"   ✅ Delete product: {product_name} (ID: {product_id})")
                             deleted_products += 1
                         else:
-                            print(f"   ❌ 删除失败: {product_name} - {result}")
+                            print(f"   ❌ Delete failed: {product_name} - {result}")
                             failed_products += 1
                     except Exception as e:
-                        print(f"   ❌ 删除商品 {product_name} 时出错: {e}")
+                        print(f"   ❌ Delete product {product_name} failed: {e}")
                         failed_products += 1
                     
                     time.sleep(0.3)
             
-            # 2. 清理自定义属性
-            print("🏷️ 清理商品属性...")
+            # 2. Clear custom attributes
+            print("🏷️ Clear product attributes...")
             success, attributes = self.wc_client.get_product_attributes()
             deleted_attributes = 0
             failed_attributes = 0
             
             if success and attributes:
-                test_attribute_names = ["Color", "Size", "Material", "颜色", "尺寸", "材质"]
+                test_attribute_names = ["Color", "Size", "Material"]
                 
                 for attr in attributes:
                     attr_name = attr.get('name', '')
@@ -98,37 +86,37 @@ class TestProductSetup:
                             response = self.wc_client.session.delete(delete_url, params={'force': True})
                             
                             if response.status_code in [200, 204]:
-                                print(f"   ✅ 删除属性: {attr_name} (ID: {attr_id})")
+                                print(f"   ✅ Delete attribute: {attr_name} (ID: {attr_id})")
                                 deleted_attributes += 1
                             else:
-                                print(f"   ⚠️ 跳过属性: {attr_name}")
+                                print(f"   ⚠️ Skip attribute: {attr_name}")
                         except Exception as e:
-                            print(f"   ❌ 删除属性 {attr_name} 时出错: {e}")
+                            print(f"   ❌ Delete attribute {attr_name} failed: {e}")
                             failed_attributes += 1
                         
                         time.sleep(0.3)
             
 
-            # 3. 清理订单
-            print("🗑️ 开始删除所有订单...")
+            # 3. Clear orders
+            print("🗑️ Start deleting all orders...")
 
             page = 1
-            per_page = 20  # 减少每页数量，避免超时
+            per_page = 20  # Reduce page size to avoid timeout
             total_deleted = 0
-            max_pages = 10  # 限制最大页数，避免无限循环
+            max_pages = 10  # Limit max pages to avoid infinite loop
 
             while page <= max_pages:
-                # 获取订单列表
+                # Get order list
                 success, orders = self.wc_client._make_request('GET', 'orders', params={"page": page, "per_page": per_page})
                 if not success:
-                    print(f"⚠️ 获取订单失败: {orders}")
+                    print(f"⚠️ Get orders failed: {orders}")
                     break
 
                 if not orders or not isinstance(orders, list) or len(orders) == 0:
-                    # 没有更多订单
+                    # No more orders
                     break
 
-                print(f"   📄 处理第 {page} 页，找到 {len(orders)} 个订单")
+                print(f"   📄 Process page {page}, found {len(orders)} orders")
 
                 for i, order in enumerate(orders):
                     order_id = order.get('id')
@@ -139,22 +127,22 @@ class TestProductSetup:
                         success, response = self.wc_client.delete_order(order_id)
                         if success:
                             total_deleted += 1
-                            print(f"   ✅ 删除订单: {order_id}")
+                            print(f"   ✅ Delete order: {order_id}")
                         else:
-                            print(f"   ⚠️ 删除订单 {order_id} 失败: {response}")
+                            print(f"   ⚠️ Delete order {order_id} failed: {response}")
                     except Exception as e:
-                        print(f"   ❌ 删除订单 {order_id} 时出错: {e}")
+                        print(f"   ❌ Delete order {order_id} failed: {e}")
 
-                    # 添加延迟，避免请求过快
-                    if i % 5 == 0:  # 每5个订单暂停一下
+                    # Add delay to avoid request too fast
+                    if i % 5 == 0:  # Pause for 5 orders
                         time.sleep(0.5)
 
-                # 如果返回的订单数少于per_page，说明已经是最后一页
+                # If the number of orders returned is less than per_page, it means it's the last page
                 if len(orders) < per_page:
                     break
 
                 page += 1
-                time.sleep(1)  # 页面间延迟
+                time.sleep(1)  # Delay between pages
 
             clear_result = {
                 "success": failed_products == 0 and failed_attributes == 0,
@@ -173,10 +161,10 @@ class TestProductSetup:
                 "timestamp": datetime.now().isoformat()
             }
             
-            print(f"\n📊 清理完成:")
-            print(f"   商品: 删除 {deleted_products} 个，失败 {failed_products} 个")
-            print(f"   属性: 删除 {deleted_attributes} 个，失败 {failed_attributes} 个")
-            print(f"   订单: 删除 {total_deleted} 个")
+            print(f"\n📊 Clear completed:") 
+            print(f"   Products: deleted {deleted_products} failed {failed_products} ")
+            print(f"   Attributes: deleted {deleted_attributes} failed {failed_attributes} ")
+            print(f"   Orders: deleted {total_deleted} ")
             
             return clear_result
             
@@ -186,12 +174,12 @@ class TestProductSetup:
                 "error": str(e),
                 "timestamp": datetime.now().isoformat()
             }
-            print(f"❌ 清理过程中出错: {e}")
+            print(f"❌ Clear failed: {e}")
             return error_result
     
     def setup_product_attributes(self) -> Dict:
-        """设置商品属性（颜色、尺寸等）"""
-        print("🏷️ 设置商品属性...")
+        """Setup product attributes (color, size, etc.)"""
+        print("🏷️ Setup product attributes...")
         
         attributes_to_create = [
             {
@@ -212,8 +200,8 @@ class TestProductSetup:
         created_attributes = []
         
         for attr_data in attributes_to_create:
-            # 创建属性
-            print(f"   创建属性: {attr_data['name']}")
+            # Create attribute
+            print(f"   Create attribute: {attr_data['name']}")
             
             attribute_info = {
                 "name": attr_data["name"],
@@ -227,12 +215,12 @@ class TestProductSetup:
             
             if success:
                 attr_id = attr_result.get('id')
-                print(f"     ✅ 属性创建成功 (ID: {attr_id})")
+                print(f"     ✅ Attribute created successfully (ID: {attr_id})")
                 
-                # 创建属性项
+                # Create attribute terms
                 created_terms = []
                 for term_data in attr_data["terms"]:
-                    print(f"     创建属性项: {term_data['name']}")
+                    print(f"     Create attribute term: {term_data['name']}")
                     
                     success_term, term_result = self.wc_client.create_attribute_term(
                         str(attr_id), term_data
@@ -244,9 +232,9 @@ class TestProductSetup:
                             "name": term_result.get('name'),
                             "slug": term_result.get('slug')
                         })
-                        print(f"       ✅ 属性项创建成功: {term_data['name']}")
+                        print(f"       ✅ Attribute term created successfully: {term_data['name']}")
                     else:
-                        print(f"       ❌ 属性项创建失败: {term_data['name']} - {term_result}")
+                        print(f"       ❌ Attribute term created failed: {term_data['name']} - {term_result}")
                     
                     time.sleep(0.3)
                 
@@ -260,7 +248,7 @@ class TestProductSetup:
                 self.created_attributes.append(created_attributes[-1])
                 
             else:
-                print(f"     ❌ 属性创建失败: {attr_data['name']} - {attr_result}")
+                print(f"     ❌ Attribute created failed: {attr_data['name']} - {attr_result}")
             
             time.sleep(0.5)
         
@@ -272,30 +260,30 @@ class TestProductSetup:
     
     def create_test_products(self, delete_existing_orders=True) -> Dict:
         """
-        创建测试商品
-        包括：
-        1. 可变商品（有不同规格和对应图片）
-        2. 模拟上周销量数据
+        Create test products
+        Includes:
+        1. Variable products (with different specifications and corresponding images)
+        2. Simulated last week's sales data
         
         Args:
-            delete_existing_orders: 是否在创建新订单前删除现有订单（默认True）
+            delete_existing_orders: Whether to delete existing orders before creating new orders (default True)
         
         Returns:
-            创建结果字典
+            Dictionary with creation results
         """
-        print("🛒 开始创建测试商品...")
+        print("🛒 Start creating test products...")
         
-        #1. 上传测试图片
-        print("🎨 创建并上传测试图片...")
+        #1. Upload test images
+        print("🎨 Create and upload test images...")
         test_images = self.image_manager.create_test_images(6)
         uploaded_images = self.image_manager.upload_test_images(test_images)
         self.uploaded_images = uploaded_images
         
         if not uploaded_images:
-            return {"success": False, "error": "无法上传测试图片"}
+            return {"success": False, "error": "Failed to upload test images"}
         
-        # 更新图片ID为真实的媒体ID
-        print("🔄 更新图片ID映射...")
+        # Update image ID to real media ID
+        print("🔄 Update image ID mapping...")
         self.image_ids = {}
         for img in uploaded_images:
             color = img.get('color', '')
@@ -304,18 +292,18 @@ class TestProductSetup:
                 self.image_ids[color] = media_id
                 print(f"   {color}: {media_id}")
         
-        print(f"✅ 图片ID已更新: {self.image_ids}")
+        print(f"✅ Image IDs updated: {self.image_ids}")
         
-        # 2. 获取属性信息
+        # 2. Get attribute information
         color_attr = next((attr for attr in self.created_attributes if attr['name'] == 'Color'), None)
         
         if not color_attr:
-            return {"success": False, "error": "缺少必要的商品属性"}
+            return {"success": False, "error": "Missing required product attributes"}
         
-        # 3. 定义测试商品数据
+        # 3. Define test product data
         test_products = self._generate_variable_product_data(color_attr)
 
-        print(f"   🔄 测试商品数据: {test_products}")
+        print(f"   🔄 Test product data: {test_products}")
         
         created_count = 0
         failed_count = 0
@@ -334,20 +322,20 @@ class TestProductSetup:
                     'variations': []
                 }
                 
-                print(f"✅ 创建商品: {product_name} (ID: {product_id}, Type: {product_type})")
+                print(f"✅ Create product: {product_name} (ID: {product_id}, Type: {product_type})")
                 
-                # 验证产品状态
+                # Verify product status
                 product_status = result.get('status', 'unknown')
                 if product_status != 'publish':
-                    print(f"⚠️ 产品状态为: {product_status}，尝试更新为 publish")
+                    print(f"⚠️ Product status is: {product_status}, trying to update to publish")
                     update_data = {"status": "publish"}
                     success_update, update_result = self.wc_client._make_request('PUT', f'products/{product_id}', data=update_data)
                     if success_update:
-                        print(f"✅ 产品状态已更新为 publish")
+                        print(f"✅ Product status updated to publish")
                     else:
-                        print(f"❌ 更新产品状态失败: {update_result}")
+                        print(f"❌ Update product status failed: {update_result}")
                 
-                # 如果是可变商品，创建变体
+                # If it's a variable product, create variations
                 if product_type == 'variable':
                     variations_info = self._create_product_variations(
                         product_id, product_data, color_attr
@@ -357,21 +345,21 @@ class TestProductSetup:
                 self.created_products.append(created_product_info)
                 created_count += 1
             else:
-                print(f"❌ 创建商品失败: {product_data.get('name')} - {result}")
+                print(f"❌ Create product failed: {product_data.get('name')} - {result}")
                 failed_count += 1
             
-            # 避免API限制
+            # Avoid API limit
             time.sleep(1.0)
         
-        # 4. 创建模拟订单数据
+        # 4. Create simulated order data
         if created_count > 0:
-            print("📊 创建模拟销量数据...")
-            # 根据参数决定是否删除现有订单
+            print("📊 Create simulated sales data...")
+            # Based on the parameter, decide whether to delete existing orders
             if delete_existing_orders:
                 self._delete_existing_orders()
             else:
-                print("ℹ️ 保留现有订单，新订单将添加到现有订单中")
-            # 使用42作为默认随机种子保证可重现性，如需真随机可传递None
+                print("ℹ️ Keep existing orders, new orders will be added to existing orders")
+            # Use 42 as the default random seed to ensure reproducibility, if you need true random, pass None
             self._create_mock_orders(random_seed=42)
         
         setup_result = {
@@ -382,19 +370,19 @@ class TestProductSetup:
             "variable_products_count": len([p for p in self.created_products if p.get('type') == 'variable'])
         }
         
-        print(f"商品创建完成:")
-        print(f"   成功创建: {created_count} 个商品")
-        print(f"   创建失败: {failed_count} 个商品")
-        print(f"   可变商品: {setup_result['variable_products_count']} 个")
+        print(f"Product creation completed:")
+        print(f"   Created successfully: {created_count} products")
+        print(f"   Created failed: {failed_count} products")
+        print(f"   Variable products: {setup_result['variable_products_count']} products")
         
         return setup_result
     
     def _generate_variable_product_data(self, color_attr: Dict) -> List[Dict]:
-        """生成可变商品数据"""
+        """Generate variable product data"""
         import random
         current_date = datetime.now()
 
-        # 多种不同类型的商品，增加测试的真实性
+        # Multiple different types of products, increase the authenticity of the test
         product_templates = [
             {
                 "name": "Rainbow Sneakers",
@@ -402,7 +390,7 @@ class TestProductSetup:
                 "short_description": "Stylish Rainbow Sneakers",
                 "base_price": "199.99",
                 "days_ago": 45,
-                "default_color": "Yellow"  # 设置默认主图颜色为黄色，避免与最佳销售变体冲突
+                "default_color": "Yellow"  # Set default main image color to yellow, avoid conflict with the best selling variation
             },
             {
                 "name": "Fashion Backpack",
@@ -410,7 +398,7 @@ class TestProductSetup:
                 "short_description": "Multi-color Fashion Backpack",
                 "base_price": "129.99",
                 "days_ago": 30,
-                "default_color": "Green"  # 设置默认主图颜色为绿色，避免与最佳销售变体冲突
+                "default_color": "Green"  # Set default main image color to green, avoid conflict with the best selling variation
             },
             {
                 "name": "Wireless Bluetooth Headphones",
@@ -425,21 +413,21 @@ class TestProductSetup:
         products = []
 
         for template in product_templates:
-            # 获取默认颜色对应的图片ID
+            # Get the image ID corresponding to the default color
             default_color = template["default_color"]
             main_image_id = self.image_ids.get(default_color)
 
-            # 构建主图数组
+            # Build the main image array
             images_array = []
             if main_image_id:
-                # 使用媒体ID而不是URL，避免WooCommerce重新下载
+                # Use media ID instead of URL, avoid WooCommerce re-downloading
                 images_array.append({
-                    "id": main_image_id,  # 直接使用媒体ID
-                    "position": 0  # 主图位置
+                    "id": main_image_id,  # Directly use media ID
+                    "position": 0  # Main image position
                 })
-                print(f"   🎨 为商品 {template['name']} 设置主图: {default_color} (ID: {main_image_id})")
+                print(f"   🎨 Set main image for {template['name']}: {default_color} (ID: {main_image_id})")
             else:
-                print(f"   ⚠️ 未找到 {default_color} 的图片ID")
+                print(f"   ⚠️ No image ID found for {default_color}")
 
             product = {
                 "name": template["name"],
@@ -449,9 +437,9 @@ class TestProductSetup:
                 "regular_price": "",
                 "manage_stock": False,
                 "stock_status": "instock",
-                "status": "publish",  # 确保产品是发布状态
+                "status": "publish",  # Ensure product is published
                 "date_created": (current_date - timedelta(days=template["days_ago"])).isoformat(),
-                "images": images_array,  # 使用正确的images数组
+                "images": images_array,  # Use the correct images array
                 "attributes": [
                     {
                         "id": color_attr['id'],
@@ -466,7 +454,7 @@ class TestProductSetup:
                     {"key": "test_product_type", "value": "variable_product"},
                     {"key": "base_price", "value": template["base_price"]},
                     {"key": "created_days_ago", "value": str(template["days_ago"])},
-                    {"key": "default_main_image_color", "value": default_color}  # 记录默认主图颜色
+                    {"key": "default_main_image_color", "value": default_color}  # Record default main image color
                 ]
             }
             products.append(product)
@@ -475,16 +463,16 @@ class TestProductSetup:
     
     def _create_product_variations(self, product_id: int, product_data: Dict, 
                                    color_attr: Dict) -> List[Dict]:
-        """为商品创建变体"""
+        """Create variations for the product"""
         import random
         
-        print(f"   🔄 为商品 {product_id} 创建变体...")
+        print(f"   🔄 Create variations for the product {product_id}...")
         
         variations_info = []
         variation_counter = 0
         
-        # 获取商品的基础价格
-        base_price = "199.99"  # 默认价格
+        # Get the base price of the product
+        base_price = "199.99"  # Default price
         for meta in product_data.get('meta_data', []):
             if meta.get('key') == 'base_price':
                 base_price = meta.get('value', '199.99')
@@ -492,16 +480,16 @@ class TestProductSetup:
         
         product_name = product_data.get('name', '')
         
-        # 为每个商品创建所有颜色的变体
+        # Create variations for all colors of the product
         for color_term in color_attr['terms']:
             color_name = color_term['name']
             
-            # 根据商品类型设定库存和价格变化
+            # Set stock and price variation based on the product type
             stock_quantity = random.randint(10, 25)
             
-            # 价格可能有小幅波动
+            # Price may have slight fluctuations
             price_float = float(base_price)
-            price_variation = random.uniform(0.95, 1.05)  # ±5%的价格变化
+            price_variation = random.uniform(0.95, 1.05)  # ±5% price variation
             final_price = round(price_float * price_variation, 2)
             
             variation_data = {
@@ -523,14 +511,14 @@ class TestProductSetup:
                 ]
             }
             
-            # 只有当颜色对应的图片ID存在时才添加图片
+            # Only add image when the color corresponding image ID exists
             if color_name in self.image_ids and self.image_ids[color_name]:
                 variation_data["image"] = {
                     "id": self.image_ids[color_name]
                 }
-                print(f"     🖼️ 设置变体图片: {color_name} -> ID {self.image_ids[color_name]}")
+                print(f"     🖼️ Set variation image: {color_name} -> ID {self.image_ids[color_name]}")
             else:
-                print(f"     ⚠️ 未找到颜色 {color_name} 对应的图片ID")
+                print(f"     ⚠️ No image ID found for color {color_name}")
             
             success, variation_result = self.wc_client.create_variation(str(product_id), variation_data)
             
@@ -539,42 +527,42 @@ class TestProductSetup:
                     'id': variation_result.get('id'),
                     'color': color_term['name'],
                     'price': str(final_price),
-                    'image_id': self.image_ids.get(color_name),  # 使用真实的图片ID
+                    'image_id': self.image_ids.get(color_name),  # Use real image ID
                     'stock_quantity': stock_quantity
                 }
                 variations_info.append(variation_info)
-                print(f"     ✅ 创建变体: {color_term['name']} - ¥{final_price} (ID: {variation_result.get('id')})")
+                print(f"     ✅ Create variation: {color_term['name']} - ¥{final_price} (ID: {variation_result.get('id')})")
                 variation_counter += 1
             else:
-                print(f"     ❌ 创建变体失败: {color_term['name']} - {variation_result}")
+                print(f"     ❌ Create variation failed: {color_term['name']} - {variation_result}")
             
             time.sleep(0.5)
         
-        print(f"   📊 {product_name} 共创建了 {variation_counter} 个变体")
+        print(f"   📊 {product_name} created {variation_counter} variations")
         return variations_info
     
     def _create_mock_orders(self, random_seed=None):
-        """创建并上传模拟订单数据（模拟上周的销量）
+        """Create and upload simulated order data (simulated last week's sales)
         
         Args:
-            random_seed: 随机种子，None表示使用真随机，数字表示可重现的随机结果
+            random_seed: Random seed, None means true random, number means reproducible random result
         """
         import random
         
-        # 设置随机种子
+        # Set random seed
         if random_seed is not None:
             random.seed(random_seed)
-            print(f"📦 创建模拟销量数据（随机种子: {random_seed}）...")
+            print(f"📦 Create simulated sales data (random seed: {random_seed})...")
         else:
-            print("📦 创建模拟销量数据（真随机模式）...")
+            print("📦 Create simulated sales data (true random mode)...")
         
-        print("   🎲 使用随机受欢迎程度分配，任何变体都可能成为最佳销售")
+        print("   🎲 Use random popularity distribution, any variation can become the best seller")
 
         today = datetime.now()
         last_monday = today - timedelta(days=today.weekday() + 7)
         last_sunday = last_monday + timedelta(days=6)
 
-        # 创建所有订单的计划列表，然后打乱顺序
+        # Create a list of all orders, then shuffle them
         all_orders_plan = []
 
         for product in self.created_products:
@@ -582,53 +570,53 @@ class TestProductSetup:
                 variations = product['variations']
                 product_name = product.get('name', '')
                 
-                # 根据商品类型设定基础销量倍数
-                if '运动鞋' in product_name:
-                    product_multiplier = 1.0  # 运动鞋销量标准
-                elif '背包' in product_name:
-                    product_multiplier = 0.7  # 背包销量较低
-                elif '耳机' in product_name:
-                    product_multiplier = 1.2  # 耳机销量较高
+                # Set base sales multiplier based on the product type
+                if 'Sneakers' in product_name:
+                    product_multiplier = 1.0  # Sneakers sales standard
+                elif 'Backpack' in product_name:
+                    product_multiplier = 0.7  # Backpack sales lower
+                elif 'Headphones' in product_name:
+                    product_multiplier = 1.2  # Headphones sales higher
                 else:
                     product_multiplier = 1.0
                 
-                # 为每个变体随机分配受欢迎程度，创造随机的销量分布
-                popularity_levels = ['高热门', '中热门', '普通', '冷门']
+                # Randomly assign popularity to each variation, create random sales distribution
+                popularity_levels = ['High popular', 'Medium popular', 'Normal', 'Low popular']
                 variation_popularity = random.sample(popularity_levels, min(len(variations), len(popularity_levels)))
                 
-                # 如果变体数量超过热门级别数量，其余的随机分配
+                # If the number of variations exceeds the number of popularity levels, the rest are randomly assigned
                 if len(variations) > len(popularity_levels):
                     additional_popularity = [random.choice(popularity_levels) for _ in range(len(variations) - len(popularity_levels))]
                     variation_popularity.extend(additional_popularity)
                 
-                print(f"🛍️ 为商品 '{product_name}' 创建订单 (销量倍数: {product_multiplier})")
-                print(f"   📊 变体受欢迎程度分配: {dict(zip([v.get('color', f'变体{i}') for i, v in enumerate(variations)], variation_popularity))}")
+                print(f"🛍️ Create orders for '{product_name}' (sales multiplier: {product_multiplier})")
+                print(f"   📊 Variation popularity distribution: {dict(zip([v.get('color', f'Variation{i}') for i, v in enumerate(variations)], variation_popularity))}")
 
                 for i, variation in enumerate(variations):
-                    # 根据随机分配的受欢迎程度确定销量范围
+                    # Determine the sales range based on the randomly assigned popularity
                     popularity = variation_popularity[i]
                     
-                    if popularity == '高热门':
-                        base_sales_range = (6, 9)  # 最高销量
-                    elif popularity == '中热门':
-                        base_sales_range = (4, 5)   # 中等销量
-                    elif popularity == '普通':
-                        base_sales_range = (2, 3)    # 普通销量
-                    else:  # 冷门
-                        base_sales_range = (1, 2)    # 较低销量
+                    if popularity == 'High popular':
+                        base_sales_range = (6, 9)  # Highest sales
+                    elif popularity == 'Medium popular':
+                        base_sales_range = (4, 5)   # Medium sales
+                    elif popularity == 'Normal':
+                        base_sales_range = (2, 3)    # Normal sales
+                    else:  # Low popular
+                        base_sales_range = (1, 2)    # Low sales
                     
-                    # 应用商品类型倍数
+                    # Apply product type multiplier
                     min_sales = max(1, int(base_sales_range[0] * product_multiplier))
                     max_sales = max(2, int(base_sales_range[1] * product_multiplier))
                     base_sales = random.randint(min_sales, max_sales)
                     
-                    print(f"   🎯 {variation.get('color', f'变体{i}')} ({popularity}): 计划 {base_sales} 个订单")
+                    print(f"   🎯 {variation.get('color', f'Variation{i}')} ({popularity}): Plan {base_sales} orders")
                     
-                    # 为每个订单生成随机的日期和时间
+                    # Generate random date and time for each order
                     for order_num in range(base_sales):
-                        # 生成上周内的随机日期时间
-                        random_day = random.randint(0, 6)  # 周一到周日
-                        random_hour = random.randint(8, 22)  # 8点到22点
+                        # Generate random date and time within the last week
+                        random_day = random.randint(0, 6)  # Monday to Sunday
+                        random_hour = random.randint(8, 22)  # 8 to 22
                         random_minute = random.randint(0, 59)
                         random_second = random.randint(0, 59)
                         
@@ -639,26 +627,26 @@ class TestProductSetup:
                             seconds=random_second
                         )
                         
-                        # 随机数量：大部分是1个，偶尔2-3个
+                        # Random quantity: mostly 1, occasionally 2-3
                         quantity = random.choices([1, 2, 3], weights=[70, 25, 5])[0]
                         
                         all_orders_plan.append({
                             'product': product,
                             'variation': variation,
                             'variation_index': i,
-                            'variation_popularity': variation_popularity[i],  # 保存受欢迎程度信息
+                            'variation_popularity': variation_popularity[i],  # Save popularity information
                             'order_date': order_date,
                             'quantity': quantity,
                             'order_number': order_num
                         })
 
-        # 打乱订单创建顺序（按日期时间排序，但加入一些随机性）
-        print(f"📋 计划创建 {len(all_orders_plan)} 个订单...")
+        # Shuffle order creation order (sort by date and time, but add some randomness)
+        print(f"📋 Plan to create {len(all_orders_plan)} orders...")
         
-        # 先按日期排序，然后加入一些随机打乱
+        # First sort by date, then add some random shuffling
         all_orders_plan.sort(key=lambda x: x['order_date'])
         
-        # 分组打乱：每3-5个订单为一组进行局部打乱，保持大致的时间顺序但增加随机性
+        # Group shuffling: shuffle 3-5 orders at a time, keep the general time order but add randomness
         shuffled_orders = []
         group_size = random.randint(3, 5)
         for i in range(0, len(all_orders_plan), group_size):
@@ -666,9 +654,9 @@ class TestProductSetup:
             random.shuffle(group)
             shuffled_orders.extend(group)
         
-        print(f"🔀 订单顺序已打乱，开始创建...")
+        print(f"🔀 Order creation order has been shuffled, starting...")
 
-        # 执行订单创建
+        # Execute order creation
         successful_orders = 0
         failed_orders = 0
         
@@ -681,13 +669,13 @@ class TestProductSetup:
             quantity = order_plan['quantity']
             product_name = product.get('name', '')
             
-            # 构造 WooCommerce 订单数据
+            # Construct WooCommerce order data
             order_data = {
                 "status": "completed",
                 "customer_id": 1,
                 "payment_method": "bacs",
                 "payment_method_title": "Direct Bank Transfer",
-                # 注意：date_created 是只读字段，API会忽略此值并使用当前时间
+                # Note: date_created is a read-only field, API will ignore this value and use current time
                 # "date_created": order_date.isoformat(),
                 "line_items": [
                     {
@@ -700,7 +688,7 @@ class TestProductSetup:
                 "meta_data": [
                     {"key": "test_order", "value": "true"},
                     {"key": "test_week", "value": f"{last_monday.date()}_to_{last_sunday.date()}"},
-                    {"key": "original_date_created", "value": order_date.isoformat()},  # 存储原始日期
+                    {"key": "original_date_created", "value": order_date.isoformat()},  # Store original date
                     {"key": "simulated_historical_order", "value": "true"},
                     {"key": "variation_color", "value": variation.get('color', '')},
                     {"key": "quantity_ordered", "value": str(quantity)},
@@ -709,7 +697,7 @@ class TestProductSetup:
                 ]
             }
 
-            # 调用 create_order 上传订单
+            # Call create_order to upload order
             success, response = self.wc_client.create_order(order_data)
 
             # print("success", success)
@@ -718,46 +706,46 @@ class TestProductSetup:
             if success:
                 wc_order_id = response.get('id')
                 successful_orders += 1
-                print(f"✅ 订单 #{wc_order_id} 创建成功 - {variation.get('color', '')} x{quantity} @ {order_date.strftime('%m-%d %H:%M')}")
+                print(f"✅ Order #{wc_order_id} created successfully - {variation.get('color', '')} x{quantity} @ {order_date.strftime('%m-%d %H:%M')}")
                 
-                # 尝试更新订单的历史创建日期
+                # Try to update the historical creation date of the order
                 try:
                     self._update_order_historical_date(wc_order_id, order_date.isoformat())
                 except Exception as e:
-                    print(f"⚠️ 更新订单 #{wc_order_id} 历史日期失败: {e}")
+                    print(f"⚠️ Update order #{wc_order_id} historical date failed: {e}")
             else:
                 wc_order_id = None
                 failed_orders += 1
-                print(f"❌ 创建订单失败: {response}")
+                print(f"❌ Create order failed: {response}")
 
-            # 保存已创建订单信息               
+            # Save created order information               
             self.created_orders.append({
                 'product_id': product['id'],
                 'product_name': product_name,
                 'variation_id': variation['id'],
-                'sales_count': quantity,  # 现在记录实际数量
+                'sales_count': quantity,  # Now record actual quantity
                 'order_date': order_date.isoformat(),
                 'variation_color': variation.get('color', ''),
                 'variation_index': variation_index,
                 'variation_popularity': variation_popularity_info,
-                'expected_top_seller': False,  # 现在不能简单根据索引判断
+                'expected_top_seller': False,  # Now cannot simply determine based on index
                 'wc_order_id': wc_order_id,
                 'quantity': quantity
             })
             
-            # 添加延迟避免API限制
+            # Add delay to avoid API limit
             time.sleep(0.8)
 
-        # 统计每个变体的详细销量信息
+        # Count detailed sales information for each variation
         variation_stats = {}
         total_quantity = 0
         
         for order in self.created_orders:
-            if order['wc_order_id']:  # 只统计成功创建的订单
+            if order['wc_order_id']:  # Only count successfully created orders
                 color = order['variation_color']
                 quantity = order['quantity']
-                popularity = order.get('variation_popularity', '普通')
-                product_name = order.get('product_name', '未知商品')
+                popularity = order.get('variation_popularity', 'Normal')
+                product_name = order.get('product_name', 'Unknown product')
                 
                 key = f"{product_name}-{color}"
                 if key not in variation_stats:
@@ -773,53 +761,53 @@ class TestProductSetup:
                 variation_stats[key]['total_quantity'] += quantity
                 total_quantity += quantity
         
-        # 按销量排序
+        # Sort by sales
         sorted_sales = sorted(variation_stats.items(), key=lambda x: x[1]['total_quantity'], reverse=True)
         
-        print(f"\n📊 模拟销量数据创建完成:")
-        print(f"   ✅ 成功创建: {successful_orders} 个订单")
-        print(f"   ❌ 创建失败: {failed_orders} 个订单")
-        print(f"   📦 总销量: {total_quantity} 件商品")
-        print(f"   📅 时间范围: {last_monday.date()} 到 {last_sunday.date()}")
+        print(f"\n📊 Simulated sales data created completed:")
+        print(f"   ✅ Successfully created: {successful_orders} orders")
+        print(f"   ❌ Create failed: {failed_orders} orders")
+        print(f"   📦 Total sales: {total_quantity} items")
+        print(f"   📅 Time range: {last_monday.date()} to {last_sunday.date()}")
         
-        print(f"\n🏆 所有变体销量排行:")
+        print(f"\n🏆 All variations sales ranking:")
         for i, (key, stats) in enumerate(sorted_sales, 1):
             popularity_emoji = {
-                '高热门': '🔥', '中热门': '⭐', '普通': '👍', '冷门': '💤'
+                'High popular': '🔥', 'Medium popular': '⭐', 'Normal': '👍', 'Low popular': '💤'
             }.get(stats['popularity'], '📦')
             
             print(f"   {i}. {stats['product_name']} - {stats['color']} {popularity_emoji}: "
-                  f"{stats['total_quantity']} 件 ({stats['orders']} 个订单)")
+                  f"{stats['total_quantity']} items ({stats['orders']} orders)")
         
         if sorted_sales:
             top_seller_info = sorted_sales[0][1]
-            print(f"\n🥇 实际最佳销售变体: {top_seller_info['product_name']} - {top_seller_info['color']} "
-                  f"(预设: {top_seller_info['popularity']})")
+            print(f"\n🥇 Actual best sales variation: {top_seller_info['product_name']} - {top_seller_info['color']} "
+                  f"(Expected: {top_seller_info['popularity']})")
             
-            # 按商品分组显示最佳销售变体
+            # Group by product to display the best sales variation
             product_top_sellers = {}
             for key, stats in sorted_sales:
                 product_name = stats['product_name']
                 if product_name not in product_top_sellers:
                     product_top_sellers[product_name] = stats
             
-            print(f"\n🎯 各商品最佳销售变体:")
+            print(f"\n🎯 All products best sales variation:")
             for product_name, stats in product_top_sellers.items():
-                print(f"   📱 {product_name}: {stats['color']} ({stats['total_quantity']} 件)")
+                print(f"   📱 {product_name}: {stats['color']} ({stats['total_quantity']} items)")
         
-        # 详细订单列表（可选，调试时使用）
-        if len(self.created_orders) <= 20:  # 只在订单数量较少时显示详细信息
-            print(f"\n📋 详细订单列表:")
+        # Detailed order list (optional, used for debugging)
+        if len(self.created_orders) <= 20:  # Only show detailed information when the number of orders is less than 20
+            print(f"\n📋 Detailed order list:")
             for order in self.created_orders:
                 if order['wc_order_id']:
                     order_time = datetime.fromisoformat(order['order_date'])
-                    print(f"   订单#{order['wc_order_id']}: {order['variation_color']} x{order['quantity']} @ {order_time.strftime('%m-%d %H:%M')}")
+                    print(f"   Order #{order['wc_order_id']}: {order['variation_color']} x{order['quantity']} @ {order_time.strftime('%m-%d %H:%M')}")
         else:
-            print(f"\n📋 订单列表过长，已省略详细信息（共 {len(self.created_orders)} 条记录）")
+            print(f"\n📋 Order list too long, detailed information has been omitted (total {len(self.created_orders)} records)")
     
     def _delete_existing_orders(self):
-        """删除现有的所有订单，确保创建订单前有干净的环境"""
-        print("🗑️ 删除现有订单...")
+        """Delete all existing orders, ensure a clean environment before creating orders"""
+        print("🗑️ Delete existing orders...")
         
         try:
             page = 1
@@ -828,17 +816,17 @@ class TestProductSetup:
             start_time = time.time()
             
             while True:
-                # 获取订单列表
+                # Get order list
                 success, orders = self.wc_client._make_request('GET', 'orders', params={"page": page, "per_page": per_page})
                 if not success:
-                    print(f"⚠️ 获取订单失败: {orders}")
+                    print(f"⚠️ Get order failed: {orders}")
                     break
 
                 if not orders or len(orders) == 0:
-                    # 没有更多订单
+                    # No more orders
                     break
 
-                print(f"   📋 第 {page} 页，找到 {len(orders)} 个订单")
+                print(f"   📋 Page {page}, found {len(orders)} orders")
                 
                 for i, order in enumerate(orders, 1):
                     order_id = order['id']
@@ -846,39 +834,39 @@ class TestProductSetup:
                     success, response = self.wc_client.delete_order(order_id)
                     if success:
                         total_deleted += 1
-                        print(f"   ✅ 删除订单 #{order_id} ({order_status}) [{i}/{len(orders)}]")
+                        print(f"   ✅ Delete order #{order_id} ({order_status}) [{i}/{len(orders)}]")
                     else:
-                        print(f"   ❌ 删除订单 #{order_id} 失败: {response}")
+                        print(f"   ❌ Delete order #{order_id} failed: {response}")
                     
-                    # 添加短暂延迟避免API限制
+                    # Add brief delay to avoid API limit
                     time.sleep(0.3)
 
                 page += 1
                 
-                # 安全检查：避免无限循环
-                if page > 50:  # 最多处理50页，每页50个订单 = 2500个订单
-                    print("⚠️ 达到最大页数限制，停止删除")
+                # Safety check: avoid infinite loop
+                if page > 50:  # Maximum 50 pages, 50 orders per page = 2500 orders
+                    print("⚠️ Reached maximum page limit, stopping deletion")
                     break
 
             elapsed_time = time.time() - start_time
             if total_deleted > 0:
-                print(f"✅ 成功删除 {total_deleted} 个现有订单 (用时: {elapsed_time:.1f} 秒)")
+                print(f"✅ Successfully deleted {total_deleted} existing orders (time: {elapsed_time:.1f} seconds)")
             else:
-                print("ℹ️ 没有找到需要删除的订单")
+                print("ℹ️ No orders found to delete")
                 
         except Exception as e:
-            print(f"❌ 删除订单过程中出错: {e}")
+            print(f"❌ Error deleting orders: {e}")
     
     def _update_order_historical_date(self, order_id: int, historical_date: str):
         """
-        通过WooCommerce REST API更新订单元数据后，再通过数据库直接更新创建日期
+        Update order metadata through WooCommerce REST API, then update creation date through database directly
         
         Args:
-            order_id: WooCommerce订单ID
-            historical_date: 历史日期 (ISO格式)
+            order_id: WooCommerce order ID
+            historical_date: Historical date (ISO format)
         """
         try:
-            # 方法1：通过 REST API 更新元数据（这个总是有效的）
+            # Method 1: Update metadata through REST API (this always works)
             update_data = {
                 "meta_data": [
                     {"key": "original_date_created", "value": historical_date},
@@ -890,25 +878,25 @@ class TestProductSetup:
             success, result = self.wc_client.update_order(str(order_id), update_data)
 
             if success:
-                print(f"✅ 订单 #{order_id} 元数据已更新，历史日期: {historical_date}")
+                print(f"✅ Order #{order_id} metadata updated, historical date: {historical_date}")
             else:
-                print(f"⚠️ 更新订单 #{order_id} 元数据失败: {result}")
+                print(f"⚠️ Update order #{order_id} metadata failed: {result}")
                 
-            # 方法2：如果可能的话，尝试直接更新数据库（需要数据库访问权限）
-            # 这部分可以通过WordPress插件或直接数据库访问来实现
-            # 由于我们没有直接的数据库访问权限，这里只记录需要更新的订单
+            # Method 2: If possible, try to update the database directly (requires database access)
+            # This can be implemented through a WordPress plugin or direct database access
+            # Since we don't have direct database access, we only record the orders that need to be updated
             
         except Exception as e:
-            print(f"❌ 更新订单 #{order_id} 历史日期时出错: {e}")
+            print(f"❌ Error updating order #{order_id} historical date: {e}")
     
     def get_expected_results(self) -> Dict:
-        """获取预期结果，用于评估"""
+        """Get expected results, for evaluation"""
         expected_updates = {}
         
-        # 计算每个变体的实际销量
+        # Calculate actual sales for each variation
         variation_sales = {}
         for order in self.created_orders:
-            if order['wc_order_id']:  # 只统计成功创建的订单
+            if order['wc_order_id']:  # Only count successfully created orders
                 variation_id = order['variation_id']
                 quantity = order['quantity']
                 if variation_id not in variation_sales:
@@ -919,7 +907,7 @@ class TestProductSetup:
             if product.get('type') == 'variable' and product.get('variations'):
                 variations = product['variations']
                 if variations:
-                    # 计算每个变体的销量并找出最佳销售变体
+                    # Calculate actual sales for each variation and find the best sales variation
                     variation_sales_data = []
                     for variation in variations:
                         variation_id = variation['id']
@@ -929,7 +917,7 @@ class TestProductSetup:
                             'total_sales': total_sales
                         })
                     
-                    # 按销量排序
+                    # Sort by sales
                     variation_sales_data.sort(key=lambda x: x['total_sales'], reverse=True)
                     
                     if variation_sales_data:
@@ -942,7 +930,7 @@ class TestProductSetup:
                             'expected_featured_image_id': top_variation.get('image_id'),
                             'expected_color': top_variation.get('color', ''),
                             'expected_sales_quantity': top_variation_data['total_sales'],
-                            'current_featured_image_id': None,  # 当前主图（初始为None或默认图片）
+                            'current_featured_image_id': None,  # Current featured image (initial None or default image)
                             'all_variations_sales': [
                                 {
                                     'variation_id': vd['variation']['id'],
@@ -953,7 +941,7 @@ class TestProductSetup:
                             ]
                         }
         
-        # 统计总体信息
+        # Count overall information
         total_orders = len([o for o in self.created_orders if o['wc_order_id']])
         total_quantity = sum(o['quantity'] for o in self.created_orders if o['wc_order_id'])
         
@@ -965,10 +953,10 @@ class TestProductSetup:
             "expected_updates": expected_updates,
             "total_products_to_update": len(expected_updates),
             "analysis_period": {
-                "description": "上周（周一到周日）",
+                "description": "Last week (Monday to Sunday)",
                 "start_date": last_monday.date().isoformat(),
                 "end_date": last_sunday.date().isoformat(),
-                "note": "基于随机受欢迎程度和实际模拟销量数据确定最佳销售变体，任何变体都可能成为最佳销售"
+                "note": "Based on random popularity and actual simulated sales data, any variation can become the best sales"
             },
             "created_test_data": {
                 "products_count": len(self.created_products),
@@ -983,8 +971,8 @@ class TestProductSetup:
         }
     
     def cleanup_test_data(self) -> Dict:
-        """清理所有测试数据"""
-        print("🧹 开始清理测试数据...")
+        """Clean all test data"""
+        print("🧹 Start cleaning test data...")
         
         cleanup_results = {
             "products": {"deleted": 0, "failed": 0},
@@ -992,22 +980,22 @@ class TestProductSetup:
             "attributes": {"deleted": 0, "failed": 0}
         }
         
-        # 1. 删除商品（会自动删除变体）
+        # 1. Delete products (will automatically delete variations)
         for product in self.created_products:
             product_id = product.get('id')
             product_name = product.get('name')
             
             success, result = self.wc_client.delete_product(str(product_id), force=True)
             if success:
-                print(f"✅ 删除商品: {product_name} (ID: {product_id})")
+                print(f"✅ Delete product: {product_name} (ID: {product_id})")
                 cleanup_results["products"]["deleted"] += 1
             else:
-                print(f"❌ 删除商品失败: {product_name} - {result}")
+                print(f"❌ Delete product failed: {product_name} - {result}")
                 cleanup_results["products"]["failed"] += 1
             
             time.sleep(0.3)
         
-        # 2. 清理属性
+        # 2. Clean attributes
         for attr in self.created_attributes:
             attr_id = attr.get('id')
             attr_name = attr.get('name')
@@ -1017,117 +1005,117 @@ class TestProductSetup:
                 response = self.wc_client.session.delete(delete_url, params={'force': True})
                 
                 if response.status_code in [200, 204]:
-                    print(f"✅ 删除属性: {attr_name} (ID: {attr_id})")
+                    print(f"✅ Delete attribute: {attr_name} (ID: {attr_id})")
                     cleanup_results["attributes"]["deleted"] += 1
                 else:
-                    print(f"❌ 删除属性失败: {attr_name}")
+                    print(f"❌ Delete attribute failed: {attr_name}")
                     cleanup_results["attributes"]["failed"] += 1
             except Exception as e:
-                print(f"❌ 删除属性 {attr_name} 时出错: {e}")
+                print(f"❌ Delete attribute {attr_name} failed: {e}")
                 cleanup_results["attributes"]["failed"] += 1
             
             time.sleep(0.3)
         
-        print(f"\n📊 清理完成:")
-        print(f"   商品: 删除 {cleanup_results['products']['deleted']} 个")
-        print(f"   图片: 删除 {cleanup_results['images']['deleted']} 个")
-        print(f"   属性: 删除 {cleanup_results['attributes']['deleted']} 个")
+        print(f"\n📊 Clean completed:")
+        print(f"   Products: deleted {cleanup_results['products']['deleted']} items")
+        print(f"   Images: deleted {cleanup_results['images']['deleted']} items")
+        print(f"   Attributes: deleted {cleanup_results['attributes']['deleted']} items")
         
         return cleanup_results
 
 
 def main():
-    """主函数 - 用于独立运行测试数据设置"""
+    """Main function - for independent running of test data setup"""
     import sys
     
-    # 检查命令行参数
-    delete_orders = True  # 默认删除现有订单
+    # Check command line parameters
+    delete_orders = True  # Default to delete existing orders
     if len(sys.argv) > 1:
         if sys.argv[1] == "--keep-orders":
             delete_orders = False
-            print("🔧 参数: 保留现有订单")
+            print("🔧 Parameters: keep existing orders")
         elif sys.argv[1] == "--delete-orders":
             delete_orders = True
-            print("🔧 参数: 删除现有订单")
+            print("🔧 Parameters: delete existing orders")
         elif sys.argv[1] == "--help":
-            print("📖 使用方法:")
-            print("  python setup_test_products.py                # 默认删除现有订单")
-            print("  python setup_test_products.py --delete-orders # 明确删除现有订单")
-            print("  python setup_test_products.py --keep-orders   # 保留现有订单")
-            print("  python setup_test_products.py --help         # 显示此帮助")
+            print("📖 Usage:")
+            print("  python setup_test_products.py                # Default to delete existing orders")
+            print("  python setup_test_products.py --delete-orders # Explicitly delete existing orders")
+            print("  python setup_test_products.py --keep-orders   # Keep existing orders")
+            print("  python setup_test_products.py --help         # Show this help")
             return True
     
-    # 从token配置文件读取配置
+    # Read configuration from token configuration file
     from token_key_session import all_token_key_session
     
     site_url = all_token_key_session.woocommerce_site_url
     consumer_key = all_token_key_session.woocommerce_api_key
     consumer_secret = all_token_key_session.woocommerce_api_secret
     
-    print(f"🚀 初始化测试产品设置器: {site_url}")
+    print(f"🚀 Initialize test product setup: {site_url}")
     
     setup = TestProductSetup(site_url, consumer_key, consumer_secret)
     
     try:
-        # 1. 清理现有数据
+        # 1. Clean existing data in the store
         print("\n" + "="*60)
-        print("第一步：清理商店中的现有数据")
+        print("Step 1: Clean existing data in the store")
         print("="*60)
         
         clear_result = setup.clear_all_products()
         if not clear_result.get('success'):
-            print("⚠️ 清理未完全成功，但继续下一步...")
+            print("⚠️ Clean not fully successful, but continue to the next step...")
         
         time.sleep(3)
         
-        # 2. 设置商品属性
+        # 2. Set product attributes
         print("\n" + "="*60)
-        print("第二步：设置商品属性")
+        print("Step 2: Set product attributes")
         print("="*60)
         
         attr_result = setup.setup_product_attributes()
         if not attr_result.get('success'):
-            print("❌ 属性设置失败！")
+            print("❌ Attribute setting failed!")
             return False
         
         time.sleep(2)
         
-        # 3. 创建测试商品
+        # 3. Create test products
         print("\n" + "="*60)
-        print("第三步：创建测试商品和数据")
+        print("Step 3: Create test products and data")
         print("="*60)
         
         product_result = setup.create_test_products(delete_existing_orders=delete_orders)
         
         if product_result.get('success'):
-            print("✅ 测试数据设置完成！")
+            print("✅ Test data setup completed!")
             
-            # 保存预期结果
+            # Save expected results
             expected_results = setup.get_expected_results()
             results_path = str(Path(__file__).parent.parent) + "/groundtruth_workspace/expected_results.json"
             with open(results_path, 'w', encoding='utf-8') as f:
                 json.dump(expected_results, f, indent=2, ensure_ascii=False)
-            print("📄 预期结果已保存到 expected_results.json")
+            print("📄 Expected results saved to expected_results.json")
             
             return True
         else:
-            print("❌ 测试商品创建失败！")
+            print("❌ Test product creation failed!")
             return False
             
     except Exception as e:
-        print(f"❌ 设置过程中出错: {e}")
+        print(f"❌ Error during setup: {e}")
         return False
 
 
 def clear_store_only():
-    """仅清理商店"""
+    """Only clear the store"""
     from token_key_session import all_token_key_session
     
     site_url = all_token_key_session.woocommerce_site_url
     consumer_key = all_token_key_session.woocommerce_api_key
     consumer_secret = all_token_key_session.woocommerce_api_secret
     
-    print(f"🚀 连接到商店: {site_url}")
+    print(f"🚀 Connect to store: {site_url}")
     
     setup = TestProductSetup(site_url, consumer_key, consumer_secret)
     clear_result = setup.clear_all_products()

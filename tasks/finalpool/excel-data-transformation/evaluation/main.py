@@ -6,19 +6,8 @@ from pathlib import Path
 # Add current directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent))
 
-# Try to import improved functions first, fall back to original if not available
-try:
-    from check_local_improved import check_local
-    print("Using improved evaluation functions with enhanced features")
-    USE_IMPROVED = True
-except ImportError:
-    try:
-        from check_local_enhanced import check_local
-        print("Using standard evaluation functions")
-        USE_IMPROVED = False
-    except ImportError:
-        print("Error: Could not import evaluation functions")
-        sys.exit(1)
+# Import improved functions
+from check_local_improved import check_local
 
 if __name__ == "__main__":
     parser = ArgumentParser(description="Excel Data Transformation Task Evaluation")
@@ -34,21 +23,19 @@ if __name__ == "__main__":
 
     # Only perform local file validation (no log checking)
     try:
-        if USE_IMPROVED:
-            success, error_msg = check_local(
-                args.agent_workspace, 
-                args.groundtruth_workspace,
-                numerical_tolerance=args.numerical_tolerance
-            )
-        else:
-            success, error_msg = check_local(args.agent_workspace, args.groundtruth_workspace)
-            
+        success, error_msg = check_local(
+            args.agent_workspace, 
+            args.groundtruth_workspace,
+            numerical_tolerance=args.numerical_tolerance
+        )   
+        
         if success:
             print("All validation checks passed!")
             sys.exit(0)
         else:
             print(f"Local validation failed: {error_msg}")
             sys.exit(1)
+    
     except Exception as e:
         print(f"Local validation error: {e}")
         sys.exit(1)

@@ -5,29 +5,29 @@ from utils.general.helper import normalize_str
 
 def load_songs_from_md(filename):
     """
-    从Markdown文件中读取YAML代码块，并将其解析为Python对象。
+    Read the YAML code block from a Markdown file and parse it into a Python object.
     """
     try:
         with open(filename, 'r', encoding='utf-8') as f:
             content = f.read()
 
-        # 使用正则表达式精确查找被```yaml ... ```包围的内容
-        # re.DOTALL 标志让 '.' 可以匹配包括换行符在内的任何字符
+        # Use a regular expression to precisely capture the content enclosed by ```yaml ... ```
+        # re.DOTALL flag allows '.' to match newlines as well
         match = re.search(r'```yaml\n(.*?)```', content, re.DOTALL)
         
         if match:
-            # group(1) 获取第一个括号内的匹配内容，即YAML字符串
+            # group(1) captures the YAML string inside the code block
             yaml_str = match.group(1)
             
-            # 使用 yaml.safe_load() 将YAML字符串安全地解析成Python对象
+            # Safely parse the YAML string into a Python object
             data = yaml.safe_load(yaml_str)
             return data
         else:
-            print(f"警告: 在文件 '{filename}' 中没有找到YAML代码块。")
+            print(f"Warning: No YAML code block found in file '{filename}'.")
             return []
 
     except FileNotFoundError:
-        print(f"错误: 文件 '{filename}' 未找到。")
+        print(f"Error: File '{filename}' not found.")
         return []
     
 def check_content(agent_workspace: str, groundtruth_workspace: str):
@@ -42,13 +42,13 @@ def check_content(agent_workspace: str, groundtruth_workspace: str):
     agent_data = load_songs_from_md(agent_needed_file)
     groundtruth_data = load_songs_from_md(groundtruth_needed_file)
     
-    # 提取歌曲名称并标准化
+    # Extract and normalize song names from the loaded data
     def extract_song_names(data):
         songs = []
         if isinstance(data, list):
             for item in data:
                 if isinstance(item, dict):
-                    # 处理 "Song1": "Sweet but Psycho" 格式
+                    # Handles format like: "Song1": "Sweet but Psycho"
                     for key, value in item.items():
                         if key.startswith('Song') and isinstance(value, str):
                             songs.append(normalize_str(value))
@@ -60,14 +60,14 @@ def check_content(agent_workspace: str, groundtruth_workspace: str):
     if not agent_songs:
         return False, "No songs found in agent's output."
     if not gt_songs:
-        return False, "No songs found in groundtruth."
+        return False, "No songs found in ground truth."
     
-    # 检查GT中的每首歌是否都能在agent输出中找到匹配（GT是agent输出的子集）
+    # Check if every GT song can be matched in agent output (GT is a subset of agent output)
     missing_songs = []
     for gt_song in gt_songs:
         found = False
         for agent_song in agent_songs:
-            # 检查GT歌曲名是否为agent歌曲名的子集
+            # Checks if the GT song name is a subset (substring) of any agent song name
             if gt_song in agent_song:
                 found = True
                 break
@@ -78,6 +78,3 @@ def check_content(agent_workspace: str, groundtruth_workspace: str):
         return False, f"The following ground truth songs were not found in agent's output: {missing_songs}"
     
     return True, None
-
-
-    

@@ -1,34 +1,20 @@
-import os
-import sys
 import argparse
-import json
+import gspread
+from googleapiclient.discovery import build
+import os
+from utils.app_specific.googlesheet.drive_helper import find_spreadsheet_in_folder, fetch_google_sheet_data_gspread
+import pandas as pd
+from utils.general.helper import normalize_str
 
-# Add project root directory to Python path
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../.."))
-sys.path.insert(0, project_root)
-
-# Import modules directly to avoid hyphen issues
-import importlib.util
-from pathlib import Path
-
-# Dynamically import check modules
-def load_check_module(module_name):
-    module_path = Path(__file__).parent / f"{module_name}.py"
-    spec = importlib.util.spec_from_file_location(module_name, module_path)
-    if spec is None or spec.loader is None:
-        raise ImportError(f"Cannot load module {module_name}")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-check_local_module = load_check_module("check_local")
-check_sheet_comparison_module = load_check_module("check_sheet_comparison")  # Use Sheet comparison
-check_sheet_direct_module = load_check_module("check_sheet_direct")  # Direct Sheet check
-
-check_local = check_local_module.check_local
-check_sheet_comparison = check_sheet_comparison_module.check_sheet_comparison
-check_google_sheet_direct = check_sheet_direct_module.check_google_sheet_direct
-
+GOOGLE_CREDENTIALS_PATH = "./configs/google_credentials.json"
+NEEDED_SPREADSHEET_NAME = "NHL-B2B-Analysis"
+folder_id_file = os.path.join(os.path.dirname(__file__), "..", "files", "folder_id.txt")
+if not os.path.exists(folder_id_file):
+    raise FileNotFoundError(f"Required folder_id file not found: {folder_id_file}")
+with open(folder_id_file, "r") as f:
+    folder_id = f.read().strip()
+    
+spreadsheet_id = find_spreadsheet_in_folder(folder_id, NEEDED_SPREADSHEET_NAME)
 
 def main():
     """Main function, supports command line execution"""
@@ -39,46 +25,49 @@ def main():
     parser.add_argument("--launch_time", required=False, help="Launch time")
     
     args = parser.parse_args()
-    
-    # Check local file generation (primary check)
-    try:
-        local_pass, local_msg = check_local(args.agent_workspace, args.groundtruth_workspace)
-        if not local_pass:
-            print("local check failed: ", local_msg)
-            exit(1)
-        else:
-            print("local check passed: ", local_msg)
-    except Exception as e:
-        print("local check error: ", e)
-        exit(1)
-    
-    # Check Google Sheet direct verification (priority check - no content download)
-    try:
-        sheet_direct_pass, sheet_direct_msg = check_google_sheet_direct(args.agent_workspace, args.groundtruth_workspace)
-        if sheet_direct_pass:
-            print("sheet direct check passed: ", sheet_direct_msg)
-        else:
-            print("sheet direct check failed: ", sheet_direct_msg)
-            # Direct check failed, try content comparison check
-            print("\nTrying content comparison check...")
-    except Exception as e:
-        print("sheet direct check error: ", e)
-        print("\nDirect check error, trying content comparison check...")
-    
-    # Check Google Sheet comparison (backup check - compare with standard answer)
-    try:
-        sheet_comparison_pass, sheet_comparison_msg = check_sheet_comparison(args.agent_workspace, args.groundtruth_workspace)
-        if not sheet_comparison_pass:
-            print("sheet comparison failed: ", sheet_comparison_msg)
-            exit(1)
-        else:
-            print("sheet comparison passed: ", sheet_comparison_msg)
-    except Exception as e:
-        print("sheet comparison error: ", e)
-        exit(1)
-    
-    print("Pass all tests! NHL back-to-back analysis task evaluation completed")
 
+    agent_data = fetch_google_sheet_data_gspread(spreadsheet_id)
+
+    groundtruth_data = pd.read_csv(os.path.join(args.groundtruth_workspace, "standard_answer.csv"))
+
+    # we first check the headers are the same
+    if list(agent_data.columns) != list(groundtruth_data.columns):
+        print(f"Headers don't match. Agent: {list(agent_data.columns)}, Groundtruth: {list(groundtruth_data.columns)}")
+        return False
+    # then check the number of rows
+    if len(agent_data) != len(groundtruth_data):
+        print(f"Number of rows don't match. Agent: {len(agent_data)}, Groundtruth: {len(groundtruth_data)}")
+        return False
+    
+    # we then check the data is the same, but we do not require the order to be the same
+    # also, when you are comparing the `Team` column
+    # you first need to do normalize_str on both agent and groundtruth, this is a str->str function
+    agent_data['Team'] = agent_data['Team'].apply(normalize_str)
+    groundtruth_data['Team'] = groundtruth_data['Team'].apply(normalize_str)
+
+    # to ease the comparison, we first sort the data by the `Team` column
+    agent_data = agent_data.sort_values(by='Team').reset_index(drop=True)
+    groundtruth_data = groundtruth_data.sort_values(by='Team').reset_index(drop=True)
+
+    # now compare the data, plz compare row by row
+    for idx in range(len(agent_data)):
+        # for Team, we assuse they are the same
+        # for other columns, first transform to int, then compare
+        for col in agent_data.columns:
+            if col == 'Team':
+                if agent_data.iloc[idx][col] != groundtruth_data.iloc[idx][col]:
+                    print(f"Data don't match at row {idx}, column {col}. Agent: {agent_data.iloc[idx][col]}, Groundtruth: {groundtruth_data.iloc[idx][col]}")
+                    exit(1)
+            else:
+                int_agent = int(agent_data.iloc[idx][col])
+                int_groundtruth = int(groundtruth_data.iloc[idx][col])
+                if int_agent != int_groundtruth:
+                    print(f"Data don't match at row {idx}, column {col}. Agent: {int_agent}, Groundtruth: {int_groundtruth}")
+                    exit(1)
+            
+            
+    print("All data match!")
+    exit(0)
 
 if __name__ == "__main__":
     main()

@@ -2,15 +2,14 @@ from utils.general.helper import normalize_str
 import re
 
 def normalize_university_name(name):
-    """标准化大学名称，支持多种形式的学校名称"""
     normalized = normalize_str(name)
     
-    # 学校名称映射字典
     school_mappings = {
         # HKUST variants
         'hkust': 'hkust',
         'hongkonguniversityofscienceandtechnology': 'hkust',
         '香港科技大学': 'hkust',
+        '香港科技大學': 'hkust',
         '港科大': 'hkust',
         '港科': 'hkust',
         
@@ -18,6 +17,7 @@ def normalize_university_name(name):
         'cuhk': 'cuhk',
         'chineseuniversityofhongkong': 'cuhk',
         '香港中文大学': 'cuhk',
+        '香港中文大學': 'cuhk',
         '港中文': 'cuhk',
         '中大': 'cuhk',
         
@@ -25,6 +25,7 @@ def normalize_university_name(name):
         'hku': 'hku', 
         'universityofhongkong': 'hku',
         '香港大学': 'hku',
+        '香港大學': 'hku',
         '港大': 'hku'
     }
     
@@ -34,7 +35,6 @@ def normalize_university_name(name):
     return result
 
 def parse_markdown_table(table_content):
-    """解析markdown表格为结构化数据"""
     print("  Parsing markdown table...")
     lines = [line.strip() for line in table_content.strip().split('\n') if line.strip()]
     print(f"  - Found {len(lines)} lines of content")
@@ -43,12 +43,10 @@ def parse_markdown_table(table_content):
         print("  - Error: insufficient table rows")
         return None
         
-    # 解析表头
     header_line = lines[0]
     headers = [col.strip() for col in header_line.split('|') if col.strip()]
     print(f"  - Parsed headers: {headers}")
     
-    # 跳过分隔符行（包含 - 的行）
     data_start = 1
     for i, line in enumerate(lines[1:], 1):
         if not re.match(r'^[\s|:-]*$', line):
@@ -57,7 +55,6 @@ def parse_markdown_table(table_content):
     
     print(f"  - Data starts from row {data_start + 1}")
     
-    # 解析数据行
     data_rows = []
     for line in lines[data_start:]:
         columns = [col.strip() for col in line.split('|') if col.strip()]
@@ -68,7 +65,6 @@ def parse_markdown_table(table_content):
     return {'headers': headers, 'data': data_rows}
 
 def normalize_table_data(table_data):
-    """标准化表格数据"""
     print("  Normalizing table data...")
     if not table_data:
         print("  - Error: table data is empty")
@@ -78,17 +74,17 @@ def normalize_table_data(table_data):
     for i, row in enumerate(table_data['data']):
         normalized_row = []
         for j, cell in enumerate(row):
-            if j == 0:  # 第一列是大学名称
+            if j == 0:  # The first column is the university name
                 normalized_name = normalize_university_name(cell)
                 normalized_row.append(normalized_name)
-            else:  # 其他列是数字
-                # 提取数字，忽略格式差异
+            else:  # The other columns are numbers
+                # Extract numbers, ignore format differences
                 numbers = re.findall(r'\d+', cell)
                 normalized_value = numbers[0] if numbers else cell.strip()
                 normalized_row.append(normalized_value)
         normalized_data.append(normalized_row)
     
-    # 按总数排序（假设最后一列是总数）
+    # Sort by total number (assuming the last column is the total number)
     print("  - Sorting by last column values...")
     try:
         normalized_data.sort(key=lambda x: int(x[-1]) if x[-1].isdigit() else 0, reverse=True)
@@ -100,10 +96,10 @@ def normalize_table_data(table_data):
     return {'headers': table_data['headers'], 'data': normalized_data}
 
 def compare_markdown_tables(table1, table2):
-    """比较两个markdown表格，支持鲁棒性匹配"""
+    """Compare two markdown tables, support robust matching"""
     print("\nStarting markdown table comparison...")
     
-    # 解析两个表格
+    # Parse two tables
     print("Parsing Agent table:")
     parsed_table1 = parse_markdown_table(table1)
     print("Parsing Groundtruth table:")
@@ -113,7 +109,7 @@ def compare_markdown_tables(table1, table2):
         print("❌ Table parsing failed")
         return False
     
-    # 标准化表格数据
+    # Normalize table data
     print("\nNormalizing Agent table data:")
     norm_table1 = normalize_table_data(parsed_table1)
     print("Normalizing Groundtruth table data:")
@@ -125,19 +121,19 @@ def compare_markdown_tables(table1, table2):
     
     print("\nStarting detailed comparison...")
     
-    # 比较表头数量
+    # Compare header count
     print(f"Comparing header count: Agent={len(norm_table1['headers'])}, Groundtruth={len(norm_table2['headers'])}")
     if len(norm_table1['headers']) != len(norm_table2['headers']):
         print("❌ Header count mismatch")
         return False
     
-    # 比较数据行数量
+    # Compare data row count
     print(f"Comparing data row count: Agent={len(norm_table1['data'])}, Groundtruth={len(norm_table2['data'])}")
     if len(norm_table1['data']) != len(norm_table2['data']):
         print("❌ Data row count mismatch")
         return False
     
-    # 比较每行数据
+    # Compare each row of data
     print("Comparing data row by row...")
     for i, (row1, row2) in enumerate(zip(norm_table1['data'], norm_table2['data'])):
         print(f"  Comparing row {i+1}:")
@@ -192,7 +188,7 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
     print(groundtruth_content[:200] + "..." if len(groundtruth_content) > 200 else groundtruth_content)
     print(f"{'-'*30}")
     
-    # 进行表格比较
+    # Compare tables
     result = compare_markdown_tables(agent_content.strip(), groundtruth_content.strip())
     
     print("\n" + "="*60)

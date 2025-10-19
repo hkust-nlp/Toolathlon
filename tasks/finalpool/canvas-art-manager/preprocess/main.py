@@ -51,13 +51,13 @@ def run_command(command, description="", check=True, shell=True):
 
 def clear_inbox(imap_server, imap_port, email_user=None, email_pass=None, mailbox="INBOX"):
     """
-    清空整个收件箱。
+    Clear the entire inbox.
 
-    :param imap_server: IMAP服务器地址
-    :param imap_port: IMAP服务器端口（通常为993）
-    :param email_user: 邮箱用户名
-    :param email_pass: 邮箱密码
-    :param mailbox: 要操作的邮箱文件夹，默认INBOX
+    :param imap_server: IMAP server address
+    :param imap_port: IMAP server port (usually 993)
+    :param email_user: Email username
+    :param email_pass: Email password
+    :param mailbox: Mailbox folder to operate on, default "INBOX"
     """
     try:
         # Add the utils path for import
@@ -95,16 +95,16 @@ def clear_inbox(imap_server, imap_port, email_user=None, email_pass=None, mailbo
         return False
 
 def send_email(to_email, subject, body, from_email, smtp_server, smtp_port, attachments=None, use_auth=False, smtp_user=None, smtp_pass=None):
-    # 创建一个带附件的邮件对象
+    # Create an email object with attachments
     msg = MIMEMultipart()
     msg['From'] = Header(from_email)
     msg['To'] = Header(to_email)
     msg['Subject'] = Header(subject, 'utf-8')
 
-    # 邮件正文
+    # Email body
     msg.attach(MIMEText(body, 'plain', 'utf-8'))
 
-    # 添加附件
+    # Attach files
     if attachments:
         for file_path in attachments:
             if not os.path.isfile(file_path):
@@ -119,24 +119,21 @@ def send_email(to_email, subject, body, from_email, smtp_server, smtp_port, atta
                 msg.attach(mime)
 
     try:
-        print(f"连接到SMTP服务器: {smtp_server}:{smtp_port} (非SSL模式)")
-        # 明确使用非SSL连接
+        print(f"Connecting to SMTP server: {smtp_server}:{smtp_port} (non-SSL mode)")
+        # Explicitly use non-SSL connection
         server = smtplib.SMTP(smtp_server, smtp_port)
 
-        # 设置调试级别（可选，用于查看详细的SMTP通信）
-        # server.set_debuglevel(1)
+        # Do not enable STARTTLS (plaintext connection)
+        # server.starttls()  # Commented out to ensure non-SSL
 
-        # 不启用STARTTLS，保持纯文本连接
-        # server.starttls()  # 注释掉，确保不使用SSL/TLS
-
-        # 只有在需要认证时才登录
+        # Authenticate only if requested
         if use_auth and smtp_user and smtp_pass:
-            print("使用SMTP认证登录")
+            print("Using SMTP authentication")
             server.login(smtp_user, smtp_pass)
         else:
-            print("SMTP连接已建立 (无认证模式)")
+            print("SMTP connection established (no authentication)")
 
-        # 发送邮件
+        # Send the email
         server.sendmail(from_email, [to_email], msg.as_string())
         server.quit()
         print("Email sent successfully.")
@@ -146,11 +143,14 @@ def send_email(to_email, subject, body, from_email, smtp_server, smtp_port, atta
 
 def parse_course_schedule_md(md_path):
     """
-    解析course_schedule.md，返回课程名-上课时间的列表
+    Parse course_schedule.md and return a list of course names
+
+    :param md_path: Path to the course_schedule.md file
+    :return: List of course names
     """
     courses = []
     if not os.path.isfile(md_path):
-        print(f"课程表文件不存在: {md_path}")
+        print(f"Course schedule file does not exist: {md_path}")
         return courses
     with open(md_path, encoding="utf-8") as f:
         for line in f:
@@ -169,7 +169,7 @@ def parse_course_schedule_md(md_path):
 
 async def delete_all_courses_via_mcp(target_course_names):
     """
-    Delete specified courses using MCP canvas server
+    Delete specified courses using MCP Canvas server
 
     This function will:
     1. Connect to canvas MCP server
@@ -346,48 +346,48 @@ async def delete_all_courses_via_mcp(target_course_names):
         traceback.print_exc()
         return False
 
-# 管理员身份批量删除其他老师的课程
+# Batch delete other teachers' courses as admin
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--agent_workspace", required=False)
     parser.add_argument("--launch_time", required=False, help="Launch time")
-    parser.add_argument("--canvas_url", required=False, help="Canvas服务器URL, 例如 http://localhost:18080")
-    parser.add_argument("--canvas_token", required=False, help="Canvas管理员Token")
+    parser.add_argument("--canvas_url", required=False, help="Canvas server URL, e.g., http://localhost:18080")
+    parser.add_argument("--canvas_token", required=False, help="Canvas admin token")
     args = parser.parse_args()
     
-    # 如果指定了agent_workspace，则进行文件解压缩
+    # If agent_workspace is specified, extract files
     if args.agent_workspace:
-        # 确保agent workspace存在
+        # Make sure agent workspace exists
         os.makedirs(args.agent_workspace, exist_ok=True)
         dst_tar_path = os.path.join(args.agent_workspace, "files.tar.gz")
         
-        # 解压缩
+        # Extract
         try:
             with tarfile.open(dst_tar_path, 'r:gz') as tar:
-                print(f"正在解压缩到: {args.agent_workspace}")
+                print(f"Extracting to: {args.agent_workspace}")
                 # Use the filter parameter to avoid deprecation warning in Python 3.14+
                 tar.extractall(path=args.agent_workspace, filter='data')
-                print("解压缩完成")
+                print("Extraction complete")
         except Exception as e:
-            print(f"解压缩失败: {e}")
+            print(f"Extraction failed: {e}")
             sys.exit(1)
         
-        # 删除压缩文件
+        # Delete the tar file
         try:
             os.remove(dst_tar_path)
-            print(f"已删除原始压缩文件: {dst_tar_path}")
+            print(f"Deleted original tar file: {dst_tar_path}")
         except Exception as e:
-            print(f"删除压缩文件失败: {e}")
+            print(f"Failed to delete tar file: {e}")
         
-        print("预处理完成 - Canvas教学资源文件已准备就绪")
+        print("Preprocessing complete - Canvas teaching resource files are ready")
 
-    # 执行邮件和Canvas操作（这些是预处理的主要任务）
+    # Execute email and Canvas operations (main preprocessing tasks)
 
     imap_server = "localhost"
     imap_port = 1143
-    to_email = "mcpcanvasadmin3@mcp.com"  # 收件人邮箱
+    to_email = "mcpcanvasadmin3@mcp.com"  # Target inbox email
 
-    # 清空整个收件箱
+    # Clear the entire inbox
     clear_inbox(
         imap_server=imap_server,
         imap_port=imap_port,
@@ -395,10 +395,10 @@ if __name__ == "__main__":
         email_pass="mcpcanvasadminpass3"
     )
 
-    # 生成邮件并导入到收件箱
+    # Generate emails and import to inbox
     try:
         print("📧 Generating inbox emails...")
-        # 运行generate_inbox.py
+        # Run generate_inbox.py
         generate_script = os.path.join(os.path.dirname(__file__), "generate_inbox.py")
         result = run_command(
             f"python {generate_script}",
@@ -407,7 +407,7 @@ if __name__ == "__main__":
         print("✅ Email generation completed")
 
         print("📨 Importing emails to MCP server...")
-        # 运行import_emails.py
+        # Run import_emails.py
         import_script = os.path.join(os.path.dirname(__file__), "import_emails.py")
         result = run_command(
             f"python {import_script} --target-folder INBOX --preserve-folders",
@@ -424,10 +424,10 @@ if __name__ == "__main__":
         print(f"❌ Error in email generation/import: {e}")
         print("💡 Continuing with preprocessing anyway...")
 
-    # ========== Canvas课程删除操作（使用MCP方法） ==========
+    # ========== Canvas course deletion (using MCP method) ==========
     print("🗑️ Starting Canvas course cleanup using MCP...")
 
-    # 获取需要删除的课程列表
+    # Get list of courses to delete
     course_schedule_path = os.path.join(os.path.dirname(__file__), "course_schedule.md")
     target_courses = parse_course_schedule_md(course_schedule_path)
 

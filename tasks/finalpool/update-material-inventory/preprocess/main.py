@@ -204,7 +204,7 @@ def setup_test_environment() -> bool:
         
         # Import setup modules
         from woocommerce_client import WooCommerceClient
-        from sheets_setup import GoogleSheetsClient
+        # from sheets_setup import GoogleSheetsClient
         from token_key_session import all_token_key_session
         from order_simulator import OrderSimulator
         

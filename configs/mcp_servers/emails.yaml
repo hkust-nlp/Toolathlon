@@ -14,5 +14,6 @@ params:
     - "${agent_workspace}/emails_export"
     - "--config_file"
     - "${token.emails_config_file}"
+  # cwd: "${agent_workspace}" # do not add this for compatibility
 client_session_timeout_seconds: 120
 cache_tools_list: true

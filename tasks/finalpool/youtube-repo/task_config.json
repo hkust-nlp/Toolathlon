@@ -3,6 +3,7 @@
   "needed_mcp_servers": [
     "playwright_with_chunk",
     "youtube",
+    "youtube-transcript",
     "filesystem"
   ],
   "meta": {},

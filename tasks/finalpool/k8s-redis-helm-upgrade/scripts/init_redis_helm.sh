@@ -2,7 +2,7 @@
 
 agent_workspace=$3
 
-# 设置变量
+# Set variables
 SCRIPT_DIR=$(dirname "$0")
 k8sconfig_path_dir=${agent_workspace}/k8s_configs
 # backup_k8sconfig_path_dir=deployment/k8s/configs
@@ -24,20 +24,20 @@ podman_or_docker=$(uv run python -c "import sys; sys.path.append('configs'); fro
 
 echo "podman_or_docker: $podman_or_docker"
 
-# 颜色输出
+# Color output variables
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# 打印带颜色的信息
+# Print colored log messages
 log_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
 log_batch() { echo -e "${BLUE}[BATCH]${NC} $1"; }
 
-# 显示使用说明
+# Show usage information
 show_usage() {
   echo "Usage: $0 [start|stop] [values_file]"
   echo ""
@@ -52,7 +52,7 @@ show_usage() {
   echo "Note: values_file is required when using 'start' operation"
 }
 
-# 清理函数（仅针对指定集群）
+# Clean up existing cluster (for the specified cluster only)
 cleanup_existing_cluster() {
   log_info "Start cleaning up existing cluster if it exists..."
   if kind get clusters | grep -q "^${cluster_name}$"; then
@@ -65,7 +65,7 @@ cleanup_existing_cluster() {
   fi
 }
 
-# 清理配置文件（仅针对指定配置文件）
+# Clean up configuration files (for the specified config file only)
 cleanup_config_files() {
   local config_path="$k8sconfig_path_dir/${cluster_name}-config.yaml"
   log_info "Clean up configuration file: $config_path"
@@ -86,7 +86,7 @@ cleanup_config_files() {
   fi
 }
 
-# 停止操作
+# Stop operation
 stop_operation() {
   log_info "========== Start stopping operation =========="
   cleanup_existing_cluster
@@ -94,7 +94,7 @@ stop_operation() {
   log_info "========== Stopping operation completed =========="
 }
 
-# 创建集群
+# Create cluster
 create_cluster() {
   local cluster_name=$1
   local config_path=$2
@@ -108,7 +108,7 @@ create_cluster() {
   fi
 }
 
-# 验证集群
+# Verify cluster
 verify_cluster() {
   local cluster_name=$1
   local config_path=$2
@@ -137,14 +137,14 @@ verify_cluster() {
   fi
 }
 
-# 显示 inotify 状态
+# Show inotify status
 show_inotify_status() {
   local current_instances=$(ls /proc/*/fd/* 2>/dev/null | xargs -I {} readlink {} 2>/dev/null | grep -c inotify || echo "0")
   local max_instances=$(cat /proc/sys/fs/inotify/max_user_instances 2>/dev/null || echo "unknown")
   log_info "Inotify instance usage: $current_instances / $max_instances"
 }
 
-# 创建命名空间
+# Create namespace
 create_namespace() {
   local config_path=$1
   log_info "Creating namespace: $namespace"
@@ -170,7 +170,7 @@ EOF
   fi
 }
 
-# 配置 Helm
+# Setup Helm
 setup_helm() {
   local config_path=$1
   export KUBECONFIG="$config_path"
@@ -195,8 +195,7 @@ setup_helm() {
   return 0
 }
 
-
-# 部署 Redis with Helm
+# Deploy Redis with Helm
 deploy_redis_helm() {
   local config_path=$1
   export KUBECONFIG="$config_path"
@@ -210,10 +209,10 @@ deploy_redis_helm() {
   fi
   
   # Deploy Redis with specific version
-  # 记录开始时间
+  # Record start time
   start_time=$(date +%s)
 
-  # 添加--set参数覆盖镜像仓库为bitnamilegacy
+  # Add --set parameters to override image repositories to bitnamilegacy
   if helm install "$helm_release_name" "$helm_repo_name/$helm_chart_name" \
     --namespace "$namespace" \
     --version "$initial_version" \
@@ -228,37 +227,37 @@ deploy_redis_helm() {
     log_info "Redis deployed successfully with version $initial_version"
   else
     log_error "Failed to deploy Redis"
-    log_info "========== 开始详细调试信息 =========="
+    log_info "========== Begin detailed debugging information =========="
     
-    # # 检查Pod状态
-    # log_info "检查Pod状态："
+    # # Check Pod status
+    # log_info "Checking Pod status:"
     # kubectl --kubeconfig="$config_path" -n "$namespace" get pods -o wide
     
-    # # 检查Pod详细信息
-    # log_info "检查Pod详细描述："
+    # # Check Pod details
+    # log_info "Checking Pod details:"
     # kubectl --kubeconfig="$config_path" -n "$namespace" describe pods
     
-    # # 检查Events
-    # log_info "检查命名空间Events："
+    # # Check Events
+    # log_info "Checking namespace Events:"
     # kubectl --kubeconfig="$config_path" -n "$namespace" get events --sort-by='.lastTimestamp'
     
-    # # 检查PVC状态
-    # log_info "检查PVC状态："
+    # # Check PVC status
+    # log_info "Checking PVC status:"
     # kubectl --kubeconfig="$config_path" -n "$namespace" get pvc
     
-    # # 检查Helm状态
-    # log_info "检查Helm发布状态："
+    # # Check Helm status
+    # log_info "Checking Helm release status:"
     # helm --kubeconfig="$config_path" list -n "$namespace" -a
     
-    # # 检查节点资源
-    # log_info "检查节点资源："
-    # kubectl --kubeconfig="$config_path" top nodes || echo "metrics-server未安装，无法显示资源使用情况"
+    # # Check node resources
+    # log_info "Checking node resources:"
+    # kubectl --kubeconfig="$config_path" top nodes || echo "metrics-server not installed, can't show resource usage"
     # kubectl --kubeconfig="$config_path" describe nodes
     
-    # log_info "========== 调试信息结束 =========="
+    # log_info "========== Debugging information end =========="
     return 1
   fi
-  # 记录结束时间
+  # Record end time
   end_time=$(date +%s)
   elapsed_time=$((end_time - start_time))
   log_info "Redis deployment took $elapsed_time seconds"
@@ -297,19 +296,19 @@ copy_values_to_home() {
   return 0
 }
 
-# 部署轻量级干扰项
+# Deploy lightweight distractor resources
 deploy_lightweight_distractors() {
   local config_path=$1
   export KUBECONFIG="$config_path"
   
   log_info "Deploying lightweight distractor resources..."
   
-  # 创建额外命名空间
+  # Create additional namespaces for confusion
   log_info "Creating additional namespaces for complexity..."
   kubectl create namespace monitoring-services --dry-run=client -o yaml | kubectl apply -f - &>/dev/null || true
   kubectl create namespace dev-environment --dry-run=client -o yaml | kubectl apply -f - &>/dev/null || true
   
-  # 创建一些ConfigMaps和Secrets作为干扰项
+  # Create some ConfigMaps and Secrets as distractors
   log_info "Creating distractor ConfigMaps and Secrets..."
   kubectl create configmap redis-monitoring-config -n monitoring-services --from-literal=host=localhost --from-literal=port=6379 &>/dev/null || true
   kubectl create configmap cache-config -n dev-environment --from-literal=type=redis --from-literal=ttl=3600 &>/dev/null || true
@@ -317,7 +316,7 @@ deploy_lightweight_distractors() {
   kubectl create secret generic redis-backup-creds -n shared-services --from-literal=access_key=fake_key --from-literal=secret_key=fake_secret &>/dev/null || true
   kubectl create secret generic monitoring-tokens -n monitoring-services --from-literal=prometheus_token=fake_token &>/dev/null || true
   
-  # 创建一个简单的redis-exporter Deployment作为干扰项
+  # Create a simple redis-exporter Deployment as a distractor
   log_info "Creating redis-exporter deployment as distractor..."
   cat <<EOF | kubectl apply -f - &>/dev/null || true
 apiVersion: apps/v1
@@ -348,11 +347,11 @@ spec:
           value: "redis://localhost:6379"
         resources:
           requests:
-            memory: "128Mi"  # 增加到 128Mi
-            cpu: "50m"       # 增加到 50m
+            memory: "128Mi"  # Increased to 128Mi
+            cpu: "50m"       # Increased to 50m
           limits:
-            memory: "256Mi"  # 增加到 256Mi
-            cpu: "100m"      # 增加到 100m
+            memory: "256Mi"  # Increased to 256Mi
+            cpu: "100m"      # Increased to 100m
 ---
 apiVersion: v1
 kind: Service
@@ -370,7 +369,7 @@ spec:
     app: redis-exporter
 EOF
 
-  # 创建一个nginx deployment作为另一个干扰项
+  # Create an nginx deployment as another distractor
   log_info "Creating nginx deployment as additional distractor..."
   cat <<EOF | kubectl apply -f - &>/dev/null || true
 apiVersion: apps/v1
@@ -397,11 +396,11 @@ spec:
         - containerPort: 80
         resources:
           requests:
-            memory: "64Mi"   # 增加到 64Mi
-            cpu: "25m"       # 增加到 25m
+            memory: "64Mi"   # Increased to 64Mi
+            cpu: "25m"       # Increased to 25m
           limits:
-            memory: "128Mi"  # 增加到 128Mi
-            cpu: "50m"       # 增加到 50m
+            memory: "128Mi"  # Increased to 128Mi
+            cpu: "50m"       # Increased to 50m
 ---
 apiVersion: v1
 kind: Service
@@ -420,7 +419,7 @@ EOF
   return 0
 }
 
-# 启动操作
+# Start operation
 start_operation() {
   log_info "========== Start Kind cluster deployment with Redis Helm =========="
   cleanup_existing_cluster
@@ -446,22 +445,22 @@ start_operation() {
   deploy_redis_helm "$configpath"
   
   # Deploy lightweight distractors
-  # podman下 加了干扰项会导致内存exhausted重启，所以先注释掉
+  # With podman, adding distractors may cause memory exhausted restarts, so commented out for now
   # deploy_lightweight_distractors "$configpath"
   
   # # Copy values file to user home
   # Update: no need to do so I think
   # copy_values_to_home
   
-  # 复制配置文件到备份目录
+  # Copy config to backup directory
   cp "$configpath" "$backup_configpath"
 
   log_info "========== Redis Helm deployment completed =========="
-  log_info "Cluster: $cluster_name"  # 应该加上这行
+  log_info "Cluster: $cluster_name"  # Should add this line
   log_info "Redis has been deployed to namespace: $namespace"
   log_info "Redis version: $initial_version"
   log_info "Values file available at: $values_file"
-  log_info "Cluster config: $configpath"  # 也应该显示具体的配置文件路径
+  log_info "Cluster config: $configpath"  # Should also show the config path specifically
   log_info "To check the deployment: helm list -n $namespace"
   log_info "To get Redis password: kubectl get secret --namespace $namespace redis -o jsonpath=\"{.data.redis-password}\" | base64 -d"
   
@@ -474,7 +473,7 @@ start_operation() {
   show_inotify_status
 }
 
-# 主函数
+# Main function
 main() {
   local operation=${1:-start}
   local values_file_param=$2
@@ -504,7 +503,7 @@ main() {
   esac
 }
 
-# 检查依赖
+# Check dependencies
 check_dependencies() {
   local deps=("kind" "kubectl" "helm" "$podman_or_docker")
   local missing=()
@@ -520,6 +519,6 @@ check_dependencies() {
   fi
 }
 
-# 脚本入口
+# Script entry
 check_dependencies
 main "$@"

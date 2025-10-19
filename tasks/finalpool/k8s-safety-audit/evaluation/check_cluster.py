@@ -29,12 +29,12 @@ class KubernetesValidator:
         self.expected = expected
         self.rollout_timeout_sec = rollout_timeout_sec
 
-        # 初始化客户端
+        # Initialize k8s client
         config.load_kube_config(config_file=self.kubeconfig_path)
         self.apps_v1: AppsV1Api = client.AppsV1Api()
         self.core_v1: CoreV1Api = client.CoreV1Api()
 
-    # ---------- 基础工具 ----------
+    # ---------- Basic utilities ----------
     @staticmethod
     def _exit_error(msg: str) -> None:
         raise RuntimeError(msg)
@@ -47,17 +47,17 @@ class KubernetesValidator:
     def _error(msg: str) -> None:
         print(f"[ERROR] {msg}")
 
-    # ---------- 校验项 ----------
+    # ---------- Checks ----------
     def check_namespaces(self) -> None:
         try:
             ns_list = [ns.metadata.name for ns in self.core_v1.list_namespace().items]
         except ApiException as e:
-            self._exit_error(f"无法列出命名空间: {e}")
+            self._exit_error(f"Failed to list namespaces: {e}")
 
         missing = [ns for ns in self.expected.namespaces if ns not in ns_list]
         if missing:
-            self._exit_error(f"缺失命名空间: {missing}")
-        self._info("命名空间校验通过")
+            self._exit_error(f"Missing namespaces: {missing}")
+        self._info("Namespace check passed")
 
     def wait_rollout(self, namespace: str, name: str):
         start = time.time()
@@ -65,7 +65,7 @@ class KubernetesValidator:
             try:
                 dep = self.apps_v1.read_namespaced_deployment(name=name, namespace=namespace)
             except ApiException as e:
-                self._exit_error(f"读取 Deployment {namespace}/{name} 失败: {e}")
+                self._exit_error(f"Failed to read Deployment {namespace}/{name}: {e}")
 
             status = dep.status
             spec_repls = dep.spec.replicas or 0
@@ -79,29 +79,29 @@ class KubernetesValidator:
                 and ready == spec_repls
                 and avail == spec_repls
             ):
-                self._info(f"{namespace}/{name} Rollout 完成 ({ready}/{spec_repls} ready)")
+                self._info(f"{namespace}/{name} rollout complete ({ready}/{spec_repls} ready)")
                 return dep
 
             if time.time() - start > self.rollout_timeout_sec:
-                self._exit_error(f"{namespace}/{name} Rollout 超时 (> {self.rollout_timeout_sec}s)")
+                self._exit_error(f"{namespace}/{name} rollout timeout (> {self.rollout_timeout_sec}s)")
             time.sleep(5)
 
     def check_deployment_fully(self, dep, spec: DeploymentCheckSpec) -> List[str]:
         issues: List[str] = []
         ns, name = dep.metadata.namespace, dep.metadata.name
 
-        # 1) 副本数
+        # 1) Replica count
         if spec.replicas is not None and dep.spec.replicas != spec.replicas:
             issues.append(f"spec.replicas={dep.spec.replicas}, expected={spec.replicas}")
 
-        # 2) Pod template 标签
+        # 2) Pod template labels
         exp_labels = spec.labels or {}
         actual_labels = dep.spec.template.metadata.labels or {}
         for k, v in exp_labels.items():
             if actual_labels.get(k) != v:
                 issues.append(f"template label '{k}': {actual_labels.get(k)}, expected={v}")
 
-        # 3) 容器镜像后缀（含 initContainers）
+        # 3) Container images suffix (including initContainers)
         exp_images = spec.containers or {}
         all_containers = []
         if dep.spec.template.spec.init_containers:
@@ -118,18 +118,18 @@ class KubernetesValidator:
                             f"container '{cname}' image={c.image}, expected endswith '{exp_img}'"
                         )
             if not matched:
-                issues.append(f"找不到容器 '{cname}'")
+                issues.append(f"Container '{cname}' not found")
 
-        # 4) Pod 就绪 & 镜像后缀
+        # 4) Pod readiness & image suffix
         selector = ",".join(f"{k}={v}" for k, v in (exp_labels.items()))
         try:
             pods = self.core_v1.list_namespaced_pod(namespace=ns, label_selector=selector).items
         except ApiException as e:
-            issues.append(f"列 Pod 失败: {e}")
+            issues.append(f"Failed to list pods: {e}")
             pods = []
 
         if not pods:
-            issues.append("未找到任何 Pod")
+            issues.append("No pods found")
         else:
             for pod in pods:
                 for cs in (pod.status.container_statuses or []):
@@ -143,7 +143,7 @@ class KubernetesValidator:
 
         return issues
 
-    # ---------- 顶层流程 ----------
+    # ---------- Top level workflow ----------
     def run(self) -> int:
         self.check_namespaces()
         all_issues: List[str] = []
@@ -154,22 +154,22 @@ class KubernetesValidator:
                 issues = self.check_deployment_fully(dep, spec)
 
                 if issues:
-                    all_issues.append(f"{ns}/{name} 发现问题: " + "; ".join(issues))
+                    all_issues.append(f"Issues found for {ns}/{name}: " + "; ".join(issues))
 
         if all_issues:
             for msg in all_issues:
                 self._error(msg)
             return 1
 
-        self._info("所有 Deployment 校验通过 ✅")
+        self._info("All deployments passed validation ✅")
         return 0
 
 
 def build_expected_config() -> ExpectedConfig:
     """
-    针对241.yaml配置文件的期望：
-      - 命名空间：production, staging, dev, test
-      - Deployments：检查基本的部署状态和配置
+    Expectations for the configuration in 241.yaml:
+      - Namespaces: production, staging, dev, test
+      - Deployments: check the basic deployment status and config
     """
     return ExpectedConfig(
         namespaces=["production", "staging", "dev", "test"],
@@ -253,7 +253,7 @@ def main() -> None:
         rc = validator.run()
         sys.exit(rc)
     except Exception:
-        print("[ERROR] 未预期异常：")
+        print("[ERROR] Unexpected exception:")
         traceback.print_exc()
         sys.exit(1)
 

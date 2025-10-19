@@ -2,26 +2,26 @@
 
 task_dir=finalpool/canvas-art-quiz
 
-uv run demo.py \
+uv run main.py \
 --eval_config scripts/model_wise/eval_gpt-5.json \
 --task_dir $task_dir \
 --debug
 # # --multi_turn_mode
 
-# uv run demo.py \
+# uv run main.py \
 # --eval_config scripts/model_wise/eval_gpt-4.1-mini.json \
 # --task_dir $task_dir \
 # --debug
 # # --multi_turn_mode
 
-# uv run demo.py \
+# uv run main.py \
 # --eval_config scripts/model_wise/eval_claude-4-sonnet.json \
 # --task_dir $task_dir \
 # --debug \
 # --cn_mode
 # --multi_turn_mode
 
-# uv run demo.py \
+# uv run main.py \
 # --eval_config scripts/model_wise/eval_gpt-4.1-mini.json \
 # --task_dir $task_dir \
 # --debug \

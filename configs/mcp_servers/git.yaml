@@ -1,4 +1,4 @@
-# 检查本地git状态
+# check local git status
 # https://github.com/modelcontextprotocol/servers/tree/main/src/git
 type: stdio
 name: git
@@ -8,5 +8,6 @@ params:
     - "run"
     - "-m"
     - "mcp_server_git"
+  # cwd: "${agent_workspace}" # do not add this for compatibility
 client_session_timeout_seconds: 10
 cache_tools_list: true

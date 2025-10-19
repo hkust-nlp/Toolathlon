@@ -119,41 +119,44 @@ def get_project_id_and_credentials(credentials_file="configs/gcp-service_account
         print(f"Warning: Failed to load credentials: {e}, falling back to gcloud command")
         return None, None
 
-def check_storage_bucket_exists(bucket_name: str, project_id: str = "mcp-bench0606") -> bool:
-    """Check if Google Cloud Storage bucket exists"""
-    # First try using Google Cloud Storage client with service account credentials
+def check_storage_bucket_exists(bucket_prefix: str, project_id: str = "mcp-bench0606") -> bool:
+    """
+    Check if there is a Google Cloud Storage bucket with the given prefix exists
+    """
+    # Use service_account
     try:
         project_id_from_creds, credentials = get_project_id_and_credentials()
         if project_id_from_creds and credentials:
             storage_client = storage.Client(project=project_id_from_creds, credentials=credentials)
-            try:
-                bucket = storage_client.bucket(bucket_name)
-                bucket.reload()  # This will raise NotFound if bucket doesn't exist
-                print(f"✅ Found bucket '{bucket_name}' using service account credentials")
-                return True
-            except exceptions.NotFound:
-                print(f"❌ Bucket '{bucket_name}' not found using service account credentials")
-                return False
-            except Exception as e:
-                print(f"Warning: Error checking bucket with service account: {e}")
-                # Fall through to gcloud command
+            buckets = list(storage_client.list_buckets())
+            for bucket in buckets:
+                if bucket.name.startswith(bucket_prefix):
+                    print(f"✅ Found bucket with prefix '{bucket_prefix}': {bucket.name}")
+                    return True
+            print(f"❌ No buckets found with prefix '{bucket_prefix}' using service account credentials")
+            return False
     except Exception as e:
         print(f"Warning: Could not use service account method: {e}")
         # Fall through to gcloud command
     
     # Fallback to gcloud storage command
     try:
-        print(f"Falling back to gcloud command to check bucket '{bucket_name}'...")
+        print(f"Falling back to gcloud command to check buckets with prefix '{bucket_prefix}'...")
+        # This lists all buckets in the project
         result = subprocess.run(
-            ['gcloud', 'storage', 'ls', f'gs://{bucket_name}'],
+            ['gcloud', 'storage', 'buckets', 'list', '--project', project_id, '--format', 'value(name)'],
             capture_output=True, text=True, timeout=30
         )
         if result.returncode == 0:
-            print(f"✅ Found bucket '{bucket_name}' using gcloud command")
-            return True
+            buckets = result.stdout.strip().split('\n')
+            for bucket_name in buckets:
+                if bucket_name.startswith(bucket_prefix):
+                    print(f"✅ Found bucket with prefix '{bucket_prefix}': {bucket_name} (via gcloud)")
+                    return True
+            print(f"❌ No buckets found with prefix '{bucket_prefix}' using gcloud command")
+            return False
         else:
-            print(f"❌ Bucket '{bucket_name}' not found using gcloud command")
-            print(f"gcloud stderr: {result.stderr}")
+            print(f"❌ gcloud buckets list failed: {result.stderr}")
             return False
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError) as e:
         print(f"❌ Error running gcloud command: {e}")
@@ -161,12 +164,15 @@ def check_storage_bucket_exists(bucket_name: str, project_id: str = "mcp-bench06
 
 def check_abtesting_logging_bucket_clean() -> bool:
     """Check that abtesting_logging bucket contains only the preprocessing test log entry"""
+    # from ../groundtruth_workspace/log_bucket_name.txt to read actual log bucket name
+    with open(os.path.join(os.path.dirname(__file__), "../groundtruth_workspace/log_bucket_name.txt"), "r") as f:
+        log_bucket_name = f.read().strip()
     try:
         # Use the same project_id retrieval method as other functions
         project_id_from_creds, credentials = get_project_id_and_credentials()
         if project_id_from_creds and credentials:
             client = logging.Client(project=project_id_from_creds, credentials=credentials)
-            log_filter = f'logName="projects/{project_id_from_creds}/logs/abtesting_logging" AND NOT jsonPayload.logging\\.googleapis\\.com/diagnostic'
+            log_filter = f'logName="projects/{project_id_from_creds}/logs/{log_bucket_name}" AND NOT jsonPayload.logging\\.googleapis\\.com/diagnostic'
 
             entries = list(client.list_entries(
                 filter_=log_filter,
@@ -212,9 +218,9 @@ def validate_task_completion() -> None:
     bucket_exists = check_storage_bucket_exists("promo-assets-for-b")
 
     if bucket_exists:
-        print("✅ Storage bucket 'promo-assets-for-b' found - task completed correctly")
+        print("✅ Storage bucket with prefix 'promo-assets-for-b' found - task completed correctly")
     else:
-        raise ValueError("Task validation failed - 'promo-assets-for-b' storage bucket was not created")
+        raise ValueError("Task validation failed - storage bucket with prefix 'promo-assets-for-b' was not created")
 
     # Check that abtesting_logging bucket contains only the test log (no A winner logs)
     print("Checking that abtesting_logging bucket is clean...")

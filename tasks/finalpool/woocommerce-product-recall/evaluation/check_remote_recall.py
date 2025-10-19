@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-产品召回任务 - 远程验证模块
-检查WooCommerce产品下架、Google Forms创建和邮件发送
+Product Recall Task - Remote Verification Module
+Check WooCommerce product removal, Google Forms creation, and email sending
 """
 
 import os
@@ -15,7 +15,7 @@ from typing import Dict, List, Tuple, Optional
 from email.header import decode_header
 from requests.auth import HTTPBasicAuth
 
-# 添加项目路径
+# Add project path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 task_dir = os.path.dirname(current_dir)
 sys.path.insert(0, task_dir)
@@ -30,63 +30,63 @@ except ImportError:
 
 def check_remote_recall_execution(agent_workspace: str, groundtruth_workspace: str, res_log: Dict) -> Tuple[bool, str]:
     """
-    检查产品召回任务的远程执行结果
+    Check the remote execution results of the product recall task
     
     Args:
-        agent_workspace: Agent工作空间路径
-        groundtruth_workspace: Ground truth工作空间路径
-        res_log: 执行日志
+        agent_workspace: Agent workspace path
+        groundtruth_workspace: Ground truth workspace path
+        res_log: Execution log
         
     Returns:
-        (检查是否通过, 详细信息)
+        (Whether the check passed, detailed information)
     """
-    print("🌐 检查产品召回远程执行结果...")
+    print("🌐 Checking product recall remote execution results...")
     
     try:
-        # 初始化WooCommerce客户端
+        # Initialize WooCommerce client
         site_url = all_token_key_session.woocommerce_site_url
         consumer_key = all_token_key_session.woocommerce_api_key
         consumer_secret = all_token_key_session.woocommerce_api_secret
         
         if not all([site_url, consumer_key, consumer_secret]):
-            return False, "WooCommerce API配置不完整"
+            return False, "WooCommerce API configuration is incomplete"
         
         wc_client = WooCommerceClient(site_url, consumer_key, consumer_secret)
         
-        # 检查1: 产品下架状态
-        print("  📦 检查产品下架状态...")
+        # Check 1: Product removal status
+        print("  📦 Checking product removal status...")
         product_pass, product_msg = check_product_removal(wc_client)
         if not product_pass:
-            return False, f"产品下架检查失败: {product_msg}"
+            return False, f"Product removal check failed: {product_msg}"
         else:
             print(f"    ✅ {product_msg}")
         
-        # 检查2: Google Forms创建
-        print("  📝 检查Google Forms创建...")
+        # Check 2: Google Forms creation
+        print("  📝 Checking Google Forms creation...")
         forms_pass, forms_msg = check_google_forms_creation(agent_workspace)
         if not forms_pass:
-            return False, f"Google Forms检查失败: {forms_msg}"
+            return False, f"Google Forms check failed: {forms_msg}"
         else:
             print(f"    ✅ {forms_msg}")
         
-        # 检查3: 召回邮件发送
-        print("  📧 检查召回邮件发送...")
+        # Check 3: Recall email sending
+        print("  📧 Checking recall email sending...")
         email_pass, email_msg = check_recall_email_sending(agent_workspace, wc_client)
         if not email_pass:
-            return False, f"邮件发送检查失败: {email_msg}"
+            return False, f"Email sending check failed: {email_msg}"
         else:
             print(f"    ✅ {email_msg}")
         
-        print("✅ 远程检查全部通过")
-        return True, f"远程检查通过: {product_msg}; {forms_msg}; {email_msg}"
+        print("✅ Remote check passed")
+        return True, f"Remote check passed: {product_msg}; {forms_msg}; {email_msg}"
         
     except Exception as e:
-        return False, f"远程检查过程中出错: {str(e)}"
+        return False, f"Error during remote check: {str(e)}"
 
 def load_recalled_products_info() -> Dict:
-    """加载召回产品信息"""
+    """Load recalled products information"""
     try:
-        # 尝试从多个可能的位置加载召回产品信息
+        # Try to load recalled products information from multiple possible locations
         possible_paths = [
             os.path.join(task_dir, 'recalled_products_info.json'),
             os.path.join(task_dir, 'preprocess', 'recalled_products_info.json'),
@@ -98,8 +98,8 @@ def load_recalled_products_info() -> Dict:
                 with open(info_path, 'r', encoding='utf-8') as f:
                     return json.load(f)
         
-        # 如果没有找到文件，返回默认的召回产品信息
-        print("⚠️ 未找到recalled_products_info.json，使用默认召回产品识别规则")
+        # If no file is found, return the default recalled products information
+        print("⚠️ No recalled_products_info.json found, using default recalled products recognition rules")
         return {
             "recalled_skus": ["phone-x1-black", "phone-x1-white", "phone-x1-blue"],
             "recalled_product_names": ["smartphone model x1"],
@@ -107,7 +107,7 @@ def load_recalled_products_info() -> Dict:
         }
         
     except Exception as e:
-        print(f"⚠️ 加载召回产品信息失败，使用默认规则: {e}")
+        print(f"⚠️ Failed to load recalled products information, using default rules: {e}")
         return {
             "recalled_skus": ["phone-x1-black", "phone-x1-white", "phone-x1-blue"],
             "recalled_product_names": ["smartphone model x1"],
@@ -115,16 +115,16 @@ def load_recalled_products_info() -> Dict:
         }
 
 def check_product_removal(wc_client: WooCommerceClient) -> Tuple[bool, str]:
-    """检查召回产品是否已下架"""
+    """Check if the recalled products have been removed"""
     try:
-        # 加载召回产品信息
+        # Load recalled products information
         recall_info = load_recalled_products_info()
         recalled_skus = [sku.lower() for sku in recall_info.get("recalled_skus", [])]
         
-        # 获取所有产品
+        # Get all products
         all_products = wc_client.get_all_products()
         
-        # 查找召回相关的产品
+        # Find recalled related products
         print(all_products)
         recalled_products = []
         for product in all_products:
@@ -153,32 +153,32 @@ def check_product_removal(wc_client: WooCommerceClient) -> Tuple[bool, str]:
                 })
         
         if not recalled_products:
-            return False, "未找到召回相关的产品"
+            return False, "No recalled related products found"
         
-        # 检查召回产品的状态 - 必须全部下架才算通过
+        # Check the status of the recalled products - must be all removed to pass
         properly_removed = 0
         for product in recalled_products:
             status = product['status']
             visibility = product['catalog_visibility']
             
-            # 产品必须被下架（状态为draft或private，或目录可见性为hidden）
+            # The product must be removed (status is draft or private, or catalog visibility is hidden)
             print(product)
             if status in ['draft', 'private'] or visibility == 'hidden':
                 properly_removed += 1
         
-        # 必须所有召回产品都被下架才算通过
+        # Must all recalled products be removed to pass
         if properly_removed == len(recalled_products):
-            return True, f"成功下架了所有 {len(recalled_products)} 个召回产品"
+            return True, f"Successfully removed all {len(recalled_products)} recalled products"
         else:
-            return False, f"仅下架了 {properly_removed}/{len(recalled_products)} 个召回产品，应全部下架"
+            return False, f"Only removed {properly_removed}/{len(recalled_products)} recalled products, should be all removed"
             
     except Exception as e:
-        return False, f"产品下架检查出错: {str(e)}"
+        return False, f"Product removal check error: {str(e)}"
 
 def check_google_forms_creation(agent_workspace: str) -> Tuple[bool, str]:
-    """检查Google Forms远程创建和访问"""
+    """Check Google Forms remote creation and access"""
     try:
-        # 检查召回表单记录文件
+        # Check the recalled form record file
         forms_files = [
             os.path.join(agent_workspace, 'recall_report.json'),
             os.path.join(agent_workspace, 'google_forms.json'),
@@ -196,28 +196,28 @@ def check_google_forms_creation(agent_workspace: str) -> Tuple[bool, str]:
                     continue
         
         if not forms_data:
-            return False, "未找到Google Forms创建记录"
+            return False, "No Google Forms creation record found"
         
         #
-        # 获取表单URL或ID进行远程验证
+        # Get the form URL or ID for remote verification
         form_url = forms_data.get('form_url', '') or forms_data.get('url', '') or forms_data.get('link', '')
         form_id = forms_data.get('form_id', '') or forms_data.get('id', '')
         
         if not form_url and not form_id:
-            return False, "缺少Google Forms URL或ID，无法进行远程验证"
+            return False, "Missing Google Forms URL or ID, cannot perform remote verification"
         
-        # 从URL中提取form_id（如果有的话）
+        # Extract form_id from the URL (if available)
         if form_url and not form_id:
             import re
-            # 匹配Google Forms URL中的ID
+            # Match the ID in the Google Forms URL
             match = re.search(r'/forms/d/([a-zA-Z0-9-_]+)', form_url)
             if match:
                 form_id = match.group(1)
             else:
-                # 尝试从forms.gle短链接获取
+                # Try to get the form_id from the forms.gle short link
                 if 'forms.gle' in form_url:
                     try:
-                        # 发送HEAD请求获取重定向URL
+                        # Send HEAD request to get the redirected URL
                         response = requests.head(form_url, allow_redirects=True, timeout=10)
                         if response.url:
                             match = re.search(r'/forms/d/([a-zA-Z0-9-_]+)', response.url)
@@ -227,68 +227,68 @@ def check_google_forms_creation(agent_workspace: str) -> Tuple[bool, str]:
                         pass
         
         if not form_id and not form_url:
-            return False, "无法获取有效的表单标识，无法进行远程验证"
+            return False, "Cannot get a valid form identifier, cannot perform remote verification"
         
-        # 直接进行远程验证
+        # Directly perform remote verification
         remote_success, remote_msg = verify_google_form_remotely(form_id, form_url)
         if remote_success:
-            return True, f"远程验证成功: {remote_msg}"
+            return True, f"Remote verification passed: {remote_msg}"
         else:
-            return False, f"远程验证失败: {remote_msg}"
+            return False, f"Remote verification failed: {remote_msg}"
             
     except Exception as e:
-        return False, f"Google Forms远程检查出错: {str(e)}"
+        return False, f"Google Forms remote check error: {str(e)}"
 
 def verify_google_form_remotely(form_id: str, form_url: str) -> Tuple[bool, str]:
-    """远程验证Google Forms是否可访问"""
+    """Verify if Google Forms is accessible remotely"""
     try:
-        # 构建测试URL
+        # Build the test URL
         test_url = form_url
         if not test_url and form_id:
             test_url = f"https://docs.google.com/forms/d/{form_id}/viewform"
         
         if not test_url:
-            return False, "无法构建有效的表单URL"
+            return False, "Cannot build a valid form URL"
             
         response = requests.get(test_url, timeout=15, allow_redirects=True)
         
         if response.status_code == 200:
-            # 检查响应内容，确保这是一个有效的Google Forms页面
+            # Check the response content, ensure it is a valid Google Forms page
             content = response.text.lower()
             if ('google forms' in content or 'docs.google.com' in content or 
-                'form' in content and ('submit' in content or '提交' in content)):
-                return True, f"表单可以正常访问 - {test_url}"
+                'form' in content and ('submit' in content)):
+                return True, f"Form can be accessed normally - {test_url}"
             else:
-                return False, f"URL返回内容不是有效的Google Forms页面"
+                return False, f"URL returned content is not a valid Google Forms page"
         elif response.status_code == 404:
-            return False, f"表单不存在或已被删除"
+            return False, f"Form does not exist or has been deleted"
         elif response.status_code == 403:
-            return False, f"表单访问被拒绝，可能需要权限"
+            return False, f"Form access denied, may require permissions"
         else:
-            return False, f"表单访问失败，状态码: {response.status_code}"
+            return False, f"Form access failed, status code: {response.status_code}"
             
     except requests.exceptions.Timeout:
-        return False, "访问表单超时"
+        return False, "Form access timed out"
     except requests.exceptions.ConnectionError:
-        return False, "网络连接失败"
+        return False, "Network connection failed"
     except Exception as e:
-        return False, f"远程验证出错: {str(e)}"
+        return False, f"Remote verification error: {str(e)}"
 
 def check_recall_email_sending(agent_workspace: str, wc_client: WooCommerceClient) -> Tuple[bool, str]:
-    """检查召回邮件发送"""
+    """Check recall email sending"""
     try:
-        # 获取受影响的客户列表
+        # Get the list of affected customers
         affected_customers = get_affected_customers_from_orders(wc_client)
         
         if not affected_customers:
-            return False, "未找到受影响的客户"
+            return False, "No affected customers found"
         
-        # 加载邮件配置
+        # Load the email configuration
         config_path = all_token_key_session.emails_config_file
         with open(config_path, 'r') as f:
             config = json.load(f)
         
-        # 连接IMAP检查已发送邮件
+        # Connect to IMAP to check the sent emails
         if config.get('use_ssl', False):
             mail = imaplib.IMAP4_SSL(config['imap_server'], config['imap_port'])
         else:
@@ -296,42 +296,42 @@ def check_recall_email_sending(agent_workspace: str, wc_client: WooCommerceClien
             if config.get('use_starttls', False):
                 mail.starttls()
         
-        # 登录
+        # Login
         mail.login(config['email'], config['password'])
         
-        # 选择已发送文件夹
+        # Select the sent folder
         status, _ = mail.select('Sent')
         if status != "OK":
-            return False, "无法访问已发送邮件文件夹"
+            return False, "Cannot access the sent email folder"
         
-        # 获取最近的邮件
+        # Get the recent emails
         since_date = (datetime.now() - timedelta(hours=1)).strftime("%d-%b-%Y")
         status, messages = mail.search(None, f'(SINCE "{since_date}")')
         
         if status != "OK":
-            return False, "无法搜索邮件"
+            return False, "Cannot search for emails"
         
         email_ids = messages[0].split()
         if not email_ids:
-            return False, "未找到最近发送的邮件"
+            return False, "No recent emails found"
         
-        # 检查召回邮件内容
+        # Check the recall email content
         recall_emails_found = 0
         matched_customers = set()
         
-        for email_id in reversed(email_ids[-20:]):  # 检查最近20封邮件
+        for email_id in reversed(email_ids[-40:]):  # Check the recent 20 emails
             status, msg_data = mail.fetch(email_id, '(RFC822)')
             if status != "OK":
                 continue
             
             msg = email.message_from_bytes(msg_data[0][1])
             
-            # 获取收件人
+            # Get the recipients
             to_field = msg.get("To", "") or ""
             cc_field = msg.get("Cc", "") or ""
             all_recipients = (to_field + "," + cc_field).lower()
             
-            # 获取邮件主题和内容
+            # Get the subject and content of the email
             subject = ""
             if msg["Subject"]:
                 subject_parts = decode_header(msg["Subject"])
@@ -341,13 +341,13 @@ def check_recall_email_sending(agent_workspace: str, wc_client: WooCommerceClien
                 ])
             
             # Check if it's a recall email
-            recall_keywords = ['recall', '召回', 'safety', 'urgent notice', 'product alert', 'withdrawal']
+            recall_keywords = ['recall', 'safety', 'urgent notice', 'product alert', 'withdrawal']
             is_recall_email = any(keyword in subject.lower() for keyword in recall_keywords)
             
             if is_recall_email:
                 recall_emails_found += 1
                 
-                # 匹配受影响客户
+                # Match the affected customers
                 for customer in affected_customers:
                     customer_email = customer.get('email', '').lower()
                     if customer_email and customer_email in all_recipients:
@@ -355,29 +355,29 @@ def check_recall_email_sending(agent_workspace: str, wc_client: WooCommerceClien
         
         mail.logout()
         
-        # 评估结果 - 必须通知所有受影响客户才算通过
+        # Evaluate the results - must notify all affected customers to pass
         total_customers = len(affected_customers)
         notified_customers = len(matched_customers)
         
         if total_customers == 0:
-            return False, "未找到受影响客户"
+            return False, "No affected customers found"
         
         if notified_customers == total_customers:
-            return True, f"成功发送召回邮件给所有 {total_customers} 受影响客户"
+            return True, f"Successfully sent recall emails to all {total_customers} affected customers"
         else:
-            return False, f"仅发送召回邮件给 {notified_customers}/{total_customers} 受影响客户，应全部通知"
+            return False, f"Only sent recall emails to {notified_customers}/{total_customers} affected customers, should notify all"
         
     except Exception as e:
-        return False, f"召回邮件检查出错: {str(e)}"
+        return False, f"Recall email check error: {str(e)}"
 
 def get_affected_customers_from_orders(wc_client: WooCommerceClient) -> List[Dict]:
-    """从订单中获取受影响的客户列表"""
+    """Get the list of affected customers from the orders"""
     try:
-        # 加载召回产品信息
+        # Load the recalled products information
         recall_info = load_recalled_products_info()
         recalled_skus = [sku.lower() for sku in recall_info.get("recalled_skus", [])]
         
-        # 获取所有订单
+        # Get all orders
         all_orders = wc_client.get_all_orders()
         
         affected_customers = []
@@ -386,7 +386,7 @@ def get_affected_customers_from_orders(wc_client: WooCommerceClient) -> List[Dic
             order_items = order.get('line_items', [])
             has_recalled_product = False
             
-            # 检查订单是否包含召回产品
+            # Check if the order contains recalled products
             for item in order_items:
                 item_sku = item.get('sku', '').lower()
                 item_name = item.get('name', '').lower()
@@ -413,7 +413,7 @@ def get_affected_customers_from_orders(wc_client: WooCommerceClient) -> List[Dic
                         'order_number': order.get('number')
                     })
         
-        # 去重（同一客户可能有多个订单）
+        # Remove duplicates (a customer may have multiple orders)
         unique_customers = []
         seen_emails = set()
         
@@ -426,11 +426,11 @@ def get_affected_customers_from_orders(wc_client: WooCommerceClient) -> List[Dic
         return unique_customers
         
     except Exception as e:
-        print(f"获取受影响客户列表出错: {e}")
+        print(f"Error getting the list of affected customers: {e}")
         return []
 
 def main():
-    """主函数 - 用于独立测试"""
+    """Main function - for independent testing"""
     if len(sys.argv) < 2:
         print("Usage: python check_remote_recall.py <agent_workspace> [groundtruth_workspace]")
         return
@@ -440,8 +440,8 @@ def main():
     
     success, message = check_remote_recall_execution(agent_workspace, groundtruth_workspace, {})
     
-    print(f"检查结果: {'✅ 通过' if success else '❌ 失败'}")
-    print(f"详细信息: {message}")
+    print(f"Check results: {'✅ Pass' if success else '❌ Fail'}")
+    print(f"Detailed information: {message}")
     
     return success
 

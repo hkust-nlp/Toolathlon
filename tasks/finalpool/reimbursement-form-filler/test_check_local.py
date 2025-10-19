@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-测试 check_local.py 中的评估逻辑
-主要测试空行处理和Excel格式检查的合理性
+Test the evaluation logic in check_local.py.
+Mainly tests the handling of blank rows and the reasonableness of Excel format checking.
 """
 
 import pandas as pd
@@ -11,29 +11,29 @@ import os
 from pathlib import Path
 import sys
 
-# 添加evaluation目录到path
+# Add the evaluation directory to sys.path
 # Correct the path to be relative to the script's location
 evaluation_path = Path(__file__).parent / 'evaluation'
 sys.path.append(str(evaluation_path.resolve()))
 from check_local import check_excel_format, check_data_accuracy, check_local
 
 def create_test_excel_data():
-    """创建测试用的Excel数据，模拟标准格式"""
-    # 标准格式数据（包含空行）
+    """Create test Excel data simulating the standard format."""
+    # Standard format data (with blank rows)
     standard_data = [
         ['Department', 'Report Period'],
         ['R&D Department', '2025-04 to 2025-06'],
-        [np.nan, np.nan],  # 空行
+        [np.nan, np.nan],  # blank row
         ['Month', 'Total Amount'],
         ['2025-04', 326.72],
         ['2025-05', 404.56],
         ['2025-06', 353.15],
-        [np.nan, np.nan],  # 空行
+        [np.nan, np.nan],  # blank row
         ['Total', np.nan],
         ['Total Amount: CNY 1084.43', 1084.43]
     ]
     
-    # 没有空行的数据（紧凑格式）
+    # Compact format data (no blank rows)
     compact_data = [
         ['Department', 'Report Period'],
         ['R&D Department', '2025-04 to 2025-06'],
@@ -48,8 +48,8 @@ def create_test_excel_data():
     return standard_data, compact_data
 
 def test_excel_format_with_standard_data():
-    """测试标准格式（包含空行）的Excel数据"""
-    print("=== 测试1: 标准格式（包含空行）===")
+    """Test Excel data in standard format (with blank rows)."""
+    print("=== Test 1: Standard format (with blank rows) ===")
     standard_data, _ = create_test_excel_data()
     df = pd.DataFrame(standard_data)
     
@@ -64,72 +64,72 @@ def test_excel_format_with_standard_data():
     failing_df = pd.DataFrame(df.values) # Re-index
     
     result, message = check_excel_format(failing_df)
-    print(f"检查结果: {result}")
-    print(f"消息: {message}")
-    print(f"DataFrame形状: {failing_df.shape}")
-    print("DataFrame内容:")
+    print(f"Check result: {result}")
+    print(f"Message: {message}")
+    print(f"DataFrame shape: {failing_df.shape}")
+    print("DataFrame content:")
     print(failing_df)
     print()
     
     return result
 
 def test_excel_format_with_compact_data():
-    """测试紧凑格式（无空行）的Excel数据"""
-    print("=== 测试2: 紧凑格式（无空行）===")
+    """Test Excel data in compact format (no blank rows)."""
+    print("=== Test 2: Compact format (no blank rows) ===")
     _, compact_data = create_test_excel_data()
     df = pd.DataFrame(compact_data)
     
     result, message = check_excel_format(df)
-    print(f"检查结果: {result}")
-    print(f"消息: {message}")
-    print(f"DataFrame形状: {df.shape}")
-    print("DataFrame内容:")
+    print(f"Check result: {result}")
+    print(f"Message: {message}")
+    print(f"DataFrame shape: {df.shape}")
+    print("DataFrame content:")
     print(df)
     print()
     
     return result
 
 def test_dropna_approach():
-    """测试使用dropna去除空行的方法"""
-    print("=== 测试3: 使用dropna去除空行 ===")
+    """Test the approach of removing blank rows using dropna."""
+    print("=== Test 3: Remove blank rows using dropna ===")
     standard_data, _ = create_test_excel_data()
     df = pd.DataFrame(standard_data)
     
-    print("原始DataFrame:")
+    print("Original DataFrame:")
     print(df)
-    print(f"原始形状: {df.shape}")
+    print(f"Original shape: {df.shape}")
     
-    # 方法1: 去除完全为空的行
+    # Method 1: Remove rows that are completely blank
     df_dropna_all = df.dropna(how='all').reset_index(drop=True)
-    print("\n使用dropna(how='all').reset_index(drop=True)后:")
+    print("\nAfter dropna(how='all').reset_index(drop=True):")
     print(df_dropna_all)
-    print(f"新形状: {df_dropna_all.shape}")
+    print(f"New shape: {df_dropna_all.shape}")
     
-    # 测试去除空行后的格式检查
-    print("\n--- 测试去除空行后的格式检查 ---")
+    # Test format check after removing blank rows
+    print("\n--- Test format check after removing blank rows ---")
     result, message = check_excel_format(df_dropna_all)
-    print(f"检查结果: {result}")
-    print(f"消息: {message}")
+    print(f"Check result: {result}")
+    print(f"Message: {message}")
     print()
 
 def analyze_current_issues():
-    """分析当前评估代码的问题"""
-    print("=== 分析当前评估代码的问题 ===")
+    """Analyze current issues in the evaluation code."""
+    print("=== Analysis of Current Evaluation Code Issues ===")
     
     issues = [
-        "1. 硬编码行号问题：代码使用 `iloc` 对固定的行索引进行检查，这使得它对空行非常敏感。",
-        "2. 空行处理：`check_excel_format` 目前无法处理包含空行的标准格式，因为它期望一个紧凑的8行DataFrame。", 
-        "3. 灵活性差：任何偏离预定8行结构的格式都会导致检查失败，即使数据在语义上是正确的。"
+        "1. Hardcoded row indices: The code uses `iloc` to check fixed row indices, making it very sensitive to blank rows.",
+        "2. Blank row handling: `check_excel_format` currently cannot handle the standard format with blank rows, as it expects a compact 8-row DataFrame.",
+        "3. Poor flexibility: Any deviation from the expected 8-row structure will cause the check to fail, even if the data is semantically correct."
     ]
     
     for issue in issues:
         print(issue)
     
-    print("\n=== 建议的改进方案 ===")
+    print("\n=== Suggested Improvements ===")
     suggestions = [
-        "1. **预处理DataFrame**：在检查之前，使用 `df.dropna(how='all').reset_index(drop=True)` 来删除所有完全为空的行并重置索引。",
-        "2. **修改检查逻辑**：调整 `check_excel_format` 函数中的行索引，以匹配清理后DataFrame的结构。",
-        "3. **提高鲁棒性**：让检查逻辑更能适应不同的、但语义相同的布局。"
+        "1. **Preprocess the DataFrame**: Before checking, use `df.dropna(how='all').reset_index(drop=True)` to remove all completely blank rows and reset the index.",
+        "2. **Modify the checking logic**: Adjust the row indices in the `check_excel_format` function to match the structure after cleaning.",
+        "3. **Increase robustness**: Make the checking logic more adaptable to different, but semantically equivalent, layouts."
     ]
     
     for suggestion in suggestions:
@@ -137,31 +137,31 @@ def analyze_current_issues():
     print()
 
 def main():
-    """运行所有测试"""
-    print("开始测试 check_local.py 的评估逻辑\n")
+    """Run all tests."""
+    print("Start testing the evaluation logic in check_local.py\n")
     
-    # 运行各项测试
+    # Run all tests
     test1_result = test_excel_format_with_standard_data()
     test2_result = test_excel_format_with_compact_data()  
     
     test_dropna_approach()
     analyze_current_issues()
     
-    # 总结测试结果
-    print("=== 测试总结 ===")
-    print(f"标准格式（含空行）检查: {'通过' if test1_result else '失败'}")
-    print(f"紧凑格式（无空行）检查: {'通过' if test2_result else '失败'}")
+    # Summarize test results
+    print("=== Test Summary ===")
+    print(f"Standard format (with blank rows) check: {'PASS' if test1_result else 'FAIL'}")
+    print(f"Compact format (no blank rows) check: {'PASS' if test2_result else 'FAIL'}")
     
     if test1_result and not test2_result:
-        print("\n✅ 结论：代码只接受包含空行的格式，这与预期不符，因为它应该能处理清理后的数据。")
+        print("\n✅ Conclusion: The code only accepts the format with blank rows, which is not expected, as it should be able to handle cleaned data.")
     elif not test1_result and test2_result:
-        print("\n✅ 结论：代码只接受紧凑格式，拒绝标准答案中包含空行的格式。这是当前实现的主要问题。") 
+        print("\n✅ Conclusion: The code only accepts the compact format and rejects the standard answer with blank rows. This is the main issue of the current implementation.") 
     elif test1_result and test2_result:
-        print("\n✅ 代码能够处理两种格式，这是理想状态。")
+        print("\n✅ The code can handle both formats, which is ideal.")
     else:
-        print("\n❌ 结论：代码存在严重问题，两种格式都无法正确处理。")
+        print("\n❌ Conclusion: There is a serious problem; neither format can be handled correctly.")
     
-    print("\n核心问题是 `check_local` 中的 `check_excel_format` 函数没有对读入的DataFrame进行预处理（如去除空行），导致硬编码的行索引失效。")
+    print("\nThe core issue is that the `check_excel_format` function in `check_local` does not preprocess the input DataFrame (such as removing blank rows), causing hardcoded row indices to fail.")
 
 if __name__ == "__main__":
     # Add the parent directory to sys.path to find the 'evaluation' module

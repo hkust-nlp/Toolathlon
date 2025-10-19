@@ -21,10 +21,11 @@ class RecipeIngredient:
 class RecipeQuantityExtractor:
     """Enhanced quantity extractor based on original MCP recipe files"""
     
-    def __init__(self, dishes_path: str = "/home/jzhao/workspace/mcp-cook/dishes"):
+    def __init__(self, dishes_path: str = None):
         self.dishes_path = dishes_path
         self.default_small_quantities = {
             # Default small quantities for ingredients without specified amounts
+            # sorry I know this is very very stupid but I just have no idea how to further improve this task ... :( let it be an unsolvable one
             '盐': '2g',
             '食盐': '2g', 
             '糖': '5g',

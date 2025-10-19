@@ -7,26 +7,26 @@ from typing import Dict, List
 from utils.mcp.tool_servers import call_tool_with_retry
 
 async def get_attractions_info(server, attractions: List[str]) -> Dict[str, Dict]:
-    """获取所有景点的详细信息"""
-    print("=== 获取景点详细信息 ===")
+    """get all attractions info"""
+    print("=== get all attractions info ===")
     attractions_info = {}
     
     for attraction in attractions:
-        print(f"\n处理景点: {attraction}")
+        print(f"\nprocess attraction: {attraction}")
         
-        # 步骤1: 搜索景点获取基本信息
+        # step 1: search attraction for basic info
         try:
             search_result = await call_tool_with_retry(server, "maps_search_places", {
                 "query": attraction
             })
             
             if not search_result or not search_result.content:
-                print(f"  ✗ 搜索 {attraction} 失败：无结果")
+                print(f"  ✗ search {attraction} failed: no result")
                 continue
                 
             search_data = json.loads(search_result.content[0].text)
             
-            # 处理不同的API响应格式
+            # handle different API response formats
             places_list = None
             if isinstance(search_data, dict) and 'places' in search_data:
                 places_list = search_data['places']
@@ -34,7 +34,7 @@ async def get_attractions_info(server, attractions: List[str]) -> Dict[str, Dict
                 places_list = search_data
             
             if not places_list or len(places_list) == 0:
-                print(f"  ✗ 搜索 {attraction} 失败：结果为空")
+                print(f"  ✗ search {attraction} failed: result is empty")
                 continue
                 
             place_info = places_list[0]
@@ -42,25 +42,25 @@ async def get_attractions_info(server, attractions: List[str]) -> Dict[str, Dict
             address = place_info.get('formatted_address')
             
             if not place_id:
-                print(f"  ✗ 搜索 {attraction} 失败：无place_id")
+                print(f"  ✗ search {attraction} failed: no place_id")
                 continue
                 
-            print(f"  ✓ 搜索成功: {place_info.get('name')}")
-            print(f"    地址: {address}")
+            print(f"  ✓ search success: {place_info.get('name')}")
+            print(f"    address: {address}")
             print(f"    Place ID: {place_id}")
             
-            # 步骤2: 使用place_id获取详细信息（包括营业时间）
+            # step 2: use place_id to get detailed info (including opening hours)
             details_result = await call_tool_with_retry(server, "maps_place_details", {
                 "place_id": place_id
             })
             
             if not details_result or not details_result.content:
-                print(f"  ✗ 获取 {attraction} 详细信息失败")
+                print(f"  ✗ get {attraction} detailed info failed")
                 continue
                 
             details = json.loads(details_result.content[0].text)
             
-            # 提取营业时间信息
+            # extract opening hours info
             opening_hours = details.get('opening_hours', {})
             weekday_text = opening_hours.get('weekday_text', [])
             
@@ -71,11 +71,11 @@ async def get_attractions_info(server, attractions: List[str]) -> Dict[str, Dict
                 monday_hours = weekday_text[0]  # Monday
                 tuesday_hours = weekday_text[1]  # Tuesday
                 
-            print(f"  ✓ 获取详细信息成功")
-            print(f"    周一营业时间: {monday_hours}")
-            print(f"    周二营业时间: {tuesday_hours}")
+            print(f"  ✓ get detailed info success")
+            print(f"    Monday opening hours: {monday_hours}")
+            print(f"    Tuesday opening hours: {tuesday_hours}")
             
-            # 保存景点信息
+            # save attraction info
             attractions_info[attraction] = {
                 'name': details.get('name', attraction),
                 'address': address,
@@ -86,31 +86,31 @@ async def get_attractions_info(server, attractions: List[str]) -> Dict[str, Dict
             }
             
         except Exception as e:
-            print(f"  ✗ 处理 {attraction} 时出错: {e}")
-            continue
+            print(f"  ✗ process {attraction} failed: {e}")
+            raise e
     
-    print(f"\n成功获取 {len(attractions_info)} 个景点的详细信息")
+    print(f"\nsuccess get {len(attractions_info)} attractions detailed info")
     return attractions_info
 
 async def calculate_distances_and_times(server, route_points: List[str]) -> List[Dict]:
-    """计算路线中相邻景点之间的距离和时间"""
-    print(f"\n=== 计算路线距离和时间 ===")
-    print(f"路线点: {route_points}")
+    """calculate distances and times between adjacent attractions in the route"""
+    print(f"\n=== calculate distances and times ===")
+    print(f"route points: {route_points}")
     
     if len(route_points) < 2:
         return []
     
     results = []
     
-    # 两两计算距离
+    # calculate distances and times between adjacent attractions
     for i in range(len(route_points) - 1):
         origin = route_points[i]
         destination = route_points[i + 1]
         
-        print(f"\n计算: {origin} -> {destination}")
+        print(f"\ncalculate: {origin} -> {destination}")
         
         try:
-            # 使用distance_matrix计算距离和时间
+            # use distance_matrix to calculate distances and times
             matrix_result = await call_tool_with_retry(server, "maps_distance_matrix", {
                 "origins": [origin],
                 "destinations": [destination],
@@ -118,26 +118,26 @@ async def calculate_distances_and_times(server, route_points: List[str]) -> List
             })
             
             if not matrix_result or not matrix_result.content:
-                print(f"  ✗ 距离计算失败")
+                print(f"  ✗ calculate distances and times failed")
                 results.append({
                     'origin': origin,
                     'destination': destination,
                     'distance': None,
                     'duration': None,
-                    'error': '无法获取距离信息'
+                    'error': 'cannot get distance info'
                 })
                 continue
                 
             matrix_data = json.loads(matrix_result.content[0].text)
             
-            # 解析distance matrix结果 - 处理不同的API响应格式
+            # parse distance matrix result - handle different API response formats
             element = None
             
-            # 新格式: 使用 'results' 键
+            # new format: use 'results' key
             if ('results' in matrix_data and len(matrix_data['results']) > 0 and 
                 'elements' in matrix_data['results'][0] and len(matrix_data['results'][0]['elements']) > 0):
                 element = matrix_data['results'][0]['elements'][0]
-            # 旧格式: 使用 'rows' 键  
+            # old format: use 'rows' key  
             elif ('rows' in matrix_data and len(matrix_data['rows']) > 0 and 
                   'elements' in matrix_data['rows'][0] and len(matrix_data['rows'][0]['elements']) > 0):
                 element = matrix_data['rows'][0]['elements'][0]
@@ -150,12 +150,12 @@ async def calculate_distances_and_times(server, route_points: List[str]) -> List
                     
                     distance_text = distance_info.get('text', '')
                     duration_text = duration_info.get('text', '')
-                    distance_value = distance_info.get('value', 0) / 1000  # 转换为公里
-                    duration_value = duration_info.get('value', 0) / 60   # 转换为分钟
+                    distance_value = distance_info.get('value', 0) / 1000  # to km
+                    duration_value = duration_info.get('value', 0) / 60   # to minutes
                     
-                    print(f"  ✓ 计算成功")
-                    print(f"    距离: {distance_text} ({distance_value:.2f} km)")
-                    print(f"    时间: {duration_text} ({duration_value:.0f} min)")
+                    print(f"  ✓ calculate success")
+                    print(f"    distance: {distance_text} ({distance_value:.2f} km)")
+                    print(f"    time: {duration_text} ({duration_value:.0f} min)")
                     
                     results.append({
                         'origin': origin,
@@ -167,26 +167,26 @@ async def calculate_distances_and_times(server, route_points: List[str]) -> List
                         'raw_data': element
                     })
                 else:
-                    print(f"  ✗ 距离计算失败: {element.get('status')}")
+                    print(f"  ✗ calculate distances and times failed: {element.get('status')}")
                     results.append({
                         'origin': origin,
                         'destination': destination,
                         'distance': None,
                         'duration': None,
-                        'error': f"API返回状态: {element.get('status')}"
+                        'error': f"API return status: {element.get('status')}"
                     })
             else:
-                print(f"  ✗ 距离矩阵格式错误")
+                print(f"  ✗ distance matrix format error")
                 results.append({
                     'origin': origin,
                     'destination': destination,
                     'distance': None,
                     'duration': None,
-                    'error': '距离矩阵格式错误'
+                    'error': 'distance matrix format error'
                 })
                 
         except Exception as e:
-            print(f"  ✗ 计算距离时出错: {e}")
+            print(f"  ✗ calculate distances and times failed: {e}")
             results.append({
                 'origin': origin,
                 'destination': destination,

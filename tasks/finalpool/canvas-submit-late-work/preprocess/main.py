@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Canvas考试环境预处理主脚本
-执行课程设置和邮件发送功能
+Canvas exam environment preprocessing main script
+Handles course setup and email sending functionality
 """
 
 import asyncio
@@ -16,63 +16,63 @@ from datetime import datetime
 from pathlib import Path
 from argparse import ArgumentParser
 from typing import Dict
-# 添加当前目录到Python路径，确保能正确导入模块
+# add current directory to Python path to ensure correct module import
 current_dir = Path(__file__).parent
 sys.path.insert(0, str(current_dir))
 
-# 导入本地模块
+# import local modules
 from setup_courses_with_mcp import run_with_args  as setup_courses_main
 # from send_exam_notification_smtp import main as send_email_main
 from token_key_session import all_token_key_session
 
 def clear_mailbox() -> Dict:
     """
-    清空mcpcanvasadmin2@mcp.com邮箱 - 删除 Sent 和 Inbox 文件夹中的所有邮件
+    Clear mcpcanvasadmin2@mcp.com mailbox - delete all emails in Sent and Inbox folders
     
     Returns:
-        清理结果字典
+        Clear results dictionary
     """
-    print("📧 开始清空mcpcanvasadmin2@mcp.com邮箱...")
+    print("📧 Starting to clear mcpcanvasadmin2@mcp.com mailbox...")
     
     try:
-        # 邮箱配置（根据check_remote.py中的配置）
+        # mailbox configuration (according to the configuration in check_remote.py)
         imap_server = 'localhost'
         imap_port = 1143
         email_address = all_token_key_session.admin_email_address
         email_password = all_token_key_session.admin_email_password
         
-        # 连接 IMAP 服务器
+        # connect to IMAP server
         mail = imaplib.IMAP4(imap_server, imap_port)
         
-        # 登录
+        # login
         mail.login(email_address, email_password)
         
-        # 清空的文件夹列表
+        # list of folders to clear
         folders_to_clear = ['INBOX', 'Sent']
         clear_results = {}
         
         for folder in folders_to_clear:
-            print(f"🗂️ 清理文件夹: {folder}")
+            print(f"🗂️ Clearing folder: {folder}")
             
             try:
-                # 选择文件夹
+                # select folder
                 status, _ = mail.select(folder)
                 if status != "OK":
-                    print(f"   ⚠️ 无法选择文件夹 {folder}")
+                    print(f"   ⚠️ Cannot select folder {folder}")
                     clear_results[folder] = {
                         "success": False,
-                        "error": f"无法选择文件夹 {folder}",
+                        "error": f"Cannot select folder {folder}",
                         "deleted_count": 0
                     }
                     continue
                 
-                # 搜索所有邮件
+                # search all emails
                 status, messages = mail.search(None, "ALL")
                 if status != "OK":
-                    print(f"   ⚠️ 无法搜索文件夹 {folder} 中的邮件")
+                    print(f"   ⚠️ Cannot search emails in folder {folder}")
                     clear_results[folder] = {
                         "success": False,
-                        "error": f"无法搜索文件夹 {folder}",
+                        "error": f"Cannot search emails in folder {folder}",
                         "deleted_count": 0
                     }
                     continue
@@ -81,33 +81,33 @@ def clear_mailbox() -> Dict:
                 total_emails = len(email_ids)
                 
                 if total_emails == 0:
-                    print(f"   📭 文件夹 {folder} 已经为空")
+                    print(f"   📭 Folder {folder} is already empty")
                     clear_results[folder] = {
                         "success": True,
                         "deleted_count": 0,
-                        "message": "文件夹已为空"
+                        "message": "Folder is already empty"
                     }
                     continue
                 
-                print(f"   📬 发现 {total_emails} 封邮件，开始删除...")
+                print(f"   📬 Found {total_emails} emails, starting to delete...")
                 
-                # 标记所有邮件为删除
+                # mark all emails for deletion
                 deleted_count = 0
                 failed_count = 0
                 
                 for email_id in email_ids:
                     try:
-                        # 标记邮件为删除
+                        # mark email for deletion
                         mail.store(email_id, '+FLAGS', '\\Deleted')
                         deleted_count += 1
                     except Exception as e:
-                        print(f"   ❌ 删除邮件 {email_id.decode()} 失败: {e}")
+                        print(f"   ❌ Failed to delete email {email_id.decode()}: {e}")
                         failed_count += 1
                 
-                # 执行删除
+                # execute deletion
                 mail.expunge()
                 
-                print(f"   ✅ 文件夹 {folder}: 删除 {deleted_count} 封邮件，失败 {failed_count} 封")
+                print(f"   ✅ Folder {folder}: deleted {deleted_count} emails, failed {failed_count} emails")
                 
                 clear_results[folder] = {
                     "success": failed_count == 0,
@@ -117,17 +117,17 @@ def clear_mailbox() -> Dict:
                 }
                 
             except Exception as e:
-                print(f"   ❌ 清理文件夹 {folder} 时出错: {e}")
+                print(f"   ❌ Error clearing folder {folder}: {e}")
                 clear_results[folder] = {
                     "success": False,
                     "error": str(e),
                     "deleted_count": 0
                 }
         
-        # 关闭连接
+        # close connection
         mail.logout()
         
-        # 计算总结果
+        # calculate total results
         total_deleted = sum(result.get('deleted_count', 0) for result in clear_results.values())
         all_success = all(result.get('success', False) for result in clear_results.values())
         
@@ -138,13 +138,13 @@ def clear_mailbox() -> Dict:
             "timestamp": datetime.now().isoformat()
         }
         
-        print(f"📊 邮箱清理完成:")
-        print(f"   总共删除: {total_deleted} 封邮件")
+        print(f"📊 Email cleanup completed:")
+        print(f"   Total deleted: {total_deleted} emails")
         
         if all_success:
-            print("✅ 邮箱清理成功！")
+            print("✅ Email cleanup successful!")
         else:
-            print("⚠️ 邮箱清理部分完成，有部分文件夹清理失败")
+            print("⚠️ Email cleanup partially completed, some folders cleanup failed")
         
         return final_result
         
@@ -154,41 +154,41 @@ def clear_mailbox() -> Dict:
             "error": str(e),
             "timestamp": datetime.now().isoformat()
         }
-        print(f"❌ 邮箱清理过程中出错: {e}")
+        print(f"❌ Error during email cleanup: {e}")
         return error_result
 
 
 async def main(agent_workspace=None, launch_time=None):
-    """主函数"""
+    """Main function"""
     try:
-        print("🚀 开始执行Canvas考试环境预处理...")
+        print("🚀 Starting to execute Canvas exam environment preprocessing...")
         
-        # 第一步：清空邮箱
+        # first step: clear mailbox
         print("\n" + "="*60)
-        print("第一步：清空mcpcanvasadmin2@mcp.com邮箱")
+        print("First step: clear mcpcanvasadmin2@mcp.com mailbox")
         print("="*60)
         
         mailbox_result = clear_mailbox()
         
         if not mailbox_result.get('success'):
-            print("⚠️ 邮箱清理未完全成功，但继续后续操作...")
-            print(f"邮箱清理详情: {mailbox_result}")
+            print("⚠️ Email cleanup not fully successful, but continuing with subsequent operations...")
+            print(f"Email cleanup details: {mailbox_result}")
         
-        # 等待一下，确保邮箱操作完成
-        print("⏳ 等待2秒，确保邮箱清理操作完成...")
+        # wait for a moment to ensure mailbox operations are completed
+        print("⏳ Waiting for 2 seconds to ensure mailbox cleanup operations are completed...")
         await asyncio.sleep(2)
         
-        # 第二步：执行课程设置
+        # second step: execute course setup
         print("\n" + "="*60)
-        print("第二步：执行课程设置")
+        print("Second step: execute course setup")
         print("="*60)
         
         await setup_courses_main(agent_workspace=agent_workspace)
         
-        print("\n🎉 Canvas考试环境预处理完成！")
+        print("\n🎉 Canvas exam environment preprocessing completed!")
         
     except Exception as e:
-        print(f"❌ 预处理过程中发生错误: {e}")
+        print(f"❌ Error during preprocessing: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":
@@ -197,53 +197,53 @@ if __name__ == "__main__":
     parser.add_argument("--launch_time", required=False, help="Launch time")
     args = parser.parse_args()
 
-    # 运行异步主函数
+    # run asynchronous main function
     asyncio.run(main(agent_workspace=args.agent_workspace, launch_time=args.launch_time))
 
-    # 确保agent workspace存在
+    # ensure agent workspace exists
     os.makedirs(args.agent_workspace, exist_ok=True)
     
-    # 检查源文件是否存在且不为空
+    # check if source file exists and is not empty
     initial_workspace_dir = os.path.join(os.path.dirname(__file__), '..', 'initial_workspace')
     src_tar_path = os.path.join(initial_workspace_dir, "files.tar.gz")
     dst_tar_path = os.path.join(args.agent_workspace, "files.tar.gz")
     
     if not os.path.exists(src_tar_path):
-        print(f"⚠️ 源文件不存在: {src_tar_path}")
-        print("跳过解压缩步骤")
+        print(f"⚠️ Source file does not exist: {src_tar_path}")
+        print("Skipping decompression step")
     elif os.path.getsize(src_tar_path) == 0:
-        print(f"⚠️ 源文件为空: {src_tar_path}")
-        print("跳过解压缩步骤")
+        print(f"⚠️ Source file is empty: {src_tar_path}")
+        print("Skipping decompression step")
     else:
-        # 复制文件到目标位置
+        # copy file to destination location
         try:
             import shutil
             shutil.copy2(src_tar_path, dst_tar_path)
-            print(f"已复制文件到: {dst_tar_path}")
+            print(f"Copied file to: {dst_tar_path}")
         except Exception as e:
-            print(f"复制文件失败: {e}")
+            print(f"Failed to copy file: {e}")
             sys.exit(1)
         
-        # 解压缩
+        # decompress
         try:
             with tarfile.open(dst_tar_path, 'r:gz') as tar:
-                print(f"正在解压缩到: {args.agent_workspace}")
-                # 兼容旧版Python：无filter参数时回退
+                print(f"Decompressing to: {args.agent_workspace}")
+                # compatible with old Python: fallback when filter parameter is not supported
                 try:
                     tar.extractall(path=args.agent_workspace, filter='data')
                 except TypeError:
-                    # Python 3.7等版本不支持filter参数
+                    # Python 3.7 and older versions do not support filter parameter
                     tar.extractall(path=args.agent_workspace)
-                print("解压缩完成")
+                print("Decompression completed")
         except Exception as e:
-            print(f"解压缩失败: {e}")
+            print(f"Decompression failed: {e}")
             sys.exit(1)
         
-        # 删除压缩文件
+        # delete compressed file
         try:
             os.remove(dst_tar_path)
-            print(f"已删除原始压缩文件: {dst_tar_path}")
+            print(f"Deleted original compressed file: {dst_tar_path}")
         except Exception as e:
-            print(f"删除压缩文件失败: {e}")
+            print(f"Failed to delete compressed file: {e}")
 
             

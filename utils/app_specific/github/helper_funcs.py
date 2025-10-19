@@ -7,10 +7,10 @@ from .api import github_headers, GITHUB_API
 
 def get_user_name(token):
     """
-    获取 GitHub 用户名。
+    Get GitHub user name.
 
-    :param token: GitHub 访问令牌
-    :return: 用户名
+    :param token: GitHub access token
+    :return: User name
     """
     url = f"{GITHUB_API}/user"
     r = requests.get(url, headers=github_headers(token))
@@ -21,13 +21,13 @@ def get_user_name(token):
 
 def read_file_content(token, repo_name, file_path, branch="master"):
     """
-    读取指定仓库中的文件内容。
+    Read the content of a file in a specified repository.
 
-    :param token: GitHub 访问令牌
-    :param repo_name: 仓库名称，格式为 "用户名/仓库名"
-    :param file_path: 要读取的文件路径
-    :param branch: 分支名称，默认为 "master"
-    :return: 文件内容
+    :param token: GitHub access token
+    :param repo_name: Repository name, format as "username/repo_name"
+    :param file_path: Path to the file to read
+    :param branch: Branch name, default is "master"
+    :return: File content
     """
     url = f"{GITHUB_API}/repos/{repo_name}/contents/{file_path}"
     params = {"ref": branch}
@@ -35,10 +35,10 @@ def read_file_content(token, repo_name, file_path, branch="master"):
 
     try:
         if r.status_code == 404:
-            print(f"文件 {file_path} 不存在")
+            print(f"File {file_path} does not exist")
             return None
         elif r.status_code != 200:
-            print(f"错误: HTTP {r.status_code} - {r.text}")
+            print(f"Error: HTTP {r.status_code} - {r.text}")
             return None
 
         file_info = r.json()
@@ -47,22 +47,22 @@ def read_file_content(token, repo_name, file_path, branch="master"):
         try:
             return base64.b64decode(content_b64).decode('utf-8')
         except UnicodeDecodeError:
-            print(f"文件 {file_path} 是二进制文件，无法直接解码为 UTF-8")
-            # 如果需要二进制内容
+            print(f"File {file_path} is a binary file, cannot be decoded directly to UTF-8")
+            # If binary content is needed
             return base64.b64decode(content_b64)
     except Exception as e:
-        print(f"错误: {traceback.format_exc()}")
+        print(f"Error: {traceback.format_exc()}")
         return None
 
 
 def roll_back_commit(token, repo_name, commit_sha, branch="master"):
     """
-    回滚指定仓库的分支到指定的 commit。
+    Roll back a branch in a specified repository to a specified commit.
 
-    :param token: GitHub 访问令牌
-    :param repo_name: 仓库名称，格式为 "用户名/仓库名"
-    :param branch_name: 分支名称
-    :param commit_sha: 要回滚到的 commit 的 SHA
+    :param token: GitHub access token
+    :param repo_name: Repository name, format as "username/repo_name"
+    :param branch_name: Branch name
+    :param commit_sha: SHA of the commit to roll back to
     """
     url = f"{GITHUB_API}/repos/{repo_name}/git/refs/heads/{branch}"
     payload = {
@@ -72,21 +72,21 @@ def roll_back_commit(token, repo_name, commit_sha, branch="master"):
 
     r = requests.patch(url, headers=github_headers(token), json=payload)
     if r.status_code == 200:
-        print(f"分支 {branch} 已回退到 commit: {commit_sha}")
+        print(f"Branch {branch} has been rolled back to commit: {commit_sha}")
     else:
         raise RuntimeError(f"Failed to rollback branch {branch}: {r.status_code} {r.text}")
 
 
 def create_file(token, repo_name, file_path, commit_message, content, branch="master"):
     """
-    在指定仓库中创建一个新文件。
+    Create a new file in a specified repository.
 
-    :param token: GitHub 访问令牌
-    :param repo_name: 仓库名称，格式为 "用户名/仓库名"
-    :param file_path: 要创建的文件路径
-    :param commit_message: 提交信息
-    :param content: 文件内容
-    :param branch: 分支名称，默认为 "master"
+    :param token: GitHub access token
+    :param repo_name: Repository name, format as "username/repo_name"
+    :param file_path: Path to the file to create
+    :param commit_message: Commit message
+    :param content: File content
+    :param branch: Branch name, default is "master"
     """
     url = f"{GITHUB_API}/repos/{repo_name}/contents/{file_path}"
 
@@ -104,21 +104,21 @@ def create_file(token, repo_name, file_path, commit_message, content, branch="ma
 
     r = requests.put(url, headers=github_headers(token), json=payload)
     if r.status_code in (200, 201):
-        print(f"文件 {file_path} 已创建到分支 {branch}。")
+        print(f"File {file_path} has been created on branch {branch}.")
     else:
         raise RuntimeError(f"Failed to create file {file_path}: {r.status_code} {r.text}")
 
 
 def update_file(token, repo_name, file_path, commit_message, content, branch="master"):
     """
-    更新指定仓库中的文件。
+    Update a file in a specified repository.
 
-    :param token: GitHub 访问令牌
-    :param repo_name: 仓库名称，格式为 "用户名/仓库名"
-    :param file_path: 要更新的文件路径
-    :param commit_message: 提交信息
-    :param content: 文件的新内容
-    :param branch: 分支名称，默认为 "master"
+    :param token: GitHub access token
+    :param repo_name: Repository name, format as "username/repo_name"
+    :param file_path: Path to the file to update
+    :param commit_message: Commit message
+    :param content: New content of the file
+    :param branch: Branch name, default is "master"
     """
     # First get the current file to get its SHA
     get_url = f"{GITHUB_API}/repos/{repo_name}/contents/{file_path}"
@@ -147,19 +147,19 @@ def update_file(token, repo_name, file_path, commit_message, content, branch="ma
 
     r = requests.put(put_url, headers=github_headers(token), json=payload)
     if r.status_code in (200, 201):
-        print(f"文件 {file_path} 已更新到分支 {branch}。")
+        print(f"File {file_path} has been updated on branch {branch}.")
     else:
         raise RuntimeError(f"Failed to update file {file_path}: {r.status_code} {r.text}")
 
 
 def delete_folder_contents(token, repo_name, folder_path, branch="master"):
     """
-    删除指定仓库中指定文件夹下的所有文件。
+    Delete all files in a specified folder in a specified repository.
 
-    :param token: GitHub 访问令牌
-    :param repo_name: 仓库名称，格式为 "用户名/仓库名"
-    :param folder_path: 要删除的文件夹路径
-    :param branch: 分支名称，默认为 "master"
+    :param token: GitHub access token
+    :param repo_name: Repository name, format as "username/repo_name"
+    :param folder_path: Path to the folder to delete
+    :param branch: Branch name, default is "master"
     """
     def _delete_contents_recursive(path):
         url = f"{GITHUB_API}/repos/{repo_name}/contents/{path}"
@@ -167,10 +167,10 @@ def delete_folder_contents(token, repo_name, folder_path, branch="master"):
         r = requests.get(url, headers=github_headers(token), params=params)
 
         if r.status_code == 404:
-            print(f"文件夹 {path} 不存在")
+            print(f"Folder {path} does not exist")
             return
         elif r.status_code != 200:
-            print(f"错误: {traceback.format_exc()}")
+            print(f"Error: {traceback.format_exc()}")
             return
 
         contents = r.json()
@@ -191,25 +191,25 @@ def delete_folder_contents(token, repo_name, folder_path, branch="master"):
                 }
                 delete_r = requests.delete(delete_url, headers=github_headers(token), json=delete_payload)
                 if delete_r.status_code == 200:
-                    print(f"已删除: {item['path']}")
+                    print(f"Deleted: {item['path']}")
                 else:
-                    print(f"删除失败: {item['path']} - {delete_r.status_code} {delete_r.text}")
+                    print(f"Failed to delete: {item['path']} - {delete_r.status_code} {delete_r.text}")
 
     try:
         _delete_contents_recursive(folder_path)
-        print(f"文件夹 {folder_path} 下的所有文件已删除")
+        print(f"All files in folder {folder_path} have been deleted")
     except Exception as e:
-        print(f"错误: {traceback.format_exc()}")
+        print(f"Error: {traceback.format_exc()}")
 
 
 def get_latest_commit_sha(token, repo_name, branch="master"):
     """
-    获取指定分支的最新 commit SHA。
+    Get the latest commit SHA of a specified branch.
 
-    :param token: GitHub 访问令牌
-    :param repo_name: 仓库名称，格式为 "用户名/仓库名"
-    :param branch: 分支名称，默认为 "master"
-    :return: 最新 commit 的 SHA
+    :param token: GitHub access token
+    :param repo_name: Repository name, format as "username/repo_name"
+    :param branch: Branch name, default is "master"
+    :return: SHA of the latest commit
     """
     url = f"{GITHUB_API}/repos/{repo_name}/branches/{branch}"
     r = requests.get(url, headers=github_headers(token))
@@ -223,42 +223,42 @@ def get_latest_commit_sha(token, repo_name, branch="master"):
 
 def get_modified_files_between_commits(token, repo_name, old_sha, new_sha):
     """
-    获取两个 commit 之间修改的文件列表。
+    Get the list of files modified between two commits.
 
-    :param token: GitHub 访问令牌
-    :param repo_name: 仓库名称，格式为 "用户名/仓库名"
-    :param old_sha: 旧的 commit SHA
-    :param new_sha: 新的 commit SHA
-    :return: 修改的文件列表
+    :param token: GitHub access token
+    :param repo_name: Repository name, format as "username/repo_name"
+    :param old_sha: SHA of the old commit
+    :param new_sha: SHA of the new commit
+    :return: List of modified files
     """
     url = f"{GITHUB_API}/repos/{repo_name}/compare/{old_sha}...{new_sha}"
 
     try:
         r = requests.get(url, headers=github_headers(token))
         if r.status_code == 404:
-            print("一个或多个 commit 不存在")
+            print("One or more commits do not exist")
             return None
         elif r.status_code == 403:
-            print("权限不足或 API 速率限制")
+            print("Permission denied or API rate limit exceeded")
             return None
         elif r.status_code != 200:
-            print(f"错误: HTTP {r.status_code} - {r.text}")
+            print(f"Error: HTTP {r.status_code} - {r.text}")
             return None
 
         comparison = r.json()
         return comparison.get("files", [])
     except Exception as e:
-        print(f"发生错误: {e}")
+        print(f"Error: {e}")
         return None
 
 
 def check_repo_exists(token, repo_name):
     """
-    检查指定的 GitHub 仓库是否存在。
+    Check if a specified GitHub repository exists.
 
-    :param token: GitHub 访问令牌
-    :param repo_name: 仓库名称，格式为 "用户名/仓库名"
-    :return: 如果仓库存在则返回 True，否则返回 False
+    :param token: GitHub access token
+    :param repo_name: Repository name, format as "username/repo_name"
+    :return: True if repository exists, False otherwise
     """
     url = f"{GITHUB_API}/repos/{repo_name}"
 
@@ -269,21 +269,21 @@ def check_repo_exists(token, repo_name):
         elif r.status_code == 404:
             return False
         else:
-            print(f"错误: {traceback.format_exc()}")
+            print(f"Error: {traceback.format_exc()}")
             return False
     except Exception as e:
-        print(f"错误: {traceback.format_exc()}")
+        print(f"Error: {traceback.format_exc()}")
         return False
 
 
 def fork_repo(token, source_repo_name, new_repo_name=""):
     """
-    Fork一个仓库到当前认证用户的账户下，并可选择性地进行重命名。
+    Fork a repository to the current authenticated user's account, and optionally rename it.
 
-    :param token: GitHub 个人访问令牌 (Personal Access Token)。
-    :param source_repo_name: 源仓库的全名，格式为 "owner/repo"。
-    :param new_repo_name: Fork后为仓库设置的新名称（可选）。如果留空，将使用原始仓库名。
-    :return: 返回最终创建的仓库信息字典 (类似 PyGithub 仓库对象的属性)。
+    :param token: GitHub personal access token (Personal Access Token).
+    :param source_repo_name: Full name of the source repository, format as "owner/repo".
+    :param new_repo_name: New name for the repository after forking (optional). If left empty, the original repository name will be used.
+    :return: Dictionary of the final created repository information (similar to PyGithub repository object attributes).
     """
     try:
         # Fork the repository
@@ -311,7 +311,7 @@ def fork_repo(token, source_repo_name, new_repo_name=""):
             if rename_r.status_code == 200:
                 forked_repo_info = rename_r.json()
 
-        print(f"✅ 成功将仓库 {source_repo_name} Fork 为 {forked_repo_info['full_name']}")
+        print(f"✅ Successfully forked repository {source_repo_name} to {forked_repo_info['full_name']}")
 
         # Return an object that mimics PyGithub Repository object attributes
         class RepoObj:
@@ -325,19 +325,19 @@ def fork_repo(token, source_repo_name, new_repo_name=""):
         return RepoObj(forked_repo_info)
 
     except Exception as e:
-        print(f"❌ Fork操作失败: {e}")
+        print(f"❌ Fork operation failed: {e}")
         return None
 
 
 def create_repo(token, repo_name, description="", private=False):
     """
-    为论文创建一个GitHub仓库，并初始化基本的项目结构。
+    Create a GitHub repository for a paper, and initialize the basic project structure.
 
-    :param token: GitHub 访问令牌
-    :param repo_name: 仓库名称
-    :param description: 仓库描述
-    :param private: 是否私有仓库，默认为 False
-    :return: 创建的仓库对象
+    :param token: GitHub access token
+    :param repo_name: Repository name
+    :param description: Repository description
+    :param private: Whether to create a private repository, default is False
+    :return: Created repository object
     """
     url = f"{GITHUB_API}/user/repos"
     payload = {
@@ -353,7 +353,7 @@ def create_repo(token, repo_name, description="", private=False):
         raise RuntimeError(f"Failed to create repo {repo_name}: {r.status_code} {r.text}")
 
     repo_data = r.json()
-    print(f"已创建仓库: {repo_data['full_name']}")
+    print(f"Repository {repo_data['full_name']} has been created")
 
     # Return an object that mimics PyGithub Repository object attributes
     class RepoObj:

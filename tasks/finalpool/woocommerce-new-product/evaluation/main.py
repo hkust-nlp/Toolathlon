@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-新品邮件任务评估系统
-评估MCP服务器在新品邮件发送流程中的执行效果
+New Product Email Task Evaluation System
+Evaluates the effectiveness of the MCP server in the new product email sending workflow
 """
 import json
 import os
@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Tuple, Any
 
-# 添加项目路径
+# Add project path for imports
 current_dir = os.path.dirname(os.path.abspath(__file__))
 task_dir = os.path.dirname(current_dir)
 sys.path.insert(0, task_dir)
@@ -143,14 +143,14 @@ def validate_customer_segmentation(report: Dict) -> Tuple[bool, str]:
     return True, f"Segmentation valid: {len(appointment_sent)} appointment, {len(discount_sent)} discount emails"
 
 def run_complete_evaluation(agent_workspace: str, groundtruth_workspace: str, res_log_file: str) -> Tuple[bool, str]:
-    """运行完整的新品邮件评估工作流程"""
+    """Run the complete evaluation workflow for new product emails"""
     
     print("🚀 Starting New Product Email Task Evaluation")
     print("=" * 80)
     
     results = []
     
-    # 主要检查：远程服务检查
+    # Main check: remote service check
     print("\n🌐 Checking Remote Services...")
     try:
         remote_pass, remote_msg = check_remote_new_product_execution(agent_workspace, groundtruth_workspace, {})
@@ -160,12 +160,11 @@ def run_complete_evaluation(agent_workspace: str, groundtruth_workspace: str, re
         results.append(("Remote Services", False, str(e)))
         print(f"❌ Remote services check error: {e}")
     
-       
-    # 计算总体结果
+    # Summary calculation
     passed_count = sum(1 for _, passed, _ in results if passed)
     total_count = len(results)
     
-    # 摘要
+    # Build summary
     summary = []
     summary.append("\n" + "=" * 80)
     summary.append("EVALUATION SUMMARY")
@@ -193,7 +192,7 @@ def run_complete_evaluation(agent_workspace: str, groundtruth_workspace: str, re
         summary.append(final_message + " - ❌ SOME TESTS FAILED")
         summary.append("\n❌ Please review the failed tests above")
         
-        # 添加失败提示
+        # Add failed tips
         failed_components = [name for name, passed, _ in results if not passed]
         if failed_components:
             summary.append(f"\nFailed components: {', '.join(failed_components)}")
@@ -209,7 +208,7 @@ def run_complete_evaluation(agent_workspace: str, groundtruth_workspace: str, re
     return overall_pass, "\n".join(summary)
 
 def main(args):
-    """主函数"""
+    """Main function"""
     try:
         success, message = run_complete_evaluation(
             args.agent_workspace, 

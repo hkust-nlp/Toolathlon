@@ -7,49 +7,48 @@ from typing import Dict, List, Optional, Tuple
 
 
 class WooCommerceClient:
-    """WooCommerce API客户端"""
-    
+    """WooCommerce API Client"""
+
     def __init__(self, site_url: str, consumer_key: str, consumer_secret: str):
         """
-        初始化WooCommerce API客户端
-        
+        Initialize WooCommerce API client
+
         Args:
-            site_url: WooCommerce网站URL
-            consumer_key: WooCommerce API消费者密钥
-            consumer_secret: WooCommerce API消费者密钥
+            site_url: WooCommerce site URL
+            consumer_key: WooCommerce API consumer key
+            consumer_secret: WooCommerce API consumer secret
         """
         self.site_url = site_url.rstrip('/')
         self.api_base = f"{self.site_url}/wp-json/wc/v3"
         self.consumer_key = consumer_key
         self.consumer_secret = consumer_secret
-        
-        # 创建session
+
+        # Create session
         self.session = requests.Session()
         self.session.auth = HTTPBasicAuth(consumer_key, consumer_secret)
         self.session.headers.update({
             'Content-Type': 'application/json',
             'User-Agent': 'NewProductEmail-Setup/1.0'
         })
-        
-        print(f"🔗 WooCommerce客户端已初始化: {self.site_url}")
-    
+
+        print(f"🔗 WooCommerce client initialized: {self.site_url}")
+
     def _make_request(self, method: str, endpoint: str, data=None, params=None) -> Tuple[bool, Dict]:
         """
-        发送API请求
-        
+        Send API request
+
         Args:
-            method: HTTP方法 (GET, POST, PUT, DELETE)
-            endpoint: API端点
-            data: 请求数据
-            params: URL参数
-            
+            method: HTTP method (GET, POST, PUT, DELETE)
+            endpoint: API endpoint
+            data: Request data
+            params: URL parameters
+
         Returns:
-            (成功状态, 响应数据/错误信息)
+            (success flag, response data/error info)
         """
-        # 确保endpoint不以斜杠开头
         endpoint = endpoint.lstrip('/')
         url = f"{self.api_base}/{endpoint}"
-        
+
         try:
             if method.upper() == 'GET':
                 response = self.session.get(url, params=params)
@@ -60,9 +59,8 @@ class WooCommerceClient:
             elif method.upper() == 'DELETE':
                 response = self.session.delete(url, params=params)
             else:
-                return False, {"error": f"不支持的HTTP方法: {method}"}
-            
-            # 检查响应状态
+                return False, {"error": f"Unsupported HTTP method: {method}"}
+
             if response.status_code in [200, 201, 204]:
                 try:
                     return True, response.json() if response.content else {}
@@ -81,109 +79,109 @@ class WooCommerceClient:
                         "error": f"HTTP {response.status_code}: {response.text}",
                         "code": response.status_code
                     }
-                    
+
         except requests.exceptions.RequestException as e:
-            return False, {"error": f"请求异常: {str(e)}"}
+            return False, {"error": f"Request Exception: {str(e)}"}
         except Exception as e:
-            return False, {"error": f"未知错误: {str(e)}"}
-    
+            return False, {"error": f"Unknown Error: {str(e)}"}
+
     def test_connection(self) -> Tuple[bool, str]:
-        """测试API连接"""
+        """Test API connection"""
         success, response = self._make_request('GET', 'system_status')
         if success:
-            return True, "API连接测试成功"
+            return True, "API connection test successful"
         else:
-            return False, f"API连接测试失败: {response.get('error', '未知错误')}"
-    
-    # 商品相关方法
+            return False, f"API connection test failed: {response.get('error', 'Unknown error')}"
+
+    # Product-related methods
     def create_product(self, product_data: Dict) -> Tuple[bool, Dict]:
-        """创建商品"""
+        """Create a product"""
         return self._make_request('POST', 'products', data=product_data)
-    
+
     def get_product(self, product_id: str) -> Tuple[bool, Dict]:
-        """获取单个商品"""
+        """Get a single product"""
         return self._make_request('GET', f'products/{product_id}')
-    
+
     def get_all_products(self, per_page: int = 100) -> List[Dict]:
-        """获取所有商品"""
+        """Get all products"""
         all_products = []
         page = 1
-        
+
         while True:
             success, response = self._make_request('GET', 'products', params={
                 'per_page': per_page,
                 'page': page
             })
-            
+
             if not success:
-                print(f"获取商品列表失败: {response.get('error', '未知错误')}")
+                print(f"Failed to get product list: {response.get('error', 'Unknown error')}")
                 break
-            
+
             if not response or len(response) == 0:
                 break
-            
+
             all_products.extend(response)
-            
-            # 如果返回的商品数量少于per_page，说明已经到最后一页
+
+            # If returned products are less than per_page, we've reached the end
             if len(response) < per_page:
                 break
-                
+
             page += 1
-            time.sleep(0.1)  # 避免API限制
-        
+            time.sleep(0.1)  # Avoid API rate limiting
+
         return all_products
-    
+
     def update_product(self, product_id: str, product_data: Dict) -> Tuple[bool, Dict]:
-        """更新商品"""
+        """Update a product"""
         return self._make_request('PUT', f'products/{product_id}', data=product_data)
-    
+
     def delete_product(self, product_id: str, force: bool = False) -> Tuple[bool, Dict]:
-        """删除商品"""
+        """Delete a product"""
         params = {'force': force} if force else None
         return self._make_request('DELETE', f'products/{product_id}', params=params)
-    
+
     def list_products(self, per_page: int = 10, page: int = 1, **kwargs) -> Tuple[bool, List[Dict]]:
-        """列出商品"""
+        """List products"""
         params = {
             'per_page': per_page,
             'page': page,
             **kwargs
         }
         return self._make_request('GET', 'products', params=params)
-    
-    # 分类相关方法
+
+    # Category-related methods
     def create_category(self, category_data: Dict) -> Tuple[bool, Dict]:
-        """创建商品分类"""
+        """Create a product category"""
         return self._make_request('POST', 'products/categories', data=category_data)
-    
+
     def get_product_categories(self, per_page: int = 100) -> Tuple[bool, List[Dict]]:
-        """获取商品分类列表"""
+        """Get list of product categories"""
         return self._make_request('GET', 'products/categories', params={'per_page': per_page})
-    
+
     def delete_category(self, category_id: str, force: bool = False) -> Tuple[bool, Dict]:
-        """删除商品分类"""
+        """Delete a product category"""
         params = {'force': force} if force else None
         return self._make_request('DELETE', f'products/categories/{category_id}', params=params)
-    
-    # 客户相关方法
+
+    # Customer-related methods
     def create_customer(self, customer_data: Dict) -> Tuple[bool, Dict]:
-        """创建客户"""
+        """Create a customer"""
         return self._make_request('POST', 'customers', data=customer_data)
-    
+
     def get_customer(self, customer_id: str) -> Tuple[bool, Dict]:
-        """获取单个客户"""
+        """Get a single customer"""
         return self._make_request('GET', f'customers/{customer_id}')
-    
+
     def search_customer_by_email(self, email: str) -> Tuple[bool, Optional[Dict]]:
-        """通过邮箱搜索客户"""
-        # 方法1：使用search参数
+        """Search customer by email"""
+        # Method 1: Use search parameter
         success, response = self._make_request('GET', 'customers', params={'search': email})
         if success and response:
             for customer in response:
                 if customer.get('email', '').lower() == email.lower():
                     return True, customer
 
-        # 方法2：尝试使用email参数（有些WooCommerce版本支持）
+        # Method 2: Try the email parameter (supported in some WooCommerce versions)
         success, response = self._make_request('GET', 'customers', params={'email': email})
         if success and response:
             if isinstance(response, list) and len(response) > 0:
@@ -191,7 +189,7 @@ class WooCommerceClient:
             elif isinstance(response, dict):
                 return True, response
 
-        # 方法3：获取所有客户并匹配（最后手段）
+        # Method 3: Fetch all customers and match (as a last resort)
         success, all_customers = self.get_all_customers(per_page=100)
         if success:
             for customer in all_customers:
@@ -201,12 +199,11 @@ class WooCommerceClient:
         return False, None
 
     def get_all_customers(self, per_page: int = 100) -> Tuple[bool, List[Dict]]:
-        """获取所有客户"""
+        """Get all customers"""
         all_customers = []
         page = 1
 
         while True:
-            # 尝试不同的参数组合来获取客户
             params = {
                 'per_page': per_page,
                 'page': page,
@@ -217,10 +214,10 @@ class WooCommerceClient:
             success, response = self._make_request('GET', 'customers', params=params)
 
             if not success:
-                print(f"获取客户列表失败 (page {page}): {response.get('error', '未知错误')}")
-                # 尝试其他方法
+                print(f"Failed to get customer list (page {page}): {response.get('error', 'Unknown error')}")
+                # Try other approach
                 if page == 1:
-                    # 尝试更宽松的参数
+                    # Try looser parameter set
                     success, response = self._make_request('GET', 'customers', params={'per_page': per_page})
                     if not success:
                         return False, []
@@ -239,63 +236,63 @@ class WooCommerceClient:
             time.sleep(0.1)
 
         return True, all_customers
-    
+
     def update_customer(self, customer_id: str, customer_data: Dict) -> Tuple[bool, Dict]:
-        """更新客户"""
+        """Update a customer"""
         return self._make_request('PUT', f'customers/{customer_id}', data=customer_data)
-    
+
     def delete_customer(self, customer_id: str, force: bool = False) -> Tuple[bool, Dict]:
-        """删除客户"""
+        """Delete a customer"""
         params = {'force': force} if force else None
         return self._make_request('DELETE', f'customers/{customer_id}', params=params)
-    
-    # 订单相关方法
+
+    # Order-related methods
     def create_order(self, order_data: Dict) -> Tuple[bool, Dict]:
-        """创建订单"""
+        """Create an order"""
         return self._make_request('POST', 'orders', data=order_data)
-    
+
     def get_order(self, order_id: str) -> Tuple[bool, Dict]:
-        """获取单个订单"""
+        """Get a single order"""
         return self._make_request('GET', f'orders/{order_id}')
-    
+
     def list_orders(self, per_page: int = 10, **kwargs) -> Tuple[bool, List[Dict]]:
-        """列出订单"""
+        """List orders"""
         params = {
             'per_page': per_page,
             **kwargs
         }
         return self._make_request('GET', 'orders', params=params)
-    
+
     def update_order(self, order_id: str, order_data: Dict) -> Tuple[bool, Dict]:
-        """更新订单"""
+        """Update an order"""
         return self._make_request('PUT', f'orders/{order_id}', data=order_data)
-    
+
     def delete_order(self, order_id: str, force: bool = False) -> Tuple[bool, Dict]:
-        """删除订单"""
+        """Delete an order"""
         params = {'force': force} if force else None
         return self._make_request('DELETE', f'orders/{order_id}', params=params)
 
 
 def test_client():
-    """测试客户端功能"""
-    # 这里需要实际的WooCommerce站点信息
+    """Test client functionality"""
+    # Please use real WooCommerce site info here
     site_url = "http://localhost:10003/store97"
     consumer_key = "ck_woocommerce_token_walkers147a"
     consumer_secret = "cs_woocommerce_token_walkers147a"
-    
+
     client = WooCommerceClient(site_url, consumer_key, consumer_secret)
-    
-    # 测试连接
+
+    # Test connection
     success, message = client.test_connection()
-    print(f"连接测试: {message}")
-    
+    print(f"Connection test: {message}")
+
     if success:
-        # 测试获取商品列表
+        # Test get product list
         success, products = client.list_products(per_page=5)
         if success:
-            print(f"获取到 {len(products)} 个商品")
+            print(f"Retrieved {len(products)} products")
         else:
-            print(f"获取商品失败: {products}")
+            print(f"Failed to get products: {products}")
 
 
 if __name__ == "__main__":

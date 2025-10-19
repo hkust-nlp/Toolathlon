@@ -1,338 +1,266 @@
 from argparse import ArgumentParser
 import os
-import subprocess
 import json
 
-def check_gcloud_authentication():
-    """检查Google Cloud CLI是否已认证"""
-    try:
-        result = subprocess.run(['gcloud', 'auth', 'list', '--filter=status:ACTIVE', '--format=value(account)'], 
-                              capture_output=True, text=True, check=True)
-        if '@' in result.stdout:
-            return True
-        return False
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        return False
+from argparse import ArgumentParser
+import os
+import subprocess
+import json
+from google.cloud import storage
+from google.cloud import bigquery
+from google.cloud.exceptions import NotFound, Conflict
+from google.oauth2 import service_account
+import random
 
-def delete_investigation_file_if_exists(bucket_name="mcp-fraud-investigation-archive", file_name="T8492XJ3.json", project_id="mcp-bench0606"):
-    """删除Google Cloud Storage存储桶中的调查文件（如果存在）"""
-    print(f"🧹 Checking for existing investigation file: gs://{bucket_name}/{file_name}")
-    
-    try:
-        # 检查文件是否存在
-        check_result = subprocess.run(['gcloud', 'storage', 'ls', f'gs://{bucket_name}/{file_name}'], 
-                                    capture_output=True, text=True)
-        
-        if check_result.returncode == 0:
-            print(f"📄 Found existing investigation file: {file_name}")
-            print(f"🗑️  Deleting file: {file_name} to allow fresh task execution...")
-            
-            # 删除文件
-            delete_result = subprocess.run(['gcloud', 'storage', 'rm', f'gs://{bucket_name}/{file_name}'], 
-                                         capture_output=True, text=True)
-            
-            if delete_result.returncode == 0:
-                print(f"✅ Successfully deleted investigation file: {file_name}")
-                return True
+random.seed(42)
+
+# Set path to credentials file
+CREDENTIALS_PATH = "configs/gcp-service_account.keys.json"
+if os.path.exists(CREDENTIALS_PATH):
+    credentials = service_account.Credentials.from_service_account_file(CREDENTIALS_PATH)
+else:
+    credentials = None
+
+# Parse project_id from service account file
+with open(CREDENTIALS_PATH, 'r') as f:
+    service_account_info = json.load(f)
+    PROJECT_ID = service_account_info.get('project_id')
+
+
+import uuid
+
+def delete_and_recreate_bucket(
+    bucket_name="mcp-fraud-investigation-archive", project_id=PROJECT_ID, location="us-central1", max_retries=10
+):
+    """
+    Find all buckets with prefix bucket_name, delete them, and recreate a new unique bucket (prefix bucket_name+uuid),
+    and save the new bucket name to ../groundtruth_workspace/bucket_name.txt file.
+    Retries up to max_retries times for robustness.
+    """
+    import time
+
+    print(f"🔍 Finding and deleting buckets with prefix: {bucket_name}")
+
+    for attempt in range(1, max_retries + 1):
+        try:
+            storage_client = storage.Client(project=project_id, credentials=credentials)
+
+            # Find all buckets with prefix matching
+            found_buckets = []
+            for bucket in storage_client.list_buckets():
+                if bucket.name.startswith(bucket_name):
+                    print(f"🗑️  Deleting bucket: {bucket.name}")
+                    try:
+                        # Need to delete all objects in the bucket first
+                        blobs = list(bucket.list_blobs())
+                        if blobs:
+                            for blob in blobs:
+                                blob.delete()
+                        bucket.delete(force=True)
+                        print(f"✅ Successfully deleted bucket {bucket.name}")
+                    except Exception as del_e:
+                        print(f"⚠️ Error deleting bucket {bucket.name}: {del_e}")
+                    found_buckets.append(bucket.name)
+
+            # Double check deletion
+            still_exists = [b.name for b in storage_client.list_buckets() if b.name.startswith(bucket_name)]
+            if still_exists:
+                print(f"⚠️ Still found buckets after deletion attempt: {still_exists}. Retrying...")
+                raise Exception("Buckets not fully deleted yet")
+
+            # Generate new unique bucket name
+            new_bucket_name = f"{bucket_name}-{uuid.uuid4().hex[:12]}"
+            print(f"📦 Creating new bucket: {new_bucket_name}")
+
+            # Try to create the new bucket, retry internally if Conflict
+            create_succeeded = False
+            for create_attempt in range(3):
+                try:
+                    bucket_obj = storage_client.bucket(new_bucket_name)
+                    storage_client.create_bucket(bucket_obj, location=location)
+                    print(f"✅ Successfully created bucket: {new_bucket_name}")
+                    create_succeeded = True
+                    break
+                except Conflict:
+                    print(f"⚠️ Bucket name {new_bucket_name} already taken/conflict, retrying with new name...")
+                    new_bucket_name = f"{bucket_name}-{uuid.uuid4().hex[:12]}"
+                except Exception as create_e:
+                    print(f"❌ Failed to create bucket ({create_attempt+1}/3): {create_e}")
+                    time.sleep(2)
+            if not create_succeeded:
+                raise Exception("Failed to create new bucket after retries")
+
+            # Save bucket name to specified file
+            save_path = os.path.abspath(
+                os.path.join(os.path.dirname(__file__), "../groundtruth_workspace/bucket_name.txt")
+            )
+            # Extra retry here in case of file IO issues
+            for file_attempt in range(3):
+                try:
+                    with open(save_path, "w") as f:
+                        f.write(new_bucket_name.strip() + "\n")
+                    print(f"💾 Saved new bucket name to {save_path}")
+                    break
+                except Exception as file_e:
+                    print(f"⚠️ Error saving bucket name file: {file_e}, retrying...")
+                    time.sleep(1)
             else:
-                print(f"❌ Failed to delete investigation file: {file_name}")
-                print(f"Error: {delete_result.stderr}")
-                return False
-        else:
-            print(f"✅ Investigation file {file_name} does not exist - no cleanup needed")
-            return True
-            
-    except FileNotFoundError:
-        print("❌ Error: gcloud command not found. Please install Google Cloud SDK.")
-        return False
-    except Exception as e:
-        print(f"❌ Error checking/deleting investigation file: {e}")
-        return False
+                raise Exception("Failed to write bucket name file after retries")
 
-def ensure_bucket_exists(bucket_name="mcp-fraud-investigation-archive", project_id="mcp-bench0606"):
-    """确保存储桶存在，如果不存在则创建"""
-    print(f"🔍 Checking if bucket exists: {bucket_name}")
-    
-    try:
-        # 检查存储桶是否存在
-        check_result = subprocess.run(['gcloud', 'storage', 'ls', f'gs://{bucket_name}'], 
-                                    capture_output=True, text=True)
-        
-        if check_result.returncode == 0:
-            print(f"✅ Bucket {bucket_name} already exists")
-            return True
-        else:
-            print(f"📦 Creating bucket: {bucket_name}")
-            # 创建存储桶
-            create_result = subprocess.run(['gcloud', 'storage', 'buckets', 'create', f'gs://{bucket_name}', 
-                                          '--project', project_id, '--location=us-central1'], 
-                                         capture_output=True, text=True)
-            
-            if create_result.returncode == 0:
-                print(f"✅ Successfully created bucket: {bucket_name}")
-                return True
+            return new_bucket_name
+
+        except Exception as e:
+            print(f"❌ Error handling buckets (attempt {attempt}/{max_retries}): {e}")
+            if attempt < max_retries:
+                print("⏳ Waiting a bit before next retry...")
+                time.sleep(3)
             else:
-                print(f"❌ Failed to create bucket: {bucket_name}")
-                print(f"Error: {create_result.stderr}")
-                return False
-                
-    except FileNotFoundError:
-        print("❌ Error: gcloud command not found. Please install Google Cloud SDK.")
-        return False
-    except Exception as e:
-        print(f"❌ Error checking/creating bucket: {e}")
-        return False
+                print("❌ All attempts failed. Giving up.")
+                raise e
 
-def check_log_bucket_exists(bucket_name="Trading_Logging", project_id="mcp-bench0606"):
-    """检查Google Cloud Logging bucket是否存在"""
-    print(f"🔍 Checking if log bucket exists: {bucket_name}")
-    
-    try:
-        # 检查log bucket是否存在 - 使用正确的格式获取bucket名称
-        check_result = subprocess.run(['gcloud', 'logging', 'buckets', 'list', 
-                                     '--project', project_id, '--format=value(name.basename())'], 
-                                    capture_output=True, text=True)
-        
-        if check_result.returncode == 0:
-            # 检查输出中是否包含我们的bucket名称
-            buckets = check_result.stdout.strip().split('\n')
-            for bucket in buckets:
-                if bucket.strip() == bucket_name:
-                    print(f"✅ Log bucket {bucket_name} already exists")
-                    return True
-            
-            print(f"📝 Log bucket {bucket_name} does not exist")
-            return False
-        else:
-            print(f"❌ Failed to list log buckets")
-            print(f"Error: {check_result.stderr}")
-            return False
-            
-    except FileNotFoundError:
-        print("❌ Error: gcloud command not found. Please install Google Cloud SDK.")
-        return False
-    except Exception as e:
-        print(f"❌ Error checking log bucket: {e}")
-        return False
 
-def create_log_bucket(bucket_name="Trading_Logging", project_id="mcp-bench0606", location="global"):
-    """创建Google Cloud Logging bucket"""
-    print(f"📝 Creating log bucket: {bucket_name}")
-    
-    try:
-        # 创建log bucket
-        create_result = subprocess.run(['gcloud', 'logging', 'buckets', 'create', bucket_name,
-                                      '--project', project_id, '--location', location,
-                                      '--retention-days=30'], 
-                                     capture_output=True, text=True)
-        
-        if create_result.returncode == 0:
-            print(f"✅ Successfully created log bucket: {bucket_name}")
-            return True
-        else:
-            # 检查是否是因为bucket已存在而失败
-            if "ALREADY_EXISTS" in create_result.stderr:
-                print(f"✅ Log bucket {bucket_name} already exists (detected during creation)")
-                return True
-            else:
-                print(f"❌ Failed to create log bucket: {bucket_name}")
-                print(f"Error: {create_result.stderr}")
-                return False
-            
-    except FileNotFoundError:
-        print("❌ Error: gcloud command not found. Please install Google Cloud SDK.")
-        return False
-    except Exception as e:
-        print(f"❌ Error creating log bucket: {e}")
-        return False
+import uuid
+import time
 
-def clear_log_bucket_logs(bucket_name="Trading_Logging", project_id="mcp-bench0606"):
-    """清空log bucket中的日志"""
-    print(f"🧹 Clearing logs from log bucket: {bucket_name}")
-    
-    try:
-        # 首先列出bucket中的日志
-        list_result = subprocess.run(['gcloud', 'logging', 'logs', 'list', 
-                                    '--project', project_id, '--format=value(name)'], 
-                                   capture_output=True, text=True)
-        
-        if list_result.returncode != 0:
-            print(f"❌ Failed to list logs in project")
-            print(f"Error: {list_result.stderr}")
-            return False
-        
-        # 删除与Trading相关的日志
-        logs_to_delete = []
-        if list_result.stdout.strip():
-            all_logs = list_result.stdout.strip().split('\n')
-            logs_to_delete = [log for log in all_logs if 'trading' in log.lower() or 'transaction' in log.lower()]
-        
-        if logs_to_delete:
-            print(f"🗑️  Found {len(logs_to_delete)} trading-related logs to clear")
-            
-            for log_name in logs_to_delete:
-                delete_result = subprocess.run(['gcloud', 'logging', 'logs', 'delete', log_name,
-                                              '--project', project_id, '--quiet'], 
-                                             capture_output=True, text=True)
-                
-                if delete_result.returncode == 0:
-                    print(f"✅ Cleared log: {log_name}")
-                else:
-                    print(f"⚠️  Failed to clear log: {log_name}")
-        else:
-            print(f"✅ No trading-related logs found to clear")
-        
-        return True
-        
-    except FileNotFoundError:
-        print("❌ Error: gcloud command not found. Please install Google Cloud SDK.")
-        return False
-    except Exception as e:
-        print(f"❌ Error clearing log bucket logs: {e}")
-        return False
+def manage_log_bucket(
+        project_id=PROJECT_ID, 
+        bucket_name_prefix="abtesting_logging", 
+        location="global", 
+        max_retries=10,
+        ):
+    """
+    If a log bucket with given prefix exists, clear its logs and use it.
+    If no such bucket exists, create a new one, and save the bucket name
+    to ../groundtruth_workspace/log_bucket_name.txt file.
+    """
+    from google.cloud.logging_v2.services.config_service_v2 import ConfigServiceV2Client
+    from google.cloud.logging_v2.types import LogBucket, CreateBucketRequest
 
-def manage_trading_log_bucket(project_id="mcp-bench0606", bucket_name="Trading_Logging"):
-    """管理Trading_Logging log bucket的完整流程"""
-    print(f"📊 Managing Trading_Logging log bucket...")
-    
-    results = {
-        "bucket_exists": False,
-        "bucket_created": False,
-        "logs_cleared": False
-    }
-    
-    # 检查bucket是否存在
-    bucket_exists = check_log_bucket_exists(bucket_name, project_id)
-    results["bucket_exists"] = bucket_exists
-    
-    if bucket_exists:
-        # 如果存在，清空日志
-        logs_cleared = clear_log_bucket_logs(bucket_name, project_id)
-        results["logs_cleared"] = logs_cleared
-        print(f"✅ Log bucket {bucket_name} is ready (logs cleared)")
-    else:
-        # 如果不存在，创建新的bucket
-        bucket_created = create_log_bucket(bucket_name, project_id)
-        results["bucket_created"] = bucket_created
-        if bucket_created:
-            print(f"✅ Log bucket {bucket_name} is ready (newly created)")
-        else:
-            print(f"❌ Failed to prepare log bucket {bucket_name}")
-    
-    return results
+    print(f"🔍 Managing log buckets with prefix: {bucket_name_prefix}")
+
+    logging_client = ConfigServiceV2Client(credentials=credentials)
+    parent = f"projects/{project_id}/locations/{location}"
+
+    # List all existing log buckets and find one with the prefix
+    matched_bucket = None
+    matched_bucket_id = None
+    buckets = list(logging_client.list_buckets(parent=parent))
+
+    for bucket in buckets:
+        bucket_id = bucket.name.split('/')[-1]
+        if bucket_id.startswith(bucket_name_prefix) and bucket.lifecycle_state.name == 'ACTIVE':
+            matched_bucket = bucket
+            matched_bucket_id = bucket_id
+            break
+
+    if matched_bucket is not None:
+        print(f"✅ Found existing log bucket: {matched_bucket_id}")
+        # Clear all log entries in the bucket
+        from google.cloud import logging as gcloud_logging
+
+        logging_client2 = gcloud_logging.Client(project=project_id, credentials=credentials)
+
+        # Directly attempt to delete the log with the same name as the bucket
+        # This only requires 1 API call and avoids rate limits
+        print(f"🧹 Attempting to clear log: {matched_bucket_id}")
+        try:
+            logging_client2.delete_log(matched_bucket_id)
+            print(f"✅ Successfully cleared log: {matched_bucket_id}")
+        except Exception as e:
+            # If the log doesn't exist or is already empty, this is expected
+            print(f"ℹ️  No log entries to clear (log may not exist yet): {e}")
+
+        # Save the bucket name to file
+        save_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "../groundtruth_workspace/log_bucket_name.txt")
+        )
+        with open(save_path, "w") as f:
+            f.write(matched_bucket_id.strip() + "\n")
+        print(f"💾 Saved log bucket name to {save_path}")
+
+        return matched_bucket_id, True
+
+    # If not found, create new
+    new_bucket_id = f"{bucket_name_prefix}-{uuid.uuid4().hex[:12]}"
+    print(f"📝 Creating new log bucket: {new_bucket_id}")
+
+    bucket = LogBucket(retention_days=30)
+    request = CreateBucketRequest(
+        parent=parent,
+        bucket_id=new_bucket_id,
+        bucket=bucket
+    )
+    logging_client.create_bucket(request=request)
+    print(f"✅ Successfully created log bucket: {new_bucket_id}")
+
+    # Save log bucket name to file
+    save_path = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "../groundtruth_workspace/log_bucket_name.txt")
+    )
+    with open(save_path, "w") as f:
+        f.write(new_bucket_id.strip() + "\n")
+    print(f"💾 Saved new log bucket name to {save_path}")
+
+    return new_bucket_id, True
+
 
 def check_bq_dataset_exists(dataset_name="transactions_analytics", project_id="mcp-bench0606"):
-    """检查BigQuery数据集是否存在"""
+    """Check if BigQuery dataset exists"""
     print(f"🔍 Checking if BigQuery dataset exists: {dataset_name}")
-    
-    try:
-        # 检查数据集是否存在 - 使用简单的列表命令然后解析
-        check_result = subprocess.run(['bq', 'ls', '--project_id', project_id], 
-                                    capture_output=True, text=True)
-        
-        if check_result.returncode == 0:
-            # 解析输出，跳过表头，提取第一列（数据集名称）
-            lines = check_result.stdout.strip().split('\n')
-            if len(lines) > 2:  # 跳过表头
-                for line in lines[2:]:  # 从第3行开始
-                    if line.strip():
-                        dataset = line.strip().split()[0]  # 获取第一列
-                        if dataset == dataset_name:
-                            print(f"✅ BigQuery dataset {dataset_name} already exists")
-                            return True
-            
-            print(f"📊 BigQuery dataset {dataset_name} does not exist")
-            return False
-        else:
-            print(f"❌ Failed to list BigQuery datasets")
-            print(f"Error: {check_result.stderr}")
-            return False
-            
-    except FileNotFoundError:
-        print("❌ Error: bq command not found. Please install Google Cloud SDK.")
-        return False
-    except Exception as e:
-        print(f"❌ Error checking BigQuery dataset: {e}")
-        return False
+
+    bq_client = bigquery.Client(project=project_id, credentials=credentials)
+    dataset_id = f"{project_id}.{dataset_name}"
+
+    bq_client.get_dataset(dataset_id)
+    print(f"✅ BigQuery dataset {dataset_name} already exists")
+    return True
 
 def delete_bq_dataset(dataset_name="transactions_analytics", project_id="mcp-bench0606"):
-    """删除BigQuery数据集"""
+    """Delete BigQuery dataset"""
     print(f"🗑️  Deleting BigQuery dataset: {dataset_name}")
-    
-    try:
-        # 删除数据集（包括所有表）
-        delete_result = subprocess.run(['bq', 'rm', '-r', '-f', '--project_id', project_id, dataset_name], 
-                                     capture_output=True, text=True)
-        
-        if delete_result.returncode == 0:
-            print(f"✅ Successfully deleted BigQuery dataset: {dataset_name}")
-            return True
-        else:
-            print(f"❌ Failed to delete BigQuery dataset: {dataset_name}")
-            print(f"Error: {delete_result.stderr}")
-            return False
-            
-    except FileNotFoundError:
-        print("❌ Error: bq command not found. Please install Google Cloud SDK.")
-        return False
-    except Exception as e:
-        print(f"❌ Error deleting BigQuery dataset: {e}")
-        return False
+
+    bq_client = bigquery.Client(project=project_id, credentials=credentials)
+    dataset_id = f"{project_id}.{dataset_name}"
+
+    bq_client.delete_dataset(dataset_id, delete_contents=True, not_found_ok=True)
+    print(f"✅ Successfully deleted BigQuery dataset: {dataset_name}")
+    return True
 
 def create_bq_dataset(dataset_name="transactions_analytics", project_id="mcp-bench0606", location="US"):
-    """创建BigQuery数据集"""
+    """Create BigQuery dataset"""
     print(f"📊 Creating BigQuery dataset: {dataset_name}")
-    
-    try:
-        # 创建数据集
-        create_result = subprocess.run(['bq', 'mk', '--project_id', project_id, '--location', location, dataset_name], 
-                                     capture_output=True, text=True)
-        
-        if create_result.returncode == 0:
-            print(f"✅ Successfully created BigQuery dataset: {dataset_name}")
-            return True
-        else:
-            print(f"❌ Failed to create BigQuery dataset: {dataset_name}")
-            print(f"Error: {create_result.stderr}")
-            return False
-            
-    except FileNotFoundError:
-        print("❌ Error: bq command not found. Please install Google Cloud SDK.")
-        return False
-    except Exception as e:
-        print(f"❌ Error creating BigQuery dataset: {e}")
-        return False
+
+    bq_client = bigquery.Client(project=project_id, credentials=credentials)
+    dataset_id = f"{project_id}.{dataset_name}"
+
+    dataset = bigquery.Dataset(dataset_id)
+    dataset.location = location
+    bq_client.create_dataset(dataset, exists_ok=True)
+    print(f"✅ Successfully created BigQuery dataset: {dataset_name}")
+    return True
 
 def upload_csv_to_bq_table(csv_file_path, table_name, dataset_name="transactions_analytics", project_id="mcp-bench0606"):
-    """上传CSV文件到BigQuery表"""
+    """Upload CSV file to BigQuery table"""
     print(f"📤 Uploading {os.path.basename(csv_file_path)} to BigQuery table: {table_name}")
-    
-    try:
-        # 构建表的完整路径
-        table_path = f"{project_id}:{dataset_name}.{table_name}"
-        
-        # 上传CSV文件到BigQuery表，自动检测schema
-        upload_result = subprocess.run(['bq', 'load', '--autodetect', '--source_format=CSV', 
-                                      '--replace', table_path, csv_file_path], 
-                                     capture_output=True, text=True)
-        
-        if upload_result.returncode == 0:
-            print(f"✅ Successfully uploaded {os.path.basename(csv_file_path)} to table: {table_name}")
-            return True
-        else:
-            print(f"❌ Failed to upload {os.path.basename(csv_file_path)} to table: {table_name}")
-            print(f"Error: {upload_result.stderr}")
-            return False
-            
-    except FileNotFoundError:
-        print("❌ Error: bq command not found. Please install Google Cloud SDK.")
-        return False
-    except Exception as e:
-        print(f"❌ Error uploading CSV to BigQuery table: {e}")
-        return False
+
+    bq_client = bigquery.Client(project=project_id, credentials=credentials)
+    table_id = f"{project_id}.{dataset_name}.{table_name}"
+
+    job_config = bigquery.LoadJobConfig(
+        source_format=bigquery.SourceFormat.CSV,
+        autodetect=True,
+        write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
+    )
+
+    with open(csv_file_path, "rb") as source_file:
+        job = bq_client.load_table_from_file(source_file, table_id, job_config=job_config)
+
+    job.result()
+    print(f"✅ Successfully uploaded {os.path.basename(csv_file_path)} to table: {table_name}")
+    return True
 
 def manage_transactions_analytics_dataset(project_id="mcp-bench0606", dataset_name="transactions_analytics", csv_directory="transactions_analytics"):
-    """管理transactions_analytics BigQuery数据集的完整流程"""
+    """Full process to manage the transactions_analytics BigQuery dataset."""
     print(f"📊 Managing BigQuery dataset: {dataset_name}")
     
     results = {
@@ -343,19 +271,19 @@ def manage_transactions_analytics_dataset(project_id="mcp-bench0606", dataset_na
         "upload_failures": []
     }
     
-    # 检查数据集是否存在
+    # Check if the dataset exists
     dataset_exists = check_bq_dataset_exists(dataset_name, project_id)
     results["dataset_existed"] = dataset_exists
     
     if dataset_exists:
-        # 如果存在，删除数据集
+        # If it exists, delete the dataset
         dataset_deleted = delete_bq_dataset(dataset_name, project_id)
         results["dataset_deleted"] = dataset_deleted
         if not dataset_deleted:
             print(f"❌ Failed to delete existing dataset {dataset_name}")
             return results
     
-    # 创建新的数据集
+    # Create a new dataset
     dataset_created = create_bq_dataset(dataset_name, project_id)
     results["dataset_created"] = dataset_created
     
@@ -363,7 +291,7 @@ def manage_transactions_analytics_dataset(project_id="mcp-bench0606", dataset_na
         print(f"❌ Failed to create dataset {dataset_name}")
         return results
     
-    # 获取当前脚本所在目录
+    # Get the directory path for CSV files
     script_dir = os.path.dirname(os.path.abspath(__file__))
     csv_dir_path = os.path.join(script_dir, csv_directory)
     
@@ -371,13 +299,13 @@ def manage_transactions_analytics_dataset(project_id="mcp-bench0606", dataset_na
         print(f"❌ CSV directory not found: {csv_dir_path}")
         return results
     
-    # 上传所有CSV文件到BigQuery表
+    # Upload all CSV files to BigQuery tables
     csv_files = [f for f in os.listdir(csv_dir_path) if f.endswith('.csv')]
     print(f"📁 Found {len(csv_files)} CSV files to upload")
     
     for csv_file in csv_files:
         csv_file_path = os.path.join(csv_dir_path, csv_file)
-        table_name = os.path.splitext(csv_file)[0]  # 移除.csv后缀作为表名
+        table_name = os.path.splitext(csv_file)[0]  # Remove .csv extension for table name
         
         upload_success = upload_csv_to_bq_table(csv_file_path, table_name, dataset_name, project_id)
         
@@ -393,29 +321,23 @@ def manage_transactions_analytics_dataset(project_id="mcp-bench0606", dataset_na
     return results
 
 def cleanup_preprocess_environment(workspace_dir, target_transaction_id="T8492XJ3", project_id="mcp-bench0606"):
-    """清理preprocess环境，为Live Transactions任务做准备"""
+    """Cleanup the preprocess environment and prepare for the Live Transactions task."""
     print("🚀 Starting Live Transactions Preprocess Cleanup...")
-    
-    # 检查Google Cloud认证
-    if not check_gcloud_authentication():
-        print("⚠️  Warning: Google Cloud CLI not authenticated. Some cleanup may fail.")
-        print("   Please run: gcloud auth login")
     
     cleanup_results = {}
     
-    # 确保存储桶存在
-    bucket_ready = ensure_bucket_exists("mcp-fraud-investigation-archive", project_id)
+    bucket_ready = delete_and_recreate_bucket("mcp-fraud-investigation-archive")
     cleanup_results["bucket_ready"] = bucket_ready
     
-    # 删除目标交易的调查文件（如果存在）
-    file_cleanup = delete_investigation_file_if_exists("mcp-fraud-investigation-archive", f"{target_transaction_id}.json", project_id)
-    cleanup_results["file_cleanup"] = file_cleanup
+    # Clean up investigation file for the target transaction (if exists)
+    # file_cleanup = delete_investigation_file_if_exists("mcp-fraud-investigation-archive", f"{target_transaction_id}.json", project_id)
+    cleanup_results["file_cleanup"] = bucket_ready
     
-    # 管理Trading_Logging log bucket
-    log_bucket_results = manage_trading_log_bucket(project_id)
+    # Manage Trading_Logging log bucket
+    log_bucket_results = manage_log_bucket(project_id, "Trading_Logging")
     cleanup_results["log_bucket_results"] = log_bucket_results
 
-    # 管理transactions_analytics BigQuery数据集
+    # Manage transactions_analytics BigQuery dataset
     bq_dataset_results = manage_transactions_analytics_dataset(project_id)
     cleanup_results["bq_dataset_results"] = bq_dataset_results
     
@@ -437,16 +359,16 @@ if __name__=="__main__":
     parser.add_argument("--launch_time", required=False, help="Launch time")
     
     args = parser.parse_args()
-    
+    args.project_id = PROJECT_ID # overwrite the project_id
     print("=== Live Transactions Fraud Investigation Preprocess ===")
     print(f"Agent workspace: {args.agent_workspace}")
     print(f"Target transaction ID: {args.transaction_id}")
     print(f"Project ID: {args.project_id}")
     
-    # 确保workspace目录存在
+    # Ensure the workspace directory exists
     os.makedirs(args.agent_workspace, exist_ok=True)
     
-    # 默认执行清理，除非明确指定不清理
+    # By default, do cleanup unless explicitly skipped
     should_cleanup = args.cleanup_files and not args.no_cleanup
     
     if should_cleanup:

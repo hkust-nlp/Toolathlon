@@ -1,4 +1,4 @@
-# 文件系统服务器 - 用于读写文件
+# file system server - for reading and writing files
 # https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem
 type: stdio
 name: filesystem
@@ -7,6 +7,7 @@ params:
   args:
     - "-y"
     - "@modelcontextprotocol/server-filesystem"
-    - "${agent_workspace}"  # 仅允许对该目录下的文件进行读写
+    - "${agent_workspace}"  # only allow reading and writing files in this directory
+  cwd: "${agent_workspace}"
 client_session_timeout_seconds: 300
 cache_tools_list: true

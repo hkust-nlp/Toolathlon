@@ -108,6 +108,9 @@ async def main():
     issue_body = "Thanks for sharing this project! Could you provide license info. for Annoy-PyEdu-Rs-Raw and Annoy-PyEdu-Rs? thanks!"
     issue = github_create_issue(github_token, github_repo_full, issue_title, issue_body)
 
+    # wait for a while to ensure the repo being stable
+    time.sleep(10)
+
     # Get latest commit hash
     latest_commit_hash = github_get_latest_commit(github_token, github_repo_full)
 

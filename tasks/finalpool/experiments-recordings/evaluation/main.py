@@ -11,18 +11,16 @@ from typing import Dict, List, Tuple, Optional
 
 import requests
 
-# 确保能够导入同目录下的 debug_notion.py，不管从哪个目录启动脚本
+# Ensure debug_notion.py can be imported from the same directory regardless of the working directory
 script_dir = Path(__file__).parent.absolute()
 if str(script_dir) not in sys.path:
     sys.path.insert(0, str(script_dir))
 
-# 导入 debug_notion.py 中的函数（在同一目录下）
 from debug_notion import find_database_ids_in_page, get_page_content, get_page_blocks
 
 NOTION_VERSION = "2022-06-28"
 WANDB_ENTITY = "mbzuai-llm"
 WANDB_PROJECT = "Guru"
-
 
 def load_tokens(token_path: Path):
     ns = runpy.run_path(str(token_path))
@@ -30,13 +28,11 @@ def load_tokens(token_path: Path):
         raise RuntimeError("all_token_key_session not found in token file")
     return ns["all_token_key_session"]
 
-
 def normalize_metric_name(name: str) -> str:
     return re.sub(r"[^a-z0-9]", "", name.lower())
 
-
 def build_metric_key_map(sample_rows: List[Dict], expected_headers: List[str]) -> Dict[str, List[str]]:
-    """根据样例行的键构建列名到wandb键的映射（多候选）。"""
+    """Build a mapping from expected headers to possible wandb keys using sample rows."""
     headers_norm = [(h, normalize_metric_name(h)) for h in expected_headers]
     observed_keys = set()
     for row in sample_rows:
@@ -52,9 +48,8 @@ def build_metric_key_map(sample_rows: List[Dict], expected_headers: List[str]) -
         mapping[h_raw] = cands
     return mapping
 
-
 def explicit_metric_map(expected_headers: List[str]) -> Dict[str, List[str]]:
-    """优先使用用户提供的指标键映射。未覆盖的列返回空列表，由自动匹配兜底。"""
+    """Explicit metric mapping from user (fallback to auto-matching for uncovered headers)."""
     base = {
         "MultiHiertt": ["val-core/table__multihier/acc/mean@1"],
         "HiTab": ["val-core/table__hitab/acc/mean@1"],
@@ -79,16 +74,14 @@ def explicit_metric_map(expected_headers: List[str]) -> Dict[str, List[str]]:
         out[h] = base.get(h, [])
     return out
 
-
 def ensure_wandb(login: bool = True):
     try:
         import wandb  # noqa: F401
     except Exception:
         raise RuntimeError("wandb not installed. Please install via `uv pip install wandb`. ")
     if login:
-        # SDK 会自动从 WANDB_API_KEY 读取
+        # SDK will read WANDB_API_KEY automatically
         pass
-
 
 def fetch_runs_grouped_by_name() -> Dict[str, List["wandb.sdk.wandb_run.Run"]]:
     import wandb
@@ -100,14 +93,13 @@ def fetch_runs_grouped_by_name() -> Dict[str, List["wandb.sdk.wandb_run.Run"]]:
         grouped[name].append(r)
     return grouped
 
-
 def scan_history_rows_for_runs(runs: List["wandb.sdk.wandb_run.Run"], max_rows: int = 50000) -> List[Dict]:
-    """合并同名runs的history行为一组，返回行字典列表（包含 _step）。"""
+    """Concat history rows for runs with the same name, return a list of row dicts (including steps)."""
     rows: List[Dict] = []
     for r in runs:
         try:
             for row in r.scan_history(page_size=2000):
-                # row 可能包含 numpy 类型，转成纯python
+                # Convert numpy types to pure python
                 d = {}
                 for k, v in row.items():
                     if k is None:
@@ -120,14 +112,14 @@ def scan_history_rows_for_runs(runs: List["wandb.sdk.wandb_run.Run"], max_rows: 
                         except Exception:
                             continue
                 if d:
-                    # 标准化 step 字段
+                    # Standardize step field
                     step = None
                     for sk in ("_step", "step", "global_step", "trainer/global_step"):
                         if sk in d and isinstance(d[sk], (int, float)):
                             step = int(d[sk])
                             break
                     if step is None:
-                        # 无 step 的行跳过
+                        # Skip row with no step
                         continue
                     d["__step__"] = step
                     rows.append(d)
@@ -137,21 +129,18 @@ def scan_history_rows_for_runs(runs: List["wandb.sdk.wandb_run.Run"], max_rows: 
             break
     return rows
 
-
 def aggregate_best_by_benchmark_and_best_step(rows: List[Dict], headers: List[str]) -> Tuple[Dict[str, float], Tuple[int, float]]:
     """
-    - 返回每个 benchmark 的最高分（跨 step 最大）
-    - 返回最佳 step 及其平均分（忽略缺失，算术平均；并列取更小 step）
+    - Return the highest score for each benchmark (take max over all steps)
+    - Return best step and its average score (over available, arithmetic mean; tie break on smaller step)
     """
-    # 准备映射
-    # 显式映射优先，自动匹配兜底
     mapping = explicit_metric_map(headers)
     auto_map = build_metric_key_map(rows[:1000], headers)
     for k, v in auto_map.items():
         if k not in mapping or not mapping[k]:
             mapping[k] = v
 
-    # step -> metric -> value (取多候选中的最大)
+    # step -> metric -> value (max among candidates)
     step_metric_values: Dict[int, Dict[str, float]] = defaultdict(dict)
     for row in rows:
         step = row.get("__step__")
@@ -168,7 +157,6 @@ def aggregate_best_by_benchmark_and_best_step(rows: List[Dict], headers: List[st
             if best_val is not None:
                 step_metric_values[step][h] = best_val
 
-    # 各列最高分
     best_per_bench: Dict[str, float] = {}
     for h in headers:
         if h in ("Run Name", "Best Step (Average)"):
@@ -180,7 +168,6 @@ def aggregate_best_by_benchmark_and_best_step(rows: List[Dict], headers: List[st
         if col_best is not None:
             best_per_bench[h] = col_best
 
-    # 最佳 step（平均最高）
     best_step = None
     best_avg = -1e9
     for s, m in step_metric_values.items():
@@ -196,13 +183,11 @@ def aggregate_best_by_benchmark_and_best_step(rows: List[Dict], headers: List[st
         best_avg = 0.0
     return best_per_bench, (best_step, best_avg)
 
-
 def read_preprocess_state(agent_workspace: Path) -> Dict:
     state_path = agent_workspace / "preprocess" / "state.json"
     if not state_path.exists():
         raise FileNotFoundError(f"preprocess state not found: {state_path}")
     return json.loads(state_path.read_text(encoding="utf-8"))
-
 
 def notion_headers(token: str) -> Dict[str, str]:
     return {
@@ -210,7 +195,6 @@ def notion_headers(token: str) -> Dict[str, str]:
         "Notion-Version": NOTION_VERSION,
         "Content-Type": "application/json",
     }
-
 
 def notion_query_database(token: str, database_id: str) -> List[Dict]:
     url = f"https://api.notion.com/v1/databases/{database_id}/query"
@@ -232,7 +216,6 @@ def notion_query_database(token: str, database_id: str) -> List[Dict]:
             break
     return out
 
-
 def extract_db_row_values(page: Dict, headers: List[str]) -> Dict[str, Optional[str]]:
     props = page.get("properties", {})
     result: Dict[str, Optional[str]] = {}
@@ -251,18 +234,15 @@ def extract_db_row_values(page: Dict, headers: List[str]) -> Dict[str, Optional[
             txts = p.get("rich_text", [])
             result[h] = "".join([t.get("plain_text") or t.get("text", {}).get("content", "") for t in txts])
         else:
-            # 其它类型按空处理
             result[h] = None
     return result
-
 
 def fmt_best_step(step_avg: Tuple[int, float]) -> str:
     s, a = step_avg
     return f"{s}({a:.3f})"
 
-
 def compare_with_notion(gt_rows: List[Dict], notion_rows: List[Dict], headers: List[str]) -> Dict:
-    # 基于 Run Name 对齐
+    # Align by Run Name
     gt_map = {r.get("Run Name", ""): r for r in gt_rows if r.get("Run Name")}
     nt_map = {r.get("Run Name", ""): r for r in notion_rows if r.get("Run Name")}
 
@@ -284,7 +264,6 @@ def compare_with_notion(gt_rows: List[Dict], notion_rows: List[Dict], headers: L
                     ok_all = False
                     diffs.append({"run": name, "col": h, "gt": g, "notion": n})
             else:
-                # 数值列，允许微小误差
                 if n is None or g is None:
                     if not (n is None and g is None):
                         ok_all = False
@@ -302,7 +281,6 @@ def compare_with_notion(gt_rows: List[Dict], notion_rows: List[Dict], headers: L
 
     ok = matched == len(gt_map) and matched > 0
     return {"ok": ok, "matched": matched, "total": len(gt_map), "diffs": diffs}
-
 
 def render_markdown_table(headers: List[str], rows: List[Dict]) -> str:
     def fmt_cell(v):
@@ -323,7 +301,6 @@ def render_markdown_table(headers: List[str], rows: List[Dict]) -> str:
         lines.append(line)
     return "\n".join(lines)
 
-
 def main():
     parser = ArgumentParser()
     parser.add_argument("--agent_workspace", required=False)
@@ -335,27 +312,26 @@ def main():
 
     agent_ws = Path(args.agent_workspace).resolve() if args.agent_workspace else Path.cwd().resolve()
     
-    # 使用相对于脚本文件的路径来找到 token_key_session.py
+    # Find token_key_session.py relative to script file
     script_dir = Path(__file__).parent.absolute()
-    
     token_path = script_dir.parent.parent.parent.parent / "configs" / "token_key_session.py"
     task_token_path = script_dir.parent / "token_key_session.py"
     
-    print(f"脚本目录: {script_dir}")
-    print(f"Token文件路径: {token_path}")
+    print(f"Script directory: {script_dir}")
+    print(f"Token file path: {token_path}")
     
     if not token_path.exists():
-        print(f"❌ 错误: Token文件不存在: {token_path}")
+        print(f"❌ Error: Token file does not exist: {token_path}")
         return
     
     tokens = load_tokens(token_path)
     task_tokens = load_tokens(task_token_path)
 
-    # 确保 wandb 登录
+    # Ensure wandb login
     os.environ.setdefault("WANDB_API_KEY", str(tokens.wandb_api_key))
     ensure_wandb()
 
-    # 使用 base 字典的 keys 作为列头
+    # Use base dictionary keys as column headers
     base_benchmarks = [
         "MultiHiertt", "HiTab", "SuperGPQA", "GPQA", "CodeIO", "ArcAgI1", 
         "MATH", "AMC (4x)", "AIME (8x)", "Zebra Puzzle", "Ordering Puzzle", 
@@ -363,19 +339,19 @@ def main():
     ]
     headers: List[str] = ["Run Name"] + base_benchmarks + ["Best Step (Average)"]
 
-    # 拉取 runs 并按同名合并
+    # Fetch runs and group by name
     grouped = fetch_runs_grouped_by_name()
 
-    # 只检查指定的两个 run name
+    # Only check the two specified run names
     target_runs = [
         "341943-guru92k-cliphigh-qwen32b-Qwen2.5-32B-think",
         "342297-guru92k-nocliphigh-qwen32b-Qwen2.5-32B-think"
     ]
 
-    # 针对每个 run name 计算标准答案
+    # Calculate reference answer for each run name
     gt_rows: List[Dict] = []
     for run_name, runs in grouped.items():
-        # 只处理目标 runs
+        # Only handle target runs
         if run_name not in target_runs:
             continue
             
@@ -390,33 +366,34 @@ def main():
         row_out["Best Step (Average)"] = fmt_best_step((best_step, best_avg))
         gt_rows.append(row_out)
 
-    # 打印标准答案（Markdown 表格）
+    # Print standard answer (Markdown table)
+    print(f"Standard answer 👇:")
     print(render_markdown_table(headers, gt_rows))
 
-    # 读取 Notion 页面中的内容（数据库）
+    # Read Notion page content (database)
     notion_token = str(tokens.notion_integration_key)
     
-    # 从 token 配置中获取 page_id
+    # Get page_id from token config
     page_id = getattr(task_tokens, 'notion_allowed_page_ids', '').strip()
     if not page_id:
-        # 尝试其他可能的字段名
+        # Try other possible field names
         page_id = getattr(task_tokens, 'notion_page_id', '').strip()
     if not page_id:
         page_id = getattr(task_tokens, 'page_id', '').strip()
     
-    print(f"从配置获取的页面 ID: {page_id}")
+    print(f"Page ID from config: {page_id}")
     
     if not page_id:
-        print("❌ 错误: 未找到 Notion 页面 ID")
-        print("请检查 token 配置文件中的以下字段:")
+        print("❌ Error: Notion Page ID not found")
+        print("Please check the following fields in the token config file:")
         print("  - notion_allowed_page_ids")
         print("  - notion_page_id") 
         print("  - page_id")
-        print(f"当前token对象的属性: {[attr for attr in dir(tokens) if not attr.startswith('_')]}")
+        print(f"Current token object attributes: {[attr for attr in dir(tokens) if not attr.startswith('_')]}")
         print(json.dumps({"ok": False, "reason": "missing page_id in token config"}, ensure_ascii=False))
         return
     
-    # 使用 debug_notion.py 的方式查找数据库 ID
+    # Find database ID(s) using debug_notion.py
     try:
         database_ids = find_database_ids_in_page(notion_token, page_id, debug=True)
         
@@ -424,10 +401,10 @@ def main():
             print(json.dumps({"ok": False, "reason": "no database found in page", "page_id": page_id}, ensure_ascii=False))
             return
         
-        # 如果找到多个数据库，使用第一个
+        # If multiple databases are found, use the first one
         db_id = database_ids[0]
         if len(database_ids) > 1:
-            print(f"⚠️  找到 {len(database_ids)} 个数据库，使用第一个: {db_id}")
+            print(f"⚠️  Found {len(database_ids)} databases, using the first one: {db_id}")
         
         print(f"Notion database ID: {db_id}")
         
@@ -435,7 +412,7 @@ def main():
         print(json.dumps({"ok": False, "reason": f"failed to find database: {str(e)}", "page_id": page_id}, ensure_ascii=False))
         return
     
-    # 查询数据库内容
+    # Query database content
     pages = notion_query_database(notion_token, db_id)
     notion_rows: List[Dict] = []
     for p in pages:
@@ -444,7 +421,6 @@ def main():
     report = compare_with_notion(gt_rows, notion_rows, headers)
     report["num_gt_rows"] = len(gt_rows)
     
-    # 如果比较失败，raise error
     if not report.get("ok", False):
         error_msg = f"Notion comparison failed! Matched: {report.get('matched', 0)}/{report.get('total', 0)}"
         if report.get("diffs"):
@@ -457,5 +433,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-

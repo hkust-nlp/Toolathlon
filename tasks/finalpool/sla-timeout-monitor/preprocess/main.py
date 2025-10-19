@@ -32,7 +32,7 @@ async def main():
     print(f"agent_workspace: {agent_workspace}")
     print(f"launch_time: {launch_time}")
     
-    # 设置随机种子保证一致性和可重现性
+
     random.seed(42)
     
     # Step 1: Initialize Snowflake database with SLA monitoring schema and test data
@@ -40,7 +40,7 @@ async def main():
     print("PREPROCESSING STEP 1: Initialize Snowflake Database")
     print("="*60)
     print("📋 Database: SLA_MONITOR") 
-    print("📋 Purpose: 客户支持SLA超时监控系统")
+    print("📋 Purpose: Customer Support SLA Timeout Monitoring System")
     print("📋 Tables: USERS, SUPPORT_TICKETS, SLA_CONFIGURATIONS")
     
     try:
