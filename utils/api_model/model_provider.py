@@ -266,7 +266,7 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                         'message too long',
                         'prompt is too long',
                         'maximum number of tokens',
-                        r'This model\'s maximum prompt length is', # for xAI model
+                        r'maximum prompt length is', # for xAI model
                         'Your request exceeded model token limit: ' # for kimi
                     ]):
                         context_too_long = True
@@ -288,7 +288,7 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                             max_tokens, current_tokens = int(match.group(1)), int(match.group(2))
                         
                         # Pattern 4: xAI
-                        match = re.search(r'This model\'s maximum prompt length is (\d+).*request contains (\d+)', error_str)
+                        match = re.search(r'maximum prompt length is (\d+).*request contains (\d+)', error_str)
                         if match:
                             max_tokens, current_tokens = int(match.group(1)), int(match.group(2))
                         
