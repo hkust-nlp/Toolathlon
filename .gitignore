@@ -28,7 +28,7 @@ configs/notion_state.json
 deployment/k8s/
 ruige
 ruige*
-dumps
+dumps*
 ./logs
 eval_results
 tasks/manual
@@ -74,6 +74,7 @@ dumps_finalexp/
 dumps_finalexp_ytb/
 dumps_ablation_ytb/
 dumps_debug/
+dumps_quick_start/
 
 scripts/temp_parallel_config*
 tasks/finalpool_add_unrelated_mcps_*

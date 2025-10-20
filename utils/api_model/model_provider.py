@@ -449,6 +449,17 @@ class CustomModelProviderDeepSeekOfficial(ModelProvider):
                                                    debug=debug,
                                                    short_model_name=short_model_name)
 
+class CustomModelProviderXAI(ModelProvider):
+    def get_model(self, model_name: str | None, debug: bool = True, short_model_name: str | None = None) -> Model:
+        client = AsyncOpenAI(
+            api_key=global_configs.xai_official_key,
+            base_url="https://api.x.ai/v1",
+        )
+        return OpenAIChatCompletionsModelWithRetry(model=model_name, 
+                                                   openai_client=client,
+                                                   debug=debug,
+                                                   short_model_name=short_model_name)
+
 model_provider_mapping = {
     "aihubmix": CustomModelProviderAiHubMix,
     "anthropic": CustomModelProviderAnthropic,
@@ -458,6 +469,7 @@ model_provider_mapping = {
     "kimi_official": CustomModelProviderKimiOfficial,
     "deepseek_official": CustomModelProviderDeepSeekOfficial,
     "google": CustomModelProviderGoogle,
+    "xai": CustomModelProviderXAI,
 }
 
 API_MAPPINGS = {
@@ -468,8 +480,7 @@ API_MAPPINGS = {
         context_window=128000,
     ),
     'gpt-5': Dict(
-        api_model={"ds_internal": "",
-                   "aihubmix": "gpt-5",
+        api_model={"aihubmix": "gpt-5",
                    "openrouter": "openai/gpt-5"},
         price=[1.25/1000, 10/1000.0],
         concurrency=32,
@@ -498,8 +509,7 @@ API_MAPPINGS = {
         openrouter_config={"provider": {"only": ["openai/default"]}}
     ),
     'gpt-5-mini': Dict(
-        api_model={"ds_internal": "",
-                   "aihubmix": "gpt-5-mini",
+        api_model={"aihubmix": "gpt-5-mini",
                    "openrouter": "openai/gpt-5-mini"},
         price=[0.25/1000,2/1000.0],
         concurrency=32,
@@ -507,8 +517,7 @@ API_MAPPINGS = {
         openrouter_config={"provider": {"only": ["openai"]}}
     ),
     'o4-mini': Dict(
-        api_model={"ds_internal": "azure-o4-mini-2025-04-16",
-                   "aihubmix": "o4-mini",
+        api_model={"aihubmix": "o4-mini",
                    "openrouter": "openai/o4-mini"},
         price=[0.0011, 0.0044],
         concurrency=32,
@@ -516,8 +525,7 @@ API_MAPPINGS = {
         openrouter_config={"provider": {"only": ["openai"]}}
     ),
     'o3': Dict(
-        api_model={"ds_internal": "?????", # no o3 in ds internal
-                   "aihubmix": "o3",
+        api_model={"aihubmix": "o3",
                    "openrouter": "openai/o3"},
         price=[0.010, 0.040],
         concurrency=32,
@@ -525,8 +533,7 @@ API_MAPPINGS = {
         openrouter_config={"provider": {"only": ["openai"]}}
     ),
     'o3-pro': Dict(
-        api_model={"ds_internal": "?????", # no o3-pro in ds internal
-                   "aihubmix": "o3-pro"}, # no o3-pro in aihubmix
+        api_model={"aihubmix": "o3-pro"}, # no o3-pro in aihubmix
         price=[0.022, 0.088],
         concurrency=32,
         context_window=200000,
@@ -559,8 +566,7 @@ API_MAPPINGS = {
         openrouter_config={"provider": {"only": ["anthropic"]}}
     ),
     'claude-4.1-opus-0805': Dict(
-        api_model={"ds_internal": "",
-                   "aihubmix": "claude-opus-4-1-20250805",
+        api_model={"aihubmix": "claude-opus-4-1-20250805",
                    "openrouter": "anthropic/claude-opus-4.1",
                    "anthropic": "claude-opus-4-1-20250805"},
         price=[16.5/1000, 82.5/1000],
@@ -569,8 +575,7 @@ API_MAPPINGS = {
         openrouter_config={"provider": {"only": ["anthropic"]}}
     ),
     'gemini-2.5-pro': Dict(
-        api_model={"ds_internal": "cloudsway-gemini-2.5-pro",
-                   "aihubmix": "gemini-2.5-pro",
+        api_model={"aihubmix": "gemini-2.5-pro",
                    "openrouter": "google/gemini-2.5-pro",
                    "google": "gemini-2.5-pro"},
         price=[0.00125, 0.010],
@@ -579,8 +584,7 @@ API_MAPPINGS = {
         openrouter_config={"provider": {"only": ["google-vertex"]}}
     ),
     'gemini-2.5-flash': Dict(
-        api_model={"ds_internal": "cloudsway-gemini-2.5-flash",
-                   "aihubmix": "gemini-2.5-flash",
+        api_model={"aihubmix": "gemini-2.5-flash",
                    "openrouter": "google/gemini-2.5-flash",
                    "google": "gemini-2.5-flash"},
         price=[0.00015, 0.0035],
@@ -589,32 +593,32 @@ API_MAPPINGS = {
         openrouter_config={"provider": {"only": ["google-vertex"]}}
     ),
     'grok-4': Dict(
-        api_model={"openrouter": "x-ai/grok-4"},
+        api_model={"openrouter": "x-ai/grok-4",
+                    "xai":"grok-4-0709"},
         price=[3/1000, 15/1000],
         concurrency=32,
         context_window=256000,
         openrouter_config={"provider": {"only": ["xai"]}}
     ),
     'grok-code-fast-1': Dict(
-        api_model={"ds_internal": "grok-code-fast-1",
-                   "aihubmix": "grok-code-fast-1",
-                   "openrouter": "x-ai/grok-code-fast-1"},
+        api_model={"aihubmix": "grok-code-fast-1",
+                   "openrouter": "x-ai/grok-code-fast-1",
+                   "xai":"grok-code-fast-1"},
         price=[0.2/1000, 1.5/1000],
         concurrency=32,
         context_window=256000,
         openrouter_config={"provider": {"only": ["xai"]}}
     ),    
     'grok-4-fast': Dict(
-        api_model={"ds_internal": None,
-                   "openrouter": "x-ai/grok-4-fast"},
+        api_model={"openrouter": "x-ai/grok-4-fast",
+                   "xai":"grok-4-fast"},
         price=[0.2/1000, 0.5/1000],
         concurrency=32,
         context_window=2000000,
         openrouter_config={"provider": {"only": ["xai"]}}
     ),
     'kimi-k2-0905': Dict(
-        api_model={"ds_internal": None,
-                   "aihubmix": "Kimi-K2-0905",
+        api_model={"aihubmix": "Kimi-K2-0905",
                    "openrouter": "moonshotai/kimi-k2-0905",
                    "kimi_official": "kimi-k2-0905-preview"},
         price=[0.548/1000, 2.192/1000],
@@ -622,15 +626,7 @@ API_MAPPINGS = {
         context_window=256000,
         openrouter_config={"provider": {"only": ["moonshotai"]}}
     ),
-    # 'glm-4.5': Dict(
-    #     api_model={"ds_internal": None,
-    #                "aihubmix": "zai-org/GLM-4.5",
-    #                "openrouter": "z-ai/glm-4.5"},
-    #     price=[0.5/1000, 2.0/1000],
-    #     concurrency=32,
-    #     context_window=128000,
-    #     openrouter_config={"provider": {"only": ["z-ai/fp8"]}}
-    # ),
+
     'glm-4.6': Dict(
         api_model={"openrouter": "z-ai/glm-4.6"},
         price=[0.6/1000, 2.2/1000],

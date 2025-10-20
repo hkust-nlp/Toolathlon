@@ -2,15 +2,15 @@
     "global_task_config":{
         "max_turns": 50,
         "max_steps_under_single_turn_mode": 50,
-        "dump_path":"./dumps_debug/"
+        "dump_path":"./dumps_quick_start/"
     },
     "mcp":{
         "server_config_path": "configs/mcp_servers"
     },
     "agent":{
         "model":{
-            "short_name": "claude-4-sonnet-0514",
-            "provider": "aihubmix"
+            "short_name": "claude-4.5-sonnet-0929",
+            "provider": "openrouter"
         },
         "generation":{
             "temperature":0.6,
@@ -26,7 +26,7 @@
     "user":{
         "model":{
             "short_name": "gpt-5",
-            "provider": "aihubmix"
+            "provider": "openrouter"
         },
         "generation":{
             "temperature":1.0,
