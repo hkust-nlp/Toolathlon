@@ -1,5 +1,6 @@
 # 12306 China Railway Ticket Query System
-# https://github.com/Joooook/12306-mcp
+# Source: https://github.com/Joooook/12306-mcp
+# Toolathlon Version: https://github.com/lockon-n/12306-mcp
 type: stdio
 name: rail_12306
 params:

@@ -1,5 +1,6 @@
 # emails
-# https://github.com/lockon-n/emails-mcp
+# Source: https://github.com/lockon-n/emails-mcp
+# Toolathlon Version: The same
 type: stdio
 name: emails
 params:

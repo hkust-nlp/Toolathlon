@@ -1,6 +1,6 @@
 # mcp 4 youtube
-# https://github.com/ZubeidHendricks/youtube-mcp-server
-# this servers has been mostly fixed, however, the transcript retrieval is still buddy .. .idk why
+# Source: https://github.com/ZubeidHendricks/youtube-mcp-server
+# Toolathlon Version: https://github.com/lockon-n/youtube-mcp-server
 type: stdio
 name: youtube
 params:

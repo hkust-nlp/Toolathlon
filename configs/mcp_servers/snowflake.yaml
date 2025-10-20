@@ -1,5 +1,6 @@
 # snowflake
-# https://github.com/isaacwasserman/mcp-snowflake-server
+# Source: https://github.com/isaacwasserman/mcp-snowflake-server
+# Toolathlon Version: https://github.com/lockon-n/mcp-snowflake-server
 type: stdio
 name: snowflake
 params:

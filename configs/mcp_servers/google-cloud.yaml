@@ -1,4 +1,6 @@
-# https://github.com/lockon-n/google-cloud-mcp
+# Google Cloud and BigQuery
+# Source: https://github.com/lockon-n/google-cloud-mcp
+# Toolathlon Version: The same
 type: stdio
 name: google-cloud
 params:

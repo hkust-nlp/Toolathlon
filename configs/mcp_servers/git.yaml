@@ -1,5 +1,6 @@
 # check local git status
-# https://github.com/modelcontextprotocol/servers/tree/main/src/git
+# Source: https://github.com/modelcontextprotocol/servers/tree/main/src/git
+# Toolathlon Version: The same
 type: stdio
 name: git
 params:

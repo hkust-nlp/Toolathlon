@@ -1,5 +1,6 @@
 # pdf-tools
-# https://github.com/lockon-n/pdf-tools-mcp
+# Source: https://github.com/lockon-n/pdf-tools-mcp
+# Toolathlon Version: The same
 type: stdio
 name: pdf-tools
 params:

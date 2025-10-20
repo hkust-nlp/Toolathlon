@@ -1,4 +1,6 @@
-# https://www.modelscope.cn/mcp/servers/@worryzyy/howtocook-mcp
+# How to Cook
+# Source: https://github.com/worryzyy/HowToCook-mcp
+# Toolathlon Version: https://github.com/lockon-n/HowToCook-mcp
 type: stdio
 name: howtocook
 params:

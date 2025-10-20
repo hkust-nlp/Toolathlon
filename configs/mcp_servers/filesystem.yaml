@@ -1,5 +1,6 @@
 # file system server - for reading and writing files
-# https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem
+# Source: https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem
+# Toolathlon Version: The same
 type: stdio
 name: filesystem
 params:

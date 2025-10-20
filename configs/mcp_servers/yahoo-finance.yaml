@@ -1,3 +1,6 @@
+# Yahoo Finance
+# Source: https://github.com/Alex2Yang97/yahoo-finance-mcp
+# Toolathlon Version: https://github.com/lockon-n/yahoo-finance-mcp
 type: stdio
 name: yahoo-finance
 params:

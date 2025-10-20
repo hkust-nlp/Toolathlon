@@ -1,5 +1,6 @@
 # a word mcp server
-# https://github.com/GongRzhe/Office-Word-MCP-Server
+# Source: https://github.com/GongRzhe/Office-Word-MCP-Server
+# Toolathlon Version: The same
 type: stdio
 name: word
 params:

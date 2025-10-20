@@ -1,7 +1,6 @@
-# we choose a more powerful excel server
-# https://github.com/haris-musa/excel-mcp-server/blob/main/TOOLS.md
-# replace `configs/legacy_servers/excel.yaml`
-# `uv add excel-mcp-server` to install
+# Excel
+# Source: https://github.com/haris-musa/excel-mcp-server/blob/main/TOOLS.md
+# Toolathlon Version: The same
 type: stdio
 name: excel
 params:

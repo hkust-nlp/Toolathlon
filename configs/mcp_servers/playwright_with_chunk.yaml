@@ -1,5 +1,6 @@
 # Use Playwright to provide browser automation functionality
-# https://github.com/microsoft/playwright-mcp
+# Source: https://github.com/microsoft/playwright-mcp
+# Toolathlon Version: https://github.com/lockon-n/playwright-mcp
 type: stdio
 name: playwright_with_chunk
 params:

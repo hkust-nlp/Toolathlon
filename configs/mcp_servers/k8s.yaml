@@ -1,5 +1,6 @@
 # k8s
-# https://github.com/Flux159/mcp-server-kubernetes/blob/main/ADVANCED_README.md
+# Source: https://github.com/Flux159/mcp-server-kubernetes
+# Toolathlon Version: https://github.com/lockon-n/mcp-server-kubernetes
 type: stdio
 name: k8s
 params:

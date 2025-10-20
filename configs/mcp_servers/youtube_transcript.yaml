@@ -1,3 +1,6 @@
+# YouTube Transcript
+# Source: https://github.com/jkawamoto/mcp-youtube-transcript
+# Toolathlon Version: The same
 type: stdio
 name: youtube-transcript
 params:

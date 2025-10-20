@@ -1,6 +1,6 @@
 # Fetch web content and convert to various formats (HTML, JSON, Markdown, plain text)
-# https://www.modelscope.cn/mcp/servers/@tokenizin-agency/mcp-npx-fetch
-# seems to be an updated version of fetch
+# Source: https://github.com/tokenizin-agency/mcp-npx-fetch
+# Toolathlon Version: The same
 type: stdio
 name: fetch
 params:

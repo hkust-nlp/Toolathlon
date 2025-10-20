@@ -1,5 +1,6 @@
 # Knowledge Graph Memory
-# https://github.com/modelcontextprotocol/servers/tree/main/src/memory
+# Source: https://github.com/modelcontextprotocol/servers/tree/main/src/memory
+# Toolathlon Version: The same
 type: stdio
 name: memory
 params:
