@@ -281,19 +281,19 @@ echo "  Username: $WP_ADMIN_USER"
 echo "  Password: $WP_ADMIN_PASS"
 echo ""
 echo "WooCommerce REST API Credentials:"
-cat deployment/woocommerce/configs/wc-api-credentials.json | python -m json.tool
+cat deployment/woocommerce/configs/wc-api-credentials.json | uv run python -m json.tool
 echo "========================================="
 
 # 11. Test API
 echo ""
 echo "Testing REST API..."
 if [ -f deployment/woocommerce/configs/wc-api-credentials.json ]; then
-    CONSUMER_KEY=$(cat deployment/woocommerce/configs/wc-api-credentials.json | python -c "import json,sys;print(json.load(sys.stdin)['consumer_key'])")
-    CONSUMER_SECRET=$(cat deployment/woocommerce/configs/wc-api-credentials.json | python -c "import json,sys;print(json.load(sys.stdin)['consumer_secret'])")
+    CONSUMER_KEY=$(cat deployment/woocommerce/configs/wc-api-credentials.json | uv run python -c "import json,sys;print(json.load(sys.stdin)['consumer_key'])")
+    CONSUMER_SECRET=$(cat deployment/woocommerce/configs/wc-api-credentials.json | uv run python -c "import json,sys;print(json.load(sys.stdin)['consumer_secret'])")
     
     echo "Getting WooCommerce system status:"
     # Note: added -L parameter and trailing slash
-    curl -s -L -u "$CONSUMER_KEY:$CONSUMER_SECRET" "$WP_URL/wp-json/wc/v3/system_status/tools/" | python -m json.tool | head -20
+    curl -s -L -u "$CONSUMER_KEY:$CONSUMER_SECRET" "$WP_URL/wp-json/wc/v3/system_status/tools/" | uv run python -m json.tool | head -20
 fi
 
 # 12. Print service management hints
@@ -553,16 +553,16 @@ while IFS='|' read -r user_id first_name last_name full_name email password cons
 done < "$TEMP_USERS"
 echo ""
 echo "API Configuration:"
-cat "$OUTPUT_FILE" | python -m json.tool 2>/dev/null || cat "$OUTPUT_FILE"
+cat "$OUTPUT_FILE" | uv run python -m json.tool 2>/dev/null || cat "$OUTPUT_FILE"
 echo ""
 echo "========================================="
 echo "Usage Examples:"
 echo "# Test first store API (if available):"
 if [ -f "$OUTPUT_FILE" ]; then
-    FIRST_KEY=$(cat "$OUTPUT_FILE" | python -c "import json,sys;data=json.load(sys.stdin);print(data[0]['consumer_key'] if data else '')" 2>/dev/null)
-    FIRST_SECRET=$(cat "$OUTPUT_FILE" | python -c "import json,sys;data=json.load(sys.stdin);print(data[0]['consumer_secret'] if data else '')" 2>/dev/null)
-    FIRST_SLUG=$(cat "$OUTPUT_FILE" | python -c "import json,sys;data=json.load(sys.stdin);print(data[0]['site_slug'] if data else '')" 2>/dev/null)
-    FIRST_TITLE=$(cat "$OUTPUT_FILE" | python -c "import json,sys;data=json.load(sys.stdin);print(data[0]['site_title'] if data else '')" 2>/dev/null)
+    FIRST_KEY=$(cat "$OUTPUT_FILE" | uv run python -c "import json,sys;data=json.load(sys.stdin);print(data[0]['consumer_key'] if data else '')" 2>/dev/null)
+    FIRST_SECRET=$(cat "$OUTPUT_FILE" | uv run python -c "import json,sys;data=json.load(sys.stdin);print(data[0]['consumer_secret'] if data else '')" 2>/dev/null)
+    FIRST_SLUG=$(cat "$OUTPUT_FILE" | uv run python -c "import json,sys;data=json.load(sys.stdin);print(data[0]['site_slug'] if data else '')" 2>/dev/null)
+    FIRST_TITLE=$(cat "$OUTPUT_FILE" | uv run python -c "import json,sys;data=json.load(sys.stdin);print(data[0]['site_title'] if data else '')" 2>/dev/null)
     if [ -n "$FIRST_KEY" ] && [ -n "$FIRST_SECRET" ] && [ -n "$FIRST_SLUG" ]; then
         echo "# Test $FIRST_TITLE API:"
         echo "curl -u \"$FIRST_KEY:$FIRST_SECRET\" \"$BASE_URL/$FIRST_SLUG/wp-json/wc/v3/products\""
