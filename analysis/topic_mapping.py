@@ -45,7 +45,7 @@ task_classification_mapping = {
     "canvas-homework-grader-python": "Campus & Study > Teaching",
 
     # Campus & Study - Academic Affairs
-    "canvas-notification-python": "Campus & Study > Academic Affairs",
+    "canvas-new-students-notification": "Campus & Study > Academic Affairs",
     "canvas-art-manager": "Campus & Study > Academic Affairs",
 
     # Finance & Market - Quantitative Strategy
@@ -147,7 +147,7 @@ task_classification_mapping = {
     "fillout-online-forms": "Daily & Entertainment > Personal Affair",
 
     # Daily & Entertainment - Sports Analysis
-    "NHL-B2B-Analysis": "Daily & Entertainment > Sports Analysis",
+    "nhl-b2b-analysis": "Daily & Entertainment > Sports Analysis",
     "inter-final-performance-analysis": "Daily & Entertainment > Sports Analysis",
 
     # Shopping & E-commerce - Online Purchase
