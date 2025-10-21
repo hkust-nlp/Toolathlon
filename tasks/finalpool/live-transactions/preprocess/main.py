@@ -46,7 +46,7 @@ def delete_and_recreate_bucket(
 
     for attempt in range(1, max_retries + 1):
         try:
-            storage_client = storage.Client(project=project_id, credentials=credentials)
+            storage_client = storage.Client(project=project_id, credentials=CREDENTIALS)
 
             # Find all buckets with prefix matching
             found_buckets = []
@@ -127,13 +127,13 @@ import time
 
 def manage_log_bucket(
         project_id,
-        credentials,
+        credentials=CREDENTIALS,
         bucket_name_prefix="abtesting_logging",
         location="global",
         max_retries=10
     ):
     print(f"🔍 Managing log buckets with prefix: {bucket_name_prefix}")
-    config_client = config_service_v2.ConfigServiceV2Client(credentials=credentials)
+    config_client = config_service_v2.ConfigServiceV2Client(credentials=CREDENTIALS)
     parent = f"projects/{project_id}/locations/{location}"
 
     # Find existing log bucket
@@ -188,7 +188,7 @@ def check_bq_dataset_exists(dataset_name="transactions_analytics", project_id="m
     """Check if BigQuery dataset exists"""
     print(f"🔍 Checking if BigQuery dataset exists: {dataset_name}")
 
-    bq_client = bigquery.Client(project=project_id, credentials=credentials)
+    bq_client = bigquery.Client(project=project_id, credentials=CREDENTIALS)
     dataset_id = f"{project_id}.{dataset_name}"
 
     bq_client.get_dataset(dataset_id)
@@ -199,7 +199,7 @@ def delete_bq_dataset(dataset_name="transactions_analytics", project_id="mcp-ben
     """Delete BigQuery dataset"""
     print(f"🗑️  Deleting BigQuery dataset: {dataset_name}")
 
-    bq_client = bigquery.Client(project=project_id, credentials=credentials)
+    bq_client = bigquery.Client(project=project_id, credentials=CREDENTIALS)
     dataset_id = f"{project_id}.{dataset_name}"
 
     bq_client.delete_dataset(dataset_id, delete_contents=True, not_found_ok=True)
@@ -210,7 +210,7 @@ def create_bq_dataset(dataset_name="transactions_analytics", project_id="mcp-ben
     """Create BigQuery dataset"""
     print(f"📊 Creating BigQuery dataset: {dataset_name}")
 
-    bq_client = bigquery.Client(project=project_id, credentials=credentials)
+    bq_client = bigquery.Client(project=project_id, credentials=CREDENTIALS)
     dataset_id = f"{project_id}.{dataset_name}"
 
     dataset = bigquery.Dataset(dataset_id)
@@ -223,7 +223,7 @@ def upload_csv_to_bq_table(csv_file_path, table_name, dataset_name="transactions
     """Upload CSV file to BigQuery table"""
     print(f"📤 Uploading {os.path.basename(csv_file_path)} to BigQuery table: {table_name}")
 
-    bq_client = bigquery.Client(project=project_id, credentials=credentials)
+    bq_client = bigquery.Client(project=project_id, credentials=CREDENTIALS)
     table_id = f"{project_id}.{dataset_name}.{table_name}"
 
     job_config = bigquery.LoadJobConfig(
