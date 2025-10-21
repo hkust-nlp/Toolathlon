@@ -165,8 +165,7 @@ def manage_log_bucket(
         max_retries=10
     ):
     print(f"🔍 Managing log buckets with prefix: {bucket_name_prefix}")
-    config_client = ConfigServiceV2Client(credentials=credentials)
-    logging_service_client = LoggingServiceV2Client(credentials=credentials)
+    config_client = config_service_v2.ConfigServiceV2Client(credentials=credentials)
     parent = f"projects/{project_id}/locations/{location}"
 
     # Find existing log bucket
