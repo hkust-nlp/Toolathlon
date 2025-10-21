@@ -8,6 +8,7 @@ import subprocess
 from datetime import datetime, timedelta
 import os
 from google.oauth2 import service_account
+from google.cloud.logging_v2.types import CreateBucketRequest
 import json
 
 # Set path to credentials file

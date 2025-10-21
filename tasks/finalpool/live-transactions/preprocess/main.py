@@ -11,6 +11,9 @@ from google.cloud import bigquery
 from google.cloud.exceptions import NotFound, Conflict
 from google.oauth2 import service_account
 import random
+from google.cloud.logging_v2.types import CreateBucketRequest
+from google.cloud.logging_v2.services import config_service_v2
+from google.cloud.logging_v2.types import LogBucket
 
 random.seed(42)
 
