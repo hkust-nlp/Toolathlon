@@ -20,9 +20,9 @@ random.seed(42)
 # Set path to credentials file
 CREDENTIALS_PATH = "configs/gcp-service_account.keys.json"
 if os.path.exists(CREDENTIALS_PATH):
-    credentials = service_account.Credentials.from_service_account_file(CREDENTIALS_PATH)
+    CREDENTIALS = service_account.Credentials.from_service_account_file(CREDENTIALS_PATH)
 else:
-    credentials = None
+    CREDENTIALS = None
 
 # Parse project_id from service account file
 with open(CREDENTIALS_PATH, 'r') as f:
@@ -314,7 +314,7 @@ def cleanup_preprocess_environment(workspace_dir, target_transaction_id="T8492XJ
     cleanup_results["file_cleanup"] = bucket_ready
     
     # Manage Trading_Logging log bucket
-    log_bucket_results = manage_log_bucket(project_id, "Trading_Logging")
+    log_bucket_results = manage_log_bucket(project_id, CREDENTIALS, "Trading_Logging")
     cleanup_results["log_bucket_results"] = log_bucket_results
 
     # Manage transactions_analytics BigQuery dataset

@@ -14,9 +14,9 @@ import json
 # Set path to credentials file
 CREDENTIALS_PATH = "configs/gcp-service_account.keys.json"
 if os.path.exists(CREDENTIALS_PATH):
-    credentials = service_account.Credentials.from_service_account_file(CREDENTIALS_PATH)
+    CREDENTIALS = service_account.Credentials.from_service_account_file(CREDENTIALS_PATH)
 else:
-    credentials = None
+    CREDENTIALS = None
 
 # Parse project_id from service account file
 with open(CREDENTIALS_PATH, 'r') as f:
@@ -227,7 +227,7 @@ def setup_abtesting_log_bucket(project_id: str, credentials=None) -> bool:
         # clear_logs_if_exists=True,
         # retention_days=30,
         # description="Log bucket for A/B testing system logs",
-        # credentials=credentials
+        credentials=credentials
     )
 
     if success:
@@ -283,7 +283,7 @@ def read_recent_log_entries(project_id: str, log_name: str, max_entries: int = 1
         print(f"❌ Failed to read log entries: {e}")
 
 
-def clean_log(project_id: str, credentials=None):
+def clean_log(project_id: str, credentials=CREDENTIALS):
     """Main function to clean and setup abtesting_logging bucket"""
     print("=" * 60)
     print("Cloud Logging Management for A/B Testing Task")
