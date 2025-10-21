@@ -11,4 +11,5 @@ global_configs = Dict(
     google_official_key="xxx", # Fill in the google_official key
     xai_official_key="xxx", # Fill in the xai_official key
     podman_or_docker="podman", # or `docker` depending on which one you want to use
+    notion_preprocess_with_playwright=False, # whether you use mcp/playwright to preprocess the notion page, default as false
 )
