@@ -70,7 +70,16 @@ The following are the admin accounts for each of the three applications:
     ![](./figures/gcp_id.png)
 3. Enable all needed APIs
 
-    Just run 
+    Make sure you have `gcloud` sdk installed, e.g.:
+
+    ```
+    curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-456.0.0-linux-x86_64.tar.gz
+    tar -xf google-cloud-sdk-*-x86_64.tar.gz
+    ./google-cloud-sdk/install.sh
+    source ~/.bashrc # or ~/.zshrc
+    ```
+
+    Then just run 
     ```
     bash global_preparation/batch_enable_gloud_apis.sh {gcp_project_id}
     ```

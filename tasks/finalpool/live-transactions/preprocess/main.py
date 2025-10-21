@@ -123,29 +123,21 @@ import uuid
 import time
 
 def manage_log_bucket(
-        project_id=PROJECT_ID, 
-        bucket_name_prefix="abtesting_logging", 
-        location="global", 
-        max_retries=10,
-        ):
-    """
-    If a log bucket with given prefix exists, clear its logs and use it.
-    If no such bucket exists, create a new one, and save the bucket name
-    to ../groundtruth_workspace/log_bucket_name.txt file.
-    """
-    from google.cloud.logging_v2.services.config_service_v2 import ConfigServiceV2Client
-    from google.cloud.logging_v2.types import LogBucket, CreateBucketRequest
-
+        project_id,
+        credentials,
+        bucket_name_prefix="abtesting_logging",
+        location="global",
+        max_retries=10
+    ):
     print(f"🔍 Managing log buckets with prefix: {bucket_name_prefix}")
-
-    logging_client = ConfigServiceV2Client(credentials=credentials)
+    config_client = ConfigServiceV2Client(credentials=credentials)
+    logging_service_client = LoggingServiceV2Client(credentials=credentials)
     parent = f"projects/{project_id}/locations/{location}"
 
-    # List all existing log buckets and find one with the prefix
+    # Find existing log bucket
     matched_bucket = None
     matched_bucket_id = None
-    buckets = list(logging_client.list_buckets(parent=parent))
-
+    buckets = list(config_client.list_buckets(parent=parent))
     for bucket in buckets:
         bucket_id = bucket.name.split('/')[-1]
         if bucket_id.startswith(bucket_name_prefix) and bucket.lifecycle_state.name == 'ACTIVE':
@@ -155,22 +147,9 @@ def manage_log_bucket(
 
     if matched_bucket is not None:
         print(f"✅ Found existing log bucket: {matched_bucket_id}")
-        # Clear all log entries in the bucket
-        from google.cloud import logging as gcloud_logging
 
-        logging_client2 = gcloud_logging.Client(project=project_id, credentials=credentials)
+        print("[IMPORTANT INFO] We now do not delete the logs in the log bucket, as google cloud sdk does not support delete log entries in custom log buckets.")
 
-        # Directly attempt to delete the log with the same name as the bucket
-        # This only requires 1 API call and avoids rate limits
-        print(f"🧹 Attempting to clear log: {matched_bucket_id}")
-        try:
-            logging_client2.delete_log(matched_bucket_id)
-            print(f"✅ Successfully cleared log: {matched_bucket_id}")
-        except Exception as e:
-            # If the log doesn't exist or is already empty, this is expected
-            print(f"ℹ️  No log entries to clear (log may not exist yet): {e}")
-
-        # Save the bucket name to file
         save_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__), "../groundtruth_workspace/log_bucket_name.txt")
         )
@@ -180,20 +159,19 @@ def manage_log_bucket(
 
         return matched_bucket_id, True
 
-    # If not found, create new
+    # Create new log bucket
     new_bucket_id = f"{bucket_name_prefix}-{uuid.uuid4().hex[:12]}"
     print(f"📝 Creating new log bucket: {new_bucket_id}")
 
-    bucket = LogBucket(retention_days=30)
+    bucket_obj = LogBucket(retention_days=30)
     request = CreateBucketRequest(
         parent=parent,
         bucket_id=new_bucket_id,
-        bucket=bucket
+        bucket=bucket_obj
     )
-    logging_client.create_bucket(request=request)
+    config_client.create_bucket(request=request)
     print(f"✅ Successfully created log bucket: {new_bucket_id}")
 
-    # Save log bucket name to file
     save_path = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "../groundtruth_workspace/log_bucket_name.txt")
     )

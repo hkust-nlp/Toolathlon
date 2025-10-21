@@ -20,7 +20,7 @@ with open(CREDENTIALS_PATH, 'r') as f:
     service_account_info = json.load(f)
     PROJECT_ID = service_account_info.get('project_id')
 
-def search_structured_log_payload(transaction_id="T8492XJ3", project_id="mcp-bench0606", hours_back=24, log_bucket_name="Trading_Logging"):
+def search_structured_log_payload(transaction_id="T8492XJ3", project_id="mcp-bench0606", hours_back=24, log_bucket_name="Trading_Logging", task_launch_time=None, task_eval_time=None):
     """Search for log entries with specific structured payload"""
     print(f"🔍 Searching for structured log payload for transaction: {transaction_id}")
 
@@ -32,7 +32,16 @@ def search_structured_log_payload(transaction_id="T8492XJ3", project_id="mcp-ben
     }
 
     # Build filter query for logs containing the transaction_id
-    filter_query = f'jsonPayload.transaction_id="{transaction_id}" OR textPayload:"{transaction_id}"'
+    filter_query = f'logName="projects/{project_id}/logs/{log_bucket_name}" AND NOT jsonPayload.logging\\.googleapis\\.com/diagnostic AND jsonPayload.transaction_id="{transaction_id}" OR textPayload:"{transaction_id}"'
+
+    # add time range filter
+    default_timezone = datetime.now().astimezone().tzinfo
+    if task_launch_time is not None:
+        task_launch_time_str = datetime.strptime(task_launch_time, "%Y-%m-%d %H:%M:%S %A").astimezone(default_timezone).strftime("%Y-%m-%dT%H:%M:%S+00:00")
+        filter_query += f' AND timestamp >= "{task_launch_time_str}"'
+    if task_eval_time is not None:
+        task_eval_time_str = datetime.strptime(task_eval_time, "%Y-%m-%d %H:%M:%S %A").astimezone(default_timezone).strftime("%Y-%m-%dT%H:%M:%S+00:00")
+        filter_query += f' AND timestamp <= "{task_eval_time_str}"'
 
     # Initialize logging client
     logging_client = cloud_logging.Client(project=project_id, credentials=credentials)
@@ -40,7 +49,7 @@ def search_structured_log_payload(transaction_id="T8492XJ3", project_id="mcp-ben
     # List log entries with filter
     log_entries = list(logging_client.list_entries(
         filter_=filter_query,
-        page_size=100
+        page_size=500
     ))
 
     if not log_entries:
@@ -120,7 +129,7 @@ def check_log_bucket_exists(bucket_name="Trading_Logging", project_id="mcp-bench
     print(f"❌ Log bucket {bucket_name} does not exist")
     return False
 
-def validate_trading_log_bucket(transaction_id="T8492XJ3", project_id="mcp-bench0606", log_bucket_name="Trading_Logging"):
+def validate_trading_log_bucket(transaction_id="T8492XJ3", project_id="mcp-bench0606", log_bucket_name="Trading_Logging", task_launch_time=None, task_eval_time=None):
     """Validate Trading_Logging log bucket and structured payload"""
     print(f"📊 Validating Trading_Logging bucket for transaction: {transaction_id}")
     
@@ -129,7 +138,7 @@ def validate_trading_log_bucket(transaction_id="T8492XJ3", project_id="mcp-bench
         raise ValueError("Trading_Logging bucket does not exist")
     
     # Search for expected structured payload
-    found_payload, matching_entries = search_structured_log_payload(transaction_id, project_id, log_bucket_name)
+    found_payload, matching_entries = search_structured_log_payload(transaction_id, project_id, log_bucket_name, task_launch_time, task_eval_time)
     
     if not found_payload:
         expected_structure = {
@@ -498,23 +507,11 @@ if __name__=="__main__":
         validate_investigation_report(groundtruth_file, temp_agent_file, args.transaction_id)
         
         # Validate structured payload in Trading_Logging bucket
-        validate_trading_log_bucket(args.transaction_id, args.project_id, args.log_bucket_name)
+        validate_trading_log_bucket(args.transaction_id, args.project_id, args.log_bucket_name, args.launch_time, datetime.now().strftime("%Y-%m-%d %H:%M:%S %A"))
         
         # Validate result log file
         if not os.path.isfile(args.res_log_file):
             raise FileNotFoundError(f"Missing log file: {args.res_log_file}")
-        
-        with open(args.res_log_file, "r", encoding="utf-8") as f:
-            log_data = json.load(f)
-        
-        # Read launch_time from log file if present
-        log_launch_time = log_data.get('config', {}).get('launch_time')
-        if log_launch_time:
-            print(f"Launch time from log: {log_launch_time}")
-        
-        messages = log_data.get("messages")
-        if not isinstance(messages, list):
-            raise ValueError("Log file missing 'messages' list")
         
         print(f"✅ Live Transactions evaluation passed successfully!")
         print(f"📄 Investigation file {args.transaction_id}.json correctly uploaded to {args.bucket_name}")

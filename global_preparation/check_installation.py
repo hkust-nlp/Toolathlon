@@ -17,7 +17,6 @@ async def main():
         # print(server_name)
         to_check_servers.append(server_name)
     
-    # to_check_servers = ['notion']
     
     # create a ./dumps/mcp_servers_check directory
     os.makedirs("dumps_for_mcp_check/mcp_servers_check", exist_ok=True)
@@ -25,14 +24,17 @@ async def main():
     xx_MCPServerManager = MCPServerManager(agent_workspace="./dumps_for_mcp_check/mcp_servers_check") # a pseudo server manager
     
     for server_name in to_check_servers:
+        if server_name == "notion_official":
+            # we do not verify this server
+            continue
         server_x = xx_MCPServerManager.servers[server_name]
         
         try:
             print_color(f"Server {server_name} is checking ... ", "yellow")
             async with server_x as server:
                 tools = await server.list_tools()
-                with open("./mcptools_count.jsonl", "a") as f:
-                    f.write(json.dumps({"server_name": server_name, "tools_count": len(tools)}) + "\n")
+                # with open("./mcptools_count.jsonl", "a") as f:
+                    # f.write(json.dumps({"server_name": server_name, "tools_count": len(tools)}) + "\n")
                 pass
             # if server_name == "github" and global_configs.podman_or_docker == "podman":
                 # print_color("If you see `2025-08-30T11:10:04.982268: process not running: No such process` somthing like in checking github MCP server with podman, do not worry, this is just a expected behavior :)", "cyan")

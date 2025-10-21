@@ -7,12 +7,9 @@
 # The Tool Decathlon: Benchmarking Language Agents for <br>Diverse, Realistic, and Long-Horizon Task Execution
 
 [![Website](https://img.shields.io/badge/Website-4285F4?style=for-the-badge&logo=google-chrome&logoColor=white)](https://hkust.mintlify.app/)
-[![Discord](https://img.shields.io/badge/Join_Our_Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/yourcode)
+[![Discord](https://img.shields.io/badge/Join_Our_Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Y6DYFMbk)
 [![arXiv](https://img.shields.io/badge/Paper-b31b1b?style=for-the-badge&logo=arxiv&logoColor=white)](https://arxiv.org/abs/xxxx.xxxxx)
-[![Hugging Face](https://img.shields.io/badge/Trajectories-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co/hkust-nlp/xxxxxx)
-
-
-<!-- [Installation](#installation) • [Quick Start](#quick-start) • [Features](#key-features) • [Documentation](./docs/) • [Contributing](./CONTRIBUTING.md) -->
+[![Hugging Face](https://img.shields.io/badge/Trajectories-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co/datasets/hkust-nlp/Toolathlon-Trajectories)
 
 </div>
 
@@ -77,7 +74,7 @@ cp configs/token_key_session_example.py configs/token_key_session.py
 
 Then please read carefully through `global_preparation/how2register_accounts.md` and follow the guides. You need to register some accounts and configure some tokens/api keys/secrets in `configs/token_key_session.py`. 
 
-### Misc COnfiguration
+### Misc Configuration
 
 Simply run the following:
 ```
@@ -91,18 +88,43 @@ bash global_preparation/deploy_containers.sh [true|false] # this indicate whethe
 
 You can find more details in `deployment/*/scripts/setup.sh` for each local application we deployed.
 
+### MCP Servers Verfication
+
+You can simply run this script to check if all MCP servers are working properly, after you setup all the above configs and deployed the app containers:
+
+```
+uv run -m global_preparation.check_installation
+```
+
 ### Run Single Task
 
-We use the same script to run any task, just simply edit the `task` variable in this script:
+We use the same script `scripts/quick_start/quick_start_run.sh` to run any task, just simply edit the `task` variable in this script:
 
 ```
 bash scripts/quick_start/quick_start_run.sh
 ```
 
-## Evaluate in Parallel with Isolation
+## Evaluation in Parallel with Task Isolation
 
-为了保证不同任务执行之间的互不干扰，我们实现了在容器里运行执行任务，这同时带来了允许我们并行执行任务的好处，从而极大加速了我们的评估速度。
+To ensure that the execution of different tasks does not interfere with each other, we use containerization to run each task in an isolated environment. This also makes it possible to run tasks in parallel, greatly accelerating evaluation speed.
 
 ```
-bash scripts/run_parallel.sh
+bash scripts/run_parallel.sh gpt-5-mini ./{your_dump_path} openrouter "" 10
+```
+*Note: please take a look at the arguments in this script before you run
+
+In doing so, we build an image `docker.io/lockon0927/toolathlon-task-image:1016beta`, which will be pulled automatically in `global_preparation/install_env.sh`, so you do not need to pull it manually.
+
+This will run all the tasks in parallel with at most 10 workers, and you will find all output trajectories and evaluation summary (`eval_stats.json`) in `./{your_dump_path}`.
+
+If you'd like to evaluate multiple models in sequence, we provide an ensemble script for you:
+
+```
+bash scripts/run_parallel_sequential.sh
+```
+
+## Citing Us
+If you found our project useful, please cite us as:
+```
+TBD
 ```
