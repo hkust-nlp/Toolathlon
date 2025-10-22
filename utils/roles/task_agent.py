@@ -532,44 +532,15 @@ class TaskAgent:
         from openhands.sdk.context import AgentContext
 
         context = AgentContext(
-            system_message_suffix="""
-<CRITICAL_TOOL_USAGE_RULES>
-IMPORTANT: When calling tools, DO NOT manually provide the 'kind' field.
-The 'kind' field is automatically managed by the system and should NEVER be included in your tool call arguments.
-
-Correct tool usage:
-- think tool: {"thought": "your reasoning and analysis"}
-- finish tool: {"message": "task completion summary"}
-
-Incorrect usage (will cause validation errors):
-- {"kind": "planning", "thought": "..."}  ❌ WRONG
-- {"kind": "success", "message": "..."}   ❌ WRONG
-
-The 'kind' field may appear in tool schemas but is SYSTEM-MANAGED ONLY.
-Never include it in your tool call arguments.
-</CRITICAL_TOOL_USAGE_RULES>
-
-<TASK_COMPLETION_PROTOCOL>
-CRITICAL: When you have completed the task, you MUST call the 'finish' tool.
-
-Usage: finish(message="summary of accomplishments")
-
-Call this when:
-- You have successfully completed the user's requested task
-- All objectives have been met
-- No further actions are needed
-
-WITHOUT calling finish, the system will NOT recognize task completion!
-</TASK_COMPLETION_PROTOCOL>
-"""
+            system_message_suffix=self.task_config.system_prompts.agent
         )
 
         self.agent = OpenHandsAgent(
             llm=self.llm,
             tools=all_toolspecs,  # Pass ToolSpec list
             agent_context=context,  # Add tool usage instructions
-            system_message=self.task_config.system_prompts.agent,
-            filter_tools_regex="^(?!think|finish).*$",  # Filter out think and finish tools (exist kind validation problem)
+            # system_message=self.task_config.system_prompts.agent,
+            # filter_tools_regex="^(?!think|finish).*$",  # Filter out think and finish tools (exist kind validation problem)
         )
 
         # 6. Create Conversation (explicitly enable stuck detection)

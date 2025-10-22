@@ -1,5 +1,5 @@
 {
-    "needed_mcp_servers": ["arxiv_local","youtube","notion_official"],
-    "needed_local_tools": [],
+    "needed_mcp_servers": ["arxiv_local"],
+    "needed_local_tools": ["python_execute"],
     "meta": {}
 }

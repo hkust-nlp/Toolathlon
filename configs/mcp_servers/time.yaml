@@ -8,5 +8,5 @@ params:
     - "-m"
     - "mcp_server_time"
     - "--local-timezone=${token.timezone}"
-  cwd: "${agent_workspace}"
+  # cwd: "${agent_workspace}"
 cache_tools_list: true

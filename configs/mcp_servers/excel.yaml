@@ -10,6 +10,6 @@ params:
     - "run"
     - "excel-mcp-server"
     - "stdio"
-  cwd: "${agent_workspace}"
+  # cwd: "${agent_workspace}"
 client_session_timeout_seconds: 100
 cache_tools_list: true
