@@ -149,8 +149,8 @@ def analyze_one_traj(resolved_traj, actual_turn):
         "unique_tool_call_count": len(unique_tool_call_names), # 有多少种tool被调用了
         "unique_tool_call_name_count": unique_tool_call_name_count, # 每种tool被调用了多少次
         "tool_output_type_count": tool_output_type_count, # 调用tool的输出类型分布
-        "average_tool_call_count": tool_call_count / actual_turn, # 减掉最后一轮交卷的
-        "max_tool_call_count_per_turn": max(tool_call_count_per_turn)
+        "average_tool_call_count": 0 if actual_turn==0 else tool_call_count / actual_turn, # 减掉最后一轮交卷的
+        "max_tool_call_count_per_turn": 0 if len(tool_call_count_per_turn)==0 else max(tool_call_count_per_turn)
     }
 
 def prepare_all_stat_for_one_traj(task_dir):
@@ -167,7 +167,9 @@ def prepare_all_stat_for_one_traj(task_dir):
     else:
         status_data['evaluation'] = None
     num_of_turn = result["num_of_turn"]
-    actual_with_tool_turn = num_of_turn - (1 if len(resolved_traj[num_of_turn]['matched_tool_calls'])==0 else 0) # just remove the last turn if it is a think_or_respond turn
+    actual_with_tool_turn = 0
+    if len(resolved_traj)>0:
+        actual_with_tool_turn = num_of_turn - (1 if len(resolved_traj[num_of_turn]['matched_tool_calls'])==0 else 0) # just remove the last turn if it is a think_or_respond turn
     stat_for_one_traj = analyze_one_traj(resolved_traj, actual_with_tool_turn)
     
     # 如果有结果的话，再统计下token数
