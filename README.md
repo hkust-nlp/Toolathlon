@@ -112,8 +112,8 @@ To ensure that the execution of different tasks does not interfere with each oth
 bash scripts/run_parallel.sh gpt-5-mini ./{your_dump_path} openrouter "" 10
 ```
 *Note: please take a look at the arguments in this script before you run
-lockon0927/tool
-In doing so, we build an image `docker.io/athlon-task-image:1016beta`, which will be pulled automatically in `global_preparation/install_env.sh`, so you do not need to pull it manually.
+
+In doing so, we build an image `docker.io/lockon0927/toolathlon-task-image:1016beta`, which will be pulled automatically in `global_preparation/install_env.sh`, so you do not need to pull it manually.
 
 This will run all the tasks in parallel with at most 10 workers, and you will find all output trajectories and evaluation summary (`eval_stats.json`) in `./{your_dump_path}`.
 
