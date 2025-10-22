@@ -10,7 +10,7 @@ from utils.general.helper import read_json
 
 # Add project root to Python path
 current_dir = os.path.dirname(os.path.abspath(__file__))
-# Go up: preprocess -> sla-timeout-monitor -> fan -> tasks -> mcpbench_dev
+# Go up: preprocess -> sla-timeout-monitor -> fan -> tasks -> toolathlon
 project_root = os.path.abspath(os.path.join(current_dir, '..', '..', '..', '..'))
 sys.path.insert(0, project_root)
 task_root = os.path.dirname(current_dir)

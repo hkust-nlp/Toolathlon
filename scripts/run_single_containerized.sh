@@ -63,7 +63,7 @@ echo "Using container image: $IMAGE_NAME"
 # Generate unique container name
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 SAFE_TASK_NAME=$(echo "$task_dir_arg" | sed 's|/|-|g')
-CONTAINER_NAME="mcpbench-${SAFE_TASK_NAME}-${TIMESTAMP}"
+CONTAINER_NAME="toolathlon-${SAFE_TASK_NAME}-${TIMESTAMP}"
 
 echo "Container name: $CONTAINER_NAME"
 

@@ -138,8 +138,8 @@ def check_local(agent_workspace, groundtruth_workspace):
         
 
 if __name__ == "__main__":
-    agent_workspace = "/Users/quentin/Desktop/RESEARCH/MCP/final pool/mcpbench_dev/dumps/run1/claude-4-sonnet-0514/dev/Chinese-SingleUserTurn-language-school/workspace"
-    groundtruth_workspace = "/Users/quentin/Desktop/RESEARCH/MCP/final pool/mcpbench_dev/tasks/dev/language-school/groundtruth_workspace"
+    agent_workspace = "/Users/quentin/Desktop/RESEARCH/MCP/final pool/toolathlon/dumps/run1/claude-4-sonnet-0514/dev/Chinese-SingleUserTurn-language-school/workspace"
+    groundtruth_workspace = "/Users/quentin/Desktop/RESEARCH/MCP/final pool/toolathlon/tasks/dev/language-school/groundtruth_workspace"
     success, message = check_local(agent_workspace, groundtruth_workspace)
     # success, message = check_local(args.agent_workspace, args.groundtruth_workspace)
     

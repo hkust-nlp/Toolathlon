@@ -214,7 +214,7 @@ if __name__=="__main__":
     # Get GitHub token and user name
     args.github_token = "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"
     args.user_name = get_user_name(args.github_token)
-    args.groundtruth_workspace = "/ssddata/ruige/mcpbench_dev/tasks/ruige/personal_website_construct_v2/groundtruth_workspace"
+    args.groundtruth_workspace = "/ssddata/ruige/toolathlon/tasks/ruige/personal_website_construct_v2/groundtruth_workspace"
 
     # Check remote repository
     try:

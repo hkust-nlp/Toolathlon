@@ -10,7 +10,7 @@ import os
 
 def read_data():
     """Read the transaction data and high-value clients"""
-    base_path = "/home/jzhao/workspace/mcpbench_dev/tasks/finalpool/flagged-transactions"
+    base_path = "/home/jzhao/workspace/toolathlon/tasks/finalpool/flagged-transactions"
     
     # Read transaction data
     transactions_file = os.path.join(base_path, "files/all_transactions.csv")
@@ -100,7 +100,7 @@ def format_for_excel(df_anomalies):
 
 def save_groundtruth(df_anomalies, filename, description):
     """Save anomalies to Excel file"""
-    output_path = f"/home/jzhao/workspace/mcpbench_dev/tasks/finalpool/flagged-transactions/groundtruth_workspace/{filename}"
+    output_path = f"/home/jzhao/workspace/toolathlon/tasks/finalpool/flagged-transactions/groundtruth_workspace/{filename}"
     
     # Remove timezone for Excel compatibility
     df_output = format_for_excel(df_anomalies)

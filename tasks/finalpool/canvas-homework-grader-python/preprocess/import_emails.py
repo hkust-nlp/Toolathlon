@@ -67,9 +67,9 @@ async def import_emails_via_mcp(inbox_path, target_folder="INBOX", preserve_fold
         task_dir = script_dir.parent  # canvas-homework-grader-python
         finalpool_dir = task_dir.parent  # finalpool
         tasks_dir = finalpool_dir.parent  # tasks
-        mcpbench_root = tasks_dir.parent  # mcpbench_dev
+        toolathlon_root = tasks_dir.parent  # toolathlon
         
-        sys.path.insert(0, str(mcpbench_root))
+        sys.path.insert(0, str(toolathlon_root))
         from utils.mcp.tool_servers import MCPServerManager
         
         print(f"🚀 Attempting to import emails via MCP server...")
@@ -95,7 +95,7 @@ async def import_emails_via_mcp(inbox_path, target_folder="INBOX", preserve_fold
         # Initialize MCP Server Manager with local token configuration
         server_manager = MCPServerManager(
             agent_workspace=str(workspace),
-            config_dir=str(mcpbench_root / "configs" / "mcp_servers"),
+            config_dir=str(toolathlon_root / "configs" / "mcp_servers"),
             debug=False,
             local_token_key_session=local_token_key_session  # This is the key part!
         )

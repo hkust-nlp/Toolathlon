@@ -19,9 +19,9 @@ import os
 
 # Add utils directory to path to import Canvas API
 current_file = Path(__file__).absolute()
-# From evaluation/main.py -> canvas-homework-grader-python -> finalpool -> tasks -> mcpbench_dev
-mcpbench_root = current_file.parent.parent.parent.parent.parent
-utils_dir = mcpbench_root / "utils"
+# From evaluation/main.py -> canvas-homework-grader-python -> finalpool -> tasks -> toolathlon
+toolathlon_root = current_file.parent.parent.parent.parent.parent
+utils_dir = toolathlon_root / "utils"
 sys.path.insert(0, str(utils_dir))
 
 from app_specific.canvas import CanvasAPI

@@ -1,5 +1,5 @@
 {
-    "needed_mcp_servers": ["arxiv_local","youtube","playwright_with_chunk"],
+    "needed_mcp_servers": ["notion_official"],
     "needed_local_tools": ["web_search"],
     "meta": {}
 }

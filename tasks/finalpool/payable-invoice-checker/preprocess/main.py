@@ -9,7 +9,7 @@ from utils.app_specific.poste.ops import clear_folder
 
 # Add project root to Python path
 current_dir = os.path.dirname(os.path.abspath(__file__))
-# Go up: preprocess -> payable-invoice-checker -> fan -> tasks -> mcpbench_dev
+# Go up: preprocess -> payable-invoice-checker -> fan -> tasks -> toolathlon
 project_root = os.path.abspath(os.path.join(current_dir, '..', '..', '..', '..'))
 sys.path.insert(0, project_root)
 
