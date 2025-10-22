@@ -253,7 +253,7 @@ def check_application_emails_in_mailboxes() -> Tuple[bool, List[str]]:
 
 def check_other_emails_empty() -> Tuple[bool, List[str]]:
     """Check that all other emails have empty inboxes - if any have emails, task should fail"""
-    other_emails_file = '/home/jzhao/workspace/mcpbench_dev/tasks/finalpool/notion-find-job/other_emails.txt'
+    other_emails_file = '/home/jzhao/workspace/toolathlon/tasks/finalpool/notion-find-job/other_emails.txt'
     
     if not os.path.exists(other_emails_file):
         return True, ["other_emails.txt not found - skipping check"]

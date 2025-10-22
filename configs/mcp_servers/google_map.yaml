@@ -1,5 +1,6 @@
 # Google Map
-# https://github.com/modelcontextprotocol/servers-archived/tree/main/src/google-maps
+# Source: https://github.com/modelcontextprotocol/servers-archived/tree/main/src/google-maps
+# Toolathlon Version: The same
 type: stdio
 name: google_map
 params:

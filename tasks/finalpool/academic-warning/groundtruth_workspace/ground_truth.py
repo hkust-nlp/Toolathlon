@@ -129,8 +129,8 @@ class AcademicWarningSystem:
 
 def main():
     # Configuration
-    files_dir = "/home/jzhao/workspace/mcpbench_dev/tasks/finalpool/academic-warning/files"
-    latest_scores_path = "/home/jzhao/workspace/mcpbench_dev/tasks/finalpool/academic-warning/initial_workspace/latest_quiz_scores.csv"
+    files_dir = "/home/jzhao/workspace/toolathlon/tasks/finalpool/academic-warning/files"
+    latest_scores_path = "/home/jzhao/workspace/toolathlon/tasks/finalpool/academic-warning/initial_workspace/latest_quiz_scores.csv"
     
     # Run analysis
     system = AcademicWarningSystem(files_dir, latest_scores_path)

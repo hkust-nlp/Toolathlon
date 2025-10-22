@@ -6,7 +6,7 @@ import os
 
 # Add project root to Python path
 current_dir = os.path.dirname(os.path.abspath(__file__))
-# Go up: preprocess -> landing-task-reminder -> fan -> tasks -> mcpbench_dev
+# Go up: preprocess -> landing-task-reminder -> fan -> tasks -> toolathlon
 project_root = os.path.abspath(os.path.join(current_dir, '..', '..', '..', '..'))
 sys.path.insert(0, project_root)
 

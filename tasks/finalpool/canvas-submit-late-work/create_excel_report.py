@@ -16,7 +16,7 @@ def create_grade_summary_excel():
     """Create a comprehensive Excel file with student grades and statistics"""
     
     # Load user configuration data
-    with open('/ssddata/xiaochen/workspace/mcpbench_dev/tasks/xiaochen/canvas_collect_work_data/files/user_config.json', 'r') as f:
+    with open('/ssddata/xiaochen/workspace/toolathlon/tasks/xiaochen/canvas_collect_work_data/files/user_config.json', 'r') as f:
         data = json.load(f)
     
     # Create workbook
@@ -233,7 +233,7 @@ def create_grade_summary_excel():
     ws2.column_dimensions['D'].width = 15
     
     # Save the workbook
-    output_path = '/ssddata/xiaochen/workspace/mcpbench_dev/tasks/xiaochen/canvas_collect_work_data/initial_workspace/Cinema_Culture_Grade_Summary.xlsx'
+    output_path = '/ssddata/xiaochen/workspace/toolathlon/tasks/xiaochen/canvas_collect_work_data/initial_workspace/Cinema_Culture_Grade_Summary.xlsx'
     wb.save(output_path)
     
     print(f"✅ Grade summary Excel file created successfully: {output_path}")

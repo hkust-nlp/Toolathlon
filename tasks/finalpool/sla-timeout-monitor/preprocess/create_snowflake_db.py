@@ -16,7 +16,7 @@ from rich.table import Table
 
 # Add project root directory to Python path
 current_dir = os.path.dirname(os.path.abspath(__file__))
-# Go up: preprocess -> sla-timeout-monitor -> fan -> tasks -> mcpbench_dev
+# Go up: preprocess -> sla-timeout-monitor -> fan -> tasks -> toolathlon
 project_root = os.path.abspath(os.path.join(current_dir, '..', '..', '..', '..'))
 sys.path.insert(0, project_root)
 try:

@@ -1,24 +1,6 @@
-# GitHub API integration
-# https://github.com/modelcontextprotocol/servers/tree/main/src/github
-# make sure you have podman or docker when using this server
-# type: stdio
-# name: github
-# params:
-#   command: ${podman_or_docker} # or `docker`
-#   args:
-#     - "run"
-#     - "-i"
-#     - "--rm"
-#     - "-e"
-#     - "GITHUB_PERSONAL_ACCESS_TOKEN"
-#     - "ghcr.io/github/github-mcp-server:v0.4.0"
-#   env:
-#     GITHUB_PERSONAL_ACCESS_TOKEN: "${token.github_token}"
-# client_session_timeout_seconds: 50
-# cache_tools_list: true
-
-# The following directly use the built binary of my forked version
-# https://github.com/lockon-n/github-mcp-server
+# Github MCP Server - The following directly use the built binary of my forked version
+# Source: https://github.com/github/github-mcp-server
+# Toolathlon Version: https://github.com/lockon-n/github-mcp-server
 type: stdio
 name: github
 params:

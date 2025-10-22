@@ -10,10 +10,10 @@ from datetime import datetime
 import os
 
 # Set up paths
-base_path = "/home/jzhao/workspace/mcpbench_dev/tasks/finalpool/flagged-transactions"
+base_path = "/home/jzhao/workspace/toolathlon/tasks/finalpool/flagged-transactions"
 transactions_file = os.path.join(base_path, "files/all_transactions.csv")
 high_value_clients_file = os.path.join(base_path, "initial_workspace/high_value_clients.csv")
-output_file = "/home/jzhao/workspace/mcpbench_dev/tasks/finalpool/flagged-transactions/groundtruth_workspace/anomaly_audit_report.xlsx"
+output_file = "/home/jzhao/workspace/toolathlon/tasks/finalpool/flagged-transactions/groundtruth_workspace/anomaly_audit_report.xlsx"
 
 def main():
     print("Starting anomaly detection analysis...")

@@ -1,5 +1,6 @@
 # canvas
-# https://github.com/DMontgomery40/mcp-canvas-lms
+# Source: https://github.com/DMontgomery40/mcp-canvas-lms
+# Toolathlon Version: https://github.com/lockon-n/mcp-canvas-lms
 type: stdio
 name: canvas
 params:

@@ -19,10 +19,10 @@ all_token_key_session = Dict(
     ### Remote Ones
 
     #### Serper
-    serper_api_key = "XX", # TO BR FILLED, you can fill in multiple keys separated by comma
+    serper_api_key = "XX", # TO BE FILLED, you can fill in multiple keys separated by comma
 
     #### Google
-    google_cloud_console_api_key = "XX", # TO BR FILLED
+    google_cloud_console_api_key = "XX", # TO BE FILLED
     
     gcp_project_id = "XX", # TO BE FILLED
     gcp_service_account_path = "configs/gcp-service_account.keys.json", # TO BE FILLED
@@ -43,22 +43,22 @@ all_token_key_session = Dict(
     google_cloud_allowed_instances = "null",
 
     #### Github
-    github_token = "XX", # TO BR FILLED
+    github_token = "XX", # TO BE FILLED
     github_allowed_repos = "null", # KEEP_IT_ASIS_CUZ_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR
     github_read_only = "1", # default to ban write, but the tasks should open it if needed
     
     #### Huggingface
-    huggingface_token = "XX", # TO BR FILLED
+    huggingface_token = "XX", # TO BE FILLED
 
     #### Wandb
-    wandb_api_key = "XX", # TO BR FILLED
+    wandb_api_key = "XX", # TO BE FILLED
 
     #### Notion
     notion_integration_key="XX", # TO BE FILLED
     notion_integration_key_eval = "XX", # TO BE FILLED
     source_notion_page_url="XX", # TO BE FILLED
     eval_notion_page_url="XX", # TO BE FILLED
-    notion_allowed_page_ids="XX", # KEEP_IT_ASIS_CUZ_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR
+    # notion_allowed_page_ids="XX", # KEEP_IT_ASIS_CUZ_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR
 
     #### SnowFlake
     snowflake_account = "XX", # TO BE FILLED

@@ -1,4 +1,6 @@
 # Time server - get current time
+# Source: https://github.com/modelcontextprotocol/servers/tree/main/src/time
+# Toolathlon Version: The same
 type: stdio
 name: time
 params:

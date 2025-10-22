@@ -403,8 +403,8 @@ class InventorySyncValidator:
 
 def main():
     """Main entry point"""
-    config_file = '/ssddata/cyxuan/mcpbench_dev/tasks/yuxuan/inventory-sync/woocommerce_config.json'
-    agent_workspace = '/ssddata/cyxuan/mcpbench_dev/recorded_trajectories_v2/run1/claude-4-sonnet-0514/yuxuan/SingleUserTurn-inventory-sync/workspace'
+    config_file = '/ssddata/cyxuan/toolathlon/tasks/yuxuan/inventory-sync/woocommerce_config.json'
+    agent_workspace = '/ssddata/cyxuan/toolathlon/recorded_trajectories_v2/run1/claude-4-sonnet-0514/yuxuan/SingleUserTurn-inventory-sync/workspace'
     
     try:
         validator = InventorySyncValidator(config_file, agent_workspace)

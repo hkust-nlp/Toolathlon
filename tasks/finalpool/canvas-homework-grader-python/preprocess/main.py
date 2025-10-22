@@ -84,8 +84,8 @@ def clear_inbox(teacher_info, email_config):
         task_dir = script_dir.parent  # canvas-homework-grader-python
         finalpool_dir = task_dir.parent  # finalpool
         tasks_dir = finalpool_dir.parent  # tasks
-        mcpbench_root = tasks_dir.parent  # mcpbench_dev
-        utils_dir = mcpbench_root / "utils"
+        toolathlon_root = tasks_dir.parent  # toolathlon
+        utils_dir = toolathlon_root / "utils"
         
         sys.path.insert(0, str(utils_dir))
         from app_specific.poste.ops import clear_folder
@@ -364,8 +364,8 @@ def setup_canvas(teacher_info, email_config):
         task_dir = script_dir.parent  # canvas-homework-grader-python
         finalpool_dir = task_dir.parent  # finalpool
         tasks_dir = finalpool_dir.parent  # tasks
-        mcpbench_root = tasks_dir.parent  # mcpbench_dev
-        utils_dir = mcpbench_root / "utils"
+        toolathlon_root = tasks_dir.parent  # toolathlon
+        utils_dir = toolathlon_root / "utils"
         
         sys.path.insert(0, str(utils_dir))
         from app_specific.canvas import create_canvas_utils, CanvasAPI

@@ -1,4 +1,6 @@
 # WooCommerce MCP Server
+# Source: https://github.com/lockon-n/woocommerce-mcp
+# Toolathlon Version: The same
 type: stdio
 name: woocommerce
 params:

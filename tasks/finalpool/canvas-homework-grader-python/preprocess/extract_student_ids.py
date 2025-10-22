@@ -38,8 +38,8 @@ def setup_canvas_api():
         task_dir = script_dir.parent
         finalpool_dir = task_dir.parent
         tasks_dir = finalpool_dir.parent
-        mcpbench_root = tasks_dir.parent
-        utils_dir = mcpbench_root / "utils"
+        toolathlon_root = tasks_dir.parent
+        utils_dir = toolathlon_root / "utils"
         
         sys.path.insert(0, str(utils_dir))
         from app_specific.canvas import CanvasAPI

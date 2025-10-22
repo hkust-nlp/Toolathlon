@@ -29,11 +29,19 @@ from typing import Optional, Tuple
 from notion_client import Client
 from playwright.sync_api import Browser, Page, sync_playwright, TimeoutError as PlaywrightTimeoutError
 
+from utils.mcp.tool_servers import MCPServerManager, call_tool_with_retry, ToolCallError
+import asyncio
+import json
+import time
+
 # Import the protection module
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from notion_page_protector import NotionPageProtector
+
+from configs.global_configs import global_configs
+WITH_PLAYWRIGHT = global_configs.notion_preprocess_with_playwright # default as false
 
 # Selectors for Notion UI elements (same as in the original code)
 PAGE_MENU_BUTTON_SELECTOR = '[data-testid="more-button"], div.notion-topbar-more-button, [aria-label="More"], button[aria-label="More"]'
@@ -456,7 +464,50 @@ class NotionPageDuplicator:
             print(f"Error during duplication: {e}")
             return None
     
-    def duplicate_child_page(self, source_parent_url: str, child_name: str, target_parent_url: str) -> bool:
+    async def duplicate_page_with_mcp(self, child_page_id: str, target_parent_id: str, child_name: str) -> Optional[str]:
+        # the functionlity is the same as with playwright but we use notion official mcp to do so
+        notion_official_server = MCPServerManager(agent_workspace="./").servers['notion_official']
+        async with notion_official_server as server:
+            res = await call_tool_with_retry(server, "notion-duplicate-page", {"page_id": child_page_id})
+            data = json.loads(res.content[0].text)        
+            duplicated_page_id = data['page_id']
+            print(f"Duplicated page ID: {duplicated_page_id}")
+            self.duplicated_page_id = duplicated_page_id
+            print(f"Target parent ID: {target_parent_id}")
+            # use notion api to check if the page is ready, if not we wait for 1s
+            
+            timeout = 600
+            current_time = 0
+            page_ready = False
+            while current_time < timeout:
+                try:
+                    page_info = self.notion_client.pages.retrieve(page_id=duplicated_page_id)
+                    if page_info:
+                        page_ready = True
+                        break
+                except Exception as e:
+                    print(f"Page not ready! Waiting for 1s...")
+                    time.sleep(1)
+                    current_time += 1
+            if not page_ready:
+                raise Exception(f"Page not ready after {timeout} seconds!")
+
+            res = await call_tool_with_retry(server, "notion-move-pages", {
+                    "page_or_database_ids": [duplicated_page_id], 
+                    "new_parent": {
+                        "page_id":target_parent_id
+                        }
+                    }
+                )
+            data = json.loads(res.content[0].text)
+            print(data)
+            if not data['result'].startswith("Success"):
+                raise Exception(f"Failed to move the page: {data['result']}")
+        self.rename_page_via_api(duplicated_page_id, child_name)
+        return f"https://www.notion.so/{duplicated_page_id.replace('-', '')}"
+        
+
+    def duplicate_child_page(self, source_parent_url: str, child_name: str, target_parent_url: str, with_playwright=WITH_PLAYWRIGHT) -> bool:
         """
         Main function to duplicate a child page from source parent to target parent.
         
@@ -492,7 +543,10 @@ class NotionPageDuplicator:
             print(f"Target parent title: {target_parent_title}")
             
             # Duplicate the child page and move it to target parent
-            duplicated_url = self.duplicate_page_with_playwright(source_parent_url, child_page_url, target_parent_title, child_name)
+            if with_playwright:
+                duplicated_url = self.duplicate_page_with_playwright(source_parent_url, child_page_url, target_parent_title, child_name)
+            else:
+                duplicated_url = asyncio.run(self.duplicate_page_with_mcp(child_page_id, target_parent_id, child_name))
             
             if duplicated_url:
                 print(f"Success! Duplicated page URL: {duplicated_url}")

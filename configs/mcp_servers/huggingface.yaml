@@ -1,4 +1,6 @@
-# https://huggingface.co/settings/mcp
+# Hugging Face
+# Source: https://huggingface.co/settings/mcp
+# Toolathlon Version: The same
 type: stdio
 name: huggingface
 params:

@@ -308,8 +308,8 @@ def run_fetch_and_save_latest_form_response(agent_workspace, groundtruth_workspa
 
 
 run_fetch_and_save_latest_form_response(
-    agent_workspace="/ssddata/xiaochen/workspace/mcpbench_dev/dumps/run1/gpt-4o-mini/xiaochen/submit_homework",
-    groundtruth_workspace="/ssddata/xiaochen/workspace/mcpbench_dev/tasks/xiaochen/submit_homework/groundtruth_workspace",
+    agent_workspace="/ssddata/xiaochen/workspace/toolathlon/dumps/run1/gpt-4o-mini/xiaochen/submit_homework",
+    groundtruth_workspace="/ssddata/xiaochen/workspace/toolathlon/tasks/xiaochen/submit_homework/groundtruth_workspace",
     credentials_path="configs/google_forms_service_credentials.json",
     spreadsheet_id="18Xf45v6Bzih1CqA1f48i-_nD7MhzAgwLN76HmCqFjyI",
     drive_credentials_path="configs/google_drive_service_credentials.json"

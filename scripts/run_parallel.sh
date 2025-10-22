@@ -4,30 +4,35 @@
 TASKS_FOLDER="finalpool"
 TAG="full"
 
-# Parse input arguments for model_name and dump_path
+# Parse input arguments for model_name, provider and dump_path
 MODEL_NAME="${1:-gpt-5-mini}"
 DUMP_PATH="${2:-./parallel_debug_gpt5}"
-
 MODEL_PROVIDER="${3:-openrouter}"
-USER_MODEL_NAME="gpt-5"
-USER_MODEL_PROVIDER="aihubmix"
 
-MAX_STEPS="100"
-MAX_TURNS="50"
-WORKERS=${5:-10}
-TIMEOUT="2400"
+# legacy arguments, not used in toolathlon
+USER_MODEL_NAME="gpt-5" # this is of no use as toolathlon now does not involve user model   
+USER_MODEL_PROVIDER="aihubmix" # this is of no use as toolathlon now does not involve user model   
+MAX_TURNS="50" # this is of no use as toolathlon now does not have multiple user-agent interactive turns
+
+# task-execution related arguments
+MAX_STEPS="100" # this is the maximum number of steps an agent can take in a single turn, you can set it to a larger value if you want to evaluate on a longer trajectory
+WORKERS=${5:-10} # number of workers to use in parallel evaluation
+TIMEOUT="2400" # the timeout for each task execution, including pre-processing, agentloop and post-processing
+
+# model sampling related arguments
 TEMPERATURE="0.6"
 TOP_P="1"
 MAX_TOKENS="8192"
-USER_TEMPERATURE="1.0"
-USER_TOP_P="1.0"
-USER_MAX_TOKENS="1024"
+USER_TEMPERATURE="1.0" # not used in toolathlon
+USER_TOP_P="1.0" # not used in toolathlon
+USER_MAX_TOKENS="1024" # not used in toolathlon
 IMAGE_NAME=${6:-"lockon0927/toolathlon-task-image:1016beta"}  # Docker image to use
 
 mkdir -p $DUMP_PATH
 
-# Optional parameters - uncomment and modify as needed
-TASK_LIST=$4
+# You can provide a txt file with each line representing a task, by doing so you can evaluate on an arbitrary subset of tasks
+# if leave an empty string, it will evaluate on all tasks
+TASK_LIST=${4:-""}
 
 # Generate temporary config file with random suffix to avoid conflicts
 RANDOM_SUFFIX=$(date +%s)_$$_$(shuf -i 1000-9999 -n 1)
@@ -127,9 +132,6 @@ echo "✅ Trajectory logs saved to: $DUMP_PATH/traj_log_all.jsonl"
 # 5. Generate enhanced statistics using separate script
 echo "📊 Generating enhanced statistics..."
 uv run scripts/generate_parallel_stats.py --dump_path "$DUMP_PATH" --tasks_folder "$TASKS_FOLDER" --temp_config "$TEMP_CONFIG" --task_list_file "${TASK_LIST:-all_tasks}"
-
-# Cleanup (optionally remove temporary config file)
-# rm -f "$TEMP_CONFIG"
 
 echo ""
 echo "📊 Parallel evaluation completed with exit code: $EVAL_EXIT_CODE"

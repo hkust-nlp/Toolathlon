@@ -12,7 +12,7 @@ provider=${4:-"aihubmix"}
 maxstep=${5:-"100"}
 eval_config=${6:-"scripts/foraml_run_v0.json"}
 dump_path=${7:-"./dumps"}
-image_name=${8:-"lockon0927/mcpbench-task-image-v2:jh0913"}
+image_name=${8:-"lockon0927/toolathlon-task-image:1016beta"}
 
 taskdomain=${task_dir_arg%/*}
 taskname=${task_dir_arg#*/}
@@ -63,7 +63,7 @@ echo "Using container image: $IMAGE_NAME"
 # Generate unique container name
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 SAFE_TASK_NAME=$(echo "$task_dir_arg" | sed 's|/|-|g')
-CONTAINER_NAME="mcpbench-${SAFE_TASK_NAME}-${TIMESTAMP}"
+CONTAINER_NAME="toolathlon-${SAFE_TASK_NAME}-${TIMESTAMP}"
 
 echo "Container name: $CONTAINER_NAME"
 
@@ -283,6 +283,16 @@ echo ""
 echo "Step 2.6: Executing necessary configurations..."
 echo " Executing necessary configurations"
 $CONTAINER_RUNTIME exec "$CONTAINER_NAME" bash -c "mkdir -p ~/.gmail-mcp && mkdir -p ~/.calendar-mcp && cp ./configs/gcp-oauth.keys.json ~/.calendar-mcp/ && cp ./configs/gcp-oauth.keys.json ~/.gmail-mcp/ && cp ./configs/google_credentials.json  ~/.calendar-mcp/credentials.json && cp ./configs/google_credentials.json  ~/.gmail-mcp/credentials.json"
+
+# Copy MCP auth directory if it exists
+if [ -d "$HOME/.mcp-auth" ]; then
+    echo " Copying MCP authentication data to container..."
+    $CONTAINER_RUNTIME exec "$CONTAINER_NAME" mkdir -p /root/.mcp-auth
+    $CONTAINER_RUNTIME cp "$HOME/.mcp-auth/." "$CONTAINER_NAME:/root/.mcp-auth/"
+    echo "✓ MCP auth data copied"
+else
+    echo " Warning: $HOME/.mcp-auth not found, skipping MCP auth copy"
+fi
 
 # Step 2.7: Verify Kind environment
 echo ""

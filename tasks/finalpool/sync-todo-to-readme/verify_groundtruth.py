@@ -181,7 +181,7 @@ def main():
     # In practice, you should clone the dev branch from GitHub or use the local codebase
     
     # Since we cannot access the GitHub repo directly here, we use groundtruth_workspace as an example
-    groundtruth_dir = "/ssddata/mcpbench/wenshuo/eval/final_new/mcpbench_dev/tasks/finalpool/sync-ToD-to-readme/groundtruth_workspace"
+    groundtruth_dir = "/ssddata/toolathlon/wenshuo/eval/final_new/toolathlon/tasks/finalpool/sync-ToD-to-readme/groundtruth_workspace"
     readme_path = os.path.join(groundtruth_dir, "README.md")
     
     print("=== GroundTruth Verification Report ===")

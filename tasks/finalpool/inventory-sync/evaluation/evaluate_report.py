@@ -14,7 +14,7 @@ from typing import Dict, List, Any, Tuple, Optional
 from pathlib import Path
 
 # Add project root to Python path if needed
-# sys.path.append('/ssddata/cyxuan/mcpbench_dev/tasks/yuxuan/inventory-sync')
+# sys.path.append('/ssddata/cyxuan/toolathlon/tasks/yuxuan/inventory-sync')
 
 class ReportValidator:
     """Report Validator"""

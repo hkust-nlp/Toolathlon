@@ -581,7 +581,7 @@ if __name__ == "__main__":
     
     # Test the check_remote function
     agent_workspace = "/tmp/agent_workspace"
-    groundtruth_workspace = "/ssddata/xiaochen/workspace/mcpbench_dev/tasks/xiaochen/canvas_collect_work_data/groundtruth_workspace"
+    groundtruth_workspace = "/ssddata/xiaochen/workspace/toolathlon/tasks/xiaochen/canvas_collect_work_data/groundtruth_workspace"
    
     
     success, error = check_remote(agent_workspace, groundtruth_workspace)

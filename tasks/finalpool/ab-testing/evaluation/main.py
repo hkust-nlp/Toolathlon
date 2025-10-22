@@ -7,6 +7,7 @@ from google.cloud import storage, logging
 from google.oauth2 import service_account
 from google.api_core import exceptions
 from pathlib import Path
+from datetime import datetime
 
 def read_record_csv(csv_path: str) -> dict:
     """Read record.csv file and return a dictionary of scenarios and conversion rates"""
@@ -162,7 +163,7 @@ def check_storage_bucket_exists(bucket_prefix: str, project_id: str = "mcp-bench
         print(f"❌ Error running gcloud command: {e}")
         return False
 
-def check_abtesting_logging_bucket_clean() -> bool:
+def check_abtesting_logging_bucket_clean(task_launch_time=None, task_eval_time=None) -> bool:
     """Check that abtesting_logging bucket contains only the preprocessing test log entry"""
     # from ../groundtruth_workspace/log_bucket_name.txt to read actual log bucket name
     with open(os.path.join(os.path.dirname(__file__), "../groundtruth_workspace/log_bucket_name.txt"), "r") as f:
@@ -174,10 +175,22 @@ def check_abtesting_logging_bucket_clean() -> bool:
             client = logging.Client(project=project_id_from_creds, credentials=credentials)
             log_filter = f'logName="projects/{project_id_from_creds}/logs/{log_bucket_name}" AND NOT jsonPayload.logging\\.googleapis\\.com/diagnostic'
 
+            # please add filter to only get the log entries between task_launch_time and task_eval_time
+            # the format is %Y-%m-%d %H:%M:%S %A
+            # you should use the default timezone from datetime and convert the format to sth like 2025-10-20T00:00:00+00:00
+
+            default_timezone = datetime.now().astimezone().tzinfo
+            if task_launch_time is not None:
+                task_launch_time_str = datetime.strptime(task_launch_time, "%Y-%m-%d %H:%M:%S %A").astimezone(default_timezone).strftime("%Y-%m-%dT%H:%M:%S+00:00")
+                log_filter += f' AND timestamp >= "{task_launch_time_str}"'
+            if task_eval_time is not None:
+                task_eval_time_str = datetime.strptime(task_eval_time, "%Y-%m-%d %H:%M:%S %A").astimezone(default_timezone).strftime("%Y-%m-%dT%H:%M:%S+00:00")
+                log_filter += f' AND timestamp <= "{task_eval_time_str}"'
+
             entries = list(client.list_entries(
                 filter_=log_filter,
                 order_by=logging.DESCENDING,
-                page_size=50  # Get all entries to verify count and content
+                page_size=500  # Get all entries to verify count and content
             ))
 
             # Filter out diagnostic logs manually if filter didn't work
@@ -189,28 +202,20 @@ def check_abtesting_logging_bucket_clean() -> bool:
                     continue
                 filtered_entries.append(entry)
 
-            # Should have exactly 1 entry with "Test log entry created at " prefix
-            if len(filtered_entries) != 1:
-                print(f"❌ Expected exactly 1 log entry, found {len(filtered_entries)} entries (from {len(entries)} total)")
-                for i, entry in enumerate(filtered_entries):
-                    print(f"   Filtered Entry {i+1}: {entry.payload}")
+            if len(filtered_entries) > 0:
+                print(f"❌ abtesting_logging bucket contains {len(filtered_entries)} log entries, we should not have any other log entries")
+                for entry in filtered_entries:
+                    print(f"   Entry: {entry.payload}")
                 return False
 
-            # Check that the single entry is the test log entry
-            test_entry = filtered_entries[0]
-            payload_str = str(test_entry.payload)
-            if not payload_str.startswith("Test log entry created at "):
-                print(f"❌ Unexpected test log entry, found: {payload_str}\nWe should only have a test log entry prefixed with 'Test log entry created at ' in preprocessing!")
-                return False
-
-            print("✅ abtesting_logging bucket contains only the expected test log entry")
+            print("✅ abtesting_logging bucket does not contain any other log entries")
             return True
 
     except Exception as e:
         print(f"Warning: Could not check abtesting_logging bucket: {e}")
         return True  # Don't fail evaluation if we can't check logs
 
-def validate_task_completion() -> None:
+def validate_task_completion(task_launch_time, task_eval_time) -> None:
     """Validate if task is completed correctly (check bucket creation and clean log bucket)"""
     print("Checking for storage bucket creation...")
 
@@ -224,7 +229,7 @@ def validate_task_completion() -> None:
 
     # Check that abtesting_logging bucket contains only the test log (no A winner logs)
     print("Checking that abtesting_logging bucket is clean...")
-    if not check_abtesting_logging_bucket_clean():
+    if not check_abtesting_logging_bucket_clean(task_launch_time, task_eval_time):
         raise ValueError("Task validation failed - abtesting_logging bucket should contain only the preprocessing test log")
 
 if __name__=="__main__":
@@ -241,7 +246,7 @@ if __name__=="__main__":
         print(f"Launch time from command line: {launch_time_str}")
 
     # Validate storage bucket creation
-    validate_task_completion()
+    validate_task_completion(args.launch_time,datetime.now().strftime("%Y-%m-%d %H:%M:%S %A"))
     
     # Validate record.csv file with comprehensive scenario data
     agent_record_file = os.path.join(args.agent_workspace, "record.csv")

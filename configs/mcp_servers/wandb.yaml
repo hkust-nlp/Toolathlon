@@ -1,5 +1,6 @@
-# a word mcp server
-# https://github.com/GongRzhe/Office-Word-MCP-Server
+# WandB
+# Source: https://github.com/riballes/mcp-server
+# Toolathlon Version: https://github.com/lockon-n/wandb-mcp-server
 type: stdio
 name: wandb
 params:

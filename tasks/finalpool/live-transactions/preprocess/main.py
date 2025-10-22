@@ -11,15 +11,18 @@ from google.cloud import bigquery
 from google.cloud.exceptions import NotFound, Conflict
 from google.oauth2 import service_account
 import random
+from google.cloud.logging_v2.types import CreateBucketRequest
+from google.cloud.logging_v2.services import config_service_v2
+from google.cloud.logging_v2.types import LogBucket
 
 random.seed(42)
 
 # Set path to credentials file
 CREDENTIALS_PATH = "configs/gcp-service_account.keys.json"
 if os.path.exists(CREDENTIALS_PATH):
-    credentials = service_account.Credentials.from_service_account_file(CREDENTIALS_PATH)
+    CREDENTIALS = service_account.Credentials.from_service_account_file(CREDENTIALS_PATH)
 else:
-    credentials = None
+    CREDENTIALS = None
 
 # Parse project_id from service account file
 with open(CREDENTIALS_PATH, 'r') as f:
@@ -43,7 +46,7 @@ def delete_and_recreate_bucket(
 
     for attempt in range(1, max_retries + 1):
         try:
-            storage_client = storage.Client(project=project_id, credentials=credentials)
+            storage_client = storage.Client(project=project_id, credentials=CREDENTIALS)
 
             # Find all buckets with prefix matching
             found_buckets = []
@@ -123,29 +126,20 @@ import uuid
 import time
 
 def manage_log_bucket(
-        project_id=PROJECT_ID, 
-        bucket_name_prefix="abtesting_logging", 
-        location="global", 
-        max_retries=10,
-        ):
-    """
-    If a log bucket with given prefix exists, clear its logs and use it.
-    If no such bucket exists, create a new one, and save the bucket name
-    to ../groundtruth_workspace/log_bucket_name.txt file.
-    """
-    from google.cloud.logging_v2.services.config_service_v2 import ConfigServiceV2Client
-    from google.cloud.logging_v2.types import LogBucket, CreateBucketRequest
-
+        project_id,
+        credentials=CREDENTIALS,
+        bucket_name_prefix="abtesting_logging",
+        location="global",
+        max_retries=10
+    ):
     print(f"🔍 Managing log buckets with prefix: {bucket_name_prefix}")
-
-    logging_client = ConfigServiceV2Client(credentials=credentials)
+    config_client = config_service_v2.ConfigServiceV2Client(credentials=CREDENTIALS)
     parent = f"projects/{project_id}/locations/{location}"
 
-    # List all existing log buckets and find one with the prefix
+    # Find existing log bucket
     matched_bucket = None
     matched_bucket_id = None
-    buckets = list(logging_client.list_buckets(parent=parent))
-
+    buckets = list(config_client.list_buckets(parent=parent))
     for bucket in buckets:
         bucket_id = bucket.name.split('/')[-1]
         if bucket_id.startswith(bucket_name_prefix) and bucket.lifecycle_state.name == 'ACTIVE':
@@ -155,22 +149,9 @@ def manage_log_bucket(
 
     if matched_bucket is not None:
         print(f"✅ Found existing log bucket: {matched_bucket_id}")
-        # Clear all log entries in the bucket
-        from google.cloud import logging as gcloud_logging
 
-        logging_client2 = gcloud_logging.Client(project=project_id, credentials=credentials)
+        print("[IMPORTANT INFO] We now do not delete the logs in the log bucket, as google cloud sdk does not support delete log entries in custom log buckets.")
 
-        # Directly attempt to delete the log with the same name as the bucket
-        # This only requires 1 API call and avoids rate limits
-        print(f"🧹 Attempting to clear log: {matched_bucket_id}")
-        try:
-            logging_client2.delete_log(matched_bucket_id)
-            print(f"✅ Successfully cleared log: {matched_bucket_id}")
-        except Exception as e:
-            # If the log doesn't exist or is already empty, this is expected
-            print(f"ℹ️  No log entries to clear (log may not exist yet): {e}")
-
-        # Save the bucket name to file
         save_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__), "../groundtruth_workspace/log_bucket_name.txt")
         )
@@ -180,20 +161,19 @@ def manage_log_bucket(
 
         return matched_bucket_id, True
 
-    # If not found, create new
+    # Create new log bucket
     new_bucket_id = f"{bucket_name_prefix}-{uuid.uuid4().hex[:12]}"
     print(f"📝 Creating new log bucket: {new_bucket_id}")
 
-    bucket = LogBucket(retention_days=30)
+    bucket_obj = LogBucket(retention_days=30)
     request = CreateBucketRequest(
         parent=parent,
         bucket_id=new_bucket_id,
-        bucket=bucket
+        bucket=bucket_obj
     )
-    logging_client.create_bucket(request=request)
+    config_client.create_bucket(request=request)
     print(f"✅ Successfully created log bucket: {new_bucket_id}")
 
-    # Save log bucket name to file
     save_path = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "../groundtruth_workspace/log_bucket_name.txt")
     )
@@ -208,7 +188,7 @@ def check_bq_dataset_exists(dataset_name="transactions_analytics", project_id="m
     """Check if BigQuery dataset exists"""
     print(f"🔍 Checking if BigQuery dataset exists: {dataset_name}")
 
-    bq_client = bigquery.Client(project=project_id, credentials=credentials)
+    bq_client = bigquery.Client(project=project_id, credentials=CREDENTIALS)
     dataset_id = f"{project_id}.{dataset_name}"
 
     bq_client.get_dataset(dataset_id)
@@ -219,7 +199,7 @@ def delete_bq_dataset(dataset_name="transactions_analytics", project_id="mcp-ben
     """Delete BigQuery dataset"""
     print(f"🗑️  Deleting BigQuery dataset: {dataset_name}")
 
-    bq_client = bigquery.Client(project=project_id, credentials=credentials)
+    bq_client = bigquery.Client(project=project_id, credentials=CREDENTIALS)
     dataset_id = f"{project_id}.{dataset_name}"
 
     bq_client.delete_dataset(dataset_id, delete_contents=True, not_found_ok=True)
@@ -230,7 +210,7 @@ def create_bq_dataset(dataset_name="transactions_analytics", project_id="mcp-ben
     """Create BigQuery dataset"""
     print(f"📊 Creating BigQuery dataset: {dataset_name}")
 
-    bq_client = bigquery.Client(project=project_id, credentials=credentials)
+    bq_client = bigquery.Client(project=project_id, credentials=CREDENTIALS)
     dataset_id = f"{project_id}.{dataset_name}"
 
     dataset = bigquery.Dataset(dataset_id)
@@ -243,7 +223,7 @@ def upload_csv_to_bq_table(csv_file_path, table_name, dataset_name="transactions
     """Upload CSV file to BigQuery table"""
     print(f"📤 Uploading {os.path.basename(csv_file_path)} to BigQuery table: {table_name}")
 
-    bq_client = bigquery.Client(project=project_id, credentials=credentials)
+    bq_client = bigquery.Client(project=project_id, credentials=CREDENTIALS)
     table_id = f"{project_id}.{dataset_name}.{table_name}"
 
     job_config = bigquery.LoadJobConfig(
@@ -334,7 +314,7 @@ def cleanup_preprocess_environment(workspace_dir, target_transaction_id="T8492XJ
     cleanup_results["file_cleanup"] = bucket_ready
     
     # Manage Trading_Logging log bucket
-    log_bucket_results = manage_log_bucket(project_id, "Trading_Logging")
+    log_bucket_results = manage_log_bucket(project_id, CREDENTIALS, "Trading_Logging")
     cleanup_results["log_bucket_results"] = log_bucket_results
 
     # Manage transactions_analytics BigQuery dataset

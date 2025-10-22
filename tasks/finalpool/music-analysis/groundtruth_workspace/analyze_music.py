@@ -149,7 +149,7 @@ def main():
     # Read the Billboard data
     print("Loading Billboard data...")
     xl_file = pd.read_excel(
-        '/home/jzhao/workspace/mcpbench_dev/tasks/finalpool/music-analysis/initial_workspace/Billboard Pop Chart by Year.xlsx',
+        '/home/jzhao/workspace/toolathlon/tasks/finalpool/music-analysis/initial_workspace/Billboard Pop Chart by Year.xlsx',
         sheet_name=None
     )
     
@@ -169,7 +169,7 @@ def main():
     
     # Create output Excel file
     print("Creating output file...")
-    output_path = '/home/jzhao/workspace/mcpbench_dev/tasks/finalpool/music-analysis/groundtruth_workspace/music_analysis_result.xlsx'
+    output_path = '/home/jzhao/workspace/toolathlon/tasks/finalpool/music-analysis/groundtruth_workspace/music_analysis_result.xlsx'
     
     with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
         for year in years_1940s:

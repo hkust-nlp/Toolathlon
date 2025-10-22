@@ -1,5 +1,6 @@
 # Google Sheet
-# https://github.com/xing5/mcp-google-sheets
+# Source: https://github.com/xing5/mcp-google-sheets
+# Toolathlon Version: The same
 type: stdio
 name: google_sheet
 params:

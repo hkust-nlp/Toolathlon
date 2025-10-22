@@ -1,5 +1,6 @@
 # arxiv paper search, download to local, and read
-# https://github.com/blazickjp/arxiv-mcp-server
+# Source: https://github.com/blazickjp/arxiv-mcp-server
+# Toolathlon Version: The same
 type: stdio
 name: arxiv_local
 params:

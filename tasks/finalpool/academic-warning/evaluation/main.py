@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 from google.cloud import logging
 from google.oauth2 import service_account
+from datetime import datetime
 
 def get_project_id_and_credentials(credentials_file="configs/gcp-service_account.keys.json"):
     """Get project ID and credentials from service account file"""
@@ -49,8 +50,9 @@ def get_students_above_threshold(student_data: dict, threshold: float) -> list:
     return [[student_id, data["name"]] for student_id, data in student_data.items() 
             if data["drop_ratio"] > threshold]
 
-def check_critical_logs_for_students(project_id: str, credentials, needed_students, unneeded_students) -> bool:
+def check_critical_logs_for_students(project_id: str, credentials, needed_students, unneeded_students, task_launch_time=None, task_eval_time=None) -> bool:
 
+    
     try:
         client = logging.Client(project=project_id, credentials=credentials)
         # from ../groundtruth_workspace/log_bucket_name.txt to read actual log bucket name
@@ -59,11 +61,19 @@ def check_critical_logs_for_students(project_id: str, credentials, needed_studen
 
         log_filter = f'logName="projects/{project_id}/logs/{log_bucket_name}" AND severity="CRITICAL"'
         
+        default_timezone = datetime.now().astimezone().tzinfo
+        if task_launch_time is not None:
+            task_launch_time_str = datetime.strptime(task_launch_time, "%Y-%m-%d %H:%M:%S %A").astimezone(default_timezone).strftime("%Y-%m-%dT%H:%M:%S+00:00")
+            log_filter += f' AND timestamp >= "{task_launch_time_str}"'
+        if task_eval_time is not None:
+            task_eval_time_str = datetime.strptime(task_eval_time, "%Y-%m-%d %H:%M:%S %A").astimezone(default_timezone).strftime("%Y-%m-%dT%H:%M:%S+00:00")
+            log_filter += f' AND timestamp <= "{task_eval_time_str}"'
+        
         print(f"Checking BigQuery logs CRITICAL entry...")
         entries = list(client.list_entries(
             filter_=log_filter,
             order_by=logging.DESCENDING,
-            page_size=50
+            page_size=500
         ))
         
         if not entries:
@@ -213,7 +223,7 @@ if __name__ == "__main__":
 
         print("\n5. Checking BigQuery logs for all students...")
         # FIXME: here is a known issue that we only exclude students > 25% but <45%, actually we should exclude all students <45%
-        bigquery_logs_valid = check_critical_logs_for_students(project_id, credentials, gt_45_percent, all_below_45_percent)
+        bigquery_logs_valid = check_critical_logs_for_students(project_id, credentials, gt_45_percent, all_below_45_percent, args.launch_time, datetime.now().strftime("%Y-%m-%d %H:%M:%S %A"))
         
         if not bigquery_logs_valid:
             print("❌ Critical log validation failed")

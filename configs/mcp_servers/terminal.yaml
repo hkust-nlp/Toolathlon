@@ -1,5 +1,6 @@
 # terminal controller
-# https://github.com/MladenSU/cli-mcp-server
+# Source: https://github.com/MladenSU/cli-mcp-server
+# Toolathlon Version: https://github.com/lockon-n/cli-mcp-server
 type: stdio
 name: terminal
 params:

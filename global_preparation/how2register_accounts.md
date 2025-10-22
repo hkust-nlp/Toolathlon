@@ -70,7 +70,16 @@ The following are the admin accounts for each of the three applications:
     ![](./figures/gcp_id.png)
 3. Enable all needed APIs
 
-    Just run 
+    Make sure you have `gcloud` sdk installed, e.g.:
+
+    ```
+    curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-456.0.0-linux-x86_64.tar.gz
+    tar -xf google-cloud-sdk-*-x86_64.tar.gz
+    ./google-cloud-sdk/install.sh
+    source ~/.bashrc # or ~/.zshrc
+    ```
+
+    Then just run 
     ```
     bash global_preparation/batch_enable_gloud_apis.sh {gcp_project_id}
     ```
@@ -194,7 +203,19 @@ Paste the read-write token to the `wandb_api_key` variable in `configs/token_key
 
 We recommand register a new notion account and create a new workspace.
 
+First run `uv run -m global_preparation.special_setup_notion_official` to connect the workspace in the above step to the official online notion mcp. This facilates us to duplicate and move pages more efficiently!
+
+<details>
+
+<summary>If you indeed want to do notion preprocessing via playwright ... (NOT RECOMMANDED!)</summary>
+
 First run `uv run utils/app_specific/notion/notion_login_helper.py --headless` to generate a `notion_state.json` under the `configs`, please just follow the instructions from the script, this is a one-time effort.
+
+You also need to change the variable `notion_preprocess_with_playwright` to `True` in `configs/global_configs.py`
+
+</details>
+--
+
 
 Please duplicate the public page [Notion Source Page](https://amazing-wave-b38.notion.site/Notion-Source-Page-27ad10a48436805b9179fdaff2f65be2) to your workspace,
 record the url of this duplicated page (not our public page) as the `source_notion_page_url` variable in `configs/token_key_session.py`

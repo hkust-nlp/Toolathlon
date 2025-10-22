@@ -1,5 +1,6 @@
-# this server need to be installed locally
-# see `install_records/arxiv_latex.md`
+# Fetch latex source from arxiv
+# Source: https://github.com/takashiishida/arxiv-latex-mcp
+# Toolathlon Version: The same
 type: stdio
 name: arxiv-latex
 params:

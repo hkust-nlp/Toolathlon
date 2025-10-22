@@ -1,3 +1,6 @@
+# Google Forms
+# Source: https://github.com/matteoantoci/google-forms-mcp
+# Toolathlon Version: The same
 type: stdio
 name: google_forms
 params:

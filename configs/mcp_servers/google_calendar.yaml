@@ -1,5 +1,6 @@
 # Google Calendar
-# https://github.com/GongRzhe/Calendar-Autoauth-MCP-Server
+# Source: https://github.com/GongRzhe/Calendar-Autoauth-MCP-Server
+# Toolathlon Version: The same
 type: stdio
 name: google_calendar
 params:

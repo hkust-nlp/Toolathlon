@@ -360,7 +360,7 @@ def main():
     #     print("Example: python check_db.py /path/to/agent/workspace")
     #     sys.exit(1)
     
-    agent_workspace = "/ssddata/wzengak/mcp_bench/mcpbench_dev/recorded_trajectories_v2/run1/claude-4-sonnet-0514/finalpool/SingleUserTurn-inventory-sync/workspace"
+    agent_workspace = "/ssddata/wzengak/mcp_bench/toolathlon/recorded_trajectories_v2/run1/claude-4-sonnet-0514/finalpool/SingleUserTurn-inventory-sync/workspace"
     
     if not os.path.exists(agent_workspace):
         print(f"❌ Agent workspace path does not exist: {agent_workspace}")

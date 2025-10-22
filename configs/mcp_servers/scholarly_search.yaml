@@ -1,4 +1,6 @@
 # Scholarly Search - search for articles on arxiv and google scholar (but cannot download full text)
+# Source: https://github.com/adityak74/mcp-scholarly
+# Toolathlon Version: https://github.com/lockon-n/mcp-scholarly
 type: stdio
 name: scholarly
 params:

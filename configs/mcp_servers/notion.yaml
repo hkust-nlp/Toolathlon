@@ -1,5 +1,6 @@
 # notion
-# https://github.com/lockon-n/notion-mcp-server
+# Source: https://github.com/makenotion/notion-mcp-server
+# Toolathlon Version: https://github.com/lockon-n/notion-mcp-server
 
 type: stdio
 name: notion

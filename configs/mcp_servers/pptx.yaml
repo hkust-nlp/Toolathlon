@@ -1,5 +1,6 @@
 # a ppt mcp server
-# https://github.com/GongRzhe/Office-PowerPoint-MCP-Server
+# Source: https://github.com/GongRzhe/Office-PowerPoint-MCP-Server
+# Toolathlon Version: The same
 type: stdio
 name: pptx
 params:
