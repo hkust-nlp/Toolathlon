@@ -99,3 +99,14 @@ aux/
 
 configs/legacy_servers
 scripts/temp_configs
+
+hf_trajs
+.vscode
+
+CLAUDE.md
+
+analysis
+archieved
+
+scripts/model_wise
+scripts/temp_and_debug

@@ -10,8 +10,14 @@
 [![Discord](https://img.shields.io/badge/Join_Our_Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Y6DYFMbk)
 [![arXiv](https://img.shields.io/badge/Paper-b31b1b?style=for-the-badge&logo=arxiv&logoColor=white)](https://arxiv.org/abs/xxxx.xxxxx)
 [![Hugging Face](https://img.shields.io/badge/Trajectories-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co/datasets/hkust-nlp/Toolathlon-Trajectories)
+[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/hkust-nlp/Toolathlon)
 
 </div>
+
+## Choose a Proper Machine
+
+To run our benchmark, we strongly suggest you deploy it on a ***Linux*** machine with ***docker*** installed that can directly access the ***Internet without constraints*** (e.g. GFW). An ideal machine, for example, could be an Ubuntu 24.04 server (64GB memory, 1TB storage) located in the US, which is where we conducted our main experiments. We also suggest you have ***root/sudo*** access to this machine. Although you can indeed run our benchmark without sudo, some configurations still need this (you may ask an administrator to help you with this), like configurating *podman* and *inotify* parameters (see "# k8s" part in `global_preparation/install_env.sh`) or installing dependencies for playwright (see "# install playwright system dependencies" part in `global_preparation/install_env.sh`).
+
 
 ## Quick Start
 
@@ -123,8 +129,14 @@ If you'd like to evaluate multiple models in sequence, we provide an ensemble sc
 bash scripts/run_parallel_sequential.sh
 ```
 
+## Supporting Multiple Agent Scaffolds  
+In addition to the scaffold we have implemented in Toolathlon based on the [openai-agent-sdk](https://github.com/openai/openai-agents-python), we are also committed to introducing more scaffolds for more comprehensive testing. Currently, we have preliminarily integrated [OpenHands](https://github.com/All-Hands-AI/OpenHands), which can be found in our `openhands-compatibility` branch. In the future, we hope to introduce more scaffolds, and we also welcome community contributions of Toolathlon implementations or testing results under other scaffolds.
+
 ## Citing Us
 If you found our project useful, please cite us as:
 ```
 TBD
 ```
+
+## Contact Information
+For help or issues using Toolathlon, you can submit a GitHub issue, send messages in our discord channel, or send emails to Junlong Li (lockonlvange@gmail.com) / Junxian He (junxianh@cse.ust.hk).
