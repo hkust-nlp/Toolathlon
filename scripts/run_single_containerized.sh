@@ -323,7 +323,7 @@ fi
 echo ""
 echo "Step 3: Executing task command in container..."
 
-CONTAINER_CMD="uv run main.py --eval_config $eval_config --task_dir $task_dir_arg --max_steps_under_single_turn_mode $maxstep --model_short_name $modelname --provider $provider --debug > /workspace/logs/$RUN_LOG_FILE_NAME 2>&1"
+CONTAINER_CMD="uv run python -W ignore main.py --eval_config $eval_config --task_dir $task_dir_arg --max_steps_under_single_turn_mode $maxstep --model_short_name $modelname --provider $provider --debug > /workspace/logs/$RUN_LOG_FILE_NAME 2>&1"
 
 echo "Executing command in container: $CONTAINER_CMD"
 echo ""

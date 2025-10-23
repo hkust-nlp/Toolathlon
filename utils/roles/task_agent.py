@@ -200,44 +200,186 @@ class TaskAgent:
         if self.debug:
             print(*args)
 
-    def _patch_agent_error_event_for_claude(self):
+    def _patch_agent_validation_errors(self):
         """
-        Monkey patch AgentErrorEvent.to_llm_message() for Claude API compatibility
+        Monkey patch Agent._get_action_event() to handle validation errors properly
 
-        Claude API requires tool_result messages to have a corresponding tool_use block.
-        When AgentErrorEvent is created (e.g., tool not found, argument validation error),
-        there's no ActionEvent created, so Claude API rejects the error message.
+        Original OpenHands behavior: validation errors (tool not found, invalid args)
+        create AgentErrorEvent without ActionEvent, causing tool_call/tool_result mismatch.
+        This violates the OpenAI/Anthropic API contract where every tool_call in the
+        assistant message must have a corresponding tool_result message.
 
-        Solution: Convert AgentErrorEvent to a user message instead of tool message.
-        This allows the agent to see the error and adjust its strategy without
-        violating Claude API's strict tool_use/tool_result pairing requirement.
+        Solution: Make validation errors behave like execution errors:
+        - Create ActionEvent with dummy ErrorActionMCPOK (so tool_call appears in assistant message)
+        - Create ObservationEvent with error message (instead of AgentErrorEvent)
+        - This ensures proper tool_call/tool_result pairing for all LLM providers
         """
-        from openhands.sdk.event.llm_convertible import AgentErrorEvent
-        from openhands.sdk.llm import Message, TextContent
+        from openhands.sdk.agent.agent import Agent
+        from openhands.sdk.event import ActionEvent, ObservationEvent
+        from openhands.sdk.llm import TextContent
+        from openhands.sdk.tool.schema import Action, Observation
+        from openhands.sdk.mcp.tool import MCPTool, MCPToolAction, MCPToolObservation
+        from pydantic import Field
+        import json
+        from pydantic import ValidationError
+
+        # Define ErrorActionMCPOK for failed tool calls
+        class ErrorActionMCPOK(MCPToolAction):
+            """Dummy action representing a failed tool call (tool not found or invalid args)"""
+            error_type: str = Field(..., description="Type of error: 'tool_not_found' or 'validation_error'")
+            error_message: str = Field(..., description="The error message")
+            attempted_tool_name: str = Field(..., description="The tool name that was attempted")
+            attempted_arguments: str = Field(default="", description="The arguments that were provided")
+
+        # Define ErrorObservationMCPOK for error results
+        class ErrorObservationMCPOK(MCPToolObservation):
+            """Observation for tool call errors (treated as execution results)"""
+            error: str = Field(..., description="The error message")
+
+            @property
+            def to_llm_content(self):
+                return [TextContent(text=f"Error: {self.error}")]
 
         # Store original method
-        original_to_llm_message = AgentErrorEvent.to_llm_message
+        original_get_action_event = Agent._get_action_event
 
-        def patched_to_llm_message(self):
+        def patched_get_action_event(
+            self,
+            state,
+            tool_call,
+            llm_response_id,
+            on_event,
+            thought=[],
+            reasoning_content=None,
+            thinking_blocks=[],
+        ):
             """
-            Patched version that converts error to user message for Claude compatibility
+            Patched version that creates ActionEvent + ObservationEvent for all errors
 
-            Original behavior (causes Claude API error):
-                role="tool", tool_call_id=<id>
-
-            New behavior (Claude compatible):
-                role="user", content="[Tool Error - {tool_name}] {error}"
+            This makes validation errors behave like execution errors, ensuring
+            proper tool_call/tool_result pairing for Claude API.
             """
-            return Message(
-                role="user",
-                content=[TextContent(text=f"[Tool Error - {self.tool_name}] {self.error}")],
+            import openhands.sdk.security.risk as risk
+            from openhands.sdk.security.llm_analyzer import LLMSecurityAnalyzer
+
+            assert tool_call.type == "function"
+            tool_name = tool_call.function.name
+            assert tool_name is not None, "Tool call must have a name"
+            tool = self.tools_map.get(tool_name, None)
+
+            # Case 1: Tool not found
+            if tool is None:
+                available = list(self.tools_map.keys())
+                err = f"Tool '{tool_name}' not found. Available: {available}"
+
+                # Create ActionEvent with ErrorActionMCPOK
+                error_action = ErrorActionMCPOK(
+                    error_type="tool_not_found",
+                    error_message=err,
+                    attempted_tool_name=tool_name,
+                    attempted_arguments=tool_call.function.arguments
+                )
+                action_event = ActionEvent(
+                    action=error_action,
+                    thought=thought,
+                    reasoning_content=reasoning_content,
+                    thinking_blocks=thinking_blocks,
+                    tool_name=tool_name,
+                    tool_call_id=tool_call.id,
+                    tool_call=tool_call,
+                    llm_response_id=llm_response_id,
+                    security_risk=risk.SecurityRisk.UNKNOWN,
+                )
+                on_event(action_event)
+
+                # Create ObservationEvent with error (like execution error)
+                error_obs = ErrorObservationMCPOK(error=err)
+                obs_event = ObservationEvent(
+                    observation=error_obs,
+                    action_id=action_event.id,
+                    tool_name=tool_name,
+                    tool_call_id=tool_call.id,
+                )
+                on_event(obs_event)
+
+                return action_event
+
+            # Case 2: Argument validation
+            security_risk = risk.SecurityRisk.UNKNOWN
+            try:
+                arguments = json.loads(tool_call.function.arguments)
+
+                # Handle security_risk field
+                if (_predicted_risk := arguments.pop("security_risk", None)) is not None:
+                    if not isinstance(self.security_analyzer, LLMSecurityAnalyzer):
+                        raise RuntimeError(
+                            "LLM provided a security_risk but no security analyzer is "
+                            "configured - THIS SHOULD NOT HAPPEN!"
+                        )
+                    try:
+                        security_risk = risk.SecurityRisk(_predicted_risk)
+                    except ValueError:
+                        pass
+
+                action = tool.action_from_arguments(arguments)
+
+            except (json.JSONDecodeError, ValidationError) as e:
+                # Argument validation failed
+                err = f"Error validating args for tool '{tool.name}': {e}"
+
+                # Create ActionEvent with ErrorActionMCPOK
+                error_action = ErrorActionMCPOK(
+                    error_type="validation_error",
+                    error_message=err,
+                    attempted_tool_name=tool_name,
+                    attempted_arguments=tool_call.function.arguments
+                )
+                action_event = ActionEvent(
+                    action=error_action,
+                    thought=thought,
+                    reasoning_content=reasoning_content,
+                    thinking_blocks=thinking_blocks,
+                    tool_name=tool_name,
+                    tool_call_id=tool_call.id,
+                    tool_call=tool_call,
+                    llm_response_id=llm_response_id,
+                    security_risk=security_risk,
+                )
+                on_event(action_event)
+
+                # Create ObservationEvent with error (like execution error)
+                error_obs = ErrorObservationMCPOK(error=err, tool_name=tool_name)
+                obs_event = ObservationEvent(
+                    observation=error_obs,
+                    action_id=action_event.id,
+                    tool_name=tool_name,
+                    tool_call_id=tool_call.id,
+                )
+                on_event(obs_event)
+
+                return action_event
+
+            # Case 3: Success - use original logic
+            action_event = ActionEvent(
+                action=action,
+                thought=thought,
+                reasoning_content=reasoning_content,
+                thinking_blocks=thinking_blocks,
+                tool_name=tool.name,
+                tool_call_id=tool_call.id,
+                tool_call=tool_call,
+                llm_response_id=llm_response_id,
+                security_risk=security_risk,
             )
+            on_event(action_event)
+            return action_event
 
         # Apply patch
-        AgentErrorEvent.to_llm_message = patched_to_llm_message
+        Agent._get_action_event = patched_get_action_event
 
         if self.debug:
-            print_color("[Patch] Applied AgentErrorEvent patch for Claude API compatibility", "green")
+            print_color("[Patch] Applied Agent._get_action_event patch for proper error handling", "green")
+            print_color("[Patch] Validation errors now create ActionEvent + ObservationEvent (not AgentErrorEvent)", "green")
 
     def _default_termination_checker(self, content: str, recent_tools: List[Dict], check_target: str = "user") -> bool:
         """Default termination checker."""
@@ -467,10 +609,10 @@ class TaskAgent:
         """
         self._debug_print(">>Initialize OpenHands agent and conversation")
 
-        # Monkey patch AgentErrorEvent for Claude API compatibility
-        # This fixes the issue where Claude API rejects tool_result messages
-        # with tool_use_id that don't have a corresponding tool_use block
-        self._patch_agent_error_event_for_claude()
+        # Monkey patch validation error handling to ensure proper tool_call/tool_result pairing
+        # This fixes OpenHands SDK's behavior where validation errors create AgentErrorEvent
+        # without ActionEvent, violating the LLM API contract for function calling
+        self._patch_agent_validation_errors()
 
         # 1. Create OpenHands LLM (replace original Model)
         self.llm = create_openhands_llm_from_config(
@@ -544,7 +686,7 @@ class TaskAgent:
         )
 
         # 6. Create Conversation (explicitly enable stuck detection)
-        persistence_dir = Path(self.task_config.agent_workspace) / 'conversation_state'
+        persistence_dir = Path(self.task_config.task_root) / 'conversation_state'
         persistence_dir.mkdir(parents=True, exist_ok=True)
 
         self.conversation = Conversation(
@@ -615,6 +757,14 @@ class TaskAgent:
             # Tool calls (all tools, including local and MCP)
             # Note: No longer manually update self.stats, statistics are managed by OpenHands conversation.state
             if self.debug:
+                # try to get thought
+                try:
+                    for thought in event.thought:
+                        if thought.type == "text":
+                            print_color(f"[Thought] {thought.text}", "yellow")
+                except Exception as e:
+                    # Just no print
+                    pass
                 print_color(f"[Action] {event.tool_name}", "cyan")
 
         elif isinstance(event, ObservationEvent):
