@@ -89,8 +89,8 @@ async def evaluate_itinerary_with_maps(submission_path: str, initial_workspace_p
                 # check 1.5: day 1 should be in Rive Droite
                 if day_key == "day1":
                     total_checks += 1
-                    if wishlist_name not in ['Louvre Museum', 'Arc de Triomphe', 'Musée de l\'Orangerie']:
-                        print(f"    ✗ Day1 - spot name not in Rive Droite: {spot_name}")
+                    if wishlist_name not in ['Louvre Museum', 'Arc de Triomphe', 'Musée de l\'Orangerie','Notre Dame Cathedral']:
+                        print(f"    ✗ Day1 - spot name not in Rive Droite (or Notre Dame Cathedral since this is the starting point): {spot_name}")
                     else:
                         print(f"    ✓ Day1 - spot name in Rive Droite: {spot_name}")
                         passed_checks += 1
