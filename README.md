@@ -14,129 +14,50 @@
 
 </div>
 
-## Choose a Proper Machine
+## OpenHands-Compatible Branch
 
-To run our benchmark, we strongly suggest you deploy it on a ***Linux*** machine with ***docker*** installed that can directly access the ***Internet without constraints*** (e.g. GFW). An ideal machine, for example, could be an Ubuntu 24.04 server (64GB memory, 1TB storage) located in the US, which is where we conducted our main experiments. We also suggest you have ***root/sudo*** access to this machine. Although you can indeed run our benchmark without sudo, some configurations still need this (you may ask an administrator to help you with this), like configurating *podman* and *inotify* parameters (see "# k8s" part in `global_preparation/install_env.sh`) or installing dependencies for playwright (see "# install playwright system dependencies" part in `global_preparation/install_env.sh`).
+### Installation
 
+This branch is primarily intended for evaluating **Toolathlon** using the **OpenHands** scaffold.
 
-## Quick Start
+You can configure the environment using the same script as in the main branch:
 
-### Installation Dependencies
-
-Make sure you have `uv` installed, otherwise please install it:
-
-```
-# this is for macOS and linux command
-# by default it will install uv to $HOME/.local/bin
-# you probably need to add it to your $PATH
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# check whether uv can be found
-which uv
+```bash
+bash global_preparation/install_env.sh [true|false]  # Use `true` if you have sudo privileges
 ```
 
-We provide one command to install everything, we maintain the environment with `uv`. Just run:
+Next, deploy the required applications:
 
-
-```
-bash global_preparation/install_env.sh [true|false] # `true` if you have sudo.
-```
-
-### Configuate Global Configs (Part 1: LLM APIs)
-
-Please copy the `configs/global_configs_example.py` to a new file `configs/global_configs.py`:
-
-```
-cp configs/global_configs_example.py configs/global_configs.py
+```bash
+bash global_preparation/deploy_containers.sh [true|false]  # Set to `true` to configure Dovecot in Poste.io to allow plaintext authentication
 ```
 
-We use this `configs/global_configs.py` to manage all LLM APIs, you need to open this file and fill in the api keys in it. Note that you do not need to fill in all of them, but instead just fill in the api keys for the providers you want to use. We recommand using [**openrouter**](https://openrouter.ai/), as it enables us to use various LLMs by only configurating one api key.
+### Configuration
 
-You can find details about the model providers in `utils/api_model/model_provider.py`.
+We assume that you have already completed the configuration steps from the main branch **on the same machine**.
 
-### Quick Example
-
-After the above two steps, you can directlt run this very quick example. We use *claude-4.5-haiku-1001* via **openrouter** in this example, so make sure you have configurated it.
+Then, simply copy the following files into the `configs` directory from the main branch:
 
 ```
+configs/gcp-oauth.keys.json  
+configs/gcp-service_account.keys.json  
+configs/global_configs.py  
+configs/google_credentials.json  
+configs/token_key_session.py
+```
+
+### Running
+
+To execute a single task, use the same script as in the main branch and set the `task` variable to the task you want to evaluate:
+
+```bash
 bash scripts/quick_start/quick_start_run.sh
 ```
 
-You can find the resulted logs, trajectories, and agent workspace all in `dumps_quick_start/claude-4.5-haiku-1001/finalpool/SingleUserTurn-find-alita-paper`.
-
-## Full Preparation
-
-### Configuate Global Configs (Part 2: Containerization)
-
-Make sure you have docker or podman installed and correctly configurated, please fill in your choice in `global_configs.py`
-
-### Configuate App-Aware Tokens, Keys and Credentials
-
-Please copy the `configs/token_key_session_example.py` to a new file `configs/token_key_session.py`:
+The outputs from the tasks will be stored in:
 
 ```
-cp configs/token_key_session_example.py configs/token_key_session.py
+./dumps_quick_start
 ```
 
-Then please read carefully through `global_preparation/how2register_accounts.md` and follow the guides. You need to register some accounts and configure some tokens/api keys/secrets in `configs/token_key_session.py`. 
-
-### Misc Configuration
-
-Simply run the following:
-```
-bash global_preparation/misc_configuartion.sh
-```
-
-### Deployment Needed Apps
-```
-bash global_preparation/deploy_containers.sh [true|false] # this indicate whether we configure dovecot in poste.io to allow plaintext auth.
-```
-
-You can find more details in `deployment/*/scripts/setup.sh` for each local application we deployed.
-
-### MCP Servers Verfication
-
-You can simply run this script to check if all MCP servers are working properly, after you setup all the above configs and deployed the app containers:
-
-```
-uv run -m global_preparation.check_installation
-```
-
-### Run Single Task
-
-We use the same script `scripts/quick_start/quick_start_run.sh` to run any task, just simply edit the `task` variable in this script:
-
-```
-bash scripts/quick_start/quick_start_run.sh
-```
-
-## Evaluation in Parallel with Task Isolation
-
-To ensure that the execution of different tasks does not interfere with each other, we use containerization to run each task in an isolated environment. This also makes it possible to run tasks in parallel, greatly accelerating evaluation speed.
-
-```
-bash scripts/run_parallel.sh gpt-5-mini ./{your_dump_path} openrouter "" 10
-```
-*Note: please take a look at the arguments in this script before you run
-
-In doing so, we build an image `docker.io/lockon0927/toolathlon-task-image:1016beta`, which will be pulled automatically in `global_preparation/install_env.sh`, so you do not need to pull it manually.
-
-This will run all the tasks in parallel with at most 10 workers, and you will find all output trajectories and evaluation summary (`eval_stats.json`) in `./{your_dump_path}`.
-
-If you'd like to evaluate multiple models in sequence, we provide an ensemble script for you:
-
-```
-bash scripts/run_parallel_sequential.sh
-```
-
-## Supporting Multiple Agent Scaffolds  
-In addition to the scaffold we have implemented in Toolathlon based on the [openai-agent-sdk](https://github.com/openai/openai-agents-python), we are also committed to introducing more scaffolds for more comprehensive testing. Currently, we have preliminarily integrated [OpenHands](https://github.com/All-Hands-AI/OpenHands), which can be found in our `openhands-compatibility` branch. In the future, we hope to introduce more scaffolds, and we also welcome community contributions of Toolathlon implementations or testing results under other scaffolds.
-
-## Citing Us
-If you found our project useful, please cite us as:
-```
-TBD
-```
-
-## Contact Information
-For help or issues using Toolathlon, you can submit a GitHub issue, send messages in our discord channel, or send emails to Junlong Li (lockonlvange@gmail.com) / Junxian He (junxianh@cse.ust.hk).
+> **Note:** We have not yet extensively tested the OpenHands scaffold across all combinations of tasks and models, so there may still be compatibility issues. Please keep this in mind.

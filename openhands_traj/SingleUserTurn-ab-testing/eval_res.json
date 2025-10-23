@@ -1,4 +1,0 @@
-{
-  "pass": false,
-  "failure": "Launch time from command line: 2 0 2 5 - 1 0 - 0 8   2 0 : 4 9 : 4 1   W e d n e s d a y\nChecking for storage bucket creation...\n✅ Found bucket 'promo-assets-for-b' using service account credentials\n✅ Storage bucket 'promo-assets-for-b' found - task completed correctly\nChecking that abtesting_logging bucket is clean...\n   Skipping diagnostic log: {'logging.googleapis.com/diagnostic': {'instrumentation_source': [{'version': '3.12.1', 'name': 'python'}]}}\n✅ abtesting_logging bucket contains only the expected test log entry\n\nValidating record.csv...\nFound 21 scenarios in agent's record.csv\nExpected 21 scenarios from groundtruth\nRecord Validation Error: Record validation failed:\nScenario 'overall (total_store_views/total_clicks)' Version A: expected 73.904%±0.05%, got 73.840% (diff: 0.064%)\n"
-}

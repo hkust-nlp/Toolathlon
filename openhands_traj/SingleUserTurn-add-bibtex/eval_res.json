@@ -1,4 +1,0 @@
-{
-  "pass": false,
-  "failure": "Agent entries: 57\nGroundtruth entries: 57\nAfter exact matching - Agent entries: 1, Groundtruth entries: 1\nRemaining groundtruth entries:\n  - yuan2023scaling: Scaling relationship on learning mathematical reasoning with large language models\nRemaining agent entries:\n  - yuan2024scaling: Scaling Relationship on Learning Mathematical Reasoning with Large Language Models\nKeys mismatch: {'ID', 'author', 'year', 'title', 'ENTRYTYPE', 'journal'} != {'ID', 'author', 'year', 'title', 'url', 'booktitle', 'ENTRYTYPE'}\nMissing entry: yuan2023scaling\nTitle: Scaling relationship on learning mathematical reasoning with large language models\n------------\nEvaluation failed\n"
-}
