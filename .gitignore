@@ -98,3 +98,8 @@ aux/
 
 configs/legacy_servers
 scripts/temp_configs
+
+hf_trajs
+.vscode
+
+CLAUDE.md
