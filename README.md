@@ -14,9 +14,9 @@
 
 </div>
 
-## Before We Start
+## Choose a Proper Machine
 
-To run our benchmark, we strongly suggest you deploy it on a Linux machine with *docker* installed that can directly access the Internet without constraints (e.g. GFW). An ideal machine for this could be an Ubuntu 24.04 server (64GB memory, 1TB storage) located in the US, which is where we conducted our main experiments. We also suggest you have root/sudo access to this machine. Although you can indeed run our benchmark without sudo, some configurations still need this (you may ask an administrator to help you with this), like configurating *podman* and *inotify* parameters (see # k8s part in `global_preparation/install_env.sh`). We also record some FAQs and common issues in `FAQ.md`.
+To run our benchmark, we strongly suggest you deploy it on a ***Linux*** machine with ***docker*** installed that can directly access the ***Internet without constraints*** (e.g. GFW). An ideal machine, for example, could be an Ubuntu 24.04 server (64GB memory, 1TB storage) located in the US, which is where we conducted our main experiments. We also suggest you have ***root/sudo*** access to this machine. Although you can indeed run our benchmark without sudo, some configurations still need this (you may ask an administrator to help you with this), like configurating *podman* and *inotify* parameters (see "# k8s" part in `global_preparation/install_env.sh`) or installing dependencies for playwright (see "# install playwright system dependencies" part in `global_preparation/install_env.sh`).
 
 
 ## Quick Start
@@ -128,6 +128,9 @@ If you'd like to evaluate multiple models in sequence, we provide an ensemble sc
 ```
 bash scripts/run_parallel_sequential.sh
 ```
+
+## Supporting Multiple Agent Scaffolds  
+In addition to the scaffold we have implemented in Toolathlon based on the [openai-agent-sdk](https://github.com/openai/openai-agents-python), we are also committed to introducing more scaffolds for more comprehensive testing. Currently, we have preliminarily integrated [OpenHands](https://github.com/All-Hands-AI/OpenHands), which can be found in our `openhands-compatibility` branch. In the future, we hope to introduce more scaffolds, and we also welcome community contributions of Toolathlon implementations or testing results under other scaffolds.
 
 ## Citing Us
 If you found our project useful, please cite us as:
