@@ -15,7 +15,7 @@
 
 ## Before We Start
 
-To run our benchmark, we strongly suggest you deploy it on a Linux machine with *docker* installed that can directly access the Internet without constraints (e.g. GFW). An ideal machine for this could be an Ubuntu 24.04 server (64GB memory, 1TB storage) located in the US, which is where we conducted our main experiments. We also suggest you have root/sudo access to this machine. Although you can indeed run our benchmark without sudo, some configurations still need this (you may ask an administrator to help you with this), like configurating *podman* and *inotify* parameters (see # k8s part in `global_preparation/install_env.sh`).
+To run our benchmark, we strongly suggest you deploy it on a Linux machine with *docker* installed that can directly access the Internet without constraints (e.g. GFW). An ideal machine for this could be an Ubuntu 24.04 server (64GB memory, 1TB storage) located in the US, which is where we conducted our main experiments. We also suggest you have root/sudo access to this machine. Although you can indeed run our benchmark without sudo, some configurations still need this (you may ask an administrator to help you with this), like configurating *podman* and *inotify* parameters (see # k8s part in `global_preparation/install_env.sh`). We also record some FAQs and common issues in `FAQ.md`.
 
 
 ## Quick Start
@@ -133,3 +133,6 @@ If you found our project useful, please cite us as:
 ```
 TBD
 ```
+
+## Contact Information
+For help or issues using Toolathlon, you can submit a GitHub issue, send messages in our discord channel, or send emails to Junlong Li (lockonlvange@gmail.com) / Junxian He (junxianh@cse.ust.hk).
