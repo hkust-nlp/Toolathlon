@@ -50,10 +50,11 @@ async def evaluate_itinerary_with_maps(submission_path: str, initial_workspace_p
             
             # extract day attractions
             day_attractions = [spot.get('name', '') for spot in day_data]
+            day_attractions_with_address = [f"{spot.get('name', '')} ({spot.get('address', '')})" for spot in day_data]
             
             # step 2: calculate day distance and time
-            if len(day_attractions) > 1:
-                distance_results = await calculate_distances_and_times(server, day_attractions)
+            if len(day_attractions_with_address) > 1:
+                distance_results = await calculate_distances_and_times(server, day_attractions_with_address) # we use the address as extra info to identify the attractions
             else:
                 distance_results = []
             
