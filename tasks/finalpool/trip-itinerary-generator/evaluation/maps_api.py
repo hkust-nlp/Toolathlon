@@ -17,7 +17,7 @@ async def get_attractions_info(server, attractions: List[str]) -> Dict[str, Dict
         # step 1: search attraction for basic info
         try:
             search_result = await call_tool_with_retry(server, "maps_search_places", {
-                "query": attraction
+                "query": f"{attraction}, Paris, France"
             })
             
             if not search_result or not search_result.content:
@@ -115,8 +115,8 @@ async def calculate_distances_and_times(server, route_points: List[str], route_p
         try:
             # use distance_matrix to calculate distances and times
             matrix_result = await call_tool_with_retry(server, "maps_distance_matrix", {
-                "origins": [origin_with_address],
-                "destinations": [destination_with_address],
+                "origins": [f"{origin}, Paris, France"],
+                "destinations": [f"{destination}, Paris, France"],
                 "mode": "walking"
             })
             
