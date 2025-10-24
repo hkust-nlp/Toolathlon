@@ -92,10 +92,11 @@ async def get_attractions_info(server, attractions: List[str]) -> Dict[str, Dict
     print(f"\nsuccess get {len(attractions_info)} attractions detailed info")
     return attractions_info
 
-async def calculate_distances_and_times(server, route_points: List[str]) -> List[Dict]:
+async def calculate_distances_and_times(server, route_points: List[str], route_points_with_address: List[str]) -> List[Dict]:
     """calculate distances and times between adjacent attractions in the route"""
     print(f"\n=== calculate distances and times ===")
     print(f"route points: {route_points}")
+    print(f"route points with address: {route_points_with_address}")
     
     if len(route_points) < 2:
         return []
@@ -105,15 +106,17 @@ async def calculate_distances_and_times(server, route_points: List[str]) -> List
     # calculate distances and times between adjacent attractions
     for i in range(len(route_points) - 1):
         origin = route_points[i]
+        origin_with_address = route_points_with_address[i]
         destination = route_points[i + 1]
+        destination_with_address = route_points_with_address[i + 1]
         
         print(f"\ncalculate: {origin} -> {destination}")
         
         try:
             # use distance_matrix to calculate distances and times
             matrix_result = await call_tool_with_retry(server, "maps_distance_matrix", {
-                "origins": [origin],
-                "destinations": [destination],
+                "origins": [origin_with_address],
+                "destinations": [destination_with_address],
                 "mode": "walking"
             })
             
