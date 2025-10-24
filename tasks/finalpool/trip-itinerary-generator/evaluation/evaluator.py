@@ -181,7 +181,7 @@ async def evaluate_itinerary_with_maps(submission_path: str, initial_workspace_p
         print("\n===== all attractions should be visited only once ======")
         for attraction, visited in all_attractions_visted.items():
             total_checks += 1
-            if visited != 1:
+            if visited != 1 or (attraction == "Panthéon" and visited not in [1, 2]):
                 print(f"    ✗ attraction {attraction} visited {visited} times")
                 evaluation_results.append(f"attraction {attraction} visited {visited} times")
             else:
