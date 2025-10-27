@@ -551,7 +551,7 @@ API_MAPPINGS = {
     'claude-4.5-haiku-1001': Dict(
         api_model={"anthropic": "claude-haiku-4-5-20251001",
                    "openrouter": "anthropic/claude-haiku-4.5"},
-        price=[0.003, 0.015],
+        price=[0.001, 0.005],
         concurrency=32,
         context_window=1000000,
         openrouter_config={"provider": {"only": ["anthropic"]}}
