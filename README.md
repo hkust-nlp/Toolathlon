@@ -14,9 +14,13 @@
 
 </div>
 
-## Choose a Proper Machine
+## Introduction
+Toolathlon is a benchmark to assess language agents' general tool use in realistic environments. It features 600+ diverse tools based on real-world software environments. Each task requires long-horizon tool calls to complete. Below we show a demo task where the agent needs to automatically check assignments in the email box, and grade them on Canvas.
 
-To run our benchmark, we strongly suggest you deploy it on a ***Linux*** machine with ***docker*** installed that can directly access the ***Internet without constraints*** (e.g. GFW). An ideal machine, for example, could be an Ubuntu 24.04 server (64GB memory, 1TB storage) located in the US, which is where we conducted our main experiments. We also suggest you have ***root/sudo*** access to this machine. Although you can indeed run our benchmark without sudo, some configurations still need this (you may ask an administrator to help you with this), like configurating *podman* and *inotify* parameters (see "# k8s" part in `global_preparation/install_env.sh`) or installing dependencies for playwright (see "# install playwright system dependencies" part in `global_preparation/install_env.sh`).
+<div align="center">
+  <video src="assets/demo.mp4" width="100%" controls></video>
+</div>
+
 
 
 ## Quick Start
@@ -42,7 +46,7 @@ We provide one command to install everything, we maintain the environment with `
 bash global_preparation/install_env.sh [true|false] # `true` if you have sudo.
 ```
 
-### Configuate Global Configs (Part 1: LLM APIs)
+### Configure Global Configs (Part 1: LLM APIs)
 
 Please copy the `configs/global_configs_example.py` to a new file `configs/global_configs.py`:
 
@@ -50,13 +54,13 @@ Please copy the `configs/global_configs_example.py` to a new file `configs/globa
 cp configs/global_configs_example.py configs/global_configs.py
 ```
 
-We use this `configs/global_configs.py` to manage all LLM APIs, you need to open this file and fill in the api keys in it. Note that you do not need to fill in all of them, but instead just fill in the api keys for the providers you want to use. We recommand using [**openrouter**](https://openrouter.ai/), as it enables us to use various LLMs by only configurating one api key.
+We use this `configs/global_configs.py` to manage all LLM APIs, you need to open this file and fill in the api keys in it. Note that you do not need to fill in all of them, but instead just fill in the api keys for the providers you want to use. We recommend using [**openrouter**](https://openrouter.ai/), as it enables us to use various LLMs by only configurating one api key.
 
 You can find details about the model providers in `utils/api_model/model_provider.py`.
 
 ### Quick Example
 
-After the above two steps, you can directlt run this very quick example. We use *claude-4.5-haiku-1001* via **openrouter** in this example, so make sure you have configurated it.
+After the above two steps, you can directly run this very quick example. We use *claude-4.5-haiku-1001* via **openrouter** in this example, so make sure you have configured it.
 
 ```
 bash scripts/quick_start/quick_start_run.sh
@@ -66,11 +70,17 @@ You can find the resulted logs, trajectories, and agent workspace all in `dumps_
 
 ## Full Preparation
 
-### Configuate Global Configs (Part 2: Containerization)
+### Choose a Proper Machine
 
-Make sure you have docker or podman installed and correctly configurated, please fill in your choice in `global_configs.py`
+To run our benchmark, we strongly suggest you deploy it on a ***Linux*** machine with ***docker*** installed that can directly access the ***Internet without constraints*** (e.g. GFW). 
+Although you can indeed run our benchmark without sudo, some configurations still need this (you may ask an administrator to help you with this), like configuring *podman* and *inotify* parameters (see "# k8s" part in `global_preparation/install_env.sh`) or installing dependencies for playwright (see "# install playwright system dependencies" part in `global_preparation/install_env.sh`).
 
-### Configuate App-Aware Tokens, Keys and Credentials
+
+### Configure Global Configs (Part 2: Containerization)
+
+Make sure you have docker or podman installed and correctly configured, please fill in your choice in `global_configs.py`
+
+### Configure App-Aware Tokens, Keys and Credentials
 
 Please copy the `configs/token_key_session_example.py` to a new file `configs/token_key_session.py`:
 
@@ -94,7 +104,7 @@ bash global_preparation/deploy_containers.sh [true|false] # this indicate whethe
 
 You can find more details in `deployment/*/scripts/setup.sh` for each local application we deployed.
 
-### MCP Servers Verfication
+### MCP Servers Verification
 
 You can simply run this script to check if all MCP servers are working properly, after you setup all the above configs and deployed the app containers:
 
