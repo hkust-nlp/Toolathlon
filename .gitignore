@@ -109,3 +109,8 @@ archieved
 
 scripts/model_wise
 scripts/temp_and_debug
+
+tasks/debug
+tasks/examples
+tasks/jl
+tasks/testparallel
