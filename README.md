@@ -18,9 +18,8 @@
 Toolathlon is a benchmark to assess language agents' general tool use in realistic environments. It features 600+ diverse tools based on real-world software environments. Each task requires long-horizon tool calls to complete. Below we show a demo task where the agent needs to automatically check assignments in the email box, and grade them on Canvas.
 
 <div align="center">
-  <video src="assets/demo.mp4" width="100%" controls></video>
+  <img src="assets/demo.gif" width="100%" alt="Demo">
 </div>
-
 
 
 ## Quick Start
