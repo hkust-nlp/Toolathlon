@@ -1,1 +1,0 @@
-下面是NLP课程的作业提交链接，按照要求自动提交工作区的作业。我的个人信息可以在记忆库中查询。https://docs.google.com/forms/d/e/1FAIpQLSeUnWF_a_EEJH7EY2IyeeMBFce5LclJGaxH1KYznDB7F-_Wow/viewform?usp=dialog

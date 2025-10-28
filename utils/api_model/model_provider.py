@@ -475,7 +475,7 @@ model_provider_mapping = {
 API_MAPPINGS = {
     'deepseek-v3.2-exp': Dict(
         api_model={"deepseek_official": "deepseek-chat"}, # 2025/9/29, this model may become other model later
-        price=[2/7000, 3/7000], # an estimated price, no cache considered
+        price=[0.28/1000, 0.42/1000], # an estimated price, no cache considered
         concurrency=32,
         context_window=128000,
     ),
@@ -552,7 +552,7 @@ API_MAPPINGS = {
     'claude-4.5-haiku-1001': Dict(
         api_model={"anthropic": "claude-haiku-4-5-20251001",
                    "openrouter": "anthropic/claude-haiku-4.5"},
-        price=[0.003, 0.015],
+        price=[0.001, 0.005],
         concurrency=32,
         context_window=1000000,
         openrouter_config={"provider": {"only": ["anthropic"]}}
@@ -663,6 +663,14 @@ API_MAPPINGS = {
         concurrency=32,
         context_window=256000,
         openrouter_config={"provider": {"only": ["alibaba"]}}
+    ),
+    "minimax-m2": Dict(
+        api_model={
+            "openrouter": "minimax/minimax-m2:free"},
+        price=[0.3/1000, 1.2/1000],
+        concurrency=32,
+        context_window=200000,
+        openrouter_config={"provider": {"only": ["minimax"]}}
     ),
     # "gpt-oss-120b": Dict(
     #     api_model={"openrouter": "openai/gpt-oss-120b"},

@@ -1,5 +1,0 @@
-{
-    "needed_mcp_servers": ["arxiv_local"],
-    "needed_local_tools": ["python_execute"],
-    "meta": {}
-}

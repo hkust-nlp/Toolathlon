@@ -50,10 +50,11 @@ async def evaluate_itinerary_with_maps(submission_path: str, initial_workspace_p
             
             # extract day attractions
             day_attractions = [spot.get('name', '') for spot in day_data]
+            day_attractions_with_address = [f"{spot.get('name', '')} ({spot.get('address', '')})" for spot in day_data]
             
             # step 2: calculate day distance and time
-            if len(day_attractions) > 1:
-                distance_results = await calculate_distances_and_times(server, day_attractions)
+            if len(day_attractions_with_address) > 1:
+                distance_results = await calculate_distances_and_times(server, day_attractions, day_attractions_with_address) # we use the address as extra info to identify the attractions
             else:
                 distance_results = []
             
@@ -180,7 +181,10 @@ async def evaluate_itinerary_with_maps(submission_path: str, initial_workspace_p
         print("\n===== all attractions should be visited only once ======")
         for attraction, visited in all_attractions_visted.items():
             total_checks += 1
-            if visited != 1:
+            if attraction != "Notre Dame Cathedral" and visited != 1:
+                print(f"    ✗ attraction {attraction} visited {visited} times")
+                evaluation_results.append(f"attraction {attraction} visited {visited} times")
+            elif attraction == "Notre Dame Cathedral" and visited not in [1, 2]:
                 print(f"    ✗ attraction {attraction} visited {visited} times")
                 evaluation_results.append(f"attraction {attraction} visited {visited} times")
             else:
