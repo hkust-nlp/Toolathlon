@@ -1,5 +1,0 @@
-{
-    "needed_mcp_servers": ["playwright_with_chunk","memory","filesystem","terminal"],
-    "needed_local_tools": ["claim_done"],
-    "meta": {}
-}

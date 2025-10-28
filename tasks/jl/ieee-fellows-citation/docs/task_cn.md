@@ -1,1 +1,0 @@
-请帮我搜索引用了香港科技大学（HKUST）He Junxian 老师的论文的学者中，引用量大于 3000 的学者的个人信息，并请收集至少五位符合要求的学者的信息。返回高引用学者信息的格式参考return_format.json文件，如果没有找到任何引用量大于3k的学者，返回格式参考without_citation.json。最后，请将json结果保存到`high_citation_scholars_results.json`文件中。
