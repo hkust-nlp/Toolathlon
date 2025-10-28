@@ -124,12 +124,18 @@ bash scripts/quick_start/quick_start_run.sh
 
 To ensure that the execution of different tasks does not interfere with each other, we use containerization to run each task in an isolated environment. This also makes it possible to run tasks in parallel, greatly accelerating evaluation speed.
 
+In doing so, we build an image `docker.io/lockon0927/toolathlon-task-image:1016beta`, you can pull it via this:
+
+```
+bash global_preparation/pull_image_for_parallelism.sh
+```
+
+Then you can run this:
+
 ```
 bash scripts/run_parallel.sh gpt-5-mini ./{your_dump_path} openrouter "" 10
 ```
 *Note: please take a look at the arguments in this script before you run
-
-In doing so, we build an image `docker.io/lockon0927/toolathlon-task-image:1016beta`, which will be pulled automatically in `global_preparation/install_env.sh`, so you do not need to pull it manually.
 
 This will run all the tasks in parallel with at most 10 workers, and you will find all output trajectories and evaluation summary (`eval_stats.json`) in `./{your_dump_path}`.
 
