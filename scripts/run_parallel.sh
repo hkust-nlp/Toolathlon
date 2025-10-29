@@ -1,5 +1,14 @@
 #!/bin/bash
 
+#### If you want to use the unified model provider, 
+# but do not want to explicitly export these environment variables in your shell, 
+# you can also uncomment these lines and set the values here
+# ↓↓↓↓ uncomment these lines ↓↓↓↓
+# TOOLATHLON_OPENAI_BASE_URL="your-custom-base-url"
+# TOOLATHLON_OPENAI_API_KEY="your-custom-api-key"
+# export TOOLATHLON_OPENAI_BASE_URL
+# export TOOLATHLON_OPENAI_API_KEY
+
 # Configuration Variables - Modify as needed
 TASKS_FOLDER="finalpool"
 TAG="full"

@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Optional, Union, Literal, Dict
 from utils.data_structures.common import Model, Generation
+import os
 
 
 @dataclass
@@ -34,7 +35,7 @@ class AgentConfig:
         model_data = data['model']
         
         # If using OpenRouter provider, automatically add provider routing configuration
-        if model_data.get('provider') == 'openrouter':
+        if model_data.get('provider') == 'openrouter' or (model_data.get('provider') == 'unified' and os.getenv('TOOLATHLON_OPENAI_BASE_URL')=="https://openrouter.ai/api/v1"):
             from utils.api_model.model_provider import API_MAPPINGS
             model_short_name = model_data.get('short_name')
             

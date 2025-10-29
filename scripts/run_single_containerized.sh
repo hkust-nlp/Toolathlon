@@ -3,6 +3,15 @@
 # Script for running a single task in a containerized environment
 # Usage: ./run_single_containerized.sh <task_dir> <tag> <modelname> [provider] [maxstep] [eval_config] [dump_path] [image_name]
 
+#### If you want to use the unified model provider, 
+# but do not want to explicitly export these environment variables in your shell, 
+# you can also uncomment these lines and set the values here
+# ↓↓↓↓ uncomment these lines ↓↓↓↓
+# TOOLATHLON_OPENAI_BASE_URL="your-custom-base-url"
+# TOOLATHLON_OPENAI_API_KEY="your-custom-api-key"
+# export TOOLATHLON_OPENAI_BASE_URL
+# export TOOLATHLON_OPENAI_API_KEY
+
 set -e
 
 task_dir_arg=$1 # domain/taskname
@@ -66,6 +75,19 @@ SAFE_TASK_NAME=$(echo "$task_dir_arg" | sed 's|/|-|g')
 CONTAINER_NAME="toolathlon-${SAFE_TASK_NAME}-${TIMESTAMP}"
 
 echo "Container name: $CONTAINER_NAME"
+
+# --- BEGIN: Detect and propagate TOOLATHLON_OPENAI env vars from host to container ---
+EXTRA_ENV_ARGS=()
+if [ ! -z "${TOOLATHLON_OPENAI_BASE_URL+x}" ]; then
+    EXTRA_ENV_ARGS+=("-e" "TOOLATHLON_OPENAI_BASE_URL=${TOOLATHLON_OPENAI_BASE_URL}")
+    echo "Detected host TOOLATHLON_OPENAI_BASE_URL, will pass into container"
+fi
+
+if [ ! -z "${TOOLATHLON_OPENAI_API_KEY+x}" ]; then
+    EXTRA_ENV_ARGS+=("-e" "TOOLATHLON_OPENAI_API_KEY=${TOOLATHLON_OPENAI_API_KEY}")
+    echo "Detected host TOOLATHLON_OPENAI_API_KEY, will pass into container"
+fi
+# --- END: Detect and propagate TOOLATHLON_OPENAI env vars ---
 
 # Cleanup function
 cleanup() {
@@ -140,6 +162,11 @@ START_CONTAINER_ARGS=(
     "--name" "$CONTAINER_NAME"
     "--network" "host" # Use host network for Kind cluster access
 )
+
+# Add environment variables for TOOLATHLON_OPENAI from host
+for envarg in "${EXTRA_ENV_ARGS[@]}"; do
+    START_CONTAINER_ARGS+=("$envarg")
+done
 
 # Add socket mount based on container runtime
 if [ "$CONTAINER_RUNTIME" = "podman" ]; then
