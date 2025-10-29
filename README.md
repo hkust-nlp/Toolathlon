@@ -63,7 +63,7 @@ export TOOLATHLON_OPENAI_BASE_URL="https://your-custom-endpoint.com" # e.g. "htt
 This will use our unified model provider. You can also use any model deployed on your own machine, like via [vLLM](https://github.com/vllm-project/vllm) or [SGLang](https://github.com/sgl-project/sglang), in that case you do not need to set the api key.
 
 
-We also provide some pre configurated options for you in `configs/global_configs.py` to manage all LLM APIs. You need to open this file and fill in the api keys in it. Note that you do not need to fill in all of them, but instead just fill in the api keys for the providers you want to use. We recommend using [**openrouter**](https://openrouter.ai/), as it enables us to use various LLMs by only configurating one api key.
+(Optional) We also provide some pre-configurated options for you in `configs/global_configs.py` to manage all LLM APIs. You may open this file and fill in the api keys in it, and specify which provider you want to use later. Note that you do not need to fill in all of them, but instead just fill in the api keys for the providers you want to use. We recommend using [**openrouter**](https://openrouter.ai/), as it enables us to use various LLMs by only configurating one api key.
 
 
 You can find details about model providers in `utils/api_model/model_provider.py`.
