@@ -460,6 +460,24 @@ class CustomModelProviderXAI(ModelProvider):
                                                    debug=debug,
                                                    short_model_name=short_model_name)
 
+class CustomModelProviderUnified(ModelProvider):
+    def get_model(self, model_name: str | None, debug: bool = True, short_model_name: str | None = None) -> Model:
+        import os
+        base_url = os.getenv('TOOLATHLON_OPENAI_BASE_URL', None)
+        if base_url is None:
+            raise ValueError("TOOLATHLON_OPENAI_BASE_URL is not set! You must set it in the environment variables when using unified model provider!")
+        api_key = os.getenv('TOOLATHLON_OPENAI_API_KEY', "fake-key")
+        if api_key == "fake-key":
+            print("[Warning] TOOLATHLON_OPENAI_API_KEY is not set! Usually this is only expected when you are running some self-deployed models like via vllm or sglang!")
+        client = AsyncOpenAI(
+            api_key=api_key,
+            base_url=base_url,
+        )
+        return OpenAIChatCompletionsModelWithRetry(model=model_name, 
+                                                   openai_client=client,
+                                                   debug=debug,
+                                                   short_model_name=short_model_name)
+
 model_provider_mapping = {
     "aihubmix": CustomModelProviderAiHubMix,
     "anthropic": CustomModelProviderAnthropic,
@@ -470,6 +488,7 @@ model_provider_mapping = {
     "deepseek_official": CustomModelProviderDeepSeekOfficial,
     "google": CustomModelProviderGoogle,
     "xai": CustomModelProviderXAI,
+    "unified": CustomModelProviderUnified,
 }
 
 API_MAPPINGS = {

@@ -23,8 +23,8 @@ uv run main.py \
 --eval_config scripts/quick_start/quick_start_eval_config.json \
 --task_dir $task \
 --debug \
---model_short_name claude-4.5-haiku-1001 \
---provider openrouter \
+--model_short_name claude-sonnet-4-5 \
+--provider unified \
 --max_steps_under_single_turn_mode 200 \
 # --multi_turn_mode \
 # --manual

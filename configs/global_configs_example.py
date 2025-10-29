@@ -10,6 +10,6 @@ global_configs = Dict(
     openai_official_key="xxx", # Fill in the openai_official key
     google_official_key="xxx", # Fill in the google_official key
     xai_official_key="xxx", # Fill in the xai_official key
-    podman_or_docker="podman", # or `docker` depending on which one you want to use
+    podman_or_docker="docker", # or `podman` depending on which one you want to use
     notion_preprocess_with_playwright=False, # In genral you do not need to change this! It is whether you use mcp/playwright to preprocess the notion page, default as false.
 )

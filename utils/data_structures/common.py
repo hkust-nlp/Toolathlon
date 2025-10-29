@@ -13,7 +13,7 @@ class Model:
         """By default, use short_name as real_name if not provided"""
         if self.real_name is None:
             # For local VLLM provider, use the model name as-is without mapping
-            if self.provider == "local_vllm":
+            if self.provider in ["local_vllm", "unified"]:
                 self.real_name = self.short_name
             else:
                 self.real_name = API_MAPPINGS[self.short_name].api_model[self.provider]

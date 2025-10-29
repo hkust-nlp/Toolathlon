@@ -53,19 +53,31 @@ Please copy the `configs/global_configs_example.py` to a new file `configs/globa
 cp configs/global_configs_example.py configs/global_configs.py
 ```
 
-We use this `configs/global_configs.py` to manage all LLM APIs, you need to open this file and fill in the api keys in it. Note that you do not need to fill in all of them, but instead just fill in the api keys for the providers you want to use. We recommend using [**openrouter**](https://openrouter.ai/), as it enables us to use various LLMs by only configurating one api key.
+Then simply set these two envariables, note that `TOOLATHLON_OPENAI_BASE_URL` must be an OpenAI SDK compatible one, as our agent scaffold relies this:
 
-You can find details about the model providers in `utils/api_model/model_provider.py`.
+```
+export TOOLATHLON_OPENAI_API_KEY="your-custom-api-key"
+export TOOLATHLON_OPENAI_BASE_URL="https://your-custom-endpoint.com" # e.g. "https://api.anthropic.com/v1/" for Anthropic, "https://openrouter.ai/api/v1" for OpenRouter
+```
+
+This will use our unified model provider. You can also use any model deployed on your own machine, like via [vLLM](https://github.com/vllm-project/vllm) or [SGLang](https://github.com/sgl-project/sglang), in that case you do not need to set the api key.
+
+
+We also provide some pre configurated options for you in `configs/global_configs.py` to manage all LLM APIs. You need to open this file and fill in the api keys in it. Note that you do not need to fill in all of them, but instead just fill in the api keys for the providers you want to use. We recommend using [**openrouter**](https://openrouter.ai/), as it enables us to use various LLMs by only configurating one api key.
+
+
+You can find details about model providers in `utils/api_model/model_provider.py`.
 
 ### Quick Example
 
-After the above two steps, you can directly run this very quick example. We use *claude-4.5-haiku-1001* via **openrouter** in this example, so make sure you have configured it.
+After the above two steps, you can directly run this very quick example, this will call claude-sonnet-4-5 to execute the task.
+<!-- We use *claude-4.5-haiku-1001* via **openrouter** in this example, so make sure you have configured it. -->
 
 ```
 bash scripts/quick_start/quick_start_run.sh
 ```
 
-You can find the resulted logs, trajectories, and agent workspace all in `dumps_quick_start/claude-4.5-haiku-1001/finalpool/SingleUserTurn-find-alita-paper`.
+You can find the resulted logs, trajectories, and agent workspace all in `dumps_quick_start/claude-sonnet-4-5/finalpool/SingleUserTurn-find-alita-paper`.
 
 ## Full Preparation
 
@@ -134,7 +146,7 @@ Then you can run this:
 ```
 bash scripts/run_parallel.sh gpt-5-mini ./{your_dump_path} openrouter "" 10
 ```
-*Note: please take a look at the arguments in this script before you run
+*Note: please take a look at the arguments in this script before you run. If you want to use the unified model provider, do remember to export the TOOLATHLON_OPENAI_BASE_URL and TOOLATHLON_OPENAI_API_KEY environment variables.
 
 This will run all the tasks in parallel with at most 10 workers, and you will find all output trajectories and evaluation summary (`eval_stats.json`) in `./{your_dump_path}`.
 
