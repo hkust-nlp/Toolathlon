@@ -135,6 +135,30 @@ If you'd like to evaluate multiple models in sequence, we provide an ensemble sc
 bash scripts/run_parallel_sequential.sh
 ```
 
+## Visualization
+To facilitate viewing the reasoning trajectories of LLMs, we provide a replay tool for developers to visualize any trajectory in `vis_traj`.
+### Prepare Trajectory
+After obtaining the results for a task, you need to perform a data format conversion first. Taking the `notion-hr` task as an example, you can run the following command:
+
+```bash
+uv run vis_traj/convert_format.py \
+--input_path /path/to/your/results/notion-hr/ \
+--output_file yourmodel_notion-hr.json
+```
+
+The directory `/path/to/your/results/notion-hr/` should contain: `traj_log.json` and `eval_res.json`.
+
+You can do this multiple times to convert as many trajectories as you want to visualize them later.
+
+### Start Replay Server
+Then, simply run the following command:
+
+```bash
+uv run vis_traj/server.py --port 8000
+```
+
+And you can visit localhost:8000 to view all trajectories you have converted.
+
 ## Supporting Multiple Agent Scaffolds  
 In addition to the scaffold we have implemented in Toolathlon based on the [openai-agent-sdk](https://github.com/openai/openai-agents-python), we are also committed to introducing more scaffolds for more comprehensive testing. Currently, we have preliminarily integrated [OpenHands](https://github.com/All-Hands-AI/OpenHands), which can be found in our `openhands-compatibility` branch. In the future, we hope to introduce more scaffolds, and we also welcome community contributions of Toolathlon implementations or testing results under other scaffolds.
 

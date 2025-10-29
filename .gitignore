@@ -114,3 +114,5 @@ tasks/debug
 tasks/examples
 tasks/jl
 tasks/testparallel
+
+vis_traj/trajs

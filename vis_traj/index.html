@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM Trajectory Replay</title>
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+    <!-- Top Control Bar -->
+    <div class="top-bar">
+        <div class="controls">
+            <select id="traj-file" class="file-selector">
+                <option value="">Select trajectory file...</option>
+            </select>
+            <button id="play-btn" class="play-btn" disabled>
+                <span class="play-icon">▶</span>
+                Play
+            </button>
+            <button id="pause-btn" class="control-btn" disabled>
+                <span class="pause-icon">⏸</span>
+                Pause
+            </button>
+            <button id="prev-btn" class="control-btn" disabled>
+                <span class="prev-icon">◀</span>
+                Prev
+            </button>
+            <button id="next-btn" class="control-btn" disabled>
+                <span class="next-icon">▶</span>
+                Next
+            </button>
+        </div>
+        <div class="top-bar-right">
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div id="progress" class="progress-fill"></div>
+                </div>
+                <span id="progress-text" class="progress-text">0 / 0</span>
+            </div>
+            <div id="task-status" class="task-status" style="display: none;">
+                <span class="task-status-icon"></span>
+                <span class="task-status-text"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Chat Area -->
+    <div class="main-container">
+        <div class="chat-container">
+            <div id="messages-container" class="messages-container">
+            </div>
+        </div>
+        
+        <!-- Right Sidebar for Tool Calls -->
+        <div id="tool-sidebar" class="tool-sidebar">
+            <div class="sidebar-header">
+                <h3>Tool Call Details</h3>
+                <button id="close-sidebar" class="close-btn">×</button>
+            </div>
+            <div id="tool-details" class="tool-details">
+                <!-- Tool call details will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
