@@ -1,8 +1,8 @@
-In this document we will teach the public how to register all needed accounts and how to fill in the token_key_session.py from these account info
+In this document we instruct how to register all needed accounts and how to fill in the token_key_session.py from these account info. Configuring all these accounts is a one-time effort, and will take around 30 minutes. 
 
 
 ### Part1 Overview
-In part 1, we will introduce all accounts needed in launching this project
+In part 1, we will introduce all accounts needed in launching full evaluation of Toolathlon.
 
 #### Remote Ones
 - google account x 1
