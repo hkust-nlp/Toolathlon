@@ -157,28 +157,29 @@ bash scripts/run_parallel_sequential.sh
 ```
 
 ## Visualization
+
 To facilitate viewing the reasoning trajectories of LLMs, we provide a replay tool for developers to visualize any trajectory in `vis_traj`.
+
 ### Prepare Trajectory
-After obtaining the results for a task, you need to perform a data format conversion first. Taking the `notion-hr` task as an example, you can run the following command:
+
+After obtaining the results, you need to perform a data format conversion first. You can use the following command to process the trajectories of all tasks:
 
 ```bash
 uv run vis_traj/convert_format.py \
---input_path /path/to/your/results/notion-hr/ \
---output_file yourmodel_notion-hr.json
+--input_path /your/dump/path/finalpool/
 ```
 
-The directory `/path/to/your/results/notion-hr/` should contain: `traj_log.json` and `eval_res.json`.
-
-You can do this multiple times to convert as many trajectories as you want to visualize them later.
+The converted data will be stored in `vis_traj/trajs`.
 
 ### Start Replay Server
+
 Then, simply run the following command:
 
 ```bash
 uv run vis_traj/server.py --port 8000
 ```
 
-And you can visit localhost:8000 to view all trajectories you have converted.
+And you can visit localhost:8000 to view trajectories you have converted.
 
 ## Supporting Multiple Agent Scaffolds  
 In addition to the scaffold we have implemented in Toolathlon based on the [openai-agent-sdk](https://github.com/openai/openai-agents-python), we are also committed to introducing more scaffolds for more comprehensive testing. Currently, we have preliminarily integrated [OpenHands](https://github.com/All-Hands-AI/OpenHands), which can be found in our `openhands-compatibility` branch. In the future, we hope to introduce more scaffolds, and we also welcome community contributions of Toolathlon implementations or testing results under other scaffolds.
@@ -186,7 +187,15 @@ In addition to the scaffold we have implemented in Toolathlon based on the [open
 ## Citing Us
 If you found our project useful, please cite us as:
 ```
-TBD
+@article{li2025toolathlon,
+      title={The Tool Decathlon: Benchmarking Language Agents for Diverse, Realistic, and Long-Horizon Task Execution}, 
+      author={Junlong Li and Wenshuo Zhao and Jian Zhao and Weihao Zeng and Haoze Wu and Xiaochen Wang and Rui Ge and Yuxuan Cao and Yuzhen Huang and Wei Liu and Junteng Liu and Zhaochen Su and Yiyang Guo and Fan Zhou and Lueyang Zhang and Juan Michelini and Xingyao Wang and Xiang Yue and Shuyan Zhou and Graham Neubig and Junxian He},
+      year={2025},
+      eprint={2510.25726},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2510.25726}, 
+}
 ```
 
 ## Contact Information
