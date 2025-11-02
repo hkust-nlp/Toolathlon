@@ -35,7 +35,7 @@ MAX_TOKENS="8192"
 USER_TEMPERATURE="1.0" # not used in toolathlon
 USER_TOP_P="1.0" # not used in toolathlon
 USER_MAX_TOKENS="1024" # not used in toolathlon
-IMAGE_NAME=${6:-"lockon0927/toolathlon-task-image:1016beta"}  # Docker image to use
+IMAGE_NAME=${5:-"lockon0927/toolathlon-task-image:1016beta"}  # Docker image to use
 
 mkdir -p $DUMP_PATH
 
