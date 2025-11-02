@@ -16,7 +16,7 @@ TAG="full"
 # Parse input arguments for model_name, provider and dump_path
 MODEL_NAME="${1:-gpt-5-mini}"
 DUMP_PATH="${2:-./parallel_debug_gpt5}"
-MODEL_PROVIDER="${3:-openrouter}"
+MODEL_PROVIDER="${3:-unified}"
 
 # legacy arguments, not used in toolathlon
 USER_MODEL_NAME="gpt-5" # this is of no use as toolathlon now does not involve user model   
@@ -25,7 +25,7 @@ MAX_TURNS="50" # this is of no use as toolathlon now does not have multiple user
 
 # task-execution related arguments
 MAX_STEPS="100" # this is the maximum number of steps an agent can take in a single turn, you can set it to a larger value if you want to evaluate on a longer trajectory
-WORKERS=${5:-10} # number of workers to use in parallel evaluation
+WORKERS=${4:-10} # number of workers to use in parallel evaluation
 TIMEOUT="2400" # the timeout for each task execution, including pre-processing, agentloop and post-processing
 
 # model sampling related arguments
@@ -41,7 +41,7 @@ mkdir -p $DUMP_PATH
 
 # You can provide a txt file with each line representing a task, by doing so you can evaluate on an arbitrary subset of tasks
 # if leave an empty string, it will evaluate on all tasks
-TASK_LIST=${4:-""}
+TASK_LIST=""
 
 # Generate temporary config file with random suffix to avoid conflicts
 RANDOM_SUFFIX=$(date +%s)_$$_$(shuf -i 1000-9999 -n 1)

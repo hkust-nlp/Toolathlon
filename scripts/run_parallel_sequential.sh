@@ -1,7 +1,6 @@
 # Some Configurations
 TASK_IMAGE=lockon0927/toolathlon-task-image:1016beta # this is the image we use for parallel evaluation
-TASK_LIST_FILE="" # you can specify a file with each line representing a task, by doing so you can evaluate on an arbitrary subset of tasks
-DUMP_PATH="./dumps_finalexp" # you must have this ./ prefix
+DUMP_PATH="./dumps_finalexp" # you must have this ./ prefix or use absolute path
 poste_configure_dovecot=true # or `false` if your Linux distribution does not need to configure Dovecot to allow plaintext auth
 WROKERS=10
 
@@ -47,6 +46,6 @@ for attempt in {1..1}; do
         echo "Running $MODEL_SHORT_NAME with $PROVIDER, attempt $attempt ......"
 
         # bash global_preparation/deploy_containers.sh $poste_configure_dovecot
-        bash scripts/run_parallel.sh "$MODEL_SHORT_NAME" "$DUMP_PATH/${MODEL_SHORT_NAME}_${attempt}" "$PROVIDER" "$TASK_LIST_FILE" "$WROKERS" "$TASK_IMAGE"
+        bash scripts/run_parallel.sh "$MODEL_SHORT_NAME" "$DUMP_PATH/${MODEL_SHORT_NAME}_${attempt}" "$PROVIDER" "$WROKERS" "$TASK_IMAGE"
     done
 done

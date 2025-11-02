@@ -37,7 +37,7 @@ async def main():
                        help="Maximum number of steps under single turn mode")
     parser.add_argument("--model_short_name", type=str, default=None, 
                        help="Model name")
-    parser.add_argument("--provider", type=str, default=None, 
+    parser.add_argument("--provider", type=str, default="unified", 
                        help="Provider")
     args = parser.parse_args()
     

@@ -45,7 +45,7 @@ We provide one command to install everything, we maintain the environment with `
 bash global_preparation/install_env.sh [true|false] # `true` if you have sudo.
 ```
 
-### Configure Global Configs (Part 1: LLM APIs)
+### Configure Global Configs
 
 Please copy the `configs/global_configs_example.py` to a new file `configs/global_configs.py`:
 
@@ -53,7 +53,7 @@ Please copy the `configs/global_configs_example.py` to a new file `configs/globa
 cp configs/global_configs_example.py configs/global_configs.py
 ```
 
-Then simply set these two envariables, note that `TOOLATHLON_OPENAI_BASE_URL` must be an OpenAI SDK compatible one, as our agent scaffold relies this:
+Then simply set these two env variables, note that `TOOLATHLON_OPENAI_BASE_URL` must be an OpenAI SDK compatible one, as our agent scaffold relies on this:
 
 ```
 export TOOLATHLON_OPENAI_API_KEY="your-custom-api-key"
@@ -63,9 +63,7 @@ export TOOLATHLON_OPENAI_BASE_URL="https://your-custom-endpoint.com" # e.g. "htt
 This will use our unified model provider. You can also use any model deployed on your own machine, like via [vLLM](https://github.com/vllm-project/vllm) or [SGLang](https://github.com/sgl-project/sglang), in that case you do not need to set the api key.
 
 
-(Optional) We also provide some pre-configurated options for you in `configs/global_configs.py` to manage all LLM APIs. You may open this file and fill in the api keys in it, and specify which provider you want to use later. Note that you do not need to fill in all of them, but instead just fill in the api keys for the providers you want to use. We recommend using [**openrouter**](https://openrouter.ai/), as it enables us to use various LLMs by only configurating one api key.
-
-
+(Optional) We also provide some pre-configurated options for you in `configs/global_configs.py` to manage all LLM APIs. You may open this file and fill in the api keys in it, and specify which provider you want to use later. 
 You can find details about model providers in `utils/api_model/model_provider.py`.
 
 ### Quick Example
@@ -83,11 +81,11 @@ You can find the resulted logs, trajectories, and agent workspace all in `dumps_
 
 ### Choose a Proper Machine
 
-To run our benchmark, we strongly suggest you deploy it on a ***Linux*** machine with ***docker*** installed that can directly access the Internet. 
+To run our benchmark, we strongly suggest you deploy it on a Linux machine with docker installed that can directly access the Internet. 
 Although you can indeed run our benchmark without sudo, some configurations still need this (you may ask an administrator to help you with this), like configuring *podman* and *inotify* parameters (see "# k8s" part in `global_preparation/install_env.sh`) or installing dependencies for playwright (see "# install playwright system dependencies" part in `global_preparation/install_env.sh`).
 
 
-### Configure Global Configs (Part 2: Containerization)
+### Configure Global Configs
 
 Make sure you have docker or podman installed and correctly configured, please fill in your choice in `global_configs.py`
 
@@ -99,7 +97,7 @@ Please copy the `configs/token_key_session_example.py` to a new file `configs/to
 cp configs/token_key_session_example.py configs/token_key_session.py
 ```
 
-Then please read carefully through `global_preparation/how2register_accounts.md` and follow the guides. You need to register some accounts and configure some tokens/api keys/secrets in `configs/token_key_session.py`. 
+Then please read carefully through [how2register_accounts.md](global_preparation/how2register_accounts.md) and follow the guides. You need to register some accounts and configure some tokens/api keys/secrets in `configs/token_key_session.py`. 
 
 ### Misc Configuration
 
@@ -108,7 +106,7 @@ Simply run the following:
 bash global_preparation/misc_configuartion.sh
 ```
 
-### Deployment Needed Apps
+### Deploy Needed Apps
 ```
 bash global_preparation/deploy_containers.sh [true|false] # this indicate whether we configure dovecot in poste.io to allow plaintext auth.
 ```
@@ -117,7 +115,7 @@ You can find more details in `deployment/*/scripts/setup.sh` for each local appl
 
 ### MCP Servers Verification
 
-You can simply run this script to check if all MCP servers are working properly, after you setup all the above configs and deployed the app containers:
+You can run the following script to check if all MCP servers are working properly, after you setup all the above configs and deployed the app containers:
 
 ```
 uv run -m global_preparation.check_installation
@@ -141,10 +139,10 @@ In doing so, we build an image `docker.io/lockon0927/toolathlon-task-image:1016b
 bash global_preparation/pull_image_for_parallelism.sh
 ```
 
-Then you can run this:
+Then you can run:
 
 ```
-bash scripts/run_parallel.sh gpt-5-mini ./{your_dump_path} openrouter "" 10
+bash scripts/run_parallel.sh [model-name] ./{your_dump_path} unified 10
 ```
 *Note: please take a look at the arguments in this script before you run. If you want to use the unified model provider, do remember to export the TOOLATHLON_OPENAI_BASE_URL and TOOLATHLON_OPENAI_API_KEY environment variables.
 
