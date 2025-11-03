@@ -16,41 +16,34 @@ TAG="full"
 # Parse input arguments for model_name, provider and dump_path
 MODEL_NAME="${1:-gpt-5-mini}"
 DUMP_PATH="${2:-./parallel_debug_gpt5}"
-MODEL_PROVIDER="${3:-openrouter}"
-
-# legacy arguments, not used in toolathlon
-USER_MODEL_NAME="gpt-5" # this is of no use as toolathlon now does not involve user model   
-USER_MODEL_PROVIDER="aihubmix" # this is of no use as toolathlon now does not involve user model   
-MAX_TURNS="50" # this is of no use as toolathlon now does not have multiple user-agent interactive turns
+MODEL_PROVIDER="${3:-unified}"
 
 # task-execution related arguments
 MAX_STEPS="100" # this is the maximum number of steps an agent can take in a single turn, you can set it to a larger value if you want to evaluate on a longer trajectory
-WORKERS=${5:-10} # number of workers to use in parallel evaluation
+WORKERS=${4:-10} # number of workers to use in parallel evaluation
 TIMEOUT="2400" # the timeout for each task execution, including pre-processing, agentloop and post-processing
 
 # model sampling related arguments
 TEMPERATURE="0.6"
 TOP_P="1"
 MAX_TOKENS="8192"
-USER_TEMPERATURE="1.0" # not used in toolathlon
-USER_TOP_P="1.0" # not used in toolathlon
-USER_MAX_TOKENS="1024" # not used in toolathlon
-IMAGE_NAME=${6:-"lockon0927/toolathlon-task-image:1016beta"}  # Docker image to use
+IMAGE_NAME=${5:-"lockon0927/toolathlon-task-image:1016beta"}  # Docker image to use
 
 mkdir -p $DUMP_PATH
 
 # You can provide a txt file with each line representing a task, by doing so you can evaluate on an arbitrary subset of tasks
 # if leave an empty string, it will evaluate on all tasks
-TASK_LIST=${4:-""}
+TASK_LIST=""
 
 # Generate temporary config file with random suffix to avoid conflicts
 RANDOM_SUFFIX=$(date +%s)_$$_$(shuf -i 1000-9999 -n 1)
 mkdir -p scripts/temp_configs
 TEMP_CONFIG="scripts/temp_configs/temp_parallel_config_${RANDOM_SUFFIX}.json"
+# the "user" field in the temp config is not used in toolathlon, but we have to put it here for compatibility
 cat > "$TEMP_CONFIG" <<EOF
 {
     "global_task_config":{
-        "max_turns": $MAX_TURNS,
+        "max_turns": 50,
         "max_steps_under_single_turn_mode": $MAX_STEPS,
         "dump_path": "/workspace/dumps",
         "direct_to_dumps": true
@@ -76,13 +69,13 @@ cat > "$TEMP_CONFIG" <<EOF
     },
     "user":{
         "model":{
-            "short_name": "$USER_MODEL_NAME",
-            "provider": "$USER_MODEL_PROVIDER"
+            "short_name": "gpt-5",
+            "provider": "openrouter"
         },
         "generation":{
-            "temperature": $USER_TEMPERATURE,
-            "top_p": $USER_TOP_P,
-            "max_tokens": $USER_MAX_TOKENS
+            "temperature": 1.0,
+            "top_p": 1.0,
+            "max_tokens": 1024
         }
     }
 }
@@ -100,7 +93,6 @@ echo "🚀 Starting parallel evaluation..."
 echo "📁 Tasks folder: $TASKS_FOLDER"
 echo "🏷️  Tag: $TAG"
 echo "🤖 Agent model: $MODEL_NAME ($MODEL_PROVIDER)"
-echo "👤 User model: $USER_MODEL_NAME ($USER_MODEL_PROVIDER)"
 echo "🌡️  Temperature: $TEMPERATURE"
 echo "📁 Dump path: $DUMP_PATH"
 echo "🐳 Docker image: $IMAGE_NAME"

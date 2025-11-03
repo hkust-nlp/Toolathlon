@@ -21,41 +21,10 @@ In part 1, we will introduce all accounts needed in launching full evaluation of
     - to generate Huggingface token
 
 #### Local Ones
-All local accounts will be automatically created after you `bash global_preparation/deploy_containers.sh`
+All local accounts will be already automatically created after you ran `bash global_preparation/deploy_containers.sh` following the main README.md.
 see `configs/users_data.json` for all accounts we will create
 
 We by default register all the accounts in `config/users_data.json` to Canvas and Poste, and we will register the #81 to #100 accounts to woocommerce and create a subsite for each of them.
-
-The following are the admin accounts for each of the three applications:
-
-- Poste email service
-    - Admin: email = mcpposte_admin@mcp.com , password = mcpposte
-
-- Canvas
-    - Admin 0 (hardcoded in image): 
-        - email = canvas@example.edu 
-        - password = canvas-docker
-        - token = canvas-docker
-    - Admin 1 (added in setup.sh):  
-        - email = mcpcanvasadmin1@mcp.com
-        - password = mcpcanvasadminpass1
-        - token = mcpcanvasadmintoken1
-    - Admin 2 (added in setup.sh): 
-        - email = mcpcanvasadmin2@mcp.com
-        - password = mcpcanvasadminpass2
-        - token = mcpcanvasadmintoken2
-    - Admin 3 (added in setup.sh): 
-        - email = mcpcanvasadmin3@mcp.com
-        - password = mcpcanvasadminpass3
-        - token = mcpcanvasadmintoken3
-
-- Woocommerce
-    - Admin: 
-        - email = woocommerce@mcp.com
-        - username = mcpwoocommerce
-        - password = mcpwoocommerce
-        - consumer_key = ck_woocommerce_token_admin
-        - consumer_secret = cs_woocommerce_token_admin
 
 ### Part2 Register Remote Accounts and Configurate Them
 
