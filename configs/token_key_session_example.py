@@ -1,17 +1,20 @@
 from addict import Dict
 import os
 import json
-# I am gradually modifying the tokens to the pseudo account in this project
 
 if os.path.exists("./configs/google_credentials.json"):
     google_credentials_filename = "./configs/google_credentials.json"
 elif os.path.exists("./configs/credentials.json"):
     google_credentials_filename = "./configs/credentials.json"
 else:
-    raise ValueError("No google credentials file found")
+    print("No google credentials file found!")
+    google_credentials_filename = None
 
-with open(google_credentials_filename, "r") as f:
-    google_credentials = json.load(f)
+if google_credentials_filename is not None:
+    with open(google_credentials_filename, "r") as f:
+        google_credentials = json.load(f)
+else:
+    google_credentials = {}
 
 
 all_token_key_session = Dict(
@@ -28,9 +31,9 @@ all_token_key_session = Dict(
     gcp_service_account_path = "configs/gcp-service_account.keys.json", # TO BE FILLED
 
     # google credentials
-    google_client_id = google_credentials["client_id"],
-    google_client_secret = google_credentials["client_secret"],
-    google_refresh_token = google_credentials["refresh_token"],
+    google_client_id = google_credentials.get("client_id", ""),
+    google_client_secret = google_credentials.get("client_secret", ""),
+    google_refresh_token = google_credentials.get("refresh_token", ""),
 
     google_sheets_folder_id = "XX", # KEEP_IT_ASIS_CUZ_IT_WILL_BE_RESET_IN_TASK_SPECIFIC_DIR
     google_oauth2_credentials_path = "configs/google_credentials.json", # make sure you have already copied the json file to this path

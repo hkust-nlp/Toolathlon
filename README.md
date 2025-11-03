@@ -45,6 +45,8 @@ We provide one command to install everything, we maintain the environment with `
 bash global_preparation/install_env.sh [true|false] # `true` if you have sudo.
 ```
 
+This command will automatically install the dependencies, including node.js, kind (k8s in docker), kubectl, playwright, npm packages, uv packages, uv tools, for you (except docker/podman). But if you encounter some troubles in later steps, please first check if these are properly installed (e.g. whether you playwright and kind works properly).
+
 ### Configure Global Configs
 
 Please copy the `configs/global_configs_example.py` to a new file `configs/global_configs.py`:
@@ -57,7 +59,7 @@ Then simply set these two env variables, note that `TOOLATHLON_OPENAI_BASE_URL` 
 
 ```
 export TOOLATHLON_OPENAI_API_KEY="your-custom-api-key"
-export TOOLATHLON_OPENAI_BASE_URL="https://your-custom-endpoint.com" # e.g. "https://api.anthropic.com/v1/" for Anthropic, "https://openrouter.ai/api/v1" for OpenRouter
+export TOOLATHLON_OPENAI_BASE_URL="https://your-custom-endpoint.com" # e.g. "https://openrouter.ai/api/v1" for OpenRouter, "https://api.anthropic.com/v1/" for Anthropic
 ```
 
 This will use our unified model provider. You can also use any model deployed on your own machine, like via [vLLM](https://github.com/vllm-project/vllm) or [SGLang](https://github.com/sgl-project/sglang), in that case you do not need to set the api key.
@@ -83,7 +85,6 @@ You can find the resulted logs, trajectories, and agent workspace all in `dumps_
 
 To run our benchmark, we strongly suggest you deploy it on a Linux machine with docker installed that can directly access the Internet. 
 Although you can indeed run our benchmark without sudo, some configurations still need this (you may ask an administrator to help you with this), like configuring *podman* and *inotify* parameters (see "# k8s" part in `global_preparation/install_env.sh`) or installing dependencies for playwright (see "# install playwright system dependencies" part in `global_preparation/install_env.sh`).
-
 
 ### Configure Global Configs
 
@@ -156,28 +157,13 @@ bash scripts/run_parallel_sequential.sh
 
 ## Visualization
 
-To facilitate viewing the reasoning trajectories of LLMs, we provide a replay tool for developers to visualize any trajectory in `vis_traj`.
-
-### Prepare Trajectory
-
-After obtaining the results, you need to perform a data format conversion first. You can use the following command to process the trajectories of all tasks:
+To facilitate viewing the reasoning trajectories of LLMs, we provide a replay tool for developers to visualize any trajectory in `vis_traj`. After obtaining the results, you can simply run the following command:
 
 ```bash
-uv run vis_traj/convert_format.py \
---input_path /your/dump/path/finalpool/
+uv run vis_traj/server.py --port 8000 --res_path /your/dump/path/finalpool/
 ```
 
-The converted data will be stored in `vis_traj/trajs`.
-
-### Start Replay Server
-
-Then, simply run the following command:
-
-```bash
-uv run vis_traj/server.py --port 8000
-```
-
-And you can visit localhost:8000 to view trajectories you have converted.
+And you can visit localhost:8000 to view trajectories.
 
 ## Supporting Multiple Agent Scaffolds  
 In addition to the scaffold we have implemented in Toolathlon based on the [openai-agent-sdk](https://github.com/openai/openai-agents-python), we are also committed to introducing more scaffolds for more comprehensive testing. Currently, we have preliminarily integrated [OpenHands](https://github.com/All-Hands-AI/OpenHands), which can be found in our `openhands-compatibility` branch. In the future, we hope to introduce more scaffolds, and we also welcome community contributions of Toolathlon implementations or testing results under other scaffolds.

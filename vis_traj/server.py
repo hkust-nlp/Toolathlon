@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-Enhanced HTTP/HTTPS server for LLM trajectory visualization
-Supports auto-reconnection, health checks, error recovery and monitoring
+Simple HTTP server for LLM trajectory visualization
 """
 
 import http.server
@@ -10,72 +9,21 @@ import json
 import os
 import sys
 import urllib.parse
-import ssl
-import time
-import signal
-import threading
-import logging
-import traceback
 from pathlib import Path
-from datetime import datetime
-import psutil
+from copy import deepcopy
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('server.log'),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger(__name__)
-
-# Global variables
-server_stats = {
-    'start_time': time.time(),
-    'requests_count': 0,
-    'errors_count': 0,
-    'last_error': None,
-    'uptime': 0
-}
+# Global in-memory storage for trajectory data
+TRAJECTORY_CACHE = {}
 
 class TrajectoryHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=os.path.dirname(os.path.abspath(__file__)), **kwargs)
-        self.start_time = time.time()
-    
-    def log_message(self, format, *args):
-        """Custom log format"""
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        message = format % args
-        logger.info(f"[{timestamp}] {message}")
-    
-    def log_error(self, format, *args):
-        """Log errors"""
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        message = format % args
-        logger.error(f"[{timestamp}] ERROR: {message}")
-        server_stats['errors_count'] += 1
-        server_stats['last_error'] = message
     
     def do_GET(self):
         try:
-            server_stats['requests_count'] += 1
-            
             # Parse path, remove query parameters
             parsed_path = urllib.parse.urlparse(self.path)
             path_only = parsed_path.path
-            
-            # Health check endpoint
-            if path_only == '/health':
-                self.handle_health_check()
-                return
-            
-            # Statistics endpoint
-            if path_only == '/stats':
-                self.handle_stats()
-                return
             
             # Handle API requests
             if path_only.startswith('/api/'):
@@ -113,68 +61,8 @@ class TrajectoryHandler(http.server.SimpleHTTPRequestHandler):
                 super().do_GET()
                 
         except Exception as e:
-            logger.error(f"Error processing request: {str(e)}")
-            logger.error(f"Error details: {traceback.format_exc()}")
+            print(f"Error processing request: {str(e)}")
             self.send_error(500, f"Internal server error: {str(e)}")
-    
-    def handle_health_check(self):
-        """Health check endpoint"""
-        try:
-            # Check if key files exist
-            index_path = Path(os.path.dirname(os.path.abspath(__file__))) / 'index.html'
-            trajs_dir = Path('trajs')
-            
-            health_status = {
-                'status': 'healthy',
-                'timestamp': datetime.now().isoformat(),
-                'uptime': time.time() - server_stats['start_time'],
-                'requests_count': server_stats['requests_count'],
-                'errors_count': server_stats['errors_count'],
-                'index_file_exists': index_path.exists(),
-                'trajs_dir_exists': trajs_dir.exists(),
-                'memory_usage': psutil.Process().memory_info().rss / 1024 / 1024,  # MB
-                'cpu_percent': psutil.Process().cpu_percent()
-            }
-            
-            if server_stats['last_error']:
-                health_status['last_error'] = server_stats['last_error']
-            
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            self.wfile.write(json.dumps(health_status, indent=2).encode())
-            
-        except Exception as e:
-            logger.error(f"Health check failed: {str(e)}")
-            self.send_error(500, f"Health check failed: {str(e)}")
-    
-    def handle_stats(self):
-        """Statistics endpoint"""
-        try:
-            stats = {
-                'server_stats': server_stats.copy(),
-                'system_info': {
-                    'cpu_count': psutil.cpu_count(),
-                    'memory_total': psutil.virtual_memory().total / 1024 / 1024 / 1024,  # GB
-                    'memory_available': psutil.virtual_memory().available / 1024 / 1024 / 1024,  # GB
-                    'disk_usage': psutil.disk_usage('/').percent
-                },
-                'timestamp': datetime.now().isoformat()
-            }
-            
-            # Update uptime
-            stats['server_stats']['uptime'] = time.time() - server_stats['start_time']
-            
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            self.wfile.write(json.dumps(stats, indent=2).encode())
-            
-        except Exception as e:
-            logger.error(f"Failed to get statistics: {str(e)}")
-            self.send_error(500, f"Stats failed: {str(e)}")
     
     def handle_api_request(self, path):
         """Handle API requests"""
@@ -188,25 +76,29 @@ class TrajectoryHandler(http.server.SimpleHTTPRequestHandler):
             else:
                 self.send_error(404, "API endpoint not found")
         except Exception as e:
-            logger.error(f"API request processing failed: {str(e)}")
-            logger.error(f"Error details: {traceback.format_exc()}")
+            print(f"API request processing failed: {str(e)}")
             self.send_error(500, f"Server error: {str(e)}")
     
     def get_trajectory_files(self):
         """Get trajectory file list"""
         try:
+            # Get files from memory cache
+            memory_files = [f"{name}.json" for name in TRAJECTORY_CACHE.keys()]
+            
+            # Get files from disk
             trajs_dir = Path('vis_traj/trajs')
-            if not trajs_dir.exists():
-                files = []
-                logger.warning("Trajectory files directory does not exist")
-            else:
-                files = [f.name for f in trajs_dir.glob('*.json')]
-                logger.info(f"Found {len(files)} trajectory files")
+            disk_files = []
+            if trajs_dir.exists():
+                disk_files = [f.name for f in trajs_dir.glob('*.json')]
+            
+            # Merge and deduplicate
+            all_files = list(set(memory_files + disk_files))
+            all_files.sort()
             
             response = {
                 'success': True,
-                'files': files,
-                'count': len(files)
+                'files': all_files,
+                'count': len(all_files)
             }
             
             self.send_response(200)
@@ -216,7 +108,7 @@ class TrajectoryHandler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps(response).encode())
             
         except Exception as e:
-            logger.error(f"Failed to get trajectory file list: {str(e)}")
+            print(f"Failed to get trajectory file list: {str(e)}")
             self.send_error(500, f"Error reading files: {str(e)}")
     
     def get_trajectory_data(self, filename):
@@ -226,13 +118,29 @@ class TrajectoryHandler(http.server.SimpleHTTPRequestHandler):
             if not filename.endswith('.json'):
                 filename = filename + '.json'
             
-            file_path = Path('vis_traj/trajs') / filename
-            if not file_path.exists():
-                logger.warning(f"Trajectory file does not exist: {filename}")
-                self.send_error(404, f"Trajectory file not found: {filename}")
+            # Remove .json extension for cache key
+            cache_key = filename[:-5] if filename.endswith('.json') else filename
+            
+            # Try to get from memory cache first
+            if cache_key in TRAJECTORY_CACHE:
+                data = TRAJECTORY_CACHE[cache_key].copy()
+                data['_metadata'] = {
+                    'filename': filename,
+                    'source': 'memory'
+                }
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(data, ensure_ascii=False).encode())
                 return
             
-            logger.info(f"Loading trajectory file: {filename}")
+            # Fall back to disk if not in cache
+            file_path = Path('vis_traj/trajs') / filename
+            if not file_path.exists():
+                self.send_error(404, f"Trajectory file not found: {filename}")
+                return
             
             with open(file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
@@ -242,7 +150,7 @@ class TrajectoryHandler(http.server.SimpleHTTPRequestHandler):
                 'filename': filename,
                 'file_size': file_path.stat().st_size,
                 'last_modified': file_path.stat().st_mtime,
-                'load_time': datetime.now().isoformat()
+                'source': 'disk'
             }
             
             self.send_response(200)
@@ -252,10 +160,10 @@ class TrajectoryHandler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps(data, ensure_ascii=False).encode())
             
         except json.JSONDecodeError as e:
-            logger.error(f"JSON parsing error: {filename} - {str(e)}")
+            print(f"JSON parsing error: {filename} - {str(e)}")
             self.send_error(400, f"Invalid JSON file: {str(e)}")
         except Exception as e:
-            logger.error(f"Failed to read trajectory file: {filename} - {str(e)}")
+            print(f"Failed to read trajectory file: {filename} - {str(e)}")
             self.send_error(500, f"Error reading trajectory: {str(e)}")
     
     def serve_trajectory_page(self):
@@ -339,161 +247,121 @@ class TrajectoryHandler(http.server.SimpleHTTPRequestHandler):
             
         except Exception as e:
             self.send_error(500, f"Error serving trajectory page: {str(e)}")
+
+def convert_format(input_path):
+    """Convert trajectory format from input directory and store in memory"""
+    # Get all subdirectories
+    all_paths = []
+    for root, dirs, files in os.walk(input_path):
+        if root == input_path:
+            for d in dirs:
+                all_paths.append(os.path.join(root, d))
+            break
     
-    def log_message(self, format, *args):
-        """Custom log format"""
-        print(f"[{self.date_time_string()}] {format % args}")
-
-def signal_handler(signum, frame):
-    """Signal handler"""
-    logger.info(f"Received signal {signum}, shutting down server...")
-    sys.exit(0)
-
-def health_monitor():
-    """Health monitoring thread"""
-    while True:
+    if not all_paths:
+        print(f"⚠️  No subdirectories found in {input_path}")
+        return
+    
+    print(f"🔄 Found {len(all_paths)} directories to convert...")
+    converted_count = 0
+    failed_count = 0
+    
+    for path in all_paths:
+        task_name = os.path.basename(path)
         try:
-            time.sleep(30)  # Check every 30 seconds
-            uptime = time.time() - server_stats['start_time']
-            server_stats['uptime'] = uptime
+            res = {}
             
-            # Check memory usage
-            memory_usage = psutil.Process().memory_info().rss / 1024 / 1024  # MB
-            if memory_usage > 1000:  # Over 1GB
-                logger.warning(f"High memory usage: {memory_usage:.2f}MB")
+            # Read eval_res.json
+            eval_res_path = os.path.join(path, "eval_res.json")
+            if not os.path.exists(eval_res_path):
+                print(f"⚠️  Skipping {task_name}: eval_res.json not found")
+                failed_count += 1
+                continue
             
-            # Check error rate
-            if server_stats['requests_count'] > 0:
-                error_rate = server_stats['errors_count'] / server_stats['requests_count']
-                if error_rate > 0.1:  # Error rate over 10%
-                    logger.warning(f"High error rate: {error_rate:.2%}")
+            with open(eval_res_path, "r") as f:
+                is_pass = json.load(f)["pass"]
+                res["pass"] = is_pass
             
-            logger.info(f"Server status - Uptime: {uptime:.0f}s, Requests: {server_stats['requests_count']}, Errors: {server_stats['errors_count']}")
+            # Read traj_log.json
+            traj_log_path = os.path.join(path, "traj_log.json")
+            if not os.path.exists(traj_log_path):
+                print(f"⚠️  Skipping {task_name}: traj_log.json not found")
+                failed_count += 1
+                continue
+            
+            with open(traj_log_path, "r") as f:
+                data = json.load(f)
+                if "messages" not in data:
+                    print(f"⚠️  Skipping {task_name}: 'messages' field not found in traj_log.json")
+                    failed_count += 1
+                    continue
+                
+                msgs = data["messages"]
+                msg_copies = []
+                
+                for msg in msgs:
+                    msg_copy = deepcopy(msg)
+                    if msg["role"] == "tool":
+                        content = msg["content"]
+                    elif msg["role"] == "user":
+                        content = msg["content"]
+                    elif msg["role"] == "assistant":
+                        content = msg["content"]
+                        if content is not None:
+                            msg_copy["content"] = content
+                        if "tool_calls" in msg:
+                            for i, tool_call in enumerate(msg["tool_calls"]):
+                                arguments = tool_call["function"]["arguments"]
+                                if tool_call["function"]["name"] == "local-python-execute":
+                                    if arguments == "":
+                                        msg_copy["tool_calls"][i]["function"]["arguments"] = arguments
+                                    else:
+                                        msg_copy["tool_calls"][i]["function"]["arguments"] = arguments
+                    msg_copies.append(msg_copy)
+                
+                res["messages"] = msg_copies
+            
+            # Store in memory cache instead of writing to disk
+            TRAJECTORY_CACHE[task_name] = res
+            
+            print(f"✅ Converted: {task_name}")
+            converted_count += 1
             
         except Exception as e:
-            logger.error(f"Health monitoring exception: {str(e)}")
+            print(f"❌ Failed to convert {task_name}: {str(e)}")
+            failed_count += 1
 
-def run_server(port=8000, use_https=False, certfile=None, keyfile=None):
+
+def run_server(port=8000):
     """Start server"""
-    # Check port permissions
-    if port < 1024 and os.geteuid() != 0:
-        logger.warning(f"Port {port} requires root privileges, recommend using sudo")
-        print(f"⚠️  Port {port} requires root privileges, recommend using sudo")
-    
-    # Register signal handlers
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
-    
-    # Start health monitoring thread
-    monitor_thread = threading.Thread(target=health_monitor, daemon=True)
-    monitor_thread.start()
-    
-    max_retries = 5
-    retry_count = 0
-    
-    while retry_count < max_retries:
-        try:
-            logger.info(f"Attempting to start server (attempt {retry_count + 1})")
+    try:
+        with socketserver.TCPServer(("", port), TrajectoryHandler) as httpd:
+            httpd.allow_reuse_address = True
             
-            # Configure server options
-            class CustomTCPServer(socketserver.TCPServer):
-                allow_reuse_address = True
-                timeout = 30  # 30 second timeout
-                
-                def server_bind(self):
-                    self.socket.setsockopt(socketserver.socket.SOL_SOCKET, socketserver.socket.SO_REUSEADDR, 1)
-                    super().server_bind()
+            print(f"🚀 LLM Trajectory Visualization Server started successfully!")
+            print(f"📱 Access URL: http://localhost:{port}")
+            print(f"💾 Trajectories in memory: {len(TRAJECTORY_CACHE)}")
+            print(f"⏹️  Press Ctrl+C to stop server")
+            print("-" * 50)
             
-            with CustomTCPServer(("", port), TrajectoryHandler) as httpd:
-                # If HTTPS is enabled, configure SSL
-                if use_https:
-                    if not certfile or not keyfile:
-                        logger.error("HTTPS requires certificate files to be specified")
-                        print("❌ HTTPS requires certificate files to be specified")
-                        print("💡 Use --cert and --key parameters to specify certificate files")
-                        print("💡 Or use --generate-cert to generate self-signed certificate")
-                        sys.exit(1)
-                    
-                    if not os.path.exists(certfile):
-                        logger.error(f"Certificate file does not exist: {certfile}")
-                        print(f"❌ Certificate file does not exist: {certfile}")
-                        sys.exit(1)
-                    
-                    if not os.path.exists(keyfile):
-                        logger.error(f"Private key file does not exist: {keyfile}")
-                        print(f"❌ Private key file does not exist: {keyfile}")
-                        sys.exit(1)
-                    
-                    context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-                    context.load_cert_chain(certfile=certfile, keyfile=keyfile)
-                    httpd.socket = context.wrap_socket(httpd.socket, server_side=True)
-                    
-                    protocol = "https"
-                    logger.info(f"HTTPS enabled (using certificate: {certfile})")
-                    print(f"🔒 HTTPS enabled (using certificate: {certfile})")
-                else:
-                    protocol = "http"
-                
-                logger.info(f"LLM Trajectory Visualization Server started successfully!")
-                print(f"🚀 LLM Trajectory Visualization Server started successfully!")
-                print(f"📱 Access URL: {protocol}://localhost:{port}")
-                print(f"📁 Trajectory files directory: {os.path.abspath('trajs')}")
-                print(f"🔍 Health check: {protocol}://localhost:{port}/health")
-                print(f"📊 Statistics: {protocol}://localhost:{port}/stats")
-                print(f"⏹️  Press Ctrl+C to stop server")
-                print("-" * 50)
-                
-                # Reset retry count
-                retry_count = 0
-                
-                httpd.serve_forever()
-                
-        except KeyboardInterrupt:
-            logger.info("Received interrupt signal, server shutting down...")
-            print("\n👋 Server stopped")
-            break
-        except OSError as e:
-            retry_count += 1
-            if e.errno == 98:  # Address already in use
-                logger.error(f"Port {port} is already in use (attempt {retry_count}/{max_retries})")
-                print(f"❌ Port {port} is already in use, trying port {port + retry_count}")
-                port += retry_count
-                time.sleep(2)  # Wait 2 seconds before retry
-            else:
-                logger.error(f"Server startup failed: {e}")
-                print(f"❌ Server startup failed: {e}")
-                if retry_count >= max_retries:
-                    break
-                time.sleep(5)  # Wait 5 seconds before retry
-        except ssl.SSLError as e:
-            logger.error(f"SSL error: {e}")
-            print(f"❌ SSL error: {e}")
-            print("💡 Please check if certificate files are correct")
-            break
-        except Exception as e:
-            retry_count += 1
-            logger.error(f"Server runtime exception: {str(e)}")
-            logger.error(f"Error details: {traceback.format_exc()}")
-            print(f"❌ Server runtime exception: {e}")
-            if retry_count >= max_retries:
-                logger.error("Reached maximum retry count, server startup failed")
-                print("❌ Reached maximum retry count, server startup failed")
-                break
-            time.sleep(5)  # Wait 5 seconds before retry
-    
-    if retry_count >= max_retries:
-        logger.error("Server startup failed, reached maximum retry count")
-        print("❌ Server startup failed, reached maximum retry count")
+            httpd.serve_forever()
+            
+    except KeyboardInterrupt:
+        print("\n👋 Server stopped")
+    except OSError as e:
+        if e.errno == 98 or e.errno == 10048:  # Address already in use (Linux/Windows)
+            print(f"❌ Port {port} is already in use")
+            print(f"💡 Try using a different port: python3 server.py --port <port_number>")
+        else:
+            print(f"❌ Server startup failed: {e}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"❌ Server error: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":
-    import sys
-    import subprocess
-    
     port = 8000
-    use_https = False
-    certfile = None
-    keyfile = None
+    input_path = None
     
     i = 1
     while i < len(sys.argv):
@@ -504,146 +372,44 @@ if __name__ == "__main__":
             except (IndexError, ValueError):
                 print("❌ Invalid port number")
                 sys.exit(1)
-        elif sys.argv[i] == '--https':
-            use_https = True
-            i += 1
-        elif sys.argv[i] == '--cert':
+        elif sys.argv[i] == '--res_path':
             try:
-                certfile = sys.argv[i + 1]
+                input_path = sys.argv[i + 1]
                 i += 2
             except IndexError:
-                print("❌ --cert requires certificate file path to be specified")
-                sys.exit(1)
-        elif sys.argv[i] == '--key':
-            try:
-                keyfile = sys.argv[i + 1]
-                i += 2
-            except IndexError:
-                print("❌ --key requires private key file path to be specified")
-                sys.exit(1)
-        elif sys.argv[i] == '--generate-cert':
-            # Generate self-signed certificate
-            certfile = 'server.crt'
-            keyfile = 'server.key'
-            
-            # Check if domain is specified
-            domain = None
-            if i + 1 < len(sys.argv) and not sys.argv[i + 1].startswith('--'):
-                domain = sys.argv[i + 1]
-                i += 1
-            
-            print("🔧 Generating self-signed certificate...")
-            if domain:
-                print(f"   Domain: {domain}")
-            
-            try:
-                # Use openssl to generate self-signed certificate with SAN (Subject Alternative Name)
-                # This allows support for multiple domains
-                cn = domain if domain else 'localhost'
-                san_domains = [cn, 'localhost', '127.0.0.1']
-                if domain and domain not in san_domains:
-                    san_domains.insert(0, domain)
-                
-                # Generate configuration file for SAN extension
-                import tempfile
-                with tempfile.NamedTemporaryFile(mode='w', suffix='.conf', delete=False) as conf_file:
-                    conf_path = conf_file.name
-                    conf_file.write("""[req]
-distinguished_name = req_distinguished_name
-req_extensions = v3_req
-prompt = no
-
-[req_distinguished_name]
-C = CN
-ST = State
-L = City
-O = Organization
-CN = {cn}
-
-[v3_req]
-keyUsage = keyEncipherment, dataEncipherment
-extendedKeyUsage = serverAuth
-subjectAltName = @alt_names
-
-[alt_names]
-""".format(cn=cn))
-                    for idx, alt_name in enumerate(san_domains, 1):
-                        conf_file.write(f"DNS.{idx} = {alt_name}\n")
-                    conf_file.write("IP.1 = 127.0.0.1\n")
-                    conf_file.write("IP.2 = ::1\n")
-                
-                # Generate private key
-                subprocess.run([
-                    'openssl', 'genrsa', '-out', keyfile, '4096'
-                ], check=True, capture_output=True)
-                
-                # Generate certificate signing request
-                csr_file = certfile.replace('.crt', '.csr')
-                subprocess.run([
-                    'openssl', 'req', '-new', '-key', keyfile,
-                    '-out', csr_file, '-config', conf_path
-                ], check=True, capture_output=True)
-                
-                # Generate self-signed certificate (including SAN)
-                subprocess.run([
-                    'openssl', 'x509', '-req', '-days', '365',
-                    '-in', csr_file, '-signkey', keyfile,
-                    '-out', certfile, '-extensions', 'v3_req',
-                    '-extfile', conf_path
-                ], check=True, capture_output=True)
-                
-                # Clean up temporary files
-                try:
-                    os.remove(conf_path)
-                    os.remove(csr_file)
-                except:
-                    pass
-                
-                print(f"✅ Certificate generated: {certfile}, {keyfile}")
-                print(f"   Supported domains: {', '.join(san_domains)}")
-                use_https = True
-                i += 1
-            except subprocess.CalledProcessError as e:
-                print("❌ Certificate generation failed, please ensure openssl is installed")
-                print(f"   Error info: {e.stderr.decode() if e.stderr else 'unknown'}")
-                sys.exit(1)
-            except FileNotFoundError:
-                print("❌ openssl not found, cannot generate certificate")
-                print("💡 Please install openssl: sudo apt-get install openssl")
-                print("💡 Or manually generate certificate and use --cert and --key parameters")
+                print("❌ --res_path requires input path to be specified")
                 sys.exit(1)
         elif sys.argv[i] == '--help':
-            print("Usage: python3 server.py [options]")
+            print("Usage: python3 server.py --res_path RES_PATH [--port PORT]")
             print("\nOptions:")
+            print("  --res_path RES_PATH     Path to trajectory results directory (required)")
             print("  --port PORT             Specify port number (default: 8000)")
-            print("  --https                 Enable HTTPS")
-            print("  --cert CERTFILE         Specify SSL certificate file path")
-            print("  --key KEYFILE           Specify SSL private key file path")
-            print("  --generate-cert [domain] Generate self-signed certificate and enable HTTPS")
-            print("                         Can specify domain, e.g.: --generate-cert toolathlon-traj.xyz")
             print("  --help                  Show this help information")
             print("\nExamples:")
-            print("  python3 server.py                              # HTTP mode, port 8000")
-            print("  python3 server.py --port 8080                  # HTTP mode, port 8080")
-            print("  python3 server.py --generate-cert              # Generate certificate (supports localhost)")
-            print("  python3 server.py --generate-cert example.com  # Generate certificate (supports specified domain)")
-            print("  python3 server.py --https --cert server.crt --key server.key")
+            print("  python3 server.py --res_path ./trajectory_data")
+            print("  python3 server.py --res_path ./trajectory_data --port 9000")
             sys.exit(0)
         else:
             print(f"❌ Unknown parameter: {sys.argv[i]}")
             print("💡 Use --help to view help information")
             sys.exit(1)
     
-    # If HTTPS is specified but no certificate is specified, try using default path
-    if use_https and not certfile:
-        if os.path.exists('server.crt') and os.path.exists('server.key'):
-            certfile = 'server.crt'
-            keyfile = 'server.key'
-            print(f"🔒 Using default certificate files: {certfile}, {keyfile}")
-        else:
-            print("❌ HTTPS enabled but certificate files not found")
-            print("💡 Use --generate-cert to generate self-signed certificate")
-            print("💡 Or use --cert and --key to specify certificate files")
-            sys.exit(1)
+    # Check if --res_path is provided
+    if not input_path:
+        print("❌ Missing required parameter: --res_path RES_PATH")
+        print("💡 Use --help to view help information")
+        print("\nExample:")
+        print("  python3 server.py --res_path ./trajectory_data")
+        sys.exit(1)
     
-    run_server(port, use_https, certfile, keyfile)
+    # Check if input path exists
+    if not os.path.exists(input_path):
+        print(f"❌ Input path does not exist: {input_path}")
+        sys.exit(1)
+    
+    # Convert and load data into memory
+    convert_format(input_path)
+    
+    # Start server with loaded data
+    print(f"\n🚀 Starting server with {len(TRAJECTORY_CACHE)} trajectories in memory...\n")
+    run_server(port)

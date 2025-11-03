@@ -2,7 +2,7 @@
 # eval_config: Controls the model to use, output save path, sampling parameters, etc. During development, please modify scripts/temp_and_debug/debug_eval_config.json
 # task_dir: Task directory, please use the path relative to `tasks`
 # debug: Enable debug mode to print all information
-# manual: Use real users, otherwise simulated users will be used
+# manual: Use real users, otherwise simulated users will be used, this must be set true together with --multi_turn_mode
 # multi_turn_mode: Enable multi-turn mode, otherwise use single-turn mode; in single-turn mode, the core task is used as the first round of user input, and there will be no more simulated users afterwards
 
 #### the following parameters are used to override the parameters in the eval_config
@@ -28,4 +28,4 @@ uv run main.py \
 --provider unified \
 --max_steps_under_single_turn_mode 200 \
 # --multi_turn_mode \
-# --manual
+# --manual # if you want to use real users (i.e. yourself), this must be set true together with --multi_turn_mode
