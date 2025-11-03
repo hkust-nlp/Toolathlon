@@ -201,7 +201,7 @@ Finally, similar to the above steps, create an intrgration key for evaluation us
 
 
 #### SnowFlake Account
-We recommand register a new Snowflake account (see https://signup.snowflake.com/). After y9ou have created and activated the account. Find your account details and fill them into the `snowflake_account`, `snowflake_role`, `snowflake_user` and `snowflake_password` variables in `configs/token_key_session.py`
+We recommand register a new Snowflake account (see https://signup.snowflake.com/). After you have created and activated the account. Find your account details and fill them into the `snowflake_account`, `snowflake_role`, `snowflake_user` and `snowflake_password` variables in `configs/token_key_session.py`
 ![](./figures/snowflake_part1.png)
 ![](./figures/snowflake_part2.png)
 
