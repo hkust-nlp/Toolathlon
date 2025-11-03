@@ -45,7 +45,7 @@ We provide one command to install everything, we maintain the environment with `
 bash global_preparation/install_env.sh [true|false] # `true` if you have sudo.
 ```
 
-This command will automatically process some config files and install the dependencies, including node.js, kind (k8s in docker), kubectl, playwright, npm packages, uv packages, uv tools, for you (except docker/podman). But if you encounter some troubles in later steps, please first check if these are properly installed (e.g. whether you playwright and kind works properly).
+This command will automatically process some config files and install the dependencies, including node.js, kind (k8s in docker), kubectl, playwright, npm packages, uv packages, uv tools, for you (except docker/podman). But if you encounter some troubles in later steps, please first check if these are properly installed (e.g. whether your playwright and kind works properly).
 
 ### Configure Global Configs
 Simply set these two env variables, note that `TOOLATHLON_OPENAI_BASE_URL` must be an OpenAI SDK compatible one, as our agent scaffold relies on this:
