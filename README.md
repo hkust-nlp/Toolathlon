@@ -102,7 +102,7 @@ You can find more details in `deployment/*/scripts/setup.sh` for each local appl
 
 ### MCP Servers Verification
 
-You can run the following script to check if all MCP servers are working properly, after you setup all the above configs and deployed the app containers:
+Make sure you have finished all the previous steps, and then you can run the following script to check if all MCP servers are working properly, after you setup all the above configs and deployed the app containers:
 
 ```
 uv run -m global_preparation.check_installation
