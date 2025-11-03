@@ -45,17 +45,10 @@ We provide one command to install everything, we maintain the environment with `
 bash global_preparation/install_env.sh [true|false] # `true` if you have sudo.
 ```
 
-This command will automatically install the dependencies, including node.js, kind (k8s in docker), kubectl, playwright, npm packages, uv packages, uv tools, for you (except docker/podman). But if you encounter some troubles in later steps, please first check if these are properly installed (e.g. whether you playwright and kind works properly).
+This command will automatically process some config files and install the dependencies, including node.js, kind (k8s in docker), kubectl, playwright, npm packages, uv packages, uv tools, for you (except docker/podman). But if you encounter some troubles in later steps, please first check if these are properly installed (e.g. whether you playwright and kind works properly).
 
 ### Configure Global Configs
-
-Please copy the `configs/global_configs_example.py` to a new file `configs/global_configs.py`:
-
-```
-cp configs/global_configs_example.py configs/global_configs.py
-```
-
-Then simply set these two env variables, note that `TOOLATHLON_OPENAI_BASE_URL` must be an OpenAI SDK compatible one, as our agent scaffold relies on this:
+Simply set these two env variables, note that `TOOLATHLON_OPENAI_BASE_URL` must be an OpenAI SDK compatible one, as our agent scaffold relies on this:
 
 ```
 export TOOLATHLON_OPENAI_API_KEY="your-custom-api-key"
@@ -91,14 +84,7 @@ Although you can indeed run our benchmark without sudo, some configurations stil
 Make sure you have docker or podman installed and correctly configured, please fill in your choice in `global_configs.py`
 
 ### Configure App-Aware Tokens, Keys and Credentials
-
-Please copy the `configs/token_key_session_example.py` to a new file `configs/token_key_session.py`:
-
-```
-cp configs/token_key_session_example.py configs/token_key_session.py
-```
-
-Then please read carefully through [how2register_accounts.md](global_preparation/how2register_accounts.md) and follow the guides. You need to register some accounts and configure some tokens/api keys/secrets in `configs/token_key_session.py`. 
+Please read carefully through [how2register_accounts.md](global_preparation/how2register_accounts.md) and follow the guides. You need to register some accounts and configure some tokens/api keys/secrets in `configs/token_key_session.py`. 
 
 ### Misc Configuration
 
