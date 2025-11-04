@@ -2,7 +2,7 @@
     {
         "university": "University of Southern California",
         "city": "Los Angeles",
-        "cs_ranking_rank": 17,
+        "cs_ranking_rank": 18,
         "car_drive_miles": 1
     },
     {
@@ -14,13 +14,13 @@
     {
         "university": "University of California--San Diego",
         "city": "La Jolla",
-        "cs_ranking_rank": 4,
+        "cs_ranking_rank": 3,
         "car_drive_miles": 112
     },
     {
         "university": "University of California - Santa Cruz",
         "city": "Santa Cruz",
-        "cs_ranking_rank": 30,
+        "cs_ranking_rank": 33,
         "car_drive_miles": 348
     },
     {
@@ -32,7 +32,7 @@
     {
         "university": "University of California--Berkeley",
         "city": "Berkeley",
-        "cs_ranking_rank": 8,
+        "cs_ranking_rank": 9,
         "car_drive_miles": 376
     },
     {
