@@ -12,16 +12,16 @@
         "car_drive_miles": 14
     },
     {
+        "university": "University of California - Santa Barbara",
+        "city": "Santa Barbara",
+        "cs_ranking_rank": 30,
+        "car_drive_miles": 109
+    },
+    {
         "university": "University of California--San Diego",
         "city": "La Jolla",
         "cs_ranking_rank": 3,
-        "car_drive_miles": 112
-    },
-    {
-        "university": "University of California - Santa Cruz",
-        "city": "Santa Cruz",
-        "cs_ranking_rank": 33,
-        "car_drive_miles": 348
+        "car_drive_miles": 110
     },
     {
         "university": "Stanford University",
@@ -39,6 +39,6 @@
         "university": "Arizona State University",
         "city": "Tempe",
         "cs_ranking_rank": 27,
-        "car_drive_miles": 387
+        "car_drive_miles": 384
     }
 ]

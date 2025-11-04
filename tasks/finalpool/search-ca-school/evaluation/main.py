@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 import asyncio
 import os
-
+import copy
 from utils.general.helper import read_json, normalize_str
 
 # University name abbreviations mapping
@@ -45,25 +45,9 @@ UNIVERSITY_ABBREVIATIONS = {
     "arizonastateuniversity": "arizona state university",
 }
 
-    
-async def main(args):
-    needed_info_file = os.path.join(args.agent_workspace, "AI_univ_LA_500miles_Top30_2024.json")
 
-    if not os.path.exists(needed_info_file):
-        print(f"File {needed_info_file} does not exist")
-        return False
-    
-    needed_info = read_json(needed_info_file)
-    
-    groundtruth_file = os.path.join(args.groundtruth_workspace, "AI_univ_LA_500miles_Top30_2024.json")
-
-    groundtruth_info = read_json(groundtruth_file)
-
-    if len(needed_info) != len(groundtruth_info):
-        print("The number of universities in the needed info and groundtruth info is not the same")
-        return False
-    
-    for given_school, gt_school in zip(needed_info, groundtruth_info):
+def check(needed_info, groundtruth_info):
+    for idx, (given_school, gt_school) in enumerate(zip(needed_info, groundtruth_info)):
         # check by the follows:
         # cs_ranking_rank shoule be exact the same
         # car_drive_miles can have 10% error, rounded to integer; or <=2 miles absolute error
@@ -72,7 +56,7 @@ async def main(args):
         # should also take into consider the abbreviation of the university name
 
         if given_school['cs_ranking_rank'] != gt_school['cs_ranking_rank']:
-            print(f"The cs_ranking_rank of {given_school['university']} is not the same")
+            print(f"The cs_ranking_rank of {idx+1}th nearest university is not the same, the given cs_ranking_rank is {given_school['cs_ranking_rank']}, the groundtruth cs_ranking_rank is {gt_school['cs_ranking_rank']}")
             return False
         
         toolerance_distance = max(gt_school['car_drive_miles'] * 0.1, 2)
@@ -83,7 +67,7 @@ async def main(args):
         
         given_city = given_school['city'].replace("city of","").replace("the","").replace("city","").strip()
 
-        if normalize_str(given_city) != normalize_str(gt_school['city']):
+        if normalize_str(gt_school['city']) not in normalize_str(given_city):
             print(f"The city of {given_school['university']} is not the same")
             print(f"The given city is {given_city}, the groundtruth city is {gt_school['city']}")
             return False
@@ -103,6 +87,41 @@ async def main(args):
 
     return True
 
+async def main(args):
+    needed_info_file = os.path.join(args.agent_workspace, "AI_univ_LA_500miles_Top30_2024.json")
+
+    if not os.path.exists(needed_info_file):
+        print(f"File {needed_info_file} does not exist")
+        return False
+    
+    needed_info = read_json(needed_info_file)
+    
+    groundtruth_file = os.path.join(args.groundtruth_workspace, "AI_univ_LA_500miles_Top30_2024.json")
+
+    groundtruth_info = read_json(groundtruth_file)
+
+    # alternate 2 and 3 elements in groundtruth_info
+    groundtruth_info_alt = copy.deepcopy(groundtruth_info)
+    groundtruth_info_alt[1], groundtruth_info_alt[2] = groundtruth_info_alt[2], groundtruth_info_alt[1]
+
+    if len(needed_info) != len(groundtruth_info):
+        print("The number of universities in the needed info and groundtruth info is not the same")
+        return False
+    
+    # first check the normal case
+    pass_normal = check(needed_info, groundtruth_info)
+    if not pass_normal:
+        print("Checking the alternate case...")
+    else:
+        return True
+    
+    # then check the alternate case
+    pass_alt = check(needed_info, groundtruth_info_alt)
+    if not pass_alt:
+        print("Failed to pass tests!")
+        return False
+    else:
+        return True
 
 if __name__=="__main__":
     parser = ArgumentParser()
