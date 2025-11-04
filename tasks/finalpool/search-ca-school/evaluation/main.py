@@ -102,7 +102,7 @@ async def main(args):
 
     # alternate 2 and 3 elements in groundtruth_info
     groundtruth_info_alt = copy.deepcopy(groundtruth_info)
-    groundtruth_info_alt[1], groundtruth_info_alt[2] = groundtruth_info_alt[2], groundtruth_info_alt[1]
+    groundtruth_info_alt[2], groundtruth_info_alt[3] = groundtruth_info_alt[3], groundtruth_info_alt[2]
 
     if len(needed_info) != len(groundtruth_info):
         print("The number of universities in the needed info and groundtruth info is not the same")
