@@ -121,7 +121,7 @@ bash global_preparation/check_installation_containerized.sh
 We use the same script `scripts/run_single_containerized.sh` to run any task, just simply switch to another task in the input arguments:
 
 ```
-bash scripts/run_single_containerized.sh finalpool/{taskname} normal ./{your_dump_path} {model-name}
+bash scripts/run_single_containerized.sh finalpool/{taskname} normal {your_dump_path} {model-name}
 ```
 
 *Note: There are also other arguments in the script, please take a look at the head of it if for more information. The model name should be exactly the same as the raw name from the provider if you use **unified** model provider, otherwise, please use the alias we preset, see `utils/api_model/model_provider.py` for more details.
@@ -135,11 +135,11 @@ bash scripts/run_single_containerized.sh finalpool/{taskname} normal ./{your_dum
 You can run this to enable evaluation in parallel:
 
 ```
-bash scripts/run_parallel.sh [model-name] ./{your_dump_path} unified 10
+bash scripts/run_parallel.sh [model-name] {your_dump_path} unified 10
 ```
 *Note: please take a look at the arguments in this script before you run. If you want to use the unified model provider, do remember to export the TOOLATHLON_OPENAI_BASE_URL and TOOLATHLON_OPENAI_API_KEY environment variables.
 
-This will run all the tasks in parallel with at most 10 workers, and you will find all output trajectories and evaluation summary (`eval_stats.json`) in `./{your_dump_path}`.
+This will run all the tasks in parallel with at most 10 workers, and you will find all output trajectories and evaluation summary (`eval_stats.json`) in `{your_dump_path}`.
 
 If you'd like to evaluate multiple models in sequence, we provide an ensemble script for you:
 
@@ -152,7 +152,7 @@ bash scripts/run_parallel_sequential.sh
 To facilitate viewing the reasoning trajectories of LLMs, we provide a replay tool for developers to visualize any trajectory in `vis_traj`. After obtaining the results, you can simply run the following command:
 
 ```bash
-uv run vis_traj/server.py --port 8000 --res_path ./{your_dump_path}/finalpool/
+uv run vis_traj/server.py --port 8000 --res_path {your_dump_path}/finalpool/
 ```
 
 And you can visit localhost:8000 to view trajectories.

@@ -205,10 +205,19 @@ elif [ "$CONTAINER_RUNTIME" = "docker" ]; then
     )
 fi
 
+# if output_folder is not a absolute path, make it absolute
+# if [ ! -d "$output_folder" ]; then
+# fi
+
+# make output_folder absolute
+output_folder=$(realpath "$output_folder")
+# make RUN_LOG_DIR absolute
+RUN_LOG_DIR=$(realpath "$RUN_LOG_DIR")
+
 # Add mounts
 START_CONTAINER_ARGS+=(
     # Mount output folder as /workspace/dumps
-    "-v" "$PROJECT_ROOT/$output_folder:/workspace/dumps"
+    "-v" "$output_folder:/workspace/dumps"
     # Mount log directory
     "-v" "$RUN_LOG_DIR:/workspace/logs"
     # Set working directory
@@ -363,7 +372,7 @@ echo "Step 3: Executing task command in container..."
 
 # When running commands in the container, these env variables are already present due to -e at startup.
 
-CONTAINER_CMD="uv run main.py --eval_config $eval_config --task_dir $task_dir_arg --max_steps_under_single_turn_mode $maxstep --model_short_name $modelname --provider $provider --debug > /workspace/logs/$RUN_LOG_FILE_NAME 2>&1"
+CONTAINER_CMD="PYTHONUNBUFFERED=1 uv run main.py --eval_config $eval_config --task_dir $task_dir_arg --max_steps_under_single_turn_mode $maxstep --model_short_name $modelname --provider $provider --debug > /workspace/logs/$RUN_LOG_FILE_NAME 2>&1"
 
 echo "Executing command in container: $CONTAINER_CMD"
 echo ""

@@ -224,6 +224,11 @@ class TaskConfig:
             self.agent_workspace = str(task_root_path / "workspace")
         self.agent_workspace = os.path.abspath(self.agent_workspace)
 
+        # Not sure if this will contradict with the legacy resume mechanism
+        eval_res_filepath = str(task_root_path / "eval_res.json")
+        if os.path.exists(eval_res_filepath):
+            os.remove(eval_res_filepath)
+
         if self.global_task_config is not None and "max_turns" in self.global_task_config:
             self.max_turns = self.global_task_config['max_turns']
 
