@@ -70,7 +70,7 @@ class NotionPageDuplicator:
         # Initialize the protector
         self.protector = NotionPageProtector()
 
-        if not self.state_file.exists():
+        if WITH_PLAYWRIGHT and not self.state_file.exists():
             raise FileNotFoundError(
                 f"Authentication state file '{self.state_file}' not found. "
                 "Please run the notion login helper first."
