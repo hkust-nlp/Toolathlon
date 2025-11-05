@@ -196,10 +196,10 @@ class TaskConfig:
         # Update dump_path from global_task_config to task_root_path for isolation on repeated runs
         if self.global_task_config is not None and "dump_path" in self.global_task_config:
             global_dump_path = self.global_task_config['dump_path']
-            if global_dump_path.endswith(self.agent_short_name) or global_dump_path.endswith(self.agent_short_name + '/'):
+            if global_dump_path.endswith(self.agent_short_name.replace('/', '_')) or global_dump_path.endswith(self.agent_short_name.replace('/', '_') + '/'):
                 pass
             else:
-                global_dump_path = Path(global_dump_path) / Path(self.agent_short_name)
+                global_dump_path = Path(global_dump_path) / Path(self.agent_short_name.replace('/', '_'))
             self.task_root = str(global_dump_path / task_root_path)
             task_root_path = Path(self.task_root)
 

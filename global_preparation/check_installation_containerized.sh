@@ -1,55 +1,24 @@
 #!/bin/bash
 
-# Script for running a single task in a containerized environment
-# Usage: ./run_single_containerized.sh <task_dir> <runmode> <dump_path> <modelname> [provider] [maxstep] [eval_config] [image_name]
-
-#### If you want to use the unified model provider, 
-# but do not want to explicitly export these environment variables in your shell, 
-# you can also uncomment these lines and set the values here
-# ↓↓↓↓ uncomment these lines ↓↓↓↓
-# TOOLATHLON_OPENAI_BASE_URL="your-custom-base-url"
-# TOOLATHLON_OPENAI_API_KEY="your-custom-api-key"
-# export TOOLATHLON_OPENAI_BASE_URL
-# export TOOLATHLON_OPENAI_API_KEY
-
 set -e
 
-task_dir_arg=$1 # domain/taskname
+# Prepare list of files to copy to container
+echo "Preparing project files..."
+
+image_name=${1:-"lockon0927/toolathlon-task-image:1016beta"}
 runmode=${2:-"normal"}
-dump_path=${3:-"./dumps_quick_start"}
-modelname=${4:-"anthropic/claude-sonnet-4.5"}
-provider=${5:-"unified"}
-maxstep=${6:-"100"}
-eval_config=${7:-"scripts/foraml_run_v0.json"}
-image_name=${8:-"lockon0927/toolathlon-task-image:1016beta"}
 
-taskdomain=${task_dir_arg%/*}
-taskname=${task_dir_arg#*/}
-
-# Set up log paths using dump_path
-container_log_path="${dump_path}/${taskdomain}/${taskname}/container.log"
-run_log_path="${dump_path}/${taskdomain}/${taskname}/run.log"
-output_folder="${dump_path}/${taskdomain}/${taskname}"
-
-if [ -z "$task_dir_arg" ] || [ -z "$runmode" ] || [ -z "$modelname" ]; then
-    echo "Usage: $0 <task_dir> <runmode> <modelname>"
-    echo "Example: $0 debug/debug-task testrun testmodel"
-    exit 1
-fi
+IMAGE_NAME="$image_name"
 
 # Get project root directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 cd "$PROJECT_ROOT"
 
-echo "Project root: $PROJECT_ROOT"
-echo "Task directory: $task_dir_arg"
-echo "Runmode: $runmode"
-echo "Modelname: $modelname"
-echo "Container log: $container_log_path"
-echo "Run log: $run_log_path"
-echo "Output folder: $output_folder"
-echo "Dump path: $dump_path"
+# Generate unique container name
+TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+SAFE_TASK_NAME="check-installation"
+CONTAINER_NAME="toolathlon-${SAFE_TASK_NAME}-${TIMESTAMP}"
 
 # Read container runtime configuration
 CONTAINER_RUNTIME=$(uv run python -c "
@@ -64,55 +33,6 @@ except Exception as e:
 " 2>/dev/null)
 
 echo "Using container runtime: $CONTAINER_RUNTIME"
-
-# Use the image name from parameter
-IMAGE_NAME="$image_name"
-echo "Using container image: $IMAGE_NAME"
-
-# Generate unique container name
-TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-SAFE_TASK_NAME=$(echo "$task_dir_arg" | sed 's|/|-|g')
-CONTAINER_NAME="toolathlon-${SAFE_TASK_NAME}-${TIMESTAMP}"
-
-echo "Container name: $CONTAINER_NAME"
-
-# --- BEGIN: Detect and propagate TOOLATHLON_OPENAI env vars from host to container ---
-EXTRA_ENV_ARGS=()
-if [ ! -z "${TOOLATHLON_OPENAI_BASE_URL+x}" ]; then
-    EXTRA_ENV_ARGS+=("-e" "TOOLATHLON_OPENAI_BASE_URL=${TOOLATHLON_OPENAI_BASE_URL}")
-    echo "Detected host TOOLATHLON_OPENAI_BASE_URL, will pass into container"
-fi
-
-if [ ! -z "${TOOLATHLON_OPENAI_API_KEY+x}" ]; then
-    EXTRA_ENV_ARGS+=("-e" "TOOLATHLON_OPENAI_API_KEY=${TOOLATHLON_OPENAI_API_KEY}")
-    echo "Detected host TOOLATHLON_OPENAI_API_KEY, will pass into container"
-fi
-# --- END: Detect and propagate TOOLATHLON_OPENAI env vars ---
-
-# Cleanup function
-cleanup() {
-    echo ""
-    echo "Performing cleanup..."
-    # Stop and remove container if exists
-    if $CONTAINER_RUNTIME ps -aq --filter "name=$CONTAINER_NAME" 2>/dev/null | grep -q .; then
-        echo "  Stopping and removing container: $CONTAINER_NAME"
-        $CONTAINER_RUNTIME stop "$CONTAINER_NAME" >/dev/null 2>&1 || true
-        $CONTAINER_RUNTIME rm "$CONTAINER_NAME" >/dev/null 2>&1 || true
-        echo "  ✓ Container stopped and removed"
-    fi
-    echo "Cleanup completed"
-}
-trap cleanup EXIT
-
-# Verify task directory exists
-TASK_SOURCE="$PROJECT_ROOT/tasks/$task_dir_arg"
-if [ ! -d "$TASK_SOURCE" ]; then
-    echo "Error: Task directory does not exist: $TASK_SOURCE"
-    exit 1
-fi
-
-# Prepare list of files to copy to container
-echo "Preparing project files..."
 
 # List of files and directories to copy
 FILES_TO_COPY=(
@@ -135,20 +55,6 @@ for item in "${FILES_TO_COPY[@]}"; do
         echo "  ✓ $item exists"
     fi
 done
-
-# Confirm existence of task directory
-echo "  ✓ Task directory: tasks/$task_dir_arg"
-
-# Ensure log directories exist
-CONTAINER_LOG_DIR=$(dirname "$container_log_path")
-RUN_LOG_DIR=$(dirname "$run_log_path")
-mkdir -p "$CONTAINER_LOG_DIR"
-mkdir -p "$RUN_LOG_DIR"
-CONTAINER_LOG_PATH_ABS=$(readlink -f "$container_log_path")
-RUN_LOG_FILE_NAME=$(basename "$run_log_path")
-
-# Ensure output folder exists
-mkdir -p "$output_folder"
 
 echo "Preparing to start container..."
 
@@ -207,10 +113,6 @@ fi
 
 # Add mounts
 START_CONTAINER_ARGS+=(
-    # Mount output folder as /workspace/dumps
-    "-v" "$PROJECT_ROOT/$output_folder:/workspace/dumps"
-    # Mount log directory
-    "-v" "$RUN_LOG_DIR:/workspace/logs"
     # Set working directory
     "-w" "/workspace"
     # Set image
@@ -294,17 +196,6 @@ for item in "${FILES_TO_COPY[@]}"; do
     fi
 done
 
-# Copy task directory
-echo "  Copying task directory tasks/$task_dir_arg to container..."
-TARGET_PARENT_DIR=$(dirname "$task_dir_arg")
-if [ "$TARGET_PARENT_DIR" != "." ]; then
-    $CONTAINER_RUNTIME exec "$CONTAINER_NAME" mkdir -p "/workspace/tasks/$TARGET_PARENT_DIR"
-fi
-# Copy actual task directory
-$CONTAINER_RUNTIME cp "$TASK_SOURCE" "$CONTAINER_NAME:/workspace/tasks/$TARGET_PARENT_DIR/"
-
-echo "✓ File copying completed"
-
 # Run the necessary configuration commands in the container
 echo ""
 echo "Step 2.6: Executing necessary configurations..."
@@ -357,55 +248,29 @@ else
     exit 1
 fi
 
-# Step 3: Execute task command in container
+# Step 3: Check installation in container
 echo ""
-echo "Step 3: Executing task command in container..."
+echo "Step 3: Checking installation in container..."
 
 # When running commands in the container, these env variables are already present due to -e at startup.
 
-CONTAINER_CMD="uv run main.py --eval_config $eval_config --task_dir $task_dir_arg --max_steps_under_single_turn_mode $maxstep --model_short_name $modelname --provider $provider --debug > /workspace/logs/$RUN_LOG_FILE_NAME 2>&1"
+CONTAINER_CMD="uv run -m global_preparation.check_installation"
 
 echo "Executing command in container: $CONTAINER_CMD"
 echo ""
 
 # Actually run the task inside the container
-echo "Executing task, please wait for a while ..."
-$CONTAINER_RUNTIME exec "$CONTAINER_NAME" bash -c "$CONTAINER_CMD"
+echo "Checking installation..."
+$CONTAINER_RUNTIME exec -it "$CONTAINER_NAME" bash -c "$CONTAINER_CMD"
 EXEC_EXIT_CODE=$?
 
 echo ""
 if [ $EXEC_EXIT_CODE -eq 0 ]; then
-    echo "✓ Task executed successfully, exit code: $EXEC_EXIT_CODE"
+    echo "✓ Installation checked successfully, exit code: $EXEC_EXIT_CODE"
 else
-    echo "✗ Task execution failed, exit code: $EXEC_EXIT_CODE"
+    echo "✗ Installation check failed, exit code: $EXEC_EXIT_CODE"
 fi
 
 EXIT_CODE=$EXEC_EXIT_CODE
-
-# Copy run log from container to host
-echo "Copying run log from container..."
-$CONTAINER_RUNTIME cp "$CONTAINER_NAME:/workspace/logs/$RUN_LOG_FILE_NAME" "$run_log_path" 2>/dev/null || echo "Warning: Could not copy run log from container"
-
-# Display last lines of container and run logs if present
-if [ -f "$container_log_path" ]; then
-    echo ""
-    echo "=== Container execution log (last 20 lines) ==="
-    tail -20 "$container_log_path"
-    echo ""
-    echo "=== Container log path: $container_log_path ==="
-fi
-
-if [ -f "$run_log_path" ]; then
-    echo ""
-    echo "=== Task run log (last 20 lines) ==="
-    tail -20 "$run_log_path"
-    echo ""
-    echo "=== Run log path: $run_log_path ==="
-fi
-
-# Check if kubeconfig was generated
-echo ""
-echo "=== Checking generated Kubeconfig files in container ==="
-$CONTAINER_RUNTIME exec "$CONTAINER_NAME" bash -c "ls -la /workspace/deployment/k8s/configs/*.yaml 2>/dev/null || echo 'None'"
 
 exit $EXIT_CODE

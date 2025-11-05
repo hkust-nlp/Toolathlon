@@ -291,7 +291,7 @@ class AsyncTaskScheduler:
                            maxstep: str, timeout: int, has_lock: bool, eval_config: str = "scripts/foraml_run_v0.json",
                            dump_path: str = "./dumps", image_name: str = "lockon0927/toolathlon-task-image:1016beta"):
         """Actually run the task and collect result info."""
-        command = f"bash scripts/run_single_containerized.sh {task_dir_arg} {tag} {model_short_name} {provider} {maxstep} {eval_config} {dump_path} {image_name}"
+        command = f"bash scripts/run_single_containerized.sh {task_dir_arg} {tag} {dump_path} {model_short_name} {provider} {maxstep} {eval_config} {image_name}"
 
         parts = task_dir_arg.split('/')
         if len(parts) >= 2:

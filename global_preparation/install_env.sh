@@ -116,6 +116,7 @@ else
     echo "  fs.inotify.max_user_instances=16384"
     echo "  fs.inotify.max_queued_events=16384"
     echo "  user.max_user_namespaces=10000"
+    echo "===============THIS WONT AFFECT THE QUICK START EXAMPLES, BUT JUST FULL EXECUTION==============="
     echo "===============SLEEP 5s FOR YOU TO READ THIS MESSAGE==============="
     echo -e "${RESET}"
     sleep 5
@@ -140,6 +141,7 @@ else
     echo "Or use playwright install-deps:"
     echo "  sudo playwright install-deps"
     echo "If you cannot install the dependencies, you may encounter errors in the following steps."
+    echo "===============THIS WONT AFFECT THE QUICK START EXAMPLES, BUT JUST FULL EXECUTION==============="
     echo "===============SLEEP 5s FOR YOU TO READ THIS MESSAGE==============="
     echo -e "${RESET}"
     sleep 5

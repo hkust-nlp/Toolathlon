@@ -121,64 +121,10 @@ def delete_and_recreate_bucket(
                 print("❌ All attempts failed. Giving up.")
                 raise e
 
-def check_bq_dataset_exists(dataset_name="machine_operating", project_id=PROJECT_ID):
-    """Check if BigQuery dataset exists"""
-    print(f"🔍 Checking if BigQuery dataset exists: {dataset_name}")
 
-    try:
-        client = bigquery.Client(project=project_id, credentials=credentials)
-        dataset_id = f"{project_id}.{dataset_name}"
 
-        try:
-            dataset = client.get_dataset(dataset_id)
-            print(f"✅ BigQuery dataset {dataset_name} already exists")
-            return True
-        except NotFound:
-            print(f"📊 BigQuery dataset {dataset_name} does not exist")
-            return False
 
-    except Exception as e:
-        print(f"❌ Error checking BigQuery dataset: {e}")
-        return False
 
-def delete_bq_dataset(dataset_name="machine_operating", project_id=PROJECT_ID):
-    """Delete BigQuery dataset"""
-    print(f"🗑️  Deleting BigQuery dataset: {dataset_name}")
-
-    try:
-        client = bigquery.Client(project=project_id, credentials=credentials)
-        dataset_id = f"{project_id}.{dataset_name}"
-
-        # Delete dataset including all contents
-        client.delete_dataset(dataset_id, delete_contents=True, not_found_ok=True)
-        print(f"✅ Successfully deleted BigQuery dataset: {dataset_name}")
-        return True
-
-    except Exception as e:
-        print(f"❌ Error deleting BigQuery dataset: {e}")
-        return False
-
-def create_bq_dataset(dataset_name="machine_operating", project_id=PROJECT_ID, location="US"):
-    """Create BigQuery dataset"""
-    print(f"📊 Creating BigQuery dataset: {dataset_name}")
-
-    try:
-        client = bigquery.Client(project=project_id, credentials=credentials)
-        dataset_id = f"{project_id}.{dataset_name}"
-
-        dataset = bigquery.Dataset(dataset_id)
-        dataset.location = location
-
-        dataset = client.create_dataset(dataset, timeout=30)
-        print(f"✅ Successfully created BigQuery dataset: {dataset_name}")
-        return True
-
-    except Conflict:
-        print(f"⚠️  Dataset {dataset_name} already exists")
-        return True
-    except Exception as e:
-        print(f"❌ Error creating BigQuery dataset: {e}")
-        return False
 
 def upload_csv_to_bq_table(csv_file_path, table_name, dataset_name="machine_operating", project_id=PROJECT_ID):
     """Upload CSV file to BigQuery table"""

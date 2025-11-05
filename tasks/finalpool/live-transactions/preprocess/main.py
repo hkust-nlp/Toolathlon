@@ -191,9 +191,20 @@ def check_bq_dataset_exists(dataset_name="transactions_analytics", project_id="m
     bq_client = bigquery.Client(project=project_id, credentials=CREDENTIALS)
     dataset_id = f"{project_id}.{dataset_name}"
 
-    bq_client.get_dataset(dataset_id)
-    print(f"✅ BigQuery dataset {dataset_name} already exists")
-    return True
+    try:
+        bq_client.get_dataset(dataset_id)
+        print(f"✅ BigQuery dataset {dataset_name} already exists")
+        return True
+    except Exception as e:
+        from google.cloud.exceptions import NotFound
+        if hasattr(e, "code") and e.code == 404:
+            print(f"📊 BigQuery dataset {dataset_name} does not exist (404 Not Found)")
+            return False
+        if "Not found" in str(e) or isinstance(e, NotFound):
+            print(f"📊 BigQuery dataset {dataset_name} does not exist (NotFound)")
+            return False
+        print(f"❌ Error checking BigQuery dataset: {e}")
+        raise e
 
 def delete_bq_dataset(dataset_name="transactions_analytics", project_id="mcp-bench0606"):
     """Delete BigQuery dataset"""
