@@ -174,7 +174,9 @@ Paste the read-write token to the `wandb_api_key` variable in `configs/token_key
 
 We recommand register a new notion account and create a new workspace.
 
-First run `uv run -m global_preparation.special_setup_notion_official` to connect the workspace in the above step to the official online notion mcp. This facilates us to duplicate and move pages more efficiently!
+First run `uv run -m global_preparation.special_setup_notion_official` to connect to the workspace in the above step to the official online notion mcp. This facilates us to duplicate and move pages more efficiently!
+
+*Note: If you connect to an incorrect workspace when executing this command, you can remove the `~/.mcp-auth` and rerun this command to reset the login state of this online notion mcp.
 
 <details>
 
