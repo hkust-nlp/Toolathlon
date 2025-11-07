@@ -16,7 +16,7 @@ from utils.mcp.tool_servers import MCPServerManager, call_tool_with_retry
 
 parent_dir = os.path.abspath(os.path.join(current_dir, '..'))
 sys.path.insert(0, parent_dir)
-from configs.token_key_session import all_token_key_session as local_token_key_session
+from token_key_session import all_token_key_session as local_token_key_session
 
 from utils.general.helper import print_color
 

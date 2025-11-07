@@ -252,8 +252,11 @@ async def main():
         target_repo = source_repo.split("/")[1]
         real_forking_list.append((source_repo, target_repo, fork_default_branch_only, READONLY))
 
-    tasks = [prepare_one_repo(source_repo, target_repo, fork_default_branch_only, readonly) for source_repo, target_repo, fork_default_branch_only, readonly in real_forking_list]
-    await asyncio.gather(*tasks)
+    # tasks = [prepare_one_repo(source_repo, target_repo, fork_default_branch_only, readonly) for source_repo, target_repo, fork_default_branch_only, readonly in real_forking_list]
+    # await asyncio.gather(*tasks)
+    # NOTE: we temporarily change it to serial execution to avoid the issue of too many concurrent requests to the GitHub API.
+    for source_repo, target_repo, fork_default_branch_only, readonly in real_forking_list:
+        await prepare_one_repo(source_repo, target_repo, fork_default_branch_only, readonly)
 
     print_color("Forking and becoming independent for all repos successfully!","green")
 
