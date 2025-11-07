@@ -7,7 +7,7 @@ if os.path.exists("./configs/google_credentials.json"):
 elif os.path.exists("./configs/credentials.json"):
     google_credentials_filename = "./configs/credentials.json"
 else:
-    print("No google credentials file found!")
+    print("No google credentials file found! This is only expected in quickstart mode!")
     google_credentials_filename = None
 
 if google_credentials_filename is not None:

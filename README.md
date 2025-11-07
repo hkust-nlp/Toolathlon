@@ -78,10 +78,10 @@ You can find details about model providers in `utils/api_model/model_provider.py
 After the above two steps, we provide a very quick example here. We use *claude-sonnet-4-5* via **openrouter** in this example, so make sure you have configured TOOLATHLON_OPENAI_API_KEY and TOOLATHLON_OPENAI_BASE_URL accordingly if you want to run this script without any modification.
 
 ```
-bash scripts/run_single_containerized.sh finalpool/find-alita-paper quickstart ./dumps_quick_start/anthropic_claude-sonnet-4-5 anthropic/claude-sonnet-4.5
+bash scripts/run_single_containerized.sh finalpool/find-alita-paper quickstart ./dumps_quick_start/anthropic_claude-sonnet-4.5 anthropic/claude-sonnet-4.5
 ```
 
-You can find the resulted logs, trajectories, and agent workspace all in `dumps_quick_start/anthropic_claude-sonnet-4-5/finalpool/find-alita-paper`.
+You can find the resulted logs, trajectories, and agent workspace all in `dumps_quick_start/anthropic_claude-sonnet-4.5/finalpool/find-alita-paper`.
 
 ## Full Preparation
 

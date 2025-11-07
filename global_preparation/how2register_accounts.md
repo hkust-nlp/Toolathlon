@@ -39,6 +39,8 @@ We by default register all the accounts in `config/users_data.json` to Canvas an
     ![](./figures/gcp_id.png)
 3. Enable all needed APIs
 
+    Make sure you have added a valid credit or debit card to your Google account to enable payment before enabling the APIs.
+
     Make sure you have `gcloud` sdk installed, e.g.:
 
     ```

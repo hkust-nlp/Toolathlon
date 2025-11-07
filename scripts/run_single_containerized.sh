@@ -372,14 +372,27 @@ echo "Step 3: Executing task command in container..."
 
 # When running commands in the container, these env variables are already present due to -e at startup.
 
-CONTAINER_CMD="PYTHONUNBUFFERED=1 uv run main.py --eval_config $eval_config --task_dir $task_dir_arg --max_steps_under_single_turn_mode $maxstep --model_short_name $modelname --provider $provider --debug > /workspace/logs/$RUN_LOG_FILE_NAME 2>&1"
+CONTAINER_CMD="uv run main.py --eval_config $eval_config --task_dir $task_dir_arg --max_steps_under_single_turn_mode $maxstep --model_short_name $modelname --provider $provider --debug > /workspace/logs/$RUN_LOG_FILE_NAME 2>&1"
+CONTAINER_CMD_DISPLAY_INPLACE="uv run main.py --eval_config $eval_config --task_dir $task_dir_arg --max_steps_under_single_turn_mode $maxstep --model_short_name $modelname --provider $provider --debug"
+
+# if quickstart mode, use the display inplace command
+if [ "$runmode" = "quickstart" ]; then
+    CONTAINER_CMD="$CONTAINER_CMD_DISPLAY_INPLACE"
+else
+    CONTAINER_CMD="$CONTAINER_CMD"
+fi
+
 
 echo "Executing command in container: $CONTAINER_CMD"
 echo ""
 
 # Actually run the task inside the container
 echo "Executing task, please wait for a while ..."
-$CONTAINER_RUNTIME exec "$CONTAINER_NAME" bash -c "$CONTAINER_CMD"
+if [ "$runmode" = "quickstart" ]; then
+    $CONTAINER_RUNTIME exec -t "$CONTAINER_NAME" bash -c "$CONTAINER_CMD"
+else
+    $CONTAINER_RUNTIME exec "$CONTAINER_NAME" bash -c "$CONTAINER_CMD"
+fi
 EXEC_EXIT_CODE=$?
 
 echo ""
