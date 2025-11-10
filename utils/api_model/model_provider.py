@@ -577,7 +577,17 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                                     text_content = content.text
                                     break
                             if text_content:
-                                print("ASSISTANT: ", text_content)
+                                import re
+                                match = re.search(r'<think>(.*?)</think>', text_content, re.DOTALL)
+                                display_text = text_content
+                                if match:
+                                    thinking = match.group(1).strip()
+                                    print("\033[90mTHINKING: ", thinking, "\033[0m")
+                                    # Remove only the first <think>...</think> for the assistant answer
+                                    display_text = text_content[:match.start()] + text_content[match.end():]
+                                stripped_text = display_text.strip()
+                                if stripped_text:
+                                    print("\033[97mASSISTANT: ", stripped_text, "\033[0m")
                 return model_response
             except Exception as e:
                 error_str = str(e)
