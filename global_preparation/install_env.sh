@@ -1,9 +1,20 @@
 WITH_SUDO=${1:-false}
 
 # cp two config files
-echo "Copying config files..."
-cp configs/global_configs_example.py configs/global_configs.py
-cp configs/token_key_session_example.py configs/token_key_session.py
+# cp two config files
+if [ ! -f configs/global_configs.py ]; then
+    echo "Copying configs/global_configs_example.py to configs/global_configs.py..."
+    cp configs/global_configs_example.py configs/global_configs.py
+else
+    echo "configs/global_configs.py already exists, skipping copy."
+fi
+
+if [ ! -f configs/token_key_session.py ]; then
+    echo "Copying configs/token_key_session_example.py to configs/token_key_session.py..."
+    cp configs/token_key_session_example.py configs/token_key_session.py
+else
+    echo "configs/token_key_session.py already exists, skipping copy."
+fi
 
 # check if uv is here, if not, run "curl -LsSf https://astral.sh/uv/install.sh | sh" to install first
 if ! command -v uv &> /dev/null; then
