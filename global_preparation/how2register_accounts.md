@@ -48,17 +48,17 @@ This script will help you setup new google cloud account, billing information, e
 <details>
 <summary>STEP 6 in this setup script requires some manual steps, click to expand for detailed figure instructions (these steps are already included in the script, the figures are just to help understand the process)</summary>
 
-- Step 6.1 Configure OAuth Consent Screen
+- Step 6.1 Configure OAuth Consent Screen  
 ![](./figures/gcp_oauth2_part2.2.png)
 
-- Step 6.2 Publish the App
+- Step 6.2 Publish the App  
 ![](./figures/gcp_oauth2_part5_1.png)
 
 - Step 6.3 Create OAuth Client ID
 Choose "Web application" as application type, give it a name and click "Create". For Web application, add http://localhost:3000/oauth2callback to the authorized redirect URIs
 ![](./figures/gcp_oauth2_part3.png)
 
-- Download the JSON file of your client's OAuth keys
+- Download the JSON file of your client's OAuth keys  
 ![](./figures/gcp_oauth2_part4.png)
 Rename this key json file to `gcp-oauth.keys.json` and place it under `configs`
 
