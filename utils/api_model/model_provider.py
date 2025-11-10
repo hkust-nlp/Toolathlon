@@ -8,12 +8,274 @@ from agents import (
     _debug
 )
 from openai import AsyncOpenAI
-from openai.types.responses import ResponseOutputMessage
+from openai.types.responses import ResponseOutputMessage, ResponseOutputText
 from configs.global_configs import global_configs
 from addict import Dict
 
 from agents.models.openai_chatcompletions import *
 from agents.model_settings import ModelSettings
+
+from pydantic import BaseModel
+
+from agents.models.chatcmpl_converter import *
+
+from typing import List, Union
+from typing_extensions import Literal, Annotated, TypeAlias
+from openai._utils import PropertyInfo
+
+
+class ResponseOutputReasoningContent(BaseModel):
+    reasoning_content: str
+    """The reasoning content from the model."""
+    type: Literal["reasoning_content"] = "reasoning_content"
+
+ExtendedContent: TypeAlias = Annotated[Union[ResponseOutputText, ResponseOutputRefusal, ResponseOutputReasoningContent], PropertyInfo(discriminator="type")]
+
+
+class ExtendedResponseOutputMessage(ResponseOutputMessage):
+    content: List[ExtendedContent]
+    """The content of the output message."""
+
+
+class ConverterWithExplicitReasoningContent(Converter):
+    @classmethod
+    def message_to_output_items(cls, message: ChatCompletionMessage) -> list[TResponseOutputItem]:
+        items: list[TResponseOutputItem] = []
+
+        message_item = ExtendedResponseOutputMessage(
+            id=FAKE_RESPONSES_ID,
+            content=[],
+            role="assistant",
+            type="message",
+            status="completed",
+        )
+        if message.content:
+            message_item.content.append(
+                ResponseOutputText(text=message.content, type="output_text", annotations=[])
+            )
+        if message.refusal:
+            message_item.content.append(
+                ResponseOutputRefusal(refusal=message.refusal, type="refusal")
+            )
+        if hasattr(message, "reasoning_content"):
+            message_item.content.append(ResponseOutputReasoningContent(reasoning_content=message.reasoning_content, type="reasoning_content"))
+
+        if message.audio:
+            raise AgentsException("Audio is not currently supported")
+
+        if message_item.content:
+            items.append(message_item)
+
+        if message.tool_calls:
+            for tool_call in message.tool_calls:
+                items.append(
+                    ResponseFunctionToolCall(
+                        id=FAKE_RESPONSES_ID,
+                        call_id=tool_call.id,
+                        arguments=tool_call.function.arguments,
+                        name=tool_call.function.name,
+                        type="function_call",
+                    )
+                )
+
+        return items
+
+
+    @classmethod
+    def items_to_messages(
+        cls,
+        items: str | Iterable[TResponseInputItem],
+    ) -> list[ChatCompletionMessageParam]:
+        """
+        Convert a sequence of 'Item' objects into a list of ChatCompletionMessageParam.
+
+        Rules:
+        - EasyInputMessage or InputMessage (role=user) => ChatCompletionUserMessageParam
+        - EasyInputMessage or InputMessage (role=system) => ChatCompletionSystemMessageParam
+        - EasyInputMessage or InputMessage (role=developer) => ChatCompletionDeveloperMessageParam
+        - InputMessage (role=assistant) => Start or flush a ChatCompletionAssistantMessageParam
+        - response_output_message => Also produces/flushes a ChatCompletionAssistantMessageParam
+        - tool calls get attached to the *current* assistant message, or create one if none.
+        - tool outputs => ChatCompletionToolMessageParam
+        """
+
+        if isinstance(items, str):
+            return [
+                ChatCompletionUserMessageParam(
+                    role="user",
+                    content=items,
+                )
+            ]
+
+        result: list[ChatCompletionMessageParam] = []
+        current_assistant_msg: ChatCompletionAssistantMessageParam | None = None
+
+        def flush_assistant_message() -> None:
+            nonlocal current_assistant_msg
+            if current_assistant_msg is not None:
+                # The API doesn't support empty arrays for tool_calls
+                if not current_assistant_msg.get("tool_calls"):
+                    del current_assistant_msg["tool_calls"]
+                result.append(current_assistant_msg)
+                current_assistant_msg = None
+
+        def ensure_assistant_message() -> ChatCompletionAssistantMessageParam:
+            nonlocal current_assistant_msg
+            if current_assistant_msg is None:
+                current_assistant_msg = ChatCompletionAssistantMessageParam(role="assistant")
+                current_assistant_msg["tool_calls"] = []
+            return current_assistant_msg
+
+        for item in items:
+            # 1) Check easy input message
+            if easy_msg := cls.maybe_easy_input_message(item):
+                role = easy_msg["role"]
+                content = easy_msg["content"]
+
+                if role == "user":
+                    flush_assistant_message()
+                    msg_user: ChatCompletionUserMessageParam = {
+                        "role": "user",
+                        "content": cls.extract_all_content(content),
+                    }
+                    result.append(msg_user)
+                elif role == "system":
+                    flush_assistant_message()
+                    msg_system: ChatCompletionSystemMessageParam = {
+                        "role": "system",
+                        "content": cls.extract_text_content(content),
+                    }
+                    result.append(msg_system)
+                elif role == "developer":
+                    flush_assistant_message()
+                    msg_developer: ChatCompletionDeveloperMessageParam = {
+                        "role": "developer",
+                        "content": cls.extract_text_content(content),
+                    }
+                    result.append(msg_developer)
+                elif role == "assistant":
+                    flush_assistant_message()
+                    msg_assistant: ChatCompletionAssistantMessageParam = {
+                        "role": "assistant",
+                        "content": cls.extract_text_content(content),
+                    }
+                    result.append(msg_assistant)
+                else:
+                    raise UserError(f"Unexpected role in easy_input_message: {role}")
+
+            # 2) Check input message
+            elif in_msg := cls.maybe_input_message(item):
+                role = in_msg["role"]
+                content = in_msg["content"]
+                flush_assistant_message()
+
+                if role == "user":
+                    msg_user = {
+                        "role": "user",
+                        "content": cls.extract_all_content(content),
+                    }
+                    result.append(msg_user)
+                elif role == "system":
+                    msg_system = {
+                        "role": "system",
+                        "content": cls.extract_text_content(content),
+                    }
+                    result.append(msg_system)
+                elif role == "developer":
+                    msg_developer = {
+                        "role": "developer",
+                        "content": cls.extract_text_content(content),
+                    }
+                    result.append(msg_developer)
+                else:
+                    raise UserError(f"Unexpected role in input_message: {role}")
+
+            # 3) response output message => assistant
+            elif resp_msg := cls.maybe_response_output_message(item):
+                flush_assistant_message()
+                new_asst = ChatCompletionAssistantMessageParam(role="assistant")
+                contents = resp_msg["content"]
+                text_segments = []
+                for c in contents:
+                    if c["type"] == "output_text":
+                        text_segments.append(c["text"])
+                    elif c["type"] == "refusal":
+                        new_asst["refusal"] = c["refusal"]
+                    elif c["type"] == "output_audio":
+                        # Can't handle this, b/c chat completions expects an ID which we dont have
+                        raise UserError(
+                            f"Only audio IDs are supported for chat completions, but got: {c}"
+                        )
+                    elif c["type"] == "reasoning_content":
+                        new_asst["reasoning_content"] = c["reasoning_content"]
+                    else:
+                        raise UserError(f"Unknown content type in ExtendedResponseOutputMessage: {c}")
+
+                if text_segments:
+                    combined = "\n".join(text_segments)
+                    new_asst["content"] = combined
+
+                new_asst["tool_calls"] = []
+                current_assistant_msg = new_asst
+
+            # 4) function/file-search calls => attach to assistant
+            elif file_search := cls.maybe_file_search_call(item):
+                asst = ensure_assistant_message()
+                tool_calls = list(asst.get("tool_calls", []))
+                new_tool_call = ChatCompletionMessageToolCallParam(
+                    id=file_search["id"],
+                    type="function",
+                    function={
+                        "name": "file_search_call",
+                        "arguments": json.dumps(
+                            {
+                                "queries": file_search.get("queries", []),
+                                "status": file_search.get("status"),
+                            }
+                        ),
+                    },
+                )
+                tool_calls.append(new_tool_call)
+                asst["tool_calls"] = tool_calls
+
+            elif func_call := cls.maybe_function_tool_call(item):
+                asst = ensure_assistant_message()
+                tool_calls = list(asst.get("tool_calls", []))
+                arguments = func_call["arguments"] if func_call["arguments"] else "{}"
+                new_tool_call = ChatCompletionMessageToolCallParam(
+                    id=func_call["call_id"],
+                    type="function",
+                    function={
+                        "name": func_call["name"],
+                        "arguments": arguments,
+                    },
+                )
+                tool_calls.append(new_tool_call)
+                asst["tool_calls"] = tool_calls
+            # 5) function call output => tool message
+            elif func_output := cls.maybe_function_tool_call_output(item):
+                flush_assistant_message()
+                msg: ChatCompletionToolMessageParam = {
+                    "role": "tool",
+                    "tool_call_id": func_output["call_id"],
+                    "content": func_output["output"],
+                }
+                result.append(msg)
+
+            # 6) item reference => handle or raise
+            elif item_ref := cls.maybe_item_reference(item):
+                raise UserError(
+                    f"Encountered an item_reference, which is not supported: {item_ref}"
+                )
+
+            # 7) If we haven't recognized it => fail or ignore
+            else:
+                raise UserError(f"Unhandled item type or structure: {item}")
+
+        flush_assistant_message()
+        return result
+
+
 
 class ContextTooLongError(Exception):
     """Context length exceeded error"""
@@ -120,7 +382,7 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
         tracing: ModelTracing,
         stream: bool = False,
     ) -> ChatCompletion | tuple[Response, AsyncStream[ChatCompletionChunk]]:
-        converted_messages = Converter.items_to_messages(input)
+        converted_messages = ConverterWithExplicitReasoningContent.items_to_messages(input)
 
         if system_instructions:
             converted_messages.insert(
@@ -147,13 +409,13 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
             if model_settings.parallel_tool_calls is False
             else NOT_GIVEN
         )
-        tool_choice = Converter.convert_tool_choice(model_settings.tool_choice)
-        response_format = Converter.convert_response_format(output_schema)
+        tool_choice = ConverterWithExplicitReasoningContent.convert_tool_choice(model_settings.tool_choice)
+        response_format = ConverterWithExplicitReasoningContent.convert_response_format(output_schema)
 
-        converted_tools = [Converter.tool_to_openai(tool) for tool in tools] if tools else []
+        converted_tools = [ConverterWithExplicitReasoningContent.tool_to_openai(tool) for tool in tools] if tools else []
 
         for handoff in handoffs:
-            converted_tools.append(Converter.convert_handoff_tool(handoff))
+            converted_tools.append(ConverterWithExplicitReasoningContent.convert_handoff_tool(handoff))
 
         if _debug.DONT_LOG_MODEL_DATA:
             logger.debug("Calling LLM")
@@ -233,15 +495,89 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
         )
         return response, ret
 
+    async def raw_get_response(
+        self,
+        system_instructions: str | None,
+        input: str | list[TResponseInputItem],
+        model_settings: ModelSettings,
+        tools: list[Tool],
+        output_schema: AgentOutputSchemaBase | None,
+        handoffs: list[Handoff],
+        tracing: ModelTracing,
+        previous_response_id: str | None,
+    ) -> ModelResponse:
+        with generation_span(
+            model=str(self.model),
+            model_config=model_settings.to_json_dict() | {"base_url": str(self._client.base_url)},
+            disabled=tracing.is_disabled(),
+        ) as span_generation:
+            response = await self._fetch_response(
+                system_instructions,
+                input,
+                model_settings,
+                tools,
+                output_schema,
+                handoffs,
+                span_generation,
+                tracing,
+                stream=False,
+            )
+
+            if _debug.DONT_LOG_MODEL_DATA:
+                logger.debug("Received model response")
+            else:
+                logger.debug(
+                    f"LLM resp:\n{json.dumps(response.choices[0].message.model_dump(), indent=2)}\n"
+                )
+
+            usage = (
+                Usage(
+                    requests=1,
+                    input_tokens=response.usage.prompt_tokens,
+                    output_tokens=response.usage.completion_tokens,
+                    total_tokens=response.usage.total_tokens,
+                )
+                if response.usage
+                else Usage()
+            )
+            if tracing.include_data():
+                span_generation.span_data.output = [response.choices[0].message.model_dump()]
+            span_generation.span_data.usage = {
+                "input_tokens": usage.input_tokens,
+                "output_tokens": usage.output_tokens,
+            }
+
+            items = ConverterWithExplicitReasoningContent.message_to_output_items(response.choices[0].message)
+
+            return ModelResponse(
+                output=items,
+                usage=usage,
+                response_id=None,
+            )
+
     async def get_response(self, *args, **kwargs):
         for i in range(self.retry_times):
             try:
-                model_response = await super().get_response(*args, **kwargs)
+                model_response = await self.raw_get_response(*args, **kwargs)
                 output_items = model_response.output
                 if self.debug:
                     for item in output_items:
-                        if isinstance(item, ResponseOutputMessage):
-                            print("ASSISTANT: ", item.content[0].text)
+                        if isinstance(item, ExtendedResponseOutputMessage):
+                            reasoning_content = None
+                            for content in item.content:
+                                if isinstance(content, ResponseOutputReasoningContent):
+                                    reasoning_content = content.reasoning_content
+                                    break
+                            if reasoning_content:
+                                print("\033[90mTHINKING: ", reasoning_content, "\033[0m")
+                            # find text content in the output items
+                            text_content = None
+                            for content in item.content:
+                                if isinstance(content, ResponseOutputText):
+                                    text_content = content.text
+                                    break
+                            if text_content:
+                                print("ASSISTANT: ", text_content)
                 return model_response
             except Exception as e:
                 error_str = str(e)
@@ -351,6 +687,8 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                 
                 # For other errors: continue retry logic
                 if self.debug:
+                    import traceback
+                    traceback.print_exc()
                     print(f"Error in get_response: {e}, retry {i+1}/{self.retry_times}, waiting {self.retry_delay} seconds...")
                 
                 # Raise if it's the last try

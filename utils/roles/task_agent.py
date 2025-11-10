@@ -623,7 +623,7 @@ class TaskAgent:
                         
                         # Count number of agent turns used in the step
                         self.cumulative_inner_steps += turn_after - turn_before
-                        self._debug_print(f"\033[90m[INFO] Used {turn_after - turn_before} assistant turns, total: {self.cumulative_inner_steps}/{max_inner_steps}\033[0m")
+                        self._debug_print(f"\033[92m[INFO] Used {turn_after - turn_before} assistant turns, total: {self.cumulative_inner_steps}/{max_inner_steps}\033[0m")
                         
                         # Success, break inner loop
                         break

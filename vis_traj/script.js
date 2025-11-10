@@ -11,6 +11,8 @@ class TrajectoryReplayer {
         this.autoLoadTrajId = null; // Trajectory ID to auto-load from URL
         this.currentModel = 'agent'; // Current model used by trajectory
         this.isMobile = this.detectMobile(); // Detect if mobile device
+        this.abortController = null; // AbortController for canceling fetch requests
+        this.currentRequestId = 0; // Request ID to track the latest request
         
         this.initializeElements();
         // Try to hide file selector if needed
@@ -97,6 +99,15 @@ class TrajectoryReplayer {
     async loadTrajectoryById(trajId) {
         const filename = `${trajId}.json`;
         
+        // Cancel any pending fetch request
+        if (this.abortController) {
+            this.abortController.abort();
+        }
+        
+        // Create new AbortController for this request
+        this.abortController = new AbortController();
+        const requestId = ++this.currentRequestId;
+        
         // Clear previous trajectory
         this.clearMessages();
         this.currentIndex = 0;
@@ -111,20 +122,37 @@ class TrajectoryReplayer {
         this.updateButtonStates();
         
         try {
-            const response = await fetch(`/api/trajectory/${filename}`);
+            const response = await fetch(`/api/trajectory/${filename}`, {
+                signal: this.abortController.signal
+            });
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
             const data = await response.json();
+            
+            // Check if this is still the latest request
+            if (requestId !== this.currentRequestId) {
+                console.log('Ignoring outdated trajectory data for:', filename);
+                return;
+            }
+            
             this.currentData = data;
             // Pass trajId to processTrajectoryData
             this.processTrajectoryData(data, trajId);
             this.updateTaskInfo(data);
             this.enableControls();
         } catch (error) {
+            // Ignore abort errors (they're expected when switching tasks)
+            if (error.name === 'AbortError') {
+                console.log('Fetch aborted for:', filename);
+                return;
+            }
             console.error('Failed to load trajectory:', error);
-            this.showErrorMessage('Failed to load trajectory: ' + error.message);
+            // Only show error if this is still the current request
+            if (requestId === this.currentRequestId) {
+                this.showErrorMessage('Failed to load trajectory: ' + error.message);
+            }
         }
     }
 
@@ -340,6 +368,15 @@ class TrajectoryReplayer {
     async loadTrajectory() {
         const selectedFile = this.trajFileSelect.value;
         
+        // Cancel any pending fetch request
+        if (this.abortController) {
+            this.abortController.abort();
+        }
+        
+        // Create new AbortController for this request
+        this.abortController = new AbortController();
+        const requestId = ++this.currentRequestId;
+        
         // Clear previous trajectory when selecting a new one
         this.clearMessages();
         this.currentIndex = 0;
@@ -359,12 +396,21 @@ class TrajectoryReplayer {
         }
 
         try {
-            const response = await fetch(`/api/trajectory/${selectedFile}`);
+            const response = await fetch(`/api/trajectory/${selectedFile}`, {
+                signal: this.abortController.signal
+            });
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
             const data = await response.json();
+            
+            // Check if this is still the latest request
+            if (requestId !== this.currentRequestId) {
+                console.log('Ignoring outdated trajectory data for:', selectedFile);
+                return;
+            }
+            
             this.currentData = data;
             // Pass filename (without .json) to processTrajectoryData
             const fileNameWithoutExt = selectedFile.replace(/\.json$/, '');
@@ -372,13 +418,25 @@ class TrajectoryReplayer {
             this.updateTaskInfo(data);
             this.enableControls();
         } catch (error) {
+            // Ignore abort errors (they're expected when switching tasks)
+            if (error.name === 'AbortError') {
+                console.log('Fetch aborted for:', selectedFile);
+                return;
+            }
             console.error('Failed to load trajectory:', error);
-            this.showErrorMessage('Failed to load trajectory: ' + error.message);
+            // Only show error if this is still the current request
+            if (requestId === this.currentRequestId) {
+                this.showErrorMessage('Failed to load trajectory: ' + error.message);
+            }
         }
     }
 
     // Process trajectory data
     processTrajectoryData(data, trajId = null) {
+        // Double-check: clear messages again to ensure no old messages remain
+        // This provides an extra safety layer in case of race conditions
+        this.clearMessages();
+        
         // Detect model type: get from filename or config
         this.detectModel(data, trajId);
         
