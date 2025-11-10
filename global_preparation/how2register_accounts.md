@@ -39,7 +39,9 @@ tar -xf google-cloud-sdk-*-x86_64.tar.gz
 source ~/.bashrc # or ~/.zshrc
 ```
 
-Then simply run:
+Then go to [https://console.cloud.google.com/](https://console.cloud.google.com/) to accept the Terms of Service for this account before processing.
+
+Finally, simply run:
 ```bash
 bash global_preparation/automated_google_setup.sh
 ```
@@ -72,7 +74,7 @@ bash global_preparation/automated_additional_services.sh
 ```
 
 #### Notion Account
-*This part is largely taken from [MCPMark](https://github.com/eval-sys/mcpmark/blob/main/docs/mcp/notion.md)
+<!-- *This part is largely taken from [MCPMark](https://github.com/eval-sys/mcpmark/blob/main/docs/mcp/notion.md) -->
 
 We recommand register a new notion account and create a new workspace.
 

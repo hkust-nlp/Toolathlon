@@ -380,25 +380,48 @@ else
     if [[ "$OPERATION_NAME" == operations/* ]]; then
         echo "Waiting for API key creation to complete..."
 
-        # Wait for operation to complete (up to 2 minutes)
-        for i in {1..120}; do
+        # Wait for operation to complete (up to 3 minutes)
+        for i in {1..180}; do
             sleep 1
 
+            # Show progress every 15 seconds
+            if [ $((i % 15)) -eq 0 ]; then
+                echo "  Still waiting... (${i}s / 180s)"
+            fi
+
             # Check operation status
-            OP_STATUS=$(gcloud services operations describe "$OPERATION_NAME" --format="json" 2>/dev/null)
+            OP_STATUS=$(gcloud services operations describe "$OPERATION_NAME" --format="json" 2>&1)
+            OP_EXIT_CODE=$?
+
+            # If gcloud command failed, retry unless we're near timeout
+            if [ $OP_EXIT_CODE -ne 0 ]; then
+                if [ $i -ge 170 ]; then
+                    echo -e "${RED}ERROR: gcloud command failed${NC}"
+                    echo "$OP_STATUS"
+                    exit 1
+                fi
+                continue
+            fi
 
             if echo "$OP_STATUS" | grep -q '"done": true'; then
                 # Operation complete, extract the key resource name
                 API_KEY_RESOURCE=$(echo "$OP_STATUS" | uv run python -c "import sys, json; data=json.load(sys.stdin); print(data.get('response', {}).get('name', ''))")
 
                 if [ -n "$API_KEY_RESOURCE" ]; then
-                    echo -e "${GREEN}✓ API key created${NC}"
+                    echo -e "${GREEN}✓ API key created (took ${i}s)${NC}"
                     break
+                else
+                    # Operation done but no resource - this shouldn't happen
+                    echo -e "${RED}ERROR: Operation completed but could not extract API key resource${NC}"
+                    echo "Operation response: $OP_STATUS"
+                    exit 1
                 fi
             fi
 
-            if [ $i -eq 120 ]; then
-                echo -e "${RED}ERROR: API key creation timed out${NC}"
+            if [ $i -eq 180 ]; then
+                echo -e "${RED}ERROR: API key creation timed out after 180 seconds${NC}"
+                echo -e "${YELLOW}Note: The API key might still be created in the background.${NC}"
+                echo -e "${YELLOW}Try running this script again in a minute.${NC}"
                 exit 1
             fi
         done
@@ -478,7 +501,7 @@ if [ "$NEED_OAUTH_SETUP" = true ]; then
     echo "In the browser, please do the following:"
     echo "  1. Click 'get started'"
     echo "  2. Fill in the form:"
-    echo "     - App name: Toolathlon Evaluation"
+    echo "     - App name: Toolathlon Evaluation (this is just a suggested name, you can change it to any other name)"
     echo "     - User support email: $CURRENT_ACCOUNT"
     echo "     - Audience: External"
     echo "  3. Proceed to finish this"
@@ -491,7 +514,7 @@ if [ "$NEED_OAUTH_SETUP" = true ]; then
         open "https://console.cloud.google.com/apis/credentials/consent?project=$PROJECT_ID&authuser=$CURRENT_ACCOUNT" 2>/dev/null &
     fi
 
-    read -p "Press Enter when Step 6.1 is complete..."
+    read -p "Press Enter when Step 6.1 is complete, or you have done this step in previous runs..."
     echo ""
 
     # Step 6.2: Publish the App
@@ -518,7 +541,7 @@ if [ "$NEED_OAUTH_SETUP" = true ]; then
         open "https://console.cloud.google.com/auth/audience?project=$PROJECT_ID&authuser=$CURRENT_ACCOUNT" 2>/dev/null &
     fi
 
-    read -p "Press Enter when Step 6.2 is complete..."
+    read -p "Press Enter when Step 6.2 is complete, or you have done this step in previous runs..."
     echo ""
 
     # Step 6.3: Create OAuth Client ID
@@ -549,7 +572,7 @@ if [ "$NEED_OAUTH_SETUP" = true ]; then
         open "https://console.cloud.google.com/auth/clients/create?project=$PROJECT_ID&authuser=$CURRENT_ACCOUNT" 2>/dev/null &
     fi
 
-    read -p "Press Enter when you've downloaded the JSON file..."
+    read -p "Press Enter when you've downloaded the JSON file, or you have done this step in previous runs..."
     echo ""
 
     # Verify file exists

@@ -102,7 +102,7 @@ elif command -v open &> /dev/null; then
     open "https://github.com/signup" 2>/dev/null &
 fi
 
-read -p "Press Enter once you've created your GitHub account..."
+read -p "Press Enter once you've created your GitHub account, or you want to use your existing account (not recommended)..."
 echo ""
 
 # Step 1c: Token creation
@@ -123,9 +123,9 @@ echo ""
 
 # Open browser
 if command -v xdg-open &> /dev/null; then
-    xdg-open "https://github.com/settings/tokens/new?description=Toolathlon+Evaluation&scopes=repo,delete_repo,workflow,admin:org" 2>/dev/null &
+    xdg-open "https://github.com/settings/tokens/new?description=Toolathlon+Evaluation&scopes=repo,delete_repo,workflow,admin:org,user" 2>/dev/null &
 elif command -v open &> /dev/null; then
-    open "https://github.com/settings/tokens/new?description=Toolathlon+Evaluation&scopes=repo,delete_repo,workflow,admin:org" 2>/dev/null &
+    open "https://github.com/settings/tokens/new?description=Toolathlon+Evaluation&scopes=repo,delete_repo,workflow,admin:org,user" 2>/dev/null &
 fi
 
 echo "Please paste your GitHub personal access token:"
@@ -202,7 +202,7 @@ elif command -v open &> /dev/null; then
     open "https://huggingface.co/join" 2>/dev/null &
 fi
 
-read -p "Press Enter once you've created your HuggingFace account..."
+read -p "Press Enter once you've created your HuggingFace account, or you want to use your existing account (not recommended)..."
 echo ""
 
 # Step 2b: Token creation
@@ -303,7 +303,7 @@ elif command -v open &> /dev/null; then
     open "https://wandb.ai/signup" 2>/dev/null &
 fi
 
-read -p "Press Enter once you've created your WandB account..."
+read -p "Press Enter once you've created your WandB account, or you want to use your existing account..."
 echo ""
 
 # Step 3b: API key retrieval
@@ -405,7 +405,7 @@ elif command -v open &> /dev/null; then
     open "https://serper.dev/signup" 2>/dev/null &
 fi
 
-read -p "Press Enter once you've created your Serper account..."
+read -p "Press Enter once you've created your Serper account, or you want to use your existing account..."
 echo ""
 
 # Step 4b: API key retrieval

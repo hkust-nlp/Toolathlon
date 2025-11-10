@@ -18,7 +18,7 @@ echo "Checking and killing processes on required ports..."
 echo "============================================================================================="
 
 # Define all required ports
-REQUIRED_PORTS=(10001 20001 10005 2525 1143 2587 10003 30123 30124)
+REQUIRED_PORTS=(10001 20001 10005 2525 1143 2587 10003 30123 30124 30137)
 
 for port in "${REQUIRED_PORTS[@]}"; do
     # Check if port is in use
@@ -52,6 +52,8 @@ bash deployment/poste/scripts/setup.sh start $poste_configure_dovecot # port 100
 bash deployment/woocommerce/scripts/setup.sh start 81 20 # port 10003
 
 # we also use 30123, 30124 ports in two of the k8s tasks
+
+# we also use 30137 for a web task to deploy a web page locally
 
 # record exit time
 echo "Exit time: $(date)"
