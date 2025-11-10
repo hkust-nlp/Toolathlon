@@ -12,6 +12,36 @@ echo "==========================================================================
 
 sleep 5
 
+# Kill processes occupying required ports
+echo "============================================================================================="
+echo "Checking and killing processes on required ports..."
+echo "============================================================================================="
+
+# Define all required ports
+REQUIRED_PORTS=(10001 20001 10005 2525 1143 2587 10003 30123 30124)
+
+for port in "${REQUIRED_PORTS[@]}"; do
+    # Check if port is in use
+    if lsof -i :$port -t >/dev/null 2>&1; then
+        echo "Port $port is in use. Killing process(es)..."
+        # Get PIDs and kill them
+        pids=$(lsof -i :$port -t)
+        for pid in $pids; do
+            echo "  Killing PID $pid on port $port"
+            kill -9 $pid 2>/dev/null || true
+        done
+        # Wait a moment for the port to be released
+        sleep 1
+        echo "  Port $port cleared"
+    else
+        echo "Port $port is free"
+    fi
+done
+
+echo "All required ports checked and cleared"
+echo "============================================================================================="
+echo ""
+
 # this is just to launch a test cluster (also clear existing ones) to make sure the MCP servers are ready to use
 bash deployment/k8s/scripts/setup.sh # this is to create one test cluster
 

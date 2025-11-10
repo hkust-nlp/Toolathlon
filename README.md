@@ -30,7 +30,7 @@ If you are unable/unwilling to install docker/podman, but still want to try our 
 
 #### uv
 
-Make sure you have `uv` installed, otherwise please install it:
+Make sure you have [uv](https://github.com/astral-sh/uv) installed, otherwise please install it:
 
 ```
 # this is for macOS and linux command
