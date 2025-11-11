@@ -670,7 +670,7 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                         pass
                 
                 # 3. Extra safety: check for any error containing a certain keyword
-                elif not context_too_long:
+                if not context_too_long:
                     lower_error = error_str.lower()
                     if any(pattern in lower_error for pattern in [
                         'token count exceeds',
