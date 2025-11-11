@@ -45,7 +45,7 @@ for attempt in {1..1}; do
         
         echo "Running $MODEL_SHORT_NAME with $PROVIDER, attempt $attempt ......"
 
-        # bash global_preparation/deploy_containers.sh $poste_configure_dovecot
+        bash global_preparation/deploy_containers.sh $poste_configure_dovecot
         bash scripts/run_parallel.sh "$MODEL_SHORT_NAME" "$DUMP_PATH/${MODEL_SHORT_NAME}_${attempt}" "$PROVIDER" "$WROKERS" "$TASK_IMAGE"
     done
 done

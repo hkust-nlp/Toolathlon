@@ -139,6 +139,8 @@ bash scripts/run_parallel.sh [model-name] {your_dump_path} unified 10
 ```
 *Note: please take a look at the arguments in this script before you run. If you want to use the unified model provider, do remember to export the TOOLATHLON_OPENAI_BASE_URL and TOOLATHLON_OPENAI_API_KEY environment variables.
 
+*Note: make sure you restart the deployed applications (just `bash global_preparation/deploy_containers.sh [true|false]` again) each time before you launch a formal parallel evaluation.
+
 This will run all the tasks in parallel with at most 10 workers, and you will find all output trajectories and evaluation summary (`eval_stats.json`) in `{your_dump_path}`.
 
 If you'd like to evaluate multiple models in sequence, we provide an ensemble script for you:
