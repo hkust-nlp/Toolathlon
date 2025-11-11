@@ -276,6 +276,9 @@ class MCPServerManager:
                 connected_count = sum(1 for name, _ in tasks_to_wait if name in self.connected_servers)
                 if self.debug:
                     print(f">>Successfully connected {connected_count}/{len(tasks_to_wait)} MCP servers")
+                if connected_count != len(tasks_to_wait):
+                    print(f"Warning: Only {connected_count} servers connected, expected {len(tasks_to_wait)}")
+                    raise ValueError(f"Only {connected_count} servers connected, expected {len(tasks_to_wait)}")
 
     async def disconnect_servers(self, server_names: Optional[List[str]] = None, 
                                 max_disconnect_retries: int = 3, disconnect_retry_delay: float = 1.0):
