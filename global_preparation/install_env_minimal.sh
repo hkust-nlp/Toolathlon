@@ -101,16 +101,28 @@ npm install
 echo "Tip: To support multiple k8s tasks, it is recommended to adjust inotify parameters. Please make sure you have sudo privileges."
 if [ "$WITH_SUDO" = true ]; then
     bash deployment/k8s/scripts/prepare.sh --sudo
-    # configure inotify
     echo "Configuring inotify directly via sudo..."
-    sudo sh -c 'echo "user.max_user_namespaces=10000" >> /etc/sysctl.conf'
-    sudo sh -c 'echo "fs.inotify.max_user_watches=1048576" >> /etc/sysctl.conf'
-    sudo sh -c 'echo "fs.inotify.max_user_instances=16384" >> /etc/sysctl.conf'
-    sudo sh -c 'echo "fs.inotify.max_queued_events=16384" >> /etc/sysctl.conf'
+    SYSCTL_CONF="/etc/sysctl.conf"
+    declare -A inotify_settings=(
+        ["user.max_user_namespaces"]="10000"
+        ["fs.inotify.max_user_watches"]="1048576"
+        ["fs.inotify.max_user_instances"]="16384"
+        ["fs.inotify.max_queued_events"]="16384"
+    )
+    for key in "${!inotify_settings[@]}"; do
+        value="${inotify_settings[$key]}"
+        # Check if the setting already exists and has the correct value
+        if grep -q "^$key\s*=" "$SYSCTL_CONF"; then
+            # If exists, but value is different, replace it
+            sudo sed -i "s|^$key\s*=.*|$key=$value|" "$SYSCTL_CONF"
+        else
+            # If not found, append to file
+            echo "$key=$value" | sudo tee -a "$SYSCTL_CONF" > /dev/null
+        fi
+    done
     sudo sysctl -p
 else
     bash deployment/k8s/scripts/prepare.sh --no-sudo
-    # echo some so information to tell the user to configure inotify via sudo in some way
     YELLOW='\033[1;33m'
     RESET='\033[0m'
     echo -e "${YELLOW}===============YOU SEE THIS CUZ YOU ARE NOT RUNNING AS ROOT/SUDO==============="
@@ -120,11 +132,12 @@ else
     echo "  sudo sysctl fs.inotify.max_user_instances=16384"
     echo "  sudo sysctl fs.inotify.max_queued_events=16384"
     echo "  sudo sysctl user.max_user_namespaces=10000"
-    echo "For permanent effect, append the following lines to /etc/sysctl.conf and then run 'sudo sysctl -p':"
+    echo "For permanent effect, please make sure you only append the following lines to /etc/sysctl.conf if they do not already exist, then run 'sudo sysctl -p':"
     echo "  fs.inotify.max_user_watches=1048576"
     echo "  fs.inotify.max_user_instances=16384"
     echo "  fs.inotify.max_queued_events=16384"
     echo "  user.max_user_namespaces=10000"
+    echo "Tip: You can use 'grep' to check if a setting already exists in /etc/sysctl.conf, for example: grep fs.inotify.max_user_watches /etc/sysctl.conf"
     echo "===============THIS WONT AFFECT THE QUICK START EXAMPLES, BUT JUST FULL EXECUTION==============="
     echo "===============SLEEP 5s FOR YOU TO READ THIS MESSAGE==============="
     echo -e "${RESET}"
