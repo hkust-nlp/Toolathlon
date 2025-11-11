@@ -119,6 +119,7 @@ if [ "$WITH_SUDO" = true ]; then
             sudo sed -i "s|^$key\s*=.*|$key=$value|" "$SYSCTL_CONF"
         else
             # If not found, append to file
+            echo "" | sudo tee -a "$SYSCTL_CONF" > /dev/null
             echo "$key=$value" | sudo tee -a "$SYSCTL_CONF" > /dev/null
         fi
     done
