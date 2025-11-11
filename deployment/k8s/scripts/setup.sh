@@ -244,7 +244,9 @@ start_operation() {
     echo ""
     log_info "========== Deployment completed =========="
     log_info "Successfully created and verified clusters: $success_count"
-    log_error "Failed clusters: $failed_count"
+    if [ "$failed_count" -gt 0 ]; then
+        log_error "Failed clusters: $failed_count"
+    fi
     
     # List all clusters
     log_info "All Kind clusters:"

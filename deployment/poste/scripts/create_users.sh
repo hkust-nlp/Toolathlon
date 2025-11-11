@@ -251,7 +251,9 @@ echo ""
 echo "🎉 Batch user creation completed!"
 echo "📊 Statistics:"
 echo "   ✅ Successfully created: $SUCCESS_COUNT users"
-echo "   ❌ Failed to create: $FAILED_COUNT users"
+if [ "$FAILED_COUNT" -gt 0 ]; then
+    echo "   ❌ Failed to create: $FAILED_COUNT users"
+fi
 echo ""
 
 # Show final user count
