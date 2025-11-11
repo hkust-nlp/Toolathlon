@@ -11,5 +11,5 @@ params:
     - "--header"
     - "Authorization: Bearer ${token.huggingface_token}"
   cwd: "${agent_workspace}"
-client_session_timeout_seconds: 100
+client_session_timeout_seconds: 30
 cache_tools_list: true 

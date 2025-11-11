@@ -24,24 +24,32 @@ async def main():
     xx_MCPServerManager = MCPServerManager(agent_workspace="./dumps_for_mcp_check/mcp_servers_check") # a pseudo server manager
     
     for server_name in to_check_servers:
-        if server_name == "notion_official":
+        if server_name == "huggingface":
             # we do not verify this server
             continue
         server_x = xx_MCPServerManager.servers[server_name]
         
-        try:
-            print_color(f"Server {server_name} is checking ... ", "yellow")
-            async with server_x as server:
-                tools = await server.list_tools()
-                # with open("./mcptools_count.jsonl", "a") as f:
-                    # f.write(json.dumps({"server_name": server_name, "tools_count": len(tools)}) + "\n")
-                pass
-            # if server_name == "github" and global_configs.podman_or_docker == "podman":
-                # print_color("If you see `2025-08-30T11:10:04.982268: process not running: No such process` somthing like in checking github MCP server with podman, do not worry, this is just a expected behavior :)", "cyan")
-            print_color(f"Server {server_name} is checked", "green")
-        except Exception as e:
-            print_color(f"Server {server_name} is checked with error: {e}", "red")
-            continue
+        max_retries = 4
+        for attempt in range(1, max_retries + 1):
+            try:
+                print_color(f"Server {server_name} is checking (attempt {attempt}) ... ", "yellow")
+                async with server_x as server:
+                    tools = await server.list_tools()
+                    # with open("./mcptools_count.jsonl", "a") as f:
+                        # f.write(json.dumps({"server_name": server_name, "tools_count": len(tools)}) + "\n")
+                    pass
+                # if server_name == "github" and global_configs.podman_or_docker == "podman":
+                    # print_color("If you see `2025-08-30T11:10:04.982268: process not running: No such process` somthing like in checking github MCP server with podman, do not worry, this is just a expected behavior :)", "cyan")
+                print_color(f"Server {server_name} is checked", "green")
+                break
+            except Exception as e:
+                if attempt < max_retries:
+                    print_color(f"Server {server_name} check failed (attempt {attempt}): {e}", "red")
+                    await asyncio.sleep(0.8)
+                    continue
+                else:
+                    print_color(f"Server {server_name} is checked with error after {max_retries} attempts: {e}", "red")
+                    break
         
     
     
