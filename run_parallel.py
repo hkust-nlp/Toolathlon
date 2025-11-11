@@ -198,7 +198,7 @@ class AsyncTaskScheduler:
     
     async def run_single_task(self, task_dir_arg: str, tag: str, 
                              model_short_name: str, provider: str, 
-                             maxstep: str, timeout: int = 1800, eval_config: str = "scripts/foraml_run_v0.json",
+                             maxstep: str, timeout: int = 1800, eval_config: str = "scripts/formal_run_v0.json",
                              dump_path: str = "./dumps", image_name: str = "lockon0927/toolathlon-task-image:1016beta"):
         """Run a single task with proper conflict lock and semaphore management."""
         
@@ -288,7 +288,7 @@ class AsyncTaskScheduler:
 
     async def _execute_task(self, task_dir_arg: str, tag: str,
                            model_short_name: str, provider: str,
-                           maxstep: str, timeout: int, has_lock: bool, eval_config: str = "scripts/foraml_run_v0.json",
+                           maxstep: str, timeout: int, has_lock: bool, eval_config: str = "scripts/formal_run_v0.json",
                            dump_path: str = "./dumps", image_name: str = "lockon0927/toolathlon-task-image:1016beta"):
         """Actually run the task and collect result info."""
         command = f"bash scripts/run_single_containerized.sh {task_dir_arg} {tag} {dump_path} {model_short_name} {provider} {maxstep} {eval_config} {image_name}"
@@ -545,8 +545,8 @@ async def main():
                        help="Custom path to save results (optional)")
     parser.add_argument("--task_list", required=False, default=None,
                        help="Path to task list file to filter tasks (optional, e.g., filtered_tasks.txt)")
-    parser.add_argument("--eval_config", required=False, default="scripts/foraml_run_v0.json",
-                       help="Path to evaluation config file (default: scripts/foraml_run_v0.json)")
+    parser.add_argument("--eval_config", required=False, default="scripts/formal_run_v0.json",
+                       help="Path to evaluation config file (default: scripts/formal_run_v0.json)")
     parser.add_argument("--image_name", required=False, default="lockon0927/toolathlon-task-image:1016beta",
                        help="Docker image name to use (default: lockon0927/toolathlon-task-image:1016beta)")
     

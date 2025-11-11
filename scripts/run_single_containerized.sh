@@ -20,7 +20,7 @@ dump_path=${3:-"./dumps_quick_start"}
 modelname=${4:-"anthropic/claude-sonnet-4.5"}
 provider=${5:-"unified"}
 maxstep=${6:-"100"}
-eval_config=${7:-"scripts/foraml_run_v0.json"}
+eval_config=${7:-"scripts/formal_run_v0.json"}
 image_name=${8:-"lockon0927/toolathlon-task-image:1016beta"}
 
 taskdomain=${task_dir_arg%/*}
