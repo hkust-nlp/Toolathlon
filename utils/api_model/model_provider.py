@@ -653,9 +653,17 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                         if any(pattern in error_msg for pattern in [
                             'token count exceeds',
                             'exceeds the maximum',
+                            'string too long',
                             'too long',
                             'context_length_exceeded',
-                            'token limit exceeded'
+                            'maximum context length',
+                            'token limit exceeded',
+                            'content too long',
+                            'message too long',
+                            'prompt is too long',
+                            'maximum number of tokens',
+                            'maximum prompt length is', # for xAI model
+                            'request exceeded model token limit' # for kimi
                         ]) or error_code in ['string_above_max_length', 'context_length_exceeded', 'messages_too_long']:
                             context_too_long = True
                     except:
@@ -665,14 +673,19 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                 elif not context_too_long:
                     lower_error = error_str.lower()
                     if any(pattern in lower_error for pattern in [
-                        'context too long',
+                        'token count exceeds',
+                        'exceeds the maximum',
+                        'string too long',
+                        'too long',
                         'context_length_exceeded',
                         'maximum context length',
                         'token limit exceeded',
-                        'exceeds maximum',
-                        'exceeds the maximum',
+                        'content too long',
+                        'message too long',
                         'prompt is too long',
-                        'Your request exceeded model token limit: ',
+                        'maximum number of tokens',
+                        'maximum prompt length is', # for xAI model
+                        'request exceeded model token limit' # for kimi
                     ]):
                         context_too_long = True
                 
