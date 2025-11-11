@@ -587,11 +587,10 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                                     display_text = text_content[:match.start()] + text_content[match.end():]
                                 stripped_text = display_text.strip()
                                 if stripped_text:
-                                    print("\033[97mASSISTANT: ", stripped_text, "\033[0m")
+                                    print("ASSISTANT: ", stripped_text)
                 return model_response
             except Exception as e:
-                error_str = str(e)
-                
+                error_str = str(e)                
                 # Detect various forms of context too long errors
                 context_too_long = False
                 current_tokens, max_tokens = None, None
@@ -612,8 +611,8 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                         'message too long',
                         'prompt is too long',
                         'maximum number of tokens',
-                        r'maximum prompt length is', # for xAI model
-                        'Your request exceeded model token limit: ' # for kimi
+                        'maximum prompt length is', # for xAI model
+                        'request exceeded model token limit' # for kimi
                     ]):
                         context_too_long = True
                         
@@ -639,7 +638,7 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                             max_tokens, current_tokens = int(match.group(1)), int(match.group(2))
                         
                         # Pattern 5: kimi
-                        match = re.search(r'Your request exceeded model token limit: (\d+)', error_str)
+                        match = re.search(r'request exceeded model token limit: (\d+)', error_str)
                         if match:
                             max_tokens = int(match.group(1))
                 
@@ -697,8 +696,8 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                 
                 # For other errors: continue retry logic
                 if self.debug:
-                    import traceback
-                    traceback.print_exc()
+                    # import traceback
+                    # traceback.print_exc()
                     print(f"Error in get_response: {e}, retry {i+1}/{self.retry_times}, waiting {self.retry_delay} seconds...")
                 
                 # Raise if it's the last try
