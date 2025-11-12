@@ -577,7 +577,6 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                                     text_content = content.text
                                     break
                             if text_content:
-                                import re
                                 match = re.search(r'<think>(.*?)</think>', text_content, re.DOTALL)
                                 display_text = text_content
                                 if match:
