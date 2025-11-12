@@ -3,13 +3,25 @@ import os
 import time
 from argparse import ArgumentParser
 import requests
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from requests.exceptions import RequestException, Timeout, ConnectionError
 
 # Add utils to path
 sys.path.append(os.path.dirname(__file__))
 
 from configs.token_key_session import all_token_key_session
 from utils.general.helper import print_color
+from utils.app_specific.github.api import DEFAULT_TIMEOUT
 
+# Retry decorator for network operations
+github_retry = retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=2, min=2, max=10),
+    retry=retry_if_exception_type((RequestException, Timeout, ConnectionError)),
+    reraise=True
+)
+
+@github_retry
 def wait_for_repo_deleted(repo_full_name: str, headers: dict, max_wait: int = 30, interval: int = 2) -> bool:
     """
     Wait for a repository to be deleted.
@@ -19,7 +31,7 @@ def wait_for_repo_deleted(repo_full_name: str, headers: dict, max_wait: int = 30
     start_time = time.time()
     
     while time.time() - start_time < max_wait:
-        response = requests.get(f"https://api.github.com/repos/{repo_full_name}", headers=headers)
+        response = requests.get(f"https://api.github.com/repos/{repo_full_name}", headers=headers, timeout=DEFAULT_TIMEOUT)
         if response.status_code == 404:
             print_color(f"Repo {repo_full_name} has been deleted successfully", "green")
             return True
@@ -29,6 +41,7 @@ def wait_for_repo_deleted(repo_full_name: str, headers: dict, max_wait: int = 30
     
     return False
 
+@github_retry
 def wait_for_fork_completed(repo_full_name: str, headers: dict, max_wait: int = 60, interval: int = 3) -> bool:
     """
     Wait for a fork operation to complete.
@@ -38,8 +51,8 @@ def wait_for_fork_completed(repo_full_name: str, headers: dict, max_wait: int = 
     start_time = time.time()
     
     while time.time() - start_time < max_wait:
-        response = requests.get(f"https://api.github.com/repos/{repo_full_name}", headers=headers)
-        
+        response = requests.get(f"https://api.github.com/repos/{repo_full_name}", headers=headers, timeout=DEFAULT_TIMEOUT)
+
         if response.status_code == 200:
             repo_data = response.json()
             # Check if the repo is ready (not being created)
@@ -77,7 +90,7 @@ def main():
     target_repo_name = args.target_repo_name
     target_repo_org_or_user = None
 
-    username = requests.get("https://api.github.com/user", headers=headers).json()["login"]
+    username = requests.get("https://api.github.com/user", headers=headers, timeout=DEFAULT_TIMEOUT).json()["login"]
 
     if "/" in target_repo_name:
         target_repo_org_or_user = target_repo_name.split("/")[0]
@@ -89,7 +102,7 @@ def main():
 
     # First check if the target repo exists
     existed_flag = False
-    if requests.get(f"https://api.github.com/repos/{target_repo_full_name}", headers=headers).status_code == 200:
+    if requests.get(f"https://api.github.com/repos/{target_repo_full_name}", headers=headers, timeout=DEFAULT_TIMEOUT).status_code == 200:
         print_color(f"Target repo {target_repo_full_name} already exists", "green")
         existed_flag = True
     else:
@@ -107,7 +120,7 @@ def main():
         
         # Delete the target repo first if it exists
         delete_url = f"https://api.github.com/repos/{target_repo_full_name}"
-        response = requests.delete(delete_url, headers=headers)
+        response = requests.delete(delete_url, headers=headers, timeout=DEFAULT_TIMEOUT)
         
         if response.status_code == 204:
             print_color(f"Delete request sent for repo {target_repo_full_name}", "green")
@@ -131,8 +144,8 @@ def main():
     
     if target_repo_org_or_user is not None and target_repo_org_or_user != username:
         data["organization"] = target_repo_org_or_user
-        
-    response = requests.post(fork_url, headers=headers, json=data)
+
+    response = requests.post(fork_url, headers=headers, json=data, timeout=DEFAULT_TIMEOUT)
     
     if response.status_code == 202:
         print_color(f"Fork request sent for {source_repo_name} to {target_repo_full_name}", "green")
