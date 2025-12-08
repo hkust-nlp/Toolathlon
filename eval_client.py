@@ -105,7 +105,7 @@ def ensure_parent_dir(file_path: str):
 async def cancel_job_on_server(server_url: str, job_id: str, reason: str = "Client error"):
     """Cancel job on server (best effort, don't fail if it doesn't work)"""
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        async with httpx.AsyncClient(timeout=10.0, trust_env=True) as client:
             await client.post(
                 f"{server_url}/cancel_job",
                 params={"job_id": job_id}
@@ -135,7 +135,7 @@ async def download_task_if_needed(
 
     try:
         # Download task archive
-        async with httpx.AsyncClient(timeout=120.0) as client:
+        async with httpx.AsyncClient(timeout=120.0, trust_env=True) as client:
             response = await client.get(
                 f"{server_url}/get_task_archive",
                 params={"job_id": job_id, "task_name": task_name}
@@ -183,7 +183,7 @@ async def download_static_files(
     log("[Client] Downloading static files...")
 
     try:
-        async with httpx.AsyncClient(timeout=60.0) as client:
+        async with httpx.AsyncClient(timeout=60.0, trust_env=True) as client:
             response = await client.get(
                 f"{server_url}/get_static_files",
                 params={"job_id": job_id}
@@ -305,7 +305,7 @@ async def public_worker(
         start_time = time.time()
         server_log_offset = 0
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=30.0, trust_env=True) as client:
             while True:
                 elapsed = time.time() - start_time
 
@@ -530,7 +530,7 @@ async def private_worker(
             """Poll job status and sync server log"""
             nonlocal should_exit, exit_code, server_log_offset
 
-            async with httpx.AsyncClient(timeout=30.0) as client:
+            async with httpx.AsyncClient(timeout=30.0, trust_env=True) as client:
                 while not should_exit:
                     try:
                         elapsed = time.time() - start_time
@@ -959,7 +959,7 @@ def run(
     try:
         import httpx
 
-        with httpx.Client(timeout=30.0) as client:
+        with httpx.Client(timeout=30.0, trust_env=True) as client:
             submit_data = {
                 "client_version": CLIENT_VERSION,  # Send client version for compatibility check
                 "mode": mode,
@@ -1131,7 +1131,7 @@ def status(
     try:
         import httpx
 
-        with httpx.Client(timeout=10.0) as client:
+        with httpx.Client(timeout=10.0, trust_env=True) as client:
             resp = client.get(
                 f"{server_url}/poll_job_status",
                 params={"job_id": job_id}
@@ -1196,7 +1196,7 @@ def cancel(
 
         typer.echo(f"Cancelling job {job_id}...")
 
-        with httpx.Client(timeout=30.0) as client:
+        with httpx.Client(timeout=30.0, trust_env=True) as client:
             resp = client.post(
                 f"{server_url}/cancel_job",
                 params={"job_id": job_id}
@@ -1262,7 +1262,7 @@ def check(
     try:
         import httpx
 
-        with httpx.Client(timeout=10.0) as client:
+        with httpx.Client(timeout=10.0, trust_env=True) as client:
             resp = client.get(f"{server_url}/check_server_status")
 
             if resp.status_code != 200:
