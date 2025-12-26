@@ -1,11 +1,12 @@
-from argparse import ArgumentParser
 import imaplib
 import email
-import json
+import email.utils
 import re
 from datetime import datetime, timedelta, timezone
-import os
+from typing import Tuple
+
 from utils.general.helper import normalize_str
+
 
 def check_local_email(target_email="jjones@mcp.com", agent_email="donna_castillo56@mcp.com"):
     """Check if email was sent to target recipient with correct content via local IMAP"""
@@ -103,22 +104,29 @@ def check_local_email(target_email="jjones@mcp.com", agent_email="donna_castillo
     except Exception as e:
         return False, f"Error checking local email: {str(e)}"
 
-if __name__ == "__main__":
-    parser = ArgumentParser()
-    parser.add_argument("--agent_workspace", required=True)
-    args = parser.parse_args()
 
-    print("🌐 Meeting Assign - Local Email Check")
+def check_remote(agent_workspace: str, groundtruth_workspace: str) -> Tuple[bool, str]:
+    """
+    Check remote services (email server).
+    
+    Args:
+        agent_workspace: path to agent workspace
+        groundtruth_workspace: path to ground truth workspace
+        
+    Returns:
+        (pass or not, message)
+    """
+    print("🌐 Meeting Assign - Email Check")
     print("=" * 50)
-
-    # Try to check local email server first
+    
     success, message = check_local_email()
-
+    
     print(f"\n📧 Email Verification: {message}")
-
-    if not success:
-        print("❌ Local email check failed!")
-        raise RuntimeError(f"Local email verification failed: {message}")
-    else:
-        print("✅ Local email check passed!")
+    
+    if success:
+        print("✅ Email check passed!")
         print("Meeting assignment email successfully verified!")
+    else:
+        print("❌ Email check failed!")
+    
+    return success, message
