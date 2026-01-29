@@ -9,6 +9,13 @@ import json
 import re
 from datetime import datetime, timedelta, timezone
 import os
+
+# Add project root directory to sys.path for utils imports
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, "../../../.."))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 from utils.general.helper import normalize_str
 
 def check_local_email(target_email="jjones@mcp.com", agent_email="donna_castillo56@mcp.com"):
