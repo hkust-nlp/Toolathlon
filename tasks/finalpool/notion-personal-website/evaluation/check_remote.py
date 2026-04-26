@@ -15,7 +15,67 @@ with open(allowed_page_id_file, "r") as f:
     allowed_page_ids = f.read()
 TARGET_PAGE_ID = allowed_page_ids
 
-from utils.app_specific.notion.ops import get_page_by_id,get_page_content_as_text
+from utils.app_specific.notion.ops import get_page_by_id
+
+def get_page_content_as_text_paginated(page_id: str, token: str) -> str:
+    """Get all top-level page blocks as plain text, following Notion pagination."""
+    url = f"https://api.notion.com/v1/blocks/{page_id}/children"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+        "Notion-Version": "2022-06-28"
+    }
+
+    blocks = []
+    params = {"page_size": 100}
+
+    while True:
+        try:
+            response = requests.get(url, headers=headers, params=params)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            raise Exception(f"Failed to get Notion page blocks: {e}")
+
+        data = response.json()
+        blocks.extend(data.get('results', []))
+
+        if not data.get('has_more'):
+            break
+
+        next_cursor = data.get('next_cursor')
+        if not next_cursor:
+            raise Exception("Notion page blocks response had has_more=True but no next_cursor")
+
+        params["start_cursor"] = next_cursor
+
+    content_parts = []
+
+    for block in blocks:
+        block_type = block.get('type', '')
+
+        if block_type in ['paragraph', 'heading_1', 'heading_2', 'heading_3', 'bulleted_list_item', 'numbered_list_item']:
+            rich_text = block[block_type].get('rich_text', [])
+            content = ''.join([text.get('text', {}).get('content', '') for text in rich_text])
+            if content.strip():
+                if block_type == 'heading_1':
+                    content_parts.append(f"# {content}")
+                elif block_type == 'heading_2':
+                    content_parts.append(f"## {content}")
+                elif block_type == 'heading_3':
+                    content_parts.append(f"### {content}")
+                else:
+                    content_parts.append(content)
+
+        elif block_type == 'bookmark':
+            url = block['bookmark'].get('url', '')
+            caption = block['bookmark'].get('caption', [])
+            caption_text = ''.join([text.get('text', {}).get('content', '') for text in caption])
+            if caption_text.strip():
+                content_parts.append(f"[{caption_text}]({url})")
+            elif url.strip():
+                content_parts.append(f"Link: {url}")
+
+    return '\n\n'.join(content_parts)
 
 def extract_text_from_notion_page(notion_page_content: str) -> Dict[str, str]:
     """Extract information from different sections - exactly matches original"""
@@ -317,7 +377,7 @@ def check_remote(agent_workspace: str, groundtruth_workspace: str) -> Tuple[bool
 
     # Get page content
     print("Extracting page content...")
-    notion_content = get_page_content_as_text(target_page['id'], NOTION_TOKEN)
+    notion_content = get_page_content_as_text_paginated(target_page['id'], NOTION_TOKEN)
 
     if not notion_content.strip():
         return False, "No content found in the Notion page"

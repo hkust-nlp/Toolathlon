@@ -4,6 +4,7 @@ import os
 from argparse import ArgumentParser
 from pathlib import Path
 from difflib import SequenceMatcher
+from urllib.parse import urlsplit, unquote
 import gspread
 from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
@@ -13,6 +14,7 @@ from utils.app_specific.google_oauth.ops import get_credentials
 from utils.general.helper import normalize_str
 import os
 from typing import Union
+import re
 
 with open(os.path.join(os.path.dirname(__file__), "..", "files", "folder_id.txt"), "r") as f:
     folder_id = f.read().strip()
@@ -36,6 +38,50 @@ def authenticate_google_services():
 def similar(a: str, b: str) -> float:
     """Calculate the similarity between two strings"""
     return SequenceMatcher(None, str(a).lower().strip(), str(b).lower().strip()).ratio()
+
+URL_RE = re.compile(r"https?://[^\s,;]+")
+
+def extract_urls(text: str) -> list[str]:
+    if not text:
+        return []
+    urls = URL_RE.findall(str(text))
+    if urls:
+        return urls
+    stripped = str(text).strip()
+    return [stripped] if stripped else []
+
+def canonicalize_source_url(url: str) -> str | None:
+    try:
+        split_result = urlsplit(str(url).strip())
+    except ValueError:
+        return None
+
+    if split_result.scheme.lower() != "https" or not split_result.netloc:
+        return None
+
+    host = split_result.netloc.lower()
+    if host.startswith("www."):
+        host = host[4:]
+
+    path = unquote(split_result.path).strip().rstrip("/").lower()
+    return f"{host}{path}"
+
+def sources_match(submitted: str, expected: Union[str, list]) -> bool:
+    expected_urls = [expected] if isinstance(expected, str) else list(expected)
+    submitted_canonicals = {
+        canonical
+        for submitted_url in extract_urls(submitted)
+        for canonical in [canonicalize_source_url(submitted_url)]
+        if canonical
+    }
+
+    for expected_url in expected_urls:
+        expected_canonical = canonicalize_source_url(expected_url)
+        if expected_canonical and expected_canonical in submitted_canonicals:
+            return True
+
+    submitted_norm = normalize_str(submitted)
+    return any(normalize_str(expected_url) in submitted_norm for expected_url in expected_urls)
 
 
 def find_spreadsheet_in_folder(spreadsheet_name: str = SPREADSHEET_NAME) -> str:
@@ -170,24 +216,17 @@ def find_matching_model(model_name: str, groundtruth: list) -> dict:
 
 
 def evaluate_field(submitted: str, expected: Union[str, list], field_name: str) -> bool:
-    submitted = normalize_str(submitted)
-
-    if isinstance(expected, str):
-        expected = [expected]
-
-    expected = [normalize_str(e) for e in expected]
-    
-
     if field_name == "Architecture":
+        submitted = normalize_str(submitted)
+        if isinstance(expected, str):
+            expected = [expected]
+        expected = [normalize_str(e) for e in expected]
         for e in expected:
             if submitted == e:
                 return True
         return False
     elif field_name == "Sources":
-        for e in expected:
-            if e in submitted:
-                return True
-        return False
+        return sources_match(submitted, expected)
     else:
         raise ValueError(f"Invalid field name: {field_name}")
 
@@ -217,13 +256,13 @@ def evaluate_submission(submitted_data: list, groundtruth: list) -> dict:
         if evaluate_field(submitted_arch, gt_match["Architecture"], "Architecture"):
             correct_architecture += 1
         else:
-            print(f"{model_name} -- expect: {gt_match["Architecture"]}, actual: {submitted_arch}")
+            print(f"{model_name} -- expect: {gt_match['Architecture']}, actual: {submitted_arch}")
         
         # Evaluate sources field
         if evaluate_field(submitted_sources, gt_match["Sources"], "Sources"):
             correct_sources += 1
         else:
-            print(f"{model_name} -- expect: {gt_match["Sources"]}, actual: {submitted_sources}")
+            print(f"{model_name} -- expect: {gt_match['Sources']}, actual: {submitted_sources}")
     
     return {
         "total_models": total_models,
@@ -276,4 +315,4 @@ if __name__ == "__main__":
         sys.exit(0)
     else:
         print(f"❌ Evaluation failed")
-        sys.exit(1) 
+        sys.exit(1)

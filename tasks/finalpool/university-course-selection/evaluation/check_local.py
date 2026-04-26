@@ -1,9 +1,74 @@
 # Standard library imports for file system operations and data manipulation
 import os
+import re
 import pandas as pd
 from typing import Tuple, Optional
 from itertools import permutations
 from utils.general.helper import normalize_str
+
+INSTRUCTOR_TITLES = [
+    '青年副研究员',
+    '副研究员',
+    '副教授',
+    '高级工程师',
+    '高级实验师',
+    '研究员',
+    '工程师',
+    '讲师',
+    '教授',
+]
+
+def normalize_instructor(value) -> str:
+    text = str(value).strip()
+    for title in INSTRUCTOR_TITLES:
+        text = text.replace(title, '')
+    return re.sub(r'\s+', ' ', text).strip()
+
+def normalize_class_time(value) -> str:
+    text = str(value).strip()
+    text = re.sub(r'\s*\[[^\]]+\]', '', text)
+    return re.sub(r'\s+', ' ', text).strip()
+
+def normalize_restriction_tokens(value):
+    text = str(value).strip()
+    if not text:
+        return set()
+
+    normalized_text = normalize_str(text)
+    if normalized_text == normalize_str('无'):
+        return {normalize_str('无')}
+
+    tokens = set()
+    for part in re.split(r'[，,、；;\n]+', text):
+        candidate = str(part).strip()
+        if candidate:
+            tokens.add(normalize_str(candidate))
+    return tokens
+
+def smart_compare(val1, val2, column_name=None):
+    """Smart compare two values with limited column-specific normalization."""
+    if pd.isna(val1) and pd.isna(val2):
+        return True
+    if pd.isna(val1) or pd.isna(val2):
+        return False
+
+    if column_name == 'Instructor':
+        return normalize_str(normalize_instructor(val1)) == normalize_str(normalize_instructor(val2))
+
+    if column_name == 'Class Time':
+        return normalize_str(normalize_class_time(val1)) == normalize_str(normalize_class_time(val2))
+
+    if column_name == 'Course Selection Restrictions':
+        return normalize_restriction_tokens(val1) == normalize_restriction_tokens(val2)
+
+    try:
+        num1 = float(str(val1).strip())
+        num2 = float(str(val2).strip())
+        return abs(num1 - num2) < 1e-10
+    except (ValueError, TypeError):
+        str1 = normalize_str(str(val1).strip())
+        str2 = normalize_str(str(val2).strip())
+        return str1 == str2
 
 def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode=True) -> Tuple[bool, Optional[str]]:
     """
@@ -42,27 +107,6 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode=True) 
         
         # Reset the index
         return subset.reset_index(drop=True)
-    
-    def smart_compare(val1, val2):
-        """Smart compare two values, handle numeric and string types"""
-        # Handle NaN values
-        if pd.isna(val1) and pd.isna(val2):
-            return True
-        if pd.isna(val1) or pd.isna(val2):
-            return False
-        
-        # Try numeric comparison
-        try:
-            # Try to convert both values to floats
-            num1 = float(str(val1).strip())
-            num2 = float(str(val2).strip())
-            # Use small error comparison
-            return abs(num1 - num2) < 1e-10
-        except (ValueError, TypeError):
-            # If not a number, perform string comparison
-            str1 = normalize_str(str(val1).strip())
-            str2 = normalize_str(str(val2).strip())
-            return str1 == str2
     
     def compare_single_files(gt_file_path, agent_file_path):
         """Compare a single groundtruth file and agent file"""
@@ -124,7 +168,7 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode=True) 
                 return False, "Agent file does not contain any valid data"
             
             # Ensure the two files have the same columns
-            common_cols = list(set(available_gt_cols) & set(available_agent_cols))
+            common_cols = [col for col in REQUIRED_COLUMNS if col in available_gt_cols and col in available_agent_cols]
             if not common_cols:
                 return False, "The two files do not have the same required columns"
             
@@ -143,7 +187,7 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode=True) 
                     gt_val = gt_sorted.iloc[i][col]
                     agent_val = agent_sorted.iloc[i][col]
                     
-                    if not smart_compare(gt_val, agent_val):
+                    if not smart_compare(gt_val, agent_val, col):
                         mismatches.append({
                             'row': i + 1,
                             'column': col,
@@ -213,4 +257,4 @@ def check_local(agent_workspace: str, groundtruth_workspace: str, en_mode=True) 
             return True, success_msg.strip()
     
     # If all permutations cannot achieve a perfect match
-    return False, f"Tried all {len(list(permutations(agent_files)))} permutations, but cannot find the perfect matching solution" 
+    return False, f"Tried all {len(list(permutations(agent_files)))} permutations, but cannot find the perfect matching solution"

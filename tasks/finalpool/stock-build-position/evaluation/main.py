@@ -6,6 +6,7 @@ from collections import defaultdict
 import yfinance as yf
 from concurrent.futures import ThreadPoolExecutor
 import numpy as np
+import re
 
 from pprint import pprint
 import json
@@ -27,6 +28,50 @@ stock_name_to_code = {
     "Google": "GOOGL",
     "Meta": "META",
 }
+
+def _normalize_stock_code_value(code):
+    code_str = str(code).strip().upper()
+    if re.fullmatch(r"\d+\.0+", code_str):
+        code_str = code_str.split(".")[0]
+    return code_str
+
+
+def _parse_a_share_code(code):
+    normalized_code = _normalize_stock_code_value(code)
+    match = re.fullmatch(r"(\d{6})(?:\.(SS|SH|SZ))?", normalized_code)
+    if not match:
+        return None
+
+    digits, suffix = match.groups()
+    if suffix in {"SS", "SH"}:
+        market = "SH"
+    elif suffix == "SZ":
+        market = "SZ"
+    else:
+        market = None
+
+    return digits, market
+
+
+def stock_codes_match(expected_code, actual_code):
+    expected_normalized = _normalize_stock_code_value(expected_code)
+    actual_normalized = _normalize_stock_code_value(actual_code)
+
+    if expected_normalized == actual_normalized:
+        return True
+
+    expected_a_share = _parse_a_share_code(expected_normalized)
+    actual_a_share = _parse_a_share_code(actual_normalized)
+    if expected_a_share and actual_a_share:
+        expected_digits, expected_market = expected_a_share
+        actual_digits, actual_market = actual_a_share
+        if expected_digits != actual_digits:
+            return False
+        if expected_market is None or actual_market is None:
+            return True
+        return expected_market == actual_market
+
+    return False
 
 def get_stock_price_sync(ticker):
     """Obtain stock price information simultaneously"""
@@ -225,7 +270,7 @@ async def main(args):
                 print(f"❌ HK: The number of shares is not an integer: {row['Stock_name']} - {stock_number}")
                 return False
             # Verify if the stock code match the stock name correctly.
-            if stock_name_to_code[row['Stock_name']] != row['Stock_code']:
+            if not stock_codes_match(stock_name_to_code[row['Stock_name']], row['Stock_code']):
                 print(f"❌ Stock code mismatches: {row['Stock_name']} expected: {stock_name_to_code[row['Stock_name']]}, actual: {row['Stock_code']}")
                 return False
         elif row['Stock_name'] in ["Microsoft","Apple","NVIDIA","AMD", "Google", "Meta"]:
@@ -238,7 +283,7 @@ async def main(args):
                 print(f"❌ US: The number of shares is not an integer: {row['Stock_name']} - {stock_number}")
                 return False
             # Verify if the stock code match the stock name correctly.
-            if stock_name_to_code[row['Stock_name']] != row['Stock_code']:
+            if not stock_codes_match(stock_name_to_code[row['Stock_name']], row['Stock_code']):
                 print(f"❌ Stock code mismatches: {row['Stock_name']} expected: {stock_name_to_code[row['Stock_name']]}, actual: {row['Stock_code']}")
                 return False
         elif row['Stock_name'] in ["Moutai","Ping An Insurance","BYD","CATL","WuXi AppTec"]:
@@ -251,7 +296,7 @@ async def main(args):
                 print(f"❌ CN: The number of shares need to be a positive integer and a multiple of 100: {row['Stock_name']} - {stock_number}")
                 return False
             # Verify if the stock code match the stock name correctly.
-            if stock_name_to_code[row['Stock_name']] != row['Stock_code']:
+            if not stock_codes_match(stock_name_to_code[row['Stock_name']], row['Stock_code']):
                 print(f"❌ Stock code mismatches: {row['Stock_name']} expected: {stock_name_to_code[row['Stock_name']]}, actual: {row['Stock_code']}")
                 return False
         else:

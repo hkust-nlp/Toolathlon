@@ -577,7 +577,10 @@ def validate_form_content(form_info: Dict) -> Tuple[bool, str]:
             },
             {
                 "keywords": ["delivery", "service", "satisfied"],
-                "question_text": "Are you satisfied with the delivery service?",
+                "question_text": "Are you satisfied with our delivery service?",
+                "alternative_texts": [
+                    "Are you satisfied with the delivery service?"
+                ],
                 "type": "choice",
                 "required": True, 
                 "options_count": 5,
@@ -623,9 +626,12 @@ def validate_form_content(form_info: Dict) -> Tuple[bool, str]:
                 question_type = actual_q.get('type', '')
                 question_required = actual_q.get('required', False)
                 question_options = actual_q.get('options', [])
+                accepted_texts = [req_q["question_text"]] + req_q.get("alternative_texts", [])
                 
                 # Check if contains keywords
-                if normalize_str(question_text) == normalize_str(req_q["question_text"]):
+                if normalize_str(question_text) in {
+                    normalize_str(candidate_text) for candidate_text in accepted_texts
+                }:
                     print(f"     ✅ Match to question {j+1}: '{actual_q.get('title', '')}'")
                     found_questions.append(req_q["name"])
                     

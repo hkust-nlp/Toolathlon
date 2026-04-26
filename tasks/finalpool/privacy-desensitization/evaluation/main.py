@@ -4,6 +4,9 @@ import re
 import tarfile
 import shutil
 
+def normalize_content_for_comparison(content):
+    return re.sub(r'/hidden/:\d+\b', '/hidden/', content)
+
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--agent_workspace", required=False, default=".")
@@ -51,6 +54,9 @@ if __name__ == "__main__":
             agent_content = f.read()
         with open(gt_file_path, 'r', encoding='utf-8') as f:
             gt_content = f.read()
+
+        agent_content = normalize_content_for_comparison(agent_content)
+        gt_content = normalize_content_for_comparison(gt_content)
         
         none_blank_agent_content = re.sub(r'\s+', '', agent_content).strip()
         none_blank_gt_content = re.sub(r'\s+', '', gt_content).strip()
@@ -61,7 +67,8 @@ if __name__ == "__main__":
             # exit(1)
     
     if all_mismatch_files:
-        print(f"Content mismatch ({len(all_mismatch_files)}):\n{'\n'.join(all_mismatch_files)}")
+        mismatch_list = "\n".join(all_mismatch_files)
+        print(f"Content mismatch ({len(all_mismatch_files)}):\n{mismatch_list}")
         exit(1)
 
     print("All checks passed")

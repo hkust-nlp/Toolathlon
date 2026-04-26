@@ -6,3 +6,4 @@ Please update the following sections based on the information in the docx docume
 - Paintings section
 - Workshop section
 - Prizes section
+- Exhibitions section

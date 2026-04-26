@@ -3,9 +3,12 @@ import asyncio
 from google.cloud import bigquery
 from google.cloud.exceptions import NotFound
 from google.oauth2 import service_account
-from datetime import datetime
+from datetime import datetime, date
 from pathlib import Path
 import json
+
+TASK_DATE_FILENAME = "task_date.txt"
+WORKSPACE_TASK_DATE_FILENAME = ".task_date.txt"
 
 def get_project_id_from_key(credentials_path: str) -> str | None:
     """Read project_id from service account key file"""
@@ -49,6 +52,61 @@ def setup_bigquery_client(credentials_file: str = None):
             print(f"❌ Failed to connect to BigQuery: {e}")
             print("Please provide a credentials file or set Application Default Credentials")
             raise
+
+def parse_task_date(launch_time: str | None) -> date:
+    """Parse task date from launch_time when the runner provides it."""
+    if not launch_time:
+        raise ValueError("launch_time is empty")
+
+    normalized = launch_time.strip()
+    candidates = [normalized]
+    parts = normalized.split()
+    if len(parts) > 1:
+        candidates.append(" ".join(parts[:-1]))
+
+    for candidate in candidates:
+        for fmt in ("%Y-%m-%d", "%Y-%m-%d %H:%M:%S"):
+            try:
+                return datetime.strptime(candidate, fmt).date()
+            except ValueError:
+                continue
+
+    raise ValueError(
+        f"Could not parse launch_time '{launch_time}'. "
+        "Supported formats: YYYY-MM-DD, YYYY-MM-DD HH:MM:SS, "
+        "or YYYY-MM-DD HH:MM:SS <weekday>."
+    )
+
+def resolve_task_date(args) -> date:
+    """Resolve the authoritative task date saved by preprocess, with safe fallbacks."""
+    candidate_paths = []
+    if args.groundtruth_workspace:
+        candidate_paths.append(Path(args.groundtruth_workspace) / TASK_DATE_FILENAME)
+    candidate_paths.append(Path(__file__).resolve().parent.parent / "groundtruth_workspace" / TASK_DATE_FILENAME)
+    if args.agent_workspace:
+        candidate_paths.append(Path(args.agent_workspace) / WORKSPACE_TASK_DATE_FILENAME)
+
+    for path in candidate_paths:
+        if not path.exists():
+            continue
+        try:
+            task_date = datetime.strptime(path.read_text(encoding="utf-8").strip(), "%Y-%m-%d").date()
+            print(f"📌 Using task date from file: {path} -> {task_date.isoformat()}")
+            return task_date
+        except ValueError as exc:
+            print(f"⚠️  Ignoring invalid task date file {path}: {exc}")
+
+    if args.launch_time:
+        try:
+            task_date = parse_task_date(args.launch_time)
+            print(f"📌 Using task date from launch_time: {task_date.isoformat()}")
+            return task_date
+        except ValueError as exc:
+            print(f"⚠️  Failed to parse launch_time '{args.launch_time}': {exc}")
+
+    fallback_date = date.today()
+    print(f"⚠️  Falling back to local system date: {fallback_date.isoformat()}")
+    return fallback_date
 
 async def verify_daily_leaderboard(client: bigquery.Client, today_str: str):
     """
@@ -416,26 +474,8 @@ async def main(args):
         print(f"❌ Failed to setup BigQuery client: {e}")
         return 1
 
-    # Decide date to run
-    if args.launch_time:
-        # For format: 2025-09-17 01:59:33 Wednesday
-        # Drop the last word
-        args.launch_time = " ".join(args.launch_time.split(" ")[:-1])
-        try:
-            launch_datetime = datetime.strptime(args.launch_time, '%Y-%m-%d')
-            today_str = launch_datetime.strftime('%Y-%m-%d')
-        except ValueError:
-            try:
-                launch_datetime = datetime.strptime(args.launch_time, '%Y-%m-%d %H:%M:%S')
-                today_str = launch_datetime.strftime('%Y-%m-%d')
-            except ValueError:
-                print(f"❌ Could not parse launch_time argument: {args.launch_time}")
-                print("   Supported formats: YYYY-MM-DD or YYYY-MM-DD HH:MM:SS")
-                return 1
-    else:
-        from datetime import date
-        today = date.today()
-        today_str = today.strftime('%Y-%m-%d')
+    task_date = resolve_task_date(args)
+    today_str = task_date.strftime('%Y-%m-%d')
 
     print(f"📅 Date to validate: {today_str}")
     print("=" * 60)

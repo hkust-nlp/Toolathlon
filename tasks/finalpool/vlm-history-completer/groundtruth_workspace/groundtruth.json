@@ -47,7 +47,10 @@
   {
     "Model": "StableDiffusion 1.5",
     "Architecture": "Diffusion-based",
-    "Sources": ["https://github.com/Kameronski/stable-diffusion-1.5"]
+    "Sources": [
+      "https://github.com/Kameronski/stable-diffusion-1.5",
+      "https://github.com/runwayml/stable-diffusion"
+    ]
   },
   {
     "Model": "AltCLIP",

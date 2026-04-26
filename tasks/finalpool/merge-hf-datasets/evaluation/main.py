@@ -8,12 +8,105 @@ def write_json(data, file_path):
     with open(file_path, "w") as f:
         json.dump(data, f, indent=4)
 
+def normalize_type_label(value):
+    if isinstance(value, str) and value == "dict":
+        return "object"
+    return value
+
+def looks_like_parameter_spec(value):
+    if not isinstance(value, dict):
+        return False
+    schema_hint_keys = {
+        "type", "description", "default", "enum", "items", "properties",
+        "required", "oneOf", "anyOf", "allOf", "format", "title", "examples",
+    }
+    return bool(set(value.keys()) & schema_hint_keys)
+
+def is_flat_parameter_map(parameters):
+    if not isinstance(parameters, dict) or not parameters:
+        return False
+    if "properties" in parameters:
+        return False
+    if isinstance(parameters.get("type"), str) and normalize_type_label(parameters["type"]) == "object":
+        return False
+    return all(looks_like_parameter_spec(value) for value in parameters.values())
+
+def normalize_parameter_schema(parameters):
+    if isinstance(parameters, list):
+        return [normalize_parameter_schema(item) for item in parameters]
+
+    if not isinstance(parameters, dict):
+        return parameters
+
+    if is_flat_parameter_map(parameters):
+        return {
+            "type": "object",
+            "properties": {
+                key: normalize_parameter_schema(value)
+                for key, value in parameters.items()
+            },
+        }
+
+    normalized = {}
+    for key, value in parameters.items():
+        if key == "type":
+            normalized[key] = normalize_type_label(value)
+        elif key == "properties" and isinstance(value, dict):
+            normalized[key] = {
+                prop_name: normalize_parameter_schema(prop_schema)
+                for prop_name, prop_schema in value.items()
+            }
+        elif key == "items":
+            normalized[key] = normalize_parameter_schema(value)
+        elif isinstance(value, (dict, list)):
+            normalized[key] = normalize_parameter_schema(value)
+        else:
+            normalized[key] = value
+    return normalized
+
+def normalize_tools_for_comparison(item):
+    if not isinstance(item, dict):
+        return item
+
+    normalized_item = json.loads(json.dumps(item))
+    tools = normalized_item.get("tools")
+    if isinstance(tools, list):
+        for tool in tools:
+            if isinstance(tool, dict):
+                if tool.get("required") is None:
+                    tool.pop("required", None)
+                if "parameters" in tool:
+                    tool["parameters"] = normalize_parameter_schema(tool["parameters"])
+    return normalized_item
+
+def normalize_tool_message_content(value):
+    if not isinstance(value, str):
+        return value
+
+    stripped = value.strip()
+    try:
+        parsed = json.loads(stripped)
+    except Exception:
+        return stripped
+
+    if (
+        isinstance(parsed, list)
+        and len(parsed) == 1
+        and isinstance(parsed[0], dict)
+        and set(parsed[0].keys()) == {"name", "results"}
+    ):
+        parsed = parsed[0]
+
+    return json.dumps(parsed, sort_keys=True)
+
 def normalize_value_for_comparison(value, path=""):
     """Normalize value for comparison, handling known acceptable differences."""
     if isinstance(value, str):
         # Normalize tool argument type
-        if path.endswith(".type") and value == "dict":
-            return "object"
+        if path.endswith(".type"):
+            return normalize_type_label(value)
+        if path.endswith(".content"):
+            return normalize_tool_message_content(value)
         # Normalize JSON string values
         try:
             parsed = json.loads(value.strip())
@@ -128,7 +221,16 @@ def compare_messages_with_tool_call_mapping(msgs1, msgs2, path):
         if msg1.get('role') != msg2.get('role'):
             differences.append(f"{current_path}.role: value mismatch - '{msg1.get('role')}' vs '{msg2.get('role')}'")
         
-        if msg1.get('content') != msg2.get('content'):
+        if msg1.get('role') == 'tool' and msg2.get('role') == 'tool':
+            content_matches = is_semantically_equivalent(
+                msg1.get('content'),
+                msg2.get('content'),
+                f"{current_path}.content",
+            )
+        else:
+            content_matches = msg1.get('content') == msg2.get('content')
+
+        if not content_matches:
             differences.append(f"{current_path}.content: value mismatch - '{msg1.get('content')}' vs '{msg2.get('content')}'")
         
         # For tool_calls and tool_call_id, compare only content not ID
@@ -224,8 +326,11 @@ async def main(args):
             print(f"Conversation id {item['conversation_id']} not found in model generated jsonl")
             return False
         
+        normalized_gt_item = normalize_tools_for_comparison(item)
+        normalized_pred_item = normalize_tools_for_comparison(pred_mappings[item['conversation_id']])
+
         # Use improved deep compare function (handles tool_call_id mapping)
-        differences = deep_compare_with_tool_call_mapping(item, pred_mappings[item['conversation_id']])
+        differences = deep_compare_with_tool_call_mapping(normalized_gt_item, normalized_pred_item)
         if differences:
             print(f"Conversation id {item['conversation_id']} not matched:")
             print("Left is groundtruth, right is model generated")

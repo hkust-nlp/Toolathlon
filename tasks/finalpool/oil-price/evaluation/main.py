@@ -648,18 +648,16 @@ def _compare_summary(expected: List[Dict], actual: List[Dict]) -> List[str]:
 
 def _compute_backtest(expected_rows: List[Dict]) -> Tuple[List[Dict], Dict[str, float]]:
     """
-    CORRECTED backtest implementation with proper trading logic:
-    - Signal generated at month-end based on z-score
-    - Position held for next month, closed at next month-end
-    - Only one position at a time
+    Backtest implementation matching detail.md:
+    - Signal is generated at month-end based on that month's z-score
+    - Entry Month is the signal generation month
+    - Position is held for one month and closed at the next month-end
+    - Returns are calculated from Entry Month month-end to Exit Month month-end
     """
     print(f"🔍 Debug info: Starting backtest calculation, total {len(expected_rows)} months")
     
     trades: List[Dict] = []
     monthly_returns: List[float] = []
-    current_position = None
-    entry_month = None
-    entry_spread = None
     
     # Debug: show all months and their signals
     print(f"🔍 Debug info: All months and signals:")
@@ -667,86 +665,76 @@ def _compute_backtest(expected_rows: List[Dict]) -> Tuple[List[Dict], Dict[str, 
         print(f"  {i:2d}. {row['m']}: Z={row.get('z_score', 0):6.4f}, Signal={row.get('signal', 'N/A'):12s}, Spread={row.get('spread', 0):6.4f}")
     print()
     
-    # Process each month starting from month 1 (need previous month for returns)
-    for i in range(1, len(expected_rows)):
-        prev_row = expected_rows[i-1]
-        curr_row = expected_rows[i]
+    # Process month-to-month transitions. A signal generated at month i is
+    # entered at month i's month-end and exited at month i+1's month-end.
+    for i in range(0, max(0, len(expected_rows) - 1)):
+        entry_row = expected_rows[i]
+        exit_row = expected_rows[i + 1]
+        signal = entry_row.get("signal", "Flat")
         
-        print(f"🔍 Debug info: --- Processing month {curr_row['m']} (index {i}) ---")
-        print(f"  Previous month: {prev_row['m']}, signal: {prev_row.get('signal', 'N/A')}")
-        print(f"  Current month: {curr_row['m']}")
-        
-        # Calculate returns if we currently have a position
-        if current_position is not None:
-            print(f"  Current position: {current_position} (entry month: {entry_month})")
-            
-            # Calculate individual leg returns
-            wti_return = (curr_row["wti_close"] / prev_row["wti_close"] - 1)
-            brent_return = (curr_row["brent_close"] / prev_row["brent_close"] - 1)
-            
-            print(f"  WTI return: {prev_row['wti_close']:.4f} -> {curr_row['wti_close']:.4f} = {wti_return*100:.2f}%")
-            print(f"  Brent return: {prev_row['brent_close']:.4f} -> {curr_row['brent_close']:.4f} = {brent_return*100:.2f}%")
-            
-            if current_position == "Long Spread":
-                # Long Brent + Short WTI (equal weight)
-                gross_return = (brent_return - wti_return) * 0.5
-                leg_returns_str = f"Brent: {brent_return*100:.2f}%, WTI: {-wti_return*100:.2f}%"
-            else:  # Short Spread
-                # Short Brent + Long WTI (equal weight)
-                gross_return = (-brent_return + wti_return) * 0.5
-                leg_returns_str = f"Brent: {-brent_return*100:.2f}%, WTI: {wti_return*100:.2f}%"
-            
-            # Apply 0.40% round-trip cost
-            net_return = gross_return - 0.004
-            monthly_returns.append(net_return)
-            
-            print(f"  Total return calculation: {current_position}")
-            print(f"    - Gross return: {gross_return*100:.4f}%")
-            print(f"    - Net return after 0.40% cost: {net_return*100:.2f}%")
-            
-            # Record the completed trade
-            exit_spread = curr_row["brent_close"] - curr_row["wti_close"]
-            trades.append({
-                "entry_month": entry_month,
-                "exit_month": curr_row["m"],
-                "signal": current_position,
-                "entry_spread": round(entry_spread, 4),
-                "exit_spread": round(exit_spread, 4),
-                "net_pnl_pct": round(net_return * 100, 2),
-                "leg": leg_returns_str
-            })
-            
-            print(f"  ✅ Trade completed: {current_position} {entry_month}->{curr_row['m']}")
-            print(f"      Spread: {entry_spread:.4f} -> {exit_spread:.4f}")
-            print(f"      Net return: {net_return*100:.2f}%")
-            
-            # Close position
-            current_position = None
-            entry_month = None
-            entry_spread = None
-        else:
-            # No position, add 0 return
+        print(f"🔍 Debug info: --- Processing signal month {entry_row['m']} (index {i}) ---")
+        print(f"  Signal: {signal}")
+        print(f"  Holding window: {entry_row['m']} -> {exit_row['m']}")
+
+        if signal == "Flat":
             monthly_returns.append(0.0)
-            print(f"  No position, this month's return: 0.0%")
+            print(f"  Flat signal, this holding window return: 0.0%")
+            print()
+            continue
+
+        # Calculate individual leg returns from signal/entry month-end to next month-end.
+        wti_return = (exit_row["wti_close"] / entry_row["wti_close"] - 1)
+        brent_return = (exit_row["brent_close"] / entry_row["brent_close"] - 1)
+
+        print(f"  WTI return: {entry_row['wti_close']:.4f} -> {exit_row['wti_close']:.4f} = {wti_return*100:.2f}%")
+        print(f"  Brent return: {entry_row['brent_close']:.4f} -> {exit_row['brent_close']:.4f} = {brent_return*100:.2f}%")
+
+        if signal == "Long Spread":
+            # Long Brent + Short WTI (equal weight)
+            gross_return = (brent_return - wti_return) * 0.5
+            leg_returns_str = f"Brent: {brent_return*100:.2f}%, WTI: {-wti_return*100:.2f}%"
+        elif signal == "Short Spread":
+            # Short Brent + Long WTI (equal weight)
+            gross_return = (-brent_return + wti_return) * 0.5
+            leg_returns_str = f"Brent: {-brent_return*100:.2f}%, WTI: {wti_return*100:.2f}%"
+        else:
+            monthly_returns.append(0.0)
+            print(f"  Unknown signal '{signal}', this holding window return: 0.0%")
+            print()
+            continue
+
+        # Apply 0.40% round-trip cost
+        net_return = gross_return - 0.004
+        monthly_returns.append(net_return)
+
+        print(f"  Total return calculation: {signal}")
+        print(f"    - Gross return: {gross_return*100:.4f}%")
+        print(f"    - Net return after 0.40% cost: {net_return*100:.2f}%")
+
+        # Record the completed trade
+        entry_spread = entry_row["brent_close"] - entry_row["wti_close"]
+        exit_spread = exit_row["brent_close"] - exit_row["wti_close"]
+        trades.append({
+            "entry_month": entry_row["m"],
+            "exit_month": exit_row["m"],
+            "signal": signal,
+            "entry_spread": round(entry_spread, 4),
+            "exit_spread": round(exit_spread, 4),
+            "net_pnl_pct": round(net_return * 100, 2),
+            "leg": leg_returns_str
+        })
         
-        # Check if we should open a new position based on PREVIOUS month's signal
-        # (Signal generated at previous month-end, executed in current month)
-        prev_signal = prev_row.get("signal", "Flat")
-        if prev_signal != "Flat" and current_position is None:
-            current_position = prev_signal
-            entry_month = prev_row["m"]  # Signal generation month
-            entry_spread = prev_row["brent_close"] - prev_row["wti_close"]
-            
-            print(f"  🚀 Open new position: {prev_signal} (based on {prev_row['m']} month-end signal)")
-            print(f"      Entry spread: {entry_spread:.4f}")
-            print(f"      Will be closed in next month")
-        
+        print(f"  ✅ Trade completed: {signal} {entry_row['m']}->{exit_row['m']}")
+        print(f"      Spread: {entry_spread:.4f} -> {exit_spread:.4f}")
+        print(f"      Net return: {net_return*100:.2f}%")
         print()
     
-    # Handle case where we still have an open position at the end
-    if current_position is not None:
-        print(f"⚠️  Warning: There is still an open position {current_position} at the end, entry month: {entry_month}")
-        print(f"   This should be avoided in backtest, because the final return cannot be calculated")
+    # The final month can generate a signal, but without the next month-end price
+    # it cannot form a complete one-month trade inside the requested window.
+    if expected_rows:
+        final_signal = expected_rows[-1].get("signal", "Flat")
+        if final_signal != "Flat":
+            print(f"⚠️  Warning: final month {expected_rows[-1]['m']} has signal {final_signal}, but no next month is available to close the trade")
     
     print(f"🔍 Debug info: Backtest completed")
     print(f"  - Total trades: {len(trades)}")
@@ -1042,7 +1030,6 @@ async def async_main(args):
                             print(f"  Trade#{i}: {trade.get('signal')} {trade.get('entry_month')}->{trade.get('exit_month')} PnL: {trade.get('net_pnl_pct', 0):.2f}%")
                     else:
                         print(f"🔍 Debug info: Trade detailed comparison (total {len(exp_trades)} trades):")
-                        row_by_month = {r["m"]: r for r in expected_seq}
                         for i, (et, at) in enumerate(zip(exp_trades, bt_trades_notion), start=1):
                             print(f"🔍 Trade#{i} comparison:")
                             print(f"  Expected: {et.get('signal')} {et.get('entry_month')}->{et.get('exit_month')} Spread: {et.get('entry_spread', 0):.4f}->{et.get('exit_spread', 0):.4f} PnL: {et.get('net_pnl_pct', 0):.2f}%")
@@ -1051,23 +1038,15 @@ async def async_main(args):
                             if (et.get("signal") or "") != (at.get("signal") or ""):
                                 errors.append(f"Trade#{i} Signal inconsistent: expected {et.get('signal')} actual {at.get('signal')}")
                             
-                            # Entry Month tolerance: Allow 1-month difference due to different definitions
-                            # (Signal generation month vs Position holding month)
                             expected_entry = et.get("entry_month", "")
                             actual_entry = at.get("entry_month", "")
-                            if expected_entry and actual_entry:
-                                if not _is_entry_month_compatible(expected_entry, actual_entry):
-                                    errors.append(f"Trade#{i} Entry Month inconsistent: expected {expected_entry} actual {actual_entry}")
-                            elif expected_entry != actual_entry:
+                            if expected_entry != actual_entry:
                                 errors.append(f"Trade#{i} Entry Month inconsistent: expected {expected_entry} actual {actual_entry}")
                             
                             if (et.get("exit_month") or "") != (at.get("exit_month") or ""):
                                 errors.append(f"Trade#{i} Exit Month inconsistent: expected {et.get('exit_month')} actual {at.get('exit_month')}")
                             
-                            # Entry Spread tolerance: Allow difference due to Entry Month definition difference
-                            expected_entry_spread = et.get("entry_spread", 0.0)
-                            actual_entry_spread = at.get("entry_spread", 0.0)
-                            if not _is_spread_compatible(expected_entry_spread, actual_entry_spread, expected_entry, actual_entry, row_by_month):
+                            if r4(et.get("entry_spread", 0.0)) != r4(at.get("entry_spread", 0.0)):
                                 errors.append(f"Trade#{i} Entry Spread inconsistent")
                             
                             if r4(et.get("exit_spread", 0.0)) != r4(at.get("exit_spread", 0.0)):
@@ -1076,10 +1055,9 @@ async def async_main(args):
                             if r2(et.get("net_pnl_pct", 0.0)) != r2(at.get("net_pnl_pct", 0.0)):
                                 errors.append(f"Trade#{i} Net PnL % inconsistent")
                             
-                            # Leg returns tolerance: Skip comparison due to Entry Month definition difference
-                            # The leg returns calculation depends on the entry month definition, so differences are expected
+                            # Leg returns text is informational; numeric Net PnL is checked above.
                             print(f"  Leg Returns - expected: '{et.get('leg', 'N/A')}' actual: '{at.get('leg', 'N/A')}'")
-                            print(f"  💡 Note: Leg Returns difference is due to Entry Month definition difference, considered acceptable difference")
+                            print(f"  💡 Note: Leg Returns text is not strictly compared")
             else:
                 errors.append("Cannot access Notion: missing Backtest database ID or token")
         except Exception as e:

@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 from pathlib import Path
+from datetime import datetime, timedelta
 import json
 import yaml
 import sys
@@ -22,20 +23,52 @@ def get_branch(repo_name):
         return "main"
     return "master"
 
+def get_task_today_path(args) -> Path:
+    if args.groundtruth_workspace:
+        return Path(args.groundtruth_workspace) / "today.txt"
+    return Path(__file__).resolve().parents[1] / "groundtruth_workspace" / "today.txt"
+
+def get_expected_conference_year(args) -> int:
+    today_path = get_task_today_path(args)
+    if not today_path.exists():
+        raise FileNotFoundError(f"Missing task date file: {today_path}")
+
+    today_text = today_path.read_text(encoding="utf-8").strip()
+    if not today_text:
+        raise ValueError(f"Empty task date file: {today_path}")
+
+    try:
+        today_date = datetime.fromisoformat(today_text)
+    except ValueError as exc:
+        raise ValueError(f"Invalid task date '{today_text}' in {today_path}") from exc
+
+    return (today_date + timedelta(days=30)).year
+
 def check_acceptance(args):
+    conference_year = get_expected_conference_year(args)
     check_files = [
         "_publications/2025-06-01-ipsum-lorem-all-you-need.md",
         "_publications/2025-06-15-ipsum-lorem-workshop.md",
         "_publications/2025-07-01-optimizing-llms-contextual-reasoning.md",
     ]
     venues = [
-        "COML 2025",
-        "COMLW 2025",
-        "COAI 2025"
+        f"COML {conference_year}",
+        f"COMLW {conference_year}",
+        f"COAI {conference_year}"
     ]
 
     repo_name = f"{args.user_name}/My-Homepage"
     branch = get_branch(repo_name)
+    disallowed_status_keywords = [
+        "preprint",
+        "under review",
+        "rejected",
+        "reject",
+        "withdrawn",
+        "withdraw",
+    ]
+
+    print(f"Using expected conference year: {conference_year}")
 
     for file, venue in zip(check_files, venues):
         content = read_file_content(args.github_token, repo_name, file, branch)
@@ -63,9 +96,10 @@ def check_acceptance(args):
 
         print(f"File {file} venue: {venue_data}")
         
-        if "preprint" in venue_data or "under review" in venue_data:
-            print(f"× File {file} contains 'preprint' or 'under review'.")
-            exit(1)
+        for keyword in disallowed_status_keywords:
+            if keyword in venue_data:
+                print(f"× File {file} contains a non-accepted status keyword: '{keyword}'.")
+                exit(1)
         if venue.lower() not in venue_data:
             print(f"× File {file} does not contain the expected venue '{venue}'.")
             exit(1)
@@ -76,16 +110,12 @@ def check_acceptance(args):
 
 
 def check_paper_repositories_codeurl(args):
-    """Check codeurl requirements for the four papers with repositories"""
+    """Check codeurl requirements only for papers in the task scope."""
     
-    # Define the four papers with their repository status (based on README files)
+    # The task scope is first narrowed to homepage papers currently marked as
+    # "preprint" or "under review". Code open-sourcing status should only be
+    # updated for those papers after their acceptance decisions arrive.
     papers_to_check = [
-        {
-            "file": "_publications/2024-05-15-enhancing-llms.md",
-            "name": "Enhancing LLMs",
-            "status": "released",  # Released - has complete implementation
-            "expected_codeurl": f"https://github.com/{args.user_name}/enhancing-llms"
-        },
         {
             "file": "_publications/2025-06-01-ipsum-lorem-all-you-need.md", 
             "name": "Ipsum Lorem",
@@ -93,10 +123,10 @@ def check_paper_repositories_codeurl(args):
             "expected_codeurl": f"https://github.com/{args.user_name}/ipsum-lorem-all-you-need"
         },
         {
-            "file": "_publications/2025-06-20-llm-adaptive-learning.md",
-            "name": "LLM Adaptive Learning", 
-            "status": "released",  # Released - has complete implementation
-            "expected_codeurl": f"https://github.com/{args.user_name}/llm-adaptive-learning"
+            "file": "_publications/2025-06-15-ipsum-lorem-workshop.md",
+            "name": "Ipsum Lorem Workshop",
+            "status": "no_released_repo",
+            "expected_codeurl": None
         },
         {
             "file": "_publications/2025-07-01-optimizing-llms-contextual-reasoning.md",
@@ -140,13 +170,16 @@ def check_paper_repositories_codeurl(args):
             
             print(f"  ✅ Released paper {paper['name']} has correct codeurl: {codeurl_data}")
             
-        elif paper['status'] == 'to_be_released':
-            # To-be-released papers should NOT have codeurl
+        elif paper['status'] in {'to_be_released', 'no_released_repo'}:
+            # Papers without a released GitHub repository should NOT have codeurl
             if codeurl_data:
-                print(f"ERROR: To-be-released paper {paper['name']} should not have codeurl, but found: {codeurl_data}")
+                print(
+                    f"ERROR: Paper {paper['name']} should not have codeurl "
+                    f"without a released repository, but found: {codeurl_data}"
+                )
                 exit(1)
             
-            print(f"  ✅ To-be-released paper {paper['name']} correctly has no codeurl")
+            print(f"  ✅ Paper {paper['name']} correctly has no codeurl")
     
     print("All paper repository codeurl checks passed.")
 
@@ -207,7 +240,3 @@ if __name__ == "__main__":
     print("Evaluating...")
     main(args)
 
-
-
-
-    

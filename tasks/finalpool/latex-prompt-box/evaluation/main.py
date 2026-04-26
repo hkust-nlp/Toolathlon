@@ -14,7 +14,23 @@ def find_package_import(tex_content: str) -> bool:
     return re.search(pattern, tex_content) is not None
 
 def find_color_definition(tex_content: str) -> bool:
-    return '\n'+r'\definecolor{lightProxYellow}{HTML}{ffbb00}' in tex_content
+    direct_expected = re.compile(
+        r'\\definecolor\{lightProxYellow\}\{HTML\}\{ffbb00\}',
+        flags=re.IGNORECASE,
+    )
+    if direct_expected.search(tex_content):
+        return True
+
+    color_definitions = {}
+    for match in re.finditer(r'\\definecolor\{([^{}]+)\}\{HTML\}\{([^{}]+)\}', tex_content, flags=re.IGNORECASE):
+        color_definitions[match.group(1)] = match.group(2).lower()
+
+    for match in re.finditer(r'\\colorlet\{lightProxYellow\}\{([^{}!]+)(?:![^{}]+)?\}', tex_content):
+        source_color = match.group(1).strip()
+        if color_definitions.get(source_color) == "ffbb00":
+            return True
+
+    return False
 
 def find_desired_tcolorbox_remove_blanks(tex_content: str, title: str) -> str:
     # Remove all white space characters

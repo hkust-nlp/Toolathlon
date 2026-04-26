@@ -37,8 +37,6 @@ async def main(agent_workspace=None, launch_time=None):
         print("\n📢 Step 2: Publish courses...")
         # Call with publish mode, pass agent_workspace param
         await setup_courses_main(publish=True, agent_workspace=agent_workspace)
-
-        exit(0)
         
         # 3. Inject exam notification emails
         print("\n📧 Step 3: Inject exam notification emails...")
@@ -71,4 +69,3 @@ if __name__ == "__main__":
 
     # Run async main function
     asyncio.run(main(agent_workspace=args.agent_workspace, launch_time=args.launch_time))
-

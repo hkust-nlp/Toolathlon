@@ -6,7 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))  # Add task directory to path
 from token_key_session import all_token_key_session
-from utils.app_specific.poste.email_import_utils import setup_email_environment
+from utils.app_specific.poste.email_import_utils import clear_all_email_folders, setup_email_environment
 
 if __name__ == "__main__":
     parser = ArgumentParser()
@@ -57,3 +57,13 @@ if __name__ == "__main__":
     if not success:
         print("\n❌ Failed to set up email environment!")
         sys.exit(1)
+
+    receiver_config_file = Path(__file__).parent / ".." / "files" / "receiver_config.json"
+    if not receiver_config_file.exists():
+        print(f"\n❌ Receiver email config file not found: {receiver_config_file}")
+        sys.exit(1)
+
+    print("\n" + "=" * 60)
+    print("Step 2: Clear receiver mailbox")
+    print("=" * 60)
+    clear_all_email_folders(str(receiver_config_file))

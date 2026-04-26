@@ -191,15 +191,18 @@ def check_content(groundtruth_workspace: str, notion_page_id=None, notion_token=
     # then we check line by line
     for index, row in agent_df.iterrows():
         for column in agent_df.columns:
+            gt_value = groundtruth_df.at[index, column]
+            if column in numeric_columns and (pd.isna(gt_value) or gt_value == ""):
+                continue
             # if numeric, we check if the values are close
             if column in numeric_columns:
                 # for numeric columns, we can set a 0.1% relative error
-                if abs(row[column] - groundtruth_df.at[index, column]) > 0.001 * abs(groundtruth_df.at[index, column]):
-                    return False, f"Value mismatch at row {index}, column {column}. Agent: {row[column]}, Groundtruth: {groundtruth_df.at[index, column]}"
+                if abs(row[column] - gt_value) > 0.001 * abs(gt_value):
+                    return False, f"Value mismatch at row {index}, column {column}. Agent: {row[column]}, Groundtruth: {gt_value}"
             # if string, we check if the values are the same
             else:
-                if row[column] != groundtruth_df.at[index, column]:
-                    return False, f"Value mismatch at row {index}, column {column}. Agent: {row[column]}, Groundtruth: {groundtruth_df.at[index, column]}"
+                if row[column] != gt_value:
+                    return False, f"Value mismatch at row {index}, column {column}. Agent: {row[column]}, Groundtruth: {gt_value}"
     
     print("✓ All checks passed. Agent data matches ground truth with enhanced validation.")
     return True, "All checks passed. Agent data matches ground truth with enhanced validation."

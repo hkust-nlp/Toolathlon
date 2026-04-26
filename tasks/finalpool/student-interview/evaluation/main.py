@@ -19,6 +19,16 @@ def parse_iso_time(iso_string):
         import dateutil.parser
         return dateutil.parser.isoparse(iso_string)
 
+def times_match(expected_iso, actual_iso, tolerance_seconds=1):
+    """Check whether two ISO timestamps refer to the same instant."""
+    try:
+        expected_dt = parse_iso_time(expected_iso)
+        actual_dt = parse_iso_time(actual_iso)
+    except Exception:
+        return False
+
+    return abs((expected_dt - actual_dt).total_seconds()) <= tolerance_seconds
+
 def extract_events(events_response):
     """Extract events from API response"""
     try:
@@ -100,7 +110,7 @@ def validate_interview_time(interview, tomorrow_date, the_day_after_tomorrow_dat
             start_time = parse_iso_time(interview['start_time']['dateTime'])
             end_time = parse_iso_time(interview['end_time']['dateTime'])
             if check_time_overlap(event_start_dt, event_end_dt, start_time, end_time):
-                issues.append(f"❌ {student}: Interview conflicts with {interview['student']} ({interview['start_time'].strftime('%H:%M')}-{interview['end_time'].strftime('%H:%M')})")
+                issues.append(f"❌ {student}: Interview conflicts with {interview['student']} ({start_time.strftime('%H:%M')}-{end_time.strftime('%H:%M')})")
                 return False, issues
     
     already_scheduled_interviews.append(interview)
@@ -208,7 +218,11 @@ async def main(args):
         
         # find if the event is in the pre existing events
         for i, pre_existing_event in enumerate(pre_existing_events):
-            if pre_existing_event['summary'] == event['summary'] and pre_existing_event['start_time'] == event['start']['dateTime'] and pre_existing_event['end_time'] == event['end']['dateTime']:
+            if (
+                pre_existing_event['summary'] == event.get('summary')
+                and times_match(pre_existing_event['start_time'], event.get('start', {}).get('dateTime'))
+                and times_match(pre_existing_event['end_time'], event.get('end', {}).get('dateTime'))
+            ):
                 found[i] = True
                 break
 
