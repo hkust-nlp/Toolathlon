@@ -7,12 +7,6 @@ params:
   command: npx
   args:
     - "-y"
-    # The task image already ships 12306-mcp in its npm/npx cache. --prefer-offline
-    # makes npx use that cached package and skip the network revalidation request to
-    # the registry, which under high worker concurrency (20-32 containers at once)
-    # can hang and cause intermittent cold-start timeouts. On a cache miss npx falls
-    # back to the network automatically, so this never causes a failure.
-    - "--prefer-offline"
     - "12306-mcp"
   cwd: "${agent_workspace}"
 cache_tools_list: true
