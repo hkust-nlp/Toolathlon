@@ -40,9 +40,14 @@ class DecoupledIsolationRunnerTests(unittest.TestCase):
             re.search(r"(?m)^\s*exit\b", self.script[host_exit:restore])
         )
 
+        # No stop/start of the task container between the host loop and the
+        # evaluation, with or without options such as `-t 0` — evaluator-
+        # visible task services must stay up.  cleanup()'s quiesce/restart
+        # lives outside this segment.
         live_container_segment = self.script[host_exit:evaluation]
-        self.assertNotIn(' stop "$CONTAINER_NAME"', live_container_segment)
-        self.assertNotIn(' start "$CONTAINER_NAME"', live_container_segment)
+        self.assertIsNone(
+            re.search(r"\$CONTAINER_RUNTIME (stop|start)\b", live_container_segment)
+        )
 
     def test_evaluator_uses_consumed_private_bundle_and_trusted_inputs(self) -> None:
         evaluation = self.position("# Step 6: Container evaluation")
@@ -91,7 +96,7 @@ class DecoupledIsolationRunnerTests(unittest.TestCase):
         self.assertEqual(self.script.count("task_artifact_guard restore"), 1)
         cleanup_start = self.position("cleanup() {")
         container_stop = self.position(
-            '$CONTAINER_RUNTIME stop "$CONTAINER_NAME"', cleanup_start
+            '$CONTAINER_RUNTIME stop -t 0 "$CONTAINER_NAME"', cleanup_start
         )
         stash_cleanup = self.position(
             "task_artifact_guard cleanup", container_stop

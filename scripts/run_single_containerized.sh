@@ -128,12 +128,12 @@ echo "Container name: $CONTAINER_NAME"
 # --- BEGIN: Detect and propagate TOOLATHLON_OPENAI env vars from host to container ---
 EXTRA_ENV_ARGS=()
 if [ ! -z "${TOOLATHLON_OPENAI_BASE_URL+x}" ]; then
-    EXTRA_ENV_ARGS+=("-e" "TOOLATHLON_OPENAI_BASE_URL=${TOOLATHLON_OPENAI_BASE_URL}")
+    EXTRA_ENV_ARGS+=("-e" "TOOLATHLON_OPENAI_BASE_URL")
     echo "Detected host TOOLATHLON_OPENAI_BASE_URL, will pass into container"
 fi
 
 if [ ! -z "${TOOLATHLON_OPENAI_API_KEY+x}" ]; then
-    EXTRA_ENV_ARGS+=("-e" "TOOLATHLON_OPENAI_API_KEY=${TOOLATHLON_OPENAI_API_KEY}")
+    EXTRA_ENV_ARGS+=("-e" "TOOLATHLON_OPENAI_API_KEY")
     echo "Detected host TOOLATHLON_OPENAI_API_KEY, will pass into container"
 fi
 

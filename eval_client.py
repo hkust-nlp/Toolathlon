@@ -529,7 +529,7 @@ async def private_worker(
                 sys.executable, "simple_client_ws.py",
                 "--server-url", ws_server_url,
                 "--llm-base-url", vllm_url,
-                "--llm-api-key", vllm_api_key or "",
+                *(["--llm-api-key", vllm_api_key] if vllm_api_key else []),
                 "--job-id", job_id,  # Pass job_id for authentication
                 stdout=log_f,
                 stderr=asyncio.subprocess.STDOUT
@@ -730,7 +730,7 @@ def run(
     ),
     api_key: Optional[str] = typer.Option(
         None,
-        help="API key for authentication. It is required for public mode, and ignored for private mode. So in private mode please set OPENAI_API_KEY environment variable if your endpoint requires it."
+        help="API key for authentication. It is required for public mode. In private mode it is not sent to the evaluation server; it is forwarded to the local WebSocket client, which otherwise falls back to the TOOLATHLON_OPENAI_API_KEY or OPENAI_API_KEY environment variable."
     ),
     workers: int = typer.Option(
         10,
@@ -984,7 +984,9 @@ def run(
                 "client_version": CLIENT_VERSION,  # Send client version for compatibility check
                 "mode": mode,
                 "base_url": base_url,
-                "api_key": api_key,
+                # The server never reads the key for private jobs; inference
+                # is proxied through the local WebSocket client.
+                "api_key": api_key if mode == "public" else None,
                 "model_name": model_name,
                 "workers": workers,
                 "custom_job_id": job_id,  # Pass custom job_id if provided
@@ -1132,14 +1134,18 @@ from eval_client import public_worker
 asyncio.run(public_worker('{server_url}', '{final_job_id}', '{output_dir}', {force_redownload}, {trust_env_in_httpx}))
 """
     else:  # private
-        api_key_arg = f"'{api_key}'" if api_key else "None"
+        # The key is handed to the worker via its environment, not its argv.
         worker_code = f"""
 import asyncio
 import sys
 sys.path.insert(0, '{os.path.abspath(os.path.dirname(__file__))}')
 from eval_client import private_worker
-asyncio.run(private_worker('{server_url}', '{final_job_id}', '{client_id}', '{base_url}', {api_key_arg}, {ws_proxy_port}, '{output_dir}', {force_redownload}, {trust_env_in_httpx}))
+asyncio.run(private_worker('{server_url}', '{final_job_id}', '{client_id}', '{base_url}', None, {ws_proxy_port}, '{output_dir}', {force_redownload}, {trust_env_in_httpx}))
 """
+
+    worker_env = os.environ.copy()
+    if mode == "private" and api_key:
+        worker_env["TOOLATHLON_OPENAI_API_KEY"] = api_key
 
     # Start detached background process
     process = subprocess.Popen(
@@ -1148,7 +1154,8 @@ asyncio.run(private_worker('{server_url}', '{final_job_id}', '{client_id}', '{ba
         stderr=subprocess.DEVNULL,
         stdin=subprocess.DEVNULL,
         start_new_session=True,
-        cwd=os.getcwd()
+        cwd=os.getcwd(),
+        env=worker_env
     )
 
     typer.echo(f"\n✓ Background worker started (PID: {process.pid})")
