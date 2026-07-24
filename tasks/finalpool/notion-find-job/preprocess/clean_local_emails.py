@@ -29,6 +29,7 @@ def clean_emails(config, folders=None, clean=True):
         print(f"Logged in as {config['email']}")
 
         total_deleted = 0
+        failed_folders = []
 
         # Process each folder
         for folder in folders:
@@ -54,6 +55,7 @@ def clean_emails(config, folders=None, clean=True):
                 status, email_ids = imap.search(None, "ALL")
                 if status != "OK":
                     print(f"Error searching for emails in {folder}")
+                    failed_folders.append(folder)
                     continue
 
                 email_id_list = email_ids[0].split()
@@ -74,9 +76,11 @@ def clean_emails(config, folders=None, clean=True):
 
             except imaplib.IMAP4.error as e:
                 print(f"IMAP error processing folder '{folder}': {e}")
+                failed_folders.append(folder)
                 continue
             except Exception as e:
                 print(f"Unexpected error processing folder '{folder}': {e}")
+                failed_folders.append(folder)
                 continue
 
         if clean:
@@ -87,10 +91,19 @@ def clean_emails(config, folders=None, clean=True):
         imap.logout()
         print("Logged out.")
 
+        if failed_folders:
+            # A folder that exists but could not be cleaned leaves stale
+            # emails behind, which the evaluation would read as a false pass.
+            raise RuntimeError(
+                f"Failed to clean folders for {config['email']}: {failed_folders}"
+            )
+
     except imaplib.IMAP4.error as e:
         print(f"An IMAP error occurred: {e}")
+        raise
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
+        raise
 
 # Example usage:
 if __name__ == "__main__":

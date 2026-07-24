@@ -212,9 +212,11 @@ class WooCommerceOrderManager:
             else:
                 error_msg = result.get('error', 'Unknown error')
                 print(f"❌ Failed to delete orders: {error_msg}")
+                raise RuntimeError(f"Failed to delete existing orders: {error_msg}")
 
         except Exception as e:
             print(f"❌ Error deleting orders: {e}")
+            raise
 
     def upload_orders_to_woocommerce(self, orders_data):
         """Upload order data to WooCommerce"""
