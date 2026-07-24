@@ -49,6 +49,25 @@ def _raise_if_account_suspended(result):
     return result_text
 
 
+# The Snowflake MCP server reports failures as normal result text (isError is
+# not set): its handlers return "Error: ..." for failed queries and
+# "Failed to create/drop database ..." / "... is not allowed ..." for
+# database-level operations.
+TOOL_ERROR_MARKERS = (
+    "Error:",
+    "Failed to create database",
+    "Failed to drop database",
+    "is not allowed",
+)
+
+
+def _raise_if_tool_error(result):
+    result_text = _extract_result_text(result)
+    if any(marker in result_text for marker in TOOL_ERROR_MARKERS):
+        raise RuntimeError(f"Snowflake tool call failed: {result_text}")
+    return result_text
+
+
 def slugify_email(name: str) -> str:
     name = name.lower().strip()
     name = re.sub(r"[^a-z0-9\s.]", "", name)
@@ -66,8 +85,9 @@ async def execute_sql(server, sql_query: str, tool_type: str = "write"):
         tool_name = "write_query"
 
     arguments = {"query": sql_query}
-    result = await call_tool_with_retry(server, tool_name=tool_name, arguments=arguments)
+    result = await call_tool_with_retry(server, tool_name=tool_name, arguments=arguments, raise_on_tool_error=True)
     _raise_if_account_suspended(result)
+    _raise_if_tool_error(result)
     return result
 
 
@@ -223,10 +243,12 @@ async def initialize_database():
     async with snowflake_server as server:
 
         print_color("Dropping and creating existing database ... ", "blue")
-        result = await call_tool_with_retry(server, tool_name="drop_databases", arguments={"databases": [DB_NAME]})
+        result = await call_tool_with_retry(server, tool_name="drop_databases", arguments={"databases": [DB_NAME]}, raise_on_tool_error=True)
         _raise_if_account_suspended(result)
-        result = await call_tool_with_retry(server, tool_name="create_databases", arguments={"databases": [DB_NAME]})
+        _raise_if_tool_error(result)
+        result = await call_tool_with_retry(server, tool_name="create_databases", arguments={"databases": [DB_NAME]}, raise_on_tool_error=True)
         _raise_if_account_suspended(result)
+        _raise_if_tool_error(result)
         print_color("Dropped and created existing database", "green")
 
         print_color("Creating contacts table ... ", "blue")

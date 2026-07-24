@@ -74,7 +74,8 @@ async def setup_calendar_events(credentials_file: str):
                 "timeMin": "2020-01-01T00:00:00Z",  # Far past
                 "timeMax": "2030-12-31T23:59:59Z",  # Far future
                 "maxResults": 2500  # High limit to get all events
-            }
+            },
+            raise_on_tool_error=True
         )
         
         # Extract the actual events data from CallToolResult
@@ -112,15 +113,16 @@ async def setup_calendar_events(credentials_file: str):
                     await call_tool_with_retry(
                         google_calendar_server,
                         "delete_event",
-                        {"eventId": event_id}
+                        {"eventId": event_id},
+                        raise_on_tool_error=True
                     )
                     deleted_count += 1
                     print(f"   ✅ Deleted: {event_title}")
                 
             except Exception as e:
                 event_title = event.get('summary', 'Unknown') if isinstance(event, dict) else 'Unknown'
-                print(f"   ⚠️ Failed to delete event '{event_title}': {e}")
-                continue
+                print(f"   ❌ Failed to delete event '{event_title}': {e}")
+                return False
         
         print(f"🗑️ Successfully deleted {deleted_count} existing events")
     
@@ -164,9 +166,10 @@ async def setup_calendar_events(credentials_file: str):
                 print(f"   Time: {event_data['start']['dateTime']} - {event_data['end']['dateTime']}")
                 
                 result = await call_tool_with_retry(
-                    google_calendar_server, 
-                    "create_event", 
-                    event_data
+                    google_calendar_server,
+                    "create_event",
+                    event_data,
+                    raise_on_tool_error=True
                 )
                 
                 print(f"   ✅ Event created successfully")

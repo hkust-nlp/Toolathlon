@@ -10,6 +10,7 @@ import importlib.util
 import json
 import os
 import random
+import re
 import sys
 from rich import print
 from rich.console import Console
@@ -504,7 +505,8 @@ async def initialize_database():
                 INVOICE_DATE DATE
             );"""
             
-            await execute_sql(server, create_invoices_sql, "Creating INVOICES table", "create")
+            if not await execute_sql(server, create_invoices_sql, "Creating INVOICES table", "create"):
+                raise RuntimeError("Failed to create INVOICES table")
             
             # 3. Create INVOICE_PAYMENTS table
             print("\n📋 Step 3: Creating INVOICE_PAYMENTS table...")
@@ -516,7 +518,8 @@ async def initialize_database():
                 FOREIGN KEY (INVOICE_ID) REFERENCES PURCHASE_INVOICE.PUBLIC.INVOICES(INVOICE_ID)
             );"""
             
-            await execute_sql(server, create_payments_sql, "Creating INVOICE_PAYMENTS table", "create")
+            if not await execute_sql(server, create_payments_sql, "Creating INVOICE_PAYMENTS table", "create"):
+                raise RuntimeError("Failed to create INVOICE_PAYMENTS table")
             
             # 4. Insert generated test data
             print("\n📋 Step 4: Generating and inserting test data...")
@@ -541,7 +544,8 @@ async def initialize_database():
                 VALUES
                 {','.join(batch_values)};
                 """
-                await execute_sql(server, batch_sql, f"Batch inserting invoices {i+1}-{min(i+batch_size, len(values_list))}", "write")
+                if not await execute_sql(server, batch_sql, f"Batch inserting invoices {i+1}-{min(i+batch_size, len(values_list))}", "write"):
+                    raise RuntimeError(f"Failed to insert invoices batch {i+1}-{min(i+batch_size, len(values_list))}")
             
             print(f"💳 Bulk inserting {len(invoices_data)} payment records...")
 
@@ -557,18 +561,28 @@ async def initialize_database():
                 VALUES
                 {','.join(batch_values)};
                 """
-                await execute_sql(server, batch_sql, f"Batch inserting payments {i+1}-{min(i+batch_size, len(payment_values_list))}", "write")
+                if not await execute_sql(server, batch_sql, f"Batch inserting payments {i+1}-{min(i+batch_size, len(payment_values_list))}", "write"):
+                    raise RuntimeError(f"Failed to insert payments batch {i+1}-{min(i+batch_size, len(payment_values_list))}")
             
             # 5. Verify the setup
             print("\n📋 Step 5: Verifying setup...")
             
             verification_queries = [
-                ("SELECT COUNT(*) AS TOTAL_INVOICES FROM PURCHASE_INVOICE.PUBLIC.INVOICES;", "Counting total invoices"),
-                ("SELECT COUNT(*) AS TOTAL_PAYMENTS FROM PURCHASE_INVOICE.PUBLIC.INVOICE_PAYMENTS;", "Counting total payments")
+                ("SELECT COUNT(*) AS TOTAL_INVOICES FROM PURCHASE_INVOICE.PUBLIC.INVOICES;", "Counting total invoices", "TOTAL_INVOICES", len(invoices_data)),
+                ("SELECT COUNT(*) AS TOTAL_PAYMENTS FROM PURCHASE_INVOICE.PUBLIC.INVOICE_PAYMENTS;", "Counting total payments", "TOTAL_PAYMENTS", len(invoices_data))
             ]
-            
-            for sql, desc in verification_queries:
-                await execute_sql(server, sql, desc, "read")
+
+            for sql, desc, column, expected in verification_queries:
+                print(f"🔄 {desc}")
+                count_result = await call_tool_with_retry(server, tool_name="read_query", arguments={"query": sql})
+                count_text = _raise_if_account_suspended(count_result)
+                match = re.search(rf"{column}\D*(\d+)", count_text)
+                if not match:
+                    raise RuntimeError(f"Verification failed ({desc}): could not parse count from result: {count_text}")
+                actual = int(match.group(1))
+                if actual != expected:
+                    raise RuntimeError(f"Verification failed ({desc}): expected {expected} rows, found {actual}")
+                print(f"✅ {desc}: {actual} rows")
             
             print("\n🎉 DATABASE INITIALIZATION COMPLETED SUCCESSFULLY!")
             print("=" * 60)

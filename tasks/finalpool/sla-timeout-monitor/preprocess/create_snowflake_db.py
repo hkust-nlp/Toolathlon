@@ -419,7 +419,8 @@ async def initialize_database():
                 UPDATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP()
             );"""
             
-            await execute_sql(server, create_users_sql, "Creating USERS table", "create")
+            if not await execute_sql(server, create_users_sql, "Creating USERS table", "create"):
+                raise RuntimeError("Failed to create USERS table")
             
             # 3. Create tickets table
             print("\n📋 Step 3: Creating SUPPORT_TICKETS table...")
@@ -440,7 +441,8 @@ async def initialize_database():
                 FOREIGN KEY (USER_ID) REFERENCES SLA_MONITOR.PUBLIC.USERS(ID)
             );"""
             
-            await execute_sql(server, create_tickets_sql, "Creating SUPPORT_TICKETS table", "create")
+            if not await execute_sql(server, create_tickets_sql, "Creating SUPPORT_TICKETS table", "create"):
+                raise RuntimeError("Failed to create SUPPORT_TICKETS table")
             
             # 4. Insert test user data
             print("\n📋 Step 4: Inserting sample user data...")
@@ -499,7 +501,8 @@ async def initialize_database():
                 ({user_id}, '{name}', '{user['email']}', '{user['service_level']}', '{user['customer_manager']}',
                  '{seven_days_ago_str}', '{seven_days_ago_str}');
                 """
-                await execute_sql(server, insert_user_sql, f"Inserting user {user['name']} with ID {user_id}", "write")
+                if not await execute_sql(server, insert_user_sql, f"Inserting user {user['name']} with ID {user_id}", "write"):
+                    raise RuntimeError(f"Failed to insert user {user['name']} with ID {user_id}")
             
             # 5. Insert test ticket data
             print("\n📋 Step 5: Inserting sample ticket data...")
@@ -518,8 +521,7 @@ async def initialize_database():
                 user_id = user_id_map.get(ticket['user_email'])
                 
                 if user_id is None:
-                    print(f"❌ Warning: Could not find user ID for {ticket['user_email']}, skipping ticket {ticket['ticket_number']}")
-                    continue
+                    raise RuntimeError(f"Could not find user ID for {ticket['user_email']} (ticket {ticket['ticket_number']}): generated data is inconsistent")
                 
                 # Set updated_at to Snowflake current time for consistency
                 try:
@@ -563,19 +565,33 @@ async def initialize_database():
                  '{ticket['status']}', '{ticket['priority']}', '{ticket['ticket_type']}', 
                  '{ticket['created_at']}', {first_response_part}, '{updated_at_str}');
                 """
-                await execute_sql(server, insert_ticket_sql, f"Inserting ticket {ticket['ticket_number']}", "write")
+                if not await execute_sql(server, insert_ticket_sql, f"Inserting ticket {ticket['ticket_number']}", "write"):
+                    raise RuntimeError(f"Failed to insert ticket {ticket['ticket_number']}")
             
             # 6. Verify setup
             print("\n📋 Step 6: Verifying setup...")
             
+            import re
             verification_queries = [
-                ("SELECT COUNT(*) AS TOTAL_USERS FROM SLA_MONITOR.PUBLIC.USERS;", "Counting total users"),
-                ("SELECT COUNT(*) AS TOTAL_TICKETS FROM SLA_MONITOR.PUBLIC.SUPPORT_TICKETS;", "Counting total tickets"),
-                ("SELECT SERVICE_LEVEL, COUNT(*) AS USER_COUNT FROM SLA_MONITOR.PUBLIC.USERS GROUP BY SERVICE_LEVEL ORDER BY SERVICE_LEVEL;", "Users by service level")
+                ("SELECT COUNT(*) AS TOTAL_USERS FROM SLA_MONITOR.PUBLIC.USERS;", "Counting total users", "TOTAL_USERS", len(users_data)),
+                ("SELECT COUNT(*) AS TOTAL_TICKETS FROM SLA_MONITOR.PUBLIC.SUPPORT_TICKETS;", "Counting total tickets", "TOTAL_TICKETS", len(tickets_data))
             ]
-            
-            for sql, desc in verification_queries:
-                await execute_sql(server, sql, desc, "read")
+
+            for sql, desc, column, expected in verification_queries:
+                print(f"🔄 {desc}")
+                count_result = await call_tool_with_retry(server, tool_name="read_query", arguments={"query": sql})
+                count_text = _raise_if_account_suspended(count_result)
+                match = re.search(rf"{column}\D*(\d+)", count_text)
+                if not match:
+                    raise RuntimeError(f"Verification failed ({desc}): could not parse count from result: {count_text}")
+                actual = int(match.group(1))
+                if actual != expected:
+                    raise RuntimeError(f"Verification failed ({desc}): expected {expected} rows, found {actual}")
+                print(f"✅ {desc}: {actual} rows")
+
+            level_breakdown_sql = "SELECT SERVICE_LEVEL, COUNT(*) AS USER_COUNT FROM SLA_MONITOR.PUBLIC.USERS GROUP BY SERVICE_LEVEL ORDER BY SERVICE_LEVEL;"
+            if not await execute_sql(server, level_breakdown_sql, "Users by service level", "read"):
+                raise RuntimeError("Verification query failed: Users by service level")
             
             # 7. Prepare ticket list for return
             print("\n📋 Step 7: Preparing ticket list for return...")

@@ -11,7 +11,7 @@ from argparse import ArgumentParser
 
 # Add utils to path
 sys.path.append(os.path.dirname(__file__))
-from ..utils.github_fetcher import fetch_and_save_github_data
+from ..utils.github_fetcher import fetch_and_save_github_data, GitHubDataFetcher
 
 
 def main():
@@ -46,7 +46,14 @@ def main():
     if not repo_data:
         print("❌ No repository data was successfully fetched")
         sys.exit(1)
-    
+
+    # Require reference data for every expected repo ID, not just any of them
+    expected_repo_ids = [str(repo_id) for repo_id in GitHubDataFetcher(args.github_token).repo_ids]
+    missing_repo_ids = [repo_id for repo_id in expected_repo_ids if repo_id not in repo_data]
+    if missing_repo_ids:
+        print(f"❌ Missing reference data for repo IDs: {', '.join(missing_repo_ids)}")
+        sys.exit(1)
+
     print("-" * 60)
     print("📊 Summary:")
     for repo_id, data in repo_data.items():

@@ -206,7 +206,8 @@ def clean_dataset(project_id, credentials=None):
     list_all_datasets(project_id, credentials)
     
     print("\n✅ Dataset management complete!")
-    if dataset:
-        print(f"Ready to populate dataset '{dataset.dataset_id}' with A/B testing CSV files.")
-    
+    if not dataset:
+        raise RuntimeError("Failed to create ab_testing dataset")
+    print(f"Ready to populate dataset '{dataset.dataset_id}' with A/B testing CSV files.")
+
     return dataset

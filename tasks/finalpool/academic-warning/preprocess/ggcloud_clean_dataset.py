@@ -206,4 +206,6 @@ def clean_dataset(project_id, credentials=None):
     list_all_datasets(project_id, credentials)
     
     print("\n✅ Dataset management complete!")
+    if not dataset:
+        raise RuntimeError("Failed to create academic_warning dataset")
     print(f"Ready to populate dataset '{dataset.dataset_id}' with exam tables.")

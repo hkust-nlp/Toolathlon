@@ -284,6 +284,9 @@ def reinitialize_course(canvas_api, canvas_utils, course_id, teacher_info, email
                 )
                 
                 print(f"      ✅ Student enrollment result: {enrollment_stats['successful']} successful, {enrollment_stats['failed']} failed")
+                if enrollment_stats['successful'] != len(selected_student_indices):
+                    print(f"      ❌ Only enrolled {enrollment_stats['successful']}/{len(selected_student_indices)} students")
+                    return False
             else:
                 print("      ⚠️  Student CSV file not found")
         except Exception as e:
@@ -493,10 +496,11 @@ def setup_canvas(teacher_info, email_config):
                 selected_indices=selected_student_indices
             )
             
-            if enrollment_stats['successful'] > 0:
+            if enrollment_stats['successful'] == len(selected_student_indices):
                 print(f"✅ Enrolled {enrollment_stats['successful']} students")
             else:
-                print("⚠️  No students enrolled successfully")
+                print(f"❌ Only enrolled {enrollment_stats['successful']}/{len(selected_student_indices)} students")
+                return False
         else:
             print("⚠️  Student CSV file not found, skipping enrollment")
         

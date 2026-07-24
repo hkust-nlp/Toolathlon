@@ -45,12 +45,12 @@ def upload_csvs_to_bigquery(
     csv_files = glob.glob(os.path.join(csv_folder, csv_pattern))
 
     if not csv_files:
-        print(f"No CSV files found matching pattern {csv_pattern} in {csv_folder}")
-        return
+        raise RuntimeError(f"No CSV files found matching pattern {csv_pattern} in {csv_folder}")
 
     print(f"Found {len(csv_files)} CSV files to upload")
 
     # Upload each CSV file
+    uploaded_tables = 0
     for csv_file in csv_files:
         # Extract table name from filename (without extension)
         table_name = Path(csv_file).stem
@@ -86,7 +86,14 @@ def upload_csvs_to_bigquery(
             # Get table info
             table = client.get_table(table_ref)
             print(f"✅ Loaded {table.num_rows} rows into {dataset_id}.{table_name}")
+            uploaded_tables += 1
 
         except Exception as e:
             print(f"❌ Error uploading {csv_file}: {e}")
+            raise
+
+    if uploaded_tables != len(csv_files):
+        raise RuntimeError(
+            f"Only {uploaded_tables} of {len(csv_files)} CSV files were uploaded to {dataset_id}"
+        )
 

@@ -314,11 +314,16 @@ class WooCommerceStoreInitializer:
             results["steps"]["store_settings"] = {"success": settings_success}
 
             # Check overall success
+            # All 5 categories defined in create_product_categories, all sample
+            # products, and a non-empty product mapping for every region are
+            # required — a partial store leaves the task unsolvable.
+            product_mapping = regional_setup.get("product_mapping", {})
             results["success"] = all([
                 api_success,
-                len(categories) > 0,
-                len(successful_products) > 0,
-                "product_mapping" in regional_setup
+                len(categories) == 5,
+                len(products) > 0,
+                len(successful_products) == len(products),
+                all(product_mapping.get(region) for region in ["East", "South", "West"])
             ])
 
             if results["success"]:
@@ -334,6 +339,7 @@ class WooCommerceStoreInitializer:
                 print("\n❌ There were errors during initialization, please check error messages.")
 
         except Exception as e:
+            results["success"] = False
             results["errors"].append(f"Exception during initialization: {e}")
             print(f"❌ Initialization failed: {e}")
 
@@ -357,7 +363,8 @@ class WooCommerceStoreInitializer:
                 json.dump(config_data, f, indent=2, ensure_ascii=False)
             print(f"📝 Configuration information saved to: {config_file}")
         except Exception as e:
-            print(f"⚠️ Failed to save configuration file: {e}")
+            print(f"❌ Failed to save configuration file: {e}")
+            raise
 
 def main():
     """Main function - interactive initializer"""

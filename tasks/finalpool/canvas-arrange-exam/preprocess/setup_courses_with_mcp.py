@@ -315,7 +315,7 @@ class CanvasCourseSetup:
             print(f"📊 Announcement Summary for {course_info['name']}: {success_count}/{total_announcements} created successfully")
             print(f"📅 Timeline: Semester announcements (Sep-Dec 2024) → Final exam (Jan 2025)")
             
-            return success_count > 0  # At least one announcement created successfully
+            return success_count == total_announcements  # All configured announcements must be created
             
         except Exception as e:
             logger.error(f"Error creating multiple announcements for {course_info['name']}: {e}")
@@ -1010,8 +1010,9 @@ class CanvasCourseSetup:
             # 4. Create multiple announcements (main exam announcement + additional realistic announcements)
             announcements_created = await self.create_multiple_announcements(course_id, course_info)
             if not announcements_created:
-                logger.warning(f"Failed to create announcements for {course_info['name']}")
-                print(f"⚠️ Failed to create announcements for {course_info['name']}")
+                logger.error(f"Failed to create announcements for {course_info['name']}")
+                print(f"❌ Failed to create announcements for {course_info['name']}")
+                return False
             else:
                 logger.info(f"Successfully created announcements for {course_info['name']}")
                 print(f"🎉 Successfully created multiple announcements for {course_info['name']}")
@@ -1035,12 +1036,17 @@ class CanvasCourseSetup:
 
             logger.info(f"Successfully enrolled {enrollment_success}/{len(students_to_enroll)} students in {course_info['name']}")
             print(f"👥 Successfully enrolled {enrollment_success}/{len(students_to_enroll)} students in {course_info['name']}")
+            if enrollment_success != len(students_to_enroll):
+                logger.error(f"Failed to enroll all students in {course_info['name']}: {enrollment_success}/{len(students_to_enroll)}")
+                print(f"❌ Failed to enroll all students in {course_info['name']}: {enrollment_success}/{len(students_to_enroll)}")
+                return False
 
             # 6. Publish course (for all courses)
             course_published = await self.publish_course(course_id, course_info["name"])
             if not course_published:
-                logger.warning(f"Failed to publish course {course_info['name']}")
-                print(f"⚠️ Failed to publish course {course_info['name']}")
+                logger.error(f"Failed to publish course {course_info['name']}")
+                print(f"❌ Failed to publish course {course_info['name']}")
+                return False
             else:
                 logger.info(f"Successfully published course {course_info['name']}")
                 print(f"🌟 Successfully published course {course_info['name']}")
