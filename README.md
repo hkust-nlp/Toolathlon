@@ -22,6 +22,7 @@ Toolathlon is a benchmark to assess language agents' general tool use in realist
 </div>
 
 ## News
+[2026.07.24] 📣 Community integration: EvalScope supports running Toolathlon against OpenAI-compatible model endpoints with CLI/Python usage, saved predictions, scoring, and standardized reports. See the EvalScope guide: https://evalscope.readthedocs.io/en/latest/third_party/toolathlon.html
 [2026.07.09] 📣 We have also uploaded trajectories for Muse Spark 1.1 to the [**Toolathlon-Verified** trajectories](https://huggingface.co/datasets/hkust-nlp/Toolathlon-Verified_Trajectories/tree/main) dataset on Hugging Face.
 
 [2026.06.30] 🎉 **Toolathlon-Verified** is released. This release marks the verified final version of Toolathlon, with task prompts, ground truths, and evaluators reviewed and aligned for the final benchmark release. We have also uploaded trajectories for 8 models to the [**Toolathlon-Verified** trajectories](https://huggingface.co/datasets/hkust-nlp/Toolathlon-Verified_Trajectories/tree/main) dataset on Hugging Face.
