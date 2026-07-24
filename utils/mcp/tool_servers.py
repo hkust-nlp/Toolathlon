@@ -450,28 +450,43 @@ class MCPServerManager:
         await self.ensure_all_disconnected(max_cleanup_retries=3, cleanup_retry_delay=1.0)
 
 
-async def call_tool_with_retry(server, tool_name: str, arguments: dict, retry_time: int = 5, delay: float = 1.0):
+def _tool_result_text(result) -> str:
+    parts = []
+    for item in getattr(result, "content", None) or []:
+        text = getattr(item, "text", None)
+        if text:
+            parts.append(text)
+    return "\n".join(parts)
+
+
+async def call_tool_with_retry(server, tool_name: str, arguments: dict, retry_time: int = 5, delay: float = 1.0, raise_on_tool_error: bool = False):
     """
     Tool call function with retry mechanism
-    
+
     Args:
         server: MCP server instance
         tool_name: Tool name
         arguments: Tool arguments
         retry_time: Retry times, default 5 times
         delay: Retry interval (seconds), default 1 second
-    
+        raise_on_tool_error: Treat a returned result with isError set as a failure
+            (retried, then raised as ToolCallError) instead of returning it
+
     Returns:
         Tool call result
-    
+
     Raises:
         ToolCallError: All retries failed and throw tool call error
     """
     last_exception = None
-    
+
     for attempt in range(retry_time + 1):  # +1 because the first attempt is not a retry
         try:
             result = await server.call_tool(tool_name=tool_name, arguments=arguments)
+            if raise_on_tool_error and getattr(result, "isError", False):
+                raise RuntimeError(
+                    f"Tool {tool_name} returned an error result: {_tool_result_text(result)}"
+                )
             return result
         except Exception as e:
             last_exception = e

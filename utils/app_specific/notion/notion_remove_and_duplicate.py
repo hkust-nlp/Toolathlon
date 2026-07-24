@@ -31,7 +31,8 @@ async def main():
         f"--token {notion_integration_key_eval_only} "
         f"--no-confirm",
         debug=True,
-        show_output=True
+        show_output=True,
+        check=True
     )
 
     print_color(f"Duplicating new page {args.needed_subpage_name} from {notion_source_page_url} to {notion_eval_page_url}","cyan")
@@ -43,7 +44,8 @@ async def main():
         f"--notion-key {notion_integration_key} "
         f"--output-file {args.duplicated_page_id_file}",
         debug=True,
-        show_output=True
+        show_output=True,
+        check=True
     )
     # print("Preprocess done!")
 

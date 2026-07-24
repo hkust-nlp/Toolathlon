@@ -1308,6 +1308,8 @@ async def run_with_args(delete=False, publish=False, agent_workspace=None):
         else:
             print("\n❌ Course setup encountered errors. Check logs for details.")
 
+    return success
+
 async def main(delete=False, publish=False, agent_workspace=None):
     """Main function that can accept external arguments"""
     # If no parameters are passed, parse from command line
@@ -1327,7 +1329,8 @@ async def main(delete=False, publish=False, agent_workspace=None):
         agent_workspace = args.agent_workspace
     
     # Call run_with_args function
-    await run_with_args(delete=delete, publish=publish, agent_workspace=agent_workspace)
+    return await run_with_args(delete=delete, publish=publish, agent_workspace=agent_workspace)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    success = asyncio.run(main())
+    sys.exit(0 if success else 1)

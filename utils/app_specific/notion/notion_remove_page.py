@@ -37,11 +37,11 @@ def get_child_pages(parent_id, headers):
             params["start_cursor"] = start_cursor
             
         response = requests.get(url, headers=headers, params=params)
-        
+
         if response.status_code != 200:
-            print(f"Error: Unable to get child pages - {response.status_code}")
-            print(f"Response: {response.text}")
-            return []
+            raise RuntimeError(
+                f"Unable to get child pages - {response.status_code}: {response.text}"
+            )
             
         data = response.json()
         
@@ -53,13 +53,17 @@ def get_child_pages(parent_id, headers):
     return all_children
 
 def delete_pages_by_title(parent_id, target_title, headers, dry_run=False):
-    """Delete child pages with specific title (including all their content)"""
+    """Delete child pages with specific title (including all their content)
+
+    Returns:
+        tuple: (deleted_count, failed_count)
+    """
     children = get_child_pages(parent_id, headers)
-    
+
     if not children:
         print("No child pages found")
-        return 0
-    
+        return 0, 0
+
     # Find all matching pages
     pages_to_delete = []
     for child in children:
@@ -67,43 +71,45 @@ def delete_pages_by_title(parent_id, target_title, headers, dry_run=False):
             title = child.get("child_page", {}).get("title", "")
             if title == target_title:
                 pages_to_delete.append((child['id'], title))
-    
+
     if not pages_to_delete:
         print(f"No child pages found with title '{target_title}'")
-        return 0
-    
+        return 0, 0
+
     # Show pages to be deleted in dry run mode
     print(f"Found {len(pages_to_delete)} matching pages:")
     for page_id, title in pages_to_delete:
         print(f"  - {title} (ID: {page_id})")
-    
+
     if dry_run:
         print("\n[Dry run mode] No content will actually be deleted")
-        return 0
-    
+        return 0, 0
+
     # Confirm deletion
     print("\n⚠️  Warning: This will permanently delete the above pages and all their sub-content!")
     confirm = input("Are you sure you want to continue? (Type 'yes' to confirm): ")
-    
+
     if confirm.lower() != 'yes':
         print("Operation cancelled")
-        return 0
-    
+        return 0, 0
+
     # Execute deletion
     deleted_count = 0
+    failed_count = 0
     print("\nStarting deletion...")
-    
+
     for page_id, title in pages_to_delete:
         delete_url = f"https://api.notion.com/v1/blocks/{page_id}"
         response = requests.delete(delete_url, headers=headers)
-        
+
         if response.status_code == 200:
             print(f"✓ Deleted: {title}")
             deleted_count += 1
         else:
             print(f"✗ Deletion failed: {title} - {response.status_code}: {response.text}")
-    
-    return deleted_count
+            failed_count += 1
+
+    return deleted_count, failed_count
 
 def main():
     parser = argparse.ArgumentParser(
@@ -187,15 +193,18 @@ Notes:
         builtins.input = lambda _: 'yes'
         
         try:
-            count = delete_pages_by_title(page_id, args.name, headers, args.dry_run)
+            count, failed = delete_pages_by_title(page_id, args.name, headers, args.dry_run)
         finally:
             builtins.input = original_input
     else:
-        count = delete_pages_by_title(page_id, args.name, headers, args.dry_run)
-    
+        count, failed = delete_pages_by_title(page_id, args.name, headers, args.dry_run)
+
     print("-" * 50)
     if not args.dry_run:
         print(f"Complete! Deleted {count} pages")
+        if failed:
+            print(f"Error: {failed} pages could not be deleted")
+            sys.exit(1)
 
 if __name__ == "__main__":
     main()

@@ -22,6 +22,13 @@ def git_auth_url(token: str, full_name: str) -> str:
     return f"https://x-access-token:{token}@github.com/{full_name}.git"
 
 
+def _raise_on_git_failure(operation: str, token: str, stderr: str, returncode: int) -> None:
+    if returncode != 0:
+        # git's stderr echoes the remote URL, which embeds the token
+        sanitized = stderr.replace(token, "***") if token else stderr
+        raise RuntimeError(f"{operation} exited with code {returncode}: {sanitized}")
+
+
 @git_retry_async
 async def git_mirror_clone(token: str, full_name: str, local_dir: str) -> None:
     """Clone a repository as a mirror."""
@@ -29,7 +36,8 @@ async def git_mirror_clone(token: str, full_name: str, local_dir: str) -> None:
     if os.path.exists(local_dir):
         shutil.rmtree(local_dir)
     cmd = f"git clone --mirror {src_url} {local_dir}"
-    await run_command(cmd, debug=False, show_output=False)
+    _, stderr, returncode = await run_command(cmd, debug=False, show_output=False)
+    _raise_on_git_failure(f"git clone --mirror of {full_name}", token, stderr, returncode)
 
 
 @git_retry_async
@@ -37,4 +45,5 @@ async def git_mirror_push(token: str, local_dir: str, dst_full_name: str) -> Non
     """Push a mirror to a destination repository."""
     dst_url = git_auth_url(token, dst_full_name)
     cmd = f"git -C {local_dir} push --mirror {dst_url}"
-    await run_command(cmd, debug=False, show_output=False)
+    _, stderr, returncode = await run_command(cmd, debug=False, show_output=False)
+    _raise_on_git_failure(f"git push --mirror to {dst_full_name}", token, stderr, returncode)

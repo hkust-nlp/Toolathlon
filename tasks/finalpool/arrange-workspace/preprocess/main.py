@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 import os
 import shutil
+import sys
 import tarfile
 
 def main():
@@ -43,7 +44,7 @@ def main():
             print(f"Extraction completed ({len(members)} entries; '{PREFIX}' wrapper stripped)")
     except Exception as e:
         print(f"Extraction failed: {e}")
-        return
+        sys.exit(1)
     
     # Remove the original tar.gz file
     try:

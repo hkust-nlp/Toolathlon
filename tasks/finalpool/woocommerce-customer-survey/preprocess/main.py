@@ -333,7 +333,7 @@ def setup_task_data():
         print("💡 Will continue using local JSON file as data source")
         return False
 
-    return True
+    return upload_success
 
 
 def main():
@@ -409,4 +409,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(0 if main() else 1)

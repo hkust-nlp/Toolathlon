@@ -22,10 +22,10 @@ def setup_workspace(agent_workspace: str):
             pdf_members = [member for member in tar.getmembers() if member.name.endswith('.pdf')]
             
             if not pdf_members:
-                print(f"No PDF files found in the archive: {tarfile_path}")
-                return
-            
+                raise RuntimeError(f"No PDF files found in the archive: {tarfile_path}")
+
             # Extract PDF files to the bills directory
+            missing_files = []
             for member in pdf_members:
                 # Extract to the bills directory
                 tar.extract(member, bills_dir)
@@ -35,7 +35,11 @@ def setup_workspace(agent_workspace: str):
                     print(f"Extracted file: {member.name}")
                 else:
                     print(f"Failed to extract file: {member.name}")
-            
+                    missing_files.append(member.name)
+
+            if missing_files:
+                raise RuntimeError(f"Failed to extract {len(missing_files)} PDF files: {missing_files}")
+
             print(f"Extracted {len(pdf_members)} PDF files to the workspace")
         
         # delete the bills.tar.gz

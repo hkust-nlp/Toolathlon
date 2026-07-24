@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 import os
 import shutil
 import json
+import sys
 import tarfile
 import glob
 
@@ -29,7 +30,7 @@ def main():
                 print("Extraction completed.")
         except Exception as e:
             print(f"Extraction failed: {e}")
-            return
+            sys.exit(1)
         
         # Delete the original archive file
         try:
