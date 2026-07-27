@@ -3,6 +3,7 @@ import sys
 import os
 import json
 import re
+from email.header import decode_header, make_header
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, List, Tuple, Any, Optional
@@ -13,6 +14,30 @@ from typing import Dict, List, Tuple, Any, Optional
 # Import email validation utilities
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), 'utils', 'app_specific', 'poste'))
 from utils.app_specific.poste.checks import verify_emails_sent_to_recipients, extract_url_patterns_from_email
+from utils.evaluation.retry import grade_with_retry
+
+
+def _decode_email_header(value: Any) -> str:
+    """Decode an RFC 2047 email header into a Python 3 string."""
+    return str(make_header(decode_header(str(value or ""))))
+
+
+def _formatted_recipient_count(
+    verification_results: List[Dict[str, Any]],
+    expected_recipients: List[str],
+) -> int:
+    """Count expected recipients covered by at least one valid email."""
+    formatted_recipients = {
+        recipient.lower()
+        for result in verification_results
+        if result["subject_ok"] and result["content_ok"]
+        for recipient in result["recipients"]
+    }
+    return sum(
+        1
+        for recipient in expected_recipients
+        if recipient.lower() in formatted_recipients
+    )
 
 with open("configs/gcp-service_account.keys.json", "r") as f:
     data = json.load(f)
@@ -329,9 +354,7 @@ class WelcomeEmailValidator:
                                             if email_recipients:
                                                 # Extract email content and subject
                                                 email_content = _extract_text_from_message(msg)
-                                                subject = msg.get('Subject', '')
-                                                # decode the subject, it is utf8 encoded
-                                                subject = subject.decode('utf-8', errors='replace')
+                                                subject = _decode_email_header(msg.get('Subject', ''))
 
                                                 # Verify subject format
                                                 subject_ok = bool(re.search(self.expected_subject_pattern, subject, re.IGNORECASE))
@@ -352,7 +375,8 @@ class WelcomeEmailValidator:
                                                     "total_elements": len(self.expected_content_elements),
                                                     "subject": subject[:100]  # First 100 chars for debugging
                                                 })
-                                    except Exception:
+                                    except Exception as e:
+                                        print(f"⚠️ Skipping malformed email during detailed verification: {e}")
                                         continue
                     finally:
                         _close_imap_safely(imap)
@@ -364,7 +388,11 @@ class WelcomeEmailValidator:
             # Summary
             total_customers = len(customer_emails)
             emails_sent = len(verified_emails)
-            content_passed = sum(1 for r in content_verification_results if r["subject_ok"] and r["content_ok"]) if detailed_verification_success else 0
+            content_passed = (
+                _formatted_recipient_count(content_verification_results, customer_emails)
+                if detailed_verification_success
+                else 0
+            )
 
             print(f"   📊 Email Verification Results:")
             print(f"      - Total customers: {total_customers}")
@@ -379,7 +407,7 @@ class WelcomeEmailValidator:
             success = (emails_sent == total_customers and
                       len(missing_emails) == 0 and
                       detailed_verification_success and
-                      (not content_verification_results or content_passed == len(content_verification_results)))
+                      content_passed == total_customers)
 
             if success:
                 return True, f"All {total_customers} welcome emails sent with correct format"
@@ -451,7 +479,8 @@ def run_remote_evaluation() -> Tuple[bool, str]:
 
         # Load first-time customers for email verification
         if 'first_time_customers' in locals():
-            email_ok, email_msg = email_validator.verify_welcome_emails_sent(first_time_customers)
+            # Layer 2 retry: IMAP propagation lag for sent-folder indexer
+            email_ok, email_msg = grade_with_retry(lambda: email_validator.verify_welcome_emails_sent(first_time_customers))
             results.append(("Welcome Email Format", email_ok, email_msg))
         else:
             results.append(("Welcome Email Format", False, "No first-time customers data available"))

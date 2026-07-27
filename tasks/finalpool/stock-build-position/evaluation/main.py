@@ -28,6 +28,26 @@ stock_name_to_code = {
     "Meta": "META",
 }
 
+stock_code_aliases = {
+    "3690.HK": {"3690.HK", "3690"},
+    "0700.HK": {"0700.HK", "0700"},
+    "1810.HK": {"1810.HK", "1810"},
+    "9988.HK": {"9988.HK", "9988"},
+    "600519.SS": {"600519.SS", "600519.SH", "600519"},
+    "601318.SS": {"601318.SS", "601318.SH", "601318"},
+    "002594.SZ": {"002594.SZ", "002594"},
+    "300750.SZ": {"300750.SZ", "300750"},
+    "603259.SS": {"603259.SS", "603259.SH", "603259"},
+}
+
+def normalize_stock_code(code):
+    return str(code).strip().upper()
+
+def stock_codes_match(expected_code, actual_code):
+    expected_code = normalize_stock_code(expected_code)
+    actual_code = normalize_stock_code(actual_code)
+    return actual_code in stock_code_aliases.get(expected_code, {expected_code})
+
 def get_stock_price_sync(ticker):
     """Obtain stock price information simultaneously"""
     try:
@@ -225,7 +245,7 @@ async def main(args):
                 print(f"❌ HK: The number of shares is not an integer: {row['Stock_name']} - {stock_number}")
                 return False
             # Verify if the stock code match the stock name correctly.
-            if stock_name_to_code[row['Stock_name']] != row['Stock_code']:
+            if not stock_codes_match(stock_name_to_code[row['Stock_name']], row['Stock_code']):
                 print(f"❌ Stock code mismatches: {row['Stock_name']} expected: {stock_name_to_code[row['Stock_name']]}, actual: {row['Stock_code']}")
                 return False
         elif row['Stock_name'] in ["Microsoft","Apple","NVIDIA","AMD", "Google", "Meta"]:
@@ -238,7 +258,7 @@ async def main(args):
                 print(f"❌ US: The number of shares is not an integer: {row['Stock_name']} - {stock_number}")
                 return False
             # Verify if the stock code match the stock name correctly.
-            if stock_name_to_code[row['Stock_name']] != row['Stock_code']:
+            if not stock_codes_match(stock_name_to_code[row['Stock_name']], row['Stock_code']):
                 print(f"❌ Stock code mismatches: {row['Stock_name']} expected: {stock_name_to_code[row['Stock_name']]}, actual: {row['Stock_code']}")
                 return False
         elif row['Stock_name'] in ["Moutai","Ping An Insurance","BYD","CATL","WuXi AppTec"]:
@@ -251,7 +271,7 @@ async def main(args):
                 print(f"❌ CN: The number of shares need to be a positive integer and a multiple of 100: {row['Stock_name']} - {stock_number}")
                 return False
             # Verify if the stock code match the stock name correctly.
-            if stock_name_to_code[row['Stock_name']] != row['Stock_code']:
+            if not stock_codes_match(stock_name_to_code[row['Stock_name']], row['Stock_code']):
                 print(f"❌ Stock code mismatches: {row['Stock_name']} expected: {stock_name_to_code[row['Stock_name']]}, actual: {row['Stock_code']}")
                 return False
         else:

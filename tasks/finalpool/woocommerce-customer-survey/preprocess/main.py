@@ -243,8 +243,10 @@ def create_order_data():
     """
     print("📦 Generating order data...")
 
-    # Use generic order generator
-    all_orders, completed_orders = create_customer_survey_orders()
+    # Use generic order generator with a fixed seed so repeated preprocess
+    # runs produce identical orders (same statuses, products, dates).
+    # Without a seed, random.seed(None) uses system time → divergence.
+    all_orders, completed_orders = create_customer_survey_orders(seed=42)
 
     print(f"Created {len(all_orders)} orders")
     print(f"   - Completed orders: {len(completed_orders)}")

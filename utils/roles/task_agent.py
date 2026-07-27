@@ -10,6 +10,7 @@ from pathlib import Path
 
 from agents import (
     Agent,
+    FunctionTool,
     RunConfig,
     Usage,
     # Runner,
@@ -51,6 +52,13 @@ from utils.aux_tools.overlong_tool_manager import overlong_tool_tools
 
 from utils.general.helper import print_color
 from utils.status_manager import TaskStatusManager
+from utils.openai_agents_monkey_patch.tool_name_aliases import (
+    alias_function_tools,
+    build_tool_name_aliases,
+    rewrite_tool_name_references,
+    to_model_tool_choice,
+    validate_model_tool_names,
+)
 
 local_tool_mappings = {
     "ai_webpage_summary": tool_ai_webpage_summary,
@@ -62,6 +70,20 @@ local_tool_mappings = {
     "web_search": tool_web_search,
     "handle_overlong_tool_outputs": overlong_tool_tools,
 }
+
+
+def _flatten_local_tool_mappings() -> List[FunctionTool]:
+    """Return every local FunctionTool so prompts can use canonical aliases."""
+    tools: List[FunctionTool] = []
+    for tool_or_toolsets in local_tool_mappings.values():
+        candidates = (
+            tool_or_toolsets
+            if isinstance(tool_or_toolsets, list)
+            else [tool_or_toolsets]
+        )
+        tools.extend(tool for tool in candidates if isinstance(tool, FunctionTool))
+    return tools
+
 
 class TaskStatus(Enum):
     SUCCESS = "success"
@@ -95,6 +117,7 @@ class TaskAgent:
         allow_resume: bool = False,
         manual: bool = False,
         single_turn_mode: bool = False,
+        workspace_prepared: bool = False,
     ):
         self.task_config = task_config
         self.agent_config = agent_config
@@ -125,7 +148,14 @@ class TaskAgent:
             "agent_llm_requests": 0,
             "total_tokens": 0,
             "input_tokens": 0,
-            "output_tokens": 0
+            "output_tokens": 0,
+            "cached_input_tokens": 0,
+            "non_cached_input_tokens": 0,
+            "max_sequence_tokens": 0,
+            "max_sequence_input_tokens": 0,
+            "max_sequence_output_tokens": 0,
+            "max_input_tokens": 0,
+            "max_output_tokens": 0,
         }
 
         self.debug = debug
@@ -140,6 +170,7 @@ class TaskAgent:
         self.checkpoint_interval = 1  # Save checkpoint every N turns
 
         self.single_turn_mode = single_turn_mode
+        self.workspace_prepared = workspace_prepared
 
         self.shared_context = {}
 
@@ -298,6 +329,7 @@ class TaskAgent:
             self.logs_to_record = checkpoint_data['logs_to_record']
             self.all_tools = checkpoint_data['all_tools']
             self.stats = checkpoint_data['stats']
+            self._ensure_peak_usage_stats()
             
             # Restore session info
             self.session_id = checkpoint_data.get('session_id')
@@ -325,6 +357,45 @@ class TaskAgent:
         except Exception as e:
             self._debug_print(f"Failed to load checkpoint: {e}")
             return False
+
+    def _ensure_peak_usage_stats(self) -> None:
+        usage_default = None if self.stats.get("agent_llm_requests", 0) else 0
+        self.stats.setdefault("max_sequence_tokens", usage_default)
+        self.stats.setdefault("max_sequence_input_tokens", usage_default)
+        self.stats.setdefault("max_sequence_output_tokens", usage_default)
+        self.stats.setdefault("max_input_tokens", usage_default)
+        self.stats.setdefault("max_output_tokens", usage_default)
+        self.stats.setdefault("cached_input_tokens", usage_default)
+        self.stats.setdefault("non_cached_input_tokens", usage_default)
+
+    def _update_peak_llm_usage(self, usage: Usage) -> None:
+        """Track per-request token peaks and cache totals."""
+        self._ensure_peak_usage_stats()
+        input_tokens = int(getattr(usage, "input_tokens", 0) or 0)
+        output_tokens = int(getattr(usage, "output_tokens", 0) or 0)
+        sequence_tokens = input_tokens + output_tokens
+
+        if (
+            self.stats["max_sequence_tokens"] is not None
+            and sequence_tokens > self.stats["max_sequence_tokens"]
+        ):
+            self.stats["max_sequence_tokens"] = sequence_tokens
+            self.stats["max_sequence_input_tokens"] = input_tokens
+            self.stats["max_sequence_output_tokens"] = output_tokens
+        if self.stats["max_input_tokens"] is not None:
+            self.stats["max_input_tokens"] = max(self.stats["max_input_tokens"], input_tokens)
+        if self.stats["max_output_tokens"] is not None:
+            self.stats["max_output_tokens"] = max(self.stats["max_output_tokens"], output_tokens)
+
+        if self.stats["cached_input_tokens"] is not None:
+            cached_input_tokens = getattr(usage, "cached_input_tokens", None)
+            non_cached_input_tokens = getattr(usage, "non_cached_input_tokens", None)
+            if cached_input_tokens is None or non_cached_input_tokens is None:
+                self.stats["cached_input_tokens"] = None
+                self.stats["non_cached_input_tokens"] = None
+            else:
+                self.stats["cached_input_tokens"] += int(cached_input_tokens)
+                self.stats["non_cached_input_tokens"] += int(non_cached_input_tokens)
     
     def _remove_checkpoint(self) -> None:
         """Remove checkpoint file."""
@@ -425,24 +496,52 @@ class TaskAgent:
                 else:
                     local_tools.append(tool_or_toolsets)
 
+        # Local FunctionTools keep their original callbacks but expose only
+        # underscore aliases to the model.
+        local_tools, local_name_aliases = alias_function_tools(local_tools)
+
+        # Prompt files are shared with other harnesses. Rewrite tool-name
+        # references only in this OpenAI TaskAgent instance instead of editing
+        # those source files globally. Include a few legacy misspellings found
+        # in task prompts so they resolve to the same canonical alias.
+        prompt_name_aliases = build_tool_name_aliases(_flatten_local_tool_mappings())
+        prompt_name_aliases.update(local_name_aliases)
+        prompt_name_aliases["local-claim-done"] = "local_claim_done"
+        agent_instructions = rewrite_tool_name_references(
+            self.task_config.system_prompts.agent,
+            prompt_name_aliases,
+        )
+
+        generation_settings = {
+            key: value
+            for key, value in vars(self.agent_config.generation).items()
+            if key != "extra_request_params"
+        }
+        model_settings = ModelSettings(
+            tool_choice=to_model_tool_choice(self.agent_config.tool.tool_choice),
+            parallel_tool_calls=self.agent_config.tool.parallel_tool_calls,
+            **generation_settings,
+        )
+        agent_model = self.agent_model_provider.get_model(
+            self.agent_config.model.real_name,
+            debug=self.debug,
+            short_model_name=self.agent_config.model.short_name,
+        )
+        agent_model.extra_request_params = self.agent_config.generation.extra_request_params
+
         self.agent = Agent(
             name="Assistant",
-            instructions=self.task_config.system_prompts.agent,
-            model=self.agent_model_provider.get_model(self.agent_config.model.real_name, 
-                                                      debug = self.debug,
-                                                      short_model_name=self.agent_config.model.short_name),
+            instructions=agent_instructions,
+            model=agent_model,
             mcp_servers=[*self.mcp_manager.get_all_connected_servers()],
             tools=local_tools,
             hooks=self.agent_hooks,
-            model_settings=ModelSettings(
-                tool_choice=self.agent_config.tool.tool_choice,
-                parallel_tool_calls=self.agent_config.tool.parallel_tool_calls,
-                **{k: getattr(self.agent_config.generation, k) for k in vars(self.agent_config.generation)},
-            ),
+            model_settings=model_settings,
         )
         
         # Get all available tools
         available_tools = await self.agent.get_all_tools()
+        validate_model_tool_names(available_tools)
         for tool in available_tools:
             self.all_tools.append({
                 "type": "function",
@@ -731,6 +830,7 @@ class TaskAgent:
                 for raw_response in result.raw_responses:
                     self.usage.add(raw_response.usage)
                     self.stats["agent_llm_requests"] += 1
+                    self._update_peak_llm_usage(raw_response.usage)
 
                 self.logs = self.build_new_logs(result.input, result.new_items, server_conversation_tracker)
                 
@@ -779,7 +879,19 @@ class TaskAgent:
         """Get cost statistics for user and agent."""
         # Add null check for self.user_simulator
         if self.user_simulator is None:
-            user_cost = {"total_cost": 0, "total_input_tokens": 0, "total_output_tokens": 0, "total_requests": 0}
+            user_cost = {
+                "total_cost": 0,
+                "total_input_tokens": 0,
+                "total_output_tokens": 0,
+                "total_cached_input_tokens": 0,
+                "total_non_cached_input_tokens": 0,
+                "total_requests": 0,
+                "max_sequence_tokens": 0,
+                "max_sequence_input_tokens": 0,
+                "max_sequence_output_tokens": 0,
+                "max_input_tokens": 0,
+                "max_output_tokens": 0,
+            }
         else:
             user_cost = self.user_simulator.get_cost_summary()
         
@@ -790,6 +902,7 @@ class TaskAgent:
         )
         
         # Update token statistics
+        self._ensure_peak_usage_stats()
         self.stats["input_tokens"] = self.usage.input_tokens
         self.stats["output_tokens"] = self.usage.output_tokens
         self.stats["total_tokens"] = self.usage.input_tokens + self.usage.output_tokens
@@ -798,7 +911,14 @@ class TaskAgent:
             "total_cost": round(total_cost, 4),
             "total_input_tokens": self.usage.input_tokens,
             "total_output_tokens": self.usage.output_tokens,
+            "total_cached_input_tokens": self.stats["cached_input_tokens"],
+            "total_non_cached_input_tokens": self.stats["non_cached_input_tokens"],
             "total_requests": self.usage.requests,
+            "max_sequence_tokens": self.stats["max_sequence_tokens"],
+            "max_sequence_input_tokens": self.stats["max_sequence_input_tokens"],
+            "max_sequence_output_tokens": self.stats["max_sequence_output_tokens"],
+            "max_input_tokens": self.stats["max_input_tokens"],
+            "max_output_tokens": self.stats["max_output_tokens"],
         }
         
         return user_cost, agent_cost
@@ -860,22 +980,24 @@ class TaskAgent:
         current_dir = os.path.abspath(os.getcwd())
 
         try:
-            # Set log file and workspace dir
-            self.task_config.log_file = os.path.join(self.task_config.task_root, "traj_log.json")
-            self.task_config.agent_workspace = os.path.join(self.task_config.task_root, "workspace")
+            if not self.workspace_prepared:
+                # Preserve the legacy one-shot path exactly: it owns output path
+                # normalization, workspace initialization, preprocess, and token
+                # session loading.
+                self.task_config.log_file = os.path.join(self.task_config.task_root, "traj_log.json")
+                self.task_config.agent_workspace = os.path.join(self.task_config.task_root, "workspace")
 
-            # Preprocess status
-            self.status_manager.update_preprocess("running")
+                self.status_manager.update_preprocess("running")
 
-            # Initialize workspace (skip if checkpoint will be used)
-            if not await self.initialize_workspace():
-                self.status_manager.update_preprocess("fail")
-                return TaskStatus.FAILED
+                # Initialize workspace (skip if checkpoint will be used)
+                if not await self.initialize_workspace():
+                    self.status_manager.update_preprocess("fail")
+                    return TaskStatus.FAILED
 
-            self.status_manager.update_preprocess("done")
-            
-            # After preprocess, load task-specific local_token_key_session
-            self.task_config.load_local_token_key_session()
+                self.status_manager.update_preprocess("done")
+
+                # After preprocess, load task-specific local_token_key_session
+                self.task_config.load_local_token_key_session()
 
             # Setup MCP servers
             await self.setup_mcp_servers(self.task_config.local_token_key_session)

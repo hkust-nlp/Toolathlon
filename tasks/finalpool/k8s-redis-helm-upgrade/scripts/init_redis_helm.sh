@@ -4,6 +4,11 @@ agent_workspace=$3
 
 # Set variables
 SCRIPT_DIR=$(dirname "$0")
+KIND_IMAGE_LOADER="${SCRIPT_DIR}/../../../../scripts/lib/kind_image_loader.sh"
+if ! source "$KIND_IMAGE_LOADER"; then
+  echo "Failed to load shared Kind image loader: $KIND_IMAGE_LOADER" >&2
+  exit 1
+fi
 k8sconfig_path_dir=${agent_workspace}/k8s_configs
 # backup_k8sconfig_path_dir=deployment/k8s/configs
 backup_k8sconfig_path_dir=${SCRIPT_DIR}/../k8s_configs
@@ -21,6 +26,16 @@ initial_version="19.0.0"  # Initial version to deploy
 # values_file will be set based on operation and parameters
 
 podman_or_docker=$(uv run python -c "import sys; sys.path.append('configs'); from global_configs import global_configs; print(global_configs.podman_or_docker)")
+instance_suffix=$(uv run python -c "
+import yaml
+try:
+    with open('configs/ports_config.yaml', 'r') as f:
+        config = yaml.safe_load(f) or {}
+        print(config.get('instance_suffix', ''))
+except Exception:
+    print('')
+" 2>/dev/null || echo "")
+cluster_name="${cluster_name}${instance_suffix}"
 
 echo "podman_or_docker: $podman_or_docker"
 
@@ -432,17 +447,69 @@ start_operation() {
   log_info "========== Processing cluster ${cluster_name} =========="
 
   # Create cluster
-  create_cluster "${cluster_name}" "$configpath"
-  verify_cluster "${cluster_name}" "$configpath"
-  
+  create_cluster "${cluster_name}" "$configpath" || return 1
+  verify_cluster "${cluster_name}" "$configpath" || return 1
+
+  # Pre-load images from the host image cache into kind cluster.  The
+  # bitnami/redis chart 19.0.0 pulls bitnamilegacy/redis:<tag> via the
+  # --set image.repository=bitnamilegacy/redis override.  Bitnami no
+  # longer publishes legacy images to Docker Hub for older versions, so
+  # pulls hit 404/429 even when the host has the matching ``bitnami/``
+  # variant cached (different registry namespace).  We bridge by
+  # retagging host-cached ``bitnami/*`` images to ``bitnamilegacy/*``
+  # before loading it into Kind — the SHA is identical, only the name differs.
+  #
+  # Best-effort throughout: warn on failures, never abort; kubelet will
+  # still fall back to upstream pulls if needed.
+  HELM_VERSION="${initial_version:-19.0.0}"
+  # bitnami chart 19.0.0 default redis tag.  Keep in lockstep with
+  # ``initial_version`` above when the chart version is bumped.
+  REDIS_TAG="7.2.4-debian-12-r9"
+  BITNAMILEGACY_IMAGES=(
+    "redis:${REDIS_TAG}"
+  )
+  for _name_tag in "${BITNAMILEGACY_IMAGES[@]}"; do
+    src="bitnami/${_name_tag}"
+    dst="bitnamilegacy/${_name_tag}"
+    if ! "$podman_or_docker" image inspect "$dst" >/dev/null 2>&1; then
+      if "$podman_or_docker" image inspect "$src" >/dev/null 2>&1; then
+        log_info "Retag $src → $dst (same SHA, bitnamilegacy namespace)..."
+        "$podman_or_docker" tag "$src" "$dst" || log_warning "$podman_or_docker tag failed for $src → $dst"
+      else
+        log_info "Host image cache missing $dst (no $src to retag); pulling once..."
+        "$podman_or_docker" pull "$dst" || log_warning "$podman_or_docker pull $dst failed (kubelet will retry)"
+      fi
+    fi
+    if "$podman_or_docker" image inspect "$dst" >/dev/null 2>&1; then
+      log_info "Loading $dst into cluster $cluster_name for the node platform (offline)..."
+      toolathlon_kind_load_image "$podman_or_docker" "$cluster_name" "$dst" || \
+        log_warning "Image preload failed for $dst"
+    fi
+  done
+
+  # Distractor images (only used when deploy_lightweight_distractors is
+  # uncommented).  Still pre-load defensively so future re-enable works.
+  REQUIRED_IMAGES=(oliver006/redis_exporter:v1.45.0 nginx:1.21-alpine)
+  for _img in "${REQUIRED_IMAGES[@]}"; do
+    if ! "$podman_or_docker" image inspect "$_img" >/dev/null 2>&1; then
+      log_info "Host image cache missing $_img; pulling once..."
+      "$podman_or_docker" pull "$_img" || log_warning "$podman_or_docker pull $_img failed (will let kubelet retry)"
+    fi
+    if "$podman_or_docker" image inspect "$_img" >/dev/null 2>&1; then
+      log_info "Loading $_img into cluster $cluster_name for the node platform (offline)..."
+      toolathlon_kind_load_image "$podman_or_docker" "$cluster_name" "$_img" || \
+        log_warning "Image preload failed for $_img"
+    fi
+  done
+
   # Create namespace
-  create_namespace "$configpath"
+  create_namespace "$configpath" || return 1
   
   # Setup Helm
-  setup_helm "$configpath"
+  setup_helm "$configpath" || return 1
   
   # Deploy Redis with Helm
-  deploy_redis_helm "$configpath"
+  deploy_redis_helm "$configpath" || return 1
   
   # Deploy lightweight distractors
   # With podman, adding distractors may cause memory exhausted restarts, so commented out for now
@@ -453,7 +520,7 @@ start_operation() {
   # copy_values_to_home
   
   # Copy config to backup directory
-  cp "$configpath" "$backup_configpath"
+  cp "$configpath" "$backup_configpath" || return 1
 
   log_info "========== Redis Helm deployment completed =========="
   log_info "Cluster: $cluster_name"  # Should add this line

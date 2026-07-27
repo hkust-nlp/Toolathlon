@@ -8,12 +8,43 @@ def write_json(data, file_path):
     with open(file_path, "w") as f:
         json.dump(data, f, indent=4)
 
+# For property/argument ``type`` fields, recognise common cross-language
+# spellings as equivalent.  XLAM uses Python-style names ("str", "int"),
+# the unified-format spec / glaive use JSON Schema names ("string",
+# "integer"), and ToolACE uses "dict" instead of "object" for container
+# parameters.  All map to the same JSON Schema canonical form here.
+_TYPE_ALIASES = {
+    "str": "string", "string": "string",
+    "int": "integer", "integer": "integer",
+    "float": "number", "number": "number",
+    "bool": "boolean", "boolean": "boolean",
+    "list": "array", "array": "array",
+    "dict": "object", "object": "object",
+    "none": "null", "null": "null",
+}
+
+
+def _canonical_type_name(value: str):
+    """Return canonical JSON Schema type name for common source spellings."""
+    parts = [p.strip().lower() for p in value.split(",")]
+    for part in parts:
+        canonical = _TYPE_ALIASES.get(part)
+        if canonical is not None:
+            return canonical
+    return None
+
+
 def normalize_value_for_comparison(value, path=""):
     """Normalize value for comparison, handling known acceptable differences."""
     if isinstance(value, str):
-        # Normalize tool argument type
-        if path.endswith(".type") and value == "dict":
-            return "object"
+        # Type-name aliasing: XLAM uses "str"/"int", spec uses "string"/
+        # "integer", ToolACE uses "dict" for "object".  Canonicalise so
+        # identical schemas compare equal regardless of which spelling
+        # the source dataset (or the agent's conversion) chose.
+        if path.endswith(".type"):
+            canonical = _canonical_type_name(value)
+            if canonical is not None:
+                return canonical
         # Normalize JSON string values
         try:
             parsed = json.loads(value.strip())
@@ -98,8 +129,12 @@ def deep_compare_with_tool_call_mapping(obj1, obj2, path=""):
             current_path = f"{path}.{key}" if path else key
             
             if key not in obj1:
+                if key == "required" and obj2[key] is None:
+                    continue
                 differences.append(f"{current_path}: missing from left, right value: {obj2[key]}")
             elif key not in obj2:
+                if key == "required" and obj1[key] is None:
+                    continue
                 differences.append(f"{current_path}: missing from right, left value: {obj1[key]}")
             elif key == 'messages':
                 # Use special message comparison logic
@@ -128,7 +163,16 @@ def compare_messages_with_tool_call_mapping(msgs1, msgs2, path):
         if msg1.get('role') != msg2.get('role'):
             differences.append(f"{current_path}.role: value mismatch - '{msg1.get('role')}' vs '{msg2.get('role')}'")
         
-        if msg1.get('content') != msg2.get('content'):
+        if msg1.get('role') == 'tool' and msg2.get('role') == 'tool':
+            content_matches = is_semantically_equivalent(
+                msg1.get('content'),
+                msg2.get('content'),
+                f"{current_path}.content",
+            )
+        else:
+            content_matches = msg1.get('content') == msg2.get('content')
+
+        if not content_matches:
             differences.append(f"{current_path}.content: value mismatch - '{msg1.get('content')}' vs '{msg2.get('content')}'")
         
         # For tool_calls and tool_call_id, compare only content not ID
@@ -164,8 +208,12 @@ def deep_compare(obj1, obj2, path=""):
             current_path = f"{path}.{key}" if path else key
             
             if key not in obj1:
+                if key == "required" and obj2[key] is None:
+                    continue
                 differences.append(f"{current_path}: missing from left, right value: {obj2[key]}")
             elif key not in obj2:
+                if key == "required" and obj1[key] is None:
+                    continue
                 differences.append(f"{current_path}: missing from right, left value: {obj1[key]}")
             else:
                 differences.extend(deep_compare(obj1[key], obj2[key], current_path))

@@ -38,7 +38,6 @@ async def main(agent_workspace=None, launch_time=None):
         # Call with publish mode, pass agent_workspace param
         await setup_courses_main(publish=True, agent_workspace=agent_workspace)
 
-        exit(0)
         
         # 3. Inject exam notification emails
         print("\n📧 Step 3: Inject exam notification emails...")

@@ -8,7 +8,58 @@ import os
 import json
 import pandas as pd
 
+import re
+
 from utils.general.helper import normalize_str
+
+
+def _proctor_tokens(raw):
+    """Lowercase, drop 'professor' / 'prof.' prefix, return the set of word tokens.
+
+    Whitespace and punctuation are word boundaries; we don't collapse them away
+    (unlike normalize_str), so 'Debra Flores' -> {'debra', 'flores'} and
+    'Professor Smith' -> {'smith'}.
+    """
+    if raw is None:
+        return set()
+    s = str(raw).strip().lower()
+    s = re.sub(r'\bprof(?:essor|\.)?\b', ' ', s)
+    return set(re.findall(r'\w+', s))
+
+
+def proctor_match(agent_val, ground_val):
+    """Compare proctor names with bidirectional token-subset match.
+
+    Either side's token set being a subset of the other side passes.
+
+    Why bidirectional (not just ``GT tokens ⊆ agent tokens``):
+    the natural Canvas API path an agent uses to enumerate course
+    instructors is ``GET /api/v1/accounts/{id}/courses?include[]=teachers``,
+    whose per-teacher payload exposes ONLY ``display_name`` (the equivalent
+    of ``short_name`` — e.g. 'Debra', 'Steven', 'Christopher') — NO ``name``
+    field is returned.  To get the full instructor name an agent has to
+    make a separate ``GET /api/v1/courses/{id}/users?enrollment_type[]=teacher``
+    call, which is a less-obvious endpoint to reach for first.  The
+    final-exam announcement text doesn't restate the proctor name either
+    (it just signs off as 'Course Instructor').  So agents that follow
+    the natural API path end up writing 'Debra' while GT carries
+    'Debra Flores' — a reasonable agent choice that the previous
+    strict-on-agent rule (``g <= a``) false-failed.
+
+    Bidirectional acceptance handles every legitimate case:
+      - GT 'Debra Flores', agent 'Debra'              -> a ⊆ g  -> pass
+      - GT 'Debra Flores', agent 'Debra Flores'       -> equal -> pass
+      - GT 'Debra Flores', agent 'Professor Debra Flores' -> g ⊆ a -> pass
+        (after stripping 'Professor')
+      - GT 'Smith',        agent 'Professor Smith'    -> g ⊆ a -> pass
+      - GT 'Debra Flores', agent 'Smith'              -> neither subset -> fail (correct)
+    """
+    a = _proctor_tokens(agent_val)
+    g = _proctor_tokens(ground_val)
+    if not a or not g:
+        # Fall back to TBD-string equality if either side has no real tokens
+        return str(agent_val).strip().lower() == str(ground_val).strip().lower()
+    return g <= a or a <= g
 
 def check_local(agent_workspace: str, groundtruth_workspace: str):
     """
@@ -79,16 +130,25 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
             for col in key_columns:
                 val_agent = row_agent.get(col, 'N/A')
                 val_ground = row_ground.get(col, 'N/A')
-                
+
                 # Normalize for consistent comparison
                 val_agent_norm = normalize_str(str(val_agent)) if pd.notna(val_agent) else 'TBD'
                 val_agent_norm = val_agent_norm.replace('professor', '')  # for cases like "professor smith"
                 val_ground_norm = normalize_str(str(val_ground)) if pd.notna(val_ground) else 'TBD'
-                
+
                 if col == 'Course Credit':
                     # Numeric compare
                     is_match = compare_numeric_values(val_agent_norm, val_ground_norm)
                     if not is_match:
+                        course_matches = False
+                        course_diffs.append(f"{col}: Agent='{val_agent_norm}' vs Ground='{val_ground_norm}'")
+                elif col == 'Proctor Name':
+                    # Token-subset compare: GT may carry full or short name; agent may
+                    # report either.  Accept 'Debra Flores' ~ 'Debra' and 'Professor
+                    # Smith' ~ 'Smith'.  Both TBD ('TBD' tokenizes to {'tbd'}) still match.
+                    agent_raw = 'TBD' if pd.isna(val_agent) else str(val_agent)
+                    ground_raw = 'TBD' if pd.isna(val_ground) else str(val_ground)
+                    if not proctor_match(agent_raw, ground_raw):
                         course_matches = False
                         course_diffs.append(f"{col}: Agent='{val_agent_norm}' vs Ground='{val_ground_norm}'")
                 elif col == 'Information Source(Announcement/Email/Message)' and row_ground['Course Code'] == 'NET101':

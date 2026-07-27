@@ -195,7 +195,7 @@ def setup_woocommerce_products(wc_client) -> dict:
     
     return product_mapping
 
-def setup_test_environment() -> bool:
+def setup_test_environment(agent_workspace: str | None = None) -> bool:
     """Setup test environment with WooCommerce products and Google Sheets"""
     logger = setup_logging()
     
@@ -232,6 +232,12 @@ def setup_test_environment() -> bool:
         product_mapping = setup_woocommerce_products(wc_client)
 
         # Create orders using OrderSimulator
+        # Seed RNG so repeated preprocess runs produce identical orders
+        # (same products selected, quantities, customer).  Without this,
+        # each run generates a different inventory-demand pattern and the
+        # agent's expected output diverges.
+        import random
+        random.seed(42)
         logger.info("📦 Creating orders...")
         order_simulator = OrderSimulator(wc_client)
         test_orders = order_simulator.simulate_order_batch(count=3, interval=2)
@@ -266,14 +272,14 @@ def setup_test_environment() -> bool:
             clear_folder(drive_service, folder_id)
             logger.info(f"🧹 Cleared Google Sheets folder: {folder_id}")
             
+            copied_spreadsheet_id = None
             for sheet_url in GOOGLESHEET_URLS:
-                copy_sheet_to_folder(drive_service, sheet_url, folder_id)
+                copied_spreadsheet_id = copy_sheet_to_folder(drive_service, sheet_url, folder_id)
                 logger.info(f"📋 Copied sheet to folder: {sheet_url}")
                 
             logger.info("✅ Google Sheets setup completed using drive helper")
             
-            # Use folder_id as spreadsheet_id reference for config
-            spreadsheet_id = folder_id
+            spreadsheet_id = copied_spreadsheet_id
             
         except Exception as e:
             logger.warning(f"⚠️ Google Sheets setup failed: {e}")
@@ -300,13 +306,15 @@ def setup_test_environment() -> bool:
                 "woocommerce_id": str(wc_id)
             }
         
-        # Ensure initial_workspace directory exists
-        os.makedirs(os.path.dirname(config_path), exist_ok=True)
-        
-        with open(config_path, 'w') as f:
-            json.dump(config, f, indent=2, ensure_ascii=False)
-            
-        logger.info(f"💾 Config file created: {config_path}")
+        config_paths = [config_path]
+        if agent_workspace:
+            config_paths.append(os.path.join(agent_workspace, "config.json"))
+
+        for output_config_path in config_paths:
+            os.makedirs(os.path.dirname(output_config_path), exist_ok=True)
+            with open(output_config_path, 'w') as f:
+                json.dump(config, f, indent=2, ensure_ascii=False)
+            logger.info(f"💾 Config file created: {output_config_path}")
         
         logger.info("✅ Test environment setup completed")
         return True
@@ -331,7 +339,7 @@ if __name__ == "__main__":
     
     success = True
     
-    if not setup_test_environment():
+    if not setup_test_environment(args.agent_workspace):
         logger.warning("Test environment setup had issues, but continuing...")
         success = False
 

@@ -17,6 +17,7 @@ from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
 import html
 from utils.general.helper import normalize_str
+from utils.evaluation.retry import grade_with_retry
 
 # Add project path
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -875,7 +876,8 @@ def run_complete_evaluation(agent_workspace: str, groundtruth_workspace: str, re
     if results and results[0][1]:  # If data loading passed
         print("\n📧 STEP 2: Checking Email Sending...")
         try:
-            email_pass, email_msg = check_email_sending(expected_data)
+            # Layer 2 retry: IMAP propagation lag for sent-folder indexer
+            email_pass, email_msg = grade_with_retry(lambda: check_email_sending(expected_data))
             results.append(("Email Sending Check", email_pass, email_msg))
             print(f"{'✅' if email_pass else '❌'} {email_msg}")
         except Exception as e:

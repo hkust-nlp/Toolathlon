@@ -12,6 +12,7 @@ sys.path.insert(0, current_dir)
 
 from check_sheets import evaluate_sheets_integration
 from check_woocommerce import evaluate_woocommerce_sync
+from utils.evaluation.retry import grade_with_retry
 
 def setup_logging():
     """Setup logging"""
@@ -28,29 +29,37 @@ def run_complete_evaluation(agent_workspace: str, groundtruth_workspace: str, re
     results = []
     
 
-    # Step 2: Check Google Sheets integration
+    # Step 2: Check Google Sheets integration (Layer-2 wrap to absorb
+    # Google Sheets propagation lag on the agent's recent writes).
     print("\\n📊 STEP 2: Checking Google Sheets Integration...")
-    try:
-        sheets_result = evaluate_sheets_integration(agent_workspace)
-        sheets_pass = sheets_result['status'] != 'failed'
-        sheets_msg = f"Sheets integration check: {sheets_result.get('score', 0):.2f}"
-        results.append(("Google Sheets", sheets_pass, sheets_msg))
-        print(f"{'✅' if sheets_pass else '❌'} {sheets_msg}")
-    except Exception as e:
-        results.append(("Google Sheets", False, str(e)))
-        print(f"❌ Google Sheets error: {e}")
 
-    # Step 3: Check WooCommerce sync
+    def _sheets_check():
+        try:
+            sr = evaluate_sheets_integration(agent_workspace)
+            ok = sr['status'] != 'failed'
+            return ok, f"Sheets integration check: {sr.get('score', 0):.2f}"
+        except Exception as e:
+            return False, str(e)
+
+    sheets_pass, sheets_msg = grade_with_retry(_sheets_check)
+    results.append(("Google Sheets", sheets_pass, sheets_msg))
+    print(f"{'✅' if sheets_pass else '❌'} {sheets_msg}")
+
+    # Step 3: Check WooCommerce sync (Layer-2 wrap to absorb WooCommerce
+    # propagation lag on the agent's recent stock updates).
     print("\\n🛒 STEP 3: Checking WooCommerce Sync...")
-    try:
-        wc_result = evaluate_woocommerce_sync(agent_workspace)
-        wc_pass = wc_result['status'] != 'failed'
-        wc_msg = f"WooCommerce sync check: {wc_result.get('score', 0):.2f}"
-        results.append(("WooCommerce Sync", wc_pass, wc_msg))
-        print(f"{'✅' if wc_pass else '❌'} {wc_msg}")
-    except Exception as e:
-        results.append(("WooCommerce Sync", False, str(e)))
-        print(f"❌ WooCommerce sync error: {e}")
+
+    def _wc_check():
+        try:
+            wr = evaluate_woocommerce_sync(agent_workspace)
+            ok = wr['status'] != 'failed'
+            return ok, f"WooCommerce sync check: {wr.get('score', 0):.2f}"
+        except Exception as e:
+            return False, str(e)
+
+    wc_pass, wc_msg = grade_with_retry(_wc_check)
+    results.append(("WooCommerce Sync", wc_pass, wc_msg))
+    print(f"{'✅' if wc_pass else '❌'} {wc_msg}")
 
     # Calculate overall results - ALL tests must pass (strict evaluation)
     passed_count = sum(1 for _, passed, _ in results if passed)

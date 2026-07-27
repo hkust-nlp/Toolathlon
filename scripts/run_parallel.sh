@@ -21,13 +21,10 @@ MODEL_PROVIDER="${3:-unified}"
 # task-execution related arguments
 MAX_STEPS="100" # this is the maximum number of steps an agent can take in a single turn, you can set it to a larger value if you want to evaluate on a longer trajectory
 WORKERS=${4:-10} # number of workers to use in parallel evaluation
-TIMEOUT="2400" # the timeout for each task execution, including pre-processing, agentloop and post-processing
+TIMEOUT="5400" # the timeout for each task execution, including pre-processing, agentloop and post-processing
 
 # model sampling related arguments
-TEMPERATURE="0.6"
-echo "Using temperature ${TEMPERATURE} for agent model."
-TOP_P="1"
-MAX_TOKENS="8192"
+MAX_TOKENS="65536"
 IMAGE_NAME=${5:-"lockon0927/toolathlon-task-image:1016beta"}  # Docker image to use
 CONFIG_FILE_ARG=${6:-""}
 RUNNER=${7:-"containerized"}
@@ -66,8 +63,6 @@ if [ ! -f "$CONFIG_FILE" ]; then
             "provider": "$MODEL_PROVIDER"
         },
         "generation":{
-            "temperature": $TEMPERATURE,
-            "top_p": $TOP_P,
             "max_tokens": $MAX_TOKENS
         },
         "tool":{
@@ -116,7 +111,8 @@ echo "🚀 Starting parallel evaluation..."
 echo "📁 Tasks folder: $TASKS_FOLDER"
 echo "🏷️  Tag: $TAG"
 echo "🤖 Agent model: $MODEL_NAME ($MODEL_PROVIDER)"
-echo "🌡️  Temperature: $TEMPERATURE"
+echo "🧾 Max output tokens: $MAX_TOKENS"
+echo "⏱️  Timeout per task: ${TIMEOUT}s"
 echo "📁 Dump path: $DUMP_PATH"
 echo "🐳 Docker image: $IMAGE_NAME"
 echo "⚙️  Config file: $CONFIG_FILE"

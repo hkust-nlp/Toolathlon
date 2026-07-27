@@ -5,93 +5,114 @@ from argparse import ArgumentParser
 import os
 import re
 
-async def main(args):
-    # Check if agent_workspace is provided
-    if not args.agent_workspace:
-        print("Agent workspace path is required")
-        exit(1)
-    
-    # Check if groundtruth_workspace is provided
-    if not args.groundtruth_workspace:
-        print("Groundtruth workspace path is required")
-        exit(1)
-    
-    # Path to the shortest_length_experiment.csv files
-    agent_csv_path = os.path.join(args.agent_workspace, 'shortest_length_experiment.csv')
-    groundtruth_csv_path = os.path.join(args.groundtruth_workspace, 'shortest_length_experiment.csv')
-    
+from utils.evaluation.retry import grade_with_retry
+
+
+def _check_shortest_length(agent_csv_path: str, groundtruth_csv_path: str):
+    """Compare the agent's shortest-length CSV against ground truth.
+
+    Wrapped in grade_with_retry to absorb late-finalizing WandB run summaries
+    that can cause the agent's CSV to be written shortly before grading.
+    """
     if not os.path.exists(agent_csv_path):
-        print(f"shortest_length_experiment.csv file not found in agent workspace: {agent_csv_path}")
-        exit(1)
-    
+        return False, f"shortest_length_experiment.csv file not found in agent workspace: {agent_csv_path}"
     if not os.path.exists(groundtruth_csv_path):
-        print(f"shortest_length_experiment.csv file not found in groundtruth workspace: {groundtruth_csv_path}")
-        exit(1)
-        
-    # Read the CSV files
+        return False, f"shortest_length_experiment.csv file not found in groundtruth workspace: {groundtruth_csv_path}"
+
     try:
         agent_df = pd.read_csv(agent_csv_path)
         groundtruth_df = pd.read_csv(groundtruth_csv_path)
     except Exception as e:
-        print(f"Could not read CSV files: {e}")
-        exit(1)
-    
-    # Compare the dataframes
+        return False, f"Could not read CSV files: {e}"
+
     errors = []
-    
-    # Check if both dataframes have the same shape
-    if agent_df.shape != groundtruth_df.shape:
-        errors.append(f"CSV shape mismatch: agent has {agent_df.shape}, groundtruth has {groundtruth_df.shape}")
-    
-    # Check if both dataframes have the same columns
+    # The prompt says "from step 0, at intervals of every 100 steps".  Two
+    # reasonable interpretations:
+    #   (a) strict — only steps that are multiples of 100 (e.g. 0,100,200,
+    #       300,400).  Agent rows = GT minus the trailing final-checkpoint
+    #       row.
+    #   (b) inclusive — same multiples-of-100 set PLUS the final
+    #       checkpoint (last logged step, may not be a multiple of 100).
+    #       Agent rows = full GT.
+    # Both are defensible readings; accept either.  GT carries the full
+    # (b) form; if the agent's CSV omits the final row, we compare only
+    # the first N-1 rows.  All other shapes are mismatches.
     if not agent_df.columns.equals(groundtruth_df.columns):
-        errors.append(f"Column mismatch: agent has {list(agent_df.columns)}, groundtruth has {list(groundtruth_df.columns)}")
-    
-    # If basic structure matches, compare the content
+        errors.append(
+            f"Column mismatch: agent has {list(agent_df.columns)}, groundtruth has {list(groundtruth_df.columns)}"
+        )
+
+    if not errors:
+        n_gt = len(groundtruth_df)
+        n_ag = len(agent_df)
+        if n_ag == n_gt:
+            compare_rows = n_gt
+        elif n_ag == n_gt - 1:
+            # Agent dropped the trailing final-checkpoint row — strict
+            # interpretation of "every 100 steps".
+            compare_rows = n_gt - 1
+        else:
+            errors.append(
+                f"CSV row count mismatch: agent has {n_ag} rows, groundtruth has "
+                f"{n_gt} (with final checkpoint) or {n_gt - 1} (without).  "
+                f"Neither matches."
+            )
+
     if not errors:
         try:
-            # Compare the dataframes for equality
-            # We'll use pandas equals method which handles floating point comparisons properly
-            if not agent_df.equals(groundtruth_df):
-                # If not equal, find specific differences
-                differences = []
-                
-                # Compare each cell
-                for row_idx in range(min(len(agent_df), len(groundtruth_df))):
-                    for col_name in agent_df.columns:
-                        if col_name in groundtruth_df.columns:
-                            agent_val = agent_df.iloc[row_idx][col_name]
-                            truth_val = groundtruth_df.iloc[row_idx][col_name]
-                            
-                            # Handle different data types
-                            if pd.isna(agent_val) and pd.isna(truth_val):
-                                continue
-                            elif pd.isna(agent_val) or pd.isna(truth_val):
-                                differences.append(f"Row {row_idx}, Column '{col_name}': agent='{agent_val}', groundtruth='{truth_val}'")
-                            elif isinstance(agent_val, (int, float)) and isinstance(truth_val, (int, float)):
-                                if abs(float(agent_val) - float(truth_val)) > 0.01:
-                                    differences.append(f"Row {row_idx}, Column '{col_name}': agent={agent_val}, groundtruth={truth_val}")
-                            elif str(agent_val).strip() != str(truth_val).strip():
-                                differences.append(f"Row {row_idx}, Column '{col_name}': agent='{agent_val}', groundtruth='{truth_val}'")
-                
-                if differences:
-                    errors.append("CSV content mismatch found:")
-                    for diff in differences[:10]:  # Show first 10 differences to avoid overwhelming output
-                        errors.append(f"  - {diff}")
-                    if len(differences) > 10:
-                        errors.append(f"  ... and {len(differences) - 10} more differences")
-                        
+            differences = []
+            for row_idx in range(compare_rows):
+                for col_name in agent_df.columns:
+                    if col_name in groundtruth_df.columns:
+                        agent_val = agent_df.iloc[row_idx][col_name]
+                        truth_val = groundtruth_df.iloc[row_idx][col_name]
+                        if pd.isna(agent_val) and pd.isna(truth_val):
+                            continue
+                        elif pd.isna(agent_val) or pd.isna(truth_val):
+                            differences.append(
+                                f"Row {row_idx}, Column '{col_name}': agent='{agent_val}', groundtruth='{truth_val}'"
+                            )
+                        elif isinstance(agent_val, (int, float)) and isinstance(truth_val, (int, float)):
+                            if abs(float(agent_val) - float(truth_val)) > 0.01:
+                                differences.append(
+                                    f"Row {row_idx}, Column '{col_name}': agent={agent_val}, groundtruth={truth_val}"
+                                )
+                        elif str(agent_val).strip() != str(truth_val).strip():
+                            differences.append(
+                                f"Row {row_idx}, Column '{col_name}': agent='{agent_val}', groundtruth='{truth_val}'"
+                            )
+            if differences:
+                msg = "CSV content mismatch found: " + "; ".join(differences[:10])
+                if len(differences) > 10:
+                    msg += f"; ... and {len(differences) - 10} more differences"
+                errors.append(msg)
         except Exception as e:
             errors.append(f"Error comparing CSV content: {e}")
 
     if errors:
-        print("Evaluation failed with the following errors:")
-        for error in errors:
-            print(f"- {error}")
+        return False, "Evaluation failed: " + "; ".join(errors)
+    return True, None
+
+
+async def main(args):
+    if not args.agent_workspace:
+        print("Agent workspace path is required")
+        exit(1)
+    if not args.groundtruth_workspace:
+        print("Groundtruth workspace path is required")
+        exit(1)
+
+    agent_csv_path = os.path.join(args.agent_workspace, 'shortest_length_experiment.csv')
+    groundtruth_csv_path = os.path.join(args.groundtruth_workspace, 'shortest_length_experiment.csv')
+
+    ok, err = grade_with_retry(
+        lambda: _check_shortest_length(agent_csv_path, groundtruth_csv_path)
+    )
+    if not ok:
+        print(err)
         exit(1)
     else:
         print("Evaluation successful!")
-        print(f"Agent CSV file matches groundtruth exactly. Shape: {agent_df.shape}")
 
 if __name__ == "__main__":
     parser = ArgumentParser()

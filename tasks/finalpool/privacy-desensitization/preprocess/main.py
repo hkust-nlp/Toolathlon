@@ -4,6 +4,33 @@ import shutil
 import json
 import tarfile
 import glob
+import tempfile
+
+
+def is_macos_metadata(path):
+    parts = path.replace("\\", "/").split("/")
+    return any(part == "__MACOSX" or part == ".DS_Store" or part.startswith("._") for part in parts)
+
+
+def move_visible_contents(src_dir, dst_dir):
+    for name in sorted(os.listdir(src_dir)):
+        if is_macos_metadata(name):
+            continue
+        src = os.path.join(src_dir, name)
+        dst = os.path.join(dst_dir, name)
+        if os.path.exists(dst):
+            if os.path.isdir(dst):
+                shutil.rmtree(dst)
+            else:
+                os.remove(dst)
+        shutil.move(src, dst)
+
+
+def find_document_root(extract_dir):
+    visible = [name for name in os.listdir(extract_dir) if not is_macos_metadata(name)]
+    if visible == ["files"] and os.path.isdir(os.path.join(extract_dir, "files")):
+        return os.path.join(extract_dir, "files")
+    return extract_dir
 
 def main():
     parser = ArgumentParser()
@@ -16,15 +43,22 @@ def main():
     
     dst_tar_path = os.path.join(args.agent_workspace, "files.tar.gz")
     
-    # Extract tar.gz file
+    # Extract tar.gz file. Some archives are wrapped in a top-level files/
+    # directory; expose documents at the workspace root either way.
+    extract_tmp_dir = tempfile.mkdtemp(prefix=".files_extract_", dir=args.agent_workspace)
     try:
         with tarfile.open(dst_tar_path, 'r:gz') as tar:
-            print(f"Extracting to: {args.agent_workspace}")
-            tar.extractall(path=args.agent_workspace)
+            print(f"Extracting to temporary directory: {extract_tmp_dir}")
+            tar.extractall(path=extract_tmp_dir, filter="data")
+            source_dir = find_document_root(extract_tmp_dir)
+            move_visible_contents(source_dir, args.agent_workspace)
             print("Extraction completed")
     except Exception as e:
         print(f"Extraction failed: {e}")
         return
+    finally:
+        if os.path.exists(extract_tmp_dir):
+            shutil.rmtree(extract_tmp_dir)
     
     # Delete the tar.gz file
     try:

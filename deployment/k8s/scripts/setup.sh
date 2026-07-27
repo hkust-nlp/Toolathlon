@@ -125,9 +125,21 @@ stop_operation() {
 create_cluster() {
     local cluster_name=$1
     local config_path=$2
-    
+    local node_name="${cluster_name}-control-plane"
+
     log_info "Creating cluster: $cluster_name"
-    
+
+    # Pre-clean any orphaned state from a previous half-finished `kind create`.
+    # `kind get clusters` only lists complete clusters, so its cleanup loop
+    # cannot see these.  Specifically: a node container the daemon never
+    # finished booting, or a stale endpoint left in the `kind` bridge after
+    # `docker run` rolled back.  Both cause the next create to fail with
+    # "endpoint with name ... already exists in network kind".
+    # Each line is scoped to this cluster's node name only — safe to run on
+    # a host that has other instances' kind clusters present.
+    "$podman_or_docker" rm -f "$node_name" >/dev/null 2>&1 || true
+    "$podman_or_docker" network disconnect -f kind "$node_name" >/dev/null 2>&1 || true
+
     # Use podman/docker as the provider when creating the cluster
     if KIND_EXPERIMENTAL_PROVIDER=$podman_or_docker kind create cluster --name "$cluster_name" --kubeconfig "$config_path"; then
         log_info "Cluster $cluster_name created successfully"
@@ -283,6 +295,13 @@ start_operation() {
     
     # Show final inotify usage
     show_inotify_status
+
+    # Surface failure to the caller so deploy_containers.sh can fast-fail
+    # instead of waiting out the full readiness window.  Previously this
+    # function logged "Failed clusters: N" but the script still exited 0.
+    if [ "$failed_count" -gt 0 ]; then
+        return 1
+    fi
 }
 
 # Main function

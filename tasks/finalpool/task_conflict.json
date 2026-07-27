@@ -2,6 +2,7 @@
     "conflict_groups": [
         ["set-conf-cr-ddl", "student-interview"],
         ["huggingface-upload","dataset-license-issue"],
-        ["woocommerce-customer-survey","woocommerce-product-recall"]
+        ["woocommerce-customer-survey","woocommerce-product-recall"],
+        ["canvas-submit-late-work", "canvas-do-quiz"]
     ]
 }

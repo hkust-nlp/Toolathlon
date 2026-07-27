@@ -14,25 +14,49 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 task_dir = os.path.dirname(current_dir)
 sys.path.insert(0, task_dir)
 
-from .check_remote_recall import check_remote_recall_execution
+from .check_remote_recall import check_remote_recall_subchecks
+from utils.evaluation.retry import grade_with_retry
 
 def run_complete_evaluation(agent_workspace: str, groundtruth_workspace: str, res_log_file: str) -> tuple[bool, str]:
     """Run the complete product recall evaluation workflow"""
-    
+
     print("🚀 Starting Product Recall Evaluation")
     print("=" * 80)
-    
+
     results = []
-    
-    # Only perform remote check
+
+    # Run all three remote sub-checks (WC product removal, Recall Form,
+    # Recall Emails) independently.  Wrap the whole dispatcher in Layer-2
+    # retry so propagation lag (WC stock updates, IMAP indexer, form
+    # write-then-read) gets a chance to settle.  The most recent
+    # per-subcheck breakdown is captured via ``last_sub`` and reported
+    # separately for each subcheck — fixing the audit's "opaque single
+    # bucket" complaint.
     print("\n🌐 Checking Remote Services...")
+    last_sub: list = []
+
+    def _l2_check():
+        last_sub.clear()
+        last_sub.extend(
+            check_remote_recall_subchecks(agent_workspace, groundtruth_workspace, {})
+        )
+        all_ok = all(ok for _, ok, _ in last_sub)
+        return all_ok, (None if all_ok else "see per-subcheck details below")
+
     try:
-        remote_pass, remote_msg = check_remote_recall_execution(agent_workspace, groundtruth_workspace, {})
-        results.append(("Remote Services", remote_pass, remote_msg))
-        print(f"{'✅' if remote_pass else '❌'} {remote_msg}")
+        retry_ok, retry_msg = grade_with_retry(_l2_check)
+        if not retry_ok and not last_sub:
+            results.append(("Remote Services", False, retry_msg or "remote services check failed"))
     except Exception as e:
-        results.append(("Remote Services", False, str(e)))
+        # Dispatcher itself raised (rare — every internal subcheck is
+        # already try/excepted).  Surface as its own row so the rest of
+        # whatever we did capture still reports.
+        results.append(("Remote Services (dispatcher error)", False, str(e)))
         print(f"❌ Remote services check error: {e}")
+
+    for name, ok, msg in last_sub:
+        results.append((name, ok, msg))
+        print(f"{'✅' if ok else '❌'} {name}: {msg}")
     
     # Calculate overall results
     passed_count = sum(1 for _, passed, _ in results if passed)

@@ -312,7 +312,10 @@ def convert_format(input_path):
                         if "tool_calls" in msg:
                             for i, tool_call in enumerate(msg["tool_calls"]):
                                 arguments = tool_call["function"]["arguments"]
-                                if tool_call["function"]["name"] == "local-python-execute":
+                                if tool_call["function"]["name"] in (
+                                    "local-python-execute",
+                                    "local_python_execute",
+                                ):
                                     if arguments == "":
                                         msg_copy["tool_calls"][i]["function"]["arguments"] = arguments
                                     else:

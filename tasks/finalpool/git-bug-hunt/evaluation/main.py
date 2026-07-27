@@ -4,7 +4,8 @@ from pathlib import Path
 
 
 sys.path.append(str(Path(__file__).parent))
-from check_email_content import EmailContentChecker 
+from check_email_content import EmailContentChecker
+from utils.evaluation.retry import grade_with_retry
 
 if __name__=="__main__":
     parser = ArgumentParser()
@@ -27,11 +28,13 @@ if __name__=="__main__":
     
     # Instantiate checker
     checker = EmailContentChecker(
-        str(receiver_config_file), 
+        str(receiver_config_file),
         str(template_file),
         str(groundtruth_file)
     )
-    success = checker.run() 
+    # Layer 2 retry: IMAP propagation lag (SMTP -> indexer)
+    ok, _err = grade_with_retry(lambda: (bool(checker.run()), None))
+    success = bool(ok)
     
     if success:
         print("\nCheck succeeded")

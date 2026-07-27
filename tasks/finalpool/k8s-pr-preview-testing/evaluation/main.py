@@ -8,12 +8,34 @@ from typing import List, Dict, Tuple
 import requests
 from utils.app_specific.github.api import github_headers, github_get_login, GITHUB_API
 import os
+from pathlib import Path
 from utils.general.helper import normalize_str
 
 # ORIGINAL_HASH="ca1e55249730750ec2efc8f2a42ff6b905beceec"
 NAMESPACE="pr-preview-123"
+
+
+def get_instance_suffix() -> str:
+    try:
+        import yaml
+    except ImportError:
+        return ""
+    for root in [Path.cwd(), *Path(__file__).resolve().parents]:
+        config_path = root / "configs" / "ports_config.yaml"
+        if config_path.exists():
+            try:
+                with open(config_path, "r") as f:
+                    return (yaml.safe_load(f) or {}).get("instance_suffix", "")
+            except Exception:
+                return ""
+    return ""
+
+
+def kubeconfig_filename(cluster_name: str) -> str:
+    return f"{cluster_name}{get_instance_suffix()}-config.yaml"
+
 task_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-K8S_CONFIG_PATH=os.path.join(task_dir, "k8s_configs", "cluster-pr-preview-config.yaml")
+K8S_CONFIG_PATH = os.path.join(task_dir, "k8s_configs", kubeconfig_filename("cluster-pr-preview"))
 
 def parse_markdown_table(table_content):
     """Parse markdown table into structured data"""

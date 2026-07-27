@@ -3,6 +3,7 @@ import os
 import csv
 import json
 import sys
+import time
 from pathlib import Path
 from google.cloud import logging
 from google.oauth2 import service_account
@@ -51,8 +52,32 @@ def get_students_above_threshold(student_data: dict, threshold: float) -> list:
             if data["drop_ratio"] > threshold]
 
 def check_critical_logs_for_students(project_id: str, credentials, needed_students, unneeded_students, task_launch_time=None, task_eval_time=None) -> bool:
+    # Google Cloud Logging is eventually consistent: write APIs return as
+    # soon as the entry is accepted into the ingestion buffer, but the
+    # entry is not queryable via list_entries until indexing completes.
+    # Empirically (Toolathlon-side measurement) the lag from write to
+    # queryable is ~8-15 s under normal load, with a long tail.  A
+    # single-shot list_entries call right after the agent's claim_done
+    # therefore racing the ingestion path produces false-negative grader
+    # failures — the writes succeeded but aren't indexed yet.
+    #
+    # We poll for up to RETRY_BUDGET_S seconds, querying every
+    # POLL_INTERVAL_S until every ``needed_students`` entry is found
+    # and no ``unneeded_students`` entry appears during the same retry
+    # window.  If the budget is exhausted before all needed entries are
+    # found, treat that as a true missing-log failure.  The query
+    # filter's upper bound ``task_eval_time`` is the indexing-cutoff
+    # value (entry server-timestamp must be <= eval start), which
+    # doesn't move during retry — entries we're waiting for were
+    # written before eval start and so their server timestamps satisfy
+    # the bound; we're just waiting for the index to catch up.
+    # Conservative budget for sweep-load conditions: many concurrent
+    # academic-warning runs share the GCP project's write-buffer
+    # capacity, which lengthens the lag tail.  180 s / 5 s polling
+    # gives 36 attempts before declaring a true miss.
+    RETRY_BUDGET_S = 180.0
+    POLL_INTERVAL_S = 5.0
 
-    
     try:
         client = logging.Client(project=project_id, credentials=credentials)
         # from ../groundtruth_workspace/log_bucket_name.txt to read actual log bucket name
@@ -60,7 +85,7 @@ def check_critical_logs_for_students(project_id: str, credentials, needed_studen
             log_bucket_name = f.read().strip()
 
         log_filter = f'logName="projects/{project_id}/logs/{log_bucket_name}" AND severity="CRITICAL"'
-        
+
         default_timezone = datetime.now().astimezone().tzinfo
         if task_launch_time is not None:
             task_launch_time_str = datetime.strptime(task_launch_time, "%Y-%m-%d %H:%M:%S %A").astimezone(default_timezone).strftime("%Y-%m-%dT%H:%M:%S+00:00")
@@ -68,49 +93,80 @@ def check_critical_logs_for_students(project_id: str, credentials, needed_studen
         if task_eval_time is not None:
             task_eval_time_str = datetime.strptime(task_eval_time, "%Y-%m-%d %H:%M:%S %A").astimezone(default_timezone).strftime("%Y-%m-%dT%H:%M:%S+00:00")
             log_filter += f' AND timestamp <= "{task_eval_time_str}"'
-        
-        print(f"Checking BigQuery logs CRITICAL entry...")
-        entries = list(client.list_entries(
-            filter_=log_filter,
-            order_by=logging.DESCENDING,
-            page_size=500
-        ))
-        
-        if not entries:
-            print(f"❌ No CRITICAL log entries found in {log_bucket_name}")
-            return False
-        
-        print(f"Found {len(entries)} CRITICAL log entries")
-        
-        used_entry_ids = []
 
-        founds = [False] * len(needed_students)
-        for idx, (student_name, student_id) in enumerate(needed_students):
-            for eid,entry in enumerate(entries):
-                if eid in used_entry_ids:
-                    continue
+        print(f"Checking BigQuery logs CRITICAL entry (retry budget {RETRY_BUDGET_S:.0f}s)...")
+
+        deadline = time.time() + RETRY_BUDGET_S
+        attempt = 0
+        entries: list = []
+        founds: list = []
+        used_entry_ids: list = []
+        last_missing_log: list = []
+        needed_logs_found = False
+        while True:
+            attempt += 1
+            entries = list(client.list_entries(
+                filter_=log_filter,
+                order_by=logging.DESCENDING,
+                page_size=500,
+            ))
+            used_entry_ids = []
+            founds = [False] * len(needed_students)
+            current_missing = []
+            for idx, (student_name, student_id) in enumerate(needed_students):
+                matched = False
+                for eid, entry in enumerate(entries):
+                    if eid in used_entry_ids:
+                        continue
+                    message = str(entry.payload)
+                    if str(student_id) in message and str(student_name) in message:
+                        founds[idx] = True
+                        used_entry_ids.append(eid)
+                        matched = True
+                        break
+                if not matched:
+                    current_missing.append((student_name, student_id))
+            last_missing_log = current_missing
+
+            for entry in entries:
                 message = str(entry.payload)
-                if str(student_id) in message and str(student_name) in message:
-                    print(f"✅ Found CRITICAL log for {student_name} {student_id}: {message[:100]}...")
-                    founds[idx] = True
-                    used_entry_ids.append(eid)
+                for student_name, student_id in unneeded_students:
+                    if str(student_id) in message or str(student_name) in message:
+                        print(f"❌ Found CRITICAL log for an unneeded student {student_name} {student_id}: {message[:100]}...")
+                        return False
 
-        if not all(founds):
-            for idx, found in enumerate(founds):
-                if not found:
-                    print(f"❌ Missing CRITICAL log for {needed_students[idx][0]} {needed_students[idx][1]}")
-            return False
+            if all(founds) and not needed_logs_found:
+                print(f"Found {len(entries)} CRITICAL log entries; all {len(needed_students)} needed students matched after {attempt} attempt(s)")
+                # Log the matches now that we're confident.
+                used_entry_ids_repeat = []
+                for idx, (student_name, student_id) in enumerate(needed_students):
+                    for eid, entry in enumerate(entries):
+                        if eid in used_entry_ids_repeat:
+                            continue
+                        message = str(entry.payload)
+                        if str(student_id) in message and str(student_name) in message:
+                            print(f"✅ Found CRITICAL log for {student_name} {student_id}: {message[:100]}...")
+                            used_entry_ids_repeat.append(eid)
+                            break
+                needed_logs_found = True
 
-        # check unneeded students
-        for eid,entry in enumerate(entries):
-            message = str(entry.payload)
-            for idx, (student_name, student_id) in enumerate(unneeded_students):
-                if str(student_id) in message or str(student_name) in message:
-                    print(f"❌ Found CRITICAL log for an unneeded student {student_name} {student_id}: {message[:100]}...")
-                    return False
-        
-        return True
-        
+            remaining = deadline - time.time()
+            if remaining <= 0:
+                if needed_logs_found:
+                    print(f"✅ No unexpected CRITICAL logs found for unneeded students after {attempt} attempt(s)")
+                    return True
+                print(f"❌ Retry budget {RETRY_BUDGET_S:.0f}s exhausted after {attempt} attempt(s) — entries still missing.")
+                print(f"   Last query saw {len(entries)} CRITICAL entries in {log_bucket_name}; still missing:")
+                for student_name, student_id in last_missing_log:
+                    print(f"❌ Missing CRITICAL log for {student_name} {student_id}")
+                return False
+            sleep_for = min(POLL_INTERVAL_S, remaining)
+            if needed_logs_found:
+                print(f"   attempt {attempt}: no unexpected CRITICAL logs visible; observing for {sleep_for:.1f}s more")
+            else:
+                print(f"   attempt {attempt}: {len(entries)} visible, still waiting for {len(current_missing)} entry/entries to ingest; sleeping {sleep_for:.1f}s")
+            time.sleep(sleep_for)
+
     except Exception as e:
         print(f"❌ Error checking BigQuery logs: {e}")
         return False
@@ -222,7 +278,6 @@ if __name__ == "__main__":
 
 
         print("\n5. Checking BigQuery logs for all students...")
-        # FIXME: here is a known issue that we only exclude students > 25% but <45%, actually we should exclude all students <45%
         bigquery_logs_valid = check_critical_logs_for_students(project_id, credentials, gt_45_percent, all_below_45_percent, args.launch_time, datetime.now().strftime("%Y-%m-%d %H:%M:%S %A"))
         
         if not bigquery_logs_valid:

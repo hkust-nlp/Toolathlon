@@ -113,21 +113,34 @@ async def get_my_quiz_scores(base_url: str, api_token: str, course_id: int) -> D
                             quiz_submissions = response_data.get('quiz_submissions', [])
                             
                             if quiz_submissions:
-                                # Get the latest submission
+                                # Get the latest submission record.
                                 submission = quiz_submissions[0]
-                                score = submission.get('score')
                                 quiz_points_possible = submission.get('quiz_points_possible', points_possible)
-                                
-                                # Check if submitted (response status 200 means submission exists)
+
+                                # Prefer ``kept_score`` over ``score``.
+                                #
+                                # Under Canvas's ``keep_highest`` scoring policy
+                                # (used by every quiz in this task), ``kept_score``
+                                # is the value Canvas records in the gradebook —
+                                # the max across all attempts.  ``score`` is just
+                                # the most recent attempt's score, which can be
+                                # ``null`` if the student started but did not
+                                # finish a fresh attempt (e.g. DB101 is set up
+                                # pre-completed at attempt 1; an agent that
+                                # tries to submit triggers a fresh attempt 2 in
+                                # ``untaken`` state with ``score=null`` while
+                                # ``kept_score`` remains 80.0).  Treating that
+                                # case as "no score" punishes the agent for a
+                                # quiz that already had a full grade locked in.
+                                kept_score = submission.get('kept_score')
+                                effective_score = kept_score if kept_score is not None else submission.get('score')
+
                                 is_submitted = True
-                                display_score = score if score is not None else 0
-                                
-                                # Calculate if full score for the calling function
+                                display_score = effective_score if effective_score is not None else 0
+
                                 is_full_score = False
-                                if score is not None and quiz_points_possible is not None and quiz_points_possible > 0:
-                                    score_float = float(score)
-                                    points_possible_float = float(quiz_points_possible)
-                                    is_full_score = abs(score_float - points_possible_float) < 1e-6
+                                if effective_score is not None and quiz_points_possible is not None and quiz_points_possible > 0:
+                                    is_full_score = abs(float(effective_score) - float(quiz_points_possible)) < 1e-6
                                 
                                 quiz_scores[quiz_title] = {
                                     'score': display_score,
@@ -136,7 +149,7 @@ async def get_my_quiz_scores(base_url: str, api_token: str, course_id: int) -> D
                                     'is_full_score': is_full_score,
                                     'submission_id': submission.get('id'),
                                     'attempt': submission.get('attempt', 0),
-                                    'has_score': score is not None
+                                    'has_score': effective_score is not None
                                 }
                             else:
                                 # No submissions found

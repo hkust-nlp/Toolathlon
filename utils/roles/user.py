@@ -30,6 +30,13 @@ class UserCostTracker:
     total_cost: float = 0.0
     total_input_tokens: int = 0
     total_output_tokens: int = 0
+    total_cached_input_tokens: Optional[int] = 0
+    total_non_cached_input_tokens: Optional[int] = 0
+    max_sequence_tokens: int = 0
+    max_sequence_input_tokens: int = 0
+    max_sequence_output_tokens: int = 0
+    max_input_tokens: int = 0
+    max_output_tokens: int = 0
     cost_history: List[CostReport] = field(default_factory=list)
     cost_by_model: Dict[str, Dict[str, float]] = field(default_factory=dict)
     
@@ -38,6 +45,21 @@ class UserCostTracker:
         self.total_cost += report.total_cost
         self.total_input_tokens += report.input_tokens
         self.total_output_tokens += report.output_tokens
+        if self.total_cached_input_tokens is not None:
+            if report.cached_input_tokens is None or report.non_cached_input_tokens is None:
+                self.total_cached_input_tokens = None
+                self.total_non_cached_input_tokens = None
+            else:
+                self.total_cached_input_tokens += report.cached_input_tokens
+                self.total_non_cached_input_tokens += report.non_cached_input_tokens
+
+        sequence_tokens = report.input_tokens + report.output_tokens
+        if sequence_tokens > self.max_sequence_tokens:
+            self.max_sequence_tokens = sequence_tokens
+            self.max_sequence_input_tokens = report.input_tokens
+            self.max_sequence_output_tokens = report.output_tokens
+        self.max_input_tokens = max(self.max_input_tokens, report.input_tokens)
+        self.max_output_tokens = max(self.max_output_tokens, report.output_tokens)
         self.cost_history.append(report)
         
         # Track cost by model
@@ -61,7 +83,14 @@ class UserCostTracker:
             "total_cost": round(self.total_cost,4),
             "total_input_tokens": self.total_input_tokens,
             "total_output_tokens": self.total_output_tokens,
+            "total_cached_input_tokens": self.total_cached_input_tokens,
+            "total_non_cached_input_tokens": self.total_non_cached_input_tokens,
             "total_requests": len(self.cost_history),
+            "max_sequence_tokens": self.max_sequence_tokens,
+            "max_sequence_input_tokens": self.max_sequence_input_tokens,
+            "max_sequence_output_tokens": self.max_sequence_output_tokens,
+            "max_input_tokens": self.max_input_tokens,
+            "max_output_tokens": self.max_output_tokens,
             "average_cost_per_request": self.total_cost / len(self.cost_history) if self.cost_history else 0,
             "by_model": self.cost_by_model
         }
@@ -201,6 +230,7 @@ class User:
             "max_tokens": self.config.global_config.generation.max_tokens,
             "top_p": self.config.global_config.generation.top_p,
         }
+        request_params.update(self.config.global_config.generation.extra_request_params)
         if self.config.global_config.model.short_name:
             request_params["model"] = self.config.global_config.model.short_name
         
@@ -273,6 +303,16 @@ class User:
             return {
                 "tracking_enabled": False,
                 "total_cost": 0.0,
+                "total_input_tokens": 0,
+                "total_output_tokens": 0,
+                "total_cached_input_tokens": 0,
+                "total_non_cached_input_tokens": 0,
+                "total_requests": 0,
+                "max_sequence_tokens": 0,
+                "max_sequence_input_tokens": 0,
+                "max_sequence_output_tokens": 0,
+                "max_input_tokens": 0,
+                "max_output_tokens": 0,
                 "message": "Cost tracking is disabled for this user"
             }
         
@@ -375,13 +415,22 @@ class User:
         """Get current state for saving"""
         return {
             'conversation_history': self.conversation_history.copy(),
-            # Add other status to save as needed
+            'cost_tracker': self.cost_tracker,
+            'interaction_count': self.interaction_count,
+            'total_tokens_used': self.total_tokens_used,
+            'is_initialized': self.is_initialized,
+            'last_interaction_at': self.last_interaction_at,
         }
     
     def set_state(self, state: Dict) -> None:
         """Restore from saved state"""
         self.conversation_history = state.get('conversation_history', [])
-        # Restore other state as needed
+        if state.get('cost_tracker') is not None and self.cost_tracker is not None:
+            self.cost_tracker = state['cost_tracker']
+        self.interaction_count = state.get('interaction_count', self.interaction_count)
+        self.total_tokens_used = state.get('total_tokens_used', self.total_tokens_used)
+        self.is_initialized = state.get('is_initialized', self.is_initialized)
+        self.last_interaction_at = state.get('last_interaction_at', self.last_interaction_at)
 
     def export_conversation(self, format: str = "json", include_costs: bool = True) -> Union[str, List[Dict[str, Any]]]:
         """

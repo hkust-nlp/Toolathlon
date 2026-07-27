@@ -31,7 +31,7 @@ GRE: GREs are NOT required for MSCS applicants.
 
 Fee: 125 dollars
 
-Due on December 2nd 11:59 PM Eastern Time
+Due on December 2nd
 
 ## CMU
 
@@ -64,6 +64,7 @@ Due on December 1st 05:00 PM Eastern Time
 https://grad.berkeley.edu/admissions/application-process/requirements/#application-fee
 https://grad.berkeley.edu/admissions/our-programs/
 https://grad.berkeley.edu/admissions/application-process/
+https://grad.berkeley.edu/program/computer-science/
 
 GRE is optional.
 

@@ -11,8 +11,29 @@ import socket
 import pymysql
 import os
 
+
+
+def get_instance_suffix() -> str:
+    try:
+        import yaml
+    except ImportError:
+        return ""
+    for root in [Path.cwd(), *Path(__file__).resolve().parents]:
+        config_path = root / "configs" / "ports_config.yaml"
+        if config_path.exists():
+            try:
+                with open(config_path, "r") as f:
+                    return (yaml.safe_load(f) or {}).get("instance_suffix", "")
+            except Exception:
+                return ""
+    return ""
+
+
+def kubeconfig_filename(cluster_name: str) -> str:
+    return f"{cluster_name}{get_instance_suffix()}-config.yaml"
+
 task_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-KUBECONFIG_PATH = os.path.join(task_dir, "k8s_configs", "cluster-mysql-config.yaml")
+KUBECONFIG_PATH = os.path.join(task_dir, "k8s_configs", kubeconfig_filename("cluster-mysql"))
 
 def normalize_str(s: str) -> str:
     """

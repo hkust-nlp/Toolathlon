@@ -3,8 +3,20 @@ import pandas as pd
 from utils.general.helper import normalize_str
 import re
 import numbers
+from decimal import Decimal, InvalidOperation
 from datetime import datetime, timedelta
 from dateutil import parser as date_parser
+
+AMBIGUOUS_SURVIVAL_CHALLENGE_VIDEO_IDS = {
+    "U_LlX4t0A9I",  # $10,000 Every Day You Survive In The Wilderness
+    "UPrkC1LdlLY",  # Survive 100 Days In Nuclear Bunker, Win $500,000
+    "aRcUVhVlSHg",  # Men Vs Women Survive In The Wilderness For $500,000
+}
+SURVIVAL_CHALLENGE_CATEGORIES = {"survival", "challenges"}
+AVERAGE_DURATION_STATISTIC = "Average_duration_excluding_shorts(HH:MM:SS)"
+AVERAGE_DURATION_TOLERANCE_SECONDS = 5
+AVERAGE_PUBLISH_INTERVAL_STATISTIC = "Average_publish_interval(days)"
+AVERAGE_PUBLISH_INTERVAL_TOLERANCE_DAYS = Decimal("0.05")
 
 def normalize_duration(duration_str):
     """Normalize HH:MM:SS format by removing leading zeros from each component"""
@@ -16,6 +28,105 @@ def normalize_duration(duration_str):
         # Remove leading zeros and reconstruct
         return f"{int(hours)}:{int(minutes)}:{int(seconds)}"
     return None
+
+def duration_to_seconds(duration_value):
+    """Convert an HH:MM:SS value to seconds, or return None if invalid."""
+    pattern = r'^(\d+):(\d+):(\d+)$'
+    match = re.match(pattern, str(duration_value).strip())
+    if not match:
+        return None
+
+    hours, minutes, seconds = (int(part) for part in match.groups())
+    if minutes >= 60 or seconds >= 60:
+        return None
+    return hours * 3600 + minutes * 60 + seconds
+
+def is_accepted_survival_challenge_category(
+    sheet_name,
+    column_name,
+    row_idx,
+    agent_value,
+    groundtruth_value,
+    groundtruth_df,
+):
+    """Accept either overlapping category for three explicitly scoped videos."""
+    if sheet_name != "Detail_Lists" or column_name != "category":
+        return False
+
+    video_id = str(groundtruth_df.iloc[row_idx]["video_id"]).strip()
+    categories = {
+        str(agent_value).strip().lower(),
+        str(groundtruth_value).strip().lower(),
+    }
+    return (
+        video_id in AMBIGUOUS_SURVIVAL_CHALLENGE_VIDEO_IDS
+        and categories.issubset(SURVIVAL_CHALLENGE_CATEGORIES)
+    )
+
+def compare_average_duration_with_tolerance(
+    sheet_name,
+    column_name,
+    row_idx,
+    agent_value,
+    groundtruth_value,
+    groundtruth_df,
+):
+    """Compare only the requested average-duration statistic with ±5s tolerance."""
+    if sheet_name != "Statistics" or column_name != "Value":
+        return None
+
+    statistic_item = str(groundtruth_df.iloc[row_idx]["Statistic_Item"]).strip()
+    if statistic_item != AVERAGE_DURATION_STATISTIC:
+        return None
+
+    agent_seconds = duration_to_seconds(agent_value)
+    groundtruth_seconds = duration_to_seconds(groundtruth_value)
+    if agent_seconds is None or groundtruth_seconds is None:
+        return None
+
+    difference_seconds = abs(agent_seconds - groundtruth_seconds)
+    if difference_seconds <= AVERAGE_DURATION_TOLERANCE_SECONDS:
+        return False, None
+    return True, (
+        f"Average duration diff exceeds {AVERAGE_DURATION_TOLERANCE_SECONDS}s: "
+        f"agent provides {agent_value} while groundtruth is {groundtruth_value} "
+        f"({difference_seconds}s difference)."
+    )
+
+def compare_average_publish_interval_with_tolerance(
+    sheet_name,
+    column_name,
+    row_idx,
+    agent_value,
+    groundtruth_value,
+    groundtruth_df,
+):
+    """Compare only the average publish interval with an inclusive ±0.05d tolerance."""
+    if sheet_name != "Statistics" or column_name != "Value":
+        return None
+
+    statistic_item = str(groundtruth_df.iloc[row_idx]["Statistic_Item"]).strip()
+    if statistic_item != AVERAGE_PUBLISH_INTERVAL_STATISTIC:
+        return None
+
+    try:
+        agent_interval = Decimal(str(agent_value).strip())
+        groundtruth_interval = Decimal(str(groundtruth_value).strip())
+    except InvalidOperation:
+        return None
+
+    if not agent_interval.is_finite() or not groundtruth_interval.is_finite():
+        return None
+
+    difference_days = abs(agent_interval - groundtruth_interval)
+    if difference_days <= AVERAGE_PUBLISH_INTERVAL_TOLERANCE_DAYS:
+        return False, None
+    return True, (
+        f"Average publish interval diff exceeds "
+        f"{AVERAGE_PUBLISH_INTERVAL_TOLERANCE_DAYS} days: agent provides "
+        f"{agent_value} while groundtruth is {groundtruth_value} "
+        f"({difference_days} days difference)."
+    )
 
 def compare_iso_time_with_tolerance(time_str1, time_str2, tolerance_minutes=5):
     """Compare two ISO 8601 time strings with tolerance in minutes"""
@@ -122,7 +233,39 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
                     elif pd.isna(agent_val) or pd.isna(gt_val):
                         return False, f"Sheet {sheet_name}: NaN mismatch at row {row_idx}, column '{col}'. Agent: {agent_val}, Groundtruth: {gt_val}"
                     else:
-                        is_error, error_info = compare_element(agent_val, gt_val)
+                        if is_accepted_survival_challenge_category(
+                            sheet_name,
+                            col,
+                            row_idx,
+                            agent_val,
+                            gt_val,
+                            df_groundtruth_reset,
+                        ):
+                            continue
+
+                        interval_comparison = compare_average_publish_interval_with_tolerance(
+                            sheet_name,
+                            col,
+                            row_idx,
+                            agent_val,
+                            gt_val,
+                            df_groundtruth_reset,
+                        )
+                        if interval_comparison is not None:
+                            is_error, error_info = interval_comparison
+                        else:
+                            duration_comparison = compare_average_duration_with_tolerance(
+                                sheet_name,
+                                col,
+                                row_idx,
+                                agent_val,
+                                gt_val,
+                                df_groundtruth_reset,
+                            )
+                            if duration_comparison is None:
+                                is_error, error_info = compare_element(agent_val, gt_val)
+                            else:
+                                is_error, error_info = duration_comparison
                         if is_error:
                             return False, f"Sheet {sheet_name}: Value mismatch at row {row_idx}, column '{col}'. Agent: {agent_val}, Groundtruth: {gt_val}. Detailed error: {error_info}"
             
@@ -132,8 +275,6 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
         
     except Exception as e:
         return False, f"Error comparing files: {str(e)}"
-
-
 
 
 

@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import json
 import subprocess
 import yaml
@@ -6,6 +7,88 @@ import re
 from typing import Dict, Any
 
 TARGET_VERSION = "22.0.0"
+
+
+def values_equal_strict(expected: Any, actual: Any) -> bool:
+    """Compare configuration values without Python's bool/int coercion."""
+    if type(expected) is not type(actual):
+        return False
+    if isinstance(expected, dict):
+        return expected.keys() == actual.keys() and all(
+            values_equal_strict(value, actual[key])
+            for key, value in expected.items()
+        )
+    if isinstance(expected, list):
+        return len(expected) == len(actual) and all(
+            values_equal_strict(expected_item, actual_item)
+            for expected_item, actual_item in zip(expected, actual)
+        )
+    return expected == actual
+
+
+def find_preservation_mismatches(
+    expected: Any, actual: Any, path: str = "$"
+) -> list[str]:
+    """Return paths where ``actual`` does not preserve ``expected``.
+
+    Helm upgrades may require additional values for chart or image compatibility.
+    Additional mapping keys are therefore allowed, while every value supplied in
+    the original configuration must remain present and unchanged. Lists remain
+    strictly identical because adding to scheduling or policy lists can change
+    the behavior of the original configuration.
+    """
+    if isinstance(expected, dict):
+        if not isinstance(actual, dict):
+            return [f"{path} (expected mapping, got {type(actual).__name__})"]
+
+        mismatches = []
+        for key, expected_value in expected.items():
+            child_path = f"{path}.{key}"
+            if key not in actual:
+                mismatches.append(f"{child_path} (missing)")
+                continue
+            mismatches.extend(
+                find_preservation_mismatches(
+                    expected_value, actual[key], child_path
+                )
+            )
+        return mismatches
+
+    if isinstance(expected, list):
+        if not isinstance(actual, list):
+            return [f"{path} (expected list, got {type(actual).__name__})"]
+        if not values_equal_strict(expected, actual):
+            return [f"{path} (list changed)"]
+        return []
+
+    if type(expected) is not type(actual) or expected != actual:
+        return [f"{path} (value changed)"]
+    return []
+
+
+def values_preserve_expected(expected: Any, actual: Any) -> bool:
+    """Whether actual Helm values contain the complete original configuration."""
+    return not find_preservation_mismatches(expected, actual)
+
+
+def get_instance_suffix() -> str:
+    try:
+        import yaml
+    except ImportError:
+        return ""
+    for root in [Path.cwd(), *Path(__file__).resolve().parents]:
+        config_path = root / "configs" / "ports_config.yaml"
+        if config_path.exists():
+            try:
+                with open(config_path, "r") as f:
+                    return (yaml.safe_load(f) or {}).get("instance_suffix", "")
+            except Exception:
+                return ""
+    return ""
+
+
+def kubeconfig_filename(cluster_name: str) -> str:
+    return f"{cluster_name}{get_instance_suffix()}-config.yaml"
 
 def check_helm_upgrade(task_dir: str) -> Dict[str, Any]:
     """
@@ -37,7 +120,7 @@ def check_helm_upgrade(task_dir: str) -> Dict[str, Any]:
     
     try:
         # Check if kubeconfig exists
-        kubeconfig_path = os.path.join(task_dir, "k8s_configs", "cluster-redis-helm-config.yaml")
+        kubeconfig_path = os.path.join(task_dir, "k8s_configs", kubeconfig_filename("cluster-redis-helm"))
         if not os.path.exists(kubeconfig_path):
             return {"error": "Kubeconfig not found"}
         
@@ -122,16 +205,21 @@ def check_helm_upgrade(task_dir: str) -> Dict[str, Any]:
         except FileNotFoundError:
             raise Exception(f"Expected values file not found: {expected_values_path}")
         
-        # Compare actual values with expected values
-        if values == expected_values:
+        # The task requires preserving the original configuration. Chart/image
+        # compatibility values added during the upgrade are allowed.
+        preservation_mismatches = find_preservation_mismatches(
+            expected_values, values
+        )
+        if not preservation_mismatches:
             result["custom_values_applied"] = True
             result["verification_checks"]["values_match_expected"] = True
         else:
-            # For debugging: show what doesn't match
+            # For debugging: identify original values that are missing or changed.
             result["config_mismatch_details"] = {
                 "expected_keys": list(expected_values.keys()),
                 "actual_keys": list(values.keys()),
-                "values_equal": values == expected_values
+                "missing_or_changed_paths": preservation_mismatches,
+                "values_equal": values_equal_strict(expected_values, values),
             }
         
         # Basic verification checks for key configurations
@@ -219,7 +307,7 @@ def evaluate(task_dir: str) -> Dict[str, Any]:
         if not details.get("verification_checks", {}).get("service_available"):
             issues.append("Services are not available")
         if not details.get("verification_checks", {}).get("values_match_expected"):
-            issues.append("Helm values do not exactly match expected configuration")
+            issues.append("Helm values do not preserve all expected configuration")
         if not details.get("verification_checks", {}).get("auth_enabled"):
             issues.append("Authentication is not enabled")
         if details.get("verification_checks", {}).get("replicas_count") != 2:

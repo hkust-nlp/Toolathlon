@@ -171,17 +171,30 @@ async def main(agent_workspace=None, launch_time=None):
     
         # Now course creation automatically publishes – no separate publish step needed
 
-        # 2. Delete all courses
-        print("\n🗑️ Step 4: Delete existing courses")
-        await setup_courses_main(delete=True, agent_workspace=agent_workspace)
+        # 2. Delete only this task's configured courses. Matching requires both
+        # exact name and exact course_code; unrelated Canvas courses are preserved.
+        print("\n🗑️ Step 4: Delete existing configured courses")
+        cleanup_success = await setup_courses_main(delete=True, agent_workspace=agent_workspace)
+        if not cleanup_success:
+            print("❌ Configured-course cleanup failed. Exiting.")
+            sys.exit(1)
 
         # 3. Create and publish new courses
         print("\n✨ Step 5: Create new courses")
-        await setup_courses_main(agent_workspace=agent_workspace)
+        setup_success = await setup_courses_main(agent_workspace=agent_workspace)
+        if not setup_success:
+            print("❌ Configured-course setup failed. Exiting.")
+            sys.exit(1)
 
         # 4. Submit assignments
         print("\n📝 Step 6: Submit student assignments")
-        await setup_courses_main(submit_assignments=True, agent_workspace=agent_workspace)
+        submission_success = await setup_courses_main(
+            submit_assignments=True,
+            agent_workspace=agent_workspace,
+        )
+        if not submission_success:
+            print("❌ Assignment submission setup failed. Exiting.")
+            sys.exit(1)
 
         print("\n🎉 Canvas exam environment preprocessing completed!")
         print("✅ All courses are created and published")
@@ -201,4 +214,3 @@ if __name__ == "__main__":
 
     # Run async main function
     asyncio.run(main(agent_workspace=args.agent_workspace, launch_time=args.launch_time))
-

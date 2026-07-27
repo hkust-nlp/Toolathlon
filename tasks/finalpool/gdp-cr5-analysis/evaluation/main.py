@@ -13,6 +13,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 from utils.general.helper import normalize_str
+from utils.evaluation.retry import grade_with_retry
 
 def init_google_clients(credentials_file: str):
     """Initialize Google Sheets and Drive API clients"""
@@ -507,22 +508,36 @@ def main():
         print("Initializing Google Sheets API...")
         sheets_service, drive_service = init_google_clients(args.credentials_file)
         print("Google Sheets and Drive API clients initialized.")
-        
-        # 2) Find spreadsheet
-        print(f"Looking for '{SPREADSHEET_NAME}' in folder {args.folder_id}...")
-        spreadsheet_id = find_spreadsheet_in_folder(drive_service, args.folder_id, SPREADSHEET_NAME)
-        if not spreadsheet_id:
-            error_msg = f"Could not find spreadsheet '{SPREADSHEET_NAME}' in folder {args.folder_id}"
-            print(error_msg)
-            evaluation_result["errors"].append(error_msg)
-            evaluation_result["summary"] = "Target spreadsheet not found"
+
+        # 2+3) Find spreadsheet and read its target sheet — wrap in Layer-2
+        # retry to absorb Google Sheets / Drive propagation lag.
+        _read_state = {"spreadsheet_id": None, "values": None}
+
+        def _read_sheet():
+            sid = find_spreadsheet_in_folder(drive_service, args.folder_id, SPREADSHEET_NAME)
+            if not sid:
+                return False, f"Could not find spreadsheet '{SPREADSHEET_NAME}' in folder {args.folder_id}"
+            try:
+                vals = read_sheet_values(sheets_service, sid, TARGET_SHEET_NAME)
+            except HttpError as e:
+                return False, f"Failed to read sheet '{TARGET_SHEET_NAME}': {e}"
+            if not vals:
+                return False, f"Sheet '{TARGET_SHEET_NAME}' is empty"
+            _read_state["spreadsheet_id"] = sid
+            _read_state["values"] = vals
+            return True, None
+
+        ok_read, read_err = grade_with_retry(_read_sheet)
+        if not ok_read:
+            print(read_err)
+            evaluation_result["errors"].append(read_err)
+            evaluation_result["summary"] = "Target spreadsheet not found or unreadable"
         else:
+            spreadsheet_id = _read_state["spreadsheet_id"]
             print(f"Found spreadsheet '{SPREADSHEET_NAME}': {spreadsheet_id}")
-            
-            # 3) Read target sheet
             print(f"Reading sheet '{TARGET_SHEET_NAME}'...")
             try:
-                values = read_sheet_values(sheets_service, spreadsheet_id, TARGET_SHEET_NAME)
+                values = _read_state["values"]
                 if not values:
                     error_msg = f"Sheet '{TARGET_SHEET_NAME}' is empty"
                     print(error_msg)

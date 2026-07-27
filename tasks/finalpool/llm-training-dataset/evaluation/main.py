@@ -5,6 +5,7 @@ from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
 from googleapiclient.errors import HttpError
 from utils.general.helper import normalize_str
+from utils.evaluation.retry import grade_with_retry
 
 # Reference pre-training datasets for GPT-Neo and LLaMA (inclusion required, strict match not necessary)
 gpt_neo_sets_list = [
@@ -30,32 +31,59 @@ llama_sizes = [
 llama_size_dict = {ds.lower(): size for ds, size in zip(llama_sets_list, llama_sizes)}
 llama_sets = set([ds.lower() for ds in llama_sets_list])
 
+shared_dataset_groups = [
+    {normalize_str("ArXiv")},
+    {normalize_str("Github")},
+    {normalize_str("Wikipedia"), normalize_str("Wikipedia (en)")},
+    {normalize_str("StackExchange"), normalize_str("Stack Exchange")},
+]
+
+def normalize_dataset_name(dataset_name):
+    return normalize_str(str(dataset_name))
+
+def get_matching_expected_name(agent_name, expected_sets):
+    agent_normalized = normalize_dataset_name(agent_name)
+
+    for expected_name in expected_sets:
+        expected_normalized = normalize_dataset_name(expected_name)
+        if agent_normalized in expected_normalized or expected_normalized in agent_normalized:
+            return expected_name
+
+    return None
+
 def dataset_match(agent_name, expected_sets):
     """
     Use normalize_str for normalization, then compare inclusion.
     If agent_name or expected_name includes the other, consider it a match.
     """
-    agent_normalized = normalize_str(agent_name)
-
-    for expected_name in expected_sets:
-        expected_normalized = normalize_str(expected_name)
-        if agent_normalized in expected_normalized or expected_normalized in agent_normalized:
-            return True
-
-    return False
+    return get_matching_expected_name(agent_name, expected_sets) is not None
 
 def get_expected_size(agent_name, expected_sets, size_dict):
     """
     Find the expected dataset in expected_sets matching agent_name and return its size.
     """
-    agent_normalized = normalize_str(agent_name)
-
-    for expected_name in expected_sets:
-        expected_normalized = normalize_str(expected_name)
-        if agent_normalized in expected_normalized or expected_normalized in agent_normalized:
-            return size_dict.get(expected_name)
-
+    matched_expected_name = get_matching_expected_name(agent_name, expected_sets)
+    if matched_expected_name is not None:
+        return size_dict.get(matched_expected_name)
     return None
+
+def is_shared_dataset(dataset_name):
+    dataset_normalized = normalize_dataset_name(dataset_name)
+    return any(dataset_normalized in group for group in shared_dataset_groups)
+
+def normalize_model_label(use_in_llm):
+    return str(use_in_llm).strip().lower()
+
+def model_label_matches(use_in_llm, target_model):
+    label = normalize_model_label(use_in_llm)
+    return label == target_model
+
+def has_dataset_for_model(agent_datasets, expected_dataset, target_model):
+    for agent_name, model_label in agent_datasets:
+        if dataset_match(agent_name, [expected_dataset]) and model_label_matches(model_label, target_model):
+            return True
+
+    return False
 
 def compare_size(agent_size_str, expected_size, tolerance=0.01):
     """
@@ -75,13 +103,7 @@ def compare_size(agent_size_str, expected_size, tolerance=0.01):
         return False
 
 def should_skip_size_check(dataset_name):
-    """
-    Check if size check should be skipped.
-    For datasets shared by both models (Wikipedia, ArXiv, Books, Github), skip size check.
-    """
-    name_lower = dataset_name.lower()
-    shared_datasets = ['wikipedia', 'arxiv', 'books', 'github']
-    return any(shared in name_lower for shared in shared_datasets)
+    return False
 
 from addict import Dict
 import os
@@ -277,17 +299,27 @@ if __name__ == "__main__":
         print(f"ERROR: Failed to load Google credentials: {e}")
         exit(1)
 
-    # 2. Load ptdata sheet data
-    try:
-        ptdata_df = get_ptdata_sheet_content(TARGET_FOLDER_ID, creds, args.spreadsheet_name, args.sheet_name)
-    except DataLoadError as e:
-        print(f"ERROR: Failed to load data from sheet: {e}")
-        exit(1)
+    # 2. Load ptdata sheet data — wrap in Layer 2 retry to absorb Google
+    #    Sheets / Drive eventual-consistency lag (agent's write may not yet
+    #    be visible to our read session).
+    _ptdata_holder = {}
+    def _fetch_ptdata():
+        try:
+            _ptdata_holder["df"] = get_ptdata_sheet_content(
+                TARGET_FOLDER_ID, creds, args.spreadsheet_name, args.sheet_name
+            )
+            return True, None
+        except DataLoadError as e:
+            return False, f"Failed to load data from sheet: {e}"
 
-    # 3. Initialize counters and collect agent's datasets
-    llama_cnt = 7
-    gpt_neo_cnt = 23
-    agent_datasets = []  # Store (name, model) pairs for analysis
+    ok, err = grade_with_retry(_fetch_ptdata)
+    if not ok:
+        print(f"ERROR: {err}")
+        exit(1)
+    ptdata_df = _ptdata_holder["df"]
+
+    # 3. Collect agent's datasets
+    agent_datasets = []  # Store (name, normalized_model_label) pairs for analysis
     size_errors = []  # Store size validation errors
 
     print(f"📋 Loaded {len(ptdata_df)} datasets from agent's sheet")
@@ -306,10 +338,8 @@ if __name__ == "__main__":
             except (ValueError, TypeError):
                 pass  # Skip if size is not a valid number
 
-    # 4. Process each dataset (collect data without printing)
-    llama_found_datasets = []
-    gpt_neo_found_datasets = []
-
+    # 4. Process each dataset for size checks. Coverage is checked later via
+    #    missing dataset names so shared datasets can be handled first.
     for idx, row in ptdata_df.iterrows():
         if len(row) < 3:
             print(f"ERROR: Row {idx+1} has insufficient columns. Expected at least 3 columns (name, use_in_llm, size)")
@@ -317,147 +347,117 @@ if __name__ == "__main__":
 
         name, use_in_llm = row.iloc[0], row.iloc[1]
         agent_size = row.iloc[2] if len(row) > 2 else None
-        agent_datasets.append((name, use_in_llm))
+        normalized_use_in_llm = normalize_model_label(use_in_llm)
+        agent_datasets.append((name, normalized_use_in_llm))
 
-        # Validate size if applicable
-        if use_in_llm == "gpt-neo":
-            if dataset_match(name, gpt_neo_sets):
-                gpt_neo_found_datasets.append(name)
-                # Check size (skip for shared datasets)
-                if not should_skip_size_check(name):
-                    expected_size = get_expected_size(name, gpt_neo_sets, gpt_neo_size_dict)
-                    if expected_size is not None and agent_size:
+        # Validate size against the model-specific expected size.
+        if model_label_matches(normalized_use_in_llm, "gpt-neo"):
+            matched_gpt_neo_name = get_matching_expected_name(name, gpt_neo_sets)
+            if matched_gpt_neo_name is not None:
+                if not should_skip_size_check(matched_gpt_neo_name):
+                    expected_size = gpt_neo_size_dict.get(matched_gpt_neo_name)
+                    if expected_size is not None and agent_size not in [None, ""]:
                         if not compare_size(agent_size, expected_size):
                             size_errors.append((name, agent_size, expected_size, "gpt-neo"))
-            gpt_neo_cnt -= 1
-        elif use_in_llm == "llama":
-            if dataset_match(name, llama_sets):
-                llama_found_datasets.append(name)
-                # Check size (skip for shared datasets)
-                if not should_skip_size_check(name):
-                    expected_size = get_expected_size(name, llama_sets, llama_size_dict)
-                    if expected_size is not None and agent_size:
+
+        if model_label_matches(normalized_use_in_llm, "llama"):
+            matched_llama_name = get_matching_expected_name(name, llama_sets)
+            if matched_llama_name is not None:
+                if not should_skip_size_check(matched_llama_name):
+                    expected_size = llama_size_dict.get(matched_llama_name)
+                    if expected_size is not None and agent_size not in [None, ""]:
                         if not compare_size(agent_size, expected_size):
                             size_errors.append((name, agent_size, expected_size, "llama"))
-            llama_cnt -= 1
-        elif "llama" in use_in_llm and "gpt-neo" in use_in_llm:
-            # Handle datasets used by both models
-            if dataset_match(name, gpt_neo_sets):
-                gpt_neo_found_datasets.append(name)
-                # Check size for gpt-neo (skip for shared datasets)
-                if not should_skip_size_check(name):
-                    expected_size = get_expected_size(name, gpt_neo_sets, gpt_neo_size_dict)
-                    if expected_size is not None and agent_size:
-                        if not compare_size(agent_size, expected_size):
-                            size_errors.append((name, agent_size, expected_size, "gpt-neo"))
-            if dataset_match(name, llama_sets):
-                llama_found_datasets.append(name)
-                # Check size for llama (skip for shared datasets)
-                if not should_skip_size_check(name):
-                    expected_size = get_expected_size(name, llama_sets, llama_size_dict)
-                    if expected_size is not None and agent_size:
-                        if not compare_size(agent_size, expected_size):
-                            size_errors.append((name, agent_size, expected_size, "llama"))
-            gpt_neo_cnt -= 1
-            llama_cnt -= 1
 
     # 5. Print analysis results
     print("\n🔍 EVALUATION RESULTS:")
     print("=" * 50)
 
-    # Check dataset numbers first
-    llama_found_count = len(llama_found_datasets)
-    gpt_neo_found_count = len(gpt_neo_found_datasets)
+    llama_shared_expected = sorted(dataset for dataset in llama_sets if is_shared_dataset(dataset))
+    llama_private_expected = sorted(dataset for dataset in llama_sets if not is_shared_dataset(dataset))
+    missing_llama_shared = [
+        dataset for dataset in llama_shared_expected
+        if not has_dataset_for_model(agent_datasets, dataset, "llama")
+    ]
+    missing_llama_private = [
+        dataset for dataset in llama_private_expected
+        if not has_dataset_for_model(agent_datasets, dataset, "llama")
+    ]
+    missing_llama = missing_llama_shared + missing_llama_private
+
+    gpt_neo_component_sets = sorted(dataset for dataset in gpt_neo_sets if dataset != "the pile")
+    gpt_neo_shared_expected = [dataset for dataset in gpt_neo_component_sets if is_shared_dataset(dataset)]
+    gpt_neo_private_expected = [dataset for dataset in gpt_neo_component_sets if not is_shared_dataset(dataset)]
+    missing_gpt_neo_shared = [
+        dataset for dataset in gpt_neo_shared_expected
+        if not has_dataset_for_model(agent_datasets, dataset, "gpt-neo")
+    ]
+    missing_gpt_neo_private = [
+        dataset for dataset in gpt_neo_private_expected
+        if not has_dataset_for_model(agent_datasets, dataset, "gpt-neo")
+    ]
+    missing_gpt_neo_components = missing_gpt_neo_shared + missing_gpt_neo_private
+    gpt_neo_component_found_count = len(gpt_neo_component_sets) - len(missing_gpt_neo_components)
+    gpt_neo_private_found_count = len(gpt_neo_private_expected) - len(missing_gpt_neo_private)
+    has_the_pile = has_dataset_for_model(agent_datasets, "the pile", "gpt-neo")
+
+    llama_found_count = len(llama_sets) - len(missing_llama)
 
     print(f"📊 Dataset Count Summary:")
     print(f"   • Expected LLaMA datasets: 7, Found: {llama_found_count}")
-    print(f"   • Expected GPT-Neo datasets: 23, Found: {gpt_neo_found_count}")
+    print(f"   • Expected GPT-Neo individual datasets: 22, Found: {gpt_neo_component_found_count}")
+    print(f"   • GPT-Neo aggregate dataset 'The Pile' present: {'Yes' if has_the_pile else 'No'}")
 
-    # Analyze missing LLaMA datasets
     print(f"\n🔍 LLaMA Dataset Analysis:")
-    missing_llama = []
-    for expected_dataset in llama_sets:
-        found = False
-        for agent_name in [name for name, model in agent_datasets if model == "llama" or ("llama" in model and "gpt-neo" in model)]:
-            if dataset_match(agent_name, [expected_dataset]):
-                found = True
-                break
-        if not found:
-            missing_llama.append(expected_dataset)
-
-    if missing_llama:
-        print(f"   ❌ Missing LLaMA datasets ({len(missing_llama)}):")
-        for dataset in sorted(missing_llama):
+    if missing_llama_shared:
+        print(f"   ❌ Missing shared LLaMA datasets ({len(missing_llama_shared)}):")
+        for dataset in missing_llama_shared:
             print(f"      • {dataset}")
     else:
-        print(f"   ✅ All expected LLaMA datasets found")
+        print(f"   ✅ All shared LLaMA datasets found")
 
-    # Analyze missing GPT-Neo datasets
+    if missing_llama_private:
+        print(f"   ❌ Missing LLaMA-only datasets ({len(missing_llama_private)}):")
+        for dataset in missing_llama_private:
+            print(f"      • {dataset}")
+    else:
+        print(f"   ✅ All LLaMA-only datasets found")
+
     print(f"\n🔍 GPT-Neo Dataset Analysis:")
+    if has_the_pile and gpt_neo_private_found_count == 0:
+        print(f"   ✅ 'The Pile' is present; individual GPT-Neo component rows are not required")
+    else:
+        if missing_gpt_neo_shared:
+            print(f"   ❌ Missing shared GPT-Neo component datasets ({len(missing_gpt_neo_shared)}):")
+            for dataset in missing_gpt_neo_shared:
+                print(f"      • {dataset}")
+        else:
+            print(f"   ✅ All shared GPT-Neo component datasets found")
 
-    # Check if agent provided "The Pile" dataset
-    has_the_pile = False
-    gpt_neo_agent_names = [name for name, model in agent_datasets if model == "gpt-neo" or ("llama" in model and "gpt-neo" in model)]
-
-    for agent_name in gpt_neo_agent_names:
-        if dataset_match(agent_name, ["the pile"]):
-            has_the_pile = True
-            break
+        if missing_gpt_neo_private:
+            print(f"   ❌ Missing GPT-Neo-only component datasets ({len(missing_gpt_neo_private)}):")
+            for dataset in missing_gpt_neo_private:
+                print(f"      • {dataset}")
+        else:
+            print(f"   ✅ All GPT-Neo-only component datasets found")
 
     if has_the_pile:
-        # If "The Pile" is found, check if it's the ONLY dataset or if ALL other 22 datasets are also present
-        other_datasets_count = 0
-        for agent_name in gpt_neo_agent_names:
-            if not dataset_match(agent_name, ["the pile"]):
-                other_datasets_count += 1
-
-        if other_datasets_count == 0:
-            # Only "The Pile" - this is valid
-            print(f"   ✅ Found only 'The Pile' dataset (contains all GPT-Neo sub-datasets)")
+        if gpt_neo_private_found_count == 0:
+            print(f"   ✅ GPT-Neo coverage satisfied by only 'The Pile'")
             gpt_neo_satisfied = True
-        elif other_datasets_count == 22:
-            # "The Pile" + exactly 22 other datasets - check if all are valid
-            missing_other_datasets = []
-            for expected_dataset in gpt_neo_sets:
-                if expected_dataset != "the pile":
-                    found = False
-                    for agent_name in gpt_neo_agent_names:
-                        if not dataset_match(agent_name, ["the pile"]) and dataset_match(agent_name, [expected_dataset]):
-                            found = True
-                            break
-                    if not found:
-                        missing_other_datasets.append(expected_dataset)
-
-            if len(missing_other_datasets) == 0:
-                print(f"   ✅ Found 'The Pile' + all 22 individual sub-datasets")
-                gpt_neo_satisfied = True
-            else:
-                print(f"   ❌ Found 'The Pile' but some individual datasets don't match expected ones")
-                gpt_neo_satisfied = False
+        elif gpt_neo_component_found_count == len(gpt_neo_component_sets):
+            print(f"   ✅ GPT-Neo coverage satisfied by 'The Pile' + all 22 individual sub-datasets")
+            gpt_neo_satisfied = True
         else:
-            # Invalid: "The Pile" + partial other datasets
-            print(f"   ❌ Invalid: Found 'The Pile' + {other_datasets_count} other datasets")
-            print(f"       Must be either: only 'The Pile' OR 'The Pile' + all 22 sub-datasets")
+            print(f"   ❌ Found 'The Pile' + partial GPT-Neo-only sub-datasets ({gpt_neo_private_found_count} of {len(gpt_neo_private_expected)})")
+            print(f"      Must be one of: only 'The Pile', 'The Pile' + all 22 sub-datasets, or only all 22 sub-datasets")
             gpt_neo_satisfied = False
     else:
-        # No "The Pile" found, check if all 23 datasets (including "The Pile") are present
-        missing_gpt_neo = []
-        for expected_dataset in gpt_neo_sets:
-            found = False
-            for agent_name in gpt_neo_agent_names:
-                if dataset_match(agent_name, [expected_dataset]):
-                    found = True
-                    break
-            if not found:
-                missing_gpt_neo.append(expected_dataset)
-
-        if missing_gpt_neo:
-            print(f"   ❌ 'The Pile' is required but not found. Missing datasets ({len(missing_gpt_neo)}):")
-            for dataset in sorted(missing_gpt_neo):
-                print(f"      • {dataset}")
+        if missing_gpt_neo_components:
+            print(f"   ❌ Missing GPT-Neo coverage: provide 'The Pile' or all 22 individual sub-datasets")
             gpt_neo_satisfied = False
         else:
-            print(f"   ✅ All expected GPT-Neo datasets found")
+            print(f"   ✅ GPT-Neo coverage satisfied by all 22 individual sub-datasets")
             gpt_neo_satisfied = True
 
     # 6. Final evaluation
@@ -465,8 +465,8 @@ if __name__ == "__main__":
     print("-" * 50)
 
     success = True
-    if llama_cnt != 0:
-        print(f"❌ Missing {llama_cnt} LLaMA datasets (expected 7, found {7 - llama_cnt})")
+    if missing_llama:
+        print(f"❌ Missing {len(missing_llama)} LLaMA datasets (expected 7, found {llama_found_count})")
         success = False
     else:
         print(f"✅ All 7 expected LLaMA datasets found")

@@ -10,8 +10,9 @@ parent_dir = current_dir.parent
 sys.path.insert(0, str(parent_dir))
 
 from .evaluate_sync import InventorySyncValidator
-from .evaluate_report import ReportValidator  
+from .evaluate_report import ReportValidator
 from token_key_session import all_token_key_session
+from utils.evaluation.retry import grade_with_retry
 
 # def create_woocommerce_config():
 #     """Create WooCommerce config from token_key_session.py"""
@@ -67,23 +68,17 @@ def check_inventory_sync(agent_workspace: str) -> tuple[bool, str]:
     """Check inventory synchronization functionality"""
     try:
         print("🔍 Checking inventory synchronization...")
-        
-        # Create temporary config
-        # config_file = create_woocommerce_config()
+
         config_file = all_token_key_session.woocommerce_config_file
         
         # Run sync validation
         validator = InventorySyncValidator(config_file, agent_workspace)
         report = validator.run_validation()
-        
-        # Clean up temp file
-        if os.path.exists(config_file):
-            os.remove(config_file)
-        
+
         # Check results
         validation_passed = report["validation_summary"]["validation_passed"]
         accuracy = report["validation_summary"]["overall_accuracy"]
-        
+
         if validation_passed:
             return True, f"✅ Inventory sync validation passed, accuracy: {accuracy}%"
         else:
@@ -106,9 +101,15 @@ def run_complete_evaluation(agent_workspace: str) -> tuple[bool, str]:
     # results.append(("Report File", report_success, report_msg))
     # print(report_msg)
     
-    # Step 2: Check inventory synchronization
+    # Step 2: Check inventory synchronization (Layer-2 wrap for WooCommerce
+    # propagation lag — stock updates may take a few seconds to surface).
     print("\n🔄 STEP 2: Checking Inventory Synchronization...")
-    sync_success, sync_msg = check_inventory_sync(agent_workspace)
+    config_file = all_token_key_session.woocommerce_config_file
+    try:
+        sync_success, sync_msg = grade_with_retry(lambda: check_inventory_sync(agent_workspace))
+    finally:
+        if os.path.exists(config_file):
+            os.remove(config_file)
     results.append(("Inventory Sync", sync_success, sync_msg))
     print(sync_msg)
     

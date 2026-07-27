@@ -25,12 +25,25 @@ async def main():
     # Setup Kubernetes cluster
     print("\nSetting up Kubernetes cluster ...")
     script_path = os.path.join(os.path.dirname(__file__), "..", "scripts","k8s_pr_preview_testing.sh")
-    await run_command(f"bash {script_path} {args.port} start {args.agent_workspace}", debug=True, show_output=True)
+    # Capture and propagate the bash script's returncode so a failed
+    # cluster bring-up (port-already-bound, kind create error, orphan-
+    # forwarder cleanup miss, etc.) surfaces as preprocess failure
+    # instead of a silent "ready".
+    _, _, rc = await run_command(
+        f"bash {script_path} {args.port} start {args.agent_workspace}",
+        debug=True, show_output=True,
+    )
+    if rc != 0:
+        print(f"k8s_pr_preview_testing.sh failed with returncode={rc}; aborting preprocess",
+              file=sys.stderr)
+        sys.exit(rc)
 
     print_color("Setting up Kubernetes cluster successfully!","green")
 
-    # Delete k8s_configs under agent_workspace
-    shutil.rmtree(os.path.join(args.agent_workspace, "k8s_configs"))
+    # Delete k8s_configs under agent_workspace.  ``ignore_errors``
+    # guards against a half-failed bash run (though we'd already have
+    # sys.exit'd above on that path).
+    shutil.rmtree(os.path.join(args.agent_workspace, "k8s_configs"), ignore_errors=True)
     print_color("Deleted local k8s_configs successfully! We will only use the k8s mcp in this task!","green")
 
 if __name__ == "__main__":

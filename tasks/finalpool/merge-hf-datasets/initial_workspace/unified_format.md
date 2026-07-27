@@ -9,6 +9,16 @@ Each data entry contains the following fields:
   - `tool_call_id`: (tool role only) Corresponding tool call ID
 - `tools`: List of tool definitions
 
+## Tool Parameter Conversion Rules
+
+- Represent every tool's `parameters` as a JSON Schema-style object containing `type`, `properties`, and `required`.
+- When a source dataset uses a flat parameter mapping (for example, XLAM), place each source parameter under `properties`.
+- A parameter is optional and must not appear in `required` when either of the following is true:
+  - The source parameter contains an explicit `default` key, including when its value is `null`.
+  - Its comma-separated `type` annotation contains the case-insensitive token `optional` (for example, `str, optional`).
+- Include every other parameter in `required`, preserving the source parameter order. Use an empty list when no parameters are required.
+- Determine whether a parameter is optional before normalizing source type aliases. Do not infer optionality from prose in the parameter description.
+
 ## Important Notes
 - If the system message only contains the toolset and instructions on how to use tools, please remove the system message from that dataset and keep only the conversation starting from user and the toolset
 - If assistant only made tool calls, its content should be null

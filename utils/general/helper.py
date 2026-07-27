@@ -548,13 +548,16 @@ def normalize_str(xstring):
     # remove punctuation and whitespace and lowercase
     return re.sub(r'[^\w]', '', xstring).lower().strip()
 
-def compare_iso_time(agent_time, groundtruth_time,date_only=False):
+def compare_iso_time(agent_time, groundtruth_time,date_only=False,except_year=False):
     # given both date in iso format, compare if they are the same
     agent_time = datetime.datetime.fromisoformat(agent_time)
     groundtruth_time = datetime.datetime.fromisoformat(groundtruth_time)
     if date_only: # we only compare the date part
         agent_time = agent_time.date()
         groundtruth_time = groundtruth_time.date()
+    if except_year: # except the year part by replacing the year with the groundtruth year
+        agent_time = agent_time.replace(year=groundtruth_time.year)
+        groundtruth_time = groundtruth_time.replace(year=groundtruth_time.year)
     return agent_time == groundtruth_time
 
 

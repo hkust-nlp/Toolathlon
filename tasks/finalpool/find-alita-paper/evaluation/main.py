@@ -20,29 +20,144 @@ title_gt = "Alita: Generalist Agent Enabling Scalable Agentic Reasoning with Min
 code_url_gt = "github.com/CharlesQ9/Alita"
 
 
+def _resolve_latest_version_with_retry(arxiv_id, max_attempts=4):
+    """Fetch (version, pdf_url) from arxiv's metadata API, with
+    exponential backoff for transient failures (most commonly HTTP
+    429 rate-limit from export.arxiv.org).
+
+    arxiv's public API throttles to ~1 req / 3s per IP and 429s
+    aggressively when several graders / parallel instances share the
+    same host IP.  Without this retry loop, a single 429 burst caused
+    the whole grader to flap to ``False`` even when the agent's PDF
+    was valid.
+
+    Returns (version, pdf_url) on success, or raises the last
+    exception after exhausting attempts.
+    """
+    import arxiv
+    import time
+
+    # Outer-loop backoff schedule.  Total worst-case wait between
+    # arxiv API calls ≈ 30+60+120 = 3.5 min, on top of the inner
+    # arxiv.Client retries.  Bounded so we don't time out the
+    # grading watchdog.
+    backoffs = [30, 60, 120]
+
+    last_err = None
+    # Tune the underlying arxiv.Client to give its own retry loop
+    # more room before we reach our outer backoff.
+    #
+    # In arxiv 2.2.0, ``delay_seconds`` is a rate-limit *floor*
+    # between consecutive requests (the lib sleeps before each call
+    # to ensure ≥delay_seconds have passed since the previous one),
+    # NOT an exponential retry interval.  ``num_retries`` controls
+    # how many times the lib retries on HTTPError /
+    # UnexpectedEmptyPageError / ConnectionError, with each retry
+    # waiting at least ``delay_seconds`` due to the rate-limit gate.
+    #
+    # Defaults (3.0s, 3) give the lib ~9s of internal retry budget
+    # before bubbling up — too tight when arxiv is 429-ing.  Bumping
+    # to (10.0s, 6) gives the lib ~60s of internal retry budget per
+    # outer attempt, usually outlasting a 429 burst from arxiv's
+    # short rate-window.  The outer loop (30/60/120s) is the
+    # second-line safety net.
+    client = arxiv.Client(delay_seconds=10.0, num_retries=6)
+
+    for attempt in range(1, max_attempts + 1):
+        try:
+            search = arxiv.Search(id_list=[arxiv_id])
+            paper = next(client.results(search))
+            version = paper.entry_id.split('v')[-1]
+            pdf_url = paper.entry_id.replace('abs', 'pdf')
+            return version, pdf_url
+        except Exception as e:
+            last_err = e
+            msg = str(e)
+            transient = (
+                "429" in msg
+                or "503" in msg
+                or "504" in msg
+                or "timeout" in msg.lower()
+                or "timed out" in msg.lower()
+                or "connection" in msg.lower()
+                or "unexpectedemptypage" in type(e).__name__.lower()
+            )
+            if attempt < max_attempts and transient:
+                delay = backoffs[min(attempt - 1, len(backoffs) - 1)]
+                print(f"arxiv API attempt {attempt}/{max_attempts} hit transient error ({e}); "
+                      f"sleeping {delay}s before retry")
+                time.sleep(delay)
+                continue
+            raise
+    # Defensive — shouldn't reach here
+    raise last_err if last_err else RuntimeError("arxiv metadata fetch exhausted retries with no error captured")
+
+
+def _md5(file_path):
+    import hashlib
+    h = hashlib.md5()
+    with open(file_path, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def _try_match_against_cached_gt(pdf_path, groundtruth_workspace, arxiv_id):
+    """Fallback when arxiv metadata API is unreachable.
+
+    If any ``gt_alita_{arxiv_id}v*.pdf`` was previously cached in the
+    groundtruth workspace, accept the agent PDF when it MD5-matches
+    any cached version.  Reasoning: if both the agent and the grader
+    are partitioned away from arxiv, they are necessarily working
+    from the same pre-cached corpus, so a hash match against any
+    cached gt is the strongest available signal.
+
+    Returns:
+      * True  — agent PDF matched some cached gt
+      * False — caches existed but none matched (genuine mismatch)
+      * None  — no caches available, can't decide either way
+    """
+    import glob
+    cached = sorted(glob.glob(os.path.join(groundtruth_workspace, f"gt_alita_{arxiv_id}v*.pdf")))
+    if not cached:
+        return None
+    agent_md5 = _md5(pdf_path)
+    for c in cached:
+        if _md5(c) == agent_md5:
+            print(f"Fallback: agent PDF MD5 matches cached groundtruth {os.path.basename(c)}")
+            return True
+    print(f"Fallback: agent PDF MD5 ({agent_md5}) does not match any of {len(cached)} cached gt files")
+    return False
+
+
 def check_pdf(pdf_path, groundtruth_workspace):
     # Since arxiv may upload new versions, please implement this function as follows
     # Get the latest version of arxiv based on arxiv_id_gt, if it is v1, just use groundtruth_workspace/gt_alita_{arxiv_id_gt}v1.pdf
     # Otherwise, please download a latest version of pdf to groundtruth_workspace/gt_alita_{arxiv_id_gt}v{n}.pdf
 
     # Please ensure the completeness of the download
-    
+
     # Then please compare whether pdf_path and groundtruth_workspace/gt_alita_{arxiv_id_gt}v{n}.pdf are consistent
     # If consistent, return True, otherwise return False
-    
-    import arxiv
+
     import hashlib
     import requests
-    
-    try:
-        # Get arXiv paper information
-        client = arxiv.Client()
-        search = arxiv.Search(id_list=[arxiv_id_gt])
-        paper = next(client.results(search))
 
-        # Get version information
-        version = paper.entry_id.split('v')[-1]
-        pdf_url = paper.entry_id.replace('abs', 'pdf')
+    try:
+        # Get arXiv paper information (with retry+backoff for 429).
+        # If even retries exhaust, fall back to MD5-matching against
+        # any previously-cached groundtruth PDF.
+        try:
+            version, pdf_url = _resolve_latest_version_with_retry(arxiv_id_gt)
+        except Exception as api_err:
+            print(f"arxiv metadata API unreachable after retries: {api_err}")
+            fb = _try_match_against_cached_gt(pdf_path, groundtruth_workspace, arxiv_id_gt)
+            if fb is True:
+                return True
+            if fb is False:
+                return False
+            print("No cached groundtruth available; cannot verify PDF without arxiv API")
+            return False
         print(f"arXiv paper version: v{version}")
         
         # Build groundtruth file path
@@ -132,15 +247,8 @@ def check_pdf(pdf_path, groundtruth_workspace):
             return False
         
         # Calculate the MD5 hash values of the two files for comparison
-        def calculate_md5(file_path):
-            hash_md5 = hashlib.md5()
-            with open(file_path, "rb") as f:
-                for chunk in iter(lambda: f.read(4096), b""):
-                    hash_md5.update(chunk)
-            return hash_md5.hexdigest()
-        
-        input_md5 = calculate_md5(pdf_path)
-        gt_md5 = calculate_md5(gt_file_path)
+        input_md5 = _md5(pdf_path)
+        gt_md5 = _md5(gt_file_path)
         
         print(f"Input PDF MD5: {input_md5}")
         print(f"Groundtruth PDF MD5: {gt_md5}")

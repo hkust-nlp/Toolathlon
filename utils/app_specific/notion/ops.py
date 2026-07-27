@@ -1,5 +1,59 @@
 import requests
+from requests.exceptions import ConnectionError, Timeout
 from typing import Dict, List, Optional, Tuple
+
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_exponential,
+    retry_if_exception_type,
+)
+
+
+# Layer-1 retry for the public Notion REST API.  Notion's public endpoint
+# (api.notion.com) returns 502/504 a few times an hour under normal load,
+# and 429s when several graders fire in parallel.  Bounded so a fully-down
+# Notion fails out in ~33s wall-clock.
+_NOTION_TIMEOUT = 10  # per-attempt seconds
+
+
+class _TransientNotionError(Exception):
+    """Marker for 5xx / 429 responses that should trigger another attempt.
+    4xx-other-than-429 (404, 401, 403, 422 …) surface as ``HTTPError`` and
+    are NOT retried — those are deterministic client/program errors.
+    """
+
+
+notion_retry = retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=1, max=4),
+    retry=retry_if_exception_type((ConnectionError, Timeout, _TransientNotionError)),
+    reraise=True,
+)
+
+
+@notion_retry
+def _notion_request(method: str, url: str, *, headers: Dict,
+                    json: Optional[Dict] = None) -> requests.Response:
+    """Single retried Notion HTTP attempt.
+
+    The signature mirrors what each caller below used to pass to
+    ``requests.{get,post}`` directly, so the existing call sites only need
+    a one-line swap.  Raises ``_TransientNotionError`` on 5xx/429 to drive
+    another tenacity attempt; raises ``HTTPError`` immediately on other
+    4xx (preserving the current "fail fast on bad request" behavior).
+    """
+    response = requests.request(
+        method.upper(), url,
+        headers=headers, json=json,
+        timeout=_NOTION_TIMEOUT,
+    )
+    if response.status_code >= 500 or response.status_code == 429:
+        raise _TransientNotionError(
+            f"Notion {method.upper()} {url} → HTTP {response.status_code}"
+        )
+    response.raise_for_status()
+    return response
 
 
 def get_notion_workspace_pages(token):
@@ -24,7 +78,7 @@ def get_notion_workspace_pages(token):
     }
 
     try:
-        response = requests.post(url, headers=headers, json=payload)
+        response = _notion_request("POST", url, headers=headers, json=payload)
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
@@ -62,7 +116,7 @@ def find_page_by_title(token: str, target_title: str, partial_match: bool = True
     }
 
     try:
-        response = requests.post(url, headers=headers, json=payload)
+        response = _notion_request("POST", url, headers=headers, json=payload)
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
         raise Exception(f"Failed to get workspace pages: {e}")
@@ -111,7 +165,7 @@ def find_database_by_title(token, target_title, partial_match=True):
     }
 
     try:
-        response = requests.post(url, headers=headers, json=payload)
+        response = _notion_request("POST", url, headers=headers, json=payload)
         response.raise_for_status()
         data = response.json()
 
@@ -165,7 +219,7 @@ def get_notion_page_blocks(page_id, token):
     }
 
     try:
-        response = requests.get(url, headers=headers)
+        response = _notion_request("GET", url, headers=headers)
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
@@ -182,7 +236,7 @@ def get_database_details(database_id, token):
     }
 
     try:
-        response = requests.get(url, headers=headers)
+        response = _notion_request("GET", url, headers=headers)
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
@@ -253,7 +307,7 @@ def get_database_entries(database_id, token):
     }
 
     try:
-        response = requests.post(url, headers=headers, json={})
+        response = _notion_request("POST", url, headers=headers, json={})
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
@@ -270,7 +324,7 @@ def get_page_by_id(page_id: str, token: str) -> Dict:
     }
 
     try:
-        response = requests.get(url, headers=headers)
+        response = _notion_request("GET", url, headers=headers)
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
@@ -279,23 +333,38 @@ def get_page_by_id(page_id: str, token: str) -> Dict:
 
 def get_page_content_as_text(page_id: str, token: str) -> str:
     """Get page content as plain text with markdown-style formatting"""
-    url = f"https://api.notion.com/v1/blocks/{page_id}/children"
+    base_url = f"https://api.notion.com/v1/blocks/{page_id}/children"
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",
         "Notion-Version": "2022-06-28"
     }
 
-    try:
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        raise Exception(f"Failed to get Notion page blocks: {e}")
+    # Notion returns at most 100 children per request. Keep following
+    # next_cursor so long pages are not silently truncated.
+    all_results = []
+    cursor = None
+    while True:
+        url = base_url + (
+            f"?page_size=100&start_cursor={cursor}" if cursor else "?page_size=100"
+        )
+        try:
+            response = _notion_request("GET", url, headers=headers)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            raise Exception(f"Failed to get Notion page blocks: {e}")
 
-    blocks = response.json()
+        blocks = response.json()
+        all_results.extend(blocks.get('results', []))
+        if not blocks.get('has_more'):
+            break
+        cursor = blocks.get('next_cursor')
+        if not cursor:
+            raise Exception("Notion page blocks response had has_more=True but no next_cursor")
+
     content_parts = []
 
-    for block in blocks.get('results', []):
+    for block in all_results:
         block_type = block.get('type', '')
 
         if block_type in ['paragraph', 'heading_1', 'heading_2', 'heading_3', 'bulleted_list_item', 'numbered_list_item']:

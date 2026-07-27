@@ -4,6 +4,11 @@ agent_workspace=$3
 
 # Set variables
 SCRIPT_DIR=$(dirname "$0")
+KIND_IMAGE_LOADER="${SCRIPT_DIR}/../../../../scripts/lib/kind_image_loader.sh"
+if ! source "$KIND_IMAGE_LOADER"; then
+  echo "Failed to load shared Kind image loader: $KIND_IMAGE_LOADER" >&2
+  exit 1
+fi
 PORT=${1:-30123}  # Default port is 30123, can be overridden by the first argument
 k8sconfig_path_dir=${agent_workspace}/k8s_configs
 backup_k8sconfig_path_dir=${SCRIPT_DIR}/../k8s_configs
@@ -11,6 +16,16 @@ mkdir -p $backup_k8sconfig_path_dir
 cluster_name="cluster-pr-preview"
 
 podman_or_docker=$(uv run python -c "import sys; sys.path.append('configs'); from global_configs import global_configs; print(global_configs.podman_or_docker)")
+instance_suffix=$(uv run python -c "
+import yaml
+try:
+    with open('configs/ports_config.yaml', 'r') as f:
+        config = yaml.safe_load(f) or {}
+        print(config.get('instance_suffix', ''))
+except Exception:
+    print('')
+" 2>/dev/null || echo "")
+cluster_name="${cluster_name}${instance_suffix}"
 
 # Color output definitions
 RED='\033[0;31m'
@@ -56,6 +71,27 @@ cleanup_existing_cluster() {
     log_info "Cluster ${cluster_name} has been deleted"
   else
     log_info "No existing cluster ${cluster_name} found"
+  fi
+}
+
+# Remove the exact kind node container created by this script if a prior
+# run left it orphaned after the kind cluster record disappeared.
+# For a single-node kind cluster, the runtime container name is
+# ``${cluster_name}-control-plane``.
+cleanup_agent_host_artifacts() {
+  log_info "Cleaning up orphaned kind control-plane container if it exists..."
+  local kind_container="${cluster_name}-control-plane"
+
+  if "$podman_or_docker" ps -a --format '{{.Names}}' 2>/dev/null | grep -qx "$kind_container"; then
+    log_info "  Removing kind container: $kind_container"
+    "$podman_or_docker" rm -f "$kind_container" 2>&1 | sed 's/^/    /' || true
+  else
+    log_info "  No orphan kind container found: $kind_container"
+  fi
+
+  if ss -tlnp 2>/dev/null | grep -q ":${PORT} "; then
+    log_warning "  Host port ${PORT} still bound after cleanup (non-container process?):"
+    ss -tlnp 2>/dev/null | grep ":${PORT} " | sed 's/^/    /' || true
   fi
 }
 
@@ -156,6 +192,9 @@ start_operation() {
   log_info "========== Start Kind cluster deployment for PR Preview Testing =========="
   cleanup_existing_cluster
   cleanup_config_files
+  # Must run BEFORE create_cluster — otherwise an orphan forwarder/etc
+  # still owns host port ${PORT} and the kind create step fails.
+  cleanup_agent_host_artifacts
   show_inotify_status
   configpath="$k8sconfig_path_dir/${cluster_name}-config.yaml"
   backup_configpath="$backup_k8sconfig_path_dir/${cluster_name}-config.yaml"
@@ -163,8 +202,41 @@ start_operation() {
   echo ""
   log_info "========== Processing cluster ${cluster_name} =========="
 
-  create_cluster "${cluster_name}" "$configpath"
-  verify_cluster "${cluster_name}" "$configpath"
+  # Propagate exit codes — a silent create/verify failure used to leave
+  # preprocess reporting "done" while no cluster actually existed,
+  # which then deadlocked the k8s MCP server at gateway_boot.
+  if ! create_cluster "${cluster_name}" "$configpath"; then
+    log_error "Aborting start_operation: kind create cluster failed for ${cluster_name}"
+    return 1
+  fi
+  if ! verify_cluster "${cluster_name}" "$configpath"; then
+    log_error "Aborting start_operation: cluster verification failed for ${cluster_name}"
+    return 1
+  fi
+
+  # Pre-load the image referenced by preview.yaml on the agent's
+  # feature/pr-123 branch (verified against
+  # Toolathlon-Archive/SimpleShopping@feature/pr-123) so the agent's
+  # ``kubectl apply -f preview.yaml`` doesn't have to pull from
+  # Docker Hub.  If preview.yaml ever changes to a different image
+  # tag, kubelet will simply fall back to a live pull.
+  REQUIRED_IMAGES=(nginx:1.25-alpine)
+  for _img in "${REQUIRED_IMAGES[@]}"; do
+    if ! "$podman_or_docker" image inspect "$_img" >/dev/null 2>&1; then
+      log_info "Host $podman_or_docker cache missing $_img — attempting $podman_or_docker pull..."
+      if ! "$podman_or_docker" pull "$_img" 2>&1 | tail -3; then
+        log_warning "$podman_or_docker pull $_img returned non-zero (rate limit/offline?)"
+      fi
+    fi
+    if "$podman_or_docker" image inspect "$_img" >/dev/null 2>&1; then
+      log_info "Loading $_img into cluster $cluster_name for the node platform (offline)..."
+      toolathlon_kind_load_image "$podman_or_docker" "$cluster_name" "$_img" || \
+        log_warning "Image preload failed for $_img"
+    else
+      log_warning "$_img unavailable on host after pull attempt — agent's kubectl apply will need to pull from upstream"
+    fi
+  done
+
   log_info "========== Cluster ready for deployment =========="
   log_info "KUBECONFIG is set to: $configpath"
   log_info "You can now deploy your services using:"
@@ -194,8 +266,8 @@ start_operation() {
 main() {
   local operation=${2:-start}
   case "$operation" in
-    "start") start_operation ;;
-    "stop") stop_operation ;;
+    "start") start_operation || exit 1 ;;
+    "stop")  stop_operation  || exit 1 ;;
     *)
       log_error "Invalid operation: $operation"
       show_usage

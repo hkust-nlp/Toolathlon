@@ -15,6 +15,8 @@ class CostReport(BaseModel):
     """Cost report model"""
     input_tokens: int = 0
     output_tokens: int = 0
+    cached_input_tokens: Optional[int] = None
+    non_cached_input_tokens: Optional[int] = None
     input_cost: float = 0.0
     output_cost: float = 0.0
     total_cost: float = 0.0

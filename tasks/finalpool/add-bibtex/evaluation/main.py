@@ -1,71 +1,97 @@
 from argparse import ArgumentParser
 import asyncio
 from pathlib import Path
-import bibtexparser
 import re
+import unicodedata
+
+import bibtexparser
+from bibtexparser.latexenc import latex_to_unicode
+
+
+_LATEX_FORMATTING_COMMAND = re.compile(
+    r"\\(?:operatorname|textnormal|textup|textmd|textrm|textsf|texttt|"
+    r"textsc|textbf|textit|emph|mbox|mathrm|mathbf|mathit|mathsf|"
+    r"mathtt|mathcal|mathbb)",
+    re.IGNORECASE,
+)
+
+_ASCII_EQUIVALENTS = str.maketrans(
+    {
+        'ø': 'o',
+        'Ø': 'O',
+        'ł': 'l',
+        'Ł': 'L',
+        'æ': 'ae',
+        'Æ': 'AE',
+        'œ': 'oe',
+        'Œ': 'OE',
+        'ß': 'ss',
+        'ð': 'd',
+        'Ð': 'D',
+        'þ': 'th',
+        'Þ': 'Th',
+        'ı': 'i',
+    }
+)
+
+
+def _normalize_latex_text(value):
+    """Decode LaTeX text and fold Unicode letters to stable ASCII forms."""
+    # Decode before lowercasing because commands such as \H are case-sensitive.
+    decoded = latex_to_unicode(value)
+
+    # latex_to_unicode handles accents and escapes, but intentionally leaves
+    # formatting commands such as \textbf in the output.
+    decoded = _LATEX_FORMATTING_COMMAND.sub('', decoded)
+    decoded = decoded.replace('{', '').replace('}', '')
+
+    decomposed = unicodedata.normalize('NFKD', decoded.translate(_ASCII_EQUIVALENTS))
+    return ''.join(char for char in decomposed if not unicodedata.combining(char))
+
 
 def normalize_field_value(value, field_name=""):
-    """Normalize the value of a field: convert to lowercase and remove symbols; handle title and author fields specially."""
+    """Normalize case, punctuation, and LaTeX forms in a BibTeX field."""
     if not value:
         return ""
-    
-    # Convert to lowercase
-    normalized = value.lower()
-    
+
+    normalized = value
+    normalized_field_name = field_name.lower()
+
+    # Titles and author names commonly contain both Unicode diacritics and
+    # equivalent LaTeX accent forms (for example, Rozi{\`e}re).  Decode those
+    # forms before punctuation is removed so an accent never becomes a space.
+    if normalized_field_name in {'title', 'author'}:
+        normalized = _normalize_latex_text(normalized)
+
+    normalized = normalized.lower()
+
     # Special handling for the title field
-    if field_name.lower() == 'title':
-        # Remove common LaTeX commands and special characters
-        normalized = re.sub(r'\\[a-zA-Z]+\{([^}]*)\}', r'\1', normalized)  # \textbf{text} -> text
-        normalized = re.sub(r'\{\\?"?([^}]*)\}', r'\1', normalized)  # {\"e} -> e, {"e} -> e
-        normalized = re.sub(r'\\([a-zA-Z])', r'\1', normalized)  # \' -> '
-        
-        # Normalize common special characters
-        char_replacements = {
-            'á': 'a', 'à': 'a', 'ä': 'a', 'â': 'a', 'ā': 'a', 'ă': 'a',
-            'é': 'e', 'è': 'e', 'ë': 'e', 'ê': 'e', 'ē': 'e', 'ě': 'e',
-            'í': 'i', 'ì': 'i', 'ï': 'i', 'î': 'i', 'ī': 'i',
-            'ó': 'o', 'ò': 'o', 'ö': 'o', 'ô': 'o', 'ō': 'o', 'ø': 'o',
-            'ú': 'u', 'ù': 'u', 'ü': 'u', 'û': 'u', 'ū': 'u',
-            'ñ': 'n', 'ç': 'c', 'š': 's', 'ž': 'z', 'č': 'c',
-            '–': '-', '—': '-', ''': "'", ''': "'", '"': '"', '"': '"',
-            '…': '...', '&': 'and'
-        }
-        for old, new in char_replacements.items():
-            normalized = normalized.replace(old, new)
-    
-    # Special handling for the author field
-    elif field_name.lower() == 'author':
-        # Normalize common special characters
-        char_replacements = {
-            'á': 'a', 'à': 'a', 'ä': 'a', 'â': 'a', 'ā': 'a', 'ă': 'a',
-            'é': 'e', 'è': 'e', 'ë': 'e', 'ê': 'e', 'ē': 'e', 'ě': 'e',
-            'í': 'i', 'ì': 'i', 'ï': 'i', 'î': 'i', 'ī': 'i',
-            'ó': 'o', 'ò': 'o', 'ö': 'o', 'ô': 'o', 'ō': 'o', 'ø': 'o',
-            'ú': 'u', 'ù': 'u', 'ü': 'u', 'û': 'u', 'ū': 'u',
-            'ñ': 'n', 'ç': 'c', 'š': 's', 'ž': 'z', 'č': 'c'
-        }
-        for old, new in char_replacements.items():
-            normalized = normalized.replace(old, new)
-        
-        # Handle LaTeX format special characters
-        normalized = re.sub(r'\{\\?"?([^}]*)\}', r'\1', normalized)  # {\"e} -> e, {"e} -> e
-    
+    if normalized_field_name == 'title':
+        normalized = normalized.replace('&', 'and')
+
+    # Deliberately keep the literal words "and others" in author values. A
+    # complete author list is not interchangeable with a truncated BibTeX list.
+
     # Remove punctuation and extra spaces, keep numbers and letters
-    normalized = re.sub(r'[^\w\s]', ' ', normalized)  # Replace punctuation with space rather than just deleting
+    normalized = re.sub(r'[^\w\s]', ' ', normalized)
     return re.sub(r'\s+', ' ', normalized).strip()
 
+
 def entries_match(entry1, entry2):
-    """Check if two BibTeX entries match (ignoring case and symbols, except for URLs which are compared as-is)."""
-    # First, check if the field names are exactly the same
-    keys1 = set(entry1.keys())
-    keys2 = set(entry2.keys())
-    
-    if keys1 != keys2:
-        print(f"Keys mismatch: {keys1} != {keys2}")
+    """Check whether an agent entry contains the normalized ground-truth data."""
+    # Citation keys are user-chosen identifiers, not bibliographic content.
+    # Require every ground-truth field, while allowing useful extra fields such
+    # as DOI or eprint in the agent entry.
+    required_fields = set(entry1) - {'ID'}
+    available_fields = set(entry2) - {'ID'}
+    missing_fields = required_fields - available_fields
+
+    if missing_fields:
+        print(f"Missing fields: {sorted(missing_fields)}")
         return False
-    
+
     # Check that all field values match
-    for field in keys1:
+    for field in sorted(required_fields):
         if 'url' in field.lower():
             # For URL fields, compare directly without normalization
             if entry1[field].strip() != entry2[field].strip():
@@ -80,6 +106,7 @@ def entries_match(entry1, entry2):
                 return False
     
     return True
+
 
 async def main(args):
     agent_workspace = args.agent_workspace
@@ -103,23 +130,29 @@ async def main(args):
     agent_entries = list(bib_database.entries)
     groundtruth_entries = list(groundtruth_bib_database.entries)
     
-    # First round: exact matching (by ID)
+    # First round: prefer entries with the same ID, but still validate their
+    # bibliographic fields.  This keeps requirements such as "and others" from
+    # being bypassed merely by copying the expected citation key.
     agent_entries_by_id = {entry['ID']: entry for entry in agent_entries}
     matched_groundtruth = []
     
     for entry in groundtruth_entries:
         entry_id = entry['ID']
-        if entry_id in agent_entries_by_id:
+        candidate = agent_entries_by_id.get(entry_id)
+        if candidate is not None and entries_match(entry, candidate):
             # Exact match found; remove from both sides
             matched_groundtruth.append(entry)
-            agent_entries.remove(agent_entries_by_id[entry_id])
+            agent_entries.remove(candidate)
             # print(f"Exact match: {entry_id}")
     
     # Remove matched entries from groundtruth list
     for matched_entry in matched_groundtruth:
         groundtruth_entries.remove(matched_entry)
     
-    print(f"After exact matching - Agent entries: {len(agent_entries)}, Groundtruth entries: {len(groundtruth_entries)}")
+    print(
+        f"After exact matching - Agent entries: {len(agent_entries)}, "
+        f"Groundtruth entries: {len(groundtruth_entries)}"
+    )
     
     # Second round: fuzzy matching (for remaining entries)
     print("Remaining groundtruth entries:")
@@ -140,17 +173,6 @@ async def main(args):
                 print(f"Fuzzy match: {entry['ID']} <-> {agent_entry['ID']}")
                 break
 
-        if not matched and entry['ID'] == 'roziere2023code':
-            tryagainentry = entry.copy()
-            tryagainentry['ID'] = 'roziere2023codellama'
-            print(f"Trying again for `{entry['ID']}` and we try to match it with `{tryagainentry['ID']}`")
-            for i, agent_entry in enumerate(agent_entries):
-                if entries_match(tryagainentry, agent_entry):
-                    agent_entries.pop(i)
-                    matched = True
-                    print(f"Fuzzy match: {tryagainentry['ID']} <-> {agent_entry['ID']}")
-                    break
-        
         if not matched:
             print(f"Missing entry: {entry['ID']}")
             print(f"Title: {entry.get('title', 'N/A')}")
@@ -160,7 +182,7 @@ async def main(args):
     return True
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--agent_workspace", required=False)
     parser.add_argument("--groundtruth_workspace", required=False)

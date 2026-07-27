@@ -12,6 +12,7 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from utils.general.helper import normalize_str
 from utils.app_specific.google_oauth.ops import get_credentials
+from utils.evaluation.retry import grade_with_retry
 from .realtime import get_all_realtime_data, better
 
 def get_dynamic_folder_id():
@@ -99,8 +100,7 @@ def fetch_sheet_data_from_file(sheets_service, file_id: str) -> List[List[Any]]:
         return values
         
     except Exception as e:
-        print(f" Failed to get data from file {file_id}: {e}")
-        exit(1)
+        raise RuntimeError(f"Failed to get data from file {file_id}: {e}") from e
     
     return []
 
@@ -167,15 +167,21 @@ def compare_sheets(expected_data: List[List[Any]], actual_data: List[List[Any]],
             if expected_norm == actual_norm:
                 report["matched_cells"] += 1
             else:
-                # For numerical values, allow 1% relative tolerance
+                # For numerical values, allow 3% relative tolerance.
+                # 1% was too tight for historical P/E values: Yahoo exposes
+                # several defensible EPS fields (GAAP vs non-GAAP, basic vs
+                # diluted, fiscal vs calendar year, pre/post-split-adjustment),
+                # and for NVDA in particular the spread between sources is
+                # 1-2%.  3% absorbs that variance while still rejecting
+                # genuinely-wrong answers (wrong ticker / year would differ
+                # by >10%).
                 exp_float = float(expected_norm)
                 act_float = float(actual_norm)
 
-                # 1% relative tolerance
                 if abs(exp_float) < 1e-6:  # Near-zero values
-                    tolerance = 0.01  # Absolute tolerance for near-zero
+                    tolerance = 0.03  # Absolute tolerance for near-zero
                 else:
-                    tolerance = abs(exp_float) * 0.01  # 1% relative tolerance
+                    tolerance = abs(exp_float) * 0.03  # 3% relative tolerance
 
                 if abs(exp_float - act_float) <= tolerance:
                     report["matched_cells"] += 1
@@ -242,59 +248,65 @@ def main(args):
         print("Failed to initialize Google services")
         exit(1)
 
-    # Find target files in folder
-    found_files = find_sheets_in_folder(drive_service, folder_id)
-    if not found_files:
-        print(f"No target files found in folder {folder_id}")
-        exit(1)
-
     # Define worksheets to check
     target_sheets = ["Investment Return Comparison", "Fundamental Analysis", "Investment Decision Reference"]
 
-    # Compare each worksheet
-    total_cells = 0
-    total_matched = 0
-    all_reports = []
+    # Wrap Google Drive lookup + per-sheet read+compare in Layer-2 retry to
+    # absorb Drive/Sheets propagation lag (agent writes may not yet be visible
+    # to our read session).
+    state = {"total_cells": 0, "total_matched": 0, "all_reports": []}
 
-    for sheet_name in target_sheets:
-        if sheet_name not in expected_sheets:
-            print(f"Missing worksheet in ground truth: {sheet_name}")
-            exit(1)
+    def _check_all_sheets():
+        found_files = find_sheets_in_folder(drive_service, folder_id)
+        if not found_files:
+            return False, f"No target files found in folder {folder_id}"
 
-        if sheet_name not in found_files:
-            print(f"Missing worksheet in folder: {sheet_name}")
-            exit(1)
+        total_cells = 0
+        total_matched = 0
+        all_reports = []
 
-        print(f"Checking worksheet: {sheet_name}")
+        for sheet_name in target_sheets:
+            if sheet_name not in expected_sheets:
+                return False, f"Missing worksheet in ground truth: {sheet_name}"
+            if sheet_name not in found_files:
+                return False, f"Missing worksheet in folder: {sheet_name}"
 
-        expected_data = expected_sheets[sheet_name]
-        file_id = found_files[sheet_name]
-        actual_data = fetch_sheet_data_from_file(sheets_service, file_id)
+            expected_data = expected_sheets[sheet_name]
+            file_id = found_files[sheet_name]
+            actual_data = fetch_sheet_data_from_file(sheets_service, file_id)
 
-        report = compare_sheets(expected_data, actual_data, sheet_name)
-        all_reports.append(report)
+            report = compare_sheets(expected_data, actual_data, sheet_name)
+            all_reports.append(report)
+            total_cells += report["total_cells"]
+            total_matched += report["matched_cells"]
 
-        total_cells += report["total_cells"]
-        total_matched += report["matched_cells"]
+            if report["total_cells"] == 0:
+                return False, f"No comparable cells found for worksheet: {sheet_name} (empty or wrong range/file)"
 
-        # Show individual worksheet results
+            if report["mismatches"]:
+                msgs = [f"Worksheet '{sheet_name}' has {len(report['mismatches'])} mismatches:"]
+                for m in report["mismatches"][:5]:
+                    msgs.append(f"  · Cell {m['cell']}: expected='{m['expected']}' actual='{m['actual']}'")
+                if len(report["mismatches"]) > 5:
+                    msgs.append(f"  · ... and {len(report['mismatches']) - 5} more mismatches")
+                return False, "\n".join(msgs)
+
+        state["total_cells"] = total_cells
+        state["total_matched"] = total_matched
+        state["all_reports"] = all_reports
+        return True, None
+
+    ok, err = grade_with_retry(_check_all_sheets)
+    if not ok:
+        print(err)
+        exit(1)
+
+    total_cells = state["total_cells"]
+    total_matched = state["total_matched"]
+    all_reports = state["all_reports"]
+    for report in all_reports:
         accuracy = (report["matched_cells"] / report["total_cells"] * 100) if report["total_cells"] > 0 else 0
-        print(f"  - Accuracy: {accuracy:.2f}% ({report['matched_cells']}/{report['total_cells']})")
-
-        # Treat empty comparisons as evaluation failure instead of passing with 0/0.
-        if report["total_cells"] == 0:
-            print(f"  - No comparable cells found for worksheet: {sheet_name}")
-            print("  - This usually means the sheet is empty or data was fetched from the wrong range/file.")
-            exit(1)
-
-        # Show mismatches
-        if report["mismatches"]:
-            print(f"  - Found {len(report['mismatches'])} mismatches:")
-            for mismatch in report["mismatches"][:5]:
-                print(f"    · Cell {mismatch['cell']}: expected='{mismatch['expected']}' actual='{mismatch['actual']}'")
-            if len(report["mismatches"]) > 5:
-                print(f"    · ... and {len(report['mismatches']) - 5} more mismatches")
-            exit(1)
+        print(f"Checked worksheet '{report['sheet_name']}': Accuracy {accuracy:.2f}% ({report['matched_cells']}/{report['total_cells']})")
 
     # Overall results
     overall_accuracy = (total_matched / total_cells * 100) if total_cells > 0 else 0

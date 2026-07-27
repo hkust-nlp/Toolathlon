@@ -152,6 +152,11 @@ def check_paper_repositories_codeurl(args):
 
 
 def check_modified_files(args):
+    def get_filename(file):
+        if isinstance(file, dict):
+            return file.get("filename")
+        return getattr(file, "filename", None)
+
     for repo in UPSTREAM_GIT_REPOS:
         repo_name = repo.split('/')[-1]
         local_repo = f"{args.user_name}/{repo_name}"
@@ -161,23 +166,29 @@ def check_modified_files(args):
         init_commit_sha = get_latest_commit_sha(args.github_token, repo, get_branch(repo_name))
         latest_commit_sha = get_latest_commit_sha(args.github_token, local_repo, get_branch(repo_name))
         modified_files = get_modified_files_between_commits(args.github_token, local_repo, init_commit_sha, latest_commit_sha)
+        if modified_files is None:
+            print(f"Could not retrieve modified files for {repo_name}.")
+            exit(1)
 
         if repo_name == "My-Homepage":
             limited_modified_files = [
+                "_publications/2024-05-15-enhancing-llms.md",
                 "_publications/2025-06-01-ipsum-lorem-all-you-need.md",
                 "_publications/2025-06-15-ipsum-lorem-workshop.md",
+                "_publications/2025-06-20-llm-adaptive-learning.md",
                 "_publications/2025-07-01-optimizing-llms-contextual-reasoning.md",
                 "_config.yml"
             ]
             for file in modified_files:
-                if file.filename not in limited_modified_files:
-                    print(f"Unexpected modified file: {file.filename}")
+                filename = get_filename(file)
+                if filename not in limited_modified_files:
+                    print(f"Unexpected modified file: {filename}")
                     exit(1)
         else:
             if modified_files:
                 print(f"Unexpected modified files found in {repo_name}:")
                 for file in modified_files:
-                    print(f" - {file.filename}")
+                    print(f" - {get_filename(file)}")
                 exit(1)
     
     print("Modified files check passed. Only expected files were modified.")

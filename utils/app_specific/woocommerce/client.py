@@ -1,8 +1,50 @@
 import requests
 from requests.auth import HTTPBasicAuth
+from requests.exceptions import ConnectionError, Timeout, HTTPError
 from requests_oauthlib import OAuth1
 import time
 from typing import Dict, List, Optional, Tuple, Any
+
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_exponential,
+    retry_if_exception_type,
+)
+
+
+# WooCommerce REST is fronted by the same WordPress front-end that the agent's
+# WP/WC containers are still warming up.  Two failure modes are common during
+# grading:
+#   1. transport-level: TCP refused / read timeout / DNS hiccup while the
+#      container is restarting or under load
+#   2. HTTP 5xx (PHP-FPM saturated, MySQL deadlock, "Database connection
+#      error") and HTTP 429 (when the site has a rate-limit plugin)
+# Both are transient and worth retrying.  4xx other than 429 (404, 401, 403,
+# 400, 422) are deterministic client/program errors — retrying them only
+# hides bugs and burns suite time, so we do NOT retry those.
+DEFAULT_TIMEOUT = 10  # seconds; without this, requests can hang forever on a stalled WC backend
+
+
+class _TransientWCError(Exception):
+    """Marker exception that triggers a tenacity retry attempt.
+
+    Raised only for HTTP 5xx and 429 — i.e. server-side / rate-limit
+    conditions that have a chance of succeeding on retry.  4xx-other-than-429
+    still surface as the normal ``requests.HTTPError`` and are NOT retried.
+    """
+
+
+# Layer-1 retry: per network-call retry for transient failures.  Bounded so a
+# totally-down backend fails out in ~33s wall-clock (3 attempts × 10s timeout
+# + 1+2s backoff), rather than spinning forever.  This composes with any
+# grader-level Layer-2 retry the caller wraps around the whole check.
+wc_retry = retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=1, max=4),
+    retry=retry_if_exception_type((ConnectionError, Timeout, _TransientWCError)),
+    reraise=True,
+)
 
 
 class WooCommerceClient:
@@ -31,6 +73,35 @@ class WooCommerceClient:
         self.request_delay = request_delay
         self.last_request_time = 0
 
+    def _throttle(self) -> None:
+        """Steady-state per-instance pacing (separate from retry backoff)."""
+        elapsed = time.time() - self.last_request_time
+        if elapsed < self.request_delay:
+            time.sleep(self.request_delay - elapsed)
+
+    @wc_retry
+    def _request_with_retry(self, method: str, url: str, *,
+                            params: Dict = None, json: Dict = None,
+                            headers: Dict = None, auth=None) -> requests.Response:
+        """Single HTTP attempt, raising ``_TransientWCError`` on retry-worthy
+        responses so the tenacity decorator above triggers another attempt.
+
+        Note: this method is the one tenacity decorates, so its body runs once
+        per attempt.  Throttling stays *outside* it (in the public callers)
+        so the request_delay isn't multiplied by the retry count.
+        """
+        response = self.session.request(
+            method.upper(), url,
+            params=params, json=json, headers=headers, auth=auth,
+            timeout=DEFAULT_TIMEOUT,
+        )
+        if response.status_code >= 500 or response.status_code == 429:
+            raise _TransientWCError(
+                f"WooCommerce {method.upper()} {url} → HTTP {response.status_code}"
+            )
+        response.raise_for_status()  # 4xx other than 429: not retried
+        return response
+
     def _make_request(self, method: str, endpoint: str, data: Dict = None,
                      params: Dict = None) -> Tuple[bool, Dict]:
         """
@@ -45,58 +116,39 @@ class WooCommerceClient:
         Returns:
             (success_flag, response_data)
         """
-        current_time = time.time()
-        time_since_last = current_time - self.last_request_time
-        if time_since_last < self.request_delay:
-            time.sleep(self.request_delay - time_since_last)
-
-        url = f"{self.api_base}/{endpoint.lstrip('/')}"
-        headers = {"Content-Type": "application/json"}
-
-        response = None
-        if method.upper() == 'GET':
-            response = self.session.get(url, params=params, headers=headers)
-        elif method.upper() == 'POST':
-            response = self.session.post(url, json=data, params=params, headers=headers)
-        elif method.upper() == 'PUT':
-            response = self.session.put(url, json=data, params=params, headers=headers)
-        elif method.upper() == 'DELETE':
-            response = self.session.delete(url, params=params, headers=headers)
-        else:
+        if method.upper() not in ('GET', 'POST', 'PUT', 'DELETE'):
             return False, {"error": f"Unsupported HTTP method: {method}"}
 
-        self.last_request_time = time.time()
-        response.raise_for_status()
+        self._throttle()
+        url = f"{self.api_base}/{endpoint.lstrip('/')}"
+        headers = {"Content-Type": "application/json"}
+        try:
+            response = self._request_with_retry(
+                method, url, params=params, json=data, headers=headers,
+            )
+        finally:
+            # Stamp on every attempt (success OR retry exhaustion) so the
+            # steady-state pacing keeps working after a burst of failures.
+            self.last_request_time = time.time()
         return True, response.json()
 
     def _make_wp_request(self, method: str, endpoint: str, data: Dict = None,
                         params: Dict = None) -> Tuple[bool, Dict]:
         """Make WordPress API request"""
-        current_time = time.time()
-        time_since_last = current_time - self.last_request_time
-        if time_since_last < self.request_delay:
-            time.sleep(self.request_delay - time_since_last)
-
-        url = f"{self.wp_api_base}/{endpoint.lstrip('/')}"
-        headers = {"Content-Type": "application/json"}
-
-        # Use OAuth1 authentication for WordPress REST API as well
-        auth = OAuth1(self.consumer_key, self.consumer_secret)
-
-        response = None
-        if method.upper() == 'GET':
-            response = self.session.get(url, params=params, headers=headers, auth=auth)
-        elif method.upper() == 'POST':
-            response = self.session.post(url, json=data, params=params, headers=headers, auth=auth)
-        elif method.upper() == 'PUT':
-            response = self.session.put(url, json=data, params=params, headers=headers, auth=auth)
-        elif method.upper() == 'DELETE':
-            response = self.session.delete(url, params=params, headers=headers, auth=auth)
-        else:
+        if method.upper() not in ('GET', 'POST', 'PUT', 'DELETE'):
             return False, {"error": f"Unsupported HTTP method: {method}"}
 
-        self.last_request_time = time.time()
-        response.raise_for_status()
+        self._throttle()
+        url = f"{self.wp_api_base}/{endpoint.lstrip('/')}"
+        headers = {"Content-Type": "application/json"}
+        # WordPress REST also accepts the WC consumer key/secret as OAuth1.
+        auth = OAuth1(self.consumer_key, self.consumer_secret)
+        try:
+            response = self._request_with_retry(
+                method, url, params=params, json=data, headers=headers, auth=auth,
+            )
+        finally:
+            self.last_request_time = time.time()
         return True, response.json()
 
     # Product operations

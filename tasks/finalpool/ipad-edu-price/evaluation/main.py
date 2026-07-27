@@ -11,6 +11,7 @@ Evaluation process:
 from argparse import ArgumentParser
 import os
 import json
+import math
 import re
 import asyncio
 import sys
@@ -296,61 +297,45 @@ def normalize_region_name(region_name):
     return region_name
 
 
-def extract_price_and_currency_from_string(price_string):
-    """Extract numeric price and currency from string"""
-    price_string = str(price_string).strip()
-    
-    # Currency patterns and their mappings
-    currency_patterns = {
-        'CNY': [r'¥', r'RMB', r'CNY'],
-        'USD': [r'\$(?!.*(?:HK|S))', r'USD'],  # $ but not HK$ or S$
-        'HKD': [r'HK\$', r'HKD'],
-        'SGD': [r'S\$', r'SGD']
-    }
-    
-    # Try to detect currency
-    detected_currency = None
-    for currency, patterns in currency_patterns.items():
-        for pattern in patterns:
-            if re.search(pattern, price_string, re.IGNORECASE):
-                detected_currency = currency
-                break
-        if detected_currency:
-            break
-    
-    # If no currency detected, default to CNY for Chinese regions, USD for others
-    if not detected_currency:
-        if re.search(r'[中国香港新加坡美国]', price_string):
-            detected_currency = 'CNY'
-        else:
-            detected_currency = 'USD'
-    
-    # Extract numeric value
-    price_pattern = r'[0-9,]+(?:\.[0-9]{1,2})?'
-    match = re.search(price_pattern, price_string)
-    if match:
-        try:
-            price_value = float(match.group().replace(',', ''))
-            return price_value, detected_currency
-        except ValueError:
-            pass
-    
-    return None, None
+def extract_hkd_price(price_value):
+    """Extract an HKD amount while tolerating common currency decorations."""
+    if isinstance(price_value, bool):
+        return None
+
+    if isinstance(price_value, (int, float)):
+        numeric_price = float(price_value)
+        return numeric_price if math.isfinite(numeric_price) else None
+
+    price_text = str(price_value).strip()
+    currency_decorations = re.compile(
+        r'(?:HKD|HK\$|港币|港幣|港元|USD|US\$|CNY|RMB|SGD|S\$|[$¥￥])',
+        re.IGNORECASE,
+    )
+    cleaned_text = currency_decorations.sub('', price_text)
+    price_match = re.search(
+        r'[-+]?(?:\d{1,3}(?:[,\s]\d{3})+|\d+)(?:\.\d+)?',
+        cleaned_text,
+    )
+    if not price_match:
+        return None
+
+    try:
+        numeric_price = float(re.sub(r'[,\s]', '', price_match.group()))
+    except ValueError:
+        return None
+
+    return numeric_price if math.isfinite(numeric_price) else None
 
 
 def evaluate_result(agent_result, real_time_prices, exchange_rates):
     """Evaluate comparison between agent result and real-time prices"""
     agent_region = normalize_region_name(agent_result["cheapest_region"])
-    agent_price, agent_currency = extract_price_and_currency_from_string(agent_result["cheapest_total_price"])
+    agent_price_hkd = extract_hkd_price(agent_result["cheapest_total_price"])
     
-    if not agent_price or not agent_currency:
-        return False, "Agent price or currency format invalid"
+    if agent_price_hkd is None or agent_price_hkd <= 0:
+        return False, "Agent HKD price format invalid"
     
-    # Convert agent price to CNY for comparison
-    agent_rate = exchange_rates.get(agent_currency, 1.0)
-    agent_price_cny = agent_price * agent_rate
-    
-    print(f"Agent result: {agent_region}, {agent_currency} {agent_price:.2f} (≈ ¥{agent_price_cny:.2f})")
+    print(f"Agent result: {agent_region}, HKD {agent_price_hkd:.2f}")
     
     if agent_region not in real_time_prices:
         return False, f"Agent reported region '{agent_region}' not found in real-time data"
@@ -376,12 +361,16 @@ def evaluate_result(agent_result, real_time_prices, exchange_rates):
     if agent_region != actual_cheapest_region_name:
         return False, f"Wrong region. Agent: {agent_region}, Actual: {actual_cheapest_region_name}"
     
-    # Check if price is within reasonable range (allow 1% error)
-    real_price_cny = real_time_data['cny_price']
-    price_diff_ratio = abs(agent_price_cny - real_price_cny) / real_price_cny
+    # Compare in HKD, as required by the task prompt (allow 1% error).
+    hkd_to_cny_rate = exchange_rates.get('HKD')
+    if not hkd_to_cny_rate or hkd_to_cny_rate <= 0:
+        return False, "Cannot verify because the HKD exchange rate is unavailable"
+
+    real_price_hkd = real_time_data['cny_price'] / hkd_to_cny_rate
+    price_diff_ratio = abs(agent_price_hkd - real_price_hkd) / real_price_hkd
     
     if price_diff_ratio > 0.01:  # More than 1% error
-        return False, f"Price difference too large. Agent: ¥{agent_price_cny:.2f}, Actual: ¥{real_price_cny:.2f} (diff: {price_diff_ratio:.2%})"
+        return False, f"Price difference too large. Agent: HKD {agent_price_hkd:.2f}, Actual: HKD {real_price_hkd:.2f} (diff: {price_diff_ratio:.2%})"
     
     return True, f"Correct region and price within acceptable range (diff: {price_diff_ratio:.2%})"
 

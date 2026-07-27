@@ -1,5 +1,5 @@
-from dataclasses import dataclass, field
-from typing import Optional, Union, Literal, Dict
+from dataclasses import dataclass, field, fields
+from typing import Any, Optional, Union, Literal, Dict
 
 from openai._types import Body, Headers, Query
 from openai.types.shared import Reasoning
@@ -41,6 +41,25 @@ class Generation:
     reasoning: Optional[Reasoning] = None
     metadata: Optional[dict[str, str]] = None
     extra_body: Optional[Body] = None
+    include_usage: Optional[bool] = None
+    extra_request_params: Dict[str, Any] = field(default_factory=dict)
+
+    @classmethod
+    def from_dict(cls, data: Optional[dict]) -> "Generation":
+        """Create Generation while preserving unknown request parameters."""
+        data = (data or {}).copy()
+        known_fields = {item.name for item in fields(cls)}
+        generation_data = {key: value for key, value in data.items() if key in known_fields}
+        extra_request_params = generation_data.get("extra_request_params") or {}
+        if not isinstance(extra_request_params, dict):
+            raise ValueError("generation.extra_request_params must be a dictionary when provided")
+
+        unknown_params = {key: value for key, value in data.items() if key not in known_fields}
+        if unknown_params:
+            extra_request_params = {**extra_request_params, **unknown_params}
+            generation_data["extra_request_params"] = extra_request_params
+
+        return cls(**generation_data)
     
     def __post_init__(self):
         """Validate the reasonableness of generation parameters"""
@@ -52,3 +71,8 @@ class Generation:
         
         if self.max_tokens is not None and self.max_tokens < 1:
             raise ValueError(f"max_tokens should be greater than 0, but got {self.max_tokens}")
+
+        if self.extra_request_params is None:
+            self.extra_request_params = {}
+        elif not isinstance(self.extra_request_params, dict):
+            raise ValueError("extra_request_params should be a dictionary")

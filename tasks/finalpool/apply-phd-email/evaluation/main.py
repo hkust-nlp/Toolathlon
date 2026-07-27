@@ -7,7 +7,8 @@ from pathlib import Path
 
 
 sys.path.append(str(Path(__file__).parent))
-from check_local_email import LocalEmailAttachmentChecker  
+from check_local_email import LocalEmailAttachmentChecker
+from utils.evaluation.retry import grade_with_retry
 
 def extract_groundtruth_files(groundtruth_workspace: str) -> tuple[str, bool]:
     """Extract groundtruth files from compressed archive to the same directory
@@ -67,10 +68,12 @@ if __name__=="__main__":
         print(f"Using receiver config file: {receiver_config_file}")
         
         checker = LocalEmailAttachmentChecker(
-            str(receiver_config_file), 
+            str(receiver_config_file),
             groundtruth_workspace
         )
-        success = checker.run(args.subject)  
+        # Layer 2 retry: IMAP propagation lag (SMTP -> indexer)
+        ok, _err = grade_with_retry(lambda: (bool(checker.run(args.subject)), None))
+        success = bool(ok)
         
         if success:
             print("\n🎉 Test succeeded!")

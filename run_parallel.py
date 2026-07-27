@@ -303,6 +303,7 @@ class AsyncTaskScheduler:
         """Actually run the task and collect result info."""
         if runner == "decoupled":
             command = (
+                f"TOOLATHLON_PARENT_CAPTURES_RUN_LOG=1 "
                 f"bash scripts/run_single_decoupled.sh {task_dir_arg} {runmode} {dump_path} "
                 f"{model_short_name} {provider} {maxstep} {eval_config} {image_name}"
             )
@@ -310,6 +311,7 @@ class AsyncTaskScheduler:
                 command += f" {agent_framework}"
         else:
             command = (
+                f"TOOLATHLON_PARENT_CAPTURES_RUN_LOG=1 "
                 f"bash scripts/run_single_containerized.sh {task_dir_arg} {tag} {dump_path} "
                 f"{model_short_name} {provider} {maxstep} {eval_config} {image_name}"
             )

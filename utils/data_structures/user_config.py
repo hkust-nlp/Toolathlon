@@ -18,7 +18,7 @@ class UserConfig:
         
         return cls(
             model=Model(**data['model']),
-            generation=Generation(**data['generation']),
+            generation=Generation.from_dict(data['generation']),
         )
     
     def to_dict(self) -> dict:
@@ -33,6 +33,7 @@ class UserConfig:
                     "temperature": self.generation.temperature,
                     "top_p": self.generation.top_p,
                     "max_tokens": self.generation.max_tokens,
+                    "extra_request_params": self.generation.extra_request_params,
                 },
             }
         }
@@ -48,6 +49,7 @@ class UserConfig:
                 "temperature": self.generation.temperature,
                 "top_p": self.generation.top_p,
                 "max_tokens": self.generation.max_tokens,
+                "extra_request_params": self.generation.extra_request_params,
             },
         }
     

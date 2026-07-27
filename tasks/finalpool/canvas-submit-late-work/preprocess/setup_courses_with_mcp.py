@@ -18,7 +18,7 @@ Usage:
     # Create courses (default mode)
     python setup_courses_with_mcp.py
     
-    # Delete all courses
+    # Delete only the courses configured for this task
     python setup_courses_with_mcp.py --delete
     
     # Publish all unpublished courses
@@ -96,34 +96,41 @@ class CanvasCourseSetup:
             return None
     
     async def check_course_exists(self, course_name: str, course_code: str) -> Optional[str]:
-        """Check if a course already exists by name or course code"""
+        """Find one non-deleted course matching both name and course code exactly."""
         try:
-            async with aiohttp.ClientSession() as session:
-                url = f"{self.base_url}/api/v1/accounts/1/courses"
-                params = {"search_term": course_name}
-                
-                async with session.get(url, headers=self.headers, params=params) as response:
-                    if 200 == response.status:
-                        courses = await response.json()
-                        
-                        # Check for exact name or course code match
-                        for course in courses:
-                            if (course.get("name") == course_name or 
-                                course.get("course_code") == course_code):
-                                course_id = str(course.get("id"))
-                                workflow_state = course.get("workflow_state", "unknown")
-                                print(f"Course already exists: {course_name} (ID: {course_id}, State: {workflow_state})")
-                                return course_id
-                        
-                        print(f"Course not found: {course_name}")
-                        return None
-                    else:
-                        error_text = await response.text()
-                        logger.error(f"Failed to search for course {course_name}: {response.status} - {error_text}")
-                        return None
+            courses = await self.get_all_courses()
+            matches = [
+                course
+                for course in courses
+                if course.get("name") == course_name
+                and course.get("course_code") == course_code
+                and course.get("workflow_state") != "deleted"
+            ]
+
+            if len(matches) > 1:
+                raise RuntimeError(
+                    f"Found {len(matches)} active exact matches for course "
+                    f"{course_name} ({course_code})"
+                )
+            if not matches:
+                print(f"Course not found: {course_name} ({course_code})")
+                return None
+
+            course = matches[0]
+            course_id = course.get("id")
+            if course_id is None:
+                raise RuntimeError(
+                    f"Exact course match has no ID: {course_name} ({course_code})"
+                )
+            workflow_state = course.get("workflow_state", "unknown")
+            print(
+                f"Course already exists: {course_name} "
+                f"(ID: {course_id}, State: {workflow_state})"
+            )
+            return str(course_id)
         except Exception as e:
             logger.error(f"Error checking if course exists {course_name}: {e}")
-            return None
+            raise
     
     async def create_course(self, course_info: Dict[str, Any]) -> str:
         """Create a new course in Canvas via API"""
@@ -808,22 +815,52 @@ class CanvasCourseSetup:
             return False
     
     async def get_all_courses(self) -> List[Dict[str, Any]]:
-        """Get all courses from Canvas"""
+        """Get all account courses, following Canvas Link pagination.
+
+        Listing errors are raised so callers cannot mistake an API failure for an
+        empty account and continue with an unsafe or incomplete cleanup.
+        """
+        courses = []
+        next_url = f"{self.base_url}/api/v1/accounts/1/courses"
+        params = {"per_page": 100}
+        visited_urls = set()
+
         try:
             async with aiohttp.ClientSession() as session:
-                url = f"{self.base_url}/api/v1/accounts/1/courses"
-                async with session.get(url, headers=self.headers) as response:
-                    if 200 == response.status:
-                        courses = await response.json()
-                        print(f"Retrieved {len(courses)} courses from Canvas")
-                        return courses
-                    else:
-                        error_text = await response.text()
-                        logger.error(f"Failed to get courses: {response.status} - {error_text}")
-                        return []
+                while next_url:
+                    request_url = str(next_url)
+                    if request_url in visited_urls:
+                        raise RuntimeError(f"Canvas course pagination loop detected at {request_url}")
+                    visited_urls.add(request_url)
+
+                    async with session.get(
+                        request_url,
+                        headers=self.headers,
+                        params=params,
+                    ) as response:
+                        if response.status != 200:
+                            error_text = await response.text()
+                            raise RuntimeError(
+                                f"Failed to get courses: {response.status} - {error_text}"
+                            )
+
+                        page = await response.json()
+                        if not isinstance(page, list):
+                            raise RuntimeError(
+                                f"Canvas returned a non-list course response for {request_url}"
+                            )
+                        courses.extend(page)
+
+                        next_link = response.links.get("next")
+                        next_url = next_link.get("url") if next_link else None
+                        # Canvas next links already contain their own query string.
+                        params = None
+
+            print(f"Retrieved {len(courses)} courses from Canvas")
+            return courses
         except Exception as e:
             logger.error(f"Error getting courses: {e}")
-            return []
+            raise
     
     async def delete_course(self, course_id: str, course_name: str = "Unknown") -> bool:
         """Delete a course from Canvas"""
@@ -859,23 +896,16 @@ class CanvasCourseSetup:
                                 print(f"Deleted course via PUT event=delete: {course_name} (ID: {course_id})")
                             else:
                                 put_err = await put_del.text()
-                                logger.warning(f"PUT event=delete failed for course {course_name}: {put_del.status} - {put_err}")
+                                logger.error(f"PUT event=delete failed for course {course_name}: {put_del.status} - {put_err}")
+                                return False
                 
                 # 3) Verify if course still listed; if so, mark workflow_state=deleted
-                list_url = f"{self.base_url}/api/v1/accounts/1/courses"
-                async with session.get(list_url, headers=self.headers) as list_resp:
-                    still_present = False
-                    if 200 == list_resp.status:
-                        try:
-                            courses = await list_resp.json()
-                            for c in courses:
-                                if str(c.get("id")) == str(course_id):
-                                    still_present = True
-                                    break
-                        except Exception as _:
-                            pass
-                    else:
-                        logger.warning(f"Failed to list courses for verification: {list_resp.status}")
+                courses = await self.get_all_courses()
+                still_present = any(
+                    str(course.get("id")) == str(course_id)
+                    and course.get("workflow_state") != "deleted"
+                    for course in courses
+                )
                 
                 if still_present:
                     print(f"Course still present after delete; marking workflow_state=deleted: {course_name} (ID: {course_id})")
@@ -895,66 +925,106 @@ class CanvasCourseSetup:
             logger.error(f"Error deleting course {course_name}: {e}")
             return False
     
-    async def delete_all_courses(self) -> bool:
-        """Delete all courses from Canvas"""
+    async def delete_configured_courses(self) -> bool:
+        """Delete every exact duplicate of each course configured for this task."""
         try:
-            print("Starting deletion of all courses...")
-            
-            # Get all courses
+            if self.courses_data is None and not self.load_data():
+                return False
+
+            configured_courses = self.courses_data.get("courses")
+            if not isinstance(configured_courses, list) or not configured_courses:
+                logger.error("Course configuration does not contain a non-empty courses list")
+                return False
+
+            target_keys = set()
+            for course in configured_courses:
+                course_name = course.get("name")
+                course_code = course.get("course_code")
+                if not course_name or not course_code:
+                    logger.error("Configured course is missing name or course_code")
+                    return False
+                target_keys.add((course_name, course_code))
+
+            print("Starting deletion of courses configured for this task...")
             courses = await self.get_all_courses()
-            if not courses:
-                print("No courses found to delete")
-                return True
-            
-            # Filter out system courses (usually have specific IDs or names)
             courses_to_delete = []
             for course in courses:
-                course_id = str(course.get("id", ""))
-                course_name = course.get("name", "Unknown")
-                
-                # Skip system courses (you can customize this filter)
-                # if course_id in ["1", "2", "3"] or "System" in course_name:
-                #     print(f"Skipping system course: {course_name} (ID: {course_id})")
-                #     continue
-                
+                course_name = course.get("name")
+                course_code = course.get("course_code")
+                if (course_name, course_code) not in target_keys:
+                    continue
+                if course.get("workflow_state") == "deleted":
+                    continue
+
+                course_id = course.get("id")
+                if course_id is None:
+                    logger.error(
+                        f"Matched configured course without an ID: {course_name} ({course_code})"
+                    )
+                    return False
                 courses_to_delete.append({
-                    "id": course_id,
-                    "name": course_name
+                    "id": str(course_id),
+                    "name": course_name,
+                    "course_code": course_code,
                 })
-            
+
             if not courses_to_delete:
-                print("No user-created courses found to delete")
+                print("No existing configured courses found to delete")
                 return True
-            
-            print(f"Found {len(courses_to_delete)} courses to delete")
-            
-            # Delete each course
+
+            print(
+                f"Found {len(courses_to_delete)} exact configured course match(es) "
+                "to delete"
+            )
+
             success_count = 0
             for course in courses_to_delete:
                 if await self.delete_course(course["id"], course["name"]):
                     success_count += 1
                 else:
-                    logger.error(f"Failed to delete course: {course['name']}")
-            
-            # Print summary
+                    logger.error(
+                        f"Failed to delete configured course: {course['name']} "
+                        f"({course['course_code']}, ID: {course['id']})"
+                    )
+
+            # A final paginated readback catches partial deletes and courses
+            # concurrently recreated with the same task-owned identifiers.
+            remaining_courses = await self.get_all_courses()
+            remaining_matches = [
+                course
+                for course in remaining_courses
+                if (course.get("name"), course.get("course_code")) in target_keys
+                and course.get("workflow_state") != "deleted"
+            ]
+            if remaining_matches:
+                remaining_ids = [str(course.get("id")) for course in remaining_matches]
+                logger.error(
+                    "Configured courses remain after cleanup; IDs: "
+                    + ", ".join(remaining_ids)
+                )
+
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             print(f"\n{'='*60}")
-            print(f"CANVAS COURSE DELETION COMPLETED - {timestamp}")
+            print(f"CONFIGURED CANVAS COURSE DELETION COMPLETED - {timestamp}")
             print(f"{'='*60}")
-            print(f"Total courses to delete: {len(courses_to_delete)}")
+            print(f"Total exact matches to delete: {len(courses_to_delete)}")
             print(f"Successfully deleted: {success_count}")
             print(f"Failed: {len(courses_to_delete) - success_count}")
             print(f"{'='*60}")
-            
-            if success_count == len(courses_to_delete):
-                print("✅ All courses deleted successfully!")
+
+            cleanup_succeeded = (
+                success_count == len(courses_to_delete)
+                and not remaining_matches
+            )
+            if cleanup_succeeded:
+                print("✅ All configured course matches deleted successfully!")
             else:
-                print("⚠️  Some courses failed to delete. Check logs for details.")
-            
-            return success_count == len(courses_to_delete)
-            
+                print("❌ Some configured courses failed to delete.")
+
+            return cleanup_succeeded
+
         except Exception as e:
-            logger.error(f"Fatal error during course deletion: {e}")
+            logger.error(f"Fatal error during configured course deletion: {e}")
             return False
 
     async def create_assignment_quiz(self, course_id: str, assignment_info: Dict[str, Any]) -> Optional[str]:
@@ -1320,12 +1390,12 @@ async def run_with_args(delete=False, publish=False, create_announcements=False,
     setup = CanvasCourseSetup()
     
     if delete:
-        print("🗑️  Running in DELETE mode - will delete all courses")
-        success = await setup.delete_all_courses()
+        print("🗑️  Running in DELETE mode - will delete configured task courses only")
+        success = await setup.delete_configured_courses()
         if success:
-            print("\n🎉 Course deletion completed successfully!")
+            print("\n🎉 Configured course deletion completed successfully!")
         else:
-            print("\n❌ Course deletion encountered errors. Check logs for details.")
+            raise RuntimeError("Configured course deletion failed")
     elif publish:
         print("📢 Running in PUBLISH mode - will publish all unpublished courses")
         success = await setup.publish_all_courses()
@@ -1338,16 +1408,15 @@ async def run_with_args(delete=False, publish=False, create_announcements=False,
             print("🚀 Running in SETUP mode - will create courses with quizzes and announcements")
         else:
             print("🚀 Running in SETUP mode - will create courses with quizzes (no announcements)")
-        # Pre-clean: delete all existing courses before setup
-        print("🗑️  Pre-clean: deleting all existing courses before setup")
-        _cleanup_ok = await setup.delete_all_courses()
-        if not _cleanup_ok:
-            print("⚠️  Pre-clean failed for some courses. Proceeding with setup...")
+        print("🗑️  Pre-clean: deleting configured task courses only")
+        cleanup_ok = await setup.delete_configured_courses()
+        if not cleanup_ok:
+            raise RuntimeError("Configured course pre-clean failed")
         success = await setup.run_setup()
         if success:
             print("\n🎉 Course setup completed successfully!")
         else:
-            print("\n❌ Course setup encountered errors. Check logs for details.")
+            raise RuntimeError("Course setup failed")
 
 async def main(delete=False, publish=False, create_announcements=False, agent_workspace=None):
     """Main function that can accept external arguments"""
@@ -1357,7 +1426,11 @@ async def main(delete=False, publish=False, create_announcements=False, agent_wo
         
         # create argument parser
         parser = argparse.ArgumentParser(description='Canvas Course Setup Tool')
-        parser.add_argument('--delete', action='store_true', help='Delete all courses')
+        parser.add_argument(
+            '--delete',
+            action='store_true',
+            help='Delete only courses configured for this task',
+        )
         parser.add_argument('--publish', action='store_true', help='Publish all unpublished courses')
         parser.add_argument('--create-announcements', action='store_true', help='Create announcements along with quizzes')
         parser.add_argument('--agent_workspace', help='Agent workspace path')

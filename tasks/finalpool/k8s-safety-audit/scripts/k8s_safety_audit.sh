@@ -4,6 +4,11 @@ agent_workspace=$2
 
 # Set variables
 SCRIPT_DIR=$(dirname "$0")
+KIND_IMAGE_LOADER="${SCRIPT_DIR}/../../../../scripts/lib/kind_image_loader.sh"
+if ! source "$KIND_IMAGE_LOADER"; then
+  echo "Failed to load shared Kind image loader: $KIND_IMAGE_LOADER" >&2
+  exit 1
+fi
 
 k8sconfig_path_dir=${agent_workspace}/k8s_configs
 backup_k8sconfig_path_dir=${SCRIPT_DIR}/../k8s_configs
@@ -12,6 +17,16 @@ cluster_name="cluster-safety-audit"
 resource_yaml="${SCRIPT_DIR}/../k8s_resources/k8s_safety_audit.yaml"
 
 podman_or_docker=$(uv run python -c "import sys; sys.path.append('configs'); from global_configs import global_configs; print(global_configs.podman_or_docker)")
+instance_suffix=$(uv run python -c "
+import yaml
+try:
+    with open('configs/ports_config.yaml', 'r') as f:
+        config = yaml.safe_load(f) or {}
+        print(config.get('instance_suffix', ''))
+except Exception:
+    print('')
+" 2>/dev/null || echo "")
+cluster_name="${cluster_name}${instance_suffix}"
 
 echo "podman_or_docker: $podman_or_docker"
 
@@ -160,12 +175,54 @@ start_operation() {
   echo ""
   log_info "========== Processing cluster ${cluster_name} =========="
 
-  create_cluster "$cluster_name" "$configpath"
-  verify_cluster "${cluster_name}" "$configpath"
-  apply_resources "$configpath"
+  if ! create_cluster "$cluster_name" "$configpath"; then
+    log_error "Aborting start_operation: kind create cluster failed for ${cluster_name}"
+    return 1
+  fi
+  if ! verify_cluster "${cluster_name}" "$configpath"; then
+    log_error "Aborting start_operation: cluster verification failed for ${cluster_name}"
+    return 1
+  fi
+
+  # Pre-load images from the host image cache into kind cluster's
+  # containerd so apply_resources doesn't pull from Docker Hub.
+  # Anonymous-pull rate limit (~100/6h per IP) is easily exhausted on
+  # a busy multi-instance host.  After first run the host cache stays
+  # warm and every subsequent invocation is fully offline.  Best-effort:
+  # warn on failures, never abort — kubelet will still fall back to
+  # upstream pulls if needed.
+  REQUIRED_IMAGES=(
+    alpine:3.20
+    busybox:1.36
+    nginxinc/nginx-unprivileged:1.25-alpine
+    prom/prometheus:v2.52.0
+    python:3.12-alpine
+    redis:7.2
+  )
+  for _img in "${REQUIRED_IMAGES[@]}"; do
+    if ! "$podman_or_docker" image inspect "$_img" >/dev/null 2>&1; then
+      log_info "Host $podman_or_docker cache missing $_img; pulling once..."
+      "$podman_or_docker" pull "$_img" || log_warning "$podman_or_docker pull $_img failed (will let kubelet retry)"
+    fi
+    log_info "Loading $_img into cluster $cluster_name for the node platform (offline)..."
+    toolathlon_kind_load_image "$podman_or_docker" "$cluster_name" "$_img" || \
+      log_warning "Image preload failed for $_img"
+  done
+
+  if ! apply_resources "$configpath"; then
+    log_error "Aborting start_operation: kubectl apply failed"
+    return 1
+  fi
 
   # Copy the config file to the backup directory
-  cp "$configpath" "$backup_configpath"
+  if ! mkdir -p "$backup_k8sconfig_path_dir"; then
+    log_error "Failed to create backup config directory: $backup_k8sconfig_path_dir"
+    return 1
+  fi
+  if ! cp "$configpath" "$backup_configpath"; then
+    log_error "Failed to copy kubeconfig backup to $backup_configpath"
+    return 1
+  fi
 
   echo ""
   log_info "========== Security audit cluster deployment completed =========="

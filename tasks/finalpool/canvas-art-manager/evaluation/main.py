@@ -5,6 +5,7 @@ from pathlib import Path
 import argparse
 
 from utils.app_specific.canvas import CanvasAPI
+from utils.evaluation.retry import grade_with_retry
 
 def parse_admin3_courses(md_path):
     """
@@ -96,56 +97,58 @@ if __name__ == "__main__":
     for c in admin3_courses:
         print(f"- {c['course_name']} (Instructor: {c['instructor']})")
 
-    all_ok = True
-    for c in admin3_courses:
-        instructor = c["instructor"]
-        course_full_name = f"{c['course_name']}"
-        if instructor not in teacher_keys:
-            print(f"❌ Cannot find token for instructor {instructor}, cannot verify course {course_full_name}")
-            all_ok = False
-            continue
-        teacher_token = teacher_keys[instructor]
-        # Use the instructor's own token to list their visible courses
-        canvas_api = CanvasAPI(canvas_url, teacher_token)
-        teacher_courses = canvas_api.list_courses()
-        teacher_course_names = {cc["name"] for cc in teacher_courses}
-        if course_full_name not in teacher_course_names:
-            print(f"❌ Instructor {instructor} could not find course: {course_full_name}")
-            all_ok = False
-        else:
-            print(f"✅ Course {course_full_name} for instructor {instructor} has been created")
-    if all_ok:
-        print("All courses managed by admin3 have been created by their respective instructors.")
-    else:
+    def _check_courses_exist():
+        missing = []
+        for c in admin3_courses:
+            instructor = c["instructor"]
+            course_full_name = f"{c['course_name']}"
+            if instructor not in teacher_keys:
+                missing.append(f"no token for instructor {instructor} (course {course_full_name})")
+                continue
+            teacher_token = teacher_keys[instructor]
+            canvas_api = CanvasAPI(canvas_url, teacher_token)
+            teacher_courses = canvas_api.list_courses()
+            teacher_course_names = {cc["name"] for cc in teacher_courses}
+            if course_full_name not in teacher_course_names:
+                missing.append(f"instructor {instructor} could not find course: {course_full_name}")
+        if missing:
+            return False, "; ".join(missing)
+        return True, None
+
+    ok, err = grade_with_retry(_check_courses_exist)
+    if not ok:
+        print(f"❌ {err}")
         exit(1)
+    else:
+        print("All courses managed by admin3 have been created by their respective instructors.")
 
     # Check whether all courses exist and are published
     print("\n=== Checking if all courses managed by admin3 are published ===")
-    unpublished_courses = []
-    for c in admin3_courses:
-        instructor = c["instructor"]
-        course_full_name = f"{c['course_name']}"
-        if instructor not in teacher_keys:
-            continue  # Already reported above
-        teacher_token = teacher_keys[instructor]
-        canvas_api = CanvasAPI(canvas_url, teacher_token)
-        teacher_courses = canvas_api.list_courses()
-        # Find detailed info for the course
-        course_info = next((cc for cc in teacher_courses if cc["name"] == course_full_name), None)
-        if not course_info:
-            continue  # Already reported above
-        # Check the published field
-        published = course_info.get("workflow_state") == "available" or course_info.get("published") is True
-        if published:
-            print(f"✅ Course published: {course_full_name}")
-        else:
-            print(f"❌ Course not published: {course_full_name}")
-            unpublished_courses.append(course_full_name)
-    if not unpublished_courses:
-        print("All courses managed by admin3 are published.")
-    else:
-        print("The following courses are not published yet:")
-        for cname in unpublished_courses:
-            print(f"- {cname}")
+
+    def _check_courses_published():
+        unpublished = []
+        for c in admin3_courses:
+            instructor = c["instructor"]
+            course_full_name = f"{c['course_name']}"
+            if instructor not in teacher_keys:
+                continue
+            teacher_token = teacher_keys[instructor]
+            canvas_api = CanvasAPI(canvas_url, teacher_token)
+            teacher_courses = canvas_api.list_courses()
+            course_info = next((cc for cc in teacher_courses if cc["name"] == course_full_name), None)
+            if not course_info:
+                continue
+            published = course_info.get("workflow_state") == "available" or course_info.get("published") is True
+            if not published:
+                unpublished.append(course_full_name)
+        if unpublished:
+            return False, "Courses not published: " + ", ".join(unpublished)
+        return True, None
+
+    ok, err = grade_with_retry(_check_courses_published)
+    if not ok:
+        print(f"❌ {err}")
         exit(1)
+    else:
+        print("All courses managed by admin3 are published.")
 

@@ -2,8 +2,14 @@
 
 agent_workspace=$2
 
-# Set the dirname of the absolute path of this script
-SCRIPT_DIR=$(dirname "$0")
+# Set the dirname of the absolute path of this script.  BASH_SOURCE keeps this
+# correct when the file is sourced by the retry regression tests.
+SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
+KIND_IMAGE_LOADER="${SCRIPT_DIR}/../../../../scripts/lib/kind_image_loader.sh"
+if ! source "$KIND_IMAGE_LOADER"; then
+  echo "Failed to load shared Kind image loader: $KIND_IMAGE_LOADER" >&2
+  exit 1
+fi
 
 k8sconfig_path_dir=${agent_workspace}/k8s_configs
 backup_k8sconfig_path_dir=${SCRIPT_DIR}/../k8s_configs
@@ -13,6 +19,16 @@ cluster_name="cluster-mysql"
 resource_yaml="${SCRIPT_DIR}/../k8s_resources/k8s_mysql.yaml"
 dataset_path_dir="$SCRIPT_DIR/../data"
 podman_or_docker=$(uv run python -c "import sys; sys.path.append('configs'); from global_configs import global_configs; print(global_configs.podman_or_docker)")
+instance_suffix=$(uv run python -c "
+import yaml
+try:
+    with open('configs/ports_config.yaml', 'r') as f:
+        config = yaml.safe_load(f) or {}
+        print(config.get('instance_suffix', ''))
+except Exception:
+    print('')
+" 2>/dev/null || echo "")
+cluster_name="${cluster_name}${instance_suffix}"
 
 echo "podman_or_docker: $podman_or_docker"
 schema_path="$SCRIPT_DIR/../data/f1_schema.sql"
@@ -120,13 +136,41 @@ apply_resources() {
   local config_path=$1
   log_info "Applying resources from $resource_yaml"
   export KUBECONFIG="$config_path"
-  if kubectl apply -f "$resource_yaml"; then
-    log_info "Resources applied successfully"
-    return 0
-  else
-    log_error "Failed to apply resources"
-    return 1
-  fi
+
+  # The manifest creates the data namespace and immediately applies its
+  # default ServiceAccount.  Kubernetes' namespace controller also creates
+  # that ServiceAccount, so the first apply can lose the create race and get
+  # a transient HTTP 409 AlreadyExists.  The first attempt has already made
+  # the cluster converge; a subsequent idempotent apply then configures the
+  # existing object normally.  Retrying also covers other brief API-server
+  # startup errors without hiding persistent schema/RBAC failures.
+  local _attempt
+  local _out
+  local _rc
+  local _backoff
+  for _attempt in 1 2 3; do
+    if _out=$(kubectl apply -f "$resource_yaml" 2>&1); then
+      printf '%s\n' "$_out"
+      log_info "Resources applied successfully (attempt $_attempt/3)"
+      return 0
+    else
+      _rc=$?
+    fi
+
+    log_warning "kubectl apply attempt $_attempt/3 failed (rc=$_rc):"
+    # Preserve the complete kubectl response.  The old implementation let
+    # the nested runner discard stderr, which hid the actual 409.
+    printf '%s\n' "$_out"
+
+    if [ "$_attempt" -lt 3 ]; then
+      _backoff=$((10 * _attempt))
+      log_info "Retrying kubectl apply in ${_backoff}s..."
+      sleep "$_backoff"
+    fi
+  done
+
+  log_error "Failed to apply resources after 3 attempts"
+  return 1
 }
 
 load_f1_csv() {
@@ -335,32 +379,102 @@ start_operation() {
   echo ""
   log_info "========== Processing cluster ${cluster_name} =========="
 
-  create_cluster "${cluster_name}" "$configpath"
-  verify_cluster "${cluster_name}" "$configpath"
-  apply_resources "$configpath"
+  # Propagate exit codes — a silent failure here used to leave preprocess
+  # reporting success while the cluster didn't exist, which then
+  # deadlocked the k8s MCP server at gateway_boot.
+  if ! create_cluster "${cluster_name}" "$configpath"; then
+    log_error "Aborting start_operation: kind create cluster failed for ${cluster_name}"
+    return 1
+  fi
+  if ! verify_cluster "${cluster_name}" "$configpath"; then
+    log_error "Aborting start_operation: cluster verification failed for ${cluster_name}"
+    return 1
+  fi
+
+  # Pre-load images from the host's local docker cache into the kind
+  # cluster's containerd registry.  Without this, the StatefulSet's pods
+  # would pull mysql:8.4 / nginx:1.14 from Docker Hub directly, which
+  # frequently hits the anonymous-pull rate limit (~100/6h per IP) on a
+  # busy multi-instance host and leaves rollout status hanging forever
+  # in ImagePullBackOff.
+  #
+  # Semantics: ``$podman_or_docker image inspect`` checks if the host already has
+  # the tagged image (it almost always does after first run; tagged
+  # images survive Toolathlon's gentle image prune, which only removes
+  # dangling layers).  If absent, pull once.  Then the shared loader
+  # streams only the Kind node's platform into containerd, avoiding the
+  # Docker 29 multi-platform-index failure in Kind v0.20.
+  REQUIRED_IMAGES=(mysql:8.4 nginx:1.14)
+  for _img in "${REQUIRED_IMAGES[@]}"; do
+    if ! "$podman_or_docker" image inspect "$_img" >/dev/null 2>&1; then
+      log_info "Host $podman_or_docker cache missing $_img; pulling once..."
+      if ! "$podman_or_docker" pull "$_img"; then
+        log_error "Failed to pull $_img from registry"
+        return 1
+      fi
+    fi
+    log_info "Loading $_img into cluster $cluster_name for the node platform (offline)..."
+    toolathlon_kind_load_image "$podman_or_docker" "$cluster_name" "$_img" || \
+      log_warning "Image preload failed for $_img; continuing and letting Kubernetes pull it if needed"
+  done
+
+  if ! apply_resources "$configpath"; then
+    log_error "Aborting start_operation: kubectl apply failed"
+    return 1
+  fi
 
   log_info "========== Initializing MySQL-f1 database =========="
   export MYSQL_ROOT_PASSWORD="mcpbench0606"   # Or load securely as needed
 
-  # Ensure MySQL StatefulSet is ready
-  kubectl --kubeconfig="$configpath" -n data rollout status statefulset/mysql-f1
+  # Ensure MySQL StatefulSet is ready — bounded wait so an
+  # ImagePullBackOff loop doesn't hang preprocess indefinitely.  5 min
+  # is enough for a healthy rollout when image preload succeeds or the
+  # registry pull is healthy; anything beyond that is a real failure.
+  if ! kubectl --kubeconfig="$configpath" -n data rollout status statefulset/mysql-f1 --timeout=300s; then
+    log_error "mysql-f1 rollout did not become ready within 5min — preprocess aborting"
+    log_info "Pod state for diagnostics:"
+    kubectl --kubeconfig="$configpath" -n data get pods -o wide --no-headers 2>/dev/null || true
+    kubectl --kubeconfig="$configpath" -n data describe pod mysql-f1-0 2>/dev/null | grep -E "Image|Pulling|Failed|Reason" | head -10 || true
+    return 1
+  fi
 
   # Ensure csv-loader Pod is ready
-  kubectl --kubeconfig="$configpath" -n data wait --for=condition=Ready pod/csv-loader --timeout=120s
+  if ! kubectl --kubeconfig="$configpath" -n data wait --for=condition=Ready pod/csv-loader --timeout=120s; then
+    log_error "csv-loader pod did not become ready within 120s"
+    return 1
+  fi
 
   # Copy CSV files to csv-loader
-  kubectl --kubeconfig="$configpath" -n data cp "$dataset_path_dir/f1/." csv-loader:/csv
+  if ! kubectl --kubeconfig="$configpath" -n data cp "$dataset_path_dir/f1/." csv-loader:/csv; then
+    log_error "Failed to copy F1 CSV files into csv-loader pod"
+    return 1
+  fi
 
-  kubectl -n data exec -i mysql-f1-0 -- mysql -h mysql-f1 -uroot -p"$MYSQL_ROOT_PASSWORD" f1 < "$schema_path"
+  if ! kubectl --kubeconfig="$configpath" -n data exec -i mysql-f1-0 -- mysql -h mysql-f1 -uroot -p"$MYSQL_ROOT_PASSWORD" f1 < "$schema_path"; then
+    log_error "Failed to load F1 schema into mysql-f1"
+    return 1
+  fi
 
-  load_f1_csv
+  if ! load_f1_csv; then
+    log_error "Failed to load F1 CSV data"
+    return 1
+  fi
 
-  create_mysql_readonly_user
+  if ! create_mysql_readonly_user; then
+    log_error "Failed to create MySQL read-only user"
+    return 1
+  fi
 
   # Copy the config file to the backup directory
-  mkdir -p "$backup_k8sconfig_path_dir"
+  if ! mkdir -p "$backup_k8sconfig_path_dir"; then
+    log_error "Failed to create backup config directory: $backup_k8sconfig_path_dir"
+    return 1
+  fi
   backup_configpath="$backup_k8sconfig_path_dir/${cluster_name}-config.yaml"
-  cp "$configpath" "$backup_configpath"
+  if ! cp "$configpath" "$backup_configpath"; then
+    log_error "Failed to copy kubeconfig backup to $backup_configpath"
+    return 1
+  fi
 
   log_info "MySQL-f1 initialization completed."
 
@@ -417,6 +531,9 @@ check_dependencies() {
   fi
 }
 
-# Script entrypoint
-check_dependencies
-main "$@"
+# Script entrypoint.  The guard lets tests source apply_resources without
+# creating or deleting a real Kind cluster.
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  check_dependencies
+  main "$@"
+fi

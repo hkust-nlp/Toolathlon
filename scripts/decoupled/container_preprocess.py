@@ -6,6 +6,9 @@ from pathlib import Path
 from typing import Any
 
 
+TASK_BUNDLE_SCHEMA_VERSION = 2
+
+
 def read_json_file(path: str) -> dict:
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
@@ -65,6 +68,7 @@ def build_task_bundle(
     host_log_file = os.path.abspath(os.path.join(host_task_root, "traj_log.json"))
 
     bundle = {
+        "schema_version": TASK_BUNDLE_SCHEMA_VERSION,
         "task_dir": task_config.task_dir,
         "launch_time": task_config.launch_time,
         "single_turn_mode": task_config.single_turn_mode,
@@ -94,6 +98,7 @@ def build_task_bundle(
         },
         "eval_config": eval_config_dict,
         "local_token_key_session": task_config.local_token_key_session,
+        "resolved_task_config": task_config.to_resolved_dict(),
         "bundle_file": os.path.abspath(bundle_file),
     }
     return bundle

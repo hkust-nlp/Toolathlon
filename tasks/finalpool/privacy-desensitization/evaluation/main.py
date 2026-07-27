@@ -4,6 +4,11 @@ import re
 import tarfile
 import shutil
 
+
+def is_macos_metadata(path):
+    parts = path.replace("\\", "/").split("/")
+    return any(part == "__MACOSX" or part == ".DS_Store" or part.startswith("._") for part in parts)
+
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--agent_workspace", required=False, default=".")
@@ -30,8 +35,16 @@ if __name__ == "__main__":
     groundtruth_documents_path = os.path.join(tmp_dir, "desensitized_documents")
 
     # the file names and numbers in both directories should be the same
-    agent_files = os.listdir(desensitized_documents_path)
-    gt_files = os.listdir(groundtruth_documents_path)
+    agent_files = [
+        file for file in os.listdir(desensitized_documents_path)
+        if not is_macos_metadata(file)
+        and os.path.isfile(os.path.join(desensitized_documents_path, file))
+    ]
+    gt_files = [
+        file for file in os.listdir(groundtruth_documents_path)
+        if not is_macos_metadata(file)
+        and os.path.isfile(os.path.join(groundtruth_documents_path, file))
+    ]
     if len(agent_files) != len(gt_files):
         print(f"Number of files mismatch: {len(agent_files)} in agent_workspace, {len(gt_files)} in groundtruth_workspace")
         exit(1)

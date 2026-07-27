@@ -2,6 +2,7 @@ import json
 import os
 import random
 import sys
+from collections import defaultdict
 from datetime import date, timedelta
 from typing import Dict, Any, List, Tuple
 
@@ -51,13 +52,133 @@ def make_receipt(base: Dict[str, Any]) -> Dict[str, Any]:
     }
     if base['category'] == 'Accommodation':
         r['nights'] = 1
-    if base.get('client_entertainment') is not None:
-        r['client_entertainment'] = base['client_entertainment']
+    for field in (
+        'client_entertainment',
+        'manager_pre_approval',
+        'attendee_list',
+        'business_purpose',
+    ):
+        if field in base:
+            r[field] = base[field]
     return r
 
 
-def generate_claims_for_employee(emp: Dict[str, Any], policy: Dict[str, Any], start_id: int, rng: random.Random) -> Tuple[List[Dict[str, Any]], int]:
-    levels = policy.get('levels', [])
+def _sum_amounts(items: List[Dict[str, Any]]) -> float:
+    return round(sum(float(item.get('amount') or 0) for item in items), 2)
+
+
+def _items_by_date(items: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
+    grouped = defaultdict(list)
+    for item in items:
+        grouped[str(item.get('date') or '')].append(item)
+    return grouped
+
+
+def _has_approved_client_entertainment(item: Dict[str, Any]) -> bool:
+    """Return whether a meal item has all evidence required for the exception."""
+    receipts = item.get('receipts') or []
+    return bool(receipts) and all(
+        receipt.get('client_entertainment') is True
+        and receipt.get('manager_pre_approval') is True
+        and bool(receipt.get('attendee_list'))
+        and bool(receipt.get('business_purpose'))
+        for receipt in receipts
+    )
+
+
+def find_policy_violations(claim: Dict[str, Any], policy: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Recompute policy violations exclusively from policy and claim line items.
+
+    Per-night/per-day limits are evaluated independently. This deliberately does
+    not net a low-spend date against an over-cap date.
+    """
+    destination_key = f"{claim.get('dest_country')}|{claim.get('dest_city')}"
+    rules = policy.get('destinations', {}).get(destination_key)
+    if rules is None:
+        raise ValueError(f"No policy rules found for destination {destination_key!r}")
+
+    level = claim.get('employee_level')
+    line_items = claim.get('line_items') or []
+    violations: List[Dict[str, Any]] = []
+
+    accommodation = [item for item in line_items if item.get('category') == 'Accommodation']
+    accommodation_cap = float(rules['accommodation_per_night'][level])
+    for expense_date, items in _items_by_date(accommodation).items():
+        amount = _sum_amounts(items)
+        nights = sum(
+            int(((item.get('receipts') or [{}])[0]).get('nights') or 1)
+            for item in items
+        )
+        cap = round(accommodation_cap * nights, 2)
+        if amount > cap:
+            violations.append({
+                'type': 'accommodation_over_cap',
+                'date': expense_date,
+                'cap': cap,
+                'amount': amount,
+            })
+
+    meals = [item for item in line_items if item.get('category') == 'Meals']
+    meals_cap = float(rules['meals_per_day'][level])
+    entertainment_multiplier = float(
+        policy.get('global_rules', {})
+        .get('client_entertainment_exception', {})
+        .get('multiplier', 1)
+    )
+    for expense_date, items in _items_by_date(meals).items():
+        amount = _sum_amounts(items)
+        approved_entertainment = all(_has_approved_client_entertainment(item) for item in items)
+        cap = round(meals_cap * entertainment_multiplier, 2) if approved_entertainment else meals_cap
+        if amount > cap:
+            violations.append({
+                'type': 'meals_over_cap',
+                'date': expense_date,
+                'cap': cap,
+                'amount': amount,
+                'client_entertainment': approved_entertainment,
+            })
+
+    transportation = [item for item in line_items if item.get('category') == 'Transportation']
+    transport_cap = float(rules['local_transport_per_day'])
+    for expense_date, items in _items_by_date(transportation).items():
+        amount = _sum_amounts(items)
+        if amount > transport_cap:
+            violations.append({
+                'type': 'local_transport_over_cap',
+                'date': expense_date,
+                'cap': transport_cap,
+                'amount': amount,
+            })
+
+    for category, rule_name, violation_type in (
+        ('Communication', 'communication_per_trip', 'communication_over_cap'),
+        ('Miscellaneous', 'misc_per_trip', 'misc_over_cap'),
+    ):
+        items = [item for item in line_items if item.get('category') == category]
+        amount = _sum_amounts(items)
+        cap = float(rules[rule_name])
+        if amount > cap:
+            violations.append({
+                'type': violation_type,
+                'cap': cap,
+                'amount': amount,
+            })
+
+    return violations
+
+
+def recompute_policy_violations(claims: List[Dict[str, Any]], policy: Dict[str, Any]) -> None:
+    for claim in claims:
+        claim['_policy_violations'] = find_policy_violations(claim, policy)
+
+
+def generate_claims_for_employee(
+    emp: Dict[str, Any],
+    policy: Dict[str, Any],
+    start_id: int,
+    rng: random.Random,
+    allow_policy_violations: bool = True,
+) -> Tuple[List[Dict[str, Any]], int]:
     dest_rules_map = policy.get('destinations', {})
     # choose 1-2 destinations
     dests = pick_destinations(policy, k=2, rng=rng)
@@ -77,15 +198,11 @@ def generate_claims_for_employee(emp: Dict[str, Any], policy: Dict[str, Any], st
 
         line_items: List[Dict[str, Any]] = []
         li_seq = 1
-        violations: List[Dict[str, Any]] = []
-
         # Accommodation per night
         acc_caps = rules['accommodation_per_night'][emp['employee_level']]
         for i, d in enumerate(day_list):
-            over = (i == 0 and rng.random() < 0.6)  # make first night over cap for some claims
+            over = allow_policy_violations and i == 0 and rng.random() < 0.6
             amount = round(acc_caps * (1.15 if over else rng.uniform(0.75, 0.95)), 2)
-            if over:
-                violations.append({'type': 'accommodation_over_cap', 'date': d, 'cap': acc_caps, 'amount': amount})
             item = {
                 'line_id': f"L{li_seq:03d}",
                 'date': d,
@@ -112,7 +229,7 @@ def generate_claims_for_employee(emp: Dict[str, Any], policy: Dict[str, Any], st
         # Meals per day
         meal_caps = rules['meals_per_day'][emp['employee_level']]
         for i, d in enumerate(day_list):
-            over = (i == len(day_list) - 1 and rng.random() < 0.6)
+            over = allow_policy_violations and i == len(day_list) - 1 and rng.random() < 0.6
             # 10-30% below cap when compliant; 10-40% over when not
             amount = round(meal_caps * (rng.uniform(1.1, 1.4) if over else rng.uniform(0.7, 0.95)), 2)
             # entertainment flag only on some compliant days
@@ -124,8 +241,6 @@ def generate_claims_for_employee(emp: Dict[str, Any], policy: Dict[str, Any], st
                     amount = round(meal_caps * 1.4, 2)
             else:
                 entertainment = False
-            if over:
-                violations.append({'type': 'meals_over_cap', 'date': d, 'cap': meal_caps, 'amount': amount, 'client_entertainment': False})
             item = {
                 'line_id': f"L{li_seq:03d}",
                 'date': d,
@@ -146,6 +261,9 @@ def generate_claims_for_employee(emp: Dict[str, Any], policy: Dict[str, Any], st
                 'category': 'Meals',
                 'description': 'Meals expense',
                 'client_entertainment': entertainment,
+                'manager_pre_approval': entertainment,
+                'attendee_list': 'Client representatives and employee' if entertainment else '',
+                'business_purpose': 'Client business meal' if entertainment else '',
             }))
             line_items.append(item)
             li_seq += 1
@@ -153,10 +271,8 @@ def generate_claims_for_employee(emp: Dict[str, Any], policy: Dict[str, Any], st
         # Local transportation (aggregate per day – here a single item per day)
         local_cap = rules['local_transport_per_day']
         for i, d in enumerate(day_list):
-            over = (i == 1 and rng.random() < 0.5)
+            over = allow_policy_violations and i == 1 and rng.random() < 0.5
             amount = round(local_cap * (1.25 if over else rng.uniform(0.5, 0.95)), 2)
-            if over:
-                violations.append({'type': 'local_transport_over_cap', 'date': d, 'cap': local_cap, 'amount': amount})
             item = {
                 'line_id': f"L{li_seq:03d}",
                 'date': d,
@@ -182,10 +298,8 @@ def generate_claims_for_employee(emp: Dict[str, Any], policy: Dict[str, Any], st
 
         # Communication per trip
         comm_cap = rules['communication_per_trip']
-        comm_over = rng.random() < 0.4
+        comm_over = allow_policy_violations and rng.random() < 0.4
         comm_amount = round(comm_cap * (1.3 if comm_over else rng.uniform(0.4, 0.95)), 2)
-        if comm_over:
-            violations.append({'type': 'communication_over_cap', 'cap': comm_cap, 'amount': comm_amount})
         item = {
             'line_id': f"L{li_seq:03d}",
             'date': day_list[0],
@@ -211,10 +325,8 @@ def generate_claims_for_employee(emp: Dict[str, Any], policy: Dict[str, Any], st
 
         # Miscellaneous per trip
         misc_cap = rules['misc_per_trip']
-        misc_over = rng.random() < 0.3
+        misc_over = allow_policy_violations and rng.random() < 0.3
         misc_amount = round(misc_cap * (1.25 if misc_over else rng.uniform(0.3, 0.9)), 2)
-        if misc_over:
-            violations.append({'type': 'misc_over_cap', 'cap': misc_cap, 'amount': misc_amount})
         item = {
             'line_id': f"L{li_seq:03d}",
             'date': day_list[-1],
@@ -255,9 +367,10 @@ def generate_claims_for_employee(emp: Dict[str, Any], policy: Dict[str, Any], st
             'dest_city': dest_city,
             'total_claimed': total_claimed,
             'line_items': line_items,
-            '_policy_violations': violations,
+            '_policy_violations': [],
             '_form_errors': [],
         }
+        claim['_policy_violations'] = find_policy_violations(claim, policy)
         claims.append(claim)
 
     return claims, claim_seq
@@ -395,6 +508,7 @@ def main():
     print_color("Injecting form errors ... ", "blue")
     # Inject a controlled amount of form errors to increase challenge
     stats = inject_form_errors(claims, rng)
+    recompute_policy_violations(claims, policy)
     print_color("Injected form errors", "green")
 
     print_color("Writing expense claims to file ... ", "blue")

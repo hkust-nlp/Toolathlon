@@ -275,7 +275,7 @@ def check_content(agent_workspace: str, groundtruth_workspace: str):
         print(f"Teams extracted from Agent: {agent_teams}")
         if not (ground_teams == agent_teams):
             print("Team info in Agent's sheet does not match Ground truth sheet.")  
-            return False
+            return False, "Team info in Agent's sheet does not match ground truth sheet."
         check_teams = ground_teams
 
         # Check all required rows

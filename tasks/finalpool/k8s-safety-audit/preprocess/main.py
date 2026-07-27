@@ -50,11 +50,23 @@ if __name__=="__main__":
     # Part 2 preprocess cluster
     print(f"Initializing cluster ...")
     script_path = os.path.join(os.path.dirname(__file__), "..", "scripts", "k8s_safety_audit.sh")
-    asyncio.run(run_command(f"bash {script_path} start {args.agent_workspace}", debug=True,show_output=True))
+    # Capture and propagate the bash script's returncode so a failed
+    # cluster bring-up (kind create error, image pull stuck, etc.)
+    # surfaces as preprocess failure instead of a silent "ready".
+    _, _, rc = asyncio.run(run_command(
+        f"bash {script_path} start {args.agent_workspace}",
+        debug=True, show_output=True,
+    ))
+    if rc != 0:
+        print(f"k8s_safety_audit.sh failed with returncode={rc}; aborting preprocess",
+              file=sys.stderr)
+        sys.exit(rc)
     print("Cluster initialized")
 
-    # Part 2.5 Delete k8s_configs in agent_workspace
-    shutil.rmtree(os.path.join(args.agent_workspace, "k8s_configs"))
+    # Part 2.5 Delete k8s_configs in agent_workspace.  ``ignore_errors``
+    # guards against a half-failed bash run that left the dir absent —
+    # though we'd already have sys.exit'd above on that path.
+    shutil.rmtree(os.path.join(args.agent_workspace, "k8s_configs"), ignore_errors=True)
     print("Deleted local k8s_configs successfully! We will only use the k8s mcp in this task!")
 
     print("Preprogress finish.")

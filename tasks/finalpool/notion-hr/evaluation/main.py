@@ -7,6 +7,7 @@ from email.header import decode_header
 from typing import Dict, List, Tuple
 from configs.token_key_session import all_token_key_session
 from utils.general.helper import normalize_str
+from utils.evaluation.retry import grade_with_retry
 
 # Import Notion utility functions
 from utils.app_specific.notion.ops import (
@@ -186,17 +187,17 @@ def check_candidates_match_expected(candidates: List[Dict]) -> Tuple[bool, List[
             candidate.get('name', '').strip().upper(),  # Convert to uppercase for comparison
             candidate.get('email', '').strip(),
             candidate.get('position', '').strip().lower(), # Convert to lowercase for comparison
-            candidate.get('highest degree', '').strip(),
+            candidate.get('highest degree', '').strip().lower(),  # Convert to lowercase for comparison
             candidate.get('school', '').strip().lower() # Convert to lowercase for comparison
         ))
-    
+
     # Check each expected candidate
     for expected in expected_candidates:
         expected_tuple = (
             expected['name'].upper(),  # Convert to uppercase for comparison
             expected['email'],
             expected['position'].lower(), # Convert to lowercase for comparison
-            expected['highest degree'],
+            expected['highest degree'].lower(),  # Convert to lowercase for comparison
             expected['school'].lower() # Convert to lowercase for comparison
         )
         
@@ -210,7 +211,7 @@ def check_candidates_match_expected(candidates: List[Dict]) -> Tuple[bool, List[
                     mismatches.append(f"email: expected '{expected['email']}', got '{actual.get('email', '').strip()}'")
                 if actual.get('position', '').strip() != expected['position']:
                     mismatches.append(f"position: expected '{expected['position']}', got '{actual.get('position', '').strip()}'")
-                if actual.get('highest degree', '').strip() != expected['highest degree']:
+                if actual.get('highest degree', '').strip().lower() != expected['highest degree'].lower():
                     mismatches.append(f"highest degree: expected '{expected['highest degree']}', got '{actual.get('highest degree', '').strip()}'")
                 if actual.get('school', '').strip() != expected['school']:
                     mismatches.append(f"school: expected '{expected['school']}', got '{actual.get('school', '').strip()}'")
@@ -331,7 +332,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # 1. Check Notion
-    notion_check_flag, notion_check_msg = check_notion()
+    notion_check_flag, notion_check_msg = grade_with_retry(
+        lambda: check_notion(),
+        max_attempts=4,
+    )
     if not notion_check_flag:
         print("\n❌ Notion check failed: ", notion_check_msg)
         exit(1)

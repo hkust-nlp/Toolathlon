@@ -1,11 +1,44 @@
 import imaplib
 import email
+import socket
 from email.header import decode_header
 from typing import Dict, List, Tuple
 import re
 
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_exponential,
+    retry_if_exception_type,
+)
+
 from utils.general.helper import print_color
 from utils.general.helper import normalize_str
+
+
+# Layer-1 retry for IMAP connect/login.  In the v3 sandbox the Poste.io
+# container occasionally rejects the very first TCP connect right after a
+# fresh deploy, and the mail indexer can be briefly unavailable while a
+# delivery is being flushed.  We retry transport-level failures (socket
+# errors, IMAP4.error, IMAP4.abort) but NOT ``ValueError`` from config
+# validation, which is a programmer error.
+#
+# Bounded to 3 attempts × ~5s timeout + 1+2s backoff so a fully-down Poste
+# fails out in well under the Layer-2 budget.  imaplib doesn't expose a
+# native timeout knob below Python 3.9; for earlier versions the OS default
+# socket timeout (and any ``socket.setdefaulttimeout`` in process) applies.
+_IMAP_SOCKET_TIMEOUT = 10  # seconds; only applied if Python ≥ 3.9 supports it
+
+imap_retry = retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=1, max=4),
+    retry=retry_if_exception_type((
+        OSError,                # ConnectionRefusedError, socket.timeout, etc.
+        socket.error,
+        imaplib.IMAP4.error,    # includes IMAP4.abort, IMAP4.readonly
+    )),
+    reraise=True,
+)
 
 
 def clear_folder(folder_name: str, config: Dict) -> None:
@@ -76,9 +109,18 @@ def clear_folder(folder_name: str, config: Dict) -> None:
 
 
 
+@imap_retry
 def _connect_imap(config: Dict) -> imaplib.IMAP4:
     """
     Establish an IMAP connection and log in with the given configuration.
+
+    This is the only authentic transport boundary in this module — every
+    other helper accepts an already-connected ``imap`` handle.  Layer-1
+    retry is applied here so transient TCP/login failures get up to 3
+    attempts; once we hold a session, the operations on it (select /
+    search / fetch) are not auto-retried because the session itself may
+    have been invalidated by the failure.  Layer-2 (grader-level retry)
+    covers those mid-session failures by re-running the whole check.
 
     Expected config keys:
     - "email" or "username"
@@ -98,12 +140,24 @@ def _connect_imap(config: Dict) -> imaplib.IMAP4:
     if not server or not port or not email_addr or not password:
         raise ValueError("IMAP configuration incomplete: email/password/imap_server/imap_port required")
 
-    if use_ssl:
-        imap = imaplib.IMAP4_SSL(server, port)
-    else:
-        imap = imaplib.IMAP4(server, port)
-        if use_starttls:
-            imap.starttls()
+    # ``timeout`` kwarg on imaplib was added in Python 3.9; pass via kwargs
+    # so we degrade gracefully on older interpreters.  Without a timeout,
+    # the OS default socket timeout (typically minutes) applies.
+    imap_kwargs = {"timeout": _IMAP_SOCKET_TIMEOUT}
+    try:
+        if use_ssl:
+            imap = imaplib.IMAP4_SSL(server, port, **imap_kwargs)
+        else:
+            imap = imaplib.IMAP4(server, port, **imap_kwargs)
+            if use_starttls:
+                imap.starttls()
+    except TypeError:  # Python < 3.9 — fall back to no-timeout constructor
+        if use_ssl:
+            imap = imaplib.IMAP4_SSL(server, port)
+        else:
+            imap = imaplib.IMAP4(server, port)
+            if use_starttls:
+                imap.starttls()
 
     imap.login(email_addr, password)
     return imap

@@ -1,80 +1,63 @@
 {
   "form_title": "Product Recall Information Confirmation Form",
-  "form_description": "Thank you for cooperating with our product recall process. Please fill out the following information so we can assist you accordingly.",
   "fields": [
     {
       "name": "Customer Name",
       "type": "text",
-      "required": true,
-      "description": "Please enter your real name"
+      "required": true
     },
     {
       "name": "Contact Email", 
-      "type": "email",
-      "required": true,
-      "description": "Email address for further contact"
+      "type": "text",
+      "required": true
     },
     {
       "name": "Contact Phone Number",
       "type": "text",
-      "required": false,
-      "description": "Alternative contact number"
+      "required": false
     },
     {
       "name": "Product Model",
       "type": "text", 
-      "required": true,
-      "description": "Please confirm the model of the product you purchased"
+      "required": true
     },
     {
       "name": "Product ID",
       "type": "text",
-      "required": true,
-      "description": "Product identifier, can be found on the product packaging"
+      "required": true
     },
     {
       "name": "Order Number",
       "type": "text",
-      "required": true,
-      "description": "Your purchase order number"
+      "required": true
     },
     {
       "name": "Purchase Date",
-      "type": "date",
-      "required": true,
-      "description": "The specific date of purchase"
+      "type": "text",
+      "required": true
     },
     {
       "name": "Current Product Status",
       "type": "choice",
       "required": false,
-      "choices": ["Not Used", "In Normal Use", "Has Issues", "Discarded"],
-      "description": "Please select the current status of the product"
+      "choices": ["Not Used", "In Normal Use", "Has Issues", "Discarded"]
     },
     {
       "name": "Return Preference",
       "type": "choice", 
       "required": false,
-      "choices": ["Full Refund", "Product Replacement", "Store Credit"],
-      "description": "Please select your preferred resolution option"
+      "choices": ["Full Refund", "Product Replacement", "Store Credit"]
     },
     {
       "name": "Problem Description",
-      "type": "paragraph",
-      "required": false,
-      "description": "Please describe in detail the issues you encountered with the product or any other relevant information"
+      "type": "text",
+      "required": false
     },
     {
       "name": "Agreement to Terms of Processing",
-      "type": "checkbox",
+      "type": "choice",
       "required": true,
-      "description": "I agree to proceed according to the recall processing procedure"
+      "choices": ["I agree to proceed according to the recall processing procedure"]
     }
-  ],
-  "settings": {
-    "collect_email": true,
-    "allow_response_editing": true,
-    "limit_to_one_response": true,
-    "show_progress_bar": true
-  }
+  ]
 }

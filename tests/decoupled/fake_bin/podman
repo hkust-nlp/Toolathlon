@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Podman alias for the fake container runtime used by the regression tests.
+exec "$(dirname "$0")/docker" "$@"

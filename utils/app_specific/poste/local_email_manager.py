@@ -1,5 +1,6 @@
 import imaplib
 import smtplib
+import socket
 import json
 import email
 import time
@@ -11,6 +12,33 @@ from email.utils import formataddr
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Dict, Optional, Any, Tuple
+
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_exponential,
+    retry_if_exception_type,
+)
+
+
+# Layer-1 retry settings.  Same shape as utils/app_specific/poste/ops.py so
+# the two helpers behave consistently when graders or preprocess scripts
+# use either one.  Bounded to 3 attempts × ~10s socket timeout + 1+2s
+# backoff so a fully-down Poste fails out in well under the Layer-2 budget.
+_IMAP_SOCKET_TIMEOUT = 10
+_SMTP_SOCKET_TIMEOUT = 10
+
+_lem_retry = retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=1, max=4),
+    retry=retry_if_exception_type((
+        OSError, socket.error,
+        imaplib.IMAP4.error,
+        smtplib.SMTPConnectError, smtplib.SMTPServerDisconnected,
+        smtplib.SMTPHeloError,
+    )),
+    reraise=True,
+)
 
 
 class EmailSendError(Exception):
@@ -50,16 +78,33 @@ class LocalEmailManager:
     # IMAP related functions
     # ========================================
     
+    @_lem_retry
     def connect_imap(self) -> imaplib.IMAP4:
-        """Connect to IMAP server and login (if necessary)"""
-        if self.use_ssl:
-            mail = imaplib.IMAP4_SSL(self.imap_server, self.imap_port)
-        else:
-            mail = imaplib.IMAP4(self.imap_server, self.imap_port)
+        """Connect to IMAP server and login (if necessary).
+
+        Layer-1 retry covers transient transport-level failures (TCP
+        refused, socket timeout, IMAP4.abort).  RuntimeError raised here
+        for a *login* failure (bad credentials) is NOT retried — that's a
+        deterministic auth error.
+        """
+        imap_kwargs = {"timeout": _IMAP_SOCKET_TIMEOUT}
+        try:
+            if self.use_ssl:
+                mail = imaplib.IMAP4_SSL(self.imap_server, self.imap_port, **imap_kwargs)
+            else:
+                mail = imaplib.IMAP4(self.imap_server, self.imap_port, **imap_kwargs)
+        except TypeError:  # Python < 3.9: no timeout kwarg
+            if self.use_ssl:
+                mail = imaplib.IMAP4_SSL(self.imap_server, self.imap_port)
+            else:
+                mail = imaplib.IMAP4(self.imap_server, self.imap_port)
 
         try:
             mail.login(self.email, self.password)
         except imaplib.IMAP4.error as e:
+            # Don't re-raise as IMAP4.error (which would trigger another
+            # retry attempt) — convert to RuntimeError so login failures
+            # surface deterministically.
             raise RuntimeError(f"IMAP login failed: {e}")
         return mail
 
@@ -345,9 +390,17 @@ class LocalEmailManager:
                             elif match == 'year' or match.startswith('today+') or match.startswith('today-'):
                                 try:
                                     if match == 'year':
+                                        # Use today's year directly.  An
+                                        # earlier version added 30 days
+                                        # before extracting the year,
+                                        # which flipped the year at the
+                                        # December boundary (e.g.
+                                        # today=2025-12-05 → year 2026).
+                                        # Tasks that need "next year"
+                                        # should use placeholder_values
+                                        # to set ``year`` explicitly.
                                         today_date = datetime.fromisoformat(today)
-                                        future_date = today_date + timedelta(days=30)
-                                        replacement = str(future_date.year)
+                                        replacement = str(today_date.year)
                                     elif match.startswith('today+'):
                                         days_to_add = int(match[6:])  # Remove 'today+' prefix
                                         today_date = datetime.fromisoformat(today)
@@ -398,16 +451,32 @@ class LocalEmailManager:
             with open(placeholder_file_path, 'r', encoding='utf-8') as f:
                 placeholder_values = json.load(f)
 
-        # Get today's date
-        today = datetime.now().strftime('%Y-%m-%d')
+        # Get today's date.  Prefer an existing ``save_today_to`` file
+        # (treat it as a checked-in fixture) so the planted emails are
+        # reproducible across calendar drift.  Only fall back to
+        # ``datetime.now()`` if the file is missing or empty/unparseable.
+        # The file is only written when we generated the value — never
+        # overwritten if it already had a valid date.
+        today = None
+        if save_today_to and Path(save_today_to).exists():
+            try:
+                existing = Path(save_today_to).read_text(encoding='utf-8').strip()
+                if existing:
+                    # Validate it parses as a date
+                    datetime.fromisoformat(existing)
+                    today = existing
+                    self._log(f"📅 Using existing today.txt fixture: {today}")
+            except (ValueError, OSError):
+                today = None
 
-        # Save today's date to specified file
-        if save_today_to:
-            today_path = Path(save_today_to)
-            today_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(today_path, 'w', encoding='utf-8') as f:
-                f.write(today)
-            self._log(f"✅ Today's date saved to: {today_path}")
+        if today is None:
+            today = datetime.now().strftime('%Y-%m-%d')
+            if save_today_to:
+                today_path = Path(save_today_to)
+                today_path.parent.mkdir(parents=True, exist_ok=True)
+                with open(today_path, 'w', encoding='utf-8') as f:
+                    f.write(today)
+                self._log(f"✅ Today's date saved to: {today_path}")
 
         try:
             with open(file_path, 'r', encoding='utf-8') as f:

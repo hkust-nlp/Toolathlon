@@ -1,12 +1,21 @@
 # pdf-tools
 # Source: https://github.com/lockon-n/pdf-tools-mcp
-# Toolathlon Version: The same
+# Toolathlon Version: launched via utils.local_servers.pdf_tools_local_wrapper
+# which monkey-patches the non-reentrant ``threading.Lock()`` in
+# ``pdf_tools_mcp.server`` to a ``threading.RLock()`` before starting the
+# MCP server.  The upstream code deadlocks once ``search_sessions`` grows
+# past 20 entries (or ``pdf_content_cache`` past 10) because it calls
+# ``cleanup_cache()`` while already holding ``cache_lock`` — and the lock
+# is not reentrant.  See the wrapper module docstring for the full chain.
 type: stdio
 name: pdf-tools
 params:
   command: uvx
   args:
+    - "--from"
     - "pdf-tools-mcp"
+    - "python"
+    - "/workspace/utils/local_servers/pdf_tools_local_wrapper.py"
     - "--workspace_path"
     - "${agent_workspace}"
     - "--tempfile_dir"

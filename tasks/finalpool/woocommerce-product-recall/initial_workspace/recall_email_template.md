@@ -1,5 +1,7 @@
 # Product Recall Notice
 
+**Subject**: Product Recall Notice — [Product Model]
+
 ## Urgent Notification
 
 Dear **[Customer Name]**,

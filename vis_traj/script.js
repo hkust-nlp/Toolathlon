@@ -1118,13 +1118,16 @@ class TrajectoryReplayer {
             "word": '<img src="icons/word.png" width="14" height="14" style={{margin: 0, padding: 0, display: \'inline-block\', verticalAlign: \'middle\'}} />',
             "scholarly": '<img src="icons/scholar.png" width="14" height="14" style={{margin: 0, padding: 0, display: \'inline-block\', verticalAlign: \'middle\'}} />',
             "local-python-execute": '<img src="icons/python.png" width="14" height="14" style={{margin: 0, padding: 0, display: \'inline-block\', verticalAlign: \'middle\'}} />',
+            'local_python_execute': '<img src="icons/python.png" width="14" height="14" style={{margin: 0, padding: 0, display: \'inline-block\', verticalAlign: \'middle\'}} />',
             "canvas": '<img src="icons/canvas.png" width="14" height="14" style={{margin: 0, padding: 0, display: \'inline-block\', verticalAlign: \'middle\'}} />',
             "fetch": '<img src="icons/fetch.png" width="14" height="14" style={{margin: 0, padding: 0, display: \'inline-block\', verticalAlign: \'middle\'}} />',
             "overlong": '<Icon icon="filter-list" size={14} color="#4286f6" />',
             "pdf": '<img src="icons/pdf.png" width="14" height="14" style={{margin: 0, padding: 0, display: \'inline-block\', verticalAlign: \'middle\'}} />',
             "local-web_search": '<img src="icons/google_search.png" width="14" height="14" style={{margin: 0, padding: 0, display: \'inline-block\', verticalAlign: \'middle\'}} />',
+            'local_web_search': '<img src="icons/google_search.png" width="14" height="14" style={{margin: 0, padding: 0, display: \'inline-block\', verticalAlign: \'middle\'}} />',
             "web_search": '<img src="icons/google_search.png" width="14" height="14" style={{margin: 0, padding: 0, display: \'inline-block\', verticalAlign: \'middle\'}} />',
             "local-claim_done": '<img src="icons/claim_done.png" width="14" height="14" style={{margin: 0, padding: 0, display: \'inline-block\', verticalAlign: \'middle\'}} />',
+            'local_claim_done': '<img src="icons/claim_done.png" width="14" height="14" style={{margin: 0, padding: 0, display: \'inline-block\', verticalAlign: \'middle\'}} />',
             "emails": '<img src="icons/mail.png" width="14" height="14" style={{margin: 0, padding: 0, display: \'inline-block\', verticalAlign: \'middle\'}} />',
             "huggingface": '<img src="icons/hf.png" width="14" height="14" style={{margin: 0, padding: 0, display: \'inline-block\', verticalAlign: \'middle\'}} />',
             "woocommerce": '<img src="icons/woo.png" width="14" height="14" style={{margin: 0, padding: 0, display: \'inline-block\', verticalAlign: \'middle\'}} />',
@@ -1152,7 +1155,9 @@ class TrajectoryReplayer {
             return iconMap[toolName];
         }
 
-        if (toolName.toLowerCase().includes('youtube-trans')) {
+        const canonicalToolName = toolName.replace(/-/g, '_');
+
+        if (canonicalToolName.toLowerCase().includes('youtube_trans')) {
             return iconMap["youtube_transcript"];
         }
 
@@ -1160,9 +1165,15 @@ class TrajectoryReplayer {
             return iconMap["history"];
         }
 
-        const serverName = toolName.split("-")[0];
+        const serverName = Object.keys(iconMap)
+            .sort((left, right) => right.length - left.length)
+            .find(key => {
+                const canonicalKey = key.replace(/-/g, '_');
+                return canonicalToolName === canonicalKey ||
+                    canonicalToolName.startsWith(`${canonicalKey}_`);
+            });
 
-        if (serverName in iconMap) {
+        if (serverName) {
             return iconMap[serverName];
         }
         
@@ -1531,7 +1542,10 @@ class TrajectoryReplayer {
 
 
                 let argumentsHTML;
-                if (toolName === 'local-python-execute' && parsedArgs.code) {
+                if (
+                    ['local-python-execute', 'local_python_execute'].includes(toolName) &&
+                    parsedArgs.code
+                ) {
                     argumentsHTML = `
                         <div class="tool-section">
                             <div class="tool-section-title">Code</div>

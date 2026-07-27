@@ -1,13 +1,34 @@
 from addict import Dict
 import os
+from pathlib import Path
 # I am gradually modifying the tokens to the pseudo account in this project
 
 # find theabs path of this file
 file_path = os.path.abspath(__file__)
 
+
+def get_instance_suffix() -> str:
+    try:
+        import yaml
+    except ImportError:
+        return ""
+    for root in [Path.cwd(), *Path(__file__).resolve().parents]:
+        config_path = root / "configs" / "ports_config.yaml"
+        if config_path.exists():
+            try:
+                with open(config_path, "r") as f:
+                    return (yaml.safe_load(f) or {}).get("instance_suffix", "")
+            except Exception:
+                return ""
+    return ""
+
+
+def kubeconfig_filename(cluster_name: str) -> str:
+    return f"{cluster_name}{get_instance_suffix()}-config.yaml"
+
 emails_config_file = os.path.join(os.path.dirname(file_path), "emails_config.json")
 
-kubeconfig_path = os.path.join(os.path.dirname(file_path), "k8s_configs", "cluster-cleanup-config.yaml")
+kubeconfig_path = os.path.join(os.path.dirname(file_path), "k8s_configs", kubeconfig_filename("cluster-cleanup"))
 
 all_token_key_session = Dict(
     # poste emails

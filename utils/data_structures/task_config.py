@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
+import copy
 import importlib.util
-from typing import List, Dict, Optional, Union
+from typing import Any, List, Dict, Optional, Union
 from pathlib import Path
 from datetime import datetime
 
@@ -346,6 +347,106 @@ class TaskConfig:
             'meta': self.meta,
             'local_token_key_session': self.local_token_key_session
         }
+
+    def to_resolved_dict(self) -> dict:
+        """Serialize the fully resolved task configuration.
+
+        Unlike the task's source ``task_config.json``, this representation contains
+        values derived during :meth:`build`, including absolute output paths,
+        rendered prompts, the fixed launch time, evaluation paths, and the token
+        session loaded after preprocessing.  It is intended for trusted hand-off
+        between isolated execution phases.
+        """
+        resolved = self.to_dict()
+        resolved.update({
+            'agent_short_name': self.agent_short_name,
+            'global_task_config': self.global_task_config,
+        })
+        return copy.deepcopy(resolved)
+
+    @classmethod
+    def from_resolved_dict(cls, resolved: Dict[str, Any]) -> 'TaskConfig':
+        """Hydrate a trusted, fully resolved config without deriving it again.
+
+        Calling the dataclass constructor would run ``__post_init__`` and apply
+        path prefixes and prompt substitutions a second time.  It can also touch
+        task files which are deliberately hidden during the agent phase.  This
+        method therefore validates the snapshot shape and assigns the already
+        resolved values directly.
+        """
+        if not isinstance(resolved, dict):
+            raise TypeError("resolved task config must be a dictionary")
+
+        scalar_fields = (
+            'task_dir',
+            'id',
+            'needed_mcp_servers',
+            'needed_local_tools',
+            'task_root',
+            'task_str',
+            'log_file',
+            'agent_workspace',
+            'max_turns',
+            'max_steps_under_single_turn_mode',
+            'single_turn_mode',
+            'cn_mode',
+            'meta',
+            'launch_time',
+            'agent_short_name',
+            'global_task_config',
+            'local_token_key_session',
+        )
+        nested_fields = ('system_prompts', 'initialization', 'evaluation', 'stop')
+        missing = [
+            name for name in (*scalar_fields, *nested_fields) if name not in resolved
+        ]
+        if missing:
+            raise ValueError(
+                "resolved task config is missing required fields: "
+                + ", ".join(sorted(missing))
+            )
+
+        for name in nested_fields:
+            if not isinstance(resolved[name], dict):
+                raise TypeError(f"resolved task config field {name!r} must be a dictionary")
+
+        def require_nested(mapping: Dict[str, Any], field_name: str, keys: tuple) -> None:
+            missing_keys = [key for key in keys if key not in mapping]
+            if missing_keys:
+                raise ValueError(
+                    f"resolved task config field {field_name!r} is missing: "
+                    + ", ".join(sorted(missing_keys))
+                )
+
+        require_nested(resolved['system_prompts'], 'system_prompts', ('agent', 'user'))
+        require_nested(
+            resolved['initialization'],
+            'initialization',
+            ('workspace', 'process_command'),
+        )
+        require_nested(
+            resolved['evaluation'],
+            'evaluation',
+            ('groundtruth_workspace', 'evaluation_command'),
+        )
+        require_nested(resolved['stop'], 'stop', ('user_phrases', 'tool_names'))
+
+        # Deliberately bypass __init__/__post_init__: every value below has already
+        # been resolved by the trusted preprocess phase.
+        task_config = cls.__new__(cls)
+        for name in scalar_fields:
+            setattr(task_config, name, copy.deepcopy(resolved[name]))
+        task_config.system_prompts = SystemPrompts(
+            **copy.deepcopy(resolved['system_prompts'])
+        )
+        task_config.initialization = Initialization(
+            **copy.deepcopy(resolved['initialization'])
+        )
+        task_config.evaluation = Evaluation(
+            **copy.deepcopy(resolved['evaluation'])
+        )
+        task_config.stop = StopConditions(**copy.deepcopy(resolved['stop']))
+        return task_config
 
     def ensure_directories(self):
         """Ensure all necessary directories exist."""

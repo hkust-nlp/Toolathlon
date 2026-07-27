@@ -10,6 +10,7 @@ import json
 import zipfile
 import argparse
 from datetime import datetime
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 from typing import List, Dict, Tuple, Optional
 
@@ -39,6 +40,45 @@ class LocalEmailAttachmentChecker:
             print(f"❌ Failed to create temporary directory: {e}")
             return False
     
+    @staticmethod
+    def _normalize_subject(subject: Optional[str]) -> str:
+        return " ".join((subject or "").split())
+
+    @staticmethod
+    def _email_timestamp(email_data: Dict) -> float:
+        for key in ("date", "timestamp", "received_at"):
+            value = email_data.get(key)
+            if not value:
+                continue
+            try:
+                return parsedate_to_datetime(value).timestamp()
+            except Exception:
+                try:
+                    return datetime.fromisoformat(str(value)).timestamp()
+                except Exception:
+                    pass
+        return 0.0
+
+    def _select_latest_exact_subject_email(self, emails: List[Dict], subject_keyword: str) -> Optional[Dict]:
+        """Select the latest email whose subject exactly matches the task-required subject."""
+        target_subject = self._normalize_subject(subject_keyword)
+        exact_matches = [
+            email_data
+            for email_data in emails
+            if self._normalize_subject(email_data.get("subject")) == target_subject
+        ]
+
+        if not exact_matches:
+            print(f"⚠️ No exact-subject email found for: {subject_keyword!r}")
+            return None
+
+        selected_email = max(exact_matches, key=self._email_timestamp)
+        print(
+            "✅ Selected latest exact-subject email: "
+            f"date={selected_email.get('date')!r}, subject={selected_email.get('subject')!r}"
+        )
+        return selected_email
+
     def search_emails_with_attachments(self, subject_keyword: str = "submit_material") -> List[Dict]:
         """Search for emails with a specific subject keyword and attachments."""
         try:
@@ -53,7 +93,8 @@ class LocalEmailAttachmentChecker:
                 return []
             
             print(f"✅ Found {len(emails_with_attachments)} matching emails.")
-            return emails_with_attachments
+            selected_email = self._select_latest_exact_subject_email(emails_with_attachments, subject_keyword)
+            return [selected_email] if selected_email else []
             
         except Exception as e:
             print(f"❌ Failed to search emails: {e}")

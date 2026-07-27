@@ -168,6 +168,11 @@ class TestProductSetup:
 
     def _generate_test_product_data(self) -> List[Dict]:
         """Generate test product data"""
+        # Seed RNG so repeated preprocess runs produce identical test
+        # products (same stock, sales, dates, names, ordering).  Without
+        # this seed, the agent reads a different set of "low selling
+        # products" each run.
+        random.seed(42)
         current_date = datetime.now()
         products = []
 

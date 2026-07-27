@@ -25,6 +25,7 @@ try:
     # Import WooCommerce client
     from woocommerce_client import WooCommerceClient, add_woocommerce_extensions
     from token_key_session import all_token_key_session
+    from utils.evaluation.retry import grade_with_retry
 except ImportError as e:
     print(f"Import error: {e}")
     print(f"Python path: {sys.path}")
@@ -77,81 +78,108 @@ async def main(args):
         print(f"Failed to initialize WooCommerce client: {e}")
         exit(1)
 
-    # 3. Check each product's main/featured image
-    success_count = 0
+    # 3. Check each product's main/featured image.
+    # Layer-2 retry: poll WooCommerce until featured images match expected
+    # (or budget exhausted) to absorb propagation lag on the agent's writes.
     total_products = len(expected_updates)
-    evaluation_results = []
 
-    for product_id_str, expected_data in expected_updates.items():
-        product_id = int(product_id_str)
-        product_name = expected_data.get('product_name', 'Unknown')
-        expected_image_id = expected_data.get('expected_featured_image_id')
+    def _check_all_products():
+        success_count = 0
+        evaluation_results = []
+        for product_id_str, expected_data in expected_updates.items():
+            product_id = int(product_id_str)
+            product_name = expected_data.get('product_name', 'Unknown')
+            expected_image_id = expected_data.get('expected_featured_image_id')
 
-        print(f"\nChecking product: {product_name} (ID: {product_id})")
-        print(f"   Expected featured image ID: {expected_image_id}")
+            print(f"\nChecking product: {product_name} (ID: {product_id})")
+            print(f"   Expected featured image ID: {expected_image_id}")
 
-        try:
-            # Retrieve product data
-            success, product_data = wc_client.get_product(str(product_id))
+            try:
+                success, product_data = wc_client.get_product(str(product_id))
+                if not success:
+                    print(f"   ❌ Failed to retrieve product info")
+                    evaluation_results.append({
+                        "product_id": product_id,
+                        "product_name": product_name,
+                        "status": "error",
+                        "error": "Failed to retrieve product information"
+                    })
+                    continue
 
-            if not success:
-                print(f"   ❌ Failed to retrieve product info")
+                current_images = product_data.get('images', [])
+                current_featured_image_id = None
+                if current_images:
+                    current_featured_image_id = current_images[0].get('id')
+
+                print(f"   Current featured image ID: {current_featured_image_id}")
+
+                if expected_image_id is None:
+                    print(f"   ⚠️ No expected featured image ID specified")
+                    evaluation_results.append({
+                        "product_id": product_id,
+                        "product_name": product_name,
+                        "status": "no_expected_image",
+                        "current_featured_image_id": current_featured_image_id,
+                        "expected_featured_image_id": expected_image_id
+                    })
+                elif str(current_featured_image_id) == str(expected_image_id):
+                    print(f"   ✅ Featured image updated correctly")
+                    success_count += 1
+                    evaluation_results.append({
+                        "product_id": product_id,
+                        "product_name": product_name,
+                        "status": "success",
+                        "current_featured_image_id": current_featured_image_id,
+                        "expected_featured_image_id": expected_image_id
+                    })
+                else:
+                    print(f"   ❌ Featured image not updated correctly")
+                    print(f"      Current: {current_featured_image_id}")
+                    print(f"      Expected: {expected_image_id}")
+                    evaluation_results.append({
+                        "product_id": product_id,
+                        "product_name": product_name,
+                        "status": "failed",
+                        "current_featured_image_id": current_featured_image_id,
+                        "expected_featured_image_id": expected_image_id
+                    })
+            except Exception as e:
+                print(f"   ❌ Error occurred while checking product: {e}")
                 evaluation_results.append({
                     "product_id": product_id,
                     "product_name": product_name,
                     "status": "error",
-                    "error": "Failed to retrieve product information"
-                })
-                continue
-
-            # Get current featured image ID
-            current_images = product_data.get('images', [])
-            current_featured_image_id = None
-            if current_images:
-                current_featured_image_id = current_images[0].get('id')
-
-            print(f"   Current featured image ID: {current_featured_image_id}")
-
-            # Compare with expected
-            if expected_image_id is None:
-                print(f"   ⚠️ No expected featured image ID specified")
-                evaluation_results.append({
-                    "product_id": product_id,
-                    "product_name": product_name,
-                    "status": "no_expected_image",
-                    "current_featured_image_id": current_featured_image_id,
-                    "expected_featured_image_id": expected_image_id
-                })
-            elif str(current_featured_image_id) == str(expected_image_id):
-                print(f"   ✅ Featured image updated correctly")
-                success_count += 1
-                evaluation_results.append({
-                    "product_id": product_id,
-                    "product_name": product_name,
-                    "status": "success",
-                    "current_featured_image_id": current_featured_image_id,
-                    "expected_featured_image_id": expected_image_id
-                })
-            else:
-                print(f"   ❌ Featured image not updated correctly")
-                print(f"      Current: {current_featured_image_id}")
-                print(f"      Expected: {expected_image_id}")
-                evaluation_results.append({
-                    "product_id": product_id,
-                    "product_name": product_name,
-                    "status": "failed",
-                    "current_featured_image_id": current_featured_image_id,
-                    "expected_featured_image_id": expected_image_id
+                    "error": str(e)
                 })
 
-        except Exception as e:
-            print(f"   ❌ Error occurred while checking product: {e}")
-            evaluation_results.append({
-                "product_id": product_id,
-                "product_name": product_name,
-                "status": "error",
-                "error": str(e)
-            })
+        if total_products > 0 and success_count == total_products:
+            return True, None, success_count, evaluation_results
+        else:
+            # Build failure error so retry can use it as last_err
+            failed_products = []
+            for result in evaluation_results:
+                if result["status"] in ["failed", "error"]:
+                    info = f"Product {result['product_name']} (ID: {result['product_id']})"
+                    if result["status"] == "failed":
+                        info += f" - Current: {result.get('current_featured_image_id')}, Expected: {result.get('expected_featured_image_id')}"
+                    elif result["status"] == "error":
+                        info += f" - Error: {result.get('error', 'Unknown error')}"
+                    failed_products.append(info)
+            err = f"{success_count}/{total_products} successes; failed: {failed_products}"
+            return False, err, success_count, evaluation_results
+
+    # Adapter: grade_with_retry expects (ok, err) — pack/unpack the extras
+    _last = {"success_count": 0, "evaluation_results": []}
+
+    def _bool_check():
+        ok, err, sc, er = _check_all_products()
+        _last["success_count"] = sc
+        _last["evaluation_results"] = er
+        return ok, err
+
+    ok_final, err_final = grade_with_retry(_bool_check)
+    success_count = _last["success_count"]
+    evaluation_results = _last["evaluation_results"]
 
     # 4. Print evaluation summary
     print(f"\n{'='*60}")
@@ -179,7 +207,7 @@ async def main(args):
                 failed_products.append(failed_info)
 
         error_msg = f"❌ Evaluation failed: Not all featured images were updated correctly\n"
-        error_msg += f"Success rate: {(success_count/total_products*100):.1f}% (Required: ≥80%)\n"
+        error_msg += f"Success rate: {(success_count/total_products*100):.1f}% (Required: = 100%)\n"
         error_msg += f"Successes: {success_count}/{total_products}\n"
         if failed_products:
             error_msg += f"Failed products:\n" + "\n".join([f"  - {info}" for info in failed_products])

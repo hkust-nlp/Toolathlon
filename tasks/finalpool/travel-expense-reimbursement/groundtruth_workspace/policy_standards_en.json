@@ -18,6 +18,7 @@
     },
     "receipt_threshold": 200,
     "receipt_requirement": "Valid tax invoice/receipt is required for any single expense above the threshold.",
+    "cap_assessment": "Assess accommodation separately for each night, and assess meals and local transport separately for each calendar date. Unused allowance from one night or date must not offset an overage on another night or date.",
     "client_entertainment_exception": {
       "multiplier": 1.5,
       "scope": "Meals only",

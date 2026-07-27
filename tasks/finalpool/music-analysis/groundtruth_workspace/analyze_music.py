@@ -115,15 +115,27 @@ def process_year_data(xl_file, year):
     """Process data for a specific year."""
     if str(year) not in xl_file:
         return []
-    
+
     sheet_data = xl_file[str(year)]
     results = []
-    
+    seen_song_rows = False
+
     for idx, row in sheet_data.iterrows():
-        # Skip rows with no song name
+        # Skip rows with no song name in the first column
         if pd.isna(row.iloc[0]) or row.iloc[0] == '':
             continue
-            
+        # Skip title/header rows: they have a value in column 0 but column 1
+        # (artist) is empty.  Real songs always have both song name and artist.
+        # This matters because sheet_name=None with header=None reads ALL
+        # rows including titles; e.g. 1940 row 0 is "Billboard Best-Selling
+        # Pop Singles Chart" with NaN in col 1.  1941-1949 don't have such
+        # title rows, so this check is a no-op for them.
+        if pd.isna(row.iloc[1]) or row.iloc[1] == '':
+            if seen_song_rows:
+                break
+            continue
+
+        seen_song_rows = True
         song_performance = analyze_song_performance(row)
         
         # Calculate consecutive weeks metrics
@@ -146,11 +158,17 @@ def process_year_data(xl_file, year):
     return results
 
 def main():
-    # Read the Billboard data
-    print("Loading Billboard data...")
+    import os
+    # Read the Billboard data.  header=None so the first row of each sheet
+    # is preserved as data (years 1941-1949 have a real song on row 0); we
+    # detect/skip title rows in process_year_data instead.
+    here = os.path.dirname(os.path.abspath(__file__))
+    src_path = os.path.join(here, "Billboard Pop Chart by Year.xlsx")
+    print(f"Loading Billboard data from {src_path}...")
     xl_file = pd.read_excel(
-        '/home/jzhao/workspace/toolathlon/tasks/finalpool/music-analysis/initial_workspace/Billboard Pop Chart by Year.xlsx',
-        sheet_name=None
+        src_path,
+        sheet_name=None,
+        header=None,
     )
     
     # Process all 1940s years
@@ -169,7 +187,7 @@ def main():
     
     # Create output Excel file
     print("Creating output file...")
-    output_path = '/home/jzhao/workspace/toolathlon/tasks/finalpool/music-analysis/groundtruth_workspace/music_analysis_result.xlsx'
+    output_path = os.path.join(here, "music_analysis_result.xlsx")
     
     with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
         for year in years_1940s:

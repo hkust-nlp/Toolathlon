@@ -6,7 +6,7 @@ import os
 import traceback
 import uuid
 from urllib.parse import urlparse
-from typing import Any, AsyncIterator, Dict, List, Optional, Tuple
+from typing import Any, AsyncIterator, Dict, List, Optional, Tuple, cast
 
 import aiohttp
 
@@ -15,10 +15,12 @@ from claude_agent_sdk.types import (
     AssistantMessage,
     ClaudeAgentOptions,
     ContentBlock,
+    EffortLevel,
     ResultMessage,
     StreamEvent,
     SystemMessage,
     TextBlock,
+    ThinkingConfigAdaptive,
     ThinkingBlock,
     ToolResultBlock,
     ToolUseBlock,
@@ -51,6 +53,7 @@ ANSI_MAGENTA = "\033[35m"
 ANSI_BOLD = "\033[1m"
 
 CLAUDE_CODE_MODEL_ALIASES = {"default", "sonnet", "opus", "haiku", "opusplan"}
+CLAUDE_EFFORT_LEVELS = {"low", "medium", "high", "xhigh", "max"}
 
 
 def get_env_optional_int(name: str) -> Optional[int]:
@@ -138,7 +141,31 @@ def resolve_claude_sdk_model(
     if is_claude_code_builtin_model_name(normalized):
         return normalized, {}, None
 
+    if "opus" in normalized.lower():
+        return "opus", {"ANTHROPIC_DEFAULT_OPUS_MODEL": normalized}, normalized
+
     return "sonnet", {"ANTHROPIC_DEFAULT_SONNET_MODEL": normalized}, normalized
+
+
+def resolve_claude_sdk_reasoning(
+    reasoning: Any,
+) -> Tuple[Optional[ThinkingConfigAdaptive], Optional[EffortLevel]]:
+    if reasoning is None:
+        return None, None
+    if not isinstance(reasoning, dict):
+        raise ValueError("agent.generation.reasoning must be an object")
+
+    effort = reasoning.get("effort")
+    if effort is None:
+        return None, None
+    if not isinstance(effort, str) or effort not in CLAUDE_EFFORT_LEVELS:
+        supported = ", ".join(sorted(CLAUDE_EFFORT_LEVELS))
+        raise ValueError(f"Unsupported Claude effort {effort!r}; expected one of: {supported}")
+
+    return {
+        "type": "adaptive",
+        "display": "summarized",
+    }, cast(EffortLevel, effort)
 
 
 def has_claude_sdk_auth(env: Dict[str, str]) -> bool:
@@ -155,9 +182,14 @@ def format_session_model_label(cli_model_name: str, requested_model_name: Option
 
 def maybe_print_model_mapping(cli_model_name: str, requested_model_name: Optional[str]) -> None:
     if requested_model_name and requested_model_name != cli_model_name:
+        mapping_env_name = (
+            "ANTHROPIC_DEFAULT_OPUS_MODEL"
+            if cli_model_name == "opus"
+            else "ANTHROPIC_DEFAULT_SONNET_MODEL"
+        )
         print_log_line(
             "MODEL MAP",
-            f"{requested_model_name} -> {cli_model_name} via ANTHROPIC_DEFAULT_SONNET_MODEL",
+            f"{requested_model_name} -> {cli_model_name} via {mapping_env_name}",
             ANSI_MAGENTA,
         )
 
@@ -490,7 +522,10 @@ def print_assistant_message_realtime(
     tool_name_by_call_id: Dict[str, str],
 ) -> None:
     for block in message.content:
-        if isinstance(block, TextBlock) and block.text.strip():
+        if isinstance(block, ThinkingBlock) and block.thinking.strip():
+            thinking = preview_text(block.thinking.strip(), MAX_INLINE_OUTPUT_CHARS)
+            print_log_line("THINK", thinking, ANSI_DIM)
+        elif isinstance(block, TextBlock) and block.text.strip():
             text = preview_text(block.text.strip(), MAX_INLINE_OUTPUT_CHARS)
             print_log_line("ASSIST", text, ANSI_GREEN)
         elif isinstance(block, ToolUseBlock):
@@ -563,12 +598,24 @@ def print_session_header(
     permission_mode: str,
     tool_call_mode: str,
     allowed_tools: List[str],
+    thinking_mode: Optional[str],
+    thinking_display: Optional[str],
+    effort: Optional[str],
 ) -> None:
     print("")
     print(colorize("=" * 88, ANSI_DIM))
     print_log_line(
         "SESSION",
         f"model={model_name} permission_mode={permission_mode} tool_call_mode={tool_call_mode}",
+        ANSI_MAGENTA,
+    )
+    print_log_line(
+        "REASONING",
+        (
+            f"thinking={thinking_mode or 'default'} "
+            f"display={thinking_display or 'default'} "
+            f"effort={effort or 'default'}"
+        ),
         ANSI_MAGENTA,
     )
     print_log_line("GATEWAY", gateway_url, ANSI_MAGENTA)
@@ -582,6 +629,9 @@ async def run_host_loop(args: argparse.Namespace) -> int:
 
     eval_config_dict = bundle["eval_config"]
     _, agent_config, _ = TaskRunner.load_configs(eval_config_dict)
+    thinking_config, claude_effort = resolve_claude_sdk_reasoning(
+        agent_config.generation.reasoning,
+    )
     task_config = build_host_task_config(bundle, agent_short_name=agent_config.model.short_name)
 
     task_config.stop.tool_names = expand_stop_tool_names(
@@ -641,6 +691,9 @@ async def run_host_loop(args: argparse.Namespace) -> int:
             permission_mode=args.permission_mode,
             tool_call_mode=args.tool_call_mode,
             allowed_tools=allowed_tools,
+            thinking_mode=thinking_config["type"] if thinking_config else None,
+            thinking_display=thinking_config.get("display") if thinking_config else None,
+            effort=claude_effort,
         )
 
         options = ClaudeAgentOptions(
@@ -663,6 +716,8 @@ async def run_host_loop(args: argparse.Namespace) -> int:
             max_turns=max_turns,
             cwd=task_config.agent_workspace,
             env=sdk_env,
+            thinking=thinking_config,
+            effort=claude_effort,
             extra_args={"strict-mcp-config": None},
         )
 

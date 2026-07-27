@@ -2,8 +2,13 @@
 from __future__ import annotations
 from agents.mcp.util import *
 from agents import _debug
+import json
 import os
+from typing import Any
 from utils.general.helper import print_color
+from utils.openai_agents_monkey_patch.tool_name_aliases import (
+    to_model_mcp_tool_name,
+)
 
 
 import shortuuid
@@ -12,6 +17,108 @@ MAX_SINGLE_TURN_RETURN_CHARS = int(os.getenv("BENCH_MAX_SINGLE_TURN_RETURN_CHARS
 ENABLE_OVERLONG_TOOL_OUTPUT_MANAGEMENT = os.getenv("BENCH_ENABLE_OVERLONG_TOOL_OUTPUT_MANAGEMENT", "true").lower() == "true"
 
 print_color(f"BENCH_ENABLE_OVERLONG_TOOL_OUTPUT_MANAGEMENT: {ENABLE_OVERLONG_TOOL_OUTPUT_MANAGEMENT} | MAX_SINGLE_TURN_RETURN_CHARS: {MAX_SINGLE_TURN_RETURN_CHARS}", color="blue")
+
+
+_JSON_COERCIBLE_SCHEMA_TYPES = {"object", "array", "integer", "number", "boolean"}
+
+
+def _declared_schema_types(schema: dict[str, Any]) -> set[str]:
+    """Return all explicit JSON types declared by a schema or its unions."""
+    declared: set[str] = set()
+    schema_type = schema.get("type")
+    if isinstance(schema_type, str):
+        declared.add(schema_type)
+    elif isinstance(schema_type, list):
+        declared.update(item for item in schema_type if isinstance(item, str))
+
+    for union_key in ("anyOf", "oneOf"):
+        for option in schema.get(union_key, []):
+            if isinstance(option, dict):
+                declared.update(_declared_schema_types(option))
+    return declared
+
+
+def _value_matches_schema_type(value: Any, schema_type: str) -> bool:
+    if schema_type == "object":
+        return isinstance(value, dict)
+    if schema_type == "array":
+        return isinstance(value, list)
+    if schema_type == "integer":
+        return isinstance(value, int) and not isinstance(value, bool)
+    if schema_type == "number":
+        return isinstance(value, (int, float)) and not isinstance(value, bool)
+    if schema_type == "boolean":
+        return isinstance(value, bool)
+    if schema_type == "string":
+        return isinstance(value, str)
+    if schema_type == "null":
+        return value is None
+    return False
+
+
+def _matching_schema(value: Any, schema: dict[str, Any]) -> dict[str, Any]:
+    """Pick the union branch that matches value, falling back to schema."""
+    for union_key in ("anyOf", "oneOf"):
+        for option in schema.get(union_key, []):
+            if not isinstance(option, dict):
+                continue
+            if any(
+                _value_matches_schema_type(value, declared_type)
+                for declared_type in _declared_schema_types(option)
+            ):
+                return option
+    return schema
+
+
+def _coerce_stringified_json_value(value: Any, schema: dict[str, Any]) -> Any:
+    """Repair JSON-stringified values only when their schema requires it."""
+    if not isinstance(schema, dict):
+        return value
+
+    declared_types = _declared_schema_types(schema)
+    coercible_types = declared_types & _JSON_COERCIBLE_SCHEMA_TYPES
+    if isinstance(value, str) and coercible_types and "string" not in declared_types:
+        try:
+            decoded = json.loads(value)
+        except (TypeError, ValueError):
+            decoded = value
+
+        if any(
+            _value_matches_schema_type(decoded, schema_type)
+            for schema_type in coercible_types
+        ):
+            value = decoded
+
+    active_schema = _matching_schema(value, schema)
+    if isinstance(value, dict):
+        properties = active_schema.get("properties", {})
+        additional_properties = active_schema.get("additionalProperties")
+        return {
+            key: _coerce_stringified_json_value(
+                item,
+                properties.get(key)
+                if isinstance(properties.get(key), dict)
+                else additional_properties
+                if isinstance(additional_properties, dict)
+                else {},
+            )
+            for key, item in value.items()
+        }
+    if isinstance(value, list) and isinstance(active_schema.get("items"), dict):
+        return [
+            _coerce_stringified_json_value(item, active_schema["items"])
+            for item in value
+        ]
+    return value
+
+
+def coerce_mcp_arguments(
+    arguments: dict[str, Any], input_schema: dict[str, Any]
+) -> dict[str, Any]:
+    """Coerce provider-stringified MCP arguments according to the tool schema."""
+    coerced = _coerce_stringified_json_value(arguments, input_schema)
+    return coerced if isinstance(coerced, dict) else arguments
+
 
 @classmethod
 def my_to_function_tool(
@@ -33,14 +140,15 @@ def my_to_function_tool(
             logger.info(f"Error converting MCP schema to strict mode: {e}")
 
     return FunctionTool(
-        name=server.name
-        + "-"
-        + tool.name,  # add the server name as prefix to distinguish duplicate tool names
+        # Only the model-facing alias is normalized. The callback above keeps
+        # the original server/tool objects for the real MCP call.
+        name=to_model_mcp_tool_name(server.name, tool.name),
         description=tool.description or "",
         params_json_schema=schema,
         on_invoke_tool=invoke_func,
         strict_json_schema=is_strict,
     )
+
 
 @classmethod
 async def my_invoke_mcp_tool(
@@ -57,6 +165,8 @@ async def my_invoke_mcp_tool(
         raise ModelBehaviorError(
             f"Invalid JSON input for tool {tool.name}: {input_json}"
         ) from e
+
+    json_data = coerce_mcp_arguments(json_data, tool.inputSchema)
 
     if _debug.DONT_LOG_TOOL_DATA:
         logger.debug(f"Invoking MCP tool {tool.name}")

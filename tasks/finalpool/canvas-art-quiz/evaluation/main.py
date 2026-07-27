@@ -3,6 +3,7 @@ import sys
 from argparse import ArgumentParser
 from pathlib import Path
 from utils.general.helper import normalize_str
+from utils.evaluation.retry import grade_with_retry
 
 # Add parent directory to sys.path to import canvas_api and token config
 parent_dir = Path(__file__).parent.parent
@@ -101,66 +102,114 @@ def verify_quiz_questions(quiz_info, expected_questions):
         return False, f"Quiz title mismatch: expected '{expected_title_raw}', got '{quiz_title_raw}'"
     
     questions = quiz_info.get('questions', [])
-    
+
     if len(questions) != len(expected_questions):
         return False, f"Question count mismatch: expected {len(expected_questions)}, got {len(questions)}"
-    
-    # Check each question
-    for i, (actual_question, expected_question) in enumerate(zip(questions, expected_questions)):
+
+    # Order-insensitive matching: the task semantics don't depend on the
+    # display order of questions or options.  A valid quiz is "the right
+    # questions are present, each with the right options, and the right
+    # one is marked correct" — independent of how Canvas returns them.
+    # Match each expected question to an actual question by normalized
+    # text content; then match each expected option within the matched
+    # question by normalized text content; then verify the correct
+    # answer flag is on the option whose content matches the expected
+    # correct option.
+    def _norm(s: str) -> str:
+        return normalize_str((s or "").strip())
+
+    def _text_matches(a: str, b: str) -> bool:
+        # Substring-match either direction — same heuristic the old grader used.
+        an, bn = _norm(a), _norm(b)
+        return an == bn or an in bn or bn in an
+
+    used_actual_indices = set()
+    for ei, expected_question in enumerate(expected_questions):
+        # Find a still-unmatched actual question whose text matches.
+        match_idx = None
+        for ai, actual_question in enumerate(questions):
+            if ai in used_actual_indices:
+                continue
+            if _text_matches(actual_question.get('question_text', ''),
+                             expected_question['question_text']):
+                match_idx = ai
+                break
+        if match_idx is None:
+            return False, (
+                f"Expected question {ei+1} not found in the quiz "
+                f"(by text content):\n  {expected_question['question_text']}"
+            )
+        used_actual_indices.add(match_idx)
+        actual_question = questions[match_idx]
+
         # Check question type
         if actual_question.get('question_type') != 'multiple_choice_question':
-            return False, f"Question {i+1} is not multiple choice: {actual_question.get('question_type')}"
-        
-        # Check question points (should be 1 point each)
+            return False, (
+                f"Expected question {ei+1} (matched to actual position "
+                f"{match_idx+1}) is not multiple_choice_question: "
+                f"{actual_question.get('question_type')}"
+            )
+
+        # Check points
         question_points = actual_question.get('points_possible', 0)
         if question_points != 1:
-            return False, f"Question {i+1} should be worth 1 point, got {question_points} points"
-        
-        # Check question text similarity
-        actual_text_raw = actual_question.get('question_text', '').strip()
-        expected_text_raw = expected_question['question_text'].strip()
-        actual_text = normalize_str(actual_text_raw)
-        expected_text = normalize_str(expected_text_raw)
+            return False, (
+                f"Expected question {ei+1} should be worth 1 point, "
+                f"got {question_points}"
+            )
 
-        # Simple similarity check (can be improved with more sophisticated matching)
-        if not (expected_text in actual_text or actual_text in expected_text):
-            return False, f"Question {i+1} text mismatch:\nExpected: {expected_text_raw}\nActual: {actual_text_raw}"
-        
-        # Check options
+        # Match options by content (also order-insensitive)
         actual_answers = actual_question.get('answers', [])
         if len(actual_answers) != len(expected_question['options']):
-            return False, f"Question {i+1} option count mismatch: expected {len(expected_question['options'])}, got {len(actual_answers)}"
+            return False, (
+                f"Expected question {ei+1} option count mismatch: "
+                f"expected {len(expected_question['options'])}, got {len(actual_answers)}"
+            )
 
-        # Check option text content
-        for j, (actual_answer, expected_option) in enumerate(zip(actual_answers, expected_question['options'])):
-            actual_option_text_raw = actual_answer.get('text', '').strip()
-            expected_option_text_raw = expected_option.strip()
-            actual_option_text = normalize_str(actual_option_text_raw)
-            expected_option_text = normalize_str(expected_option_text_raw)
-
-            # Check if option text matches (using similarity check)
-            if not (expected_option_text in actual_option_text or actual_option_text in expected_option_text):
-                return False, f"Question {i+1} option {j+1} text mismatch:\nExpected: {expected_option_text_raw}\nActual: {actual_option_text_raw}"
-
-        # Check correct answer
-        correct_answers = [ans for ans in actual_answers if ans.get('is_correct', False)]
-        if len(correct_answers) != 1:
-            return False, f"Question {i+1} should have exactly one correct answer, got {len(correct_answers)}"
-        
-        # Find the correct answer index
-        correct_index = None
-        for j, answer in enumerate(actual_answers):
-            if answer.get('is_correct', False):
-                correct_index = j
-                break
-        
-        # Convert to letter (A=0, B=1, C=2, D=3)
-        correct_letter = chr(65 + correct_index) if correct_index is not None else None
+        # Identify which expected option text is the correct one ("A".."D" → index)
         expected_letter = expected_question['correct_answer']
-        
-        if correct_letter != expected_letter:
-            return False, f"Question {i+1} correct answer mismatch: expected {expected_letter}, got {correct_letter}"
-    
+        expected_correct_index = ord(expected_letter) - ord('A')
+        expected_correct_text = expected_question['options'][expected_correct_index]
+
+        # For each expected option text, find a matching actual answer.
+        # Track used to enforce 1:1.  Also check the actual answer flagged
+        # as is_correct matches the expected correct option's text.
+        used_answer_indices = set()
+        actual_correct_text = None
+        for opt_text in expected_question['options']:
+            found = False
+            for ai_ans, actual_answer in enumerate(actual_answers):
+                if ai_ans in used_answer_indices:
+                    continue
+                if _text_matches(actual_answer.get('text', ''), opt_text):
+                    used_answer_indices.add(ai_ans)
+                    if actual_answer.get('is_correct', False):
+                        if actual_correct_text is None:
+                            actual_correct_text = opt_text
+                        else:
+                            # multiple correct flagged
+                            return False, (
+                                f"Expected question {ei+1} has more than one "
+                                f"answer marked is_correct"
+                            )
+                    found = True
+                    break
+            if not found:
+                return False, (
+                    f"Expected question {ei+1} option not found in the quiz:\n  {opt_text}"
+                )
+
+        if actual_correct_text is None:
+            return False, (
+                f"Expected question {ei+1} has no answer marked is_correct"
+            )
+        if not _text_matches(actual_correct_text, expected_correct_text):
+            return False, (
+                f"Expected question {ei+1} correct answer mismatch — "
+                f"expected option {expected_letter!r} ({expected_correct_text[:60]}...), "
+                f"but the answer flagged correct is a different option"
+            )
+
     return True, "All questions verified successfully"
 
 def main(agent_workspace, groundtruth_workspace, res_log_file):
@@ -264,7 +313,7 @@ if __name__ == "__main__":
     parser.add_argument("--launch_time", required=False, help="Launch time")
     args = parser.parse_args()
 
-    ret, msg = main(args.agent_workspace, args.groundtruth_workspace, args.res_log_file)
+    ret, msg = grade_with_retry(lambda: main(args.agent_workspace, args.groundtruth_workspace, args.res_log_file))
 
     # Delete Art History course (optional, commented out)
     # try:

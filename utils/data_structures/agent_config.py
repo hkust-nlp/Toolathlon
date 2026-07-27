@@ -64,7 +64,7 @@ class AgentConfig:
         
         return cls(
             model=Model(**model_data),
-            generation=Generation(**generation_data),
+            generation=Generation.from_dict(generation_data),
             tool=Tool(**data['tool'])
         )
     
@@ -80,7 +80,9 @@ class AgentConfig:
                     "temperature": self.generation.temperature,
                     "top_p": self.generation.top_p,
                     "max_tokens": self.generation.max_tokens,
+                    "include_usage": self.generation.include_usage,
                     "extra_body": self.generation.extra_body,
+                    "extra_request_params": self.generation.extra_request_params,
                 },
                 "tool": {
                     "tool_choice": self.tool.tool_choice,
@@ -103,7 +105,9 @@ class AgentConfig:
                 "temperature": self.generation.temperature,
                 "top_p": self.generation.top_p,
                 "max_tokens": self.generation.max_tokens,
+                "include_usage": self.generation.include_usage,
                 "extra_body": self.generation.extra_body,
+                "extra_request_params": self.generation.extra_request_params,
             },
             "tool": {
                 "tool_choice": self.tool.tool_choice,

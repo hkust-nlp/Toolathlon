@@ -25,6 +25,7 @@ utils_dir = toolathlon_root / "utils"
 sys.path.insert(0, str(utils_dir))
 
 from app_specific.canvas import CanvasAPI
+from utils.evaluation.retry import grade_with_retry
 
 
 class HomeworkGraderEvaluator:
@@ -430,8 +431,8 @@ def main():
             teacher_token=args.teacher_token
         )
         
-        # Run evaluation
-        success, message = evaluator.evaluate_task_completion()
+        # Run evaluation (Layer-2 wrap to absorb Canvas propagation lag)
+        success, message = grade_with_retry(lambda: evaluator.evaluate_task_completion())
         
         # Output results
         if success:

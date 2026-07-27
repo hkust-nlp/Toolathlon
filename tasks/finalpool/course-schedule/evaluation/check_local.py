@@ -1,6 +1,25 @@
 import os
+import re
 from utils.general.helper import read_jsonl
 from utils.general.helper import normalize_str
+
+
+def _normalize_exam_time(value) -> str:
+    """Canonicalise an exam time range to ``HH:MM-HH:MM`` (zero-padded
+    ASCII).  Tolerates Chinese full-width colon ``：``, missing leading
+    zero on single-digit hours, and stray whitespace.  Grader-side fix
+    for groundtruth inconsistency: most entries use 2-digit hours
+    (``08:00-09:00``) but one uses 1-digit (``9:00-11:00``).  Without
+    this, an agent that consistently zero-pads — a perfectly reasonable
+    canonicalisation — would fail on the single-digit entry while
+    passing the 2-digit ones."""
+    if not isinstance(value, str):
+        return str(value)
+    s = value.strip()
+    s = s.replace("：", ":")          # full-width colon → ASCII
+    s = re.sub(r"\s+", "", s)         # drop whitespace
+    s = re.sub(r"(?<!\d)(\d):", r"0\1:", s)  # zero-pad single-digit hours
+    return s
 
 def check_local(agent_workspace: str, groundtruth_workspace: str):
     agent_needed_file = os.path.join(agent_workspace,"exam_schedule.jsonl")
@@ -41,8 +60,19 @@ def compare_exam_entry(agent_data, gt_data, entry_index):
         agent_value = agent_data[field]
         gt_value = gt_data[field]
 
-        agent_normalized = normalize_str(str(agent_value))
-        gt_normalized = normalize_str(str(gt_value))
+        if field == "examTime":
+            # Canonicalise to HH:MM-HH:MM before the generic
+            # normalize_str strips the colons — otherwise an agent that
+            # zero-pads to "09:00-11:00" mismatches a groundtruth
+            # "9:00-11:00" because their digit-strings differ.
+            agent_value_norm = _normalize_exam_time(agent_value)
+            gt_value_norm = _normalize_exam_time(gt_value)
+        else:
+            agent_value_norm = str(agent_value)
+            gt_value_norm = str(gt_value)
+
+        agent_normalized = normalize_str(agent_value_norm)
+        gt_normalized = normalize_str(gt_value_norm)
         if agent_normalized != gt_normalized:
             errors.append(f"{field}: expected '{gt_value}' but got '{agent_value}'")
 

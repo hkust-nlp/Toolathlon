@@ -2,7 +2,6 @@
 
 ## Basic Information
 - **Title:** Customer Shopping Experience Feedback Survey  
-- **Description:** Thank you for your purchase! To better serve you, please take a few minutes to share your shopping experience.
 
 ## Required Questions
 
@@ -20,7 +19,7 @@
 
 ### 3. Delivery Service Evaluation
 - **Type:** Single choice  
-- **Question:** Are you satisfied with the delivery service?  
+- **Question:** Are you satisfied with the delivery service?
 - **Options:** Very satisfied, Satisfied, Neutral, Dissatisfied, Very dissatisfied  
 - **Required:** Yes  
 

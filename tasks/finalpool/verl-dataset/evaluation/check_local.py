@@ -137,11 +137,13 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
     if len(df) == 0:
         return False, "verl_deepscaler.parquet is empty"
 
-    # Check all required columns exist
+    # Check all required columns exist and no unexpected columns are present
     needed_columns = ["data_source", "prompt", "ability", "reward_model", "extra_info"]
-    for column in needed_columns:
-        if column not in df.columns:
-            return False, f"Column '{column}' not found in verl_deepscaler.parquet"
+    actual_columns = list(df.columns)
+    missing_columns = [column for column in needed_columns if column not in actual_columns]
+    extra_columns = [column for column in actual_columns if column not in needed_columns]
+    if missing_columns or extra_columns:
+        return False, f"Column mismatch in verl_deepscaler.parquet - missing: {missing_columns}, extra: {extra_columns}"
 
     # Load expected dataset info
     expected_info = load_expected_info(groundtruth_workspace)

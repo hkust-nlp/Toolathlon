@@ -1,20 +1,28 @@
 # arxiv paper search, download to local, and read
 # Source: https://github.com/blazickjp/arxiv-mcp-server
-# Toolathlon Version: The same
+# Toolathlon Version: launched via utils.local_servers.arxiv_local_wrapper
+# which patches arxiv_mcp_server in memory to (a) retry every arxiv-touching
+# handler on transient failure with growing backoff, and (b) evict the stale
+# conversion_statuses cache entry that otherwise turns a single
+# download_paper failure into a permanent one.  See the wrapper module
+# docstring for details — the upstream package on PyPI is unmodified.
 type: stdio
 name: arxiv_local
 params:
   command: uv
   args:
-    # - "--directory"
-    # - "${local_servers_paths}/arxiv-mcp-server"
     - "run"
-    - "arxiv-mcp-server"
+    - "python"
+    - "-m"
+    - "utils.local_servers.arxiv_local_wrapper"
     - "--storage-path"
     - "${agent_workspace}/arxiv_local_storage"
-  # env:
-  #   HTTPS_PROXY: "${config.proxy}"
-  #   HTTP_PROXY: "${config.proxy}"
+  env:
+    # Wrapper module lives at /workspace/utils/local_servers/arxiv_local_wrapper.py
+    # (copied in by FILES_TO_COPY).  Since cwd is the agent workspace, we
+    # need to add /workspace to sys.path so ``python -m utils.local_servers...``
+    # resolves.
+    PYTHONPATH: "/workspace"
   cwd: "${agent_workspace}"
 client_session_timeout_seconds: 60
 cache_tools_list: true

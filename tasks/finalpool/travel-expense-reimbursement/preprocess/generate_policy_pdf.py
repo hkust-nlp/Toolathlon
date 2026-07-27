@@ -60,6 +60,7 @@ def build_policy_story(policy: dict) -> list:
         f"Airfare exception: {gr.get('airfare', {}).get('business_exception', '')}",
         f"Evidence: {gr.get('airfare', {}).get('evidence', '')}",
         f"Receipt threshold: CNY {gr.get('receipt_threshold', 0)} (receipt required above threshold)",
+        f"Cap assessment: {gr.get('cap_assessment', '')}",
     ]
     if gr.get("client_entertainment_exception"):
         ce = gr["client_entertainment_exception"]
@@ -153,4 +154,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

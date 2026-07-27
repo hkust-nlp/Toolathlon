@@ -11,6 +11,7 @@ from typing import Dict, List, Tuple
 import requests
 
 from utils.mcp.tool_servers import MCPServerManager, call_tool_with_retry, ToolCallError
+from utils.evaluation.retry import grade_with_retry
 
 # -------- Search Notion workspace for databases --------
 
@@ -184,12 +185,26 @@ def _extract_notion_rows(pages: List[Dict]) -> List[Dict]:
             except Exception:
                 return None
             return None
+        def get_sel(name: str) -> str:
+            try:
+                v = props.get(name, {})
+                if v.get("type") == "select":
+                    s = v.get("select") or {}
+                    return (s.get("name") or "").strip()
+            except Exception:
+                return ""
+            return ""
         row = {
             "m": title_val,
             "wti_close": get_num("WTI Close"),
             "brent_close": get_num("Brent Close"),
             "wti_mom_pct": get_num("WTI MoM %"),
             "brent_mom_pct": get_num("Brent MoM %"),
+            "spread": get_num("Brent-WTI Spread"),
+            "spread_mom_pct": get_num("Spread MoM %"),
+            "z_score": get_num("Spread Z-Score (6m)"),
+            "regime": get_sel("Regime"),
+            "signal": get_sel("Signal"),
         }
         # Allow first month MoM to be None, as long as the closing price exists
         if row["m"] and (row["wti_close"] is not None) and (row["brent_close"] is not None):
@@ -549,59 +564,14 @@ def _compute_summary_from_prices(months_sorted: List[str], wti_map: Dict[str, fl
     return rows
 
 
-def _is_entry_month_compatible(expected_month: str, actual_month: str) -> bool:
-    """
-    Check if entry months are compatible considering different definitions:
-    - Expected: Signal generation month (e.g., "2024-12") 
-    - Actual: Position holding month (e.g., "2025-01")
-    
-    Compatible if actual is the month immediately after expected.
-    """
-    if expected_month == actual_month:
-        return True
-    
-    try:
-        # Parse months
-        exp_year, exp_month = map(int, expected_month.split('-'))
-        act_year, act_month = map(int, actual_month.split('-'))
-        
-        # Calculate expected next month
-        next_month = exp_month + 1
-        next_year = exp_year
-        if next_month > 12:
-            next_month = 1
-            next_year += 1
-        
-        # Check if actual matches expected next month
-        return act_year == next_year and act_month == next_month
-    except (ValueError, AttributeError):
-        return False
-
-
-def _is_spread_compatible(expected_spread: float, actual_spread: float, 
-                         expected_month: str, actual_month: str, 
-                         row_by_month: dict) -> bool:
-    """
-    Check if entry spreads are compatible considering different entry month definitions.
-    If months are different but compatible, compare spreads from respective months.
-    """
-    # If months are the same, spreads should match exactly
-    if expected_month == actual_month:
-        return abs(expected_spread - actual_spread) < 0.0001
-    
-    # If months are compatible (1 month apart), allow spread difference
-    if _is_entry_month_compatible(expected_month, actual_month):
-        # Both spreads should be reasonable values from their respective months
-        if actual_month in row_by_month:
-            actual_month_spread = row_by_month[actual_month]["spread"]
-            # Actual spread should match the spread from actual entry month
-            return abs(actual_spread - actual_month_spread) < 0.0001
-        else:
-            # If we can't verify, be lenient
-            return True
-    
-    # Otherwise, spreads should match
-    return abs(expected_spread - actual_spread) < 0.0001
+# Note: ``_is_entry_month_compatible`` and ``_is_spread_compatible`` used to
+# live here.  They were tolerance shims added to paper over the old broken
+# ``_compute_backtest`` that produced trades labeled (N → N+2) — agents
+# following the spec produced (N → N+1) and the grader had to forgive the
+# off-by-one.  Once ``_compute_backtest`` was rewritten to match the spec
+# and ``golden/main.py``, those tolerances became dead weight (and would
+# now silently accept genuinely wrong agent answers), so the shims were
+# removed and the comparison reverted to strict equality.
 
 
 def _round2(x: float | None) -> float | None:
@@ -616,6 +586,35 @@ def _round4(x: float | None) -> float | None:
     return float(f"{float(x):.4f}")
 
 
+# Tolerance constants — sized to absorb Yahoo live-data noise (mainly the
+# most-recent-month close revision and aggregation timing) without weakening
+# the substantive correctness signal.  See PR notes for rationale.
+PRICE_ABS_TOL = 0.05            # USD absolute floor
+PRICE_REL_TOL = 0.001           # 0.1% relative
+MOM_PCT_TOL = 0.10              # percentage points
+SPREAD_ABS_TOL = 0.05           # USD
+Z_SCORE_TOL = 0.01              # z-score points
+
+
+def _close_within_tol(expected: float | None, actual: float | None) -> bool:
+    if expected is None or actual is None:
+        return expected == actual
+    try:
+        e, a = float(expected), float(actual)
+    except Exception:
+        return False
+    return abs(e - a) <= max(PRICE_ABS_TOL, abs(e) * PRICE_REL_TOL)
+
+
+def _within(expected: float | None, actual: float | None, tol: float) -> bool:
+    if expected is None or actual is None:
+        return expected == actual
+    try:
+        return abs(float(expected) - float(actual)) <= tol
+    except Exception:
+        return False
+
+
 def _compare_summary(expected: List[Dict], actual: List[Dict]) -> List[str]:
     errs: List[str] = []
     act_map = {r["m"]: r for r in actual}
@@ -625,128 +624,135 @@ def _compare_summary(expected: List[Dict], actual: List[Dict]) -> List[str]:
         if not a:
             errs.append(f"Notion missing month: {m}")
             continue
-        # compare rounded values
-        if _round4(e["wti_close"]) != _round4(a["wti_close"]):
-            errs.append(f"WTI Close inconsistent: {m}")
-        if _round4(e["brent_close"]) != _round4(a["brent_close"]):
-            errs.append(f"Brent Close inconsistent: {m}")
+        # Closes: absolute $0.05 or 0.1% relative, whichever is larger.  This
+        # absorbs Yahoo's most-recent-month aggregation timing without letting
+        # through wrong-symbol or wrong-month answers (those differ by >>1%).
+        if not _close_within_tol(e["wti_close"], a["wti_close"]):
+            errs.append(f"WTI Close inconsistent: {m} (expected {e['wti_close']} actual {a['wti_close']})")
+        if not _close_within_tol(e["brent_close"], a["brent_close"]):
+            errs.append(f"Brent Close inconsistent: {m} (expected {e['brent_close']} actual {a['brent_close']})")
+        # MoM %: 0.10pp tolerance — inherits roughly the relative close
+        # tolerance after the ratio.
         if e.get("wti_mom_pct") is None:
-            if a.get("wti_mom_pct") not in (None,):
-                pass
+            # First month has no prior month; agent may or may not fill — skip
+            pass
         else:
-            if _round2(e["wti_mom_pct"]) != _round2(a.get("wti_mom_pct")):
-                errs.append(f"WTI MoM% inconsistent: {m}")
+            if not _within(e["wti_mom_pct"], a.get("wti_mom_pct"), MOM_PCT_TOL):
+                errs.append(f"WTI MoM% inconsistent: {m} (expected {e['wti_mom_pct']} actual {a.get('wti_mom_pct')})")
         if e.get("brent_mom_pct") is None:
-            if a.get("brent_mom_pct") not in (None,):
-                pass
+            pass
         else:
-            if _round2(e["brent_mom_pct"]) != _round2(a.get("brent_mom_pct")):
-                errs.append(f"Brent MoM% inconsistent: {m}")
-        # optional: regime/signal need to be read from Notion select, current actual does not contain regime/signal, skip
+            if not _within(e["brent_mom_pct"], a.get("brent_mom_pct"), MOM_PCT_TOL):
+                errs.append(f"Brent MoM% inconsistent: {m} (expected {e['brent_mom_pct']} actual {a.get('brent_mom_pct')})")
+        if not _within(e.get("spread"), a.get("spread"), SPREAD_ABS_TOL):
+            errs.append(f"Brent-WTI Spread inconsistent: {m} (expected {e.get('spread')} actual {a.get('spread')})")
+        if e.get("spread_mom_pct") is None:
+            pass
+        else:
+            if not _within(e["spread_mom_pct"], a.get("spread_mom_pct"), MOM_PCT_TOL):
+                errs.append(f"Spread MoM% inconsistent: {m} (expected {e['spread_mom_pct']} actual {a.get('spread_mom_pct')})")
+        if not _within(e.get("z_score"), a.get("z_score"), Z_SCORE_TOL):
+            errs.append(f"Spread Z-Score inconsistent: {m} (expected {e.get('z_score')} actual {a.get('z_score')})")
+        if (e.get("regime") or "") != (a.get("regime") or ""):
+            errs.append(f"Regime inconsistent: {m} (expected {e.get('regime')} actual {a.get('regime')})")
+        if (e.get("signal") or "") != (a.get("signal") or ""):
+            errs.append(f"Signal inconsistent: {m} (expected {e.get('signal')} actual {a.get('signal')})")
     return errs
 
 
 def _compute_backtest(expected_rows: List[Dict]) -> Tuple[List[Dict], Dict[str, float]]:
     """
-    CORRECTED backtest implementation with proper trading logic:
-    - Signal generated at month-end based on z-score
-    - Position held for next month, closed at next month-end
-    - Only one position at a time
+    Backtest implementation aligned with the spec's adjacent-month convention.
+
+    Per detail.md:
+      * Signal observed at the end of month N (from row N's z-score).
+      * If non-Flat and no position is currently open, open a position whose
+        Entry Month label is N (signal generation month).
+      * Hold for one calendar month; close at the end of month N+1 with
+        Exit Month label = N+1.
+      * Trade PnL reflects the price change from end-of-N to end-of-(N+1),
+        i.e. one month of returns computed from the two month-end closes.
+      * Only one position at a time (overlapping signals are ignored while
+        a position is open).
+
+    Previously this implementation iterated from i=1 and checked
+    ``prev_row``'s signal — which produced trades labeled (N → N+2) while
+    actually computing only the (N+1 → N+2) return.  That was internally
+    inconsistent (the entry spread and PnL referred to different periods)
+    and disagreed with the clarified spec.  This rewrite aligns trade
+    timing with the spec; metrics use a calendar-month portfolio return
+    series with zero returns in months where no position is closed.
     """
     print(f"🔍 Debug info: Starting backtest calculation, total {len(expected_rows)} months")
-    
+
     trades: List[Dict] = []
     monthly_returns: List[float] = []
-    current_position = None
-    entry_month = None
+    pos = None
+    entry_m = None
     entry_spread = None
-    
-    # Debug: show all months and their signals
+
     print(f"🔍 Debug info: All months and signals:")
     for i, row in enumerate(expected_rows):
         print(f"  {i:2d}. {row['m']}: Z={row.get('z_score', 0):6.4f}, Signal={row.get('signal', 'N/A'):12s}, Spread={row.get('spread', 0):6.4f}")
     print()
-    
-    # Process each month starting from month 1 (need previous month for returns)
-    for i in range(1, len(expected_rows)):
-        prev_row = expected_rows[i-1]
-        curr_row = expected_rows[i]
-        
-        print(f"🔍 Debug info: --- Processing month {curr_row['m']} (index {i}) ---")
-        print(f"  Previous month: {prev_row['m']}, signal: {prev_row.get('signal', 'N/A')}")
-        print(f"  Current month: {curr_row['m']}")
-        
-        # Calculate returns if we currently have a position
-        if current_position is not None:
-            print(f"  Current position: {current_position} (entry month: {entry_month})")
-            
-            # Calculate individual leg returns
-            wti_return = (curr_row["wti_close"] / prev_row["wti_close"] - 1)
-            brent_return = (curr_row["brent_close"] / prev_row["brent_close"] - 1)
-            
-            print(f"  WTI return: {prev_row['wti_close']:.4f} -> {curr_row['wti_close']:.4f} = {wti_return*100:.2f}%")
-            print(f"  Brent return: {prev_row['brent_close']:.4f} -> {curr_row['brent_close']:.4f} = {brent_return*100:.2f}%")
-            
-            if current_position == "Long Spread":
+
+    for i, r in enumerate(expected_rows):
+        # Phase 1: close any open position at the end of THIS month (which
+        # is exit_month = month N+1 relative to the prior signal at N).
+        if pos is not None and i > 0:
+            prev = expected_rows[i - 1]
+            wti_return = (r["wti_close"] / prev["wti_close"] - 1)
+            brent_return = (r["brent_close"] / prev["brent_close"] - 1)
+            if pos == "Long Spread":
                 # Long Brent + Short WTI (equal weight)
                 gross_return = (brent_return - wti_return) * 0.5
                 leg_returns_str = f"Brent: {brent_return*100:.2f}%, WTI: {-wti_return*100:.2f}%"
             else:  # Short Spread
-                # Short Brent + Long WTI (equal weight)
-                gross_return = (-brent_return + wti_return) * 0.5
+                gross_return = (wti_return - brent_return) * 0.5
                 leg_returns_str = f"Brent: {-brent_return*100:.2f}%, WTI: {wti_return*100:.2f}%"
-            
-            # Apply 0.40% round-trip cost
-            net_return = gross_return - 0.004
+            net_return = gross_return - 0.004  # 0.40% round-trip cost
             monthly_returns.append(net_return)
-            
-            print(f"  Total return calculation: {current_position}")
-            print(f"    - Gross return: {gross_return*100:.4f}%")
-            print(f"    - Net return after 0.40% cost: {net_return*100:.2f}%")
-            
-            # Record the completed trade
-            exit_spread = curr_row["brent_close"] - curr_row["wti_close"]
+
+            exit_spread = r["brent_close"] - r["wti_close"]
             trades.append({
-                "entry_month": entry_month,
-                "exit_month": curr_row["m"],
-                "signal": current_position,
+                "entry_month": entry_m,
+                "exit_month": r["m"],
+                "signal": pos,
                 "entry_spread": round(entry_spread, 4),
                 "exit_spread": round(exit_spread, 4),
                 "net_pnl_pct": round(net_return * 100, 2),
-                "leg": leg_returns_str
+                "leg": leg_returns_str,
             })
-            
-            print(f"  ✅ Trade completed: {current_position} {entry_month}->{curr_row['m']}")
+
+            print(f"  ✅ Trade completed: {pos} {entry_m}->{r['m']}")
             print(f"      Spread: {entry_spread:.4f} -> {exit_spread:.4f}")
             print(f"      Net return: {net_return*100:.2f}%")
-            
-            # Close position
-            current_position = None
-            entry_month = None
+
+            pos = None
+            entry_m = None
             entry_spread = None
         else:
-            # No position, add 0 return
+            # No position closed this month — accumulate a zero return so
+            # the per-month return series has length == len(expected_rows).
             monthly_returns.append(0.0)
-            print(f"  No position, this month's return: 0.0%")
-        
-        # Check if we should open a new position based on PREVIOUS month's signal
-        # (Signal generated at previous month-end, executed in current month)
-        prev_signal = prev_row.get("signal", "Flat")
-        if prev_signal != "Flat" and current_position is None:
-            current_position = prev_signal
-            entry_month = prev_row["m"]  # Signal generation month
-            entry_spread = prev_row["brent_close"] - prev_row["wti_close"]
-            
-            print(f"  🚀 Open new position: {prev_signal} (based on {prev_row['m']} month-end signal)")
+
+        # Phase 2: if THIS month has a non-Flat signal and we're flat, open.
+        sig = r.get("signal", "Flat")
+        if sig != "Flat" and pos is None:
+            pos = sig
+            entry_m = r["m"]
+            entry_spread = r["brent_close"] - r["wti_close"]
+            print(f"  🚀 Open new position: {sig} (entry month {entry_m})")
             print(f"      Entry spread: {entry_spread:.4f}")
-            print(f"      Will be closed in next month")
-        
+            print(f"      Will be closed at end of next month")
+
         print()
-    
-    # Handle case where we still have an open position at the end
-    if current_position is not None:
-        print(f"⚠️  Warning: There is still an open position {current_position} at the end, entry month: {entry_month}")
-        print(f"   This should be avoided in backtest, because the final return cannot be calculated")
+
+    # If a signal was generated in the final month it can never close (there
+    # is no next month-end), so it is silently dropped.  This matches both
+    # the spec (which assumes 12 complete months) and golden/main.py.
+    if pos is not None:
+        print(f"⚠️  Note: final-month signal {pos} (entry {entry_m}) cannot be closed; dropping the unclosed position.")
     
     print(f"🔍 Debug info: Backtest completed")
     print(f"  - Total trades: {len(trades)}")
@@ -760,9 +766,29 @@ def _compute_backtest(expected_rows: List[Dict]) -> Tuple[List[Dict], Dict[str, 
     total_return_mult = math.prod([1 + r for r in monthly_returns])
     total_return = total_return_mult - 1
     
-    # Annualized return
+    # Annualized return — the spec doesn't pin down which "N" goes in
+    # ``(1+total)^(12/N) - 1``:
+    #   * Convention A:  N = len(monthly_returns) = 12 (every list entry
+    #     counts as one observed monthly period; the first month's
+    #     zero-pad is treated as an observation of 0% return).  This is
+    #     what most quant libraries (empyrical, vectorbt) do.
+    #   * Convention B:  N = number of real return *observations* =
+    #     len(monthly_returns) - 1 = 11 (12 month-end snapshots produce
+    #     11 month-over-month transitions; the first zero-pad isn't a
+    #     real period).  This is the textbook framing.
+    # Both readings are defensible; we expose BOTH and accept either at
+    # comparison time.
     num_months = len(monthly_returns)
-    annualized_return = (total_return_mult ** (12 / max(1, num_months)) - 1) if num_months > 0 else 0
+    if num_months > 0:
+        annualized_return = total_return_mult ** (12 / max(1, num_months)) - 1
+        annualized_return_alt = (
+            total_return_mult ** (12 / max(1, num_months - 1)) - 1
+            if num_months > 1
+            else annualized_return
+        )
+    else:
+        annualized_return = 0.0
+        annualized_return_alt = 0.0
     
     # Sharpe ratio
     if len(monthly_returns) > 1:
@@ -800,6 +826,10 @@ def _compute_backtest(expected_rows: List[Dict]) -> Tuple[List[Dict], Dict[str, 
     metrics = {
         "total_return_pct": total_return * 100,
         "annualized_return_pct": annualized_return * 100,
+        # Alternate annualization (12/(N-1) convention) — accepted at
+        # comparison time alongside the primary value above.  See the
+        # comment block where ``annualized_return_alt`` is computed.
+        "annualized_return_pct_alt": annualized_return_alt * 100,
         "sharpe_ann": sharpe_annual,
         "win_rate_pct": win_rate,
         "max_drawdown_pct": max_drawdown_pct,
@@ -999,25 +1029,73 @@ async def async_main(args):
                     print(f"  - Period End: {bt_metrics_notion.get('period_end', 'N/A')}")
                     print(f"  - Cost Assumption: {bt_metrics_notion.get('cost_assumption', 'N/A')}")
 
-                    # Compare metrics (rounded tolerances)
+                    # Compare metrics with absolute tolerances on RAW values.
+                    # Previously the grader pre-rounded to 2 decimals and then
+                    # compared with tol=0.01, which fails at rounding-boundary
+                    # cases (e.g. raw 2.825 vs 2.824 → 2.83 vs 2.82, |Δ|=0.01
+                    # is not < 0.01 in float).  Pre-rounding removed; tolerances
+                    # widened to absorb the realistic Yahoo-revision noise that
+                    # propagates from monthly closes into the metrics.
                     def r2(x):
                         return float(f"{float(x):.2f}")
                     def r4(x):
                         return float(f"{float(x):.4f}")
 
+                    # Annualized Return %: accept either 12/N or 12/(N-1)
+                    # annualization convention.  See ``_compute_backtest``
+                    # for the rationale.
                     cmp_pairs = [
-                        (r2(exp_metrics.get("total_return_pct", 0.0)), r2(bt_metrics_notion.get("total_return_pct", 0.0)), "Total Return %", 0.01),
-                        (r2(exp_metrics.get("annualized_return_pct", 0.0)), r2(bt_metrics_notion.get("annualized_return_pct", 0.0)), "Annualized Return %", 0.01),
-                        (r2(exp_metrics.get("sharpe_ann", 0.0)), r2(bt_metrics_notion.get("sharpe_ann", 0.0)), "Sharpe (ann.)", 0.05),  # More lenient for Sharpe ratio
-                        (r2(exp_metrics.get("win_rate_pct", 0.0)), r2(bt_metrics_notion.get("win_rate_pct", 0.0)), "Win Rate %", 0.01),
-                        (r2(exp_metrics.get("max_drawdown_pct", 0.0)), r2(bt_metrics_notion.get("max_drawdown_pct", 0.0)), "Max Drawdown %", 0.01),
+                        ("Total Return %",      bt_metrics_notion.get("total_return_pct", 0.0),
+                            [exp_metrics.get("total_return_pct", 0.0)], 0.05),
+                        ("Annualized Return %", bt_metrics_notion.get("annualized_return_pct", 0.0),
+                            [exp_metrics.get("annualized_return_pct", 0.0),
+                             exp_metrics.get("annualized_return_pct_alt", exp_metrics.get("annualized_return_pct", 0.0))],
+                            0.05),
+                        ("Sharpe (ann.)",       bt_metrics_notion.get("sharpe_ann", 0.0),
+                            [exp_metrics.get("sharpe_ann", 0.0)], 0.05),
+                        ("Win Rate %",          bt_metrics_notion.get("win_rate_pct", 0.0),
+                            [exp_metrics.get("win_rate_pct", 0.0)], 0.01),
+                        ("Max Drawdown %",      bt_metrics_notion.get("max_drawdown_pct", 0.0),
+                            [exp_metrics.get("max_drawdown_pct", 0.0)], 0.05),
                     ]
-                    # Apply different tolerances for different metrics
-                    for ev, av, name, tolerance in cmp_pairs:
-                        if abs(ev - av) > tolerance:
-                            errors.append(f"Backtest metrics inconsistent: {name} expected {ev} actual {av}")
+                    for name, av, expected_alts, tolerance in cmp_pairs:
+                        try:
+                            avf = float(av)
+                        except Exception:
+                            avf = 0.0
+                        # Dedup expected alternatives (when 12/N == 12/(N-1))
+                        seen = []
+                        for ev in expected_alts:
+                            try:
+                                evf = float(ev)
+                            except Exception:
+                                evf = 0.0
+                            if not any(abs(evf - s) < 1e-12 for s in seen):
+                                seen.append(evf)
+                        # Pass if any alternative matches within tolerance.
+                        best_delta = None
+                        best_evf = seen[0]
+                        for evf in seen:
+                            delta = abs(evf - avf)
+                            if best_delta is None or delta < best_delta:
+                                best_delta = delta
+                                best_evf = evf
+                        if best_delta > tolerance:
+                            if len(seen) > 1:
+                                alts_str = " / ".join(f"{e:.4f}" for e in seen)
+                                errors.append(
+                                    f"Backtest metrics inconsistent: {name} expected one of [{alts_str}] actual {avf:.4f}"
+                                )
+                            else:
+                                errors.append(
+                                    f"Backtest metrics inconsistent: {name} expected {best_evf:.4f} actual {avf:.4f}"
+                                )
                         else:
-                            print(f"  ✅ {name}: expected {ev} actual {av} (difference {abs(ev-av):.4f} <= tolerance {tolerance})")
+                            if len(seen) > 1:
+                                alts_str = " / ".join(f"{e:.4f}" for e in seen)
+                                print(f"  ✅ {name}: expected one of [{alts_str}] actual {avf:.4f} (closest Δ={best_delta:.4f} ≤ tol {tolerance})")
+                            else:
+                                print(f"  ✅ {name}: expected {best_evf:.4f} actual {avf:.4f} (Δ={best_delta:.4f} ≤ tol {tolerance})")
 
                     # Compare period start/end & cost assumption
                     exp_period_start = expected_seq[0]["m"] if expected_seq else ""
@@ -1027,8 +1105,11 @@ async def async_main(args):
                     if (bt_metrics_notion.get("period_end") or "") != exp_period_end:
                         errors.append(f"Backtest metrics inconsistent: Period End expected {exp_period_end} actual {bt_metrics_notion.get('period_end')}")
                     cost = (bt_metrics_notion.get("cost_assumption") or "").strip()
-                    if cost != "0.40% round-trip":
-                        errors.append(f"Backtest metrics inconsistent: Cost Assumption expected '0.40% round-trip' actual '{cost}'")
+                    # Only pin the displayed cost rate. Other explanatory text
+                    # in the Cost Assumption field is not part of the grading contract.
+                    has_cost_rate = re.search(r"(?<![\d.])0\.40(?!\d)\s*%?", cost)
+                    if not has_cost_rate:
+                        errors.append(f"Backtest metrics inconsistent: Cost Assumption expected a two-decimal '0.40' rate actual '{cost}'")
 
                     # Compare each trade 1:1 by chronological order
                     if len(exp_trades) != len(bt_trades_notion):
@@ -1050,36 +1131,35 @@ async def async_main(args):
                             
                             if (et.get("signal") or "") != (at.get("signal") or ""):
                                 errors.append(f"Trade#{i} Signal inconsistent: expected {et.get('signal')} actual {at.get('signal')}")
-                            
-                            # Entry Month tolerance: Allow 1-month difference due to different definitions
-                            # (Signal generation month vs Position holding month)
+
+                            # Strict month and spread equality.  The previous
+                            # tolerance shims (``_is_entry_month_compatible`` /
+                            # ``_is_spread_compatible``) existed only to forgive
+                            # the old broken backtest convention; with the
+                            # rewrite they're gone (see comment above the
+                            # backtest helper).
                             expected_entry = et.get("entry_month", "")
                             actual_entry = at.get("entry_month", "")
-                            if expected_entry and actual_entry:
-                                if not _is_entry_month_compatible(expected_entry, actual_entry):
-                                    errors.append(f"Trade#{i} Entry Month inconsistent: expected {expected_entry} actual {actual_entry}")
-                            elif expected_entry != actual_entry:
+                            if expected_entry != actual_entry:
                                 errors.append(f"Trade#{i} Entry Month inconsistent: expected {expected_entry} actual {actual_entry}")
-                            
+
                             if (et.get("exit_month") or "") != (at.get("exit_month") or ""):
                                 errors.append(f"Trade#{i} Exit Month inconsistent: expected {et.get('exit_month')} actual {at.get('exit_month')}")
-                            
-                            # Entry Spread tolerance: Allow difference due to Entry Month definition difference
-                            expected_entry_spread = et.get("entry_spread", 0.0)
-                            actual_entry_spread = at.get("entry_spread", 0.0)
-                            if not _is_spread_compatible(expected_entry_spread, actual_entry_spread, expected_entry, actual_entry, row_by_month):
-                                errors.append(f"Trade#{i} Entry Spread inconsistent")
-                            
+
+                            if r4(et.get("entry_spread", 0.0)) != r4(at.get("entry_spread", 0.0)):
+                                errors.append(f"Trade#{i} Entry Spread inconsistent: expected {et.get('entry_spread')} actual {at.get('entry_spread')}")
+
                             if r4(et.get("exit_spread", 0.0)) != r4(at.get("exit_spread", 0.0)):
-                                errors.append(f"Trade#{i} Exit Spread inconsistent")
-                            # pnl
+                                errors.append(f"Trade#{i} Exit Spread inconsistent: expected {et.get('exit_spread')} actual {at.get('exit_spread')}")
+
                             if r2(et.get("net_pnl_pct", 0.0)) != r2(at.get("net_pnl_pct", 0.0)):
-                                errors.append(f"Trade#{i} Net PnL % inconsistent")
-                            
-                            # Leg returns tolerance: Skip comparison due to Entry Month definition difference
-                            # The leg returns calculation depends on the entry month definition, so differences are expected
+                                errors.append(f"Trade#{i} Net PnL % inconsistent: expected {et.get('net_pnl_pct')} actual {at.get('net_pnl_pct')}")
+
+                            # Leg-returns string comparison stays informational
+                            # only — the format ("Brent: x%, WTI: y%") is
+                            # underspecified (whitespace / sign convention) and
+                            # the substantive PnL is already checked above.
                             print(f"  Leg Returns - expected: '{et.get('leg', 'N/A')}' actual: '{at.get('leg', 'N/A')}'")
-                            print(f"  💡 Note: Leg Returns difference is due to Entry Month definition difference, considered acceptable difference")
             else:
                 errors.append("Cannot access Notion: missing Backtest database ID or token")
         except Exception as e:
@@ -1099,28 +1179,45 @@ async def async_main(args):
         errors.append(f"Query Notion Summary failed: {e}")
 
 
-    # Compare Notion vs Yahoo intersection if yahoo data is available
-    if yahoo_rows_expected and notion_rows:
-        print(f"🔍 Debug info: Summary data comparison:")
-        print(f"  - Yahoo expected rows: {len(yahoo_rows_expected)}")
-        print(f"  - Notion actual rows: {len(notion_rows)}")
-        print(f"  - Yahoo expected months: {[r['m'] for r in yahoo_rows_expected]}")
-        print(f"  - Notion actual months: {[r['m'] for r in notion_rows]}")
-        
-        # Display missing months
-        yahoo_months = set(r['m'] for r in yahoo_rows_expected)
-        notion_months = set(r['m'] for r in notion_rows)
-        missing_in_notion = yahoo_months - notion_months
-        extra_in_notion = notion_months - yahoo_months
-        
-        if missing_in_notion:
-            print(f"  - Notion missing months: {sorted(missing_in_notion)}")
-        if extra_in_notion:
-            print(f"  - Notion extra months: {sorted(extra_in_notion)}")
-        
-        cmp_errs = _compare_summary(yahoo_rows_expected, notion_rows)
-        for ce in cmp_errs:
-            errors.append(ce)
+    # Compare Notion vs Yahoo intersection if yahoo data is available.
+    # Wrap in Layer-2 retry: Notion property writes have eventual-consistency
+    # lag, so re-query the Notion Summary DB and re-run the comparison until
+    # it passes (or the sleep budget is exhausted).
+    if yahoo_rows_expected:
+        def _summary_check():
+            nonlocal notion_rows
+            try:
+                _notion_token = str(tokens_dict.get("notion_integration_key", ""))
+                if not (summary_db_id and _notion_token):
+                    return False, "Cannot access Notion: missing Summary database ID or token"
+                _pages = _notion_query_database(_notion_token, summary_db_id)
+                _rows = _extract_notion_rows(_pages)
+            except Exception as e:
+                return False, f"Query Notion Summary failed: {e}"
+            if not _rows:
+                return False, "No valid data retrieved from Notion Summary"
+            print(f"🔍 Debug info: Summary data comparison:")
+            print(f"  - Yahoo expected rows: {len(yahoo_rows_expected)}")
+            print(f"  - Notion actual rows: {len(_rows)}")
+            yahoo_months = set(r['m'] for r in yahoo_rows_expected)
+            notion_months_set = set(r['m'] for r in _rows)
+            missing_in_notion = yahoo_months - notion_months_set
+            extra_in_notion = notion_months_set - yahoo_months
+            if missing_in_notion:
+                print(f"  - Notion missing months: {sorted(missing_in_notion)}")
+            if extra_in_notion:
+                print(f"  - Notion extra months: {sorted(extra_in_notion)}")
+            cmp_errs = _compare_summary(yahoo_rows_expected, _rows)
+            if cmp_errs:
+                return False, "; ".join(cmp_errs)
+            notion_rows = _rows
+            return True, None
+
+        ok_sum, err_sum = grade_with_retry(_summary_check, max_attempts=4)
+        if not ok_sum and err_sum:
+            for ce in str(err_sum).split("; "):
+                if ce:
+                    errors.append(ce)
 
 
     # Report

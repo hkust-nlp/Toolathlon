@@ -9,6 +9,8 @@ from google.api_core import exceptions
 from pathlib import Path
 from datetime import datetime
 
+from utils.evaluation.retry import grade_with_retry
+
 def read_record_csv(csv_path: str) -> dict:
     """Read record.csv file and return a dictionary of scenarios and conversion rates"""
     if not os.path.isfile(csv_path):
@@ -245,8 +247,22 @@ if __name__=="__main__":
         launch_time_str = ' '.join(args.launch_time)
         print(f"Launch time from command line: {launch_time_str}")
 
-    # Validate storage bucket creation
-    validate_task_completion(args.launch_time,datetime.now().strftime("%Y-%m-%d %H:%M:%S %A"))
+    # Validate storage bucket creation — wrap GCS bucket listing + Cloud
+    # Logging entry check in Layer-2 retry: newly-created buckets and
+    # newly-emitted log entries can take several seconds to be visible.
+    _eval_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S %A")
+
+    def _check_completion():
+        try:
+            validate_task_completion(args.launch_time, _eval_time)
+            return True, None
+        except Exception as e:
+            return False, str(e)
+
+    ok, err = grade_with_retry(_check_completion)
+    if not ok:
+        print(f"Task validation failed: {err}")
+        exit(1)
     
     # Validate record.csv file with comprehensive scenario data
     agent_record_file = os.path.join(args.agent_workspace, "record.csv")

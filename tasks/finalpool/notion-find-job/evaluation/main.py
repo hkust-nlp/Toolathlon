@@ -3,7 +3,8 @@ import asyncio
 
 from .check_local import check_local
 from .check_remote import check_remote
-from utils.general.helper import read_json  
+from utils.general.helper import read_json
+from utils.evaluation.retry import grade_with_retry
 
 
 
@@ -30,7 +31,10 @@ if __name__=="__main__":
     
     # check remote (notion database validation)
     try:
-        remote_pass, remote_error = check_remote(args.agent_workspace, args.groundtruth_workspace, res_log)
+        remote_pass, remote_error = grade_with_retry(
+            lambda: check_remote(args.agent_workspace, args.groundtruth_workspace, res_log),
+            max_attempts=4,
+        )
         if not remote_pass:
             print("remote check failed: ", remote_error)
             exit(1)

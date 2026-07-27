@@ -1,9 +1,12 @@
 from argparse import ArgumentParser
+from decimal import Decimal, InvalidOperation
 import os
 from utils.general.helper import read_json
 from utils.general.helper import print_color
+from utils.app_specific.snowflake.client import fetch_all_dict
 from utils.app_specific.snowflake.helpers import get_table_row_count, row_exists, escape_sql_literal, fq_table_name
 from utils.app_specific.poste.checks import find_sent_emails
+from utils.evaluation.retry import grade_with_retry
 
 DB_NAME = "TRAVEL_EXPENSE_REIMBURSEMENT"
 SCHEMA_NAME = "PUBLIC"
@@ -16,6 +19,77 @@ sender_config = involved_emails["sender"][next(iter(involved_emails["sender"]))]
 sender_email = next(iter(involved_emails["sender"]))
 sender_config = {"email": sender_email, **sender_config}
 
+EXPENSE_COLUMNS = (
+    "CLAIM_ID",
+    "DEPARTMENT",
+    "DEST_CITY",
+    "DEST_COUNTRY",
+    "EMPLOYEE_ID",
+    "EMPLOYEE_NAME",
+    "FLAG",
+    "NIGHTS",
+    "TOTAL_CLAIMED",
+    "TRIP_END",
+    "TRIP_START",
+)
+
+
+def expected_expense_row(claim):
+    return {
+        "CLAIM_ID": str(claim.get("claim_id", "")),
+        "DEPARTMENT": str(claim.get("department", "")),
+        "DEST_CITY": str(claim.get("dest_city", "")),
+        "DEST_COUNTRY": str(claim.get("dest_country", "")),
+        "EMPLOYEE_ID": str(claim.get("employee_id", "")),
+        "EMPLOYEE_NAME": str(claim.get("employee_name", "")),
+        "FLAG": 1 if claim.get("_policy_violations") else 0,
+        "NIGHTS": int(claim.get("nights") or 0),
+        "TOTAL_CLAIMED": Decimal(str(claim.get("total_claimed") or 0)).quantize(Decimal("0.01")),
+        "TRIP_END": str(claim.get("trip_end", "")),
+        "TRIP_START": str(claim.get("trip_start", "")),
+    }
+
+
+def fetch_expense_rows_by_claim_id(claim_id):
+    """Fetch by stable identity so value errors can be reported field by field."""
+    table_fq = fq_table_name(DB_NAME, SCHEMA_NAME, EXPENSE_TABLE_NAME)
+    columns = ", ".join(EXPENSE_COLUMNS)
+    escaped_claim_id = escape_sql_literal(claim_id)
+    return fetch_all_dict(
+        f"SELECT {columns} FROM {table_fq} "
+        f"WHERE CLAIM_ID = '{escaped_claim_id}' LIMIT 2"
+    )
+
+
+def _normalized_actual_value(column, value):
+    if column in ("FLAG", "NIGHTS"):
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return value
+    if column == "TOTAL_CLAIMED":
+        try:
+            return Decimal(str(value)).quantize(Decimal("0.01"))
+        except (InvalidOperation, TypeError, ValueError):
+            return value
+    if column in ("TRIP_START", "TRIP_END"):
+        return str(value)
+    return "" if value is None else str(value)
+
+
+def expense_row_differences(claim, actual_row):
+    expected = expected_expense_row(claim)
+    actual_upper = {str(key).upper(): value for key, value in actual_row.items()}
+    differences = []
+    for column in EXPENSE_COLUMNS:
+        if column not in actual_upper:
+            differences.append(f"{column}: expected={expected[column]!r}, actual=<missing column>")
+            continue
+        actual = _normalized_actual_value(column, actual_upper[column])
+        if actual != expected[column]:
+            differences.append(f"{column}: expected={expected[column]!r}, actual={actual!r}")
+    return differences
+
 def main():
     parser = ArgumentParser()
     parser.add_argument("--agent_workspace", type=str, required=False)
@@ -23,7 +97,7 @@ def main():
     parser.add_argument("--res_log_file", type=str, required=False)
     parser.add_argument("--launch_time", type=str, required=False)
     args = parser.parse_args()
-    
+
 
     expense_claims = read_json(os.path.join(args.groundtruth_workspace, "expense_claims.json"))
 
@@ -60,39 +134,33 @@ def main():
         print_color(f"[ERROR] Failed to check row count: {e}", "red")
         return False
 
-    # If the row count check passes, check each row of data
-    # Then check each row of data
+    # Fetch each row by CLAIM_ID, then compare every required value. Querying by
+    # all values at once turns any mismatch into the misleading "row not found".
+    database_differences = []
     for claim in goto_db_items:
-        flag = 1 if len(claim['_policy_violations']) > 0 else 0
-        # After adding FLAG, there should be 12 fields:
-        # CLAIM_ID, DEPARTMENT, DEST_CITY, DEST_COUNTRY, EMPLOYEE_ID, EMPLOYEE_NAME, FLAG, ID, NIGHTS, TOTAL_CLAIMED, TRIP_END, TRIP_START
-        # In claim, all fields except flag should already exist, all keys are lowercase
-        # We need to find if the row consisting of other fields is in the {DB_NAME}.{SCHEMA_NAME}.{EXPENSE_TABLE_NAME} table
-        # If not, then there is an error
-        # If exists, then pass
-        where_parts = []
-        where_parts.append(f"CLAIM_ID = '{escape_sql_literal(claim['claim_id'])}'")
-        where_parts.append(f"DEPARTMENT = '{escape_sql_literal(claim.get('department',''))}'")
-        where_parts.append(f"DEST_CITY = '{escape_sql_literal(claim.get('dest_city',''))}'")
-        where_parts.append(f"DEST_COUNTRY = '{escape_sql_literal(claim.get('dest_country',''))}'")
-        where_parts.append(f"EMPLOYEE_ID = '{escape_sql_literal(claim.get('employee_id',''))}'")
-        where_parts.append(f"EMPLOYEE_NAME = '{escape_sql_literal(claim.get('employee_name',''))}'")
-        where_parts.append(f"FLAG = {flag}")
-        where_parts.append(f"NIGHTS = {int(claim.get('nights') or 0)}")
-        where_parts.append(f"TOTAL_CLAIMED = {float(claim.get('total_claimed') or 0)}")
-        where_parts.append(f"TRIP_END = '{escape_sql_literal(claim.get('trip_end',''))}'")
-        where_parts.append(f"TRIP_START = '{escape_sql_literal(claim.get('trip_start',''))}'")
-
-        where_clause = " AND ".join(where_parts)
         try:
-            exists = row_exists(DB_NAME, SCHEMA_NAME, EXPENSE_TABLE_NAME, where_clause)
-            print_color(f"[INFO] Row exists for claim {claim['claim_id']}: {exists}", "blue")
+            matching_rows = fetch_expense_rows_by_claim_id(claim['claim_id'])
         except Exception as e:
             print_color(f"[ERROR] Failed to query row for claim {claim['claim_id']}: {e}", "red")
             return False
-        if not exists:
-            print_color(f"[FAIL] Row not found in {table_fq} for claim {claim['claim_id']}", "red")
-            return False
+        if not matching_rows:
+            database_differences.append(
+                f"claim {claim['claim_id']}: no row with this CLAIM_ID in {table_fq}"
+            )
+            continue
+        if len(matching_rows) > 1:
+            database_differences.append(
+                f"claim {claim['claim_id']}: expected one row, found {len(matching_rows)}"
+            )
+            continue
+
+        for difference in expense_row_differences(claim, matching_rows[0]):
+            database_differences.append(f"claim {claim['claim_id']} {difference}")
+
+    if database_differences:
+        for difference in database_differences:
+            print_color(f"[FAIL] {difference}", "red")
+        return False
     print_color("[PASS] All rows validated in database", "green")
     
     # part 2.5 Check the consistency of the contacts data
@@ -157,38 +225,43 @@ def main():
             'subject_lower': f"expense claim review required: {str(claim['claim_id']).lower()}"
         })
 
-    # 2) Take all emails from the sender's inbox (no longer filter by address)
-    sent_msgs = find_sent_emails(sender_config)
+    def _check_emails():
+        # 2) Take all emails from the sender's inbox (no longer filter by address)
+        sent_msgs = find_sent_emails(sender_config)
 
-    # 3) First match and consume all "needed" emails
-    id_to_msg = {m['id']: m for m in sent_msgs}
-    remaining_ids = set(id_to_msg.keys())
+        # 3) First match and consume all "needed" emails
+        id_to_msg = {m['id']: m for m in sent_msgs}
+        remaining_ids = set(id_to_msg.keys())
 
-    for exp in expected_emails:
-        matched_id = None
-        for mid in list(remaining_ids):
-            msg = id_to_msg[mid]
-            if (msg.get('subject_lower','') == exp['subject_lower'] and
-                exp['to'] in (msg.get('to','') or '') and
-                exp['cc'] in (msg.get('cc','') or '')):
-                matched_id = mid
-                break
-        if matched_id is None:
-            print_color(f"[FAIL] Missing expected email: subject='{exp['subject']}', to='{exp['to']}', cc='{exp['cc']}'", "red")
-            return False
-        remaining_ids.remove(matched_id)
+        for exp in expected_emails:
+            matched_id = None
+            for mid in list(remaining_ids):
+                msg = id_to_msg[mid]
+                if (msg.get('subject_lower','') == exp['subject_lower'] and
+                    exp['to'] in (msg.get('to','') or '') and
+                    exp['cc'] in (msg.get('cc','') or '')):
+                    matched_id = mid
+                    break
+            if matched_id is None:
+                return False, f"Missing expected email: subject='{exp['subject']}', to='{exp['to']}', cc='{exp['cc']}'"
+            remaining_ids.remove(matched_id)
 
-    # 4) If there are any remaining emails reaching the monitored addresses, they are extra → failure
-    if remaining_ids:
-        extra = [id_to_msg[mid] for mid in remaining_ids]
-        print_color(f"[FAIL] Extra unexpected email(s) found: {len(extra)}", "red")
-        # Print the first three for debugging
-        for i, em in enumerate(extra[:3]):
-            print_color(f"  - Extra[{i+1}] subject='{em.get('subject','')}', to='{em.get('to','')}', cc='{em.get('cc','')}'", "blue")
+        # 4) If there are any remaining emails reaching the monitored addresses, they are extra -> failure
+        if remaining_ids:
+            extra = [id_to_msg[mid] for mid in remaining_ids]
+            details = []
+            for i, em in enumerate(extra[:3]):
+                details.append(f"Extra[{i+1}] subject='{em.get('subject','')}', to='{em.get('to','')}', cc='{em.get('cc','')}'")
+            return False, f"Extra unexpected email(s) found: {len(extra)}; " + "; ".join(details)
+        return True, None
+
+    # Layer 2 retry: IMAP propagation lag for sent-folder indexer
+    ok, err = grade_with_retry(_check_emails)
+    if not ok:
+        print_color(f"[FAIL] {err}", "red")
         return False
-    else:
-        print_color("[PASS] All expected emails exist and no extra emails found", "green")
-    
+    print_color("[PASS] All expected emails exist and no extra emails found", "green")
+
     return True
 
 if __name__ == "__main__":
@@ -197,4 +270,3 @@ if __name__ == "__main__":
     else:
         print_color("[FAIL] Some checks failed", "red")
         exit(1)
-    

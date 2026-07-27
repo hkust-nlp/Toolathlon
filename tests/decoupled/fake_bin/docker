@@ -1,0 +1,197 @@
+#!/usr/bin/env bash
+# Fake container runtime for the run_single_decoupled.sh regression tests.
+#
+# The stub records every invocation to $FAKE_RUNTIME_STATE/calls.log, keeps
+# coarse container state as marker files (created/running), and appends the
+# events the tests assert on (preprocess-start, chown, stop) to
+# $FAKE_RUNTIME_STATE/events in arrival order.
+#
+# Behavior knobs (environment):
+#   FAKE_PREPROCESS_BEHAVIOR  succeed (default) | fail:<code> | hang
+#   FAKE_CHOWN_BEHAVIOR       succeed (default) | fail
+#   FAKE_START_BEHAVIOR       succeed (default) | fail
+#   FAKE_STOP_BEHAVIOR        succeed (default) | fail-once -- the FIRST
+#                             stop exits nonzero WITHOUT stopping anything
+#                             (writer stays alive, `running` stays), like a
+#                             daemon that rejected the request; later stops
+#                             behave normally so teardown still completes
+#   FAKE_DUMPS_OWNER          uid:gid reported for /workspace/dumps
+#                             (default 1000:1000)
+#
+# Signal-semantics model (matches real docker/podman, verified against
+# rootful Docker 29.x): the local `docker exec` process is only an API
+# client.  Killing it -- even with a process-group signal -- does NOT kill
+# the exec'd process inside the container; that process lives in the
+# container's PID namespace and dies only when the container is torn down.
+# The `hang` behavior therefore detaches an "inner writer" into its own
+# session (perl POSIX::setsid; macOS has no setsid(1)) which keeps appending
+# `inner-write` events after the client is gone, and fake `stop` is what
+# kills it -- recording `stop-writer-alive` first if it was still running,
+# which is the observable proof that a group signal alone did not stop it.
+set -u
+
+STATE="${FAKE_RUNTIME_STATE:?FAKE_RUNTIME_STATE must be set}"
+printf '%s\n' "$0 $*" >> "$STATE/calls.log"
+
+cmd="${1:-}"
+[ $# -gt 0 ] && shift
+
+case "$cmd" in
+    run)
+        touch "$STATE/created" "$STATE/running"
+        echo "fakecontainer0123"
+        exit 0
+        ;;
+    ps)
+        # `ps -q` lists running containers, `ps -aq` includes stopped ones.
+        all=false
+        for arg in "$@"; do
+            [ "$arg" = "-aq" ] && all=true
+        done
+        if [ "$all" = true ]; then
+            [ -e "$STATE/created" ] && echo "fakecontainer0123"
+        else
+            [ -e "$STATE/running" ] && echo "fakecontainer0123"
+        fi
+        exit 0
+        ;;
+    stop)
+        # fail-once models a stop the daemon rejects while the container
+        # keeps running: nothing is killed, `running` stays, and the exit
+        # code is the runner's ONLY hint -- a later `start` still succeeds
+        # (see below), so a runner that ignores this failure would chown
+        # straight into the live writer.
+        if [ "${FAKE_STOP_BEHAVIOR:-succeed}" = "fail-once" ] \
+            && [ ! -e "$STATE/stop_failed_once" ]; then
+            touch "$STATE/stop_failed_once"
+            echo "stop-fail $*" >> "$STATE/events"
+            exit 1
+        fi
+        # Tearing down the container kills every process in its PID
+        # namespace, including exec'd ones the client abandoned.  Record
+        # whether the inner writer was still alive when stop arrived, then
+        # kill it and wait until it is gone -- when real `stop` returns,
+        # nothing inside the container is running anymore.
+        if [ -f "$STATE/inner_writer_pid" ]; then
+            writer_pid=$(cat "$STATE/inner_writer_pid")
+            if kill -0 "$writer_pid" 2>/dev/null; then
+                echo "stop-writer-alive" >> "$STATE/events"
+                kill -9 "$writer_pid" 2>/dev/null
+                while kill -0 "$writer_pid" 2>/dev/null; do sleep 0.01; done
+            fi
+        fi
+        echo "stop $*" >> "$STATE/events"
+        rm -f "$STATE/running"
+        exit 0
+        ;;
+    start)
+        # Like real docker/podman, `start` on an already-running container
+        # is a no-op SUCCESS -- which is exactly why the runner may not use
+        # it as a stopped-state check after a failed stop.
+        echo "start $*" >> "$STATE/events"
+        case "${FAKE_START_BEHAVIOR:-succeed}" in
+            fail)
+                exit 1
+                ;;
+        esac
+        touch "$STATE/running"
+        exit 0
+        ;;
+    rm)
+        rm -f "$STATE/created"
+        exit 0
+        ;;
+    cp)
+        exit 0
+        ;;
+    logs)
+        echo "fake container logs"
+        exit 0
+        ;;
+    version)
+        echo "fake runtime version"
+        exit 0
+        ;;
+    exec)
+        # Strip exec options so $1 becomes the container name.
+        while [ $# -gt 0 ]; do
+            case "$1" in
+                --env) shift 2 ;;
+                -t|-i|-it|-ti) shift ;;
+                *) break ;;
+            esac
+        done
+        [ $# -gt 0 ] && shift  # container name
+        inner="$*"
+        case "$inner" in
+            "echo "*)
+                echo "container ready"
+                exit 0
+                ;;
+            "mkdir "*|"rm "*|"chmod "*|"bash "*|"which "*)
+                exit 0
+                ;;
+            "kind version")
+                echo "kind v0.20.0 fake"
+                exit 0
+                ;;
+            "docker version"|"podman version")
+                exit 0
+                ;;
+            "mktemp "*)
+                echo "/run/fake-decoupled-bundle.json"
+                exit 0
+                ;;
+            "stat -c "*)
+                echo "${FAKE_DUMPS_OWNER:-1000:1000}"
+                exit 0
+                ;;
+            "chown -R -- "*)
+                echo "$inner" >> "$STATE/events"
+                case "${FAKE_CHOWN_BEHAVIOR:-succeed}" in
+                    fail) exit 1 ;;
+                    *) exit 0 ;;
+                esac
+                ;;
+            *container_preprocess*)
+                echo "preprocess-start" >> "$STATE/events"
+                touch "$STATE/preprocess_started"
+                case "${FAKE_PREPROCESS_BEHAVIOR:-succeed}" in
+                    fail:*)
+                        exit "${FAKE_PREPROCESS_BEHAVIOR#fail:}"
+                        ;;
+                    hang)
+                        # Spawn the container-side process as its own session
+                        # leader so group-delivered signals kill only this
+                        # client, then block like the real exec client does.
+                        # The writer appends `inner-write` events (a stand-in
+                        # for creating root-owned files in the bind mount)
+                        # until fake `stop` kills it; the loop is bounded so
+                        # a failed scenario cannot leak it for long.
+                        perl -MPOSIX -e 'POSIX::setsid(); exec @ARGV or die "exec failed: $!"' \
+                            bash -c '
+                                i=0
+                                while [ "$i" -lt 600 ]; do
+                                    echo "inner-write $i" >> "$FAKE_RUNTIME_STATE/events"
+                                    i=$((i + 1))
+                                    sleep 0.05
+                                done' &
+                        echo $! > "$STATE/inner_writer_pid"
+                        sleep 120
+                        exit 0
+                        ;;
+                    *)
+                        exit 0
+                        ;;
+                esac
+                ;;
+            *)
+                echo "unhandled-exec $inner" >> "$STATE/events"
+                exit 0
+                ;;
+        esac
+        ;;
+    *)
+        exit 0
+        ;;
+esac

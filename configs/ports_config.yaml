@@ -42,6 +42,7 @@ files_by_port:
     - tasks/finalpool/canvas-art-manager/email_config.json
     - tasks/finalpool/canvas-art-manager/preprocess/main.py
     - tasks/finalpool/canvas-homework-grader-python/email_config.json
+    - tasks/finalpool/canvas-submit-late-work/files/poste.json
     - tasks/finalpool/canvas-submit-late-work/evaluation/check_remote.py
     - tasks/finalpool/canvas-submit-late-work/preprocess/main.py
     - tasks/finalpool/course-assistant/emails_all_config.json
@@ -59,6 +60,7 @@ files_by_port:
     - tasks/finalpool/meeting-assign/email_config.json
     - tasks/finalpool/meeting-assign/preprocess/clean_local_emails.py
     - tasks/finalpool/meeting-assign/preprocess/main.py
+    - tasks/finalpool/meeting-assign/evaluation/main.py
     - tasks/finalpool/meeting-assign/receiver_config.json
     - tasks/finalpool/notion-find-job/emails_config.json
     - tasks/finalpool/notion-find-job/evaluation/check_local.py
@@ -89,6 +91,7 @@ files_by_port:
     files:
     - deployment/poste/scripts/setup.sh
     - global_preparation/deploy_containers.sh
+    - tasks/finalpool/canvas-submit-late-work/files/poste.json
   1587:
     comment: SMTP submission port
     files:

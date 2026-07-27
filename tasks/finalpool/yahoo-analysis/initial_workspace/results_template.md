@@ -12,9 +12,9 @@
 | AAPL   | 6 months  | 0.0          | 0.0                   | 0        | 0         |
 
 ## More Reliable
-Choice: (NVDA or APPL)
+Choice: (NVDA or AAPL)
 Conclusion: 
 
 ## Data Range
-Start: xxxx-xx-xx(year-month-day)
-End: xxxx-xx-xx(year-month-day)
+Start: YYYY-MM-DD
+End: YYYY-MM-DD

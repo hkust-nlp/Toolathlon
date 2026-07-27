@@ -3,7 +3,8 @@ import asyncio
 
 from .check_content import check_content
 # from check_content import check_content
-from utils.general.helper import read_json  
+from utils.general.helper import read_json
+from utils.evaluation.retry import grade_with_retry
 
 
 if __name__=="__main__":
@@ -17,8 +18,12 @@ if __name__=="__main__":
 
     #res_log = read_json(args.res_log_file)
     # check contentdou
+    # Wrap with Layer-2 retry: the check reads from Google Sheets via gspread,
+    # which can briefly return stale data after agent writes.
     try:
-        Pass, Error = check_content(args.agent_workspace, args.groundtruth_workspace)
+        Pass, Error = grade_with_retry(
+            lambda: check_content(args.agent_workspace, args.groundtruth_workspace)
+        )
         if not Pass:
             print("content check failed: ", Error)
             exit(1)

@@ -3,7 +3,9 @@
     "yahoo-finance",
     "filesystem",
     "terminal",
-    "excel"
+    "excel",
+    "web_search",
+    "playwright_with_chunk"
   ],
   "needed_local_tools": [
     "claim_done",

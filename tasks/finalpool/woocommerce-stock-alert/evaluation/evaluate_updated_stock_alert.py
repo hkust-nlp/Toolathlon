@@ -16,6 +16,12 @@ from typing import Dict, List, Tuple, Any
 from pathlib import Path
 from email.header import decode_header
 
+# Add repo root for utils.evaluation import
+_REPO_ROOT = str(Path(__file__).resolve().parents[4])
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
+from utils.evaluation.retry import grade_with_retry
+
 # Add project root to Python path for Google Sheets API access
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = Path(current_dir).parent.parent.parent.parent
@@ -441,9 +447,9 @@ class StockAlertEvaluator:
         }
         print(f"   {'✅' if sheets_success else '❌'} {sheets_msg}")
 
-        # 2. Validate email notifications
+        # 2. Validate email notifications (Layer 2 retry: IMAP propagation lag)
         print("📧 Validating email notifications...")
-        email_success, email_msg = self.validate_email_notifications()
+        email_success, email_msg = grade_with_retry(lambda: self.validate_email_notifications())
         results["email_notifications"] = {
             "passed": email_success,
             "message": email_msg

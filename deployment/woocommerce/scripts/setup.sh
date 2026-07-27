@@ -225,7 +225,7 @@ $podman_or_docker exec $WOO_WP wp core install \
 
 # 8. Install WooCommerce
 echo "Installing WooCommerce..."
-$podman_or_docker exec $WOO_WP wp plugin install woocommerce --activate --allow-root --path=/var/www/html
+$podman_or_docker exec $WOO_WP wp plugin install woocommerce --version=10.7.0 --activate --allow-root --path=/var/www/html
 
 # 8.5 Set permalinks (new)
 echo "Configuring permalinks..."

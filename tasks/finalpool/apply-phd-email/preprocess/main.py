@@ -7,6 +7,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))  # Add task directory to path
 from token_key_session import all_token_key_session
 from utils.app_specific.poste.email_import_utils import setup_email_environment
+from utils.app_specific.poste.local_email_manager import LocalEmailManager
 
 if __name__ == "__main__":
     parser = ArgumentParser()
@@ -48,7 +49,8 @@ if __name__ == "__main__":
         print("❌ Task email backup file not found. Please run the conversion script to generate emails_backup.json first.")
         sys.exit(1)
 
-    # Use utility function to set up email environment
+    # Use utility function to set up email environment (clears + seeds
+    # the AGENT'S sender mailbox via emails_config_file = maryc@).
     success = setup_email_environment(
         local_token_key_session=all_token_key_session,
         task_backup_file=str(task_backup_file)
@@ -57,3 +59,18 @@ if __name__ == "__main__":
     if not success:
         print("\n❌ Failed to set up email environment!")
         sys.exit(1)
+
+    # Also clear the RECEIVER mailbox (myersj@) that the grader reads.
+    # Without this, a prior run's correctly-zipped attachment lingers
+    # in the receiver's INBOX, and the grader's
+    # ``download_zip_attachments`` happily picks up that stale email
+    # as a valid submission for the current run — masking real failures
+    # where the current agent sent a wrong-format (tar.gz) attachment.
+    receiver_config_file = Path(__file__).parent / ".." / "files" / "receiver_config.json"
+    if receiver_config_file.exists():
+        print("\nClearing receiver mailbox to prevent stale-attachment leakage ...")
+        receiver_email_manager = LocalEmailManager(str(receiver_config_file), verbose=True)
+        receiver_email_manager.clear_all_emails("INBOX")
+    else:
+        print(f"⚠ Receiver config not found at {receiver_config_file}; "
+              "grader-side mailbox NOT cleared")

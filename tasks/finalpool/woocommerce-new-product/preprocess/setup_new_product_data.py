@@ -293,7 +293,12 @@ class NewProductEmailSetupV2:
                 "short_description": "Flagship wearable device",
                 "categories": [{"id": categories.get("Electronics")}] if categories.get("Electronics") else [],
                 "meta_data": [
-                    {"key": "launch_date", "value": "2025-10-01"},
+                    # Dynamic launch_date relative to preprocess time so the
+                    # grader's "next 30 days" window check is meaningful.
+                    # Previously a static 2025 date that was perpetually in
+                    # the past; the grader masked the bug by treating every
+                    # draft/pending product as new regardless of launch_date.
+                    {"key": "launch_date", "value": (current_date + timedelta(days=10)).strftime("%Y-%m-%d")},
                     {"key": "pre_order_discount", "value": "10"},
                     {"key": "product_type", "value": "new_product"}
                 ],
@@ -309,7 +314,7 @@ class NewProductEmailSetupV2:
                 "short_description": "Ultimate audio experience",
                 "categories": [{"id": categories.get("Electronics")}] if categories.get("Electronics") else [],
                 "meta_data": [
-                    {"key": "launch_date", "value": "2025-09-15"},
+                    {"key": "launch_date", "value": (current_date + timedelta(days=18)).strftime("%Y-%m-%d")},
                     {"key": "pre_order_discount", "value": "15"},
                     {"key": "product_type", "value": "new_product"}
                 ],
@@ -325,7 +330,7 @@ class NewProductEmailSetupV2:
                 "short_description": "Make your home smarter",
                 "categories": [{"id": categories.get("Smart Home")}] if categories.get("Smart Home") else [],
                 "meta_data": [
-                    {"key": "launch_date", "value": "2025-09-20"},
+                    {"key": "launch_date", "value": (current_date + timedelta(days=25)).strftime("%Y-%m-%d")},
                     {"key": "pre_order_discount", "value": "20"},
                     {"key": "product_type", "value": "new_product"}
                 ],

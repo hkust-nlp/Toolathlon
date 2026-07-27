@@ -39,6 +39,14 @@ TEMP_PATTERNS_TO_IGNORE = {
     ".pytest_cache"
 }
 
+# The runner may materialize oversized tool results in this directory at the
+# workspace root.  Keep this separate from TEMP_PATTERNS_TO_IGNORE so that a
+# user-created directory with the same name elsewhere in the workspace is
+# still evaluated.
+FRAMEWORK_ROOT_PATHS_TO_IGNORE = {
+    ".overlong_tool_outputs",
+}
+
 # GT structure definition - predefined standard directory structure
 GT_STRUCTURE = {
     # Directory structure
@@ -85,6 +93,7 @@ GT_STRUCTURE = {
 
         "School/Applications_Materials/Recommendation_Letter_1.pdf",
         "School/Applications_Materials/Recommendation_Letter_2.pdf",
+        "School/Applications_Materials/cv-gboeing.pdf",
      
         "School/Courses_Materials/exam.xlsx",
 
@@ -124,7 +133,6 @@ GT_STRUCTURE = {
         # Miss
         # "Work/JD_Galary/Tencent_Senior_Software_Engineer_Recruitment.pdf",
 
-        "Work/Job_Application_Materials/cv-gboeing.pdf",
         "Work/Job_Application_Materials/Internship_application_form.xlsx",
 
         # Miss
@@ -146,6 +154,13 @@ def should_ignore_path(path: str) -> bool:
     Returns:
         bool: True if should ignore, False if should not ignore
     """
+    # Ignore runner-owned artifacts only when they are rooted directly in the
+    # evaluated workspace.  Paths passed here are relative POSIX paths from
+    # scan_directory_structure().
+    root_component = path.split('/', 1)[0]
+    if root_component in FRAMEWORK_ROOT_PATHS_TO_IGNORE:
+        return True
+
     # Check if the path itself or any part of the path is in the ignore list
     path_parts = path.split('/')
     for part in path_parts:
@@ -348,5 +363,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 

@@ -55,9 +55,11 @@ case $operation in
     echo "Configuring Canvas domain to use port ${http_port}..."
     $podman_or_docker exec $container_name bash -c "sed -i 's/domain: \"localhost:3000\"/domain: \"localhost:${http_port}\"/' /opt/canvas/canvas-lms/config/domain.yml"
 
-    # Restart Canvas services inside container to apply config
+    # Restart Canvas services inside container to apply config.
+    # Do not restart postgres here; this old image can leave stale shared memory
+    # after a fast postgres restart, causing intermittent PG::ConnectionBad.
     echo "Restarting Canvas services to apply domain configuration..."
-    $podman_or_docker exec $container_name supervisorctl restart all 2>/dev/null || true
+    $podman_or_docker exec $container_name supervisorctl restart canvas_web canvas_worker 2>/dev/null || true
 
     # Wait for services to restart
     echo "Waiting for Canvas services to fully restart..."
@@ -91,6 +93,46 @@ case $operation in
       $podman_or_docker rm $container_name 2>/dev/null || true
       exit 1
     fi
+
+    # Canvas readiness probe before bulk user creation.
+    #
+    # Background: the previous sequence (supervisorctl restart canvas_web +
+    # sleep 10) only proved the HTTP server is ACCEPTING connections.  It
+    # did NOT prove that the rails environment is fully loaded and that
+    # Postgres connection-pool is ready for ``rails runner`` exec.  When
+    # create_canvas_user.py fires its first batches before that's true,
+    # ``rails runner`` crashes mid-script (e.g. on ``Account.default``)
+    # without printing the JSON_RESULTS markers, the python wrapper
+    # silently returns an empty batch result, and the entire batch's
+    # users (up to 100 at a time) are silently lost.  Observed in
+    # practice: every Canvas-using task (8 of them) was failing because
+    # 200 of the expected 500 users were missing post-deploy.
+    #
+    # Fix: actively poll a ``rails runner`` invocation until it succeeds.
+    # That proves both Postgres connectivity AND rails autoload + DB
+    # session establishment — the exact preconditions create_canvas_user
+    # needs.
+    echo "Waiting for Canvas rails-runner readiness..."
+    READY_TIMEOUT=300
+    READY_START=$(date +%s)
+    while true; do
+        # HTTP probe first (cheap); then verify rails runner can read DB.
+        if curl -fsS "http://localhost:${http_port}/login" -o /dev/null 2>&1; then
+            if $podman_or_docker exec $container_name bash -c \
+                "cd /opt/canvas/canvas-lms && GEM_HOME=/opt/canvas/.gems /opt/canvas/.gems/bin/bundle exec rails runner 'puts Account.default.id' 2>/dev/null" \
+                | grep -qE '^[0-9]+$'; then
+                echo "Canvas ready for bulk operations ($(( $(date +%s) - READY_START ))s)"
+                break
+            fi
+        fi
+        if [ $(( $(date +%s) - READY_START )) -gt $READY_TIMEOUT ]; then
+            echo "❌ Canvas readiness probe timed out after ${READY_TIMEOUT}s"
+            $podman_or_docker stop $container_name 2>/dev/null || true
+            $podman_or_docker rm $container_name 2>/dev/null || true
+            exit 1
+        fi
+        sleep 3
+    done
 
     echo "Start creating users ..."
     uv run -m deployment.canvas.scripts.create_canvas_user --count $USERS_COUNT --skip-test --batch-size 100 --container-name $container_name

@@ -23,6 +23,7 @@ sys.path.insert(0, str(project_root))
 
 from utils.app_specific.canvas import create_canvas_evaluator
 from utils.mcp.tool_servers import MCPServerManager
+from utils.evaluation.retry import grade_with_retry
 
 
 
@@ -793,8 +794,26 @@ async def main():
         # Load student expectations (existing vs new students)
         student_expectations = load_student_expectations(task_dir)
         
-        # Run the evaluation
-        success, message = await evaluate_canvas_notification_task(evaluator, student_expectations, task_dir)
+        # Run the evaluation (Layer-2 retry: poll the async check until it
+        # passes or budget exhausted, to absorb Canvas propagation lag).
+        # We re-implement the retry loop inline here since
+        # ``evaluate_canvas_notification_task`` is async and ``grade_with_retry``
+        # is sync-only.
+        # Mirror grade_with_retry's max-attempts/poll-interval semantics
+        # (defaults: 3 attempts, 5s poll) inline because this evaluator
+        # is async and ``grade_with_retry`` is sync-only.
+        from utils.evaluation.retry import DEFAULT_MAX_ATTEMPTS, DEFAULT_POLL_S
+        success, message = False, None
+        for attempt in range(1, DEFAULT_MAX_ATTEMPTS + 1):
+            try:
+                success, message = await evaluate_canvas_notification_task(
+                    evaluator, student_expectations, task_dir
+                )
+            except Exception as exc:
+                success, message = False, f"check raised {type(exc).__name__}: {exc}"
+            if success or attempt >= DEFAULT_MAX_ATTEMPTS:
+                break
+            await asyncio.sleep(DEFAULT_POLL_S)
         
         # Output final result
         print("\n" + "=" * 50)

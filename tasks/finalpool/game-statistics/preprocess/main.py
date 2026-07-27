@@ -17,6 +17,68 @@ random.seed(42)
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+# Persist the resolved task date so evaluation can reuse preprocess' date
+# when launch_time is unavailable.
+TASK_DATE_FILENAME = "task_date.txt"
+WORKSPACE_TASK_DATE_FILENAME = ".task_date.txt"
+
+
+def parse_task_date(launch_time: str | None) -> date:
+    """Resolve the task date from launch_time, falling back to the system date."""
+    if not launch_time:
+        return date.today()
+
+    normalized = launch_time.strip()
+    candidates = [normalized]
+    parts = normalized.split()
+    if len(parts) > 1:
+        candidates.append(" ".join(parts[:-1]))
+
+    for candidate in candidates:
+        for fmt in ("%Y-%m-%d", "%Y-%m-%d %H:%M:%S"):
+            try:
+                return datetime.strptime(candidate, fmt).date()
+            except ValueError:
+                continue
+
+    raise ValueError(
+        f"Could not parse launch_time '{launch_time}'. "
+        "Supported formats: YYYY-MM-DD, YYYY-MM-DD HH:MM:SS, "
+        "or YYYY-MM-DD HH:MM:SS <weekday>."
+    )
+
+
+def save_task_date(task_date: date, agent_workspace: str | None = None):
+    """Save the resolved task date for evaluation fallback."""
+    candidate_paths = [
+        Path(__file__).resolve().parent.parent / "groundtruth_workspace" / TASK_DATE_FILENAME,
+    ]
+    if agent_workspace:
+        candidate_paths.append(Path(agent_workspace) / WORKSPACE_TASK_DATE_FILENAME)
+
+    saved_paths = []
+    for path in candidate_paths:
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(task_date.isoformat(), encoding="utf-8")
+            saved_paths.append(path)
+        except OSError as exc:
+            print(f"⚠️  Failed to save task date to {path}: {exc}")
+
+    if not saved_paths:
+        raise OSError("Failed to persist task date for evaluation")
+
+    print(f"📌 Task date anchored to {task_date.isoformat()}")
+    for path in saved_paths:
+        print(f"   Saved task date to: {path}")
+
+
+def generate_safe_start_time(task_date: date, game_count: int) -> datetime:
+    """Generate a start time that keeps all generated games on task_date."""
+    latest_start_minute = max(0, 23 * 60 + 59 - 60 * (game_count - 1))
+    start_total_minute = random.randint(0, latest_start_minute)
+    return datetime.combine(task_date, datetime.min.time()) + timedelta(minutes=start_total_minute)
+
 def generate_player_skill_level():
     """Generate player's skill level, simulating a realistic skill distribution."""
     # Use normal distribution centered at 50 with a standard deviation of 15
@@ -48,15 +110,14 @@ def generate_game_timestamps(base_time, game_count):
         timestamps.append(current_time)
     return timestamps
 
-def generate_historical_stats_data(days_back=10, players_per_day=100):
+def generate_historical_stats_data(task_date: date, days_back=10, players_per_day=100):
     """Generate historical stats data (top 100 players of each of the last N days)."""
     historical_data = []
-    today = date.today()
 
     print(f"📊 Generating historical statistics: past {days_back} days, {players_per_day} players per day")
 
     for day_offset in range(1, days_back + 1):
-        target_date = today - timedelta(days=day_offset)
+        target_date = task_date - timedelta(days=day_offset)
         print(f"   Generating data for {target_date} ...")
 
         day_players = []
@@ -175,7 +236,7 @@ def cleanup_existing_dataset(client: bigquery.Client, project_id: str):
         logger.exception("Dataset cleanup failed")
         raise
 
-def setup_bigquery_resources(credentials_path: str, project_id: str):
+def setup_bigquery_resources(credentials_path: str, project_id: str, task_date: date):
     """
     Setup BigQuery dataset and tables, then populate with sample data.
     """
@@ -251,8 +312,9 @@ def setup_bigquery_resources(credentials_path: str, project_id: str):
             print(f"❌ Failed to create table '{table_id_stats}': {e}")
             raise
 
-        today = date.today()
-        print(f"📈 Generating sample data, current date: {today}")
+        today = task_date
+        today_str = today.isoformat()
+        print(f"📈 Generating sample data for task date: {today_str}")
 
         sample_rows = []
         player_count = 200
@@ -265,9 +327,7 @@ def setup_bigquery_resources(credentials_path: str, project_id: str):
         for player_id in range(1, player_count + 1):
             games_count = random.choices([3, 4, 5, 6, 7, 8, 9, 10],
                                        weights=[5, 10, 15, 20, 20, 15, 10, 5])[0]
-            start_hour = random.randint(0, 23)
-            start_minute = random.randint(0, 59)
-            start_time = datetime.combine(today, datetime.min.time()) + timedelta(hours=start_hour, minutes=start_minute)
+            start_time = generate_safe_start_time(today, games_count)
             timestamps = generate_game_timestamps(start_time, games_count)
             player_skill = player_skills[player_id]
             player_region = get_realistic_region_distribution()
@@ -288,6 +348,15 @@ def setup_bigquery_resources(credentials_path: str, project_id: str):
                     "timestamp": timestamps[game_num].isoformat()
                 })
         print(f"📝 Generated {len(sample_rows)} improved sample records")
+
+        observed_dates = sorted({
+            datetime.fromisoformat(row["timestamp"]).date().isoformat()
+            for row in sample_rows
+        })
+        if observed_dates != [today_str]:
+            raise ValueError(
+                f"Generated spillover data outside task date {today_str}: {observed_dates}"
+            )
 
         # Ensure each player's total score is unique
         print("🔍 Checking and adjusting for unique total scores per player...")
@@ -357,7 +426,7 @@ def setup_bigquery_resources(credentials_path: str, project_id: str):
 
         print(f"\n📈 Generating and inserting historical statistics data...")
         try:
-            historical_data = generate_historical_stats_data(days_back=10, players_per_day=100)
+            historical_data = generate_historical_stats_data(task_date=today, days_back=10, players_per_day=100)
             table_ref_stats = client.get_table(table_id_stats)
             print(f"💾 Inserting historical statistics data to player_historical_stats...")
 
@@ -442,10 +511,22 @@ if __name__ == "__main__":
 
     project_id = get_project_id_from_key(str(credentials_path))
 
+    try:
+        task_date = parse_task_date(args.launch_time)
+    except ValueError as e:
+        print(f"❌ {e}")
+        exit(1)
+
+    try:
+        save_task_date(task_date, args.agent_workspace)
+    except OSError as e:
+        print(f"❌ {e}")
+        exit(1)
+
     if project_id:
         print(f"🆔 Project ID successfully read from credentials file: {project_id}")
         try:
-            client, dataset_id = setup_bigquery_resources(str(credentials_path), project_id)
+            client, dataset_id = setup_bigquery_resources(str(credentials_path), project_id, task_date)
             print("\n" + "=" * 60)
             print("🎉 All BigQuery resources have been set up!")
             print("📊 Sample game data for today has been generated")

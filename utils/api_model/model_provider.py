@@ -26,9 +26,11 @@ from pydantic import BaseModel
 
 from agents.models.chatcmpl_converter import *
 
-from typing import List, Union
+from typing import Any, List, Union
 from typing_extensions import Literal, Annotated, TypeAlias
 from openai._utils import PropertyInfo
+
+from utils.api_model.usage_stats import add_cached_token_details
 
 from agents.items import ItemHelpers
 from agents.version import __version__
@@ -36,11 +38,44 @@ from agents.version import __version__
 _USER_AGENT = f"Agents/Python {__version__}"
 _HEADERS = {"User-Agent": _USER_AGENT}
 
+_RESERVED_EXTRA_REQUEST_PARAM_KEYS = {
+    "model",
+    "messages",
+    "input",
+    "instructions",
+    "previous_response_id",
+    "include",
+    "tools",
+    "tool_choice",
+    "parallel_tool_calls",
+    "stream",
+    "stream_options",
+}
+
+
+def _get_extra_request_params(*sources) -> dict:
+    merged_params = {}
+    for source in sources:
+        extra_request_params = getattr(source, "extra_request_params", None) or {}
+        if not isinstance(extra_request_params, dict):
+            raise ValueError("extra_request_params must be a dictionary")
+        merged_params.update(extra_request_params)
+
+    filtered_params = {}
+    for key, value in merged_params.items():
+        if key in _RESERVED_EXTRA_REQUEST_PARAM_KEYS:
+            print(f"[Warning] Ignoring generation.extra_request_params['{key}']; this request field is managed by the runner.")
+            continue
+        filtered_params[key] = value
+    return filtered_params
+
 
 class ResponseOutputReasoningContent(BaseModel):
     reasoning_content: str | None
     pure_thinking_str: str | None
     extra_contents_in_tool_calls: str | None
+    thinking_blocks: Any | None = None
+    redacted_thinking: Any | None = None
     """The reasoning content from the model."""
     type: Literal["reasoning_content"] = "reasoning_content"
 
@@ -50,6 +85,39 @@ ExtendedContent: TypeAlias = Annotated[Union[ResponseOutputText, ResponseOutputR
 class ExtendedResponseOutputMessage(ResponseOutputMessage):
     content: List[ExtendedContent]
     """The content of the output message."""
+
+
+_ANTHROPIC_THINKING_BLOCK_FIELDS = ("thinking_blocks", "redacted_thinking")
+
+
+def _get_message_extra_field(message: Any, field_name: str) -> Any | None:
+    if hasattr(message, field_name):
+        return getattr(message, field_name)
+
+    model_extra = getattr(message, "model_extra", None)
+    if isinstance(model_extra, dict) and field_name in model_extra:
+        return model_extra[field_name]
+
+    return None
+
+
+def _json_loads_nullable(value: Any) -> Any | None:
+    if value is None:
+        return None
+    if isinstance(value, str):
+        try:
+            return json.loads(value)
+        except json.JSONDecodeError:
+            return value
+    return value
+
+
+def _has_anthropic_thinking_blocks(content: Any) -> bool:
+    return any(bool(getattr(content, field_name, None)) for field_name in _ANTHROPIC_THINKING_BLOCK_FIELDS)
+
+
+def _print_implicit_thinking() -> None:
+    print("\033[90mTHINKING: (Thinking implicitly ...) \033[0m")
 
 
 class ConverterWithExplicitReasoningContent(Converter):
@@ -73,6 +141,10 @@ class ConverterWithExplicitReasoningContent(Converter):
                 ResponseOutputRefusal(refusal=message.refusal, type="refusal")
             )
         
+        reasoning_content = json.dumps(None)
+        pure_thinking_str = None
+        has_reasoning_payload = False
+
         # for kimi, ds-reasoner, openrouter
         if hasattr(message, "reasoning_content") or hasattr(message, "reasoning_details"):
             # we assert they do not exist at the same time
@@ -88,17 +160,38 @@ class ConverterWithExplicitReasoningContent(Converter):
                     if detail.get('type') == 'reasoning.text':
                         pure_thinking_str = detail.get('text')
                         break
-            message_item.content.append(ResponseOutputReasoningContent(reasoning_content=reasoning_content, pure_thinking_str=pure_thinking_str, extra_contents_in_tool_calls=json.dumps(None), type="reasoning_content"))
+            has_reasoning_payload = True
+
+        thinking_blocks = _get_message_extra_field(message, "thinking_blocks")
+        redacted_thinking = _get_message_extra_field(message, "redacted_thinking")
+
         # for gemini, the reasoning is in the **first** tool call, so we need to find it
-        elif hasattr(message, "tool_calls") and message.tool_calls:
+        extra_contents_in_tool_calls = None
+        has_tool_calls = hasattr(message, "tool_calls") and message.tool_calls
+        if has_tool_calls:
             extra_contents_in_tool_calls = []
             for tool_call in message.tool_calls:
                 if hasattr(tool_call, "extra_content") and tool_call.extra_content:
                     extra_contents_in_tool_calls.append(tool_call.extra_content)
                 else:
                     extra_contents_in_tool_calls.append(None)
-            extra_contents_in_tool_calls = json.dumps(extra_contents_in_tool_calls)
-            message_item.content.append(ResponseOutputReasoningContent(reasoning_content=json.dumps(None), pure_thinking_str=None, extra_contents_in_tool_calls=extra_contents_in_tool_calls, type="reasoning_content"))
+
+        if (
+            has_reasoning_payload
+            or thinking_blocks is not None
+            or redacted_thinking is not None
+            or has_tool_calls
+        ):
+            message_item.content.append(
+                ResponseOutputReasoningContent(
+                    reasoning_content=reasoning_content,
+                    pure_thinking_str=pure_thinking_str,
+                    extra_contents_in_tool_calls=json.dumps(extra_contents_in_tool_calls),
+                    thinking_blocks=thinking_blocks,
+                    redacted_thinking=redacted_thinking,
+                    type="reasoning_content",
+                )
+            )
         
         if message.audio:
             raise AgentsException("Audio is not currently supported")
@@ -157,6 +250,8 @@ class ConverterWithExplicitReasoningContent(Converter):
                 # The API doesn't support empty arrays for tool_calls
                 if not current_assistant_msg.get("tool_calls"):
                     del current_assistant_msg["tool_calls"]
+                if "extra_contents_in_tool_calls" in current_assistant_msg:
+                    del current_assistant_msg["extra_contents_in_tool_calls"]
                 result.append(current_assistant_msg)
                 current_assistant_msg = None
 
@@ -248,12 +343,16 @@ class ConverterWithExplicitReasoningContent(Converter):
                             f"Only audio IDs are supported for chat completions, but got: {c}"
                         )
                     elif c["type"] == "reasoning_content":
-                        reasoning_content_tmp = json.loads(c["reasoning_content"])
-                        if reasoning_content_tmp is not None:
+                        reasoning_content_tmp = _json_loads_nullable(c.get("reasoning_content"))
+                        if isinstance(reasoning_content_tmp, dict):
                             field_name, value = reasoning_content_tmp.get("field_name"), reasoning_content_tmp.get("value")
                             new_asst[field_name] = value
                         # deserialize the extra contents in the tool calls, they will be used later to fill back the extra content in the tool calls
-                        new_asst["extra_contents_in_tool_calls"] = json.loads(c["extra_contents_in_tool_calls"])
+                        new_asst["extra_contents_in_tool_calls"] = _json_loads_nullable(c.get("extra_contents_in_tool_calls"))
+                        for thinking_field in _ANTHROPIC_THINKING_BLOCK_FIELDS:
+                            thinking_value = c.get(thinking_field)
+                            if thinking_value is not None:
+                                new_asst[thinking_field] = _json_loads_nullable(thinking_value)
                     else:
                         raise UserError(f"Unknown content type in ExtendedResponseOutputMessage: {c}")
 
@@ -427,23 +526,25 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
     @staticmethod
     def _usage_from_chat_completion(response: ChatCompletion) -> Usage:
         if response.usage:
-            return Usage(
+            usage = Usage(
                 requests=1,
                 input_tokens=response.usage.prompt_tokens,
                 output_tokens=response.usage.completion_tokens,
                 total_tokens=response.usage.total_tokens,
             )
+            return add_cached_token_details(usage, response.usage)
         return Usage()
 
     @staticmethod
     def _usage_from_response(response: Response) -> Usage:
         if response.usage:
-            return Usage(
+            usage = Usage(
                 requests=1,
                 input_tokens=response.usage.input_tokens,
                 output_tokens=response.usage.output_tokens,
                 total_tokens=response.usage.total_tokens,
             )
+            return add_cached_token_details(usage, response.usage)
         return Usage()
 
     async def _collect_streamed_response(
@@ -537,6 +638,7 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                 logger.warning(f"[ModelProvider] Failed to load model parameters file: {e}")
 
         # Build base parameters
+        extra_request_params = _get_extra_request_params(self, model_settings)
         if user_model_params:
             # User specified parameters: only use required params + user params
             logger.info("[ModelProvider] Using USER-SPECIFIED parameters mode")
@@ -546,6 +648,7 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                 'tools': converted_tools or NOT_GIVEN,
                 'tool_choice': tool_choice,
                 'stream': stream,
+                **extra_request_params,
                 **user_model_params  # User's custom parameters
             }
         else:
@@ -588,6 +691,8 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
             # for claude-4.5-sonnet, top_p and temperament cannot be set simultaneously
             if "claude" in self.model and any(version in self.model for version in ["4.5", "4-5"]):
                 base_params.pop('top_p')
+
+            base_params.update(extra_request_params)
         
         ret = await self._get_client().chat.completions.create(**base_params)
 
@@ -713,8 +818,13 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                             if pure_thinking_str:
                                 print("\033[90mTHINKING: ", pure_thinking_str.strip(), "\033[0m")
                             # a little bit ugly ...
-                            elif isinstance(content, ResponseOutputReasoningContent) and isinstance(json.loads(content.extra_contents_in_tool_calls), list) and any(json.loads(content.extra_contents_in_tool_calls)):
-                                print("\033[90mTHINKING: (Thinking implicitly ...) \033[0m")
+                            elif isinstance(content, ResponseOutputReasoningContent):
+                                if _has_anthropic_thinking_blocks(content):
+                                    _print_implicit_thinking()
+                                else:
+                                    extra_contents = _json_loads_nullable(content.extra_contents_in_tool_calls)
+                                    if isinstance(extra_contents, list) and any(extra_contents):
+                                        _print_implicit_thinking()
                             # find text content in the output items
                             text_content = None
                             for content in item.content:
@@ -758,6 +868,7 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                         'maximum prompt length is', # for xAI model
                         'request exceeded model token limit', # for kimi
                         'exceed max message tokens', # for seed
+                        "exceeds the model's context window",
                         'is longer than'
                     ]):
                         context_too_long = True
@@ -787,6 +898,18 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                         match = re.search(r'request exceeded model token limit: (\d+)', error_str)
                         if match:
                             max_tokens = int(match.group(1))
+
+                        # Pattern 6: "Prompt length plus max_tokens exceeds the
+                        # model's context window: 266350 prompt tokens + 256000
+                        # max_tokens > 262144."
+                        match = re.search(
+                            r"(\d+) prompt tokens \+ (\d+) max_tokens > (\d+)",
+                            error_str,
+                            re.IGNORECASE,
+                        )
+                        if match:
+                            prompt_tokens, requested_output_tokens, max_tokens = map(int, match.groups())
+                            current_tokens = prompt_tokens + requested_output_tokens
                 
                 # 2. Try parsing structured error (OpenAI API error object)
                 if hasattr(e, 'response') and hasattr(e.response, 'json'):
@@ -811,6 +934,7 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                             'maximum prompt length is', # for xAI model
                             'request exceeded model token limit', # for kimi
                             'exceed max message tokens', # for seed
+                            "exceeds the model's context window",
                             'is longer than'
                         ]) or error_code in ['string_above_max_length', 'context_length_exceeded', 'messages_too_long']:
                             context_too_long = True
@@ -835,6 +959,7 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                         'maximum prompt length is', # for xAI model
                         'request exceeded model token limit', # for kimi
                         'exceed max message tokens', # for seed
+                        "exceeds the model's context window",
                         'is longer than'
                     ]):
                         context_too_long = True
@@ -913,6 +1038,17 @@ class OpenAIResponsesModelWithRetry(OpenAIResponsesModel):
                     if any(pattern in lower_error for pattern in [
                         'maximum context length is',
                         'exceeds the context window',
+                        "exceeds the model's context window",
+                        # Some OpenAI-Responses-compatible endpoints do not emit an
+                        # explicit context-length message. When the (server-side,
+                        # stateful) input exceeds the model's context window they
+                        # instead return only a generic invalid_request_error 400.
+                        # Treat that generic message as a context-too-long signal so
+                        # the context-reset recovery path can trigger instead of
+                        # burning through retries and hard-failing. This retry class
+                        # is only used by the stateful-responses provider, so the
+                        # blast radius of this heuristic is limited.
+                        'the request contains invalid parameters',
                     ]):
                         context_too_long = True
                         
@@ -921,6 +1057,15 @@ class OpenAIResponsesModelWithRetry(OpenAIResponsesModel):
                         match = re.search(r'maximum context length is (\d+) tokens. however, you requested about (\d+) tokens', error_str)
                         if match:
                             max_tokens, current_tokens = int(match.group(1)), int(match.group(2))
+
+                        match = re.search(
+                            r"(\d+) prompt tokens \+ (\d+) max_tokens > (\d+)",
+                            error_str,
+                            re.IGNORECASE,
+                        )
+                        if match:
+                            prompt_tokens, requested_output_tokens, max_tokens = map(int, match.groups())
+                            current_tokens = prompt_tokens + requested_output_tokens
                 
                 # If context too long detected, do not retry, raise
                 if context_too_long:
@@ -1004,6 +1149,7 @@ class OpenAIResponsesModelWithRetry(OpenAIResponsesModel):
                 logger.warning(f"[ModelProvider] Failed to load model parameters file: {e}")
 
         # Build base parameters
+        extra_request_params = _get_extra_request_params(self, model_settings)
         if user_model_params:
             # User specified parameters: only use required params + user params
             logger.info("[ModelProvider] Using USER-SPECIFIED parameters mode")
@@ -1017,6 +1163,7 @@ class OpenAIResponsesModelWithRetry(OpenAIResponsesModel):
                 "tool_choice": tool_choice,
                 "parallel_tool_calls": parallel_tool_calls,
                 "stream": stream,
+                **extra_request_params,
                 **user_model_params  # User's custom parameters
             }
         else:
@@ -1042,6 +1189,7 @@ class OpenAIResponsesModelWithRetry(OpenAIResponsesModel):
                 "reasoning": self._non_null_or_not_given(model_settings.reasoning),
                 "metadata": self._non_null_or_not_given(model_settings.metadata),
             }
+            base_params.update(extra_request_params)
 
         return await self._client.responses.create(**base_params)
 
@@ -1497,6 +1645,6 @@ def get_context_window(model_name, context_window = None):
         return context_window
     
     if model_name not in API_MAPPINGS:
-        return 128000  # Default context window for local models
+        return 1000000  # Default context window for local models
     
     return API_MAPPINGS[model_name]['context_window']

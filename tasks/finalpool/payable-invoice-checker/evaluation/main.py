@@ -10,6 +10,7 @@ sys.path.insert(0, project_root)
 from .check_snowflake import main as check_snowflake_main
 from .check_emails import main as check_emails_main
 from utils.general.helper import print_color
+from utils.evaluation.retry import grade_with_retry
 
 
 def resolve_groundtruth_path(user_dir: str | None) -> str:
@@ -43,9 +44,9 @@ if __name__ == "__main__":
         print_color("Database check: FAIL (early exit)", "red")
         sys.exit(1)
 
-    # Email check
+    # Email check (Layer 2 retry: IMAP propagation lag)
     print_color("\n[2/2] Running email check...", "cyan")
-    email_success = check_emails_main(groundtruth_file=gt_file)
+    email_success, _ = grade_with_retry(lambda: (bool(check_emails_main(groundtruth_file=gt_file)), None))
     if email_success:
         print_color("Email check: PASS", "green")
     else:

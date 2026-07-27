@@ -75,8 +75,67 @@ cancelled_requests: set = set()  # Cancelled request ID blacklist
 rejected_connections: Dict[str, int] = {}  # IP -> count of rejections (for statistics)
 last_stats_time: float = 0  # Last time we printed statistics
 push_timeout_manager = AdaptiveTimeout(initial_timeout=60.0, min_timeout=10.0, max_timeout=300.0)  # 推送超时管理器
+JOB_VALIDATION_INTERVAL_SECONDS = 30.0
+JOB_VALIDATION_TIMEOUT_SECONDS = 5.0
 
 # ===== WebSocket Management =====
+
+async def fetch_job_validation(job_id: str) -> Optional[dict]:
+    """Return eval-server validation data, or None on a transient validation failure."""
+    import httpx
+
+    eval_port = getattr(app.state, 'eval_port', 8080)
+    try:
+        async with httpx.AsyncClient(timeout=JOB_VALIDATION_TIMEOUT_SECONDS) as client:
+            response = await client.get(
+                f"http://localhost:{eval_port}/internal/validate_job",
+                params={"job_id": job_id}
+            )
+
+        if response.status_code != 200:
+            log(f"[Server] Job validation failed for {job_id} (HTTP {response.status_code})")
+            return {"valid": None, "http_status": response.status_code}
+
+        return response.json()
+    except Exception as e:
+        # A temporary eval-server failure must not evict an otherwise healthy client.
+        log(f"[Server] Job validation unavailable for {job_id}: {e}")
+        return None
+
+async def monitor_job_lifecycle(job_id: str):
+    """Periodically stop serving a client once its evaluation job is no longer active."""
+    while True:
+        await asyncio.sleep(JOB_VALIDATION_INTERVAL_SECONDS)
+        result = await fetch_job_validation(job_id)
+
+        # None means validation was temporarily unavailable. Only an explicit
+        # valid=false response is authoritative enough to close the connection.
+        if result is not None and result.get("valid") is False:
+            status = result.get("status", "not active")
+            log(f"[Server] Job {job_id} is no longer active (status: {status}); releasing WebSocket slot")
+            return "job_inactive"
+
+async def close_finished_job_websocket(websocket: WebSocket, job_id: str, reason: str):
+    """Notify and close a WebSocket whose evaluation job reached a terminal state."""
+    try:
+        await asyncio.wait_for(
+            websocket.send_json({
+                "type": "error",
+                "code": "job_ended",
+                "message": f"Evaluation job {job_id} is no longer active ({reason})"
+            }),
+            timeout=5.0
+        )
+    except Exception as e:
+        log(f"[Server] Could not notify WebSocket client that job {job_id} ended: {e}")
+
+    try:
+        await asyncio.wait_for(
+            websocket.close(code=1000, reason="Evaluation job ended"),
+            timeout=5.0
+        )
+    except Exception as e:
+        log(f"[Server] Could not gracefully close WebSocket for job {job_id}: {e}")
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket, job_id: str = None):
@@ -109,39 +168,29 @@ async def websocket_endpoint(websocket: WebSocket, job_id: str = None):
             pass
         return
 
-    # Verify job_id with eval_server
-    import httpx
-    eval_port = getattr(app.state, 'eval_port', 8080)  # Default to 8080 for backward compatibility
-    try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            resp = await client.get(
-                f"http://localhost:{eval_port}/internal/validate_job",
-                params={"job_id": job_id}
-            )
-            if resp.status_code == 200:
-                result = resp.json()
-                if not result.get("valid"):
-                    log(f"[Server] ⛔ REJECT connection from {client_addr} - invalid job_id: {job_id}")
-                    try:
-                        await websocket.send_json({"type": "error", "message": f"Invalid or expired job_id: {job_id}"})
-                        await websocket.close()
-                    except Exception:
-                        pass
-                    return
-                # Job ID is valid, log job info
-                log(f"[Server] ✓ Job validation passed: {job_id} (mode: {result.get('mode')})")
-            else:
-                log(f"[Server] ⛔ REJECT connection from {client_addr} - validation failed (HTTP {resp.status_code})")
-                try:
-                    await websocket.send_json({"type": "error", "message": "Job validation failed"})
-                    await websocket.close()
-                except Exception:
-                    pass
-                return
-    except Exception as e:
-        log(f"[Server] ⚠️  Warning: Could not validate job_id (eval_server unreachable): {e}")
-        log(f"[Server] Allowing connection anyway (fallback mode)")
-        # Allow connection if validation service is down (backward compatibility)
+    # Verify job_id with eval_server. Preserve the existing fallback behavior if
+    # the eval server is temporarily unavailable.
+    validation = await fetch_job_validation(job_id)
+    if validation is None:
+        log("[Server] Allowing connection because job validation is temporarily unavailable")
+    elif validation.get("valid") is None:
+        log(f"[Server] ⛔ REJECT connection from {client_addr} - job validation failed")
+        try:
+            await websocket.send_json({"type": "error", "message": "Job validation failed"})
+            await websocket.close()
+        except Exception:
+            pass
+        return
+    elif not validation.get("valid", False):
+        log(f"[Server] ⛔ REJECT connection from {client_addr} - invalid job_id: {job_id}")
+        try:
+            await websocket.send_json({"type": "error", "message": f"Invalid or expired job_id: {job_id}"})
+            await websocket.close()
+        except Exception:
+            pass
+        return
+    else:
+        log(f"[Server] ✓ Job validation passed: {job_id} (mode: {validation.get('mode')})")
 
     # Check if there is already a Client connected
     if connected_client is not None:
@@ -165,16 +214,18 @@ async def websocket_endpoint(websocket: WebSocket, job_id: str = None):
     # Create two tasks
     task_handle_messages = None
     task_push_requests = None
+    task_monitor_job = None
     disconnect_reason = "unknown"
 
     try:
         # Use create_task instead of gather,这样可以更好地控制取消
         task_handle_messages = asyncio.create_task(handle_client_messages(websocket))
         task_push_requests = asyncio.create_task(push_requests_to_client(websocket))
+        task_monitor_job = asyncio.create_task(monitor_job_lifecycle(job_id))
 
         # Wait for any task to complete (usually because of connection closed)
         done, pending = await asyncio.wait(
-            [task_handle_messages, task_push_requests],
+            [task_handle_messages, task_push_requests, task_monitor_job],
             return_when=asyncio.FIRST_COMPLETED
         )
 
@@ -191,16 +242,22 @@ async def websocket_endpoint(websocket: WebSocket, job_id: str = None):
         # Check exceptions of completed tasks
         for task in done:
             try:
-                task.result()
-                disconnect_reason = "normal"
+                result = task.result()
+                if task is task_monitor_job and result == "job_inactive":
+                    disconnect_reason = "job_inactive"
+                elif disconnect_reason == "unknown":
+                    disconnect_reason = "normal"
             except WebSocketDisconnect:
-                disconnect_reason = "client_disconnect"
+                if disconnect_reason == "unknown":
+                    disconnect_reason = "client_disconnect"
                 log(f"[Server] 🔌 Client DISCONNECTED: {client_addr} (reason: client initiated)")
             except asyncio.TimeoutError:
-                disconnect_reason = "timeout"
+                if disconnect_reason == "unknown":
+                    disconnect_reason = "timeout"
                 log(f"[Server] 🔌 Client DISCONNECTED: {client_addr} (reason: timeout - no heartbeat)")
             except Exception as e:
-                disconnect_reason = "error"
+                if disconnect_reason == "unknown":
+                    disconnect_reason = "error"
                 log(f"[Server] 🔌 Client DISCONNECTED: {client_addr} (reason: error - {e})")
 
     except Exception as e:
@@ -209,19 +266,23 @@ async def websocket_endpoint(websocket: WebSocket, job_id: str = None):
         import traceback
         log(f"[Server] Stack: {traceback.format_exc()}")
     finally:
-        # Ensure cleanup (this will always execute)
-        connected_client = None
-        connected_client_addr = None
-        connected_client_job_id = None  # Clear job_id on disconnect
-
         # Cancel all possible running tasks
-        for task in [task_handle_messages, task_push_requests]:
+        for task in [task_handle_messages, task_push_requests, task_monitor_job]:
             if task is not None and not task.done():
                 task.cancel()
                 try:
                     await task
                 except:
                     pass
+
+        if disconnect_reason == "job_inactive":
+            await close_finished_job_websocket(websocket, job_id, "job is no longer running")
+
+        # Ensure an old connection cannot clear a newer connection's state.
+        if connected_client is websocket:
+            connected_client = None
+            connected_client_addr = None
+            connected_client_job_id = None
 
         log(f"[Server] Cleanup completed for {client_addr}, slot now available (reason: {disconnect_reason})")
 
@@ -510,6 +571,31 @@ async def proxy_chat(request: Request, request_data: dict):
 async def proxy_responses(request: Request, request_data: dict):
     """Proxy for OpenAI Responses API"""
     return await _handle_proxy_request(request, request_data, "/responses")
+
+@app.post("/internal/disconnect_job")
+async def disconnect_job_websocket(job_id: str, request: Request, reason: str = "finished"):
+    """Close the connected client for a terminal job. Local eval-server calls only."""
+    client_host = request.client.host if request.client else "unknown"
+    if client_host not in ["127.0.0.1", "localhost", "::1"]:
+        return JSONResponse(
+            content={"detail": "Access denied: localhost only"},
+            status_code=403
+        )
+
+    if connected_client is None:
+        return {"disconnected": False, "reason": "no_client_connected"}
+
+    if connected_client_job_id != job_id:
+        return {
+            "disconnected": False,
+            "reason": "different_job_connected",
+            "connected_job_id": connected_client_job_id
+        }
+
+    websocket = connected_client
+    log(f"[Server] Eval server requested WebSocket release for job {job_id} (reason: {reason})")
+    await close_finished_job_websocket(websocket, job_id, reason)
+    return {"disconnected": True, "job_id": job_id}
 
 @app.get("/")
 async def root():

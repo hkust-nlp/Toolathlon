@@ -1,16 +1,39 @@
 from argparse import ArgumentParser
 import os
+from pathlib import Path
 import json
 import subprocess
 import re
+import time
 from datetime import datetime
 from typing import Dict, List, Tuple, Any
 
 from utils.general.helper import normalize_str, read_json, print_color
 from utils.app_specific.poste.ops import find_emails_from_sender, mailbox_has_email_matching_body
+from utils.evaluation.retry import DEFAULT_MAX_ATTEMPTS, DEFAULT_POLL_S, grade_with_retry
 
 
 VERBOSE = False
+
+
+def get_instance_suffix() -> str:
+    try:
+        import yaml
+    except ImportError:
+        return ""
+    for root in [Path.cwd(), *Path(__file__).resolve().parents]:
+        config_path = root / "configs" / "ports_config.yaml"
+        if config_path.exists():
+            try:
+                with open(config_path, "r") as f:
+                    return (yaml.safe_load(f) or {}).get("instance_suffix", "")
+            except Exception:
+                return ""
+    return ""
+
+
+def kubeconfig_filename(cluster_name: str) -> str:
+    return f"{cluster_name}{get_instance_suffix()}-config.yaml"
 
 
 def debug(msg: str) -> None:
@@ -35,8 +58,9 @@ def run_cmd(cmd: List[str], suppress_error_log: bool = False) -> Tuple[int, str,
 
 
 def detect_kubeconfig(agent_workspace: str, task_dir: str) -> str:
-    cand1 = os.path.join(task_dir, "k8s_configs", "cluster-cleanup-config.yaml")
-    cand2 = os.path.join(agent_workspace, "k8s_configs", "cluster-cleanup-config.yaml")
+    filename = kubeconfig_filename("cluster-cleanup")
+    cand1 = os.path.join(task_dir, "k8s_configs", filename)
+    cand2 = os.path.join(agent_workspace, "k8s_configs", filename)
     debug(f"Trying kubeconfig candidates: {cand1} | {cand2}")
     if os.path.exists(cand1):
         debug(f"Using kubeconfig: {cand1}")
@@ -546,9 +570,17 @@ def main() -> int:
     email_ok = True
 
     # 2.1 Every should_receive must have a matching email from sender with expected content
+    # Layer 2 retry on each receiver: IMAP propagation lag for SMTP -> indexer
     for recv_email, cfg in should_receive_emails.items():
         imap_cfg = {"email": recv_email, **cfg}
-        matched, detail = mailbox_has_email_matching_body(imap_cfg, sender_query_for_imap, expected_email_raw)
+
+        def _check_one(_imap_cfg=imap_cfg):
+            m, d = mailbox_has_email_matching_body(_imap_cfg, sender_query_for_imap, expected_email_raw)
+            return (bool(m), None if m else f"no match for {_imap_cfg['email']}")
+
+        matched, _err = grade_with_retry(_check_one)
+        # Re-run once at end to get the detail for logging (cheap, side-effect-free)
+        _, detail = mailbox_has_email_matching_body(imap_cfg, sender_query_for_imap, expected_email_raw) if not matched else (None, {})
         email_details["should_receive"][recv_email] = {
             "matched": matched,
             "checked": detail.get("emails_checked") if isinstance(detail, dict) else None,
@@ -560,7 +592,12 @@ def main() -> int:
     # 2.2 Every shouldnt_receive must NOT have emails from sender
     for recv_email, cfg in shouldnt_receive_emails.items():
         imap_cfg = {"email": recv_email, **cfg}
-        emails = find_emails_from_sender(imap_cfg, sender_query_for_imap, folder="INBOX", fetch_limit=200)
+        emails = []
+        for attempt in range(1, DEFAULT_MAX_ATTEMPTS + 1):
+            emails = find_emails_from_sender(imap_cfg, sender_query_for_imap, folder="INBOX", fetch_limit=200)
+            if emails or attempt >= DEFAULT_MAX_ATTEMPTS:
+                break
+            time.sleep(DEFAULT_POLL_S)
         none_found = len(emails) == 0
         email_details["shouldnt_receive"][recv_email] = {
             "none_found": none_found,

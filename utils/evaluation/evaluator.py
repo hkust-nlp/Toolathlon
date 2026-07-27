@@ -5,6 +5,11 @@ from utils.general.helper import run_command, read_json, write_json
 import logging
 import os
 
+# An in-memory identity marker cannot be forged by a JSON trajectory.  The
+# containerized evaluator adds it only after replacing the trajectory config
+# with the trusted, pre-agent resolved TaskConfig from its private bundle.
+TRUSTED_RESOLVED_CONFIG_MARKER = object()
+
 class TaskEvaluator:
     """Task evaluator"""
     
@@ -22,7 +27,13 @@ class TaskEvaluator:
         - remote status: manually call MCP server to check if remote status is normally modified [not sure if possible]
         Use the above content to determine whether the task execution is successful or not
         """
-        task_config = TaskConfig.from_dict(dump_line['config'])
+        if (
+            dump_line.get("_toolathlon_resolved_config_marker")
+            is TRUSTED_RESOLVED_CONFIG_MARKER
+        ):
+            task_config = TaskConfig.from_resolved_dict(dump_line['config'])
+        else:
+            task_config = TaskConfig.from_dict(dump_line['config'])
         task_status = dump_line['status']
         # Prepare information for evaluation
         res_log_file = task_config.log_file

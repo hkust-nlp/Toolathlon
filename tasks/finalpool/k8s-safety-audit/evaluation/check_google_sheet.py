@@ -13,6 +13,8 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from argparse import ArgumentParser
 
+from utils.evaluation.retry import grade_with_retry
+
 # In Week3, Pod Name may only be a prefix, allow prefix-matching during comparison.
 STRICT_PODNAME_MATCH = False
 
@@ -264,37 +266,7 @@ def main():
         print(f"Failed to initialize Google clients: {e}", file=sys.stderr)
         sys.exit(1)
 
-    # 2) Find the spreadsheet
-    try:
-        spreadsheet_id = find_spreadsheet_in_folder(drive_service, args.folder_id, SPREADSHEET_NAME)
-        if not spreadsheet_id:
-            print(f"Spreadsheet '{SPREADSHEET_NAME}' not found in folder {args.folder_id}", file=sys.stderr)
-            sys.exit(1)
-        print(f"Found spreadsheet '{SPREADSHEET_NAME}': {spreadsheet_id}")
-    except Exception as e:
-        print(f"Error finding spreadsheet: {e}", file=sys.stderr)
-        sys.exit(1)
-
-    # 3) Read Week3 sheet values
-    try:
-        values = read_sheet_values(sheets_service, spreadsheet_id, TARGET_SHEET_NAME)
-        if not values:
-            print(f"Sheet '{TARGET_SHEET_NAME}' is empty.", file=sys.stderr)
-            sys.exit(1)
-        headers = values[0]
-        missing = [h for h in EXPECTED_HEADERS if h not in headers]
-        if missing:
-            print(f"Warning: sheet '{TARGET_SHEET_NAME}' missing headers: {missing}", file=sys.stderr)
-        week3_rows = rows_to_dicts(values)
-        print(f"Loaded {len(week3_rows)} rows from sheet '{TARGET_SHEET_NAME}'.")
-    except HttpError as e:
-        print(f"Failed to read sheet '{TARGET_SHEET_NAME}': {e}", file=sys.stderr)
-        sys.exit(1)
-
-    # for row in week3_rows:
-    #     print(f"Processing row: {row}")
-
-    # 4) Load benchmark and build GT using live pod info
+    # 4) Load benchmark and build GT using live pod info (kubectl, no propagation lag)
     try:
         bench = load_benchmark_rows()
         gt_rows = build_gt_from_live(bench, args.kubeconfig_path)
@@ -306,18 +278,32 @@ def main():
         print(f"Failed to build GT: {e}", file=sys.stderr)
         sys.exit(1)
 
-    # for row in gt_rows:
-    #     print(f"Processing GT row: {row}")
+    # 2+3+5) Find spreadsheet, read Week3 values, and compare — all Google API
+    # work that may lag due to eventual consistency.  Wrap as one retryable
+    # check so propagation delays don't cause spurious failures.
+    def _check_sheet():
+        try:
+            spreadsheet_id = find_spreadsheet_in_folder(drive_service, args.folder_id, SPREADSHEET_NAME)
+            if not spreadsheet_id:
+                return False, f"Spreadsheet '{SPREADSHEET_NAME}' not found in folder {args.folder_id}"
+            values = read_sheet_values(sheets_service, spreadsheet_id, TARGET_SHEET_NAME)
+            if not values:
+                return False, f"Sheet '{TARGET_SHEET_NAME}' is empty."
+            week3_rows = rows_to_dicts(values)
+            diffs = compare_week3_with_gt(week3_rows, gt_rows)
+            if diffs:
+                return False, "Differences found:\n" + "\n".join(" - " + d for d in diffs)
+            return True, None
+        except HttpError as e:
+            return False, f"Failed to read sheet '{TARGET_SHEET_NAME}': {e}"
+        except Exception as e:
+            return False, f"Error during Google Sheets check: {e}"
 
-    # 5) Compare Week3 and GT
-    diffs = compare_week3_with_gt(week3_rows, gt_rows)
-    if not diffs:
-        print("All rows match Week3 ✔")
-    else:
-        print("Differences found:")
-        for d in diffs:
-            print(" -", d)
+    ok, err = grade_with_retry(_check_sheet)
+    if not ok:
+        print(err, file=sys.stderr)
         sys.exit(1)
+    print("All rows match Week3 ✔")
 
 if __name__ == "__main__":
     main()

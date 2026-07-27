@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 import sys
 import os
 from .check_local import main as check_local_main
+from utils.evaluation.retry import grade_with_retry
 
 if __name__ == "__main__":
     parser = ArgumentParser()
@@ -21,9 +22,10 @@ if __name__ == "__main__":
         print(f"❌ Error: Configuration validation failed: {e}")
         exit(1)
 
-    # Run email check
+    # Run email check (Layer 2 retry: IMAP propagation lag)
     try:
-        success = check_local_main()
+        ok, _err = grade_with_retry(lambda: (bool(check_local_main()), None))
+        success = bool(ok)
     except Exception as e:
         print(f"❌ An exception occurred during execution: {e}")
         success = False

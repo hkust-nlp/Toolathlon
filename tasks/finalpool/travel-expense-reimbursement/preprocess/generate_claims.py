@@ -8,7 +8,8 @@ def generate_all_expense_claims(
     policy: Dict[str, Any],
     fixed_seed: int,
     generate_claims_for_employee,
-    inject_form_errors
+    inject_form_errors,
+    find_policy_violations,
 ) -> List[Dict[str, Any]]:
     """Generate expense claims for all employees.
     
@@ -19,6 +20,7 @@ def generate_all_expense_claims(
         fixed_seed: Random seed for reproducibility
         generate_claims_for_employee: Function to generate claims for an employee
         inject_form_errors: Function to inject form errors
+        find_policy_violations: Function that derives violations from line items
     
     Returns:
         List of all generated expense claims
@@ -29,19 +31,32 @@ def generate_all_expense_claims(
     
     # Generate claims with errors for EMP001-EMP004
     for emp in employees_with_errors:
-        emp_claims, next_seq = generate_claims_for_employee(emp, policy, next_seq, rng)
+        emp_claims, next_seq = generate_claims_for_employee(
+            emp,
+            policy,
+            next_seq,
+            rng,
+            allow_policy_violations=True,
+        )
         generated_claims.extend(emp_claims)
     
-    # Inject form errors for these claims (policy violations are already set)
+    # Inject form errors for these claims; final policy labels are recomputed below.
     inject_form_errors(generated_claims, rng)
     
     # Generate claims without errors for EMP005-EMP008
     for emp in employees_no_errors:
-        emp_claims, next_seq = generate_claims_for_employee(emp, policy, next_seq, rng)
-        # Clear any violations and errors to ensure no errors
-        for claim in emp_claims:
-            claim['_policy_violations'] = []
-            claim['_form_errors'] = []
+        emp_claims, next_seq = generate_claims_for_employee(
+            emp,
+            policy,
+            next_seq,
+            rng,
+            allow_policy_violations=False,
+        )
         generated_claims.extend(emp_claims)
+
+    # Form-error injection can change line-item amounts. Always derive the final
+    # policy labels from the final line items instead of preserving stale labels.
+    for claim in generated_claims:
+        claim['_policy_violations'] = find_policy_violations(claim, policy)
     
     return generated_claims

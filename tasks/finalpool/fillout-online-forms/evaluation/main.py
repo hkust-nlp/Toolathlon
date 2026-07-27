@@ -12,6 +12,7 @@ from googleapiclient.discovery import build
 import sys
 from pathlib import Path
 from utils.general.helper import read_json, normalize_str
+from utils.evaluation.retry import grade_with_retry
 
 GOOGLE_CREDENTIAL_FILE = "configs/google_credentials.json"
 file_path = os.path.dirname(__file__)
@@ -122,45 +123,49 @@ if __name__=="__main__":
     
     # Get OAuth2 credentials
     credentials = get_credentials()
-    
-    # Get form structure (question text)
-    question_map = get_form_structure(form_id, credentials)
-    
-    # Get all responses
-    all_responses = get_form_responses(form_id, credentials)
-    
-    assert all_responses, "No responses found"
-    
-    print(f"Found {len(all_responses)} responses")
-    
-    needed_names = {"alex": "Alex Wang", "mcp": "MCP Wang"}
-    needed_responses = {}
 
-    for shortname, name in needed_names.items():
-        print(f"Searching and checking response for {name}")
-        found = False
-        for response in all_responses[::-1]:
-            formatted_response = format_response(response, question_map)
-            if formatted_response['answers']['Name'] == name:
-                needed_responses[shortname] = formatted_response
-                found = True
-                break
+    def _check_form():
+        # Google Forms API responses can lag a few seconds after submission —
+        # wrap the fetch+verify in a single retryable check.
+        question_map = get_form_structure(form_id, credentials)
+        all_responses = get_form_responses(form_id, credentials)
+        if not all_responses:
+            return False, "No responses found"
+        print(f"Found {len(all_responses)} responses")
 
-        if not found:
-            raise ValueError(f"No response found for {name}")
+        needed_names = {"alex": "Alex Wang", "mcp": "MCP Wang"}
+        needed_responses = {}
 
-        # Check the response against ground truth
-        gt_file = os.path.join(args.groundtruth_workspace, f"{shortname}_response.json")
-        gt_data = read_json(gt_file)
-        pred_data = needed_responses[shortname]['answers']
-        for key, value in gt_data.items():
-            assert key in pred_data, f"No response found for {key}"
-            if value is not None:
-                if isinstance(value, list):
-                    assert pred_data[key] == value, f"Answer mismatch: {key} = {pred_data[key]} != {value}"
-                elif isinstance(value, str):
-                    assert normalize_str(pred_data[key]) == normalize_str(value), f"Answer mismatch: {key} = {pred_data[key]} != {value}"
-                else:
-                    assert pred_data[key] == value, f"Answer mismatch: {key} = {pred_data[key]} != {value}"
+        for shortname, name in needed_names.items():
+            found = False
+            for response in all_responses[::-1]:
+                formatted_response = format_response(response, question_map)
+                if formatted_response['answers'].get('Name') == name:
+                    needed_responses[shortname] = formatted_response
+                    found = True
+                    break
+            if not found:
+                return False, f"No response found for {name}"
+
+            gt_file = os.path.join(args.groundtruth_workspace, f"{shortname}_response.json")
+            gt_data = read_json(gt_file)
+            pred_data = needed_responses[shortname]['answers']
+            for key, value in gt_data.items():
+                if key not in pred_data:
+                    return False, f"No response found for {key}"
+                if value is not None:
+                    if isinstance(value, list):
+                        if pred_data[key] != value:
+                            return False, f"Answer mismatch: {key} = {pred_data[key]} != {value}"
+                    elif isinstance(value, str):
+                        if normalize_str(pred_data[key]) != normalize_str(value):
+                            return False, f"Answer mismatch: {key} = {pred_data[key]} != {value}"
+                    else:
+                        if pred_data[key] != value:
+                            return False, f"Answer mismatch: {key} = {pred_data[key]} != {value}"
+        return True, None
+
+    ok, err = grade_with_retry(_check_form)
+    assert ok, err
 
     print("Pass all tests!")

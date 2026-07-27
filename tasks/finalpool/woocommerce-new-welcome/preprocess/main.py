@@ -74,8 +74,13 @@ def setup_woocommerce_orders() -> Dict:
         print(f"✅ Successfully deleted {deleted_count} existing orders")
 
         # Step 2: Generate new order data
+        # Fixed seed so repeated preprocess runs produce identical orders
+        # (statuses, products, dates).  Without a seed, create_new_welcome_orders
+        # calls random.seed(None) → system time → status assignment diverges
+        # between runs, breaking same-task reproducibility (agent reads orders
+        # to find first-time customers in the past 7 days).
         print("📦 Generating new order data...")
-        all_orders, first_time_orders = create_new_welcome_orders()
+        all_orders, first_time_orders = create_new_welcome_orders(seed=42)
 
         # Step 3: Upload new orders to WooCommerce
         print("📤 Uploading new orders to WooCommerce...")

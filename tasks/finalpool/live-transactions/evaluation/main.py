@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 import os
 import json
 import tempfile
+import time
 from datetime import datetime, timedelta
 from google.oauth2 import service_account
 from google.cloud import storage
@@ -21,7 +22,19 @@ with open(CREDENTIALS_PATH, 'r') as f:
     PROJECT_ID = service_account_info.get('project_id')
 
 def search_structured_log_payload(transaction_id="T8492XJ3", project_id="mcp-bench0606", hours_back=24, log_bucket_name="Trading_Logging", task_launch_time=None, task_eval_time=None):
-    """Search for log entries with specific structured payload"""
+    """Search for log entries with specific structured payload.
+
+    Cloud Logging writes are eventually consistent: the write API returns
+    as soon as the entry hits the ingestion buffer, but the entry is not
+    queryable via list_entries until indexing completes (~8-15 s in our
+    measurements).  We poll for up to RETRY_BUDGET_S so the grader
+    doesn't race the ingestion path.
+    """
+    # Conservative budget for sweep-load conditions (many concurrent
+    # tasks share GCP project quota → longer lag tail).
+    RETRY_BUDGET_S = 180.0
+    POLL_INTERVAL_S = 5.0
+
     print(f"🔍 Searching for structured log payload for transaction: {transaction_id}")
 
     # Build expected payload structure
@@ -32,7 +45,11 @@ def search_structured_log_payload(transaction_id="T8492XJ3", project_id="mcp-ben
     }
 
     # Build filter query for logs containing the transaction_id
-    filter_query = f'logName="projects/{project_id}/logs/{log_bucket_name}" AND NOT jsonPayload.logging\\.googleapis\\.com/diagnostic AND jsonPayload.transaction_id="{transaction_id}" OR textPayload:"{transaction_id}"'
+    filter_query = (
+        f'logName="projects/{project_id}/logs/{log_bucket_name}" '
+        f'AND NOT jsonPayload.logging\\.googleapis\\.com/diagnostic '
+        f'AND (jsonPayload.transaction_id="{transaction_id}" OR textPayload:"{transaction_id}")'
+    )
 
     # add time range filter
     default_timezone = datetime.now().astimezone().tzinfo
@@ -43,57 +60,52 @@ def search_structured_log_payload(transaction_id="T8492XJ3", project_id="mcp-ben
         task_eval_time_str = datetime.strptime(task_eval_time, "%Y-%m-%d %H:%M:%S %A").astimezone(default_timezone).strftime("%Y-%m-%dT%H:%M:%S+00:00")
         filter_query += f' AND timestamp <= "{task_eval_time_str}"'
 
-    # Initialize logging client
     logging_client = cloud_logging.Client(project=project_id, credentials=credentials)
 
-    # List log entries with filter
-    log_entries = list(logging_client.list_entries(
-        filter_=filter_query,
-        page_size=500
-    ))
+    deadline = time.time() + RETRY_BUDGET_S
+    attempt = 0
+    while True:
+        attempt += 1
+        log_entries = list(logging_client.list_entries(
+            filter_=filter_query,
+            page_size=500,
+        ))
 
-    if not log_entries:
-        print(f"📝 No logs found for transaction {transaction_id}")
-        return False, []
-
-    print(f"📊 Found {len(log_entries)} log entries")
-
-    # Search for matching payloads
-    matching_entries = []
-
-    for entry in log_entries:
-        # Convert entry to dict
-        entry_dict = {
-            'timestamp': entry.timestamp.isoformat() if entry.timestamp else 'Unknown',
-            'jsonPayload': entry.payload if isinstance(entry.payload, dict) else None,
-            'textPayload': entry.payload if isinstance(entry.payload, str) else None
-        }
-
-        # Check jsonPayload
-        json_payload = entry_dict.get('jsonPayload')
-        if json_payload:
-            if validate_log_payload_structure(json_payload, expected_payload):
+        # Search for matching payloads in the current snapshot
+        matching_entries = []
+        for entry in log_entries:
+            entry_dict = {
+                'timestamp': entry.timestamp.isoformat() if entry.timestamp else 'Unknown',
+                'jsonPayload': entry.payload if isinstance(entry.payload, dict) else None,
+                'textPayload': entry.payload if isinstance(entry.payload, str) else None,
+            }
+            json_payload = entry_dict.get('jsonPayload')
+            if json_payload and validate_log_payload_structure(json_payload, expected_payload):
                 matching_entries.append(entry_dict)
                 continue
+            text_payload = entry_dict.get('textPayload', '')
+            if text_payload:
+                parsed_text = try_parse_json_string(text_payload)
+                if isinstance(parsed_text, dict) and validate_log_payload_structure(parsed_text, expected_payload):
+                    matching_entries.append(entry_dict)
+                elif (transaction_id in text_payload and
+                      'Fraud' in text_payload and
+                      'Pending_Investigation' in text_payload):
+                    matching_entries.append(entry_dict)
 
-        # Check textPayload for JSON
-        text_payload = entry_dict.get('textPayload', '')
-        if text_payload:
-            # Try to parse textPayload as JSON
-            parsed_text = try_parse_json_string(text_payload)
-            if isinstance(parsed_text, dict) and validate_log_payload_structure(parsed_text, expected_payload):
-                matching_entries.append(entry_dict)
-            elif (transaction_id in text_payload and
-                  'Fraud' in text_payload and
-                  'Pending_Investigation' in text_payload):
-                matching_entries.append(entry_dict)
+        if matching_entries:
+            print(f"📊 Found {len(log_entries)} log entries after {attempt} attempt(s)")
+            print(f"✅ Found {len(matching_entries)} log entries with matching structured payload")
+            return True, matching_entries
 
-    if matching_entries:
-        print(f"✅ Found {len(matching_entries)} log entries with matching structured payload")
-        return True, matching_entries
-    else:
-        print(f"❌ No log entries found with expected structured payload")
-        return False, []
+        remaining = deadline - time.time()
+        if remaining <= 0:
+            print(f"❌ Retry budget {RETRY_BUDGET_S:.0f}s exhausted after {attempt} attempt(s) — no matching log entries.")
+            print(f"   Last snapshot saw {len(log_entries)} entries matching the filter (transaction_id={transaction_id}), none had the expected payload shape.")
+            return False, []
+        sleep_for = min(POLL_INTERVAL_S, remaining)
+        print(f"   attempt {attempt}: {len(log_entries)} entries visible, none yet match expected payload; sleeping {sleep_for:.1f}s")
+        time.sleep(sleep_for)
 
 def validate_log_payload_structure(payload, expected_payload):
     """Validate if log payload matches the expected structure"""
@@ -138,7 +150,18 @@ def validate_trading_log_bucket(transaction_id="T8492XJ3", project_id="mcp-bench
         raise ValueError("Trading_Logging bucket does not exist")
     
     # Search for expected structured payload
-    found_payload, matching_entries = search_structured_log_payload(transaction_id, project_id, log_bucket_name, task_launch_time, task_eval_time)
+    # NOTE: use keyword args — search_structured_log_payload has a
+    # vestigial ``hours_back`` parameter between ``project_id`` and
+    # ``log_bucket_name``, so a positional call shifts every arg left
+    # by one and ends up querying a bucket named after the launch_time
+    # string.  This silently made the task always fail.
+    found_payload, matching_entries = search_structured_log_payload(
+        transaction_id=transaction_id,
+        project_id=project_id,
+        log_bucket_name=log_bucket_name,
+        task_launch_time=task_launch_time,
+        task_eval_time=task_eval_time,
+    )
     
     if not found_payload:
         expected_structure = {
@@ -343,12 +366,25 @@ def validate_nested_content(groundtruth_data: dict, agent_data: dict, path: str 
                 if len(normalized_agent_value) < len(expected_value):
                     missing_items.append(f"List length mismatch at {current_path}: expected at least {len(expected_value)}, got {len(normalized_agent_value)}")
                 elif len(expected_value) > 0 and len(normalized_agent_value) > 0:
-                    if isinstance(expected_value[0], dict) and isinstance(normalized_agent_value[0], dict):
-                        missing_items.extend(validate_nested_content(expected_value[0], normalized_agent_value[0], f"{current_path}[0]"))
-                    elif isinstance(expected_value[0], dict):
-                        for i, expected_item in enumerate(expected_value):
-                            if i < len(normalized_agent_value) and isinstance(normalized_agent_value[i], dict):
-                                missing_items.extend(validate_nested_content(expected_item, normalized_agent_value[i], f"{current_path}[{i}]"))
+                    comparable_expected = expected_value
+                    comparable_agent = normalized_agent_value
+                    if (
+                        key == "related_transactions"
+                        and all(isinstance(item, dict) for item in expected_value)
+                        and all(isinstance(item, dict) for item in normalized_agent_value)
+                    ):
+                        comparable_expected = sorted(expected_value, key=lambda item: item.get("transaction_id", ""))
+                        comparable_agent = sorted(normalized_agent_value, key=lambda item: item.get("transaction_id", ""))
+
+                    if isinstance(comparable_expected[0], dict):
+                        for i, expected_item in enumerate(comparable_expected):
+                            if i >= len(comparable_agent):
+                                continue
+                            agent_item = comparable_agent[i]
+                            if not isinstance(agent_item, dict):
+                                missing_items.append(f"Type mismatch at {current_path}[{i}]: expected dict, got {type(agent_item).__name__}")
+                                continue
+                            missing_items.extend(validate_nested_content(expected_item, agent_item, f"{current_path}[{i}]"))
         
         # For basic types, check value for important fields
         else:

@@ -13,6 +13,7 @@ import aiohttp
 import hashlib
 import imaplib
 import email
+import time
 from email.header import decode_header
 from typing import Dict, List, Tuple, Any
 import sys
@@ -293,47 +294,76 @@ async def check_film101_assignments(base_url: str, api_token: str, groundtruth_w
     print(f"👤 Current user ID: {current_user_id}")
     
     # Early email check: require an email to mcpcanvasadmin2@mcp.com with attachment "Leave Application.pdf"
+    # ----------------------------------------------------------
+    # SMTP→IMAP visibility lag: the agent's send_email MCP tool
+    # returns success as soon as the SMTP server returns 250 OK, but
+    # the message still has to traverse poste.io's delivery queue
+    # before becoming IMAP-visible.  Under sweep load (many concurrent
+    # tasks pushing email) the queue tail extends to seconds.  A
+    # single-shot IMAP scan races that queue and reports the email
+    # missing even though the agent did everything correctly.  Poll
+    # for up to EMAIL_RETRY_BUDGET_S so the grader doesn't race the
+    # delivery path.
+    EMAIL_RETRY_BUDGET_S = 60.0
+    EMAIL_POLL_INTERVAL_S = 3.0
     try:
         imap_server = 'localhost'
         imap_port = 1143
         email_address = all_token_key_session.admin_email_address
         email_password = all_token_key_session.admin_email_password
-        imap_conn = imaplib.IMAP4(imap_server, imap_port)
-        imap_conn.login(email_address, email_password)
-        imap_conn.select('INBOX')
-        status, message_numbers = imap_conn.search(None, 'ALL')
+
+        deadline = time.time() + EMAIL_RETRY_BUDGET_S
+        attempt = 0
         found_required_email = False
-        if status == 'OK':
-            for num in message_numbers[0].split()[-50:]:  # check recent up to 50
-                status, message_data = imap_conn.fetch(num, '(RFC822)')
-                if status != 'OK':
-                    continue
-                msg = email.message_from_bytes(message_data[0][1])
-                # Check attachments
-                if msg.is_multipart():
-                    for part in msg.walk():
-                        content_disposition = str(part.get('Content-Disposition', ''))
-                        if 'attachment' in content_disposition:
-                            filename = part.get_filename()
-                            if filename:
-                                decoded = decode_header(filename)[0]
-                                fname = decoded[0]
-                                if isinstance(fname, bytes):
-                                    try:
-                                        fname = fname.decode(decoded[1] or 'utf-8', errors='ignore')
-                                    except Exception:
-                                        fname = fname.decode('utf-8', errors='ignore')
-                                if fname.strip() == 'Leave Application.pdf':
-                                    found_required_email = True
-                                    break
-                if found_required_email:
-                    break
-        if not found_required_email:
-            imap_conn.logout()
-            return False, 'Required email with attachment Leave Application.pdf not found; evaluation aborted'
-        else:
-            print("Required email with attachment Leave Application.pdf found")
-        imap_conn.logout()
+        last_msg_count = 0
+        while True:
+            attempt += 1
+            imap_conn = imaplib.IMAP4(imap_server, imap_port)
+            try:
+                imap_conn.login(email_address, email_password)
+                imap_conn.select('INBOX')
+                status, message_numbers = imap_conn.search(None, 'ALL')
+                if status == 'OK':
+                    nums = message_numbers[0].split()
+                    last_msg_count = len(nums)
+                    for num in nums[-50:]:  # check recent up to 50
+                        status, message_data = imap_conn.fetch(num, '(RFC822)')
+                        if status != 'OK':
+                            continue
+                        msg = email.message_from_bytes(message_data[0][1])
+                        if msg.is_multipart():
+                            for part in msg.walk():
+                                content_disposition = str(part.get('Content-Disposition', ''))
+                                if 'attachment' in content_disposition:
+                                    filename = part.get_filename()
+                                    if filename:
+                                        decoded = decode_header(filename)[0]
+                                        fname = decoded[0]
+                                        if isinstance(fname, bytes):
+                                            try:
+                                                fname = fname.decode(decoded[1] or 'utf-8', errors='ignore')
+                                            except Exception:
+                                                fname = fname.decode('utf-8', errors='ignore')
+                                        if fname.strip() == 'Leave Application.pdf':
+                                            found_required_email = True
+                                            break
+                        if found_required_email:
+                            break
+            finally:
+                try: imap_conn.logout()
+                except Exception: pass
+
+            if found_required_email:
+                print(f"Required email with attachment Leave Application.pdf found (attempt {attempt}, {last_msg_count} msgs in INBOX)")
+                break
+
+            remaining = deadline - time.time()
+            if remaining <= 0:
+                print(f"❌ Email retry budget {EMAIL_RETRY_BUDGET_S:.0f}s exhausted after {attempt} attempt(s)")
+                return False, 'Required email with attachment Leave Application.pdf not found; evaluation aborted'
+            sleep_for = min(EMAIL_POLL_INTERVAL_S, remaining)
+            print(f"   email attempt {attempt}: {last_msg_count} msgs visible, attachment not seen yet; sleeping {sleep_for:.1f}s")
+            time.sleep(sleep_for)
     except Exception as e:
         print(f"⚠️ Email check skipped due to error: {e}")
     

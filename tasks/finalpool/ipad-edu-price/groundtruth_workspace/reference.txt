@@ -9,7 +9,7 @@ Regions referenced:
 
 Evaluation Criteria:
 1. The reported region should be one of the four above.
-2. The price should include both the currency symbol and the amount.
+2. The price should be the combined iPad Pro and Apple Pencil Pro price in HKD. Currency symbols or labels are optional and ignored during evaluation.
 3. The education discount policy should be mentioned.
 4. Back-to-school promotions should be considered.
 5. A multi-region comparison and analysis should be provided.

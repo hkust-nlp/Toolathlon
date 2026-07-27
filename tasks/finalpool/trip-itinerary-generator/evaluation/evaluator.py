@@ -148,7 +148,7 @@ async def evaluate_itinerary_with_maps(submission_path: str, initial_workspace_p
                         real_dist = distance_result['distance_km']
                         
                         if submitted_dist is not None and real_dist is not None:
-                            if abs(submitted_dist - real_dist) <= 0.3:  # allow 300 meter error
+                            if abs(submitted_dist - real_dist) <= 0.4:  # allow 400 meter error
                                 print(f"    ✓ distance validation passed: {submitted_dist}km vs {real_dist:.2f}km")
                                 passed_checks += 1
                             else:

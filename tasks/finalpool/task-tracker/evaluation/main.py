@@ -10,6 +10,8 @@ import configs.token_key_session as configs
 # Import Notion utility functions
 from notion_client import Client
 
+from utils.evaluation.retry import grade_with_retry
+
 
 def extract_task_information_from_database(database_entries: List[Dict]) -> List[Dict]:
     """Extract task information from Notion database entries"""
@@ -377,7 +379,10 @@ def run_complete_evaluation(agent_workspace, groundtruth_workspace):
     # Step 1: Check Notion Database vs Excel File
     print("\n📊 STEP 1: Checking Notion Database vs Local Excel File...")
     try:
-        notion_success, notion_message = check_notion_database(groundtruth_workspace)
+        notion_success, notion_message = grade_with_retry(
+            lambda: check_notion_database(groundtruth_workspace),
+            max_attempts=4,
+        )
         print(notion_message)
         results.append(f"Notion Database Check: {'✅ PASSED' if notion_success else '❌ FAILED'}")
         if not notion_success:

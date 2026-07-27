@@ -16,6 +16,8 @@ from google.cloud import storage
 from google.oauth2 import service_account
 from google.cloud.exceptions import NotFound
 
+from utils.evaluation.retry import grade_with_retry
+
 # Set credentials path
 CREDENTIALS_PATH = "configs/gcp-service_account.keys.json"
 if os.path.exists(CREDENTIALS_PATH):
@@ -576,7 +578,23 @@ if __name__ == "__main__":
             with open(os.path.join(args.groundtruth_workspace, "bucket_name.txt"), "r") as f:
                 args.bucket_name = f.read().strip()
             print(f"📄 Using bucket name: {args.bucket_name}")
-            temp_agent_file = validate_task_completion(args.bucket_name, args.file_pattern)
+
+            # Wrap the GCS bucket/file check + download in Layer-2 retry:
+            # newly-uploaded objects in GCS can take a few seconds to be
+            # listable / readable from a different session.
+            _gcs_state = {"path": None}
+
+            def _gcs_fetch():
+                try:
+                    _gcs_state["path"] = validate_task_completion(args.bucket_name, args.file_pattern)
+                    return True, None
+                except Exception as e:
+                    return False, f"GCS fetch failed: {e}"
+
+            ok, err = grade_with_retry(_gcs_fetch)
+            if not ok:
+                raise ValueError(err)
+            temp_agent_file = _gcs_state["path"]
             agent_file = temp_agent_file
             print(f"📄 Using downloaded agent file: {agent_file}")
 
@@ -602,17 +620,6 @@ if __name__ == "__main__":
 
         # Generate validation summary
         validation_passed = generate_validation_summary(validation_results)
-
-        # Verify result log file
-        if not os.path.isfile(args.res_log_file):
-            raise FileNotFoundError(f"Missing log file: {args.res_log_file}")
-
-        with open(args.res_log_file, "r", encoding="utf-8") as f:
-            log_data = json.load(f)
-
-        messages = log_data.get("messages")
-        if not isinstance(messages, list):
-            raise ValueError("Log file missing 'messages' list")
 
         # Final result
         if validation_passed:

@@ -26,19 +26,33 @@ if __name__=="__main__":
         print(f"File {needed_file} should have 3 lines")
         exit(1)
 
-    # we need one line can match either "leizhang" or 'zhanglei'
-    # and one line can match either "hongshengli" or "lihongsheng"
-    # haochen is not detected, as the statistics from paper copilot may be inaccurate
-    leizhang_found = False
+    # Hongsheng Li must be present, and at least two of the other three
+    # researchers must be present. Both given-name-first and family-name-first
+    # variants are accepted for each researcher.
     hongshengli_found = False
+    other_researchers_found = {
+        "leizhang": False,
+        "qifengchen": False,
+        "luoping": False,
+    }
 
     for normed_line in normalized_lines:
-        if "leizhang" in normed_line or "zhanglei" in normed_line:
-            leizhang_found = True
         if "hongshengli" in normed_line or "lihongsheng" in normed_line:
             hongshengli_found = True
-    if not leizhang_found or not hongshengli_found:
-        print(f"File {needed_file} should have at least one line can match either 'leizhang' or 'zhanglei' and at least one line can match either 'hongshengli' or 'lihongsheng'")
+        if "leizhang" in normed_line or "zhanglei" in normed_line:
+            other_researchers_found["leizhang"] = True
+        if "qifengchen" in normed_line or "chenqifeng" in normed_line:
+            other_researchers_found["qifengchen"] = True
+        if "luoping" in normed_line or "pingluo" in normed_line:
+            other_researchers_found["luoping"] = True
+
+    if not hongshengli_found or sum(other_researchers_found.values()) < 2:
+        print(
+            f"File {needed_file} should contain either 'hongshengli' or "
+            "'lihongsheng', and at least two of these three researchers: "
+            "'leizhang'/'zhanglei', 'qifengchen'/'chenqifeng', and "
+            "'luoping'/'pingluo'"
+        )
         exit(1)
     print("Pass all tests!")
     exit(0)

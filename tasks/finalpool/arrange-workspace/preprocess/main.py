@@ -13,13 +13,34 @@ def main():
     os.makedirs(args.agent_workspace, exist_ok=True)
     dst_tar_path = os.path.join(args.agent_workspace, "initial_workspace.tar.gz")
 
-    # Extract tar.gz file
+    # Extract tar.gz file, stripping the top-level
+    # ``initial_workspace_arrange/`` wrapper so files land directly at
+    # the agent workspace root.  The wrapper was a packaging convenience
+    # inside the tar; the prompt and grader both describe the target
+    # tree relative to the workspace root.  Without this strip, agents
+    # reasonably interpret "organize files in my workspace" as either
+    # (a) moving things out of the wrapper [passes grader] or
+    # (b) reorganizing inside the wrapper [fails grader — GT_STRUCTURE
+    # is checked at workspace root].  Removing the wrapper eliminates
+    # that ambiguity.
+    PREFIX = "initial_workspace_arrange/"
     try:
         with tarfile.open(dst_tar_path, 'r:gz') as tar:
             print(f"Extracting to: {args.agent_workspace}")
-            # Use the filter parameter to avoid deprecation warning in Python 3.14+
-            tar.extractall(path=args.agent_workspace, filter='data')
-            print("Extraction completed")
+            members = []
+            for m in tar.getmembers():
+                if m.name == PREFIX.rstrip('/'):
+                    # The wrapper-directory entry itself — skip.
+                    continue
+                if m.name.startswith(PREFIX):
+                    m.name = m.name[len(PREFIX):]
+                if m.name:
+                    members.append(m)
+            # filter='data' guards against absolute paths / symlink
+            # escapes (Python 3.14 deprecation also expects an explicit
+            # filter).
+            tar.extractall(path=args.agent_workspace, members=members, filter='data')
+            print(f"Extraction completed ({len(members)} entries; '{PREFIX}' wrapper stripped)")
     except Exception as e:
         print(f"Extraction failed: {e}")
         return

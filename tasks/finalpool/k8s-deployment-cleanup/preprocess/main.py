@@ -18,9 +18,18 @@ if __name__=="__main__":
     print("Constructing the cluster with old deployments in dev-* namespaces...")
     
     script_path = os.path.join(os.path.dirname(__file__), "..", "scripts", "k8s_deployment_cleanup.sh")
-    asyncio.run(run_command(
+    # Capture and propagate the bash script's returncode.  Without this,
+    # a non-zero exit (kind create failure, image-pull deadlock, etc.)
+    # would be silently swallowed → preprocess reports "done" → client
+    # thinks the cluster is ready when it isn't.
+    import sys
+    _, _, rc = asyncio.run(run_command(
                 f"bash {script_path} start {args.agent_workspace}", debug=True, show_output=True))
-    
+    if rc != 0:
+        print(f"k8s_deployment_cleanup.sh failed with returncode={rc}; aborting preprocess",
+              file=sys.stderr)
+        sys.exit(rc)
+
     print_color("Cluster constructed with old deployments ready for cleanup","green")
     
     # exit(0)

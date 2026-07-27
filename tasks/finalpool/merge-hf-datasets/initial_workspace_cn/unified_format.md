@@ -9,6 +9,16 @@
   - `tool_call_id`: (仅tool角色) 对应的工具调用ID
 - `tools`: 工具定义列表
 
+## 工具参数转换规则
+
+- 每个工具的 `parameters` 必须表示为包含 `type`、`properties` 和 `required` 的 JSON Schema 风格对象。
+- 当源数据集使用平铺参数映射时（例如 XLAM），将每个源参数放入 `properties`。
+- 满足以下任一条件的参数均为可选参数，不得出现在 `required` 中：
+  - 源参数包含显式的 `default` 键，包括其值为 `null` 的情况。
+  - 参数以逗号分隔的 `type` 标注中包含不区分大小写的 `optional` 标记（例如 `str, optional`）。
+- 其余参数都必须按源参数顺序加入 `required`；没有必填参数时使用空列表。
+- 必须先判断参数是否可选，再规范化源数据中的类型别名。不要根据参数描述中的自然语言推断参数是否可选。
+
 ## 注意事项
 - 如果system只包含了工具集与应该怎样使用工具的指导，则该数据集请去除system，只保留从user开始的对话和工具集
 - 如果assistant只调用了工具，则其content为null

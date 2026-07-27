@@ -9,8 +9,9 @@ task_dir = os.path.dirname(current_dir)
 sys.path.insert(0, task_dir)
 
 # from check_log import check_log
-# from check_local import check_local  
+# from check_local import check_local
 from .check_remote import check_remote
+from utils.evaluation.retry import grade_with_retry
 
 def read_json(file_path):
     """Read JSON file helper"""
@@ -38,7 +39,7 @@ def run_complete_evaluation(agent_workspace: str, groundtruth_workspace: str, re
     # Step 3: Check remote services
     print("\n🌐 STEP 3: Checking Remote Services...")
     try:
-        remote_pass, remote_msg = check_remote(agent_workspace, groundtruth_workspace, res_log)
+        remote_pass, remote_msg = grade_with_retry(lambda: check_remote(agent_workspace, groundtruth_workspace, res_log))
         results.append(("Remote Services", remote_pass, remote_msg))
         print(f"{'✅' if remote_pass else '❌'} {remote_msg}")
     except Exception as e:

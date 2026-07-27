@@ -53,6 +53,10 @@ class ContainerPreprocessTests(unittest.TestCase):
             max_turns=15,
             max_steps_under_single_turn_mode=30,
             local_token_key_session={"x": "y"},
+            to_resolved_dict=lambda: {
+                "task_dir": "finalpool/demo-task",
+                "local_token_key_session": {"x": "y"},
+            },
         )
 
         bundle = build_task_bundle(
@@ -73,6 +77,10 @@ class ContainerPreprocessTests(unittest.TestCase):
             bundle["container_paths"]["task_root"],
             "/container/dumps/finalpool/demo-task",
         )
+        self.assertEqual(bundle["schema_version"], 2)
+        self.assertEqual(
+            bundle["resolved_task_config"]["local_token_key_session"], {"x": "y"}
+        )
 
     def test_build_task_bundle_falls_back_to_container_paths(self) -> None:
         task_config = SimpleNamespace(
@@ -91,6 +99,10 @@ class ContainerPreprocessTests(unittest.TestCase):
             max_turns=15,
             max_steps_under_single_turn_mode=30,
             local_token_key_session=None,
+            to_resolved_dict=lambda: {
+                "task_dir": "finalpool/demo-task",
+                "local_token_key_session": None,
+            },
         )
 
         bundle = build_task_bundle(

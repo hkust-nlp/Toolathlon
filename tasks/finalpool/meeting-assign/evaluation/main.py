@@ -10,6 +10,7 @@ import re
 from datetime import datetime, timedelta, timezone
 import os
 from utils.general.helper import normalize_str
+from utils.evaluation.retry import grade_with_retry
 
 def check_local_email(target_email="jjones@mcp.com", agent_email="donna_castillo56@mcp.com"):
     """Check if email was sent to target recipient with correct content via local IMAP"""
@@ -116,7 +117,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     print("🚀 Meeting Assign - Evaluation")
-    success, message = check_local_email()
+    success, message = grade_with_retry(lambda: check_local_email())
     
     # Final result
     print("=" * 50)

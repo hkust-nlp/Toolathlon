@@ -7,6 +7,32 @@ import numbers
 import re
 from utils.general.helper import normalize_str
 
+
+def _to_year_month(val):
+    """Coerce ``val`` into a canonical ``YYYY-MM`` string when possible.
+
+    Used to bridge a known template/GT inconsistency: the Bill_Format.xlsx
+    template pre-fills the Month-summary cells as Excel datetime cells
+    (e.g. ``datetime(2025, 4, 1)`` displayed as "Apr 2025"), while the
+    GT was authored with plain strings like ``"2025-04"``.  An agent that
+    obeys the task's "do not change the original layout" rule keeps the
+    datetime cells intact and would otherwise mismatch on type alone.
+
+    Returns the normalized string, or ``None`` if ``val`` doesn't look
+    like a month-level date — in which case the caller falls back to the
+    regular string / number compare.
+    """
+    if isinstance(val, datetime):
+        return val.strftime("%Y-%m")
+    if isinstance(val, str):
+        s = val.strip()
+        # Accept 'YYYY-MM' or 'YYYY/MM', with optional trailing '-DD' / '/DD'.
+        m = re.match(r'^(\d{4})[-/](\d{1,2})(?:[-/]\d{1,2})?$', s)
+        if m:
+            return f"{m.group(1)}-{int(m.group(2)):02d}"
+    return None
+
+
 def compare_element(agent_element, groundtruth_element):
     agent_type = type(agent_element)
     gt_type = type(groundtruth_element)
@@ -15,6 +41,16 @@ def compare_element(agent_element, groundtruth_element):
             return False, None
         else:
             return True, f"Value diff: agent provides {agent_element} while groundtruth is {groundtruth_element}."
+    # Datetime ↔ string year-month bridge.  Fires only when both sides
+    # parse as a month-level date; otherwise falls through to the regular
+    # equality checks below.
+    a_ym = _to_year_month(agent_element)
+    g_ym = _to_year_month(groundtruth_element)
+    if a_ym is not None and g_ym is not None:
+        if a_ym == g_ym:
+            return False, None
+        else:
+            return True, f"Year-month diff: agent provides {agent_element!r} ({a_ym}) while groundtruth is {groundtruth_element!r} ({g_ym})."
     if agent_type != gt_type:
         return True, f"Type diff: agent provides element type in {agent_type} while groundtruth is {gt_type}."
     if agent_type == str:

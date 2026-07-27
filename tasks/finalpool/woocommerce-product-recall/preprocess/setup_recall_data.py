@@ -252,11 +252,17 @@ class RecallTaskSetup:
             Creation result dictionary
         """
         print("📋 Creating historical orders with recalled products...")
-        
+
+        # Seed RNG for reproducibility: same task running multiple times
+        # must produce identical orders (number, products, dates, quantities).
+        # Without this, random.randint / random.choice use system time and
+        # the agent sees a different order set each preprocess run.
+        random.seed(42)
+
         if not self.data_setup.created_products or not self.data_setup.created_customers:
             print("❌ Need to create products and customers first")
             return {"success": False, "error": "Missing product or customer data"}
-        
+
         # Get recalled products
         recalled_products = [p for p in self.data_setup.created_products if p.get('is_recalled')]
         if not recalled_products:

@@ -1,5 +1,6 @@
 import os
 import shutil
+import sys
 import asyncio
 from utils.general.helper import run_command
 from argparse import ArgumentParser
@@ -37,11 +38,18 @@ if __name__ == "__main__":
     print("Constructing the Kind cluster with Redis Helm deployment...")
 
     script_path = os.path.join(os.path.dirname(__file__), "..", "scripts","init_redis_helm.sh")
-    asyncio.run(run_command(
-        f"bash {script_path} start {source_values_file} {args.agent_workspace}", 
-        debug=True, 
+    # Propagate the bash script's returncode so a failed helm install
+    # (image pull stuck, chart not found, etc.) doesn't get reported
+    # as "preprocess done".
+    _, _, rc = asyncio.run(run_command(
+        f"bash {script_path} start {source_values_file} {args.agent_workspace}",
+        debug=True,
         show_output=True
-    )) 
+    ))
+    if rc != 0:
+        print(f"init_redis_helm.sh failed with returncode={rc}; aborting preprocess",
+              file=sys.stderr)
+        sys.exit(rc)
     print("Cluster constructed and Redis deployed via Helm")
     
     print("Initialization complete")

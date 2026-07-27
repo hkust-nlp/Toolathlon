@@ -1,9 +1,52 @@
 import requests
 import sys
 import os
-from typing import Dict, List, Tuple, Optional
+from typing import Callable, Dict, List, Tuple, Optional
 
-def get_notion_workspace_pages(token):
+
+def _collect_paginated_results(
+    fetch_page: Callable[[Optional[str]], Dict], resource_name: str
+) -> Dict:
+    """Collect a complete Notion list response and guard cursor loops."""
+    all_results = []
+    cursor = None
+    seen_cursors = set()
+    latest_page = {}
+
+    while True:
+        page = fetch_page(cursor)
+        if not isinstance(page, dict):
+            raise ValueError(f"Notion {resource_name} response is not an object")
+
+        page_results = page.get('results', [])
+        if not isinstance(page_results, list):
+            raise ValueError(f"Notion {resource_name} results is not a list")
+        all_results.extend(page_results)
+        latest_page = page
+
+        if not page.get('has_more', False):
+            break
+
+        next_cursor = page.get('next_cursor')
+        if not next_cursor:
+            raise ValueError(
+                f"Notion {resource_name} response has_more=True without next_cursor"
+            )
+        if next_cursor in seen_cursors:
+            raise ValueError(
+                f"Notion {resource_name} repeated next_cursor: {next_cursor}"
+            )
+        seen_cursors.add(next_cursor)
+        cursor = next_cursor
+
+    return {
+        **latest_page,
+        'results': all_results,
+        'has_more': False,
+        'next_cursor': None,
+    }
+
+def get_notion_workspace_pages(token, query=None):
     """Get all pages in Notion workspace"""
     url = "https://api.notion.com/v1/search"
     headers = {
@@ -13,7 +56,7 @@ def get_notion_workspace_pages(token):
     }
     
     # Search all pages
-    payload = {
+    base_payload = {
         "filter": {
             "value": "page",
             "property": "object"
@@ -21,13 +64,22 @@ def get_notion_workspace_pages(token):
         "sort": {
             "direction": "descending",
             "timestamp": "last_edited_time"
-        }
+        },
+        "page_size": 100,
     }
-    
-    try:
+    if query:
+        base_payload['query'] = query
+
+    def fetch_page(cursor):
+        payload = dict(base_payload)
+        if cursor:
+            payload['start_cursor'] = cursor
         response = requests.post(url, headers=headers, json=payload)
         response.raise_for_status()
         return response.json()
+
+    try:
+        return _collect_paginated_results(fetch_page, "workspace search")
     except requests.exceptions.RequestException as e:
         raise Exception(f"Failed to get workspace pages: {e}")
 
@@ -51,7 +103,7 @@ def get_notion_page_properties(page_id, token):
 def find_page_by_title(token, target_title, partial_match=True):
     """Find page by title"""
     try:
-        pages_data = get_notion_workspace_pages(token)
+        pages_data = get_notion_workspace_pages(token, target_title)
         matching_pages = []
         print(f"----- Searching for page: '{target_title}' (partial_match={partial_match}) -----")
         print(f"Found {len(pages_data.get('results', []))} total pages")
@@ -103,10 +155,16 @@ def get_notion_page_blocks(page_id, token):
         "Content-Type": "application/json"
     }
     
-    try:
-        response = requests.get(url, headers=headers)
+    def fetch_page(cursor):
+        params = {'page_size': 100}
+        if cursor:
+            params['start_cursor'] = cursor
+        response = requests.get(url, headers=headers, params=params)
         response.raise_for_status()
         return response.json()
+
+    try:
+        return _collect_paginated_results(fetch_page, f"block children for {page_id}")
     except requests.exceptions.RequestException as e:
         raise Exception(f"Failed to get page blocks: {e}")
 
@@ -217,10 +275,18 @@ def get_database_entries(database_id, token):
         "Content-Type": "application/json"
     }
     
-    try:
-        response = requests.post(url, headers=headers, json={})
+    def fetch_page(cursor):
+        payload = {'page_size': 100}
+        if cursor:
+            payload['start_cursor'] = cursor
+        response = requests.post(url, headers=headers, json=payload)
         response.raise_for_status()
         return response.json()
+
+    try:
+        return _collect_paginated_results(
+            fetch_page, f"database entries for {database_id}"
+        )
     except requests.exceptions.RequestException as e:
         raise Exception(f"Failed to get database entries: {e}")
 

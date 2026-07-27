@@ -13,6 +13,7 @@ from utils.general.base_models import *
 from utils.api_model.semaphore import SmartAsyncSemaphore
 from utils.logging.logging_utils import RequestLogger
 from utils.api_model.model_provider import API_MAPPINGS, calculate_cost
+from utils.api_model.usage_stats import extract_cached_input_tokens, split_cached_input_tokens
 
 # Set up logging
 logging.basicConfig(level=logging.WARNING)
@@ -142,12 +143,24 @@ class AsyncOpenAIClientWithRetry:
         
         return model_key
     
-    def _calculate_cost(self, model: str, input_tokens: int, output_tokens: int) -> CostReport:
+    def _calculate_cost(
+        self,
+        model: str,
+        input_tokens: int,
+        output_tokens: int,
+        cached_input_tokens: int | None = None,
+    ) -> CostReport:
         """Calculate usage cost."""
+        cached_input_tokens, non_cached_input_tokens = split_cached_input_tokens(
+            input_tokens,
+            cached_input_tokens,
+        )
         if model not in API_MAPPINGS:
             return CostReport(
                 input_tokens=input_tokens,
                 output_tokens=output_tokens,
+                cached_input_tokens=cached_input_tokens,
+                non_cached_input_tokens=non_cached_input_tokens,
                 input_cost=0,
                 output_cost=0,
                 total_cost=0,
@@ -160,6 +173,8 @@ class AsyncOpenAIClientWithRetry:
         report = CostReport(
             input_tokens=input_tokens,
             output_tokens=output_tokens,
+            cached_input_tokens=cached_input_tokens,
+            non_cached_input_tokens=non_cached_input_tokens,
             input_cost=input_cost,
             output_cost=output_cost,
             total_cost=total_cost,
@@ -271,11 +286,13 @@ class AsyncOpenAIClientWithRetry:
                 
                 # Handle cost
                 cost_report = None
-                if self.track_costs and hasattr(response, 'usage'):
+                response_usage = getattr(response, "usage", None)
+                if self.track_costs and response_usage:
                     cost_report = self._calculate_cost(
                         model_key,
-                        response.usage.prompt_tokens,
-                        response.usage.completion_tokens
+                        response_usage.prompt_tokens,
+                        response_usage.completion_tokens,
+                        extract_cached_input_tokens(response_usage),
                     )
                 
                 # Extract tool_calls if available
@@ -337,6 +354,13 @@ class AsyncOpenAIClientWithRetry:
                 "total_cost": 0,
                 "total_input_tokens": 0,
                 "total_output_tokens": 0,
+                "total_cached_input_tokens": 0,
+                "total_non_cached_input_tokens": 0,
+                "max_sequence_tokens": 0,
+                "max_sequence_input_tokens": 0,
+                "max_sequence_output_tokens": 0,
+                "max_input_tokens": 0,
+                "max_output_tokens": 0,
                 "request_count": 0,
                 "by_model": {}
             }
@@ -356,10 +380,35 @@ class AsyncOpenAIClientWithRetry:
             by_model[report.model]["output_tokens"] += report.output_tokens
             by_model[report.model]["count"] += 1
         
+        max_report = max(
+            self.cost_history,
+            key=lambda report: report.input_tokens + report.output_tokens,
+        )
+        cache_details_complete = all(
+            report.cached_input_tokens is not None
+            and report.non_cached_input_tokens is not None
+            for report in self.cost_history
+        )
+
         return {
             "total_cost": self.total_cost,
             "total_input_tokens": sum(r.input_tokens for r in self.cost_history),
             "total_output_tokens": sum(r.output_tokens for r in self.cost_history),
+            "total_cached_input_tokens": (
+                sum(r.cached_input_tokens for r in self.cost_history)
+                if cache_details_complete
+                else None
+            ),
+            "total_non_cached_input_tokens": (
+                sum(r.non_cached_input_tokens for r in self.cost_history)
+                if cache_details_complete
+                else None
+            ),
+            "max_sequence_tokens": max_report.input_tokens + max_report.output_tokens,
+            "max_sequence_input_tokens": max_report.input_tokens,
+            "max_sequence_output_tokens": max_report.output_tokens,
+            "max_input_tokens": max(r.input_tokens for r in self.cost_history),
+            "max_output_tokens": max(r.output_tokens for r in self.cost_history),
             "request_count": len(self.cost_history),
             "by_model": by_model
         }

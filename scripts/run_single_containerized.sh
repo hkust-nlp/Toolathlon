@@ -22,20 +22,44 @@ provider=${5:-"unified"}
 maxstep=${6:-"100"}
 eval_config=${7:-"scripts/formal_run_v0.json"}
 image_name=${8:-"lockon0927/toolathlon-task-image:1016beta"}
+containerized_mode=${TOOLATHLON_CONTAINERIZED_MODE:-"phased"}
+parent_captures_run_log=${TOOLATHLON_PARENT_CAPTURES_RUN_LOG:-"0"}
 
-taskdomain=${task_dir_arg%/*}
-taskname=${task_dir_arg#*/}
-
-# Set up log paths using dump_path
-container_log_path="${dump_path}/${taskdomain}/${taskname}/container.log"
-run_log_path="${dump_path}/${taskdomain}/${taskname}/run.log"
-output_folder="${dump_path}/${taskdomain}/${taskname}"
+case "$containerized_mode" in
+    phased)
+        ;;
+    legacy)
+        echo "WARNING: TOOLATHLON_CONTAINERIZED_MODE=legacy disables grader/ground-truth isolation." >&2
+        ;;
+    *)
+        echo "Error: unsupported TOOLATHLON_CONTAINERIZED_MODE: $containerized_mode" >&2
+        echo "Supported values: phased, legacy" >&2
+        exit 1
+        ;;
+esac
 
 if [ -z "$task_dir_arg" ] || [ -z "$runmode" ] || [ -z "$modelname" ]; then
     echo "Usage: $0 <task_dir> <runmode> <modelname>"
     echo "Example: $0 debug/debug-task testrun testmodel"
     exit 1
 fi
+
+taskdomain=${task_dir_arg%/*}
+taskname=${task_dir_arg#*/}
+
+if [[ ! "$task_dir_arg" =~ ^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$ ]] || \
+   [ "$taskdomain" = "." ] || [ "$taskdomain" = ".." ] || \
+   [ "$taskname" = "." ] || [ "$taskname" = ".." ]; then
+    echo "Error: task_dir must be a safe domain/task_name path: $task_dir_arg" >&2
+    exit 1
+fi
+
+CONTAINER_TASK_PATH="/workspace/tasks/$task_dir_arg"
+
+# Set up log paths using dump_path
+container_log_path="${dump_path}/${taskdomain}/${taskname}/container.log"
+run_log_path="${dump_path}/${taskdomain}/${taskname}/run.log"
+output_folder="${dump_path}/${taskdomain}/${taskname}"
 
 # Get project root directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -50,6 +74,7 @@ echo "Container log: $container_log_path"
 echo "Run log: $run_log_path"
 echo "Output folder: $output_folder"
 echo "Dump path: $dump_path"
+echo "Containerized execution mode: $containerized_mode"
 
 # Read container runtime configuration
 CONTAINER_RUNTIME=$(uv run python -c "
@@ -103,12 +128,12 @@ echo "Container name: $CONTAINER_NAME"
 # --- BEGIN: Detect and propagate TOOLATHLON_OPENAI env vars from host to container ---
 EXTRA_ENV_ARGS=()
 if [ ! -z "${TOOLATHLON_OPENAI_BASE_URL+x}" ]; then
-    EXTRA_ENV_ARGS+=("-e" "TOOLATHLON_OPENAI_BASE_URL=${TOOLATHLON_OPENAI_BASE_URL}")
+    EXTRA_ENV_ARGS+=("-e" "TOOLATHLON_OPENAI_BASE_URL")
     echo "Detected host TOOLATHLON_OPENAI_BASE_URL, will pass into container"
 fi
 
 if [ ! -z "${TOOLATHLON_OPENAI_API_KEY+x}" ]; then
-    EXTRA_ENV_ARGS+=("-e" "TOOLATHLON_OPENAI_API_KEY=${TOOLATHLON_OPENAI_API_KEY}")
+    EXTRA_ENV_ARGS+=("-e" "TOOLATHLON_OPENAI_API_KEY")
     echo "Detected host TOOLATHLON_OPENAI_API_KEY, will pass into container"
 fi
 
@@ -134,10 +159,37 @@ if [ ! -z "${TOOLATHLON_MODEL_PARAMS_FILE+x}" ] && [ -f "${TOOLATHLON_MODEL_PARA
 fi
 # --- END: Detect and propagate TOOLATHLON_OPENAI env vars ---
 
+# Private host-side state used only by phased mode.  Initialize these before
+# installing the trap so cleanup is safe on every early-exit path.
+ARTIFACT_STASH_DIR=""
+TRUSTED_STASH_DIR=""
+CURRENT_CONTAINER_BUNDLE=""
+
 # Cleanup function
 cleanup() {
+    cleanup_exit_code=$?
+    trap - EXIT
+    set +e
     echo ""
     echo "Performing cleanup..."
+
+    if [ -n "$CURRENT_CONTAINER_BUNDLE" ]; then
+        $CONTAINER_RUNTIME exec "$CONTAINER_NAME" rm -f -- "$CURRENT_CONTAINER_BUNDLE" >/dev/null 2>&1 || true
+        CURRENT_CONTAINER_BUNDLE=""
+    fi
+
+    if [ -n "$ARTIFACT_STASH_DIR" ]; then
+        uv run python -m scripts.containerized.task_artifact_guard cleanup \
+            --stash-dir "$ARTIFACT_STASH_DIR" >/dev/null 2>&1 || \
+            echo "  Warning: failed to clean artifact stash: $ARTIFACT_STASH_DIR" >&2
+        ARTIFACT_STASH_DIR=""
+    fi
+
+    if [ -n "$TRUSTED_STASH_DIR" ] && [ -d "$TRUSTED_STASH_DIR" ]; then
+        rm -rf -- "$TRUSTED_STASH_DIR"
+        TRUSTED_STASH_DIR=""
+    fi
+
     # Stop and remove container if exists
     if $CONTAINER_RUNTIME ps -aq --filter "name=$CONTAINER_NAME" 2>/dev/null | grep -q .; then
         echo "  Stopping and removing container: $CONTAINER_NAME"
@@ -146,6 +198,7 @@ cleanup() {
         echo "  ✓ Container stopped and removed"
     fi
     echo "Cleanup completed"
+    exit "$cleanup_exit_code"
 }
 trap cleanup EXIT
 
@@ -260,6 +313,27 @@ output_folder=$(realpath "$output_folder")
 RUN_LOG_DIR=$(realpath "$RUN_LOG_DIR")
 
 # Add mounts
+# Bind-mount the host's configs/.mcp-auth so OAuth-refresh writes from
+# mcp-remote inside the container persist back to host disk.  Notion's
+# OAuth refresh_token rotates on every use; without this, the rotated
+# token would die with the container and the next container would
+# read a stale (now-invalidated) token and fail with "Grant not found".
+# The mount path matches MCP_REMOTE_CONFIG_DIR in
+# configs/mcp_servers/notion_official.yaml ("./configs/.mcp-auth", which
+# resolves to /workspace/configs/.mcp-auth inside the container).
+mkdir -p "$PROJECT_ROOT/configs/.mcp-auth"
+START_CONTAINER_ARGS+=(
+    "-v" "$PROJECT_ROOT/configs/.mcp-auth:/workspace/configs/.mcp-auth"
+)
+
+# Overlay the pinned Notion MCP's restrictive OpenAPI schema at runtime.
+NOTION_OPENAPI_PATCH="$PROJECT_ROOT/configs/notion-mcp-patches/notion-openapi.json"
+if [ -f "$NOTION_OPENAPI_PATCH" ]; then
+    START_CONTAINER_ARGS+=(
+        "-v" "$NOTION_OPENAPI_PATCH:/workspace/node_modules/@notionhq/notion-mcp-server/scripts/notion-openapi.json:ro"
+    )
+fi
+
 START_CONTAINER_ARGS+=(
     # Mount output folder as /workspace/dumps
     "-v" "$output_folder:/workspace/dumps"
@@ -270,7 +344,7 @@ START_CONTAINER_ARGS+=(
     # Set image
     "$IMAGE_NAME"
     # Keep the container alive for later exec
-    "sleep" "3600"
+    "sleep" "7200"
 )
 
 echo "Container start command: ${START_CONTAINER_ARGS[*]}"
@@ -334,17 +408,39 @@ $CONTAINER_RUNTIME exec "$CONTAINER_NAME" mkdir -p "/workspace/deployment/canvas
 $CONTAINER_RUNTIME exec "$CONTAINER_NAME" mkdir -p "/workspace/global_preparation"
 $CONTAINER_RUNTIME exec "$CONTAINER_NAME" mkdir -p "/workspace/tasks"
 
-# Copy basic files and directories to container
+# Copy basic files and directories to container.
+#
+# For directories, use the ``src/.`` ("contents only") cp pattern with the
+# destination pre-created.  Plain ``docker cp src dest`` would put src
+# INSIDE dest when dest exists — and dest does exist whenever a bind
+# mount above caused Docker to auto-create the destination's parent
+# (e.g. /workspace/configs is auto-created here because we bind-mount
+# /workspace/configs/.mcp-auth).  Without this pattern, configs/ contents
+# would land at /workspace/configs/configs/* instead of /workspace/configs/*,
+# breaking module imports like ``configs.global_configs``.
 for item in "${FILES_TO_COPY[@]}"; do
     if [ -e "$PROJECT_ROOT/$item" ]; then
         echo "  Copying $item to container..."
         if [ -d "$PROJECT_ROOT/$item" ]; then
+            $CONTAINER_RUNTIME exec "$CONTAINER_NAME" mkdir -p "/workspace/$item"
+            if [ "$item" = "configs" ] && [ -d "$PROJECT_ROOT/configs/.mcp-auth" ]; then
+                _stage=$(mktemp -d)
+                (
+                    cd "$PROJECT_ROOT/configs" && \
+                    find . -mindepth 1 -maxdepth 1 ! -name '.mcp-auth' -exec cp -a {} "$_stage/" \;
+                )
+                $CONTAINER_RUNTIME cp "$_stage/." "$CONTAINER_NAME:/workspace/$item/"
+                rm -rf "$_stage"
+            else
+                $CONTAINER_RUNTIME cp "$PROJECT_ROOT/$item/." "$CONTAINER_NAME:/workspace/$item/"
+            fi
+        else
             parent_dir=$(dirname "$item")
             if [ "$parent_dir" != "." ]; then
                 $CONTAINER_RUNTIME exec "$CONTAINER_NAME" mkdir -p "/workspace/$parent_dir"
             fi
+            $CONTAINER_RUNTIME cp "$PROJECT_ROOT/$item" "$CONTAINER_NAME:/workspace/$item"
         fi
-        $CONTAINER_RUNTIME cp "$PROJECT_ROOT/$item" "$CONTAINER_NAME:/workspace/$item"
     fi
 done
 
@@ -355,6 +451,9 @@ if [ "$TARGET_PARENT_DIR" != "." ]; then
     $CONTAINER_RUNTIME exec "$CONTAINER_NAME" mkdir -p "/workspace/tasks/$TARGET_PARENT_DIR"
 fi
 # Copy actual task directory
+# The image may already contain a same-named task. Remove it first so docker
+# cp cannot merge stale evaluator files into the trusted source snapshot.
+$CONTAINER_RUNTIME exec "$CONTAINER_NAME" rm -rf -- "$CONTAINER_TASK_PATH"
 $CONTAINER_RUNTIME cp "$TASK_SOURCE" "$CONTAINER_NAME:/workspace/tasks/$TARGET_PARENT_DIR/"
 
 echo "✓ File copying completed"
@@ -387,10 +486,7 @@ fi
 
 # Copy MCP auth directory if it exists (prefer ./configs/.mcp-auth over ~/.mcp-auth)
 if [ -d "$PROJECT_ROOT/configs/.mcp-auth" ]; then
-    echo " Copying MCP authentication data from ./configs/.mcp-auth to container..."
-    $CONTAINER_RUNTIME exec "$CONTAINER_NAME" mkdir -p /root/.mcp-auth
-    $CONTAINER_RUNTIME cp "$PROJECT_ROOT/configs/.mcp-auth/." "$CONTAINER_NAME:/root/.mcp-auth/"
-    echo "✓ MCP auth data copied from project configs"
+    echo " Using bind-mounted MCP authentication data from ./configs/.mcp-auth"
 elif [ -d "$HOME/.mcp-auth" ]; then
     echo " ./configs/.mcp-auth not found, falling back to ~/.mcp-auth..."
     echo " Copying MCP authentication data from ~/.mcp-auth to container..."
@@ -426,46 +522,204 @@ else
     exit 1
 fi
 
-# Step 3: Execute task command in container
+# Step 3: Execute task command(s) in container
 echo ""
-echo "Step 3: Executing task command in container..."
+echo "Step 3: Executing task in $containerized_mode mode..."
 
-# Build environment variables array for exec command
+# Build environment variables array for exec commands.
 EXEC_ENV_ARGS=("--env" "DOCKER_API_VERSION=1.44")
-
-# Add TOOLATHLON_MODEL_PARAMS_FILE if it was copied
 if [ ! -z "$CONTAINER_MODEL_PARAMS_FILE" ]; then
     EXEC_ENV_ARGS+=("--env" "TOOLATHLON_MODEL_PARAMS_FILE=${CONTAINER_MODEL_PARAMS_FILE}")
     echo "Setting container env: TOOLATHLON_MODEL_PARAMS_FILE=${CONTAINER_MODEL_PARAMS_FILE}"
 fi
 
-# When running commands in the container, these env variables are already present due to -e at startup.
+# Normal runs append every phase to the same run.log. Quickstart keeps the
+# existing interactive TTY behavior.
+run_container_phase() {
+    if [ "$runmode" = "quickstart" ]; then
+        $CONTAINER_RUNTIME exec "${EXEC_ENV_ARGS[@]}" -t "$CONTAINER_NAME" "$@"
+    elif [ "$parent_captures_run_log" = "1" ]; then
+        # run_parallel.py already owns run.log and captures this stdout stream.
+        $CONTAINER_RUNTIME exec "${EXEC_ENV_ARGS[@]}" "$CONTAINER_NAME" "$@"
+    else
+        $CONTAINER_RUNTIME exec "${EXEC_ENV_ARGS[@]}" "$CONTAINER_NAME" "$@" >> "$run_log_path" 2>&1
+    fi
+}
 
-CONTAINER_CMD="uv run main.py --eval_config $eval_config --task_dir $task_dir_arg --max_steps_under_single_turn_mode $maxstep --model_short_name $modelname --provider $provider --debug > /workspace/logs/$RUN_LOG_FILE_NAME 2>&1"
-CONTAINER_CMD_DISPLAY_INPLACE="uv run main.py --eval_config $eval_config --task_dir $task_dir_arg --max_steps_under_single_turn_mode $maxstep --model_short_name $modelname --provider $provider --debug"
+stage_trusted_bundle() {
+    CURRENT_CONTAINER_BUNDLE=$(
+        $CONTAINER_RUNTIME exec "$CONTAINER_NAME" \
+            mktemp /run/toolathlon-task-bundle.XXXXXX.json
+    )
+    if [ -z "$CURRENT_CONTAINER_BUNDLE" ]; then
+        echo "✗ Failed to allocate a private container bundle path" >&2
+        return 1
+    fi
+    $CONTAINER_RUNTIME cp \
+        "$TRUSTED_BUNDLE_FILE" \
+        "$CONTAINER_NAME:$CURRENT_CONTAINER_BUNDLE"
+    $CONTAINER_RUNTIME exec "$CONTAINER_NAME" chmod 600 "$CURRENT_CONTAINER_BUNDLE"
+}
 
-# if quickstart mode, use the display inplace command
-if [ "$runmode" = "quickstart" ]; then
-    CONTAINER_CMD="$CONTAINER_CMD_DISPLAY_INPLACE"
-else
-    CONTAINER_CMD="$CONTAINER_CMD"
+discard_container_bundle() {
+    if [ -n "$CURRENT_CONTAINER_BUNDLE" ]; then
+        $CONTAINER_RUNTIME exec "$CONTAINER_NAME" \
+            rm -f -- "$CURRENT_CONTAINER_BUNDLE" >/dev/null 2>&1 || true
+        CURRENT_CONTAINER_BUNDLE=""
+    fi
+}
+
+if [ "$runmode" != "quickstart" ] && [ "$parent_captures_run_log" != "1" ]; then
+    : > "$run_log_path"
 fi
 
-
-echo "Executing command in container: $CONTAINER_CMD"
-echo ""
-
-# Actually run the task inside the container
-echo "Executing task, please wait for a while ..."
-if [ "$runmode" = "quickstart" ]; then
-    $CONTAINER_RUNTIME exec "${EXEC_ENV_ARGS[@]}" -t "$CONTAINER_NAME" bash -c "$CONTAINER_CMD"
+if [ "$containerized_mode" = "legacy" ]; then
+    echo "Executing legacy one-shot task flow..."
+    set +e
+    run_container_phase \
+        uv run main.py \
+        --eval_config "$eval_config" \
+        --task_dir "$task_dir_arg" \
+        --max_steps_under_single_turn_mode "$maxstep" \
+        --model_short_name "$modelname" \
+        --provider "$provider" \
+        --debug
+    EXEC_EXIT_CODE=$?
+    set -e
 else
-    $CONTAINER_RUNTIME exec "${EXEC_ENV_ARGS[@]}" "$CONTAINER_NAME" bash -c "$CONTAINER_CMD"
+    # Keep trusted state under the host's /tmp, which this runner never mounts
+    # into the task container.  Do not honor TMPDIR: callers may point it at
+    # the bind-mounted task output directory.
+    TRUSTED_STASH_DIR=$(mktemp -d "/tmp/toolathlon-containerized.XXXXXX")
+    chmod 700 "$TRUSTED_STASH_DIR"
+    TRUSTED_BUNDLE_FILE="$TRUSTED_STASH_DIR/task_bundle.json"
+    PREPROCESS_CONTAINER_BUNDLE=$(
+        $CONTAINER_RUNTIME exec "$CONTAINER_NAME" \
+            mktemp /run/toolathlon-preprocess-bundle.XXXXXX.json
+    )
+    CURRENT_CONTAINER_BUNDLE="$PREPROCESS_CONTAINER_BUNDLE"
+
+    echo "Step 3.1: Running preprocess..."
+    set +e
+    run_container_phase \
+        uv run python -m scripts.decoupled.container_preprocess \
+        --eval_config "$eval_config" \
+        --task_dir "$task_dir_arg" \
+        --max_steps_under_single_turn_mode "$maxstep" \
+        --model_short_name "$modelname" \
+        --provider "$provider" \
+        --bundle_file "$PREPROCESS_CONTAINER_BUNDLE" \
+        --debug
+    PREPROCESS_EXIT_CODE=$?
+    set -e
+    if [ "$PREPROCESS_EXIT_CODE" -ne 0 ]; then
+        echo "✗ Preprocess failed, exit code: $PREPROCESS_EXIT_CODE" >&2
+        exit "$PREPROCESS_EXIT_CODE"
+    fi
+
+    # Move the trusted, resolved bundle off-container before the model runs.
+    $CONTAINER_RUNTIME cp \
+        "$CONTAINER_NAME:$PREPROCESS_CONTAINER_BUNDLE" \
+        "$TRUSTED_BUNDLE_FILE"
+    chmod 600 "$TRUSTED_BUNDLE_FILE"
+    discard_container_bundle
+    uv run python -c '
+import json, posixpath, sys
+with open(sys.argv[1], "r", encoding="utf-8") as bundle_file:
+    bundle = json.load(bundle_file)
+if bundle.get("schema_version") != 2 or not isinstance(bundle.get("resolved_task_config"), dict):
+    raise SystemExit("preprocess produced an incomplete trusted task bundle")
+container_paths = bundle.get("container_paths")
+task_root = container_paths.get("task_root") if isinstance(container_paths, dict) else None
+if not isinstance(task_root, str) or not posixpath.isabs(task_root):
+    raise SystemExit("trusted bundle task root must be an absolute path")
+if posixpath.normpath(task_root) != task_root:
+    raise SystemExit("trusted bundle task root must be normalized")
+try:
+    inside_workspace = posixpath.commonpath(("/workspace", task_root)) == "/workspace"
+except ValueError:
+    inside_workspace = False
+if not inside_workspace:
+    raise SystemExit("trusted bundle task root must be under /workspace")
+' "$TRUSTED_BUNDLE_FILE"
+    CONTAINER_TASK_ROOT=$(uv run python -c '
+import json, sys
+with open(sys.argv[1], "r", encoding="utf-8") as bundle_file:
+    print(json.load(bundle_file)["container_paths"]["task_root"])
+' "$TRUSTED_BUNDLE_FILE")
+    if [ -z "$CONTAINER_TASK_ROOT" ]; then
+        echo "✗ Trusted bundle contains an empty task root" >&2
+        exit 1
+    fi
+
+    echo "Step 3.2: Hiding evaluator and ground-truth artifacts..."
+    mkdir -p "$TRUSTED_STASH_DIR/artifacts"
+    chmod 700 "$TRUSTED_STASH_DIR/artifacts"
+    if ! ARTIFACT_STASH_DIR=$(uv run python -m scripts.containerized.task_artifact_guard stash \
+        --runtime "$CONTAINER_RUNTIME" \
+        --container "$CONTAINER_NAME" \
+        --task-path "$CONTAINER_TASK_PATH" \
+        --stash-root "$TRUSTED_STASH_DIR/artifacts"); then
+        echo "✗ Failed to hide evaluator artifacts; agent will not start" >&2
+        exit 1
+    fi
+
+    echo "Step 3.3: Running prepared agent..."
+    stage_trusted_bundle
+    set +e
+    run_container_phase \
+        uv run python -m scripts.containerized.container_agent \
+        --bundle_file "$CURRENT_CONTAINER_BUNDLE" \
+        --debug
+    AGENT_EXIT_CODE=$?
+    set -e
+    discard_container_bundle
+    if [ "$AGENT_EXIT_CODE" -eq 0 ]; then
+        echo "✓ Agent completed successfully"
+    else
+        echo "✗ Agent failed, exit code: $AGENT_EXIT_CODE; restoring and evaluating anyway" >&2
+    fi
+
+    # Keep the same live container: some tasks intentionally leave processes
+    # (for example kubectl port-forward) running for their evaluator to inspect.
+    echo "Step 3.4: Restoring trusted evaluator artifacts..."
+    uv run python -m scripts.containerized.task_artifact_guard restore \
+        --runtime "$CONTAINER_RUNTIME" \
+        --container "$CONTAINER_NAME" \
+        --task-path "$CONTAINER_TASK_PATH" \
+        --stash-dir "$ARTIFACT_STASH_DIR"
+
+    # Never let an agent-created cached result bypass the real evaluator.
+    $CONTAINER_RUNTIME exec "$CONTAINER_NAME" \
+        rm -rf -- "$CONTAINER_TASK_ROOT/eval_res.json"
+
+    echo "Step 3.5: Running evaluation with trusted config..."
+    stage_trusted_bundle
+    set +e
+    run_container_phase \
+        uv run python -m scripts.decoupled.container_eval \
+        --bundle_file "$CURRENT_CONTAINER_BUNDLE" \
+        --require_resolved_task_config \
+        --boolean_evaluation_status \
+        --consume_bundle \
+        --agent_exit_code "$AGENT_EXIT_CODE"
+    EVAL_EXIT_CODE=$?
+    set -e
+    discard_container_bundle
+    if [ "$EVAL_EXIT_CODE" -eq 0 ]; then
+        echo "✓ Evaluation passed"
+    else
+        echo "✗ Evaluation failed, exit code: $EVAL_EXIT_CODE" >&2
+    fi
+
+    EXEC_EXIT_CODE=$EVAL_EXIT_CODE
+    if [ "$EXEC_EXIT_CODE" -eq 0 ] && [ "$AGENT_EXIT_CODE" -ne 0 ]; then
+        EXEC_EXIT_CODE=$AGENT_EXIT_CODE
+    fi
 fi
-EXEC_EXIT_CODE=$?
 
 echo ""
-if [ $EXEC_EXIT_CODE -eq 0 ]; then
+if [ "$EXEC_EXIT_CODE" -eq 0 ]; then
     echo "✓ Task executed successfully, exit code: $EXEC_EXIT_CODE"
 else
     echo "✗ Task execution failed, exit code: $EXEC_EXIT_CODE"
@@ -473,9 +727,15 @@ fi
 
 EXIT_CODE=$EXEC_EXIT_CODE
 
-# Copy run log from container to host
-echo "Copying run log from container..."
-$CONTAINER_RUNTIME cp "$CONTAINER_NAME:/workspace/logs/$RUN_LOG_FILE_NAME" "$run_log_path" 2>/dev/null || echo "Warning: Could not copy run log from container"
+# Avoid copying the bind-mounted run.log onto itself, which can truncate it on
+# some runtimes. Quickstart is display-in-place and does not create a run.log.
+if [ "$runmode" = "quickstart" ]; then
+    echo "Quickstart output was displayed in place; no run log was generated"
+elif [ "$parent_captures_run_log" = "1" ]; then
+    echo "Run log is being captured by the parent runner: $run_log_path"
+else
+    echo "Run log written directly to: $run_log_path"
+fi
 
 # Display last lines of container and run logs if present
 if [ -f "$container_log_path" ]; then
@@ -486,7 +746,9 @@ if [ -f "$container_log_path" ]; then
     echo "=== Container log path: $container_log_path ==="
 fi
 
-if [ -f "$run_log_path" ]; then
+if [ "$runmode" != "quickstart" ] && \
+   [ "$parent_captures_run_log" != "1" ] && \
+   [ -f "$run_log_path" ]; then
     echo ""
     echo "=== Task run log (last 20 lines) ==="
     tail -20 "$run_log_path"

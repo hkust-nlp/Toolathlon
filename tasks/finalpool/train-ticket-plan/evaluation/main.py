@@ -5,84 +5,84 @@ from pathlib import Path
 from utils.general.helper import read_json
 from datetime import datetime, timedelta
 import json
+import re
 from utils.general.helper import normalize_str
 import time
 
 def resolve_returned_result(res_str: str):
     res_list = []
-    current_train_info = {}
-    
+    current_train_info = None
 
-    for lid,line in enumerate(res_str.split("\n")):
-        if line.strip() == "车次 | 出发站 -> 到达站 | 出发时间 -> 到达时间 | 历时":
+    # 0.3.5 includes "(实际车次train_no: ...)" while 0.3.9 omits it.
+    train_pattern = re.compile(
+        r"^(?P<train>[A-Za-z0-9]+)"
+        r"(?:\(实际车次train_no:\s*(?P<actual>[^)]+)\))?"
+        r"\s+(?P<from_station>.*?)"
+        r"\(telecode:\s*(?P<from_code>[^)]+)\)"
+        r"\s*->\s*"
+        r"(?P<to_station>.*?)"
+        r"\(telecode:\s*(?P<to_code>[^)]+)\)"
+        r"\s+(?P<departure>\d{2}:\d{2})"
+        r"\s*->\s*"
+        r"(?P<arrival>\d{2}:\d{2})"
+        r"\s+历时：(?P<duration>\S+)$"
+    )
+    seat_pattern = re.compile(
+        r"^-\s+(?P<seat_type>.*?):\s+"
+        r"(?P<count>\S+)\s+"
+        r"(?P<price>\d+(?:\.\d+)?)元$"
+    )
+
+    for raw_line in res_str.splitlines():
+        line = raw_line.strip()
+        if not line:
             continue
-        if line.strip() == "":
+
+        # Ignore spacing differences between the 0.3.5 and 0.3.9 headers.
+        if line.replace(" ", "") == "车次|出发站->到达站|出发时间->到达时间|历时":
             continue
-        if "(实际车次train_no:" in line:
-            if current_train_info:
+
+        train_match = train_pattern.match(line)
+        if train_match:
+            if current_train_info is not None:
                 res_list.append(current_train_info)
-                current_train_info = {}
-            # 第一个括号左边的是车次 (The left of the first bracket is the train number)
-            # 第一个括号中间的，分别是 实际车次train_no: xxxx (The middle of the first bracket is the actual train number: xxxx)
-            # 第一到第二个括号中间的是始发站 (The middle of the first and second brackets is the departure station)
-            # 第二个括号中间的是telecode: xxx (The middle of the second bracket is the departure station telecode: xxx)
-            # 第二到第三个括号是 -> 终点站 (The middle of the second and third brackets is the arrival station: xxx -> xxx)
-            # 第三个括号中间的是 telecode: xxx (The middle of the third bracket is the arrival station telecode: xxx)
-            # 第三个括号往后依次是 xx:xx -> xx:xx 历时：xx:xx (The rest of the third bracket is the duration: xx:xx -> xx:xx 历时：xx:xx)
 
-            # 请先找到各个括号 (Please find all the brackets first)
-            first_left_bracket_index = line.find("(")
-            first_right_bracket_index = line.find(")")
-            first_left_bracket_index_2 = line.find("(", first_left_bracket_index+1)
-            first_right_bracket_index_2 = line.find(")", first_left_bracket_index_2+1)
-            first_left_bracket_index_3 = line.find("(", first_right_bracket_index_2+1)
-            first_right_bracket_index_3 = line.find(")", first_left_bracket_index_3+1)
-            
-            # 然后依次解析 (Then parse them one by one)
-            train_no = line[:first_left_bracket_index].strip()
-            train_no_actual = line[first_left_bracket_index+1:first_right_bracket_index].strip()
-            train_no_actual = train_no_actual.split(":")[1].strip()
-            from_station = line[first_right_bracket_index+1:first_left_bracket_index_2].strip()
-            from_station_telecode = line[first_left_bracket_index_2+1:first_right_bracket_index_2].strip('telecode: ')
-            to_station = line[first_right_bracket_index_2+1:first_left_bracket_index_3].strip().strip('->').strip()
-            to_station_telecode = line[first_left_bracket_index_3+1:first_right_bracket_index_3].strip('telecode: ')
-            departure_time_meta = line[first_right_bracket_index_3+1:].strip()
-            departure_time = departure_time_meta.split("->")[0].strip()
-            arrival_time = departure_time_meta.split("->")[1].split("历时：")[0].strip()
-            duration = departure_time_meta.split("历时：")[1].strip()
-            current_train_info['train_number'] = train_no
-            current_train_info['train_number_actual'] = train_no_actual
-            current_train_info['from_station'] = from_station
-            current_train_info['from_station_telecode'] = from_station_telecode
-            current_train_info['to_station'] = to_station
-            current_train_info['to_station_telecode'] = to_station_telecode
-            current_train_info['departure_time'] = departure_time
-            current_train_info['arrival_time'] = arrival_time
-            current_train_info['duration'] = duration
+            data = train_match.groupdict()
+            current_train_info = {
+                'train_number': data['train'],
+                'train_number_actual': data['actual'],
+                'from_station': data['from_station'].strip(),
+                'from_station_telecode': data['from_code'].strip(),
+                'to_station': data['to_station'].strip(),
+                'to_station_telecode': data['to_code'].strip(),
+                'departure_time': data['departure'],
+                'arrival_time': data['arrival'],
+                'duration': data['duration'],
+                'seats': [],
+            }
+            continue
 
-        else:
-            # 解析座位信息 (Parse the seat information)
-            if line.startswith("- "):
-                # 解析座位信息 (Parse the seat information)
-                linex = line[2:]
-                seat_type = linex.split()[0].rstrip(":")
-                seat_num_xx = linex.split()[1]
-                if "无票" in seat_num_xx:
-                    seat_num = 0
-                elif "有票" in seat_num_xx:
-                    seat_num = 20
-                else:
-                    seat_num = int(seat_num_xx.lstrip("剩余").rstrip("张票"))
-                seat_price = int(linex.split()[2].rstrip("元"))
-                if 'seats' not in current_train_info:
-                    current_train_info['seats'] = []
-                current_train_info['seats'].append({'seat_type': seat_type, 
-                                                    'seat_num': seat_num, 
-                                                    'seat_price': seat_price})
+        seat_match = seat_pattern.match(line)
+        if seat_match and current_train_info is not None:
+            data = seat_match.groupdict()
+            seat_num_text = data['count']
+            if "无票" in seat_num_text:
+                seat_num = 0
+            elif "有票" in seat_num_text:
+                seat_num = 20
             else:
-                raise Exception(f"解析座位信息失败: {line}")   # Failed to parse the seat information (Failed to parse the seat information)
+                seat_num = int(seat_num_text.removeprefix("剩余").removesuffix("张票"))
 
-    if current_train_info:
+            current_train_info['seats'].append({
+                'seat_type': data['seat_type'],
+                'seat_num': seat_num,
+                'seat_price': float(data['price']),
+            })
+            continue
+
+        raise ValueError(f"无法解析12306返回内容 (Failed to parse 12306 output): {line}")
+
+    if current_train_info is not None:
         res_list.append(current_train_info)
 
     return res_list
