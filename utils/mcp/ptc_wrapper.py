@@ -20,20 +20,46 @@ Key differences from the mcpmark reference implementation:
     ``custom_mcp_util.my_to_function_tool``.
   * Ships as a synthetic ``MCPServer`` (``PTCSyntheticServer``) so the existing
     OpenAI-Agents-SDK plumbing picks it up with no further changes.
+
+Ported from the mcpmark reference (src/agents/mcp/ptc_wrapper.py):
+  * Typed-pipe codec: tool results reach sandbox code as real
+    Decimal/datetime/UUID/tuple/set/bytes objects, not JSON degradations.
+  * Tool failures raise exceptions inside the sandbox (try/except works)
+    instead of returning "[Tool error] ..." strings disguised as data.
+  * Deterministic native-value recovery from CallToolResult text payloads
+    (JSON, then Python-repr containers).
+  * isError failure detection (servers report tool failures via isError
+    results, not exceptions) so error text never flows onward as data.
+  * Unknown-tool self-correction ("Did you mean: ...") ranked on token
+    overlap against tool names + descriptions.
+  * Middle-truncation of oversized sandbox output (env-configurable).
+
+Deliberately NOT ported (dead code in Toolathlon): structuredContent handling
+(mcp 1.9.x predates the field), the postgres "Error:"-prefix heuristic (no
+postgres server here), ``reset_worker()`` (no outer tool-call timeout in the
+agent loop; PTC's own timeout already kills the worker), and mcpmark's
+``claim_done`` (Toolathlon has its own local claim_done tool).
 """
 
 from __future__ import annotations
 
+import ast
 import asyncio
+import base64
+import datetime as _datetime
+import difflib
 import json
 import logging
 import os
+import re
 import shutil
 import sys
 import tempfile
 import time
 import uuid
+from decimal import Decimal
 from typing import Any, Dict, List, Optional, Tuple
+from uuid import UUID
 
 from agents.mcp import MCPServer
 from mcp.types import CallToolResult, TextContent, Tool as MCPTool
@@ -41,15 +67,97 @@ from mcp.types import CallToolResult, TextContent, Tool as MCPTool
 logger = logging.getLogger(__name__)
 
 
+# Cap on the output a single programmatic_tool_call may return (chars). Agents
+# occasionally print entire fetched datasets (hundreds of KB), which poisons
+# the context. 0 disables.
+_MAX_OUTPUT_CHARS = int(os.getenv("TOOLATHLON_PTC_MAX_OUTPUT_CHARS", "10000"))
+
+
 # Persistent worker source. Stays alive across calls; talks JSON-line on
 # stdin/stdout. Kept as a string so we can drop it onto disk lazily.
 _PERSISTENT_WORKER = r'''
-import os, sys, json, traceback, uuid
+import os, sys, json, csv, traceback, uuid
+import base64 as _b64
+import datetime as _dt
+import decimal as _decimal
+import uuid as _uuid_mod
 from io import StringIO
 from contextlib import redirect_stdout, redirect_stderr
 
 _proto_out = sys.stdout
 _proto_in = sys.stdin
+
+
+# Typed-pipe codec (mirrors _encode_pipe/_decode_pipe in the parent): lets
+# tool results reach user code as real Decimal/datetime/UUID/tuple/... objects
+# instead of their JSON degradations, matching in-process tool semantics.
+def _encode_pipe(v):
+    if v is None or isinstance(v, (bool, int, float, str)):
+        return v
+    if isinstance(v, _decimal.Decimal):
+        return {"__ptc__": "Decimal", "v": str(v)}
+    if isinstance(v, _dt.datetime):
+        return {"__ptc__": "datetime", "v": v.isoformat()}
+    if isinstance(v, _dt.date):
+        return {"__ptc__": "date", "v": v.isoformat()}
+    if isinstance(v, _dt.time):
+        return {"__ptc__": "time", "v": v.isoformat()}
+    if isinstance(v, _dt.timedelta):
+        return {"__ptc__": "timedelta", "v": v.total_seconds()}
+    if isinstance(v, _uuid_mod.UUID):
+        return {"__ptc__": "UUID", "v": str(v)}
+    if isinstance(v, tuple):
+        return {"__ptc__": "tuple", "v": [_encode_pipe(x) for x in v]}
+    if isinstance(v, frozenset):
+        return {"__ptc__": "frozenset", "v": [_encode_pipe(x) for x in v]}
+    if isinstance(v, set):
+        return {"__ptc__": "set", "v": [_encode_pipe(x) for x in v]}
+    if isinstance(v, (bytes, bytearray)):
+        return {"__ptc__": "bytes", "v": _b64.b64encode(bytes(v)).decode("ascii")}
+    if isinstance(v, list):
+        return [_encode_pipe(x) for x in v]
+    if isinstance(v, dict):
+        enc = {(k if isinstance(k, str) else str(k)): _encode_pipe(x)
+               for k, x in v.items()}
+        if set(enc) == {"__ptc__", "v"}:  # collision guard for real dicts
+            return {"__ptc__": "dict", "v": enc}
+        return enc
+    return str(v)
+
+
+def _decode_pipe(v):
+    if isinstance(v, list):
+        return [_decode_pipe(x) for x in v]
+    if isinstance(v, dict):
+        if set(v) == {"__ptc__", "v"}:
+            tag, val = v["__ptc__"], v["v"]
+            try:
+                if tag == "Decimal":
+                    return _decimal.Decimal(val)
+                if tag == "datetime":
+                    return _dt.datetime.fromisoformat(val)
+                if tag == "date":
+                    return _dt.date.fromisoformat(val)
+                if tag == "time":
+                    return _dt.time.fromisoformat(val)
+                if tag == "timedelta":
+                    return _dt.timedelta(seconds=val)
+                if tag == "UUID":
+                    return _uuid_mod.UUID(val)
+                if tag == "tuple":
+                    return tuple(_decode_pipe(x) for x in val)
+                if tag == "set":
+                    return set(_decode_pipe(x) for x in val)
+                if tag == "frozenset":
+                    return frozenset(_decode_pipe(x) for x in val)
+                if tag == "bytes":
+                    return _b64.b64decode(val)
+                if tag == "dict":
+                    return {k: _decode_pipe(x) for k, x in val.items()}
+            except (ValueError, TypeError):
+                return val
+        return {k: _decode_pipe(x) for k, x in v.items()}
+    return v
 
 
 def _read_msg():
@@ -66,15 +174,22 @@ def _write_msg(msg):
 
 def _rpc_tool_call(tool_name, args, kwargs):
     req_id = uuid.uuid4().hex
+    # Encode args/kwargs as whole containers (not per-item) so the encoder's
+    # collision guard also protects a kwargs dict whose keys happen to be
+    # exactly {"__ptc__", "v"} — the parent decodes the same whole containers.
     _write_msg({"type": "tool_call", "id": req_id,
                 "tool_name": tool_name,
-                "args": list(args), "kwargs": kwargs})
+                "args": _encode_pipe(list(args)),
+                "kwargs": _encode_pipe(dict(kwargs))})
     while True:
         msg = _read_msg()
         if msg.get("type") == "tool_result" and msg.get("id") == req_id:
             if msg.get("ok"):
-                return msg.get("value")
-            return f"[Tool error] {msg.get('error', 'unknown error')}"
+                return _decode_pipe(msg.get("value"))
+            # Raise (rather than return an error string) so failures surface
+            # as exceptions — try/except around tool calls works and errors
+            # never flow onward disguised as data.
+            raise RuntimeError(msg.get("error", "unknown error"))
 
 
 class _ToolProxy:
@@ -108,6 +223,11 @@ def main():
         "tools": ToolCaller(),
         "WORKSPACE": workspace,
         "workspace_path": workspace,
+        # Pre-imports, as promised in the tool description.
+        "os": os,
+        "sys": sys,
+        "json": json,
+        "csv": csv,
     }
 
     _write_msg({"type": "ready"})
@@ -145,72 +265,287 @@ if __name__ == "__main__":
 '''
 
 
+# Verbatim copy of PTC_TOOL_DESCRIPTION_RICH in verl's task-sync eval (and
+# mcpmark's ptc_wrapper) — keep byte-identical when updating either side.
+# Note: in Toolathlon the tool names are prefixed `<server>-<tool>` (hyphens),
+# so only bracket access works.
 _CODE_EXECUTION_DESCRIPTION = (
-    "Execute Python code that calls underlying MCP tools via "
-    "`tools[\"<server>-<tool>\"](*args, **kwargs)`. The interpreter is "
-    "PERSISTENT: variables, imports, and function definitions from earlier "
-    "calls remain in scope.\n\n"
-    "Use this when you need: loops over many tool calls, conditional "
-    "branching, intermediate computation between calls, or aggregation of "
-    "results — all in one turn instead of N turns of single tool calls.\n\n"
-    "Tool names contain hyphens, so attribute access does NOT work — use "
-    "bracket access only:\n"
-    "  - correct:   tools[\"canvas-list_courses\"]()\n"
-    "  - incorrect: tools.canvas-list_courses()  # SyntaxError\n\n"
-    "Use print() for output. Stdout, stderr, and any traceback are returned "
-    "as the tool result.\n\n"
-    "Example — batch fetch and aggregate:\n"
+    'Run Python that calls the tools listed above as `tools["tool_name"](*args, **kwargs)`. State (variables, imports) persists across calls. Use print() to see output.\n'
+    "USE WHEN: loops, conditionals, error handling, or chaining multiple tool calls with intermediate processing.\n\n"
+    "Notes:\n"
+    "- Code runs in the workspace directory and file writes are restricted to it, don't write to `/tmp`; always use absolute paths for file writes; os, json, csv, sys are pre-imported.\n"
+    "- Tools return native Python values; the type and structure vary by tool (e.g. dict, list, or str). Always print and inspect the first result before processing many items; do not assume a result is a list and loop over it.\n"
+    "- Very large printed output is truncated; print summaries rather than large raw data.\n"
+    "- Tools may raise an exception; wrap calls in try/except to handle failures.\n"
+    "Usage examples:\n\n"
+    "Batch + conditional workflow:\n"
     "```python\n"
-    "totals = []\n"
-    "for cid in course_ids:\n"
-    "    info = tools[\"canvas-get_course\"](course_id=cid)\n"
-    "    totals.append((cid, info[\"total_students\"]))\n"
-    "print(sorted(totals, key=lambda x: -x[1])[:5])\n"
+    "print(type(tools[\"get_info\"](id='A001')))  # inspect return type first, then loop\n"
+    "results = []\n"
+    "for item in ['A001', 'A002', 'A003']:\n"
+    "    info = tools[\"get_info\"](id=item)\n"
+    "    if info.get('status') == 'active': # info is a dict, confirmed above\n"
+    "        results.append(tools[\"get_details\"](id=item))\n"
+    "    else:\n"
+    "        print(f'Skipping {item}')\n"
+    "    print(f'Processed {item}')\n"
+    "print('Collected', len(results))\n"
     "```\n\n"
-    "Example — conditional workflow:\n"
+    "Error handling:\n"
     "```python\n"
-    "info = tools[\"canvas-get_course\"](course_id='123')\n"
-    "if info['workflow_state'] == 'available':\n"
-    "    students = tools[\"canvas-list_students\"](course_id='123')\n"
-    "    print(len(students))\n"
-    "else:\n"
-    "    print('course not available')\n"
+    "ok, failed = [], []\n"
+    "for item_id in ['A001', 'A002', 'A003']:\n"
+    "    try:\n"
+    "        r = tools[\"get_info\"](id=item_id)\n"
+    "        ok.append(r)\n"
+    "    except Exception as e:\n"
+    "        failed.append((item_id, str(e)))\n"
+    "    print(f'{len(ok)} ok, {len(failed)} failed')\n"
+    "print('Failed:', failed[:3] if failed else 'none')\n"
     "```"
 )
 
 
-def _stringify_result(result: Any) -> Any:
-    """Flatten an MCP CallToolResult to JSON / text for the worker channel."""
+# Whitelisted names for reconstructing Python `repr` payloads (e.g. postgres
+# MCP servers return ``str(list[dict])`` where cells may be Decimal/datetime/
+# UUID). No ``__builtins__`` — a malicious value like
+# ``[__import__('os').system(...)]`` raises NameError and falls back to the
+# raw string rather than executing.
+_REPR_EVAL_NS: Dict[str, Any] = {
+    "__builtins__": {},
+    "Decimal": Decimal,
+    "datetime": _datetime,
+    "date": _datetime.date,
+    "time": _datetime.time,
+    "timedelta": _datetime.timedelta,
+    "UUID": UUID,
+}
+
+
+def _coerce_block(text: str) -> tuple:
+    """Recover a Python value from one text block; ``(value, ok)``.
+
+    Structured payloads become native objects, plain text stays ``str``:
+
+      1. strict JSON (canonical structured channel for well-behaved servers);
+      2. a Python ``repr`` container — only attempted when the text looks like a
+         top-level ``[``/``{``/``(`` collection, so genuine prose (file contents,
+         error strings) is never mis-parsed. ``ast.literal_eval`` handles pure
+         literals; a whitelisted ``eval`` recovers ``Decimal``/``datetime``/``UUID``;
+      3. otherwise ``(text, False)`` — caller keeps it as a string.
+    """
     try:
-        content = getattr(result, "content", None)
-        if content is None and isinstance(result, dict):
+        return json.loads(text), True
+    except (json.JSONDecodeError, TypeError):
+        pass
+    if text.lstrip()[:1] not in ("[", "{", "("):
+        return text, False
+    try:
+        return ast.literal_eval(text), True
+    except (ValueError, SyntaxError, MemoryError, RecursionError):
+        pass
+    try:
+        return eval(text, _REPR_EVAL_NS), True  # noqa: S307 — builtins disabled
+    except Exception:  # noqa: BLE001 — any failure => keep as string
+        return text, False
+
+
+def _stringify_result(result: Any) -> Any:
+    """Recover a *native* Python value from an MCP ``CallToolResult``.
+
+    The tool's payload crossed the MCP boundary boxed into text content
+    blocks, so we always parse it back into a native ``dict``/``list``/scalar
+    and do so *deterministically* — the same tool yields the same type on
+    every call. That predictability matters: a value that is "sometimes a
+    parsed list, sometimes its raw string" makes generated code guess wrong
+    (``json.loads`` on an already-parsed list, or ``row['x']`` on an unparsed
+    string), which is exactly the failure loop native returns avoid.
+
+      1. coerce the joined text content *once* — JSON, then a Python ``repr``
+         container (recovering ``Decimal``/``datetime``/``UUID``);
+      2. only genuinely unparseable prose (file contents, error strings) stays
+         ``str`` — itself consistent, since such a tool always returns prose.
+
+    (mcpmark also consults ``structuredContent`` here; the mcp version pinned
+    by Toolathlon (1.9.x) predates that field, so that branch is omitted.)
+    """
+    try:
+        if isinstance(result, dict):
             content = result.get("content")
-
-        if content is not None:
-            texts: List[str] = []
-            for item in content:
+        else:
+            content = getattr(result, "content", None)
+        texts: List[str] = []
+        for item in content or ():
+            if isinstance(item, dict):
+                text = item.get("text")
+            else:
                 text = getattr(item, "text", None)
-                if text is None and isinstance(item, dict):
-                    text = item.get("text")
-                if text is not None:
-                    texts.append(text)
-            if texts:
-                joined = "\n".join(texts)
-                try:
-                    return json.loads(joined)
-                except (json.JSONDecodeError, TypeError, ValueError):
-                    return joined
+            if text is not None:
+                texts.append(text)
+        joined = "\n".join(texts) if texts else None
 
-        if hasattr(result, "model_dump"):
-            try:
-                return result.model_dump(mode="json")
-            except Exception:
-                pass
-        if isinstance(result, (str, int, float, bool, list, dict)) or result is None:
-            return result
-        return str(result)
+        if not texts:
+            if hasattr(result, "model_dump"):
+                try:
+                    return result.model_dump(mode="json")
+                except Exception:
+                    pass
+            if isinstance(result, (str, int, float, bool, list, dict)) or result is None:
+                return result
+            return str(result)
+
+        # Coerce the joined payload exactly once, so a given tool's result — and
+        # therefore its type — is deterministic across calls.
+        value, _ = _coerce_block(joined)
+        return value
     except Exception:
         return str(result)
+
+
+def _result_error_text(result: Any) -> Optional[str]:
+    """Return the error message when an MCP ``CallToolResult`` signals failure.
+
+    Tool failures arrive as ``isError: True`` on an *otherwise normal* result —
+    the MCP convention. ``server.call_tool`` does **not** raise for them, so
+    this check is what turns a failure into an exception inside the sandbox;
+    without it the error text flows onward disguised as data, generated code
+    subscripts the error string as if it were a row, and its ``try/except``
+    never fires.
+
+    Returns the extracted error text on failure, otherwise ``None``.
+    """
+    if isinstance(result, dict):
+        is_err = result.get("isError")
+    else:
+        is_err = getattr(result, "isError", None)
+    if is_err:
+        text = _stringify_result(result)
+        if not isinstance(text, str):
+            text = repr(text)
+        return text or "tool reported an error (isError) with no message"
+
+    return None
+
+
+def _encode_pipe(value: Any) -> Any:
+    """Encode a recovered value for the worker pipe, preserving type identity.
+
+    JSON-native values pass through; Decimal/datetime/date/time/timedelta/
+    UUID/tuple/set/frozenset/bytes are boxed as ``{"__ptc__": tag, "v": ...}``
+    and rebuilt into the *same* Python types by the worker's ``_decode_pipe``
+    — so sandbox code sees what an in-process tool call would have returned
+    (e.g. a postgres ``Decimal`` stays a ``Decimal``, not a float). Total
+    function: anything unrecognized degrades to ``str()``.
+    """
+    if value is None or isinstance(value, (bool, int, float, str)):
+        return value
+    if isinstance(value, Decimal):
+        return {"__ptc__": "Decimal", "v": str(value)}
+    if isinstance(value, _datetime.datetime):
+        return {"__ptc__": "datetime", "v": value.isoformat()}
+    if isinstance(value, _datetime.date):
+        return {"__ptc__": "date", "v": value.isoformat()}
+    if isinstance(value, _datetime.time):
+        return {"__ptc__": "time", "v": value.isoformat()}
+    if isinstance(value, _datetime.timedelta):
+        return {"__ptc__": "timedelta", "v": value.total_seconds()}
+    if isinstance(value, UUID):
+        return {"__ptc__": "UUID", "v": str(value)}
+    if isinstance(value, tuple):
+        return {"__ptc__": "tuple", "v": [_encode_pipe(x) for x in value]}
+    if isinstance(value, frozenset):
+        return {"__ptc__": "frozenset", "v": [_encode_pipe(x) for x in value]}
+    if isinstance(value, set):
+        return {"__ptc__": "set", "v": [_encode_pipe(x) for x in value]}
+    if isinstance(value, (bytes, bytearray)):
+        return {"__ptc__": "bytes", "v": base64.b64encode(bytes(value)).decode("ascii")}
+    if isinstance(value, list):
+        return [_encode_pipe(x) for x in value]
+    if isinstance(value, dict):
+        enc = {
+            (k if isinstance(k, str) else str(k)): _encode_pipe(v)
+            for k, v in value.items()
+        }
+        if set(enc) == {"__ptc__", "v"}:  # collision guard for real dicts
+            return {"__ptc__": "dict", "v": enc}
+        return enc
+    return str(value)
+
+
+def _decode_pipe(value: Any) -> Any:
+    """Inverse of the worker's ``_encode_pipe`` for values arriving from the
+    sandbox (tool-call args). Unknown tags decode to their raw payload."""
+    if isinstance(value, list):
+        return [_decode_pipe(x) for x in value]
+    if isinstance(value, dict):
+        if set(value) == {"__ptc__", "v"}:
+            tag, val = value["__ptc__"], value["v"]
+            try:
+                if tag == "Decimal":
+                    return Decimal(val)
+                if tag == "datetime":
+                    return _datetime.datetime.fromisoformat(val)
+                if tag == "date":
+                    return _datetime.date.fromisoformat(val)
+                if tag == "time":
+                    return _datetime.time.fromisoformat(val)
+                if tag == "timedelta":
+                    return _datetime.timedelta(seconds=val)
+                if tag == "UUID":
+                    return UUID(val)
+                if tag == "tuple":
+                    return tuple(_decode_pipe(x) for x in val)
+                if tag == "set":
+                    return set(_decode_pipe(x) for x in val)
+                if tag == "frozenset":
+                    return frozenset(_decode_pipe(x) for x in val)
+                if tag == "bytes":
+                    return base64.b64decode(val)
+                if tag == "dict":
+                    return {k: _decode_pipe(x) for k, x in val.items()}
+            except (ValueError, TypeError):
+                return val
+        return {k: _decode_pipe(x) for k, x in value.items()}
+    return value
+
+
+def _jsonify(value: Any) -> Any:
+    """Reduce a recovered value to JSON-clean types.
+
+    Used at the MCP argument boundary: str/int/float/bool/None inside plain
+    list/dict containers — Decimal→float, datetime/date/time→ISO string,
+    tuple/set→list; anything else degrades to str(). Total function, so the
+    result always survives json.dumps.
+    """
+    if value is None or isinstance(value, (bool, int, float, str)):
+        return value
+    if isinstance(value, (list, tuple, set, frozenset)):
+        return [_jsonify(v) for v in value]
+    if isinstance(value, dict):
+        return {
+            (k if isinstance(k, str) else str(k)): _jsonify(v)
+            for k, v in value.items()
+        }
+    if isinstance(value, Decimal):
+        return float(value)
+    if isinstance(value, (_datetime.datetime, _datetime.date, _datetime.time)):
+        return value.isoformat()
+    if isinstance(value, (bytes, bytearray)):
+        return bytes(value).decode("utf-8", errors="replace")
+    return str(value)
+
+
+def _truncate_output(text: str, limit: int) -> str:
+    """Middle-truncate `text` to ~`limit` chars, keeping head and tail."""
+    if limit <= 0 or len(text) <= limit:
+        return text
+    head = int(limit * 0.7)
+    tail = limit - head
+    omitted = len(text) - head - tail
+    return (
+        f"{text[:head]}\n...[output truncated: {omitted} chars omitted; "
+        f"print concise summaries instead of large raw data]...\n{text[-tail:]}"
+    )
 
 
 def _ptc_text_result(text: str, is_error: bool = True) -> CallToolResult:
@@ -228,7 +563,7 @@ def _format_exec_result(msg: Dict[str, Any]) -> CallToolResult:
         parts.append("STDERR:\n" + str(msg["stderr"]))
     if msg.get("error"):
         parts.append("ERROR:\n" + str(msg["error"]))
-    text = "\n".join(parts) if parts else ""
+    text = _truncate_output("\n".join(parts) if parts else "", _MAX_OUTPUT_CHARS)
     return CallToolResult(
         content=[TextContent(type="text", text=text)],
         isError=bool(msg.get("error")),
@@ -254,6 +589,8 @@ class PTCWrapper:
         self._tool_index: Dict[str, Tuple[MCPServer, str]] = {}
         # exposed_name -> ordered parameter list (for positional-arg binding)
         self._tool_param_order: Dict[str, List[str]] = {}
+        # exposed_name -> tool description (for unknown-name suggestions)
+        self._tool_descriptions: Dict[str, str] = {}
         self._index_built = False
         self._index_lock = asyncio.Lock()
 
@@ -281,8 +618,8 @@ class PTCWrapper:
                     "code": {
                         "type": "string",
                         "description": (
-                            "Python code. Use tools[\"<server>-<tool>\"]("
-                            "*args, **kwargs) to call underlying MCP tools."
+                            "Python code. Use tools[\"func_name\"](*args, "
+                            "**kwargs) to call env tools."
                         ),
                     },
                 },
@@ -322,7 +659,9 @@ class PTCWrapper:
                     props = schema.get("properties") or {}
                     if not isinstance(props, dict):
                         props = {}
+                    # JSON object key order is preserved in dict iteration.
                     self._tool_param_order[exposed] = list(props.keys())
+                    self._tool_descriptions[exposed] = getattr(tool, "description", None) or ""
             self._index_built = True
             logger.info(
                 "PTC index built: %d tools across %d server(s)",
@@ -359,20 +698,20 @@ class PTCWrapper:
                 return _ptc_text_result(f"[ptc] worker crashed before exec: {exc}")
 
             deadline = time.monotonic() + timeout
+            timeout_msg = (
+                f"[ptc] execution timed out after {timeout}s; the Python "
+                "session was restarted and its variables were lost"
+            )
             while True:
                 remaining = deadline - time.monotonic()
                 if remaining <= 0:
                     await self._kill_worker()
-                    return _ptc_text_result(
-                        f"[ptc] execution timed out after {timeout}s"
-                    )
+                    return _ptc_text_result(timeout_msg)
                 try:
                     msg = await self._readline(remaining)
                 except asyncio.TimeoutError:
                     await self._kill_worker()
-                    return _ptc_text_result(
-                        f"[ptc] execution timed out after {timeout}s"
-                    )
+                    return _ptc_text_result(timeout_msg)
                 if msg is None:
                     await self._kill_worker()
                     return _ptc_text_result("[ptc] worker exited without output")
@@ -388,8 +727,8 @@ class PTCWrapper:
     async def _handle_tool_call(self, msg: Dict[str, Any]) -> None:
         req_id = msg.get("id")
         tool_name = msg.get("tool_name") or ""
-        args = msg.get("args") or []
-        kwargs = msg.get("kwargs") or {}
+        args = _decode_pipe(msg.get("args") or [])
+        kwargs = _decode_pipe(msg.get("kwargs") or {})
 
         # The agent sees the prefixed name ("ptc-programmatic_tool_call");
         # accept the bare name too in case a caller strips the prefix.
@@ -397,19 +736,21 @@ class PTCWrapper:
         if tool_name == self.CODE_EXECUTION_TOOL or tool_name == prefixed:
             await self._send({
                 "type": "tool_result", "id": req_id, "ok": False,
-                "error": "programmatic_tool_call cannot call itself recursively",
+                "error": (
+                    f"'{self.CODE_EXECUTION_TOOL}' must be invoked as a direct "
+                    "tool call, not from inside programmatic_tool_call"
+                ),
             })
             return
 
+        # Self-correction for hallucinated tool names: surface valid candidates
+        # instead of letting the inner server reply with an opaque
+        # "Method <name> not found".
         target = self._tool_index.get(tool_name)
         if target is None:
-            sample = ", ".join(self.known_tools[:10]) or "(none)"
             await self._send({
-                "type": "tool_result", "id": req_id, "ok": False,
-                "error": (
-                    f"unknown tool '{tool_name}' — first 10 known: {sample}. "
-                    f"Use exact prefixed names, e.g. 'serverName-toolName'."
-                ),
+                "type": "tool_result", "id": req_id,
+                "ok": False, "error": self._unknown_tool_message(tool_name),
             })
             return
 
@@ -424,28 +765,53 @@ class PTCWrapper:
             return
 
         try:
-            raw = await server.call_tool(original_name, bound_kwargs)
-            value = _stringify_result(raw)
-            reply = {"type": "tool_result", "id": req_id, "ok": True, "value": value}
+            # MCP arguments must be JSON-clean; degrade rich arg types (a
+            # Decimal the sandbox passed back in) at the JSON tool boundary.
+            raw = await server.call_tool(original_name, _jsonify(bound_kwargs))
+            err = _result_error_text(raw)
+            if err is not None:
+                # An MCP-level failure (isError) — surface it as ok:False so the
+                # worker raises, instead of returning the error text as a value.
+                reply = {"type": "tool_result", "id": req_id, "ok": False, "error": err}
+            else:
+                # Typed-pipe encoding (not _jsonify): Decimal/datetime/tuple/…
+                # recovered from the MCP payload arrive in the sandbox as real
+                # Python objects, matching in-process tool-call semantics.
+                value = _encode_pipe(_stringify_result(raw))
+                reply = {"type": "tool_result", "id": req_id, "ok": True, "value": value}
         except Exception as exc:
             reply = {
-                "type": "tool_result", "id": req_id, "ok": False,
-                "error": f"{type(exc).__name__}: {exc}",
+                "type": "tool_result", "id": req_id,
+                "ok": False, "error": f"{type(exc).__name__}: {exc}",
             }
 
         try:
             await self._send(reply)
         except (BrokenPipeError, ConnectionResetError, OSError):
             await self._kill_worker()
+        except (TypeError, ValueError) as exc:
+            # A value _jsonify/_encode_pipe missed. The worker is still blocked
+            # on this req_id — answer with an error rather than leaving the
+            # protocol desynced (which turns every later call into a timeout).
+            try:
+                await self._send({
+                    "type": "tool_result", "id": req_id, "ok": False,
+                    "error": f"tool result could not be serialized: {exc}",
+                })
+            except (BrokenPipeError, ConnectionResetError, OSError):
+                await self._kill_worker()
 
     def _bind_positional(
         self, tool_name: str, args: List[Any], kwargs: Dict[str, Any]
     ) -> Dict[str, Any]:
+        """Resolve positional args against the tool's declared parameter order."""
         if not args:
             return dict(kwargs)
         order = self._tool_param_order.get(tool_name)
         if order is None:
-            raise ValueError(f"unknown tool '{tool_name}' for positional binding")
+            raise ValueError(
+                f"unknown tool '{tool_name}' (positional args require a known schema)"
+            )
         out = dict(kwargs)
         idx = 0
         for pname in order:
@@ -461,6 +827,53 @@ class PTCWrapper:
                 f"got {len(args)}, schema declares {len(order)} parameter(s)"
             )
         return out
+
+    # ------------------------------------------------------------------
+    # Self-correction for unknown tool names.
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _tokenize(text: str) -> set:
+        return {t for t in re.split(r"[^a-z0-9]+", text.lower()) if t}
+
+    def _closest_tools(self, tool_name: str, n: int = 3) -> List[str]:
+        """Rank known tool names by similarity to a (probably misremembered) name.
+
+        Tool names often follow a REST-verb convention (``API-post-page`` to
+        *create* a page), so a name-only fuzzy match misleads — the model's
+        intent ("create a page") lives in the description. Score each candidate
+        on token overlap against name + description, tie-broken by raw name
+        similarity, so e.g. ``API-create-a-page`` surfaces ``API-post-page``
+        ("Notion | Create a page").
+        """
+        wanted = self._tokenize(tool_name)
+        scored = []
+        for name in self._tool_index:
+            tokens = self._tokenize(name) | self._tokenize(
+                self._tool_descriptions.get(name, "")
+            )
+            overlap = len(wanted & tokens) / len(wanted) if wanted else 0.0
+            name_ratio = difflib.SequenceMatcher(None, tool_name, name).ratio()
+            score = overlap + 0.3 * name_ratio
+            if score > 0:
+                scored.append((score, name))
+        scored.sort(key=lambda item: (-item[0], item[1]))
+        return [name for _, name in scored[:n]]
+
+    def _unknown_tool_message(self, tool_name: str) -> str:
+        suggestions = self._closest_tools(tool_name)
+        if suggestions:
+            hint = "Did you mean: " + ", ".join(suggestions) + "?"
+        else:
+            hint = "See the available tools list for valid names."
+        return (
+            f"Unknown tool '{tool_name}'. {hint} "
+            "Use exact prefixed names, e.g. 'serverName-toolName'."
+        )
+
+    # ------------------------------------------------------------------
+    # Worker lifecycle.
+    # ------------------------------------------------------------------
 
     def _ensure_tmp_dir(self) -> str:
         if self._tmp_dir and os.path.isdir(self._tmp_dir):
