@@ -1,6 +1,7 @@
 import pandas as pd
 from pathlib import Path
 import json
+import re
 from argparse import ArgumentParser
 import ast
 import subprocess
@@ -579,6 +580,16 @@ def check_sheet4(workbook_path: Path, df4: pd.DataFrame) -> bool:
         except Exception:
             return ast.literal_eval(s)
 
+    def canon_institution(name) -> str:
+        # Institution names differ across data sources in case, punctuation and
+        # boilerplate ('JPMORGAN CHASE & CO' vs 'JPMorgan Chase & Co.',
+        # 'BANK OF AMERICA CORP /DE/' vs 'Bank of America Corp.'), so compare on
+        # the same normalized form the shareholder sheets use, minus
+        # state-of-incorporation markers and a leading 'The'.
+        s = re.sub(r'/[A-Za-z]{2}/', '', str(name))
+        s = re.sub(r'^\s*[Tt]he\s+', '', s)
+        return normalize_str(s)
+
     for indicator, min_correct in checks:
         # 2. GT List
         try:
@@ -605,8 +616,10 @@ def check_sheet4(workbook_path: Path, df4: pd.DataFrame) -> bool:
             print(f"  Raw value: {repr(act_row.iat[0])}")
             continue
 
-        # 4. Compute intersection
-        common = set(gt_list) & set(act_list)
+        # 4. Compute intersection on canonical names (display GT originals)
+        gt_by_canon = {canon_institution(x): x for x in gt_list}
+        act_by_canon = {canon_institution(x): x for x in act_list}
+        common = {gt_by_canon[k] for k in set(gt_by_canon) & set(act_by_canon)}
         if len(common) < min_correct:
             errors.append(
                 f"{indicator}: Intersection {common} count {len(common)} < required {min_correct}"
@@ -618,12 +631,12 @@ def check_sheet4(workbook_path: Path, df4: pd.DataFrame) -> bool:
             print(f"      Required at least: {min_correct}")
 
             # Show missing items
-            gt_only = set(gt_list) - set(act_list)
-            act_only = set(act_list) - set(gt_list)
+            gt_only = [gt_by_canon[k] for k in set(gt_by_canon) - set(act_by_canon)]
+            act_only = [act_by_canon[k] for k in set(act_by_canon) - set(gt_by_canon)]
             if gt_only:
-                print(f"      In GT but missing in ACT: {list(gt_only)}")
+                print(f"      In GT but missing in ACT: {gt_only}")
             if act_only:
-                print(f"      In ACT but missing in GT: {list(act_only)}")
+                print(f"      In ACT but missing in GT: {act_only}")
 
     if errors:
         print("❌ Sheet 4 validation failed:")
