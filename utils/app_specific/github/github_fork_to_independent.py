@@ -111,11 +111,17 @@ async def git_mirror_clone(token: str, full_name: str, local_dir: str) -> None:
 
 @git_retry_async
 async def git_mirror_push(token: str, local_dir: str, dst_full_name: str) -> None:
+    # Not `push --mirror`: a mirror clone carries GitHub's read-only PR refs
+    # (refs/pull/*), which GitHub rejects on push, failing the whole push
+    # whenever the source repo has pull requests.
     dst_url = _git_auth_url(token, dst_full_name)
-    cmd = f"git -C {local_dir} push --mirror {dst_url}"
+    cmd = (
+        f"git -C {local_dir} push --force {dst_url} "
+        f"'refs/heads/*:refs/heads/*' 'refs/tags/*:refs/tags/*'"
+    )
     _, stderr, returncode = await run_command(cmd, debug=False, show_output=False)
-    _raise_on_git_failure(f"git push --mirror to {dst_full_name}", token, stderr, returncode)
-    print_color(f"Pushed mirror to {dst_full_name}", "cyan")
+    _raise_on_git_failure(f"git push to {dst_full_name}", token, stderr, returncode)
+    print_color(f"Pushed all branches/tags to {dst_full_name}", "cyan")
 
 
 async def main():
