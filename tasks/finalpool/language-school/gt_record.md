@@ -35,7 +35,7 @@ Due on December 2nd
 
 ## CMU
 
-https://www.cs.cmu.edu/academics/graduate-admissions
+https://www.cs.cmu.edu/education/graduate-admissions
 
 TOEFL 100 (recommended)
 IELTS 7
