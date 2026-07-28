@@ -772,6 +772,15 @@ def run(
         False,
         help="If enabled, httpx will trust environment proxy settings (HTTP_PROXY, HTTPS_PROXY, etc.)"
     ),
+    programmatic_tool_calling: Optional[bool] = typer.Option(
+        None,
+        "--programmatic-tool-calling/--no-programmatic-tool-calling",
+        help="Per-job override for programmatic tool calling (PTC). If unset, server falls back to its eval-config default. Requires server v1.3+."
+    ),
+    ptc_timeout: Optional[int] = typer.Option(
+        None,
+        help="Per-job override for PTC timeout in seconds (only meaningful when PTC is enabled). Requires server v1.3+."
+    ),
 ):
     """
     Submit and run a Toolathlon evaluation task.
@@ -974,6 +983,10 @@ def run(
     typer.echo(f"  Server: {server_url}")
     if mode == "private":
         typer.echo(f"  WebSocket Proxy Port: {ws_proxy_port}")
+    if programmatic_tool_calling is not None:
+        typer.echo(f"  PTC: {programmatic_tool_calling}")
+    if ptc_timeout is not None:
+        typer.echo(f"  PTC timeout: {ptc_timeout}s")
 
     # Submit task
     try:
@@ -1005,6 +1018,12 @@ def run(
             # Add task_list_content if provided
             if task_list_content:
                 submit_data["task_list_content"] = task_list_content
+
+            # Add PTC overrides if provided (v1.3+)
+            if programmatic_tool_calling is not None:
+                submit_data["programmatic_tool_calling"] = programmatic_tool_calling
+            if ptc_timeout is not None:
+                submit_data["ptc_timeout_seconds"] = ptc_timeout
 
             resp = client.post(
                 f"{server_url}/submit_evaluation",

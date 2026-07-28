@@ -86,6 +86,8 @@ class SubmitEvaluationRequest(BaseModel):
     skip_container_restart: bool = False  # Skip container restart (for debugging/testing only)
     provider: str = "unified"  # Model provider (default: "unified" for backward compatibility with v1.0 clients)
     ws_client_version: Optional[str] = None  # WebSocket client version (required for private mode in v1.3)
+    programmatic_tool_calling: Optional[bool] = None  # Per-job PTC toggle (v1.3+); None means use eval-config default
+    ptc_timeout_seconds: Optional[int] = None  # Per-job PTC timeout in seconds (v1.3+)
 
 class SubmitEvaluationResponse(BaseModel):
     status: str
@@ -580,6 +582,16 @@ async def execute_evaluation(job_id: str, mode: str, config: Dict[str, Any]):
             env["TASK_LIST"] = str(task_list_file)
             log(f"[Server] Using custom task list: {task_list_file}")
 
+        # PTC env injection (v1.3+). main.py reads these env vars and they take
+        # precedence over both the --programmatic_tool_calling CLI flag and the
+        # eval-config JSON value, so per-job overrides win.
+        if config.get('programmatic_tool_calling') is not None:
+            env["TOOLATHLON_PROGRAMMATIC_TOOL_CALLING"] = "true" if config['programmatic_tool_calling'] else "false"
+            log(f"[Server] PTC: programmatic_tool_calling={config['programmatic_tool_calling']}")
+        if config.get('ptc_timeout_seconds') is not None:
+            env["TOOLATHLON_PTC_TIMEOUT"] = str(config['ptc_timeout_seconds'])
+            log(f"[Server] PTC: ptc_timeout_seconds={config['ptc_timeout_seconds']}")
+
         run_process = await run_command_async(
             [
                 "bash", "scripts/run_parallel.sh",
@@ -851,7 +863,9 @@ async def submit_evaluation(request: Request, data: SubmitEvaluationRequest):
         "model_params": data.model_params,
         "task_list_content": data.task_list_content,
         "skip_container_restart": data.skip_container_restart,
-        "provider": data.provider  # Add provider (v1.1+)
+        "provider": data.provider,  # Add provider (v1.1+)
+        "programmatic_tool_calling": data.programmatic_tool_calling,  # v1.3+
+        "ptc_timeout_seconds": data.ptc_timeout_seconds,  # v1.3+
     }
 
     asyncio.create_task(execute_evaluation(job_id, data.mode, config))
@@ -865,6 +879,10 @@ async def submit_evaluation(request: Request, data: SubmitEvaluationRequest):
         log(f"[Server] Using custom task list with {task_count} tasks")
     if data.skip_container_restart:
         log(f"[Server] WARNING: Container restart will be skipped (debugging/testing mode only)")
+    if data.programmatic_tool_calling is not None:
+        log(f"[Server] PTC override: programmatic_tool_calling={data.programmatic_tool_calling}")
+    if data.ptc_timeout_seconds is not None:
+        log(f"[Server] PTC override: ptc_timeout_seconds={data.ptc_timeout_seconds}")
 
     # Prepare rate limit info for response
     rate_limit_info = {
