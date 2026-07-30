@@ -472,7 +472,9 @@ class TaskAgent:
             agent_workspace=self.task_config.agent_workspace,
             config_dir=self.mcp_config.server_config_path,
             debug=self.debug,
-            local_token_key_session=local_token_key_session
+            local_token_key_session=local_token_key_session,
+            programmatic_tool_calling=self.agent_config.tool.programmatic_tool_calling,
+            ptc_timeout_seconds=self.agent_config.tool.ptc_timeout_seconds,
         )
         await self.mcp_manager.connect_servers(self.task_config.needed_mcp_servers)
     

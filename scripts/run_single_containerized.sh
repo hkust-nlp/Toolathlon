@@ -137,6 +137,16 @@ if [ ! -z "${TOOLATHLON_OPENAI_API_KEY+x}" ]; then
     echo "Detected host TOOLATHLON_OPENAI_API_KEY, will pass into container"
 fi
 
+# Forward programmatic-tool-calling toggles into the container.
+if [ ! -z "${TOOLATHLON_PROGRAMMATIC_TOOL_CALLING+x}" ]; then
+    EXTRA_ENV_ARGS+=("-e" "TOOLATHLON_PROGRAMMATIC_TOOL_CALLING=${TOOLATHLON_PROGRAMMATIC_TOOL_CALLING}")
+    echo "Detected host TOOLATHLON_PROGRAMMATIC_TOOL_CALLING=${TOOLATHLON_PROGRAMMATIC_TOOL_CALLING}, will pass into container"
+fi
+if [ ! -z "${TOOLATHLON_PTC_TIMEOUT+x}" ]; then
+    EXTRA_ENV_ARGS+=("-e" "TOOLATHLON_PTC_TIMEOUT=${TOOLATHLON_PTC_TIMEOUT}")
+    echo "Detected host TOOLATHLON_PTC_TIMEOUT=${TOOLATHLON_PTC_TIMEOUT}, will pass into container"
+fi
+
 # Detect TOOLATHLON_MODEL_PARAMS_FILE - will copy file and set container path later
 HOST_MODEL_PARAMS_FILE=""
 CONTAINER_MODEL_PARAMS_FILE=""

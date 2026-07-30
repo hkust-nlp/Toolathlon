@@ -10,11 +10,20 @@ class Tool:
     tool_choice: Union[Literal["auto", "none", "required"], str] = "auto"
     parallel_tool_calls: bool = False
     max_inner_turns: int = 20
-    
+    # When True, MCPServerManager appends a synthetic 'ptc' server exposing
+    # `programmatic_tool_call`, which runs Python code that drives the
+    # underlying MCP tools through a `tools["<server>-<tool>"]` proxy.
+    programmatic_tool_calling: bool = False
+    ptc_timeout_seconds: int = 60
+
     def __post_init__(self):
         """Validate the reasonability of tool call parameters"""
         if self.max_inner_turns < 1:
             raise ValueError(f"max_inner_turns should be greater than 0, but got {self.max_inner_turns}")
+        if self.ptc_timeout_seconds < 1:
+            raise ValueError(
+                f"ptc_timeout_seconds should be >= 1, but got {self.ptc_timeout_seconds}"
+            )
 
 @dataclass
 class AgentConfig:
@@ -79,10 +88,12 @@ class AgentConfig:
                     "tool_choice": self.tool.tool_choice,
                     "parallel_tool_calls": self.tool.parallel_tool_calls,
                     "max_inner_turns": self.tool.max_inner_turns,
+                    "programmatic_tool_calling": self.tool.programmatic_tool_calling,
+                    "ptc_timeout_seconds": self.tool.ptc_timeout_seconds,
                 }
             }
         }
-    
+
     def to_dict_without_agent_key(self) -> dict:
         """Convert to dictionary without agent key"""
         return {
@@ -102,6 +113,8 @@ class AgentConfig:
                 "tool_choice": self.tool.tool_choice,
                 "parallel_tool_calls": self.tool.parallel_tool_calls,
                 "max_inner_turns": self.tool.max_inner_turns,
+                "programmatic_tool_calling": self.tool.programmatic_tool_calling,
+                "ptc_timeout_seconds": self.tool.ptc_timeout_seconds,
             }
         }
     
@@ -162,11 +175,19 @@ def create_agent_config(
     max_tokens: int = 4096,
     tool_choice: str = "auto",
     parallel_tool_calls: bool = False,
-    max_inner_turns: int = 20
+    max_inner_turns: int = 20,
+    programmatic_tool_calling: bool = False,
+    ptc_timeout_seconds: int = 60,
 ) -> AgentConfig:
     """Convenient constructor, using flat parameters"""
     return AgentConfig(
         model=Model(short_name=model_name, provider=provider),
         generation=Generation(temperature=temperature, top_p=top_p, max_tokens=max_tokens),
-        tool=Tool(tool_choice=tool_choice, parallel_tool_calls=parallel_tool_calls, max_inner_turns=max_inner_turns)
+        tool=Tool(
+            tool_choice=tool_choice,
+            parallel_tool_calls=parallel_tool_calls,
+            max_inner_turns=max_inner_turns,
+            programmatic_tool_calling=programmatic_tool_calling,
+            ptc_timeout_seconds=ptc_timeout_seconds,
+        )
     )
