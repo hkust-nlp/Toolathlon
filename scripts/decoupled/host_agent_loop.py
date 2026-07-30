@@ -288,7 +288,33 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--with_proxy", action="store_true")
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("--allow_resume", action="store_true")
+    parser.add_argument("--programmatic_tool_calling", action="store_true",
+                       help=("Enable programmatic tool calling on the host side: "
+                             "wraps the gateway in a PTC layer that exposes "
+                             "ptc-programmatic_tool_call. Inside the sandbox, code "
+                             "calls gateway tools via tools[\"<gw>-<tool>\"](...)."))
+    parser.add_argument("--ptc_timeout", type=int, default=None,
+                       help="Per-call timeout (seconds) for programmatic_tool_call. Default 60.")
     return parser.parse_args()
+
+
+def _apply_ptc_overrides(eval_config_dict: Dict[str, Any], args: argparse.Namespace) -> None:
+    """Mirror main.py: env var > CLI flag > eval-config default."""
+    tool_cfg = eval_config_dict.setdefault("agent", {}).setdefault("tool", {})
+    env_ptc = os.getenv("TOOLATHLON_PROGRAMMATIC_TOOL_CALLING")
+    if env_ptc is not None:
+        tool_cfg["programmatic_tool_calling"] = env_ptc.strip().lower() in ("1", "true", "yes", "on")
+    elif args.programmatic_tool_calling:
+        tool_cfg["programmatic_tool_calling"] = True
+
+    env_ptc_timeout = os.getenv("TOOLATHLON_PTC_TIMEOUT")
+    if env_ptc_timeout is not None:
+        try:
+            tool_cfg["ptc_timeout_seconds"] = int(env_ptc_timeout)
+        except ValueError:
+            print(f"Invalid TOOLATHLON_PTC_TIMEOUT={env_ptc_timeout!r}, ignoring.")
+    elif args.ptc_timeout is not None:
+        tool_cfg["ptc_timeout_seconds"] = args.ptc_timeout
 
 
 async def run_host_loop(args: argparse.Namespace) -> int:
@@ -296,6 +322,7 @@ async def run_host_loop(args: argparse.Namespace) -> int:
     setup_proxy(args.with_proxy)
 
     eval_config_dict = bundle["eval_config"]
+    _apply_ptc_overrides(eval_config_dict, args)
     mcp_config, agent_config, user_config = TaskRunner.load_configs(eval_config_dict)
     task_config = build_host_task_config(bundle, agent_short_name=agent_config.model.short_name)
 

@@ -228,12 +228,12 @@ esac
 
 if [ "$USE_UNIFIED_MODEL_ENV" = true ]; then
     if [ ! -z "${TOOLATHLON_OPENAI_BASE_URL+x}" ]; then
-        EXTRA_ENV_ARGS+=("-e" "TOOLATHLON_OPENAI_BASE_URL=${TOOLATHLON_OPENAI_BASE_URL}")
+        EXTRA_ENV_ARGS+=("-e" "TOOLATHLON_OPENAI_BASE_URL")
         echo "Detected host TOOLATHLON_OPENAI_BASE_URL, will pass into container"
     fi
 
     if [ ! -z "${TOOLATHLON_OPENAI_API_KEY+x}" ]; then
-        EXTRA_ENV_ARGS+=("-e" "TOOLATHLON_OPENAI_API_KEY=${TOOLATHLON_OPENAI_API_KEY}")
+        EXTRA_ENV_ARGS+=("-e" "TOOLATHLON_OPENAI_API_KEY")
         echo "Detected host TOOLATHLON_OPENAI_API_KEY, will pass into container"
     fi
 else
@@ -259,6 +259,22 @@ TRUSTED_BUNDLE_FILE=""
 HOST_AGENT_BUNDLE_FILE=""
 CURRENT_CONTAINER_BUNDLE=""
 
+# Ownership-restoration state for the bind-mounted output tree.  DUMPS_OWNER
+# is captured right before preprocess runs as container root, and
+# DUMPS_RESTORE_PENDING stays 1 until the tree has been handed back, so
+# cleanup() can finish a restoration the main flow never reached (preprocess
+# failure, SIGINT/SIGTERM).  On the interrupted path cleanup() must quiesce
+# the container before restoring: the exec'd preprocess can outlive its
+# local client and keep writing (see the pending block in cleanup()).
+DUMPS_OWNER=""
+DUMPS_RESTORE_PENDING=0
+
+restore_dumps_ownership() {
+    $CONTAINER_RUNTIME exec "$CONTAINER_NAME" \
+        chown -R -- "$DUMPS_OWNER" /workspace/dumps || return 1
+    DUMPS_RESTORE_PENDING=0
+}
+
 # Cleanup function
 cleanup() {
     cleanup_exit_code=$?
@@ -267,16 +283,57 @@ cleanup() {
     echo ""
     echo "Performing cleanup..."
 
+    # Finish any pending ownership restoration.  Killing the local exec
+    # CLIENT (Ctrl-C, or run_parallel.py's process-group SIGTERM on task
+    # timeout) does not kill the exec'd process inside the container: it
+    # keeps writing root-owned files to the bind mount.  So quiesce first --
+    # stopping the container tears down its PID namespace and every writer
+    # in it -- then restart the now-inert container (its entrypoint is a
+    # plain `sleep`, and reusing the same container keeps the user-namespace
+    # mapping DUMPS_OWNER was captured under) and only then chown.
+    #
+    # The stop is cleanup's FIRST container operation -- ahead even of the
+    # bundle removal below -- and uses -t 0: run_parallel.py escalates its
+    # SIGTERM to SIGKILL after only 3 seconds, PID 1 (`sleep`) can never
+    # honor a graceful stop anyway, and the daemon completes an accepted
+    # stop even if this script is killed before it returns, whereas an exec
+    # needs this client to survive the whole round-trip.  Nothing may spend
+    # the kill window before the stop has been submitted.
+    #
+    # The stop's exit status gates the restoration: `start` returns 0 on an
+    # already-running container, so it proves nothing about the writer --
+    # only a successful stop does.  If the stop fails, skip the chown
+    # entirely rather than hand the tree over under a live writer; the
+    # teardown below retries the stop.  Worst case files are left with the
+    # wrong owner, and the next successful run's full-tree hand-off chown
+    # self-heals them.
+    if [ "$DUMPS_RESTORE_PENDING" = "1" ]; then
+        if $CONTAINER_RUNTIME stop -t 0 "$CONTAINER_NAME" >/dev/null 2>&1 \
+            && $CONTAINER_RUNTIME start "$CONTAINER_NAME" >/dev/null 2>&1 \
+            && restore_dumps_ownership >/dev/null 2>&1; then
+            echo "  ✓ Restored output ownership: $output_folder"
+        else
+            echo "  Warning: could not restore output ownership: $output_folder" >&2
+        fi
+    fi
+
+    # Remove the in-container bundle copy on early exits (the normal flow
+    # discards it right after preprocess).  Best-effort and deliberately
+    # AFTER the quiesce: if the container is not running anymore the exec
+    # fails harmlessly and the unconditional `rm` below destroys the
+    # container filesystem, bundle included.
     if [ -n "$CURRENT_CONTAINER_BUNDLE" ]; then
         $CONTAINER_RUNTIME exec "$CONTAINER_NAME" \
             rm -f -- "$CURRENT_CONTAINER_BUNDLE" >/dev/null 2>&1 || true
         CURRENT_CONTAINER_BUNDLE=""
     fi
 
-    # Stop and remove container if exists
+    # Stop and remove container if exists.  -t 0 also here: nothing inside
+    # can use a graceful stop (see above), so the default 10s grace is pure
+    # added latency on every exit path.
     if $CONTAINER_RUNTIME ps -aq --filter "name=$CONTAINER_NAME" 2>/dev/null | grep -q .; then
         echo "  Stopping and removing container: $CONTAINER_NAME"
-        $CONTAINER_RUNTIME stop "$CONTAINER_NAME" >/dev/null 2>&1 || true
+        $CONTAINER_RUNTIME stop -t 0 "$CONTAINER_NAME" >/dev/null 2>&1 || true
         $CONTAINER_RUNTIME rm "$CONTAINER_NAME" >/dev/null 2>&1 || true
         echo "  ✓ Container stopped and removed"
     fi
@@ -678,6 +735,21 @@ if [ -z "$CURRENT_CONTAINER_BUNDLE" ]; then
     exit 1
 fi
 
+# Owner of the bind-mounted output tree as seen from inside the container's
+# user namespace: the invoking host user on rootful Docker/Podman, container
+# root under rootless Podman. Captured before preprocess (which runs as
+# container root) so ownership can be restored afterwards.
+if ! DUMPS_OWNER=$($CONTAINER_RUNTIME exec "$CONTAINER_NAME" \
+    stat -c '%u:%g' /workspace/dumps); then
+    echo "✗ Could not determine output ownership inside the container" >&2
+    exit 1
+fi
+if [[ ! "$DUMPS_OWNER" =~ ^[0-9]+:[0-9]+$ ]]; then
+    echo "✗ Invalid output ownership reported by container: $DUMPS_OWNER" >&2
+    exit 1
+fi
+DUMPS_RESTORE_PENDING=1
+
 PREPROCESS_ARGS=(
     uv run python -m scripts.decoupled.container_preprocess
     --eval_config "$eval_config"
@@ -701,6 +773,21 @@ else
 fi
 PREPROCESS_EXIT_CODE=$?
 set -e
+
+# Preprocess runs as container root and may have created files in the
+# bind-mounted output tree even when it failed.  Restore the tree to its
+# pre-preprocess owner in the container's user namespace regardless of the
+# preprocess result, so a failed run cannot strand root-owned files that
+# break the next retry or cleanup with the same PermissionError.
+if ! restore_dumps_ownership; then
+    if [ $PREPROCESS_EXIT_CODE -eq 0 ]; then
+        echo "✗ Failed to hand output ownership to the host agent" >&2
+        exit 1
+    fi
+    # Keep the preprocess exit code authoritative; cleanup() retries the
+    # restoration before the container is stopped.
+    echo "Warning: could not restore output ownership after failed preprocess" >&2
+fi
 
 if [ $PREPROCESS_EXIT_CODE -ne 0 ]; then
     echo "✗ Preprocess failed, exit code: $PREPROCESS_EXIT_CODE"

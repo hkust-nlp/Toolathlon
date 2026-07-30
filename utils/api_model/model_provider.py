@@ -868,6 +868,7 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                         'maximum prompt length is', # for xAI model
                         'request exceeded model token limit', # for kimi
                         'exceed max message tokens', # for seed
+                        "exceeds the model's context window",
                         'is longer than'
                     ]):
                         context_too_long = True
@@ -897,6 +898,18 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                         match = re.search(r'request exceeded model token limit: (\d+)', error_str)
                         if match:
                             max_tokens = int(match.group(1))
+
+                        # Pattern 6: "Prompt length plus max_tokens exceeds the
+                        # model's context window: 266350 prompt tokens + 256000
+                        # max_tokens > 262144."
+                        match = re.search(
+                            r"(\d+) prompt tokens \+ (\d+) max_tokens > (\d+)",
+                            error_str,
+                            re.IGNORECASE,
+                        )
+                        if match:
+                            prompt_tokens, requested_output_tokens, max_tokens = map(int, match.groups())
+                            current_tokens = prompt_tokens + requested_output_tokens
                 
                 # 2. Try parsing structured error (OpenAI API error object)
                 if hasattr(e, 'response') and hasattr(e.response, 'json'):
@@ -921,6 +934,7 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                             'maximum prompt length is', # for xAI model
                             'request exceeded model token limit', # for kimi
                             'exceed max message tokens', # for seed
+                            "exceeds the model's context window",
                             'is longer than'
                         ]) or error_code in ['string_above_max_length', 'context_length_exceeded', 'messages_too_long']:
                             context_too_long = True
@@ -945,6 +959,7 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
                         'maximum prompt length is', # for xAI model
                         'request exceeded model token limit', # for kimi
                         'exceed max message tokens', # for seed
+                        "exceeds the model's context window",
                         'is longer than'
                     ]):
                         context_too_long = True
@@ -1023,6 +1038,7 @@ class OpenAIResponsesModelWithRetry(OpenAIResponsesModel):
                     if any(pattern in lower_error for pattern in [
                         'maximum context length is',
                         'exceeds the context window',
+                        "exceeds the model's context window",
                         # Some OpenAI-Responses-compatible endpoints do not emit an
                         # explicit context-length message. When the (server-side,
                         # stateful) input exceeds the model's context window they
@@ -1041,6 +1057,15 @@ class OpenAIResponsesModelWithRetry(OpenAIResponsesModel):
                         match = re.search(r'maximum context length is (\d+) tokens. however, you requested about (\d+) tokens', error_str)
                         if match:
                             max_tokens, current_tokens = int(match.group(1)), int(match.group(2))
+
+                        match = re.search(
+                            r"(\d+) prompt tokens \+ (\d+) max_tokens > (\d+)",
+                            error_str,
+                            re.IGNORECASE,
+                        )
+                        if match:
+                            prompt_tokens, requested_output_tokens, max_tokens = map(int, match.groups())
+                            current_tokens = prompt_tokens + requested_output_tokens
                 
                 # If context too long detected, do not retry, raise
                 if context_too_long:

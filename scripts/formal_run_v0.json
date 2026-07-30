@@ -19,7 +19,9 @@
         "tool":{
             "tool_choice": "auto",
             "parallel_tool_calls":true,
-            "max_inner_turns": 2000
+            "max_inner_turns": 2000,
+            "programmatic_tool_calling": false,
+            "ptc_timeout_seconds": 60
         }
     },
     "user":{

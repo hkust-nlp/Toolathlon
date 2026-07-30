@@ -22,11 +22,13 @@ Toolathlon is a benchmark to assess language agents' general tool use in realist
 </div>
 
 ## News
+[2026.07.09] 📣 We have also uploaded trajectories for Muse Spark 1.1 to the [**Toolathlon-Verified** trajectories](https://huggingface.co/datasets/hkust-nlp/Toolathlon-Verified_Trajectories/tree/main) dataset on Hugging Face.
+
 [2026.06.30] 🎉 **Toolathlon-Verified** is released. This release marks the verified final version of Toolathlon, with task prompts, ground truths, and evaluators reviewed and aligned for the final benchmark release. We have also uploaded trajectories for 8 models to the [**Toolathlon-Verified** trajectories](https://huggingface.co/datasets/hkust-nlp/Toolathlon-Verified_Trajectories/tree/main) dataset on Hugging Face.
 
 [2025.12.12] 📣 We have set up a new documentation page for common issues and updates, please refer to [UpdateLogs_CommonIssues.md](UpdateLogs_CommonIssues.md) for more details. The document will be updated regularly to track the latest changes and issues.
 
-[2025.12.5] 📣 We have updated the trajectories for 4 new models (gemini-3-pro, claude-4.5-opus, gpt-5.1, deepseek-v3.2-thinking) on [Hugging Face](https://huggingface.co/datasets/hkust-nlp/Toolathlon-Trajectories), take a look if you are interested.
+[2025.12.05] 📣 We have updated the trajectories for 4 new models (gemini-3-pro, claude-4.5-opus, gpt-5.1, deepseek-v3.2-thinking) on [Hugging Face](https://huggingface.co/datasets/hkust-nlp/Toolathlon-Trajectories), take a look if you are interested.
 
 [2025.11.28] 🚀 We have provided a ready-to-use public eval service (you do not need to set anything up!), please refer to [EVAL_SERVICE_README.md](EVAL_SERVICE_README.md) for more details.
 

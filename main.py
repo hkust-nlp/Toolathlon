@@ -33,17 +33,24 @@ async def main():
 
     ## we override some parameters here
     # we now just set a hard sampling parameters: temperature = 0.6, top_p = 1.0, max_tokens = 4096
-    parser.add_argument("--max_steps_under_single_turn_mode", type=int, default=None, 
+    parser.add_argument("--max_steps_under_single_turn_mode", type=int, default=None,
                        help="Maximum number of steps under single turn mode")
-    parser.add_argument("--model_short_name", type=str, default=None, 
+    parser.add_argument("--model_short_name", type=str, default=None,
                        help="Model name")
-    parser.add_argument("--provider", type=str, default="unified", 
+    parser.add_argument("--provider", type=str, default="unified",
                        help="Provider")
+    parser.add_argument("--programmatic_tool_calling", action="store_true",
+                       help=("Enable programmatic tool calling: a synthetic "
+                             "ptc-programmatic_tool_call tool that runs Python "
+                             "code in a persistent sandbox and proxies MCP tool "
+                             "calls through tools[\"<server>-<tool>\"](...)."))
+    parser.add_argument("--ptc_timeout", type=int, default=None,
+                       help="Per-call timeout (seconds) for programmatic_tool_call. Default 60.")
     args = parser.parse_args()
-    
+
     # Set Proxy (if needed)
     setup_proxy(args.with_proxy)
-    
+
     # Load configurations
     eval_config_dict = read_json(args.eval_config)
     # task_config_dict = read_json(os.path.join(args.task_dir, "task_config.json"))
@@ -53,6 +60,25 @@ async def main():
         eval_config_dict['agent']['model']['provider'] = args.provider
     if args.max_steps_under_single_turn_mode is not None:
         eval_config_dict['global_task_config']['max_steps_under_single_turn_mode'] = args.max_steps_under_single_turn_mode
+
+    # Programmatic tool calling: env var > CLI flag > eval-config default.
+    # Env var lets shell launchers (run_single_*.sh) flip it on without rebuilding
+    # the eval-config JSON.
+    tool_cfg = eval_config_dict.setdefault('agent', {}).setdefault('tool', {})
+    env_ptc = os.getenv("TOOLATHLON_PROGRAMMATIC_TOOL_CALLING")
+    if env_ptc is not None:
+        tool_cfg['programmatic_tool_calling'] = env_ptc.strip().lower() in ("1", "true", "yes", "on")
+    elif args.programmatic_tool_calling:
+        tool_cfg['programmatic_tool_calling'] = True
+
+    env_ptc_timeout = os.getenv("TOOLATHLON_PTC_TIMEOUT")
+    if env_ptc_timeout is not None:
+        try:
+            tool_cfg['ptc_timeout_seconds'] = int(env_ptc_timeout)
+        except ValueError:
+            print_color(f"Invalid TOOLATHLON_PTC_TIMEOUT={env_ptc_timeout!r}, ignoring.", "yellow")
+    elif args.ptc_timeout is not None:
+        tool_cfg['ptc_timeout_seconds'] = args.ptc_timeout
     
     # Parse configurations
     mcp_config, agent_config, user_config = TaskRunner.load_configs(eval_config_dict)

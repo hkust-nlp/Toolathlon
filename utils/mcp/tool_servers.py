@@ -19,17 +19,28 @@ class ToolCallError(Exception):
 class MCPServerManager:
     """MCP server manager, for initializing and managing multiple MCP servers"""
 
-    def __init__(self, 
-                 agent_workspace: str, 
+    # Reserved synthetic server name used by the PTC wrapper.
+    PTC_SYNTHETIC_NAME = "ptc"
+
+    def __init__(self,
+                 agent_workspace: str,
                  config_dir: str = "configs/mcp_servers",
                  debug: bool = False,
-                 local_token_key_session: Dict = None):
+                 local_token_key_session: Dict = None,
+                 programmatic_tool_calling: bool = False,
+                 ptc_timeout_seconds: int = 60):
         """
         Initialize MCP server manager
-        
+
         Args:
             agent_workspace: Agent workspace path
             config_dir: Configuration file directory path
+            programmatic_tool_calling: When True, after `connect_servers` finishes,
+                a synthetic ``ptc`` server is appended to ``connected_servers`` that
+                exposes a single ``programmatic_tool_call`` tool. Inside that tool's
+                Python sandbox, code can call any underlying MCP tool by its
+                prefixed name (``tools["<server>-<tool>"](...)``).
+            ptc_timeout_seconds: Per-call wall-clock budget for code execution.
         """
         self.local_servers_paths = os.path.abspath("./local_servers")
         self.local_binary_paths = os.path.abspath("./local_binary")
@@ -43,7 +54,13 @@ class MCPServerManager:
         self._server_tasks: Dict[str, asyncio.Task] = {}
         # Save the event of connection completion
         self._connection_events: Dict[str, asyncio.Event] = {}
-        
+
+        # PTC state
+        self._ptc_enabled = bool(programmatic_tool_calling)
+        self._ptc_timeout = int(ptc_timeout_seconds)
+        self._ptc_wrapper = None  # type: Optional[Any]
+        self._ptc_synthetic_server = None  # type: Optional[Any]
+
         # Load servers from configuration files
         self._load_servers_from_configs(config_dir)
 
@@ -280,15 +297,79 @@ class MCPServerManager:
                     print(f"Warning: Only {connected_count} servers connected, expected {len(tasks_to_wait)}")
                     raise ValueError(f"Only {connected_count} servers connected, expected {len(tasks_to_wait)}")
 
-    async def disconnect_servers(self, server_names: Optional[List[str]] = None, 
+        # Build the PTC synthetic server *after* all real servers are connected,
+        # so its index can enumerate every tool the agent can reach.
+        if self._ptc_enabled and self._ptc_synthetic_server is None:
+            await self._setup_ptc_synthetic_server()
+
+    async def _setup_ptc_synthetic_server(self) -> None:
+        """Lazy import + build of the PTC wrapper. No-op if no servers connected."""
+        # Don't shadow real connected servers if 'ptc' was somehow used as a
+        # real server name in configs/mcp_servers — surface an error instead.
+        if self.PTC_SYNTHETIC_NAME in self.connected_servers:
+            raise ValueError(
+                f"Cannot enable programmatic_tool_calling: a real MCP server is "
+                f"already named {self.PTC_SYNTHETIC_NAME!r}. Rename it in "
+                f"configs/mcp_servers/."
+            )
+        real_servers = list(self.connected_servers.values())
+        if not real_servers:
+            if self.debug:
+                print(">>PTC requested but no real servers are connected; skipping PTC setup")
+            return
+
+        # Import lazily so loading this module does not require the PTC
+        # dependencies if the feature is off.
+        from utils.mcp.ptc_wrapper import PTCWrapper, PTCSyntheticServer
+
+        wrapper = PTCWrapper(
+            servers=real_servers,
+            workspace=self.agent_workspace,
+            default_code_timeout=self._ptc_timeout,
+        )
+        await wrapper.setup()
+        synthetic = PTCSyntheticServer(wrapper)
+
+        self._ptc_wrapper = wrapper
+        self._ptc_synthetic_server = synthetic
+        self.connected_servers[self.PTC_SYNTHETIC_NAME] = synthetic
+
+        if self.debug:
+            print(
+                f">>PTC enabled: indexed {len(wrapper.known_tools)} tools across "
+                f"{len(real_servers)} server(s) — exposed as "
+                f"'{self.PTC_SYNTHETIC_NAME}-{wrapper.CODE_EXECUTION_TOOL}'"
+            )
+
+    async def _cleanup_ptc_synthetic_server(self) -> None:
+        """Shut down the PTC worker and drop the synthetic server entry."""
+        synthetic = self._ptc_synthetic_server
+        self._ptc_synthetic_server = None
+        self._ptc_wrapper = None
+        if synthetic is None:
+            return
+        try:
+            await synthetic.cleanup()
+        except Exception as e:  # noqa: BLE001
+            if self.debug:
+                print(f">>PTC cleanup failed: {e}")
+        self.connected_servers.pop(self.PTC_SYNTHETIC_NAME, None)
+
+    async def disconnect_servers(self, server_names: Optional[List[str]] = None,
                                 max_disconnect_retries: int = 3, disconnect_retry_delay: float = 1.0):
         """Disconnect specified servers"""
+        # Tear down the PTC synthetic server first so its worker subprocess is
+        # gone before we let go of the underlying MCP servers it might still
+        # be talking to.
+        if server_names is None or self.PTC_SYNTHETIC_NAME in server_names:
+            await self._cleanup_ptc_synthetic_server()
+
         async with self._lock:
             if server_names is None:
                 servers_to_disconnect = list(self._server_tasks.keys())
             else:
                 servers_to_disconnect = [
-                    name for name in server_names 
+                    name for name in server_names
                     if name in self._server_tasks
                 ]
             
@@ -371,8 +452,13 @@ class MCPServerManager:
 
     async def ensure_all_disconnected(self, max_cleanup_retries: int = 3, cleanup_retry_delay: float = 1.0):
         """Ensure all servers are disconnected (for cleanup)"""
+        # PTC synthetic server is tracked outside _server_tasks; tear it down
+        # explicitly so disconnect_servers' lifecycle loop doesn't have to
+        # know about it.
+        await self._cleanup_ptc_synthetic_server()
+
         # Try to disconnect normally first
-        await self.disconnect_servers(max_disconnect_retries=max_cleanup_retries, 
+        await self.disconnect_servers(max_disconnect_retries=max_cleanup_retries,
                                      disconnect_retry_delay=cleanup_retry_delay)
         
         # Force cancel all remaining tasks

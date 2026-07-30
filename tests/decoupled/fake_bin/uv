@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Fake `uv` for the run_single_decoupled.sh regression tests.  Answers the
+# runner's host-side python probes without needing a real environment; the
+# probes are recognized by distinctive substrings of their inline code.
+set -u
+
+case "$*" in
+    *podman_or_docker*)
+        echo "docker"
+        ;;
+    *instance_prefix*)
+        echo ""
+        ;;
+    *socket.socket*)
+        echo "18999"
+        ;;
+    *)
+        # Anything else (bundle validation, artifact guard, ...) is beyond
+        # the failure paths under test; succeed quietly.
+        exit 0
+        ;;
+esac
