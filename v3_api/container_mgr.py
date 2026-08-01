@@ -280,7 +280,7 @@ async def _run_setup(execution: ExecutionState) -> None:
             "-v", f"{output_folder_str}:/workspace/logs",
             "-w", "/workspace",
             image,
-            "sleep", "5400",
+            "sleep", "7200",
         ]
         result = _run_cmd(start_cmd)
         if result.returncode != 0:
@@ -622,7 +622,7 @@ async def _container_watchdog(execution: ExecutionState) -> None:
     """Block on ``docker wait <container>`` and reconcile state on exit.
 
     Spawned when an execution flips to ``ready``.  When the container exits
-    for any reason (clean exit at sleep 5400, crash, OOM, external rm,
+    for any reason (clean exit at sleep 7200, crash, OOM, external rm,
     daemon restart), pop the execution from manager state and release locks.
     """
     runtime = _get_container_runtime()

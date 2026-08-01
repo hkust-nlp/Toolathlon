@@ -89,7 +89,7 @@ def lock_keys_for(task_id: str) -> List[str]:
 # ── Configuration knobs ──────────────────────────────────────────────
 
 MAX_ACTIVE_EXECUTIONS = int(os.environ.get("TOOLATHLON_V3_MAX_ACTIVE_EXECUTIONS", "30"))
-TASK_LIFETIME_SECONDS = int(os.environ.get("TOOLATHLON_V3_TASK_LIFETIME_SECONDS", "5400"))    # 90 min after ready
+TASK_LIFETIME_SECONDS = int(os.environ.get("TOOLATHLON_V3_TASK_LIFETIME_SECONDS", "7200"))    # 120 min after ready
 SETUP_TIMEOUT_SECONDS = int(os.environ.get("TOOLATHLON_V3_SETUP_TIMEOUT_SECONDS", "1800"))    # 30 min from /start
 IDLE_TIMEOUT_SECONDS = int(os.environ.get("TOOLATHLON_V3_IDLE_TIMEOUT_SECONDS", "1200"))      # 20 min since last activity
 REAPER_INTERVAL_SECONDS = int(os.environ.get("TOOLATHLON_V3_REAPER_INTERVAL_SECONDS", "60"))
@@ -105,25 +105,14 @@ INFRA_HEALTH_TTL_SECONDS = float(os.environ.get("TOOLATHLON_V3_INFRA_HEALTH_TTL_
 #   Phase 2 — RESET: once the executions dict drains to empty (in-flight
 #   tasks finish naturally OR get reaped by setup/lifetime/idle timers),
 #   ``deploy_status`` flips to ``"repairing"`` and ``deploy_containers.sh``
-#   runs.  On success ``last_full_reset_at`` is re-stamped and the 4h
-#   clock restarts.
-# This guarantees a reset cadence of (4h + worst-case drain duration),
-# bounded by the lifetime timer (TASK_LIFETIME_SECONDS, default 90 min).
+#   runs.  On success ``last_full_reset_at`` is re-stamped and the clock
+#   restarts.
+# This guarantees a reset cadence of (interval + worst-case drain
+# duration), bounded by the lifetime timer (TASK_LIFETIME_SECONDS).
 # Set to ``0`` to disable periodic resets entirely.
 PERIODIC_RESET_INTERVAL_SECONDS = int(
-    os.environ.get("TOOLATHLON_V3_PERIODIC_RESET_INTERVAL_SECONDS", "14400")
-)  # 4h default
-# Bounded drain: after this many seconds in ``deploy_status == "draining"``,
-# force-delete every remaining execution and proceed to ``repairing``.
-# Without this cap, a single long-running task can hold the whole periodic
-# reset for its full lifetime (~90 min) — starving newer arrivals of a
-# fresh shared-infra reset for over an hour.  30 min gives long-running
-# rollouts (task-tracker etc. routinely take 60–80 min but often complete
-# late in the drain window) time to finish naturally, while still capping
-# the worst case well below the 90-min lifetime.
-DRAIN_TIMEOUT_SECONDS = int(
-    os.environ.get("TOOLATHLON_V3_DRAIN_TIMEOUT_SECONDS", "1800")
-)  # 30 min default
+    os.environ.get("TOOLATHLON_V3_PERIODIC_RESET_INTERVAL_SECONDS", "21600")
+)  # 6h default
 INFRA_RETRY_AFTER_SECONDS = float(os.environ.get("TOOLATHLON_V3_INFRA_RETRY_AFTER_SECONDS", "30"))
 
 
@@ -228,11 +217,6 @@ class ExecutionManager:
         # completion (set by ``_run_background_repair`` on success).  Used by
         # the reaper to gate periodic resets — see PERIODIC_RESET_INTERVAL_SECONDS.
         self.last_full_reset_at: Optional[float] = None
-        # Wall-clock time of the most recent ``deploy_status = "draining"``
-        # transition.  Used by ``_maybe_periodic_reset`` to enforce
-        # DRAIN_TIMEOUT_SECONDS as an upper bound on the drain phase.
-        # Reset to None whenever drain ends (progression to repairing).
-        self.drain_started_at: Optional[float] = None
 
     # ── Lifecycle ────────────────────────────────────────────────
 
@@ -676,19 +660,14 @@ class ExecutionManager:
           tasks with INFRA_DRAINING.  In-flight tasks continue running
           undisturbed.
 
-          Phase 2 — RESET: whichever comes first —
-          (a) executions dict drains to empty naturally, or
-          (b) ``DRAIN_TIMEOUT_SECONDS`` elapses since drain started —
-          flip ``deploy_status`` to ``"repairing"`` and schedule
+          Phase 2 — RESET: once the executions dict drains to empty
+          (either naturally, or because the reaper killed timed-out
+          tasks), flip ``deploy_status`` to ``"repairing"`` and schedule
           ``_run_background_repair`` which runs deploy_containers.sh and
-          re-probes.  If (b) triggers with tasks still live, force-cancel
-          each survivor via ``cleanup_execution`` before starting repair
-          so we don't leave containers holding shared-infra state during
-          the reset.  On success ``deploy_status`` returns to ``"ready"``
-          and ``last_full_reset_at`` is re-stamped — restarting the 4h
+          re-probes.  On success it sets status back to ``"ready"`` and
+          re-stamps ``last_full_reset_at`` — restarting the interval
           clock.
         """
-        victims: list = []
         async with self.manager_lock:
             if self.deploy_task is not None and not self.deploy_task.done():
                 return  # a repair (manual or periodic) is already in flight
@@ -700,77 +679,21 @@ class ExecutionManager:
             if self.deploy_status == "ready" and elapsed >= PERIODIC_RESET_INTERVAL_SECONDS:
                 log(
                     f"periodic reset: {elapsed / 3600:.1f}h elapsed — "
-                    f"entering DRAIN (timeout {DRAIN_TIMEOUT_SECONDS}s); "
-                    f"{len(self.executions)} active task(s)"
+                    f"entering DRAIN; {len(self.executions)} active task(s) "
+                    f"must finish before reset runs"
                 )
                 self.deploy_status = "draining"
-                self.drain_started_at = now
                 self.last_infra_error = None
 
-            # Phase 2 decision: fire when either the dict drained naturally
-            # OR we've been in ``draining`` longer than ``DRAIN_TIMEOUT_SECONDS``.
-            should_progress = False
-            if self.deploy_status == "draining":
-                drained = not self.executions
-                drain_elapsed = (
-                    now - self.drain_started_at
-                    if self.drain_started_at is not None
-                    else 0.0
-                )
-                timed_out = drain_elapsed >= DRAIN_TIMEOUT_SECONDS
-                if drained or timed_out:
-                    should_progress = True
-                    if timed_out and not drained:
-                        log(
-                            f"periodic reset: DRAIN timed out after "
-                            f"{drain_elapsed / 60:.1f} min with "
-                            f"{len(self.executions)} task(s) still live — "
-                            f"force-cleaning survivors before reset"
-                        )
-                        # Snapshot survivors while we still hold the lock.
-                        # cleanup_execution reacquires manager_lock and mutates
-                        # self.executions, so it must run outside this block.
-                        victims = list(self.executions.values())
-                    else:
-                        log(
-                            f"periodic reset: drain complete (0 active tasks) — "
-                            f"scheduling deploy_containers.sh"
-                        )
-
-        # Force-cleanup survivors OUTSIDE manager_lock.  We do this BEFORE
-        # flipping ``deploy_status`` to ``"repairing"`` so that (a) survivors
-        # are torn down before deploy_containers.sh touches shared infra —
-        # otherwise a live agent could hit Canvas/WooCommerce mid-reset, and
-        # (b) admission continues to refuse with INFRA_DRAINING throughout
-        # cleanup (draining state is still set here).
-        for ex in victims:
-            for t in (ex.setup_task, ex.watchdog_task):
-                if t is not None and not t.done():
-                    t.cancel()
-            try:
-                await self.cleanup_execution(ex, reason="drain_timeout_forced")
-            except Exception as e:
+            # Phase 2: once drained, reset
+            if self.deploy_status == "draining" and not self.executions:
                 log(
-                    f"drain-timeout forced cleanup ({ex.execution_id}) "
-                    f"failed: {e!r}"
+                    f"periodic reset: drain complete (0 active tasks) — "
+                    f"scheduling deploy_containers.sh"
                 )
-
-        # Now flip to repairing and schedule the deploy.  Re-acquire the
-        # lock briefly and re-check to guard against another reaper tick
-        # having raced us (e.g. a very short DRAIN_TIMEOUT with the reaper
-        # firing twice while we were cleaning up).
-        if should_progress:
-            async with self.manager_lock:
-                if (
-                    self.deploy_status == "draining"
-                    and (self.deploy_task is None or self.deploy_task.done())
-                ):
-                    self.deploy_status = "repairing"
-                    self.drain_started_at = None
-                    self.last_infra_check_at = None
-                    self.deploy_task = asyncio.create_task(
-                        self._run_background_repair()
-                    )
+                self.deploy_status = "repairing"
+                self.last_infra_check_at = None  # invalidate probe cache
+                self.deploy_task = asyncio.create_task(self._run_background_repair())
 
 
 # Module-level singleton.  The launcher constructs it once; the router
