@@ -39,8 +39,8 @@ We also provide a sandboxed version of Toolathlon in the [`toolathlon-sandbox`](
 > There are four ways to run Toolathlon evaluation:
 > 1. Using our public evaluation service: Check [EVAL_SERVICE_README.md](EVAL_SERVICE_README.md) for more details.
 > 2. Set up your own Toolathlon evaluation service on your own machine as detailed below.
-> 3. If you are a major user that will use Toolathlon evaluation a lot, you can also contact us (jlini@cse.ust.hk / junxianh@cse.ust.hk), we may be able to provide a dedicated evaluation service for you (for free). 
-> 4. If you have an API endpoint and just want to test your model, you can contact us (jlini@cse.ust.hk / junxianh@cse.ust.hk) and we are happy to help you run evaluation on Toolathlon with your given API endpoint.
+> 3. If you are a major user that will use Toolathlon evaluation a lot, you can also contact us (jlini@cse.ust.hk), we may be able to provide a dedicated evaluation service for you (for free).
+> 4. If you have an API endpoint and just want to test your model, you can contact us (jlini@cse.ust.hk) and we are happy to help you run evaluation on Toolathlon with your given API endpoint.
 
 ### Using Our Public Evaluation Service 
 We provide Toolathlon evaluation as a service on public servers, where we have set up all the required MCP accounts and you don't need to worry about the setup -- you don't even need to install any MCP-related dependencies, and evaluation can be run by communicating with our public server:
@@ -336,4 +336,4 @@ If you found our project useful, please cite us as:
 ```
 
 ## Contact Information
-For help or issues using Toolathlon, you can submit a GitHub issue, send messages in our [discord channel](https://discord.gg/8sq8axSR), or send emails to Junlong Li (jlini@cse.ust.hk) / Junxian He (junxianh@cse.ust.hk).
+For help or issues using Toolathlon, you can submit a GitHub issue, send messages in our [discord channel](https://discord.gg/8sq8axSR), or send emails to Junlong Li (jlini@cse.ust.hk).

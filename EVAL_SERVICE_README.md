@@ -9,8 +9,8 @@ Besides configuring Toolathlon evaluation on your own machine, we also provide T
 >
 > If you find this public service too restrictive or crowded, you have a few other options:
 > 1. Setup your own Toolathlon evaluation service on your own machine following the main readme, which would take like 20-30 minutes.
-> 2. If you are a major user that will use Toolathlon evaluation a lot, please contact us (jlini@cse.ust.hk / junxianh@cse.ust.hk), we may be able to provide a dedicated evaluation service for you (for free).
-> 3. If you have an API endpoint and just want to test your model, please contact us (jlini@cse.ust.hk / junxianh@cse.ust.hk) and we are happy to help you run evaluation on Toolathlon with your given API endpoint.
+> 2. If you are a major user that will use Toolathlon evaluation a lot, please contact us (jlini@cse.ust.hk), we may be able to provide a dedicated evaluation service for you (for free).
+> 3. If you have an API endpoint and just want to test your model, please contact us (jlini@cse.ust.hk) and we are happy to help you run evaluation on Toolathlon with your given API endpoint.
 
 ---
 
@@ -554,7 +554,7 @@ The server automatically cleans up old data:
 #### Contact for Higher Limits
 
 Public server uses conservative limits. For higher limits:
-- Email: jlini@cse.ust.hk / junxianh@cse.ust.hk
+- Email: jlini@cse.ust.hk
 - We can provide dedicated evaluation channels for major users (free of charge)
 
 ---
@@ -618,7 +618,7 @@ python eval_client.py check --help
 ```
 
 If you encounter any issues, please contact us:
-- Email: jlini@cse.ust.hk / junxianh@cse.ust.hk
+- Email: jlini@cse.ust.hk
 - We can help test your model with provided API endpoint
 - We can set up dedicated evaluation channels for major users
 
