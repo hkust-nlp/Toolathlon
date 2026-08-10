@@ -475,6 +475,7 @@ class TaskAgent:
             local_token_key_session=local_token_key_session,
             programmatic_tool_calling=self.agent_config.tool.programmatic_tool_calling,
             ptc_timeout_seconds=self.agent_config.tool.ptc_timeout_seconds,
+            ptc_only=self.agent_config.tool.ptc_only,
         )
         await self.mcp_manager.connect_servers(self.task_config.needed_mcp_servers)
     

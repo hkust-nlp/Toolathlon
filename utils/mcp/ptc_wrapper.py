@@ -28,6 +28,11 @@ Design points worth knowing:
 
 The wrapper ships as a synthetic ``MCPServer`` (``PTCSyntheticServer``) so the
 existing OpenAI-Agents-SDK plumbing picks it up with no further changes.
+
+PTC-only mode (``ptc_only=True``) keeps every native tool listed — the model
+still reads names, descriptions and schemas — but routes each real server
+through ``PTCOnlyServerProxy``, which refuses direct calls and points back at
+the sandbox. The sandbox itself is unaffected: it holds the unwrapped servers.
 """
 
 from __future__ import annotations
@@ -218,6 +223,16 @@ _CODE_EXECUTION_DESCRIPTION = (
 )
 
 
+# PTC-only variant: new opening line, body reused so the two cannot drift.
+_CODE_EXECUTION_DESCRIPTION_ONLY = (
+    'Run Python that calls the tools listed above as `tools["tool_name"](*args, **kwargs)`. '
+    "**This is the ONLY way to invoke env tools** — they cannot be called as standalone tool "
+    "calls, so every env tool must go through this sandbox. "
+    "State (variables, imports) persists across calls. Use print() to see output.\n"
+    + _CODE_EXECUTION_DESCRIPTION.split("\n", 1)[1]
+)
+
+
 # Backend and model-facing name alike: PTCSyntheticServer skips the `<server>_`
 # prefix (see `expose_tools_unprefixed`) and there is no hyphen to alias away.
 _PTC_TOOL_NAME = "programmatic_tool_call"
@@ -402,10 +417,14 @@ class PTCWrapper:
         servers: List[MCPServer],
         workspace: Optional[str] = None,
         default_code_timeout: int = 60,
+        ptc_only: bool = False,
     ):
         self._servers: List[MCPServer] = list(servers)
         self._workspace = os.path.abspath(workspace) if workspace else os.getcwd()
         self._default_code_timeout = int(default_code_timeout)
+        # Only selects the tool description here; the rejection lives in
+        # PTCOnlyServerProxy.
+        self._ptc_only = bool(ptc_only)
 
         # exposed_name -> (server, original_tool_name)
         self._tool_index: Dict[str, Tuple[MCPServer, str]] = {}
@@ -433,7 +452,11 @@ class PTCWrapper:
     def code_execution_tool(self) -> MCPTool:
         return MCPTool(
             name=self.CODE_EXECUTION_TOOL,
-            description=_CODE_EXECUTION_DESCRIPTION,
+            description=(
+                _CODE_EXECUTION_DESCRIPTION_ONLY
+                if self._ptc_only
+                else _CODE_EXECUTION_DESCRIPTION
+            ),
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -788,6 +811,54 @@ class PTCWrapper:
             await proc.wait()
         except (ProcessLookupError, OSError):
             pass
+
+
+class PTCOnlyServerProxy(MCPServer):
+    """A real MCP server with its tools listed but not directly callable.
+
+    Under ptc-only the agent gets one of these per real server: ``list_tools``
+    passes through, so the model still reads schemas, while ``call_tool``
+    refuses with a normal ``isError`` result pointing at the sandbox — not an
+    exception, so the model can act on it and retry.
+
+    ``PTCWrapper`` holds the *unwrapped* servers, so sandbox calls bypass this.
+    """
+
+    def __init__(self, inner: MCPServer):
+        self._inner = inner
+
+    @property
+    def name(self) -> str:
+        return self._inner.name
+
+    # No-ops, not delegations: MCPServerManager owns the connection and drives
+    # it through the unwrapped object. Forwarding could connect twice.
+    async def connect(self):
+        return None
+
+    async def cleanup(self):
+        return None
+
+    async def list_tools(self, *args, **kwargs) -> List[MCPTool]:
+        return await self._inner.list_tools(*args, **kwargs)
+
+    async def call_tool(
+        self, tool_name: str, arguments: Optional[Dict[str, Any]] = None
+    ) -> CallToolResult:
+        # Named as the model sees it, so the suggested line is copy-pasteable.
+        exposed = to_model_tool_name(f"{self._inner.name}-{tool_name}")
+        return _ptc_text_result(
+            f"Env tool '{exposed}' cannot be invoked directly. "
+            f"Use {_PTC_TOOL_NAME} and call it as "
+            f'tools["{exposed}"](**kwargs).'
+        )
+
+    def __getattr__(self, item):
+        # cache_tools_list, invalidate_tools_cache, ... come from the real
+        # server. Guard `_inner` so a premature lookup does not recurse.
+        if item == "_inner":
+            raise AttributeError(item)
+        return getattr(self._inner, item)
 
 
 class PTCSyntheticServer(MCPServer):

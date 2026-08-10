@@ -291,10 +291,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--programmatic_tool_calling", action="store_true",
                        help=("Enable programmatic tool calling on the host side: "
                              "wraps the gateway in a PTC layer that exposes "
-                             "ptc-programmatic_tool_call. Inside the sandbox, code "
-                             "calls gateway tools via tools[\"<gw>-<tool>\"](...)."))
+                             "programmatic_tool_call. Inside the sandbox, code "
+                             "calls gateway tools via tools[\"<gw>_<tool>\"](...)."))
     parser.add_argument("--ptc_timeout", type=int, default=None,
                        help="Per-call timeout (seconds) for programmatic_tool_call. Default 60.")
+    parser.add_argument("--ptc_only", action="store_true",
+                       help=("PTC-only mode (implies --programmatic_tool_calling): the "
+                             "gateway's tools stay listed but can only be invoked via "
+                             "tools[...] inside programmatic_tool_call."))
     return parser.parse_args()
 
 
@@ -315,6 +319,12 @@ def _apply_ptc_overrides(eval_config_dict: Dict[str, Any], args: argparse.Namesp
             print(f"Invalid TOOLATHLON_PTC_TIMEOUT={env_ptc_timeout!r}, ignoring.")
     elif args.ptc_timeout is not None:
         tool_cfg["ptc_timeout_seconds"] = args.ptc_timeout
+
+    env_ptc_only = os.getenv("TOOLATHLON_PTC_ONLY")
+    if env_ptc_only is not None:
+        tool_cfg["ptc_only"] = env_ptc_only.strip().lower() in ("1", "true", "yes", "on")
+    elif args.ptc_only:
+        tool_cfg["ptc_only"] = True
 
 
 async def run_host_loop(args: argparse.Namespace) -> int:

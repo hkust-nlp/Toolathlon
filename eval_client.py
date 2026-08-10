@@ -781,6 +781,11 @@ def run(
         None,
         help="Per-job override for PTC timeout in seconds (only meaningful when PTC is enabled). Requires server v1.3+."
     ),
+    ptc_only: Optional[bool] = typer.Option(
+        None,
+        "--ptc-only/--no-ptc-only",
+        help="Per-job override for PTC-only mode (implies PTC): native tools stay listed but can only be called from inside programmatic_tool_call. Requires server v1.3+."
+    ),
 ):
     """
     Submit and run a Toolathlon evaluation task.
@@ -987,6 +992,8 @@ def run(
         typer.echo(f"  PTC: {programmatic_tool_calling}")
     if ptc_timeout is not None:
         typer.echo(f"  PTC timeout: {ptc_timeout}s")
+    if ptc_only is not None:
+        typer.echo(f"  PTC-only: {ptc_only}")
 
     # Submit task
     try:
@@ -1024,6 +1031,8 @@ def run(
                 submit_data["programmatic_tool_calling"] = programmatic_tool_calling
             if ptc_timeout is not None:
                 submit_data["ptc_timeout_seconds"] = ptc_timeout
+            if ptc_only is not None:
+                submit_data["ptc_only"] = ptc_only
 
             resp = client.post(
                 f"{server_url}/submit_evaluation",
