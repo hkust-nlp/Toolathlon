@@ -5,14 +5,16 @@ The model is given one extra tool, ``programmatic_tool_call``, that runs Python
 code in a persistent subprocess sandbox. From inside the sandbox, the code
 calls the task's underlying MCP tools through a ``tools`` proxy, e.g.::
 
-    tools["canvas-list_courses"]()
-    tools["arxiv-search"](query="LLM agents", max_results=5)
+    tools["canvas_list_courses"]()
+    tools["arxiv_search"](query="LLM agents", max_results=5)
 
 The proxy forwards tool calls back to the parent over a JSON-line protocol on
 stdin/stdout; the parent looks the name up in an aggregated index built from
 all connected ``MCPServerManager`` servers and dispatches to the right one.
-Index keys are ``f"{server.name}-{tool.name}"``, matching the prefixed names
-the model already sees through ``custom_mcp_util.my_to_function_tool``.
+Index keys are the model-facing names — ``to_model_tool_name(f"{server}-{tool}")``,
+exactly what the harness puts in the model's tool list — so a name copied off
+that list resolves on the first try. Lookups normalize, so the raw
+``f"{server}-{tool}"`` spelling works too.
 
 Design points worth knowing:
   * Tool failures raise exceptions inside the sandbox, so ``try/except``
@@ -48,6 +50,9 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from agents.mcp import MCPServer
 from mcp.types import CallToolResult, TextContent, Tool as MCPTool
+
+# Naming helpers only — importing this applies no monkey patches.
+from utils.openai_agents_monkey_patch.tool_name_aliases import to_model_tool_name
 
 logger = logging.getLogger(__name__)
 
@@ -175,8 +180,7 @@ if __name__ == "__main__":
 '''
 
 
-# Tool names are prefixed `<server>-<tool>` (hyphens), so only bracket access
-# works — the examples below use it throughout.
+# Kept byte-identical to MCPMark's `_PROGRAMMATIC_TOOL_CALL_DESCRIPTION`.
 _CODE_EXECUTION_DESCRIPTION = (
     'Run Python that calls the tools listed above as `tools["tool_name"](*args, **kwargs)`. State (variables, imports) persists across calls. Use print() to see output.\n'
     "USE WHEN: loops, conditionals, error handling, or chaining multiple tool calls with intermediate processing.\n\n"
@@ -212,6 +216,11 @@ _CODE_EXECUTION_DESCRIPTION = (
     "print('Failed:', failed[:3] if failed else 'none')\n"
     "```"
 )
+
+
+# Backend and model-facing name alike: PTCSyntheticServer skips the `<server>_`
+# prefix (see `expose_tools_unprefixed`) and there is no hyphen to alias away.
+_PTC_TOOL_NAME = "programmatic_tool_call"
 
 
 def _coerce_block(text: str) -> tuple:
@@ -386,7 +395,7 @@ def _format_exec_result(msg: Dict[str, Any]) -> CallToolResult:
 class PTCWrapper:
     """Aggregates underlying MCP servers behind a single ``programmatic_tool_call`` tool."""
 
-    CODE_EXECUTION_TOOL = "programmatic_tool_call"
+    CODE_EXECUTION_TOOL = _PTC_TOOL_NAME
 
     def __init__(
         self,
@@ -464,7 +473,9 @@ class PTCWrapper:
                     tname = getattr(tool, "name", None)
                     if not tname:
                         continue
-                    exposed = f"{server_name}-{tname}"
+                    # Key on the name the model is shown. Duplicates need no
+                    # handling: validate_model_tool_names rejects them at setup.
+                    exposed = to_model_tool_name(f"{server_name}-{tname}")
                     self._tool_index[exposed] = (server, tname)
                     schema = getattr(tool, "inputSchema", None) or {}
                     if not isinstance(schema, dict):
@@ -480,6 +491,18 @@ class PTCWrapper:
                 "PTC index built: %d tools across %d server(s)",
                 len(self._tool_index), len(self._servers),
             )
+
+    def _resolve_tool_name(self, tool_name: str) -> Optional[str]:
+        """Canonical index key for a name the sandbox asked for, if any.
+
+        Normalizes the request the way `termination_checkers` does, so the raw
+        ``<server>-<tool>`` spelling hits the same entry. This cannot resolve
+        ambiguously: the harness rejects duplicate model-facing names.
+        """
+        if tool_name in self._tool_index:
+            return tool_name
+        canonical = to_model_tool_name(tool_name)
+        return canonical if canonical in self._tool_index else None
 
     async def call_programmatic(self, code: str) -> CallToolResult:
         await self._ensure_index()
@@ -550,10 +573,12 @@ class PTCWrapper:
         args = msg.get("args") or []
         kwargs = msg.get("kwargs") or {}
 
-        # The agent sees the prefixed name ("ptc-programmatic_tool_call");
-        # accept the bare name too in case a caller strips the prefix.
-        prefixed = f"{PTCSyntheticServer.SERVER_NAME}-{self.CODE_EXECUTION_TOOL}"
-        if tool_name == self.CODE_EXECUTION_TOOL or tool_name == prefixed:
+        # Recognize the server-prefixed spelling too, so a caller that adds the
+        # prefix back gets this explanation instead of "unknown tool".
+        prefixed = to_model_tool_name(
+            f"{PTCSyntheticServer.SERVER_NAME}-{self.CODE_EXECUTION_TOOL}"
+        )
+        if to_model_tool_name(tool_name) in (self.CODE_EXECUTION_TOOL, prefixed):
             await self._send({
                 "type": "tool_result", "id": req_id, "ok": False,
                 "error": (
@@ -566,7 +591,8 @@ class PTCWrapper:
         # Self-correction for hallucinated tool names: surface valid candidates
         # instead of letting the inner server reply with an opaque
         # "Method <name> not found".
-        target = self._tool_index.get(tool_name)
+        canonical = self._resolve_tool_name(tool_name)
+        target = self._tool_index.get(canonical) if canonical else None
         if target is None:
             await self._send({
                 "type": "tool_result", "id": req_id,
@@ -576,7 +602,7 @@ class PTCWrapper:
 
         server, original_name = target
         try:
-            bound_kwargs = self._bind_positional(tool_name, args, kwargs)
+            bound_kwargs = self._bind_positional(canonical, args, kwargs)
         except Exception as exc:
             await self._send({
                 "type": "tool_result", "id": req_id, "ok": False,
@@ -684,7 +710,7 @@ class PTCWrapper:
             hint = "See the available tools list for valid names."
         return (
             f"Unknown tool '{tool_name}'. {hint} "
-            "Use exact prefixed names, e.g. 'serverName-toolName'."
+            "Use the exact names from your tool list, e.g. 'serverName_toolName'."
         )
 
     # ------------------------------------------------------------------
@@ -768,13 +794,18 @@ class PTCSyntheticServer(MCPServer):
     """Exposes a ``PTCWrapper`` as a single-tool MCP server.
 
     The Toolathlon agent loop iterates ``MCPServerManager.connected_servers``
-    and converts each server's tools through ``my_to_function_tool``, which
-    prefixes the tool name with the server name. Plugging this synthetic
-    server in there means the model sees a regular tool named
-    ``ptc-programmatic_tool_call`` with no other code changes.
+    and converts each server's tools through ``my_to_function_tool``, so
+    plugging this synthetic server in there gets the tool in front of the model
+    with no other code changes.
+
+    It is a harness detail rather than a source of tools, so it opts out of the
+    ``<server>_`` prefix: the model sees plain ``programmatic_tool_call``.
     """
 
     SERVER_NAME = "ptc"
+
+    # Honored by custom_mcp_util.my_to_function_tool.
+    expose_tools_unprefixed = True
 
     def __init__(self, wrapper: PTCWrapper):
         self._wrapper = wrapper

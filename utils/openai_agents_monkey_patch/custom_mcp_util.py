@@ -8,6 +8,7 @@ from typing import Any
 from utils.general.helper import print_color
 from utils.openai_agents_monkey_patch.tool_name_aliases import (
     to_model_mcp_tool_name,
+    to_model_tool_name,
 )
 
 
@@ -139,10 +140,19 @@ def my_to_function_tool(
         except Exception as e:
             logger.info(f"Error converting MCP schema to strict mode: {e}")
 
+    # Synthetic servers injecting a harness-level tool (the PTC sandbox) opt out
+    # of the `<server>_` prefix. Real servers keep it — that is what makes their
+    # names unique across servers.
+    model_facing_name = (
+        to_model_tool_name(tool.name)
+        if getattr(server, "expose_tools_unprefixed", False)
+        else to_model_mcp_tool_name(server.name, tool.name)
+    )
+
     return FunctionTool(
         # Only the model-facing alias is normalized. The callback above keeps
         # the original server/tool objects for the real MCP call.
-        name=to_model_mcp_tool_name(server.name, tool.name),
+        name=model_facing_name,
         description=tool.description or "",
         params_json_schema=schema,
         on_invoke_tool=invoke_func,
