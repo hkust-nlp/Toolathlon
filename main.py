@@ -5,7 +5,7 @@ from utils.general.helper import read_json
 from utils.data_structures.task_config import TaskConfig
 from utils.task_runner.runner import TaskRunner
 from utils.evaluation.evaluator import TaskEvaluator
-from utils.general.helper import setup_proxy,print_color
+from utils.general.helper import setup_proxy,print_color,apply_ptc_env_overrides
 import os
 
 from utils.openai_agents_monkey_patch.custom_run_impl import *
@@ -68,29 +68,7 @@ async def main():
         eval_config_dict['global_task_config']['max_steps_under_single_turn_mode'] = args.max_steps_under_single_turn_mode
 
     # Programmatic tool calling: env var > CLI flag > eval-config default.
-    # Env var lets shell launchers (run_single_*.sh) flip it on without rebuilding
-    # the eval-config JSON.
-    tool_cfg = eval_config_dict.setdefault('agent', {}).setdefault('tool', {})
-    env_ptc = os.getenv("TOOLATHLON_PROGRAMMATIC_TOOL_CALLING")
-    if env_ptc is not None:
-        tool_cfg['programmatic_tool_calling'] = env_ptc.strip().lower() in ("1", "true", "yes", "on")
-    elif args.programmatic_tool_calling:
-        tool_cfg['programmatic_tool_calling'] = True
-
-    env_ptc_timeout = os.getenv("TOOLATHLON_PTC_TIMEOUT")
-    if env_ptc_timeout is not None:
-        try:
-            tool_cfg['ptc_timeout_seconds'] = int(env_ptc_timeout)
-        except ValueError:
-            print_color(f"Invalid TOOLATHLON_PTC_TIMEOUT={env_ptc_timeout!r}, ignoring.", "yellow")
-    elif args.ptc_timeout is not None:
-        tool_cfg['ptc_timeout_seconds'] = args.ptc_timeout
-
-    env_ptc_only = os.getenv("TOOLATHLON_PTC_ONLY")
-    if env_ptc_only is not None:
-        tool_cfg['ptc_only'] = env_ptc_only.strip().lower() in ("1", "true", "yes", "on")
-    elif args.ptc_only:
-        tool_cfg['ptc_only'] = True
+    apply_ptc_env_overrides(eval_config_dict, args)
 
     # Parse configurations
     mcp_config, agent_config, user_config = TaskRunner.load_configs(eval_config_dict)

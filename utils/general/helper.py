@@ -38,6 +38,46 @@ from typing import Union
 
 BASIC_TYPES = [int, float, str, bool, None, list, dict, set, tuple]
 
+
+def apply_ptc_env_overrides(eval_config_dict: dict, args=None) -> dict:
+    """Apply programmatic-tool-calling settings from env vars (and optional CLI
+    args) onto an eval-config dict, in place.
+
+    Precedence: env var > CLI flag > eval-config default. Env vars let shell
+    launchers (run_single_*.sh) flip PTC on without rebuilding the eval-config
+    JSON. This must run on every agent entry point — both the legacy one-shot
+    (main.py) and the containerized/phased preprocess — or the two paths diverge.
+    """
+    tool_cfg = eval_config_dict.setdefault("agent", {}).setdefault("tool", {})
+
+    env_ptc = os.getenv("TOOLATHLON_PROGRAMMATIC_TOOL_CALLING")
+    if env_ptc is not None:
+        tool_cfg["programmatic_tool_calling"] = env_ptc.strip().lower() in (
+            "1", "true", "yes", "on",
+        )
+    elif args is not None and getattr(args, "programmatic_tool_calling", False):
+        tool_cfg["programmatic_tool_calling"] = True
+
+    env_ptc_timeout = os.getenv("TOOLATHLON_PTC_TIMEOUT")
+    if env_ptc_timeout is not None:
+        try:
+            tool_cfg["ptc_timeout_seconds"] = int(env_ptc_timeout)
+        except ValueError:
+            print(f"Invalid TOOLATHLON_PTC_TIMEOUT={env_ptc_timeout!r}, ignoring.")
+    elif args is not None and getattr(args, "ptc_timeout", None) is not None:
+        tool_cfg["ptc_timeout_seconds"] = args.ptc_timeout
+
+    env_ptc_only = os.getenv("TOOLATHLON_PTC_ONLY")
+    if env_ptc_only is not None:
+        tool_cfg["ptc_only"] = env_ptc_only.strip().lower() in (
+            "1", "true", "yes", "on",
+        )
+    elif args is not None and getattr(args, "ptc_only", False):
+        tool_cfg["ptc_only"] = True
+
+    return eval_config_dict
+
+
 def elegant_show(something, level=0, sid=0, full=False, max_list=None):
     # str,float,int
     # all print in this call should add level*4 spaces
