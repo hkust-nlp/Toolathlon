@@ -28,7 +28,8 @@ class MCPServerManager:
                  debug: bool = False,
                  local_token_key_session: Dict = None,
                  programmatic_tool_calling: bool = False,
-                 ptc_timeout_seconds: int = 60):
+                 ptc_timeout_seconds: int = 60,
+                 ptc_only: bool = False):
         """
         Initialize MCP server manager
 
@@ -38,9 +39,13 @@ class MCPServerManager:
             programmatic_tool_calling: When True, after `connect_servers` finishes,
                 a synthetic ``ptc`` server is appended to ``connected_servers`` that
                 exposes a single ``programmatic_tool_call`` tool. Inside that tool's
-                Python sandbox, code can call any underlying MCP tool by its
-                prefixed name (``tools["<server>-<tool>"](...)``).
+                Python sandbox, code can call any underlying MCP tool by the same
+                name the model sees for it (``tools["<server>_<tool>"](...)``).
             ptc_timeout_seconds: Per-call wall-clock budget for code execution.
+            ptc_only: Implies `programmatic_tool_calling`. Every real server is
+                replaced in ``connected_servers`` by a proxy that still lists its
+                tools but refuses direct calls, leaving the sandbox as the only
+                way to invoke them. The sandbox keeps the unwrapped servers.
         """
         self.local_servers_paths = os.path.abspath("./local_servers")
         self.local_binary_paths = os.path.abspath("./local_binary")
@@ -56,7 +61,8 @@ class MCPServerManager:
         self._connection_events: Dict[str, asyncio.Event] = {}
 
         # PTC state
-        self._ptc_enabled = bool(programmatic_tool_calling)
+        self._ptc_only = bool(ptc_only)
+        self._ptc_enabled = bool(programmatic_tool_calling) or self._ptc_only
         self._ptc_timeout = int(ptc_timeout_seconds)
         self._ptc_wrapper = None  # type: Optional[Any]
         self._ptc_synthetic_server = None  # type: Optional[Any]
@@ -320,25 +326,39 @@ class MCPServerManager:
 
         # Import lazily so loading this module does not require the PTC
         # dependencies if the feature is off.
-        from utils.mcp.ptc_wrapper import PTCWrapper, PTCSyntheticServer
+        from utils.mcp.ptc_wrapper import (
+            PTCWrapper, PTCSyntheticServer, PTCOnlyServerProxy,
+        )
 
         wrapper = PTCWrapper(
             servers=real_servers,
             workspace=self.agent_workspace,
             default_code_timeout=self._ptc_timeout,
+            ptc_only=self._ptc_only,
         )
         await wrapper.setup()
         synthetic = PTCSyntheticServer(wrapper)
 
         self._ptc_wrapper = wrapper
         self._ptc_synthetic_server = synthetic
+
+        # After the wrapper indexed `real_servers`, so the sandbox keeps the
+        # unwrapped ones. Keys are unchanged, so name-based bookkeeping holds.
+        if self._ptc_only:
+            for name, server in self.connected_servers.items():
+                self.connected_servers[name] = PTCOnlyServerProxy(server)
+
         self.connected_servers[self.PTC_SYNTHETIC_NAME] = synthetic
 
         if self.debug:
+            mode = (
+                "PTC-only enabled (native tools listed but not directly callable)"
+                if self._ptc_only else "PTC enabled"
+            )
             print(
-                f">>PTC enabled: indexed {len(wrapper.known_tools)} tools across "
-                f"{len(real_servers)} server(s) — exposed as "
-                f"'{self.PTC_SYNTHETIC_NAME}-{wrapper.CODE_EXECUTION_TOOL}'"
+                f">>{mode}: indexed {len(wrapper.known_tools)} tools across "
+                f"{len(real_servers)} server(s) — exposed to the model as "
+                f"'{wrapper.CODE_EXECUTION_TOOL}'"
             )
 
     async def _cleanup_ptc_synthetic_server(self) -> None:

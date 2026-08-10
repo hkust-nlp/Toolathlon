@@ -41,11 +41,17 @@ async def main():
                        help="Provider")
     parser.add_argument("--programmatic_tool_calling", action="store_true",
                        help=("Enable programmatic tool calling: a synthetic "
-                             "ptc-programmatic_tool_call tool that runs Python "
+                             "programmatic_tool_call tool that runs Python "
                              "code in a persistent sandbox and proxies MCP tool "
-                             "calls through tools[\"<server>-<tool>\"](...)."))
+                             "calls through tools[\"<tool>\"](...)."))
     parser.add_argument("--ptc_timeout", type=int, default=None,
                        help="Per-call timeout (seconds) for programmatic_tool_call. Default 60.")
+    parser.add_argument("--ptc_only", action="store_true",
+                       help=("PTC-only mode (implies --programmatic_tool_calling): the "
+                             "native MCP tools stay listed so the model can read their "
+                             "schemas, but calling them directly is rejected — they can "
+                             "only be invoked via tools[...] inside "
+                             "programmatic_tool_call."))
     args = parser.parse_args()
 
     # Set Proxy (if needed)
@@ -79,7 +85,13 @@ async def main():
             print_color(f"Invalid TOOLATHLON_PTC_TIMEOUT={env_ptc_timeout!r}, ignoring.", "yellow")
     elif args.ptc_timeout is not None:
         tool_cfg['ptc_timeout_seconds'] = args.ptc_timeout
-    
+
+    env_ptc_only = os.getenv("TOOLATHLON_PTC_ONLY")
+    if env_ptc_only is not None:
+        tool_cfg['ptc_only'] = env_ptc_only.strip().lower() in ("1", "true", "yes", "on")
+    elif args.ptc_only:
+        tool_cfg['ptc_only'] = True
+
     # Parse configurations
     mcp_config, agent_config, user_config = TaskRunner.load_configs(eval_config_dict)
     # task_config = TaskConfig.from_dict(task_config_dict, 

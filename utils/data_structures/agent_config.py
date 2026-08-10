@@ -12,9 +12,13 @@ class Tool:
     max_inner_turns: int = 20
     # When True, MCPServerManager appends a synthetic 'ptc' server exposing
     # `programmatic_tool_call`, which runs Python code that drives the
-    # underlying MCP tools through a `tools["<server>-<tool>"]` proxy.
+    # underlying MCP tools through a `tools["<server>_<tool>"]` proxy.
     programmatic_tool_calling: bool = False
     ptc_timeout_seconds: int = 60
+    # Native MCP tools stay listed but can only be invoked from inside
+    # `programmatic_tool_call`. Implies `programmatic_tool_calling`, applied in
+    # __post_init__ so every consumer sees it.
+    ptc_only: bool = False
 
     def __post_init__(self):
         """Validate the reasonability of tool call parameters"""
@@ -24,6 +28,8 @@ class Tool:
             raise ValueError(
                 f"ptc_timeout_seconds should be >= 1, but got {self.ptc_timeout_seconds}"
             )
+        if self.ptc_only:
+            self.programmatic_tool_calling = True
 
 @dataclass
 class AgentConfig:
@@ -90,6 +96,7 @@ class AgentConfig:
                     "max_inner_turns": self.tool.max_inner_turns,
                     "programmatic_tool_calling": self.tool.programmatic_tool_calling,
                     "ptc_timeout_seconds": self.tool.ptc_timeout_seconds,
+                    "ptc_only": self.tool.ptc_only,
                 }
             }
         }
@@ -115,6 +122,7 @@ class AgentConfig:
                 "max_inner_turns": self.tool.max_inner_turns,
                 "programmatic_tool_calling": self.tool.programmatic_tool_calling,
                 "ptc_timeout_seconds": self.tool.ptc_timeout_seconds,
+                "ptc_only": self.tool.ptc_only,
             }
         }
     
@@ -178,6 +186,7 @@ def create_agent_config(
     max_inner_turns: int = 20,
     programmatic_tool_calling: bool = False,
     ptc_timeout_seconds: int = 60,
+    ptc_only: bool = False,
 ) -> AgentConfig:
     """Convenient constructor, using flat parameters"""
     return AgentConfig(
@@ -189,5 +198,6 @@ def create_agent_config(
             max_inner_turns=max_inner_turns,
             programmatic_tool_calling=programmatic_tool_calling,
             ptc_timeout_seconds=ptc_timeout_seconds,
+            ptc_only=ptc_only,
         )
     )

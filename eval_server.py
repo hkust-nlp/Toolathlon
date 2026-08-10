@@ -88,6 +88,7 @@ class SubmitEvaluationRequest(BaseModel):
     ws_client_version: Optional[str] = None  # WebSocket client version (required for private mode in v1.3)
     programmatic_tool_calling: Optional[bool] = None  # Per-job PTC toggle (v1.3+); None means use eval-config default
     ptc_timeout_seconds: Optional[int] = None  # Per-job PTC timeout in seconds (v1.3+)
+    ptc_only: Optional[bool] = None  # Per-job PTC-only toggle (v1.3+); implies PTC when True
 
 class SubmitEvaluationResponse(BaseModel):
     status: str
@@ -591,6 +592,9 @@ async def execute_evaluation(job_id: str, mode: str, config: Dict[str, Any]):
         if config.get('ptc_timeout_seconds') is not None:
             env["TOOLATHLON_PTC_TIMEOUT"] = str(config['ptc_timeout_seconds'])
             log(f"[Server] PTC: ptc_timeout_seconds={config['ptc_timeout_seconds']}")
+        if config.get('ptc_only') is not None:
+            env["TOOLATHLON_PTC_ONLY"] = "true" if config['ptc_only'] else "false"
+            log(f"[Server] PTC: ptc_only={config['ptc_only']}")
 
         run_process = await run_command_async(
             [
@@ -866,6 +870,7 @@ async def submit_evaluation(request: Request, data: SubmitEvaluationRequest):
         "provider": data.provider,  # Add provider (v1.1+)
         "programmatic_tool_calling": data.programmatic_tool_calling,  # v1.3+
         "ptc_timeout_seconds": data.ptc_timeout_seconds,  # v1.3+
+        "ptc_only": data.ptc_only,  # v1.3+
     }
 
     asyncio.create_task(execute_evaluation(job_id, data.mode, config))
@@ -883,6 +888,8 @@ async def submit_evaluation(request: Request, data: SubmitEvaluationRequest):
         log(f"[Server] PTC override: programmatic_tool_calling={data.programmatic_tool_calling}")
     if data.ptc_timeout_seconds is not None:
         log(f"[Server] PTC override: ptc_timeout_seconds={data.ptc_timeout_seconds}")
+    if data.ptc_only is not None:
+        log(f"[Server] PTC override: ptc_only={data.ptc_only}")
 
     # Prepare rate limit info for response
     rate_limit_info = {

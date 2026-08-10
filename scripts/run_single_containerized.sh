@@ -146,6 +146,10 @@ if [ ! -z "${TOOLATHLON_PTC_TIMEOUT+x}" ]; then
     EXTRA_ENV_ARGS+=("-e" "TOOLATHLON_PTC_TIMEOUT=${TOOLATHLON_PTC_TIMEOUT}")
     echo "Detected host TOOLATHLON_PTC_TIMEOUT=${TOOLATHLON_PTC_TIMEOUT}, will pass into container"
 fi
+if [ ! -z "${TOOLATHLON_PTC_ONLY+x}" ]; then
+    EXTRA_ENV_ARGS+=("-e" "TOOLATHLON_PTC_ONLY=${TOOLATHLON_PTC_ONLY}")
+    echo "Detected host TOOLATHLON_PTC_ONLY=${TOOLATHLON_PTC_ONLY}, will pass into container"
+fi
 
 # Detect TOOLATHLON_MODEL_PARAMS_FILE - will copy file and set container path later
 HOST_MODEL_PARAMS_FILE=""
