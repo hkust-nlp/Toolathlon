@@ -97,7 +97,7 @@ def check_local(agent_workspace, groundtruth_workspace):
             "Toefl_min_score":100,
             "Ielts_accepted":"Yes",
             # CMU SCS Graduate Admissions
-            # (https://www.cs.cmu.edu/academics/graduate-admissions) states
+            # (https://www.cs.cmu.edu/education/graduate-admissions) states
             # "An IELTS score of 7 is equivalent to a TOEFL score of 100",
             # making 7 the effective minimum.  Previously hardcoded as 7.5
             # which doesn't appear in any official CMU source.
