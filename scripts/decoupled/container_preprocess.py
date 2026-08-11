@@ -38,6 +38,8 @@ def parse_args() -> argparse.Namespace:
 
 
 def build_eval_config_dict(args: argparse.Namespace) -> dict:
+    from utils.general.helper import apply_ptc_env_overrides
+
     eval_config_dict = read_json_file(args.eval_config)
     if args.model_short_name is not None:
         eval_config_dict["agent"]["model"]["short_name"] = args.model_short_name
@@ -46,6 +48,10 @@ def build_eval_config_dict(args: argparse.Namespace) -> dict:
         eval_config_dict["global_task_config"][
             "max_steps_under_single_turn_mode"
         ] = args.max_steps_under_single_turn_mode
+    # PTC settings arrive via env vars (run_single_containerized.sh passes them
+    # into the container). The phased flow freezes eval_config into the task
+    # bundle here, so the override must happen before the bundle is built.
+    apply_ptc_env_overrides(eval_config_dict)
     return eval_config_dict
 
 
