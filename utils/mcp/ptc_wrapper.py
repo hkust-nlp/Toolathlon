@@ -383,6 +383,372 @@ def _stringify_result(result: Any) -> Any:
         return str(result)
 
 
+# ---------------------------------------------------------------------------
+# Swallowed-error detection for audited servers
+# ---------------------------------------------------------------------------
+# Several deployed servers catch tool failures and return the message as
+# *normal* text content with ``isError`` unset (the community-FastMCP
+# ``except Exception as e: return f"Error: {e}"`` idiom). A direct caller
+# survives that — the model reads the text. Inside the sandbox the same text
+# arrives as *data*: generated code subscripts the error string as if it were
+# a row and its ``try/except`` never fires.
+#
+# The tables below reclassify those results at the dispatch point. They are
+# not heuristics: every prefix is the constant head of an error template read
+# from the deployed pin of that server, keyed by yaml server name and tool
+# name ("*" = every tool of that server). A rule is only consulted when the
+# result is a single text block — structured and multi-block successes are
+# never inspected — and only for the server it was audited on.
+#
+# server -> tool (or "*") -> anchored literal prefixes of its error templates.
+_SWALLOWED_ERROR_PREFIXES: Dict[str, Dict[str, Tuple[str, ...]]] = {
+    # handle_tool_errors decorator wraps every handler: all ~34 raise sites
+    # come back as "Error: {e}". "Tool ... is excluded" is the pre-dispatch
+    # guard; the "Failed to check existing ..." pair is the whole-response
+    # abort of the batch DDL tools. (Per-item "Failed to ..." lines *inside*
+    # a mixed batch response are deliberately left alone — partial success.)
+    "snowflake": {
+        "*": ("Error: ", "Tool "),
+        "create_schemas": ("Failed to check existing schemas in database '",),
+        "drop_schemas": ("Failed to check existing schemas in database '",),
+        "create_tables": ("Failed to check existing tables in ",),
+        "drop_tables": ("Failed to check existing tables in ",),
+    },
+    # Every one of the 39 tools ends in `except Exception as e: return
+    # f"Error ...: {e}"`; access control returns "Access denied: ...".
+    # Successes start "Successfully"/"Found"/"Query"/"No ..." — never these.
+    "google-cloud": {
+        "*": ("Error ", "Access denied: "),
+        "bigquery_cancel_job": ("Could not cancel BigQuery job '",),
+        "bigquery_export_table": ("Export format '",),
+        "compute_restart_instance": ("Cannot restart instance '",),
+    },
+    # 25 tools, all template "Error <verbing> ...: {e}" plus per-tool
+    # validation/failure literals. Success outputs all begin with fixed
+    # non-error literals; free-form email bodies only appear after them.
+    "emails": {
+        "*": ("Error ", "Error: "),
+        "send_email": ("Email sending failed",),
+        "reply_email": ("Reply sending failed",),
+        "forward_email": ("Email forwarding failed",),
+        "delete_email": ("Email deletion failed",),
+        "move_email": ("Email move failed",),
+        "create_folder": ("Failed to create folder '",),
+        "delete_folder": ("Failed to delete folder '",),
+        "update_draft": ("Failed to update draft ",),
+        "delete_draft": ("Failed to delete draft ",),
+        "get_email_headers": ("No raw message data available for email ",),
+        "download_attachment": (
+            "No raw message data available for email ",
+            "Could not extract attachment data for '",
+        ),
+    },
+    # All ten tools: "Error: ..." templates; nine also share the definite
+    # failure "Company ticker <t> not found.". Successes are JSON ("["/"{")
+    # or news text ("Title: "). "No trading data/news found" stays data — an
+    # empty result is a legitimate answer, not a failure.
+    "yahoo-finance": {
+        "*": ("Error: ", "Company ticker "),
+    },
+    # call_tool dispatcher catch-all returns "Error: {e}" for every tool;
+    # download/read also emit compact-JSON error envelopes whose constant
+    # head is distinct from the '{"status": "success"' of their successes.
+    "arxiv_local": {
+        "*": ("Error: ", '{"status": "error"'),
+    },
+    "arxiv-latex": {
+        # The one server whose success (raw flattened LaTeX) has no fixed
+        # head, so a paper opening with this exact string would misfire —
+        # accepted: the prefix is long and no real paper starts with it.
+        "get_paper_prompt": ("Error processing paper: ",),
+    },
+    # All expected failures funnel through "Error: {e}"; unexpected ones
+    # already raise (FastMCP sets isError), so this prefix is exhaustive.
+    "excel": {
+        "*": ("Error: ",),
+    },
+    "wandb": {
+        "count_weave_traces_tool": ("Error counting traces: ",),
+    },
+    # All error literals are English "Error: ..." while successes open with
+    # Chinese table headers or JSON. The apology text 12306 wraps around a
+    # rejected query ("很抱歉，未查到...") is indistinguishable from a genuine
+    # empty result and stays data.
+    "rail_12306": {
+        "*": ("Error: ",),
+    },
+    # Inner catch wraps in McpError, outer catch returns its .message as
+    # normal content — hence this unforgeable double prefix. Other k8s tools
+    # throw or set isError properly.
+    "k8s": {
+        "kubectl_scale": (
+            "Error: MCP error -32603: Failed to scale ",
+            "Failed to scale resource: ",
+        ),
+    },
+    # Response.serialize prepends "### Result"; in the invalid-regex catch
+    # branch nothing else precedes the error line.
+    "playwright_with_chunk": {
+        "browser_snapshot_search": ("### Result\nError searching: ",),
+    },
+    # Every error path starts "Error: "/"Error <verbing> "; successes open
+    # with "PDF total pages: "/"PDF file information:"/"Successfully "/
+    # "Search ID: "/"Warning: " — extracted PDF text only appears after those
+    # headers, never at offset 0.
+    "pdf-tools": {
+        "*": ("Error: ", "Error "),
+    },
+    # Error sentences that are safe to anchor at the start of the payload.
+    # "Document ..." / "Header '..." heads are shared with success messages,
+    # so those templates live in the regex table as whole-payload matches.
+    # get_document_text is prefix-exempt below: it returns raw document text
+    # verbatim, which can begin with anything.
+    "word": {
+        "*": (
+            "Failed to ",
+            "Cannot modify document: ",
+            "Cannot create document: ",
+            "Cannot protect document: ",
+            "Cannot create PDF: ",
+            "PDF conversion not supported on ",
+            "Invalid ",
+            "Target paragraph not found",
+            "Search text cannot be empty",
+            "Image file not found: ",
+            "Image file appears to be empty: ",
+            "Error checking image file: ",
+            "Document processing error: ",
+            '{\n  "error": "',
+            '{\n  "success": false,\n  "error": "',
+        ),
+    },
+}
+
+# Tools whose *success* payload is uncontrolled free text (returned verbatim
+# from user documents), where anchored prefixes could still collide. Prefix
+# rules skip them; whole-payload regexes below still apply, since requiring
+# the entire result to be one exact error sentence cannot match a real
+# document.
+_SWALLOWED_ERROR_PREFIX_EXEMPT: Dict[str, frozenset] = {
+    "word": frozenset({"get_document_text"}),
+}
+
+# The few templates whose constant head alone is shared with a success
+# message, so the discriminating part sits after an interpolation.
+_SWALLOWED_ERROR_REGEXES: Dict[str, Dict[str, Tuple[re.Pattern, ...]]] = {
+    # success: "Operation '<n>' completed successfully" — same head.
+    "google-cloud": {
+        "compute_wait_for_operation": (
+            re.compile(r"\AOperation '[^']*' timed out after "),
+        ),
+        "storage_delete_object": (re.compile(r"\AObject '[^']*' not found in bucket '"),),
+        "logging_delete_log": (re.compile(r"\ALog '[^']*' not found or could not be deleted"),),
+        "logging_delete_log_sink": (re.compile(r"\ALog sink '[^']*' not found"),),
+    },
+    # success: "Attachment '<name>' saved to: ..." — same head, and the
+    # attachment filename itself may contain "' not found", so the error
+    # template is matched against the whole payload (success always ends
+    # "saved to: <path>").
+    "emails": {
+        "download_attachment": (
+            re.compile(r"\AAttachment '.*' not found in email [^\n]*\Z"),
+        ),
+    },
+    # Whole-payload single-sentence matches (\Z, no interior newline): safe
+    # even for tools returning raw document text, because a genuine document
+    # would have to consist of exactly this one line.
+    "word": {
+        "*": (
+            re.compile(r"\ADocument [^\n]* does not exist\Z"),
+            re.compile(r"\ADocument [^\n]* not found\.\Z"),
+            re.compile(r"\AHeader '[^\n]*' not found in document\.\Z"),
+            re.compile(r"\AStart anchor '[^\n]*' not found"),
+            re.compile(r"\ADirectory [^\n]* does not exist\Z"),
+            re.compile(r"\AFailed to extract text: [^\n]*\Z"),
+        ),
+    },
+}
+
+
+def _pptx_error_check(tool_name: str, text: str) -> Optional[str]:
+    """pptx returns every failure as a JSON object with a top-level ``error``
+    key (string value); no success payload ever carries one."""
+    try:
+        value = json.loads(text)
+    except (json.JSONDecodeError, TypeError):
+        return None
+    if isinstance(value, dict) and isinstance(value.get("error"), str):
+        return value["error"]
+    return None
+
+
+def _notion_error_check(tool_name: str, text: str) -> Optional[str]:
+    """notion wraps API failures as ``{status:'error', ...body}`` — but the
+    spread lets a Notion error body's *numeric* ``status`` overwrite the
+    string, so the reliable check is parsed: status=='error', or the Notion
+    error-object shape (object=='error'), or an HTTP status code >= 400.
+    Success payloads are verbatim Notion API objects and never carry a
+    top-level ``status``."""
+    try:
+        value = json.loads(text)
+    except (json.JSONDecodeError, TypeError):
+        return None
+    if not isinstance(value, dict):
+        return None
+    status = value.get("status")
+    if status == "error" or value.get("object") == "error" \
+            or (isinstance(status, int) and status >= 400):
+        return text
+    return None
+
+
+def _wandb_error_check(tool_name: str, text: str) -> Optional[str]:
+    """query_wandb_tool surfaces GraphQL failures under a top-level
+    ``errors`` key. Success responses never have one; a response carrying
+    both ``errors`` and non-empty ``data`` is a partial result and stays
+    data (raising would destroy the retrieved rows)."""
+    if tool_name != "query_wandb_tool":
+        return None
+    try:
+        value = json.loads(text)
+    except (json.JSONDecodeError, TypeError):
+        return None
+    if isinstance(value, dict) and value.get("errors") and not value.get("data"):
+        return text
+    return None
+
+
+def _rail_12306_error_check(tool_name: str, text: str) -> Optional[str]:
+    """The station-code lookup tools return ``{name: {"error": "未检索到城市。"}}``
+    per-key maps. When *every* entry is an error the lookup failed outright;
+    a mixed map is a partial success and stays data."""
+    if tool_name not in ("get-station-code-of-citys", "get-station-code-by-names"):
+        return None
+    try:
+        value = json.loads(text)
+    except (json.JSONDecodeError, TypeError):
+        return None
+    if isinstance(value, dict) and value and all(
+        isinstance(v, dict) and "error" in v for v in value.values()
+    ):
+        return text
+    return None
+
+
+_FILESYSTEM_ERROR_SEGMENT = re.compile(r"\A[^\n]+: Error - [^\n]*\Z")
+
+
+def _filesystem_error_check(tool_name: str, text: str) -> Optional[str]:
+    """read_multiple_files joins per-file segments with ``\\n---\\n``; a failed
+    file yields the single line ``<path>: Error - <msg>`` while a read file
+    yields ``<path>:\\n<content>``. Only the every-file-failed result is
+    reclassified (upstream itself later added ``isError`` for exactly that
+    case); partial results keep their successfully-read content."""
+    if tool_name != "read_multiple_files":
+        return None
+    segments = text.split("\n---\n")
+    if segments and all(_FILESYSTEM_ERROR_SEGMENT.match(s) for s in segments):
+        return text
+    return None
+
+
+# server -> callable(tool_name, joined_text) -> error text | None, for the
+# servers whose failures are structural rather than prefix-shaped.
+_STRUCTURED_ERROR_CHECKS = {
+    "pptx": _pptx_error_check,
+    "notion": _notion_error_check,
+    "wandb": _wandb_error_check,
+    "rail_12306": _rail_12306_error_check,
+    "filesystem": _filesystem_error_check,
+}
+
+
+def _single_text_block(result: Any) -> Optional[str]:
+    """The result's sole text payload, or ``None`` if it isn't shaped that way."""
+    content = result.get("content") if isinstance(result, dict) \
+        else getattr(result, "content", None)
+    if not isinstance(content, (list, tuple)) or len(content) != 1:
+        return None
+    item = content[0]
+    text = item.get("text") if isinstance(item, dict) else getattr(item, "text", None)
+    return text if isinstance(text, str) else None
+
+
+def _terminal_failure_text(result: Any) -> Optional[str]:
+    """Failure text from cli-mcp-server (the ``terminal`` yaml), else ``None``.
+
+    That server marks failures with ``TextContent(..., error=True)`` — an
+    *extra* field that pydantic's ``extra="allow"`` faithfully round-trips,
+    but which is not ``CallToolResult.isError`` and so is invisible to the
+    SDK. The flag alone is not enough though: when a command *does* run, any
+    non-empty stderr is emitted as an ``error=True`` block even on exit code
+    0, and a trailer block ``"\\nCommand completed with return code: N"`` is
+    always appended. So the deterministic rule is: error-flagged content
+    *without* that trailer means the command never ran (security violation,
+    timeout, missing/invalid command) — a genuine tool failure. Anything that
+    ran, whatever its exit code, stays data: a non-zero exit (``grep`` with
+    no match, a failing test run) is shell semantics for the code to inspect,
+    exactly as a direct caller would.
+    """
+    content = result.get("content") if isinstance(result, dict) \
+        else getattr(result, "content", None)
+    flagged: List[str] = []
+    for item in content or ():
+        if isinstance(item, dict):
+            text, extra = item.get("text"), item
+        else:
+            text = getattr(item, "text", None)
+            extra = getattr(item, "model_extra", None) or {}
+        if isinstance(text, str) and text.startswith("\nCommand completed with return code: "):
+            return None
+        if extra.get("error") is True and isinstance(text, str):
+            flagged.append(text)
+    if flagged:
+        return "\n".join(flagged)
+    return None
+
+
+def _swallowed_error_text(server_name: str, tool_name: str, result: Any) -> Optional[str]:
+    """Error text from a server that swallows failures, else ``None``.
+
+    Consulted only after ``_result_error_text`` said the result is nominally
+    fine; reclassifies it using the audited per-server rules above. Four
+    mechanisms, all scoped to the server (and where needed the tool) they
+    were audited on:
+
+      1. terminal's explicit per-block ``error=True`` marker;
+      2. anchored literal prefixes of known error templates;
+      3. whole-payload regexes for templates whose head is shared with a
+         success message;
+      4. structural checks (JSON error envelopes, all-entries-failed maps).
+
+    Anything unmatched stays data — exactly what a direct caller would see.
+    """
+    if server_name == "terminal":
+        return _terminal_failure_text(result)
+
+    text = _single_text_block(result)
+    if text is None:
+        return None
+
+    rules = _SWALLOWED_ERROR_PREFIXES.get(server_name)
+    if rules and tool_name not in _SWALLOWED_ERROR_PREFIX_EXEMPT.get(server_name, ()):
+        prefixes = rules.get(tool_name, ()) + rules.get("*", ())
+        if prefixes and text.startswith(prefixes):
+            return text
+
+    regex_rules = _SWALLOWED_ERROR_REGEXES.get(server_name)
+    if regex_rules:
+        for pattern in regex_rules.get(tool_name, ()) + regex_rules.get("*", ()):
+            if pattern.match(text):
+                return text
+
+    check = _STRUCTURED_ERROR_CHECKS.get(server_name)
+    if check is not None:
+        return check(tool_name, text)
+    return None
+
+
 def _result_error_text(result: Any) -> Optional[str]:
     """Return the error message when an MCP ``CallToolResult`` signals failure.
 
@@ -736,6 +1102,10 @@ class PTCWrapper:
             # MCP arguments must be JSON-clean.
             raw = await server.call_tool(original_name, _jsonify(bound_kwargs))
             err = _result_error_text(raw)
+            if err is None:
+                err = _swallowed_error_text(
+                    getattr(server, "name", "") or "", original_name, raw,
+                )
             if err is not None:
                 # An MCP-level failure (isError) — surface it as ok:False so the
                 # worker raises, instead of returning the error text as a value.
