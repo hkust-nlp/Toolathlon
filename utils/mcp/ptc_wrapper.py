@@ -440,6 +440,14 @@ class PTCWrapper:
         self._tmp_dir: Optional[str] = None
         self._script_path: Optional[str] = None
 
+        # Env tools dispatched from inside the sandbox, in call order. The
+        # outer trajectory records only `programmatic_tool_call`, so anything
+        # keyed on tool-call names — most importantly the termination checker
+        # matching stop tools like claim_done — must drain this to see through
+        # the sandbox. Under ptc_only a sandboxed call is the *only* spelling
+        # of a stop-tool call that exists.
+        self._dispatched_tool_calls: List[Dict[str, Any]] = []
+
     async def setup(self) -> None:
         await self._ensure_index()
 
@@ -526,6 +534,17 @@ class PTCWrapper:
             return tool_name
         canonical = to_model_tool_name(tool_name)
         return canonical if canonical in self._tool_index else None
+
+    def drain_dispatched_tool_calls(self) -> List[Dict[str, Any]]:
+        """Return sandbox-dispatched tool calls since the last drain, oldest first.
+
+        Each entry is ``{"name": <model-facing tool name>, "arguments": <dict>}``.
+        Draining clears the buffer, so consecutive drains partition the stream;
+        the agent loop drains once per interaction round, right where it
+        extracts direct tool calls for the termination check.
+        """
+        calls, self._dispatched_tool_calls = self._dispatched_tool_calls, []
+        return calls
 
     async def call_programmatic(self, code: str) -> CallToolResult:
         await self._ensure_index()
@@ -622,6 +641,13 @@ class PTCWrapper:
                 "ok": False, "error": self._unknown_tool_message(tool_name),
             })
             return
+
+        # Record the dispatch as soon as the name resolves — like a direct
+        # call, which lands in the trajectory whether or not it succeeds.
+        self._dispatched_tool_calls.append({
+            "name": canonical,
+            "arguments": _jsonify(dict(kwargs)),
+        })
 
         server, original_name = target
         try:
