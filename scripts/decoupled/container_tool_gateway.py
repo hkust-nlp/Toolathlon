@@ -1,6 +1,8 @@
 import argparse
 import asyncio
 import json
+import random
+import re
 import uuid
 from dataclasses import dataclass
 from typing import Any, Awaitable, Callable, Dict, List, Optional
@@ -8,10 +10,30 @@ from typing import Any, Awaitable, Callable, Dict, List, Optional
 from aiohttp import web
 from aiohttp_sse import sse_response
 
-from utils.mcp.tool_servers import MCPServerManager, call_tool_with_retry
+from utils.mcp.tool_servers import MCPServerManager, ToolCallError, call_tool_with_retry
 
 JSONRPC_VERSION = "2.0"
 MCP_PROTOCOL_VERSION = "2024-11-05"
+
+# Transient upstream failures worth absorbing inside the gateway rather than
+# surfacing to the agent (each surfaced failure costs a full LLM round-trip,
+# and quota-style errors need a longer wait than any agent will give them).
+# Matched against the tool result text as well as raised errors, because most
+# MCP servers report HTTP failures as ordinary text results.
+TRANSIENT_ERROR_RE = re.compile(
+    r"HttpError 429|Too Many Requests|quota ?[Ee]xceeded|RESOURCE_EXHAUSTED"
+    r"|rate limit|status of 50[0234]|50[0234] (Internal|Bad Gateway|Service|Gateway)"
+    r"|Service Unavailable|ECONNRESET|ETIMEDOUT|Connection reset|timed? out",
+)
+# Only read-like tools are safe to re-run when the *result* looks transient: a
+# 429 on a write does not prove the write never landed.
+READ_ONLY_TOOL_RE = re.compile(
+    r"(^|[-_])(get|list|read|search|fetch|query|download|describe|view)([-_]|$)",
+    re.IGNORECASE,
+)
+# Long tail on purpose: Google-style quotas are per-minute windows, so the
+# final waits must be able to cross into the next window.
+TRANSIENT_RETRY_DELAYS = (2.0, 5.0, 15.0, 35.0)
 
 
 def read_json_file(path: str) -> dict:
@@ -353,6 +375,41 @@ class ContainerToolGateway:
             raise RuntimeError(f"MCP server is not connected: {tool_record.server_name}")
 
         server = self.mcp_manager.connected_servers[tool_record.server_name]
+        retryable = READ_ONLY_TOOL_RE.search(tool_record.backend_name) is not None
+
+        for attempt, delay in enumerate(TRANSIENT_RETRY_DELAYS):
+            try:
+                result = await call_tool_with_retry(
+                    server=server,
+                    tool_name=tool_record.backend_name,
+                    arguments=arguments,
+                    retry_time=1,
+                    delay=0.5,
+                )
+            except ToolCallError:
+                # call_tool_with_retry already retried the raised error once;
+                # give read-only tools the longer backoff ladder too.
+                if not retryable:
+                    raise
+                await asyncio.sleep(delay * (1 + random.uniform(0, 0.25)))
+                continue
+
+            payload = _call_result_to_dict(result)
+            if not retryable:
+                return payload
+            # Scan only the head: transient errors appear early, results can be huge.
+            if not TRANSIENT_ERROR_RE.search(json.dumps(payload)[:20_000]):
+                return payload
+            print(
+                f"[gateway] transient error from {tool_record.backend_name} "
+                f"(attempt {attempt + 1}/{len(TRANSIENT_RETRY_DELAYS) + 1}); "
+                f"retrying in {delay:.0f}s",
+                flush=True,
+            )
+            await asyncio.sleep(delay * (1 + random.uniform(0, 0.25)))
+
+        # Last attempt runs outside the loop: its result — success, a still-
+        # transient payload, or a raised ToolCallError — goes to the caller as-is.
         result = await call_tool_with_retry(
             server=server,
             tool_name=tool_record.backend_name,
