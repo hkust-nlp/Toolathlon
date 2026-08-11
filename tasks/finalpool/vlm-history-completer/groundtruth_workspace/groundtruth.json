@@ -66,7 +66,8 @@
         "Model": "LAION CLIP",
         "Architecture": "Dual-Encoder",
         "Sources": [
-            "https://laion.ai/blog/large-openclip/"
+            "https://laion.ai/blog/large-openclip/",
+            "https://github.com/mlfoundations/open_clip"
         ]
     },
     {
@@ -75,6 +76,7 @@
         "Sources": [
             "https://github.com/CompVis/stable-diffusion",
             "https://github.com/runwayml/stable-diffusion",
+            "https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5",
             "https://github.com/Kameronski/stable-diffusion-1.5"
         ]
     },
@@ -119,7 +121,8 @@
         "Architecture": "LLM-based",
         "Sources": [
             "https://blog.google/technology/ai/google-palm-2-ai-large-language-model/",
-            "https://ai.google.dev/palm_docs"
+            "https://ai.google.dev/palm_docs",
+            "https://arxiv.org/abs/2305.10403"
         ]
     },
     {
