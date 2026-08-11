@@ -238,15 +238,83 @@ _CODE_EXECUTION_DESCRIPTION_ONLY = (
 _PTC_TOOL_NAME = "programmatic_tool_call"
 
 
+# Constructors that legitimately appear inside repr-style containers emitted
+# by Python-based servers (database rows, cursor dumps). Resolved strictly by
+# name with literal-only arguments — nothing here can execute arbitrary code.
+# The constructed objects are normalized by `_jsonify` on their way into the
+# sandbox (datetime → ISO string, Decimal → float, UUID → str).
+_REPR_CONSTRUCTORS = {
+    ("datetime", "datetime"): _datetime.datetime,
+    ("datetime", "date"): _datetime.date,
+    ("datetime", "time"): _datetime.time,
+    ("datetime", "timedelta"): _datetime.timedelta,
+    ("decimal", "Decimal"): Decimal,
+    (None, "Decimal"): Decimal,
+    ("uuid", "UUID"): uuid.UUID,
+    (None, "UUID"): uuid.UUID,
+}
+
+
+def _eval_repr_tree(node: ast.AST) -> Any:
+    """Evaluate a repr-container AST: literals plus whitelisted constructors.
+
+    A strict superset of ``ast.literal_eval`` semantics for the shapes that
+    defeat it in practice — ``{'ts': datetime.datetime(2026, 1, 1)}`` — while
+    rejecting everything else (names, attribute chains, subscripts, starred
+    args), so arbitrary expressions never evaluate. Raises ``ValueError`` on
+    any node outside the allowed set; the caller falls back to plain text.
+    """
+    if isinstance(node, ast.Constant):
+        return node.value
+    if isinstance(node, ast.List):
+        return [_eval_repr_tree(item) for item in node.elts]
+    if isinstance(node, ast.Tuple):
+        return tuple(_eval_repr_tree(item) for item in node.elts)
+    if isinstance(node, ast.Set):
+        return {_eval_repr_tree(item) for item in node.elts}
+    if isinstance(node, ast.Dict):
+        if any(key is None for key in node.keys):
+            raise ValueError("dict unpacking is not a repr shape")
+        return {
+            _eval_repr_tree(key): _eval_repr_tree(value)
+            for key, value in zip(node.keys, node.values)
+        }
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.USub, ast.UAdd)):
+        operand = _eval_repr_tree(node.operand)
+        if not isinstance(operand, (int, float, complex)) or isinstance(operand, bool):
+            raise ValueError("unary +/- only applies to numbers")
+        return -operand if isinstance(node.op, ast.USub) else +operand
+    if isinstance(node, ast.Call):
+        func = node.func
+        if isinstance(func, ast.Name):
+            key = (None, func.id)
+        elif isinstance(func, ast.Attribute) and isinstance(func.value, ast.Name):
+            key = (func.value.id, func.attr)
+        else:
+            raise ValueError("only plain constructor names are allowed")
+        ctor = _REPR_CONSTRUCTORS.get(key)
+        if ctor is None:
+            raise ValueError(f"constructor {key!r} is not whitelisted")
+        args = [_eval_repr_tree(arg) for arg in node.args]
+        if any(kw.arg is None for kw in node.keywords):
+            raise ValueError("**kwargs is not a repr shape")
+        kwargs = {kw.arg: _eval_repr_tree(kw.value) for kw in node.keywords}
+        return ctor(*args, **kwargs)
+    raise ValueError(f"unsupported node in repr container: {type(node).__name__}")
+
+
 def _coerce_block(text: str) -> tuple:
     """Recover a Python value from one text block; ``(value, ok)``.
 
     Structured payloads become native objects, plain text stays ``str``:
 
       1. strict JSON (canonical structured channel for well-behaved servers);
-      2. a Python ``repr`` container via ``ast.literal_eval`` — only attempted
-         when the text looks like a top-level ``[``/``{``/``(`` collection, so
-         genuine prose (file contents, error strings) is never mis-parsed;
+      2. a Python ``repr`` container — only attempted when the text looks
+         like a top-level ``[``/``{``/``(`` collection, so genuine prose
+         (file contents, error strings) is never mis-parsed. ``literal_eval``
+         first; when that fails (e.g. ``datetime.datetime(...)`` inside a
+         database row), a strict evaluator retries with the whitelisted
+         constructors in ``_REPR_CONSTRUCTORS``;
       3. otherwise ``(text, False)`` — caller keeps it as a string.
     """
     try:
@@ -258,6 +326,11 @@ def _coerce_block(text: str) -> tuple:
     try:
         return ast.literal_eval(text), True
     except (ValueError, SyntaxError, MemoryError, RecursionError):
+        pass
+    try:
+        tree = ast.parse(text.strip(), mode="eval")
+        return _eval_repr_tree(tree.body), True
+    except Exception:
         return text, False
 
 
