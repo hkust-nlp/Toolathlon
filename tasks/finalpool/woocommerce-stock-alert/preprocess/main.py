@@ -52,6 +52,7 @@ def clear_all_email_folders():
 
     print(f"Will clear the following folders: {folders_to_clear}")
 
+    failed_folders = []
     for folder in folders_to_clear:
         try:
             print(f"Clearing {folder} folder...")
@@ -59,6 +60,10 @@ def clear_all_email_folders():
             print(f"✅ {folder} folder cleared successfully")
         except Exception as e:
             print(f"⚠️ Error clearing {folder} folder: {e}")
+            failed_folders.append(folder)
+
+    if failed_folders:
+        raise RuntimeError(f"Failed to clear email folders: {failed_folders}")
 
     print("📧 All email folders clearing completed")
 
@@ -99,6 +104,9 @@ class WooCommerceProductSync:
         else:
             print("\n❌ Store reset failed")
             print(f"Error message: {result.get('error', 'Unknown error')}")
+            raise RuntimeError(
+                f"Store reset failed: {result.get('error', 'Unknown error')}"
+            )
 
     def load_woocommerce_products(self):
         """Load products from woocommerce_products.json"""

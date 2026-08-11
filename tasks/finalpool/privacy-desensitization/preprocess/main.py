@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 import os
 import shutil
 import json
+import sys
 import tarfile
 import glob
 import tempfile
@@ -55,7 +56,7 @@ def main():
             print("Extraction completed")
     except Exception as e:
         print(f"Extraction failed: {e}")
-        return
+        sys.exit(1)
     finally:
         if os.path.exists(extract_tmp_dir):
             shutil.rmtree(extract_tmp_dir)

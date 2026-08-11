@@ -26,8 +26,7 @@ def clean_emails(config, clean=True):
         # Select the INBOX
         status, messages = imap.select("INBOX")
         if status != "OK":
-            print("Error selecting INBOX")
-            return
+            raise RuntimeError(f"Error selecting INBOX for {config['email']}")
 
         print(f"Total emails in INBOX: {messages[0].decode('utf-8')}")
 
@@ -36,10 +35,9 @@ def clean_emails(config, clean=True):
         # Search for all emails in the INBOX
         status, email_ids = imap.search(None, "ALL")
         if status != "OK":
-            print("Error searching for emails")
             imap.close()
             imap.logout()
-            return
+            raise RuntimeError(f"Error searching for emails in INBOX for {config['email']}")
 
         email_id_list = email_ids[0].split()
 
@@ -63,8 +61,10 @@ def clean_emails(config, clean=True):
 
     except imaplib.IMAP4.error as e:
         print(f"An IMAP error occurred: {e}")
+        raise
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
+        raise
 
 if __name__ == "__main__":
     config = receiver_config={

@@ -692,7 +692,8 @@ class CanvasCourseSetup:
                 # Always create quiz (we already deleted existing ones)
                 quiz_created = await self.create_quiz(course_id, course_info["quiz"])
                 if not quiz_created:
-                    logger.warning(f"Failed to create quiz for {course_info['name']}")
+                    logger.error(f"Failed to create quiz for {course_info['name']}")
+                    return False
                 else:
                     logger.info(f"Successfully created quiz for {course_info['name']}")
                     print(f"📝 Successfully created quiz for {course_info['name']}")
@@ -706,7 +707,8 @@ class CanvasCourseSetup:
                 # Always create assignment (we already deleted existing ones)
                 assignment_created = await self.create_assignment(course_id, course_info["assignment"])
                 if not assignment_created:
-                    logger.warning(f"Failed to create assignment for {course_info['name']}")
+                    logger.error(f"Failed to create assignment for {course_info['name']}")
+                    return False
                 else:
                     logger.info(f"Successfully created assignment for {course_info['name']}")
                     print(f"📋 Successfully created assignment for {course_info['name']}")
@@ -733,11 +735,16 @@ class CanvasCourseSetup:
             
             logger.info(f"Successfully enrolled {enrollment_success}/{len(students_to_enroll)} students in {course_info['name']}")
             print(f"🎓 Successfully enrolled {enrollment_success}/{len(students_to_enroll)} students in {course_info['name']}")
-            
+            if enrollment_success != len(students_to_enroll):
+                logger.error(f"Failed to enroll all students in {course_info['name']}: {enrollment_success}/{len(students_to_enroll)}")
+                print(f"❌ Failed to enroll all students in {course_info['name']}: {enrollment_success}/{len(students_to_enroll)}")
+                return False
+
             # 7. Publish course (always publish to ensure visibility)
             course_published = await self.publish_course(course_id, course_info["name"])
             if not course_published:
-                logger.warning(f"Failed to publish course {course_info['name']}")
+                logger.error(f"Failed to publish course {course_info['name']}")
+                return False
             else:
                 logger.info(f"Successfully published course {course_info['name']}")
                 print(f"🌐 Successfully published course {course_info['name']}")
@@ -1371,7 +1378,18 @@ class CanvasCourseSetup:
                 print("⚠️ Some assignments were submitted successfully.")
             else:
                 print("❌ No assignments were submitted. Check if Ryan is enrolled in CS101-1 or CS201-1.")
-            
+
+            # If the config expected submissions but every course was skipped,
+            # a vacuous 0/0 must not count as success.
+            expected_submission_courses = [
+                course_info for course_info in self.courses_data["courses"]
+                if course_info.get("course_code") in target_courses and "assignment" in course_info
+            ]
+            if expected_submission_courses and total_submissions == 0:
+                logger.error(f"No submissions were attempted, but {len(expected_submission_courses)} configured course(s) expected one")
+                print(f"❌ No submissions were attempted, but {len(expected_submission_courses)} configured course(s) expected one")
+                return False
+
             return success_count == total_submissions
             
         except Exception as e:

@@ -334,14 +334,19 @@ class TestProductSetup:
                         print(f"✅ Product status updated to publish")
                     else:
                         print(f"❌ Update product status failed: {update_result}")
-                
+                        failed_count += 1
+
                 # If it's a variable product, create variations
                 if product_type == 'variable':
                     variations_info = self._create_product_variations(
                         product_id, product_data, color_attr
                     )
                     created_product_info['variations'] = variations_info
-                
+                    expected_variations = len(color_attr['terms'])
+                    if len(variations_info) != expected_variations:
+                        print(f"❌ Only {len(variations_info)}/{expected_variations} variations created for {product_name}")
+                        failed_count += 1
+
                 self.created_products.append(created_product_info)
                 created_count += 1
             else:
@@ -352,6 +357,7 @@ class TestProductSetup:
             time.sleep(1.0)
         
         # 4. Create simulated order data
+        order_failed_count = 0
         if created_count > 0:
             print("📊 Create simulated sales data...")
             # Based on the parameter, decide whether to delete existing orders
@@ -360,12 +366,13 @@ class TestProductSetup:
             else:
                 print("ℹ️ Keep existing orders, new orders will be added to existing orders")
             # Use 42 as the default random seed to ensure reproducibility, if you need true random, pass None
-            self._create_mock_orders(random_seed=42)
-        
+            order_failed_count = self._create_mock_orders(random_seed=42)
+
         setup_result = {
-            "success": failed_count == 0,
+            "success": failed_count == 0 and order_failed_count == 0,
             "created_count": created_count,
             "failed_count": failed_count,
+            "order_failed_count": order_failed_count,
             "created_products": self.created_products,
             "variable_products_count": len([p for p in self.created_products if p.get('type') == 'variable'])
         }
@@ -708,11 +715,15 @@ class TestProductSetup:
                 successful_orders += 1
                 print(f"✅ Order #{wc_order_id} created successfully - {variation.get('color', '')} x{quantity} @ {order_date.strftime('%m-%d %H:%M')}")
                 
-                # Try to update the historical creation date of the order
+                # Try to update the historical creation date of the order.
+                # Back-dating is what places orders in "last week", so a
+                # failure here counts as a failed order.
                 try:
-                    self._update_order_historical_date(wc_order_id, order_date.isoformat())
+                    if not self._update_order_historical_date(wc_order_id, order_date.isoformat()):
+                        failed_orders += 1
                 except Exception as e:
-                    print(f"⚠️ Update order #{wc_order_id} historical date failed: {e}")
+                    print(f"❌ Update order #{wc_order_id} historical date failed: {e}")
+                    failed_orders += 1
             else:
                 wc_order_id = None
                 failed_orders += 1
@@ -804,7 +815,9 @@ class TestProductSetup:
                     print(f"   Order #{order['wc_order_id']}: {order['variation_color']} x{order['quantity']} @ {order_time.strftime('%m-%d %H:%M')}")
         else:
             print(f"\n📋 Order list too long, detailed information has been omitted (total {len(self.created_orders)} records)")
-    
+
+        return failed_orders
+
     def _delete_existing_orders(self):
         """Delete all existing orders, ensure a clean environment before creating orders"""
         print("🗑️ Delete existing orders...")
@@ -881,13 +894,16 @@ class TestProductSetup:
                 print(f"✅ Order #{order_id} metadata updated, historical date: {historical_date}")
             else:
                 print(f"⚠️ Update order #{order_id} metadata failed: {result}")
-                
+
             # Method 2: If possible, try to update the database directly (requires database access)
             # This can be implemented through a WordPress plugin or direct database access
             # Since we don't have direct database access, we only record the orders that need to be updated
-            
+
+            return success
+
         except Exception as e:
             print(f"❌ Error updating order #{order_id} historical date: {e}")
+            return False
     
     def get_expected_results(self) -> Dict:
         """Get expected results, for evaluation"""

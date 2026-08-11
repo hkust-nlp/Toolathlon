@@ -35,7 +35,8 @@ def inject_emails_to_imap(imap_config, emails_data):
         
         # Select INBOX
         imap.select("INBOX")
-        
+
+        injected_count = 0
         for email_data in emails_data:
             try:
                 # Create email message
@@ -69,7 +70,10 @@ def inject_emails_to_imap(imap_config, emails_data):
                 email_string = msg.as_string()
                 
                 # Append to INBOX
-                imap.append("INBOX", None, None, email_string.encode('utf-8'))
+                typ, _ = imap.append("INBOX", None, None, email_string.encode('utf-8'))
+                if typ != 'OK':
+                    raise RuntimeError(f"IMAP append returned {typ}")
+                injected_count += 1
                 print(f"✅ Injected: {sender_name} - {email_data['subject']}")
                 
                 # Small delay to avoid overwhelming the server
@@ -81,7 +85,10 @@ def inject_emails_to_imap(imap_config, emails_data):
         
         imap.close()
         imap.logout()
-        print(f"✅ Successfully injected {len(emails_data)} emails")
+        if injected_count != len(emails_data):
+            print(f"❌ Injected only {injected_count}/{len(emails_data)} emails")
+            return False
+        print(f"✅ Successfully injected {injected_count} emails")
         return True
         
     except Exception as e:

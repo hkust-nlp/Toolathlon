@@ -314,6 +314,9 @@ async def main():
             )
             
             print(f"Student enrollment complete: {stats['successful']}/{stats['total']} students enrolled")
+            if stats['successful'] != len(selected_indices):
+                print(f"Failed to enroll all selected students: {stats['successful']}/{len(selected_indices)}")
+                sys.exit(1)
         else:
             print(f"Student CSV not found: {student_csv}")
             print("Skipping student enrollment")
@@ -374,6 +377,9 @@ async def main():
                 published=True
             )
             print(f"Created {stats['successful']}/{stats['total']} assignments")
+            if stats['successful'] != stats['total']:
+                print(f"Failed to create all assignments: {stats['successful']}/{stats['total']}")
+                sys.exit(1)
             if stats['assignments']:
                 print("📋 Assignments created:")
                 for assignment in stats['assignments']:

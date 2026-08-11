@@ -119,7 +119,7 @@ if __name__ == "__main__":
 
         print(f"\n➡️  [{idx}/{total_senders}] Sending from {sender_email} ({sender_display}) to {receiver}")
         try:
-            asyncio.run(run_command(
+            _, _, rc = asyncio.run(run_command(
                 f"timeout 60s uv run {send_email_path} -s {sender_email} "
                 f"-p '{sender_password}' "
                 f"-r {receiver} "
@@ -130,15 +130,22 @@ if __name__ == "__main__":
                 debug=True,
                 show_output=True
             ))
-            success_count += 1
+            if rc == 0:
+                success_count += 1
+            else:
+                print(f"❌ Failed to send: sender={sender_email}, returncode={rc}")
         except Exception as e:
             print(f"❌ Failed to send: sender={sender_email}, error={e}")
 
     # Summary result output
+    send_success = success_count > 0 and (success_count + no_match_count + skipped_same_addr) == total_senders
     print(
-        f"Summary: success={success_count > 0 and (success_count + no_match_count + skipped_same_addr) == total_senders}, "
+        f"Summary: success={send_success}, "
         f"Accounts sent={success_count}/{total_senders}, skipped same address={skipped_same_addr}, no match={no_match_count}, receiver={receiver}"
     )
+    if not send_success:
+        print("❌ Not all seed emails were sent successfully; aborting preprocess.")
+        sys.exit(1)
 
     # Wait a bit to ensure all emails are received
     print("Waiting 10s for all emails to be received...")

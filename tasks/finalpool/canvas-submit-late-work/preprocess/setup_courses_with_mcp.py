@@ -1221,16 +1221,25 @@ class CanvasCourseSetup:
             
             # 2. Enroll teacher
             if "teacher" in course_info:
-                await self.enroll_teacher(course_id, course_info["teacher"])
-            
+                if not await self.enroll_teacher(course_id, course_info["teacher"]):
+                    logger.error(f"Failed to enroll teacher for {course_info['name']}")
+                    return False
+
             # 3. Cleanup and Create announcement
             if "announcement" in course_info:
                 await self.delete_announcements_by_title(course_id, course_info["announcement"].get("title", ""))
-                await self.create_announcement(course_id, course_info["announcement"])
-            
+                if not await self.create_announcement(course_id, course_info["announcement"]):
+                    logger.error(f"Failed to create announcement for {course_info['name']}")
+                    return False
+
             # 4. Enroll students
+            enrolled_students = 0
             for student_email in course_info["students"]:
-                await self.enroll_student(course_id, student_email)
+                if await self.enroll_student(course_id, student_email):
+                    enrolled_students += 1
+            if enrolled_students != len(course_info["students"]):
+                logger.error(f"Failed to enroll all students in {course_info['name']}: {enrolled_students}/{len(course_info['students'])}")
+                return False
             
             # 5. Cleanup assignments to prevent duplicates
             await self.delete_all_assignments_in_course(course_id, course_info['name'])
@@ -1243,23 +1252,31 @@ class CanvasCourseSetup:
                     if assignment_id:
                         created_assignments += 1
                 print(f"Created {created_assignments}/{len(course_info['assignments'])} assignments for course {course_info['name']}")
-            
+                if created_assignments != len(course_info["assignments"]):
+                    logger.error(f"Failed to create all assignments for {course_info['name']}: {created_assignments}/{len(course_info['assignments'])}")
+                    return False
+
             # 6b. Create single assignment under key `assignment` if present
             if "assignment" in course_info and isinstance(course_info["assignment"], dict):
                 assignment_id = await self.create_assignment(course_id, course_info["assignment"])
                 if assignment_id:
                     print(f"Created single assignment for course {course_info['name']}")
                 else:
-                    logger.warning(f"Failed to create single assignment for course {course_info['name']}")
-            
+                    logger.error(f"Failed to create single assignment for course {course_info['name']}")
+                    return False
+
             # 7. Create quiz if configured (retain quiz handling)
             if "quiz" in course_info and course_info["quiz"]:
-                await self.create_quiz(course_id, course_info["quiz"])
-            
+                if not await self.create_quiz(course_id, course_info["quiz"]):
+                    logger.error(f"Failed to create quiz for {course_info['name']}")
+                    return False
+
             # Note: previous quiz-based assignment simulation retained only if quizzes were created elsewhere
-            
+
             # 8. Publish course
-            await self.publish_course(course_id, course_info["name"])
+            if not await self.publish_course(course_id, course_info["name"]):
+                logger.error(f"Failed to publish course {course_info['name']}")
+                return False
             
             print(f"Successfully set up Cinema Culture course: {course_info['name']}")
             return True

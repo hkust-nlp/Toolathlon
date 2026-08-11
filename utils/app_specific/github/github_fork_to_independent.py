@@ -90,6 +90,13 @@ def _git_auth_url(token: str, full_name: str) -> str:
     return f"https://x-access-token:{token}@github.com/{full_name}.git"
 
 
+def _raise_on_git_failure(operation: str, token: str, stderr: str, returncode: int) -> None:
+    if returncode != 0:
+        # git's stderr echoes the remote URL, which embeds the token
+        sanitized = stderr.replace(token, "***") if token else stderr
+        raise RuntimeError(f"{operation} exited with code {returncode}: {sanitized}")
+
+
 @git_retry_async
 async def git_mirror_clone(token: str, full_name: str, local_dir: str) -> None:
     src_url = _git_auth_url(token, full_name)
@@ -97,16 +104,24 @@ async def git_mirror_clone(token: str, full_name: str, local_dir: str) -> None:
         shutil.rmtree(local_dir)
     cmd = f"git clone --mirror {src_url} {local_dir}"
 
-    await run_command(cmd, debug=False, show_output=False)
+    _, stderr, returncode = await run_command(cmd, debug=False, show_output=False)
+    _raise_on_git_failure(f"git clone --mirror of {full_name}", token, stderr, returncode)
     print_color(f"Mirrored {full_name} -> {local_dir}", "cyan")
 
 
 @git_retry_async
 async def git_mirror_push(token: str, local_dir: str, dst_full_name: str) -> None:
+    # Not `push --mirror`: a mirror clone carries GitHub's read-only PR refs
+    # (refs/pull/*), which GitHub rejects on push, failing the whole push
+    # whenever the source repo has pull requests.
     dst_url = _git_auth_url(token, dst_full_name)
-    cmd = f"git -C {local_dir} push --mirror {dst_url}"
-    await run_command(cmd, debug=False, show_output=False)
-    print_color(f"Pushed mirror to {dst_full_name}", "cyan")
+    cmd = (
+        f"git -C {local_dir} push --force {dst_url} "
+        f"'refs/heads/*:refs/heads/*' 'refs/tags/*:refs/tags/*'"
+    )
+    _, stderr, returncode = await run_command(cmd, debug=False, show_output=False)
+    _raise_on_git_failure(f"git push to {dst_full_name}", token, stderr, returncode)
+    print_color(f"Pushed all branches/tags to {dst_full_name}", "cyan")
 
 
 async def main():

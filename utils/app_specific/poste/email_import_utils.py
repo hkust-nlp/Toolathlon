@@ -23,6 +23,7 @@ def clear_all_email_folders(emails_config_file: str):
 
     print(f"Will clear the following folders: {available_mailboxes}")
 
+    failed_folders = []
     for folder in available_mailboxes:
         try:
             print(f"Clearing folder {folder} ...")
@@ -30,6 +31,12 @@ def clear_all_email_folders(emails_config_file: str):
             print(f"✅ Folder {folder} cleared successfully")
         except Exception as e:
             print(f"⚠️ Error clearing folder {folder}: {e}")
+            failed_folders.append(folder)
+
+    if failed_folders:
+        # Stale emails left in an uncleaned folder can be read by the
+        # evaluation as a false pass.
+        raise RuntimeError(f"Failed to clear email folders: {failed_folders}")
 
     print("📧 All email folders cleared")
 

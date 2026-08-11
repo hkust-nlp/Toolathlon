@@ -31,12 +31,18 @@ async def main(agent_workspace=None, launch_time=None):
         
         # 1. Create courses
         print("\n📚 Step 1: Create courses...")
-        await setup_courses_main(agent_workspace=agent_workspace)
-        
+        setup_success = await setup_courses_main(agent_workspace=agent_workspace)
+        if not setup_success:
+            print("❌ Course setup failed")
+            sys.exit(1)
+
         # 2. Publish courses
         print("\n📢 Step 2: Publish courses...")
         # Call with publish mode, pass agent_workspace param
-        await setup_courses_main(publish=True, agent_workspace=agent_workspace)
+        publish_success = await setup_courses_main(publish=True, agent_workspace=agent_workspace)
+        if not publish_success:
+            print("❌ Course publication failed")
+            sys.exit(1)
 
         
         # 3. Inject exam notification emails

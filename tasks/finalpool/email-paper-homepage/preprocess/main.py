@@ -147,11 +147,12 @@ async def import_emails_via_mcp(backup_file: str):
                 }
             )
 
-            if result.content:
+            if result.content and not getattr(result, "isError", False):
                 print(f"✅ Email import process completed: {result.content[0].text}")
                 return True
             else:
-                print(f"❌ Email import process failed: no return content")
+                error_text = result.content[0].text if result.content else "no return content"
+                print(f"❌ Email import process failed: {error_text}")
                 return False
 
         except ToolCallError as e:
@@ -304,7 +305,10 @@ async def main():
 
     importable_emails_file_path = await process_emails()
 
-    await import_emails_via_mcp(importable_emails_file_path)
+    import_ok = await import_emails_via_mcp(importable_emails_file_path)
+    if not import_ok:
+        print_color("Email import failed, preprocessing cannot continue.", "red")
+        sys.exit(1)
 
 if __name__ == "__main__":
     asyncio.run(main())

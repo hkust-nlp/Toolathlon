@@ -186,59 +186,92 @@ set_deployment_timestamps() {
   # Set the old deployment timestamps (use kubectl patch to add lastUpdateTime)
   # old-frontend-prototype: 62 days old
   date=$(date -u -d "62 days ago" +"%Y-%m-%dT%H:%M:%SZ")
-  kubectl -n dev-frontend patch deployment frontend-prototype \
-    --type='json' -p='[{"op": "add", "path": "/metadata/annotations/app-version-release-date", "value": "'$date'"}]'
-  
-  # legacy-auth-service: 88 days old  
+  if ! kubectl -n dev-frontend patch deployment frontend-prototype \
+    --type='json' -p='[{"op": "add", "path": "/metadata/annotations/app-version-release-date", "value": "'$date'"}]'; then
+    log_error "Failed to set release-date annotation on dev-frontend/frontend-prototype"
+    return 1
+  fi
+
+  # legacy-auth-service: 88 days old
   date=$(date -u -d "88 days ago" +"%Y-%m-%dT%H:%M:%SZ")
-  kubectl -n dev-backend patch deployment auth-service \
-    --type='json' -p='[{"op": "add", "path": "/metadata/annotations/app-version-release-date", "value": "'$date'"}]'
-  
+  if ! kubectl -n dev-backend patch deployment auth-service \
+    --type='json' -p='[{"op": "add", "path": "/metadata/annotations/app-version-release-date", "value": "'$date'"}]'; then
+    log_error "Failed to set release-date annotation on dev-backend/auth-service"
+    return 1
+  fi
+
   # old-model-trainer: 76 days old
   date=$(date -u -d "76 days ago" +"%Y-%m-%dT%H:%M:%SZ")
-  kubectl -n dev-ml patch deployment model-trainer \
-    --type='json' -p='[{"op": "add", "path": "/metadata/annotations/app-version-release-date", "value": "'$date'"}]'
-  
+  if ! kubectl -n dev-ml patch deployment model-trainer \
+    --type='json' -p='[{"op": "add", "path": "/metadata/annotations/app-version-release-date", "value": "'$date'"}]'; then
+    log_error "Failed to set release-date annotation on dev-ml/model-trainer"
+    return 1
+  fi
+
   # experimental-feature-alpha: 98 days old
   date=$(date -u -d "98 days ago" +"%Y-%m-%dT%H:%M:%SZ")
-  kubectl -n dev-experimental patch deployment experimental-feature-alpha \
-    --type='json' -p='[{"op": "add", "path": "/metadata/annotations/app-version-release-date", "value": "'$date'"}]'
-  
+  if ! kubectl -n dev-experimental patch deployment experimental-feature-alpha \
+    --type='json' -p='[{"op": "add", "path": "/metadata/annotations/app-version-release-date", "value": "'$date'"}]'; then
+    log_error "Failed to set release-date annotation on dev-experimental/experimental-feature-alpha"
+    return 1
+  fi
+
   # abandoned-poc: 114 days old
   date=$(date -u -d "114 days ago" +"%Y-%m-%dT%H:%M:%SZ")
-  kubectl -n dev-experimental patch deployment alpha-dataset-poc \
-    --type='json' -p='[{"op": "add", "path": "/metadata/annotations/app-version-release-date", "value": "'$date'"}]'
-  
+  if ! kubectl -n dev-experimental patch deployment alpha-dataset-poc \
+    --type='json' -p='[{"op": "add", "path": "/metadata/annotations/app-version-release-date", "value": "'$date'"}]'; then
+    log_error "Failed to set release-date annotation on dev-experimental/alpha-dataset-poc"
+    return 1
+  fi
+
   # active-api-service: 5 days old (recent, should not be cleaned)
   recent_date=$(date -u -d "5 days ago" +"%Y-%m-%dT%H:%M:%SZ")
-  kubectl -n dev-backend patch deployment pod-api-service \
-    --type='json' -p='[{"op": "add", "path": "/metadata/annotations/app-version-release-date", "value": "'$recent_date'"}]'
-  
+  if ! kubectl -n dev-backend patch deployment pod-api-service \
+    --type='json' -p='[{"op": "add", "path": "/metadata/annotations/app-version-release-date", "value": "'$recent_date'"}]'; then
+    log_error "Failed to set release-date annotation on dev-backend/pod-api-service"
+    return 1
+  fi
+
   # === Interference deployments ===
   # staging-app: 45 days old (old, should be cleaned)
   date=$(date -u -d "45 days ago" +"%Y-%m-%dT%H:%M:%SZ")
-  kubectl -n staging patch deployment staging-app \
-    --type='json' -p='[{"op": "add", "path": "/metadata/annotations/app-version-release-date", "value": "'$date'"}]'
-    
+  if ! kubectl -n staging patch deployment staging-app \
+    --type='json' -p='[{"op": "add", "path": "/metadata/annotations/app-version-release-date", "value": "'$date'"}]'; then
+    log_error "Failed to set release-date annotation on staging/staging-app"
+    return 1
+  fi
+
   # prometheus-old: 82 days old (old, should be cleaned)
   date=$(date -u -d "82 days ago" +"%Y-%m-%dT%H:%M:%SZ")
-  kubectl -n monitoring patch deployment prometheus-old \
-    --type='json' -p='[{"op": "add", "path": "/metadata/annotations/app-version-release-date", "value": "'$date'"}]'
-    
+  if ! kubectl -n monitoring patch deployment prometheus-old \
+    --type='json' -p='[{"op": "add", "path": "/metadata/annotations/app-version-release-date", "value": "'$date'"}]'; then
+    log_error "Failed to set release-date annotation on monitoring/prometheus-old"
+    return 1
+  fi
+
   # log-collector: 67 days old (old, should be cleaned)
   date=$(date -u -d "67 days ago" +"%Y-%m-%dT%H:%M:%SZ")
-  kubectl -n logging patch deployment log-collector \
-    --type='json' -p='[{"op": "add", "path": "/metadata/annotations/app-version-release-date", "value": "'$date'"}]'
-    
+  if ! kubectl -n logging patch deployment log-collector \
+    --type='json' -p='[{"op": "add", "path": "/metadata/annotations/app-version-release-date", "value": "'$date'"}]'; then
+    log_error "Failed to set release-date annotation on logging/log-collector"
+    return 1
+  fi
+
   # web-server: 12 days old (recent, should not be cleaned - production)
   recent_date=$(date -u -d "12 days ago" +"%Y-%m-%dT%H:%M:%SZ")
-  kubectl -n production patch deployment web-server \
-    --type='json' -p='[{"op": "add", "path": "/metadata/annotations/app-version-release-date", "value": "'$recent_date'"}]'
-    
+  if ! kubectl -n production patch deployment web-server \
+    --type='json' -p='[{"op": "add", "path": "/metadata/annotations/app-version-release-date", "value": "'$recent_date'"}]'; then
+    log_error "Failed to set release-date annotation on production/web-server"
+    return 1
+  fi
+
   # backup-service: 8 days old (recent, should not be cleaned)
   recent_date=$(date -u -d "8 days ago" +"%Y-%m-%dT%H:%M:%SZ")
-  kubectl -n backup patch deployment backup-service \
-    --type='json' -p='[{"op": "add", "path": "/metadata/annotations/app-version-release-date", "value": "'$recent_date'"}]'
+  if ! kubectl -n backup patch deployment backup-service \
+    --type='json' -p='[{"op": "add", "path": "/metadata/annotations/app-version-release-date", "value": "'$recent_date'"}]'; then
+    log_error "Failed to set release-date annotation on backup/backup-service"
+    return 1
+  fi
   
   log_info "Deployment timestamps have been set"
   
@@ -269,8 +302,14 @@ start_operation() {
   echo ""
   log_info "========== Processing cluster ${cluster_name} =========="
 
-  create_cluster "${cluster_name}" "$configpath"
-  verify_cluster "${cluster_name}" "$configpath"
+  if ! create_cluster "${cluster_name}" "$configpath"; then
+    log_error "Aborting start_operation: kind create cluster failed for ${cluster_name}"
+    return 1
+  fi
+  if ! verify_cluster "${cluster_name}" "$configpath"; then
+    log_error "Aborting start_operation: cluster verification failed for ${cluster_name}"
+    return 1
+  fi
 
   # Pre-load images from the host runtime cache into the Kind node's
   # containerd store so apply_resources doesn't pull from
@@ -289,17 +328,26 @@ start_operation() {
       log_warning "Image preload failed for $_img (will let kubelet retry)"
   done
 
-  apply_resources "$configpath"
-  
+  if ! apply_resources "$configpath"; then
+    log_error "Aborting start_operation: kubectl apply failed"
+    return 1
+  fi
+
   # Wait for all deployments to become ready
   log_info "Waiting for all deployments to be ready..."
   sleep 10
   
   # Set the deployment timestamps
-  set_deployment_timestamps "$configpath"
+  if ! set_deployment_timestamps "$configpath"; then
+    log_error "Aborting start_operation: failed to set deployment timestamp annotations"
+    return 1
+  fi
 
   # Copy the config file to the backup directory
-  cp "$configpath" "$backup_configpath"
+  if ! cp "$configpath" "$backup_configpath"; then
+    log_error "Failed to copy kubeconfig backup to $backup_configpath"
+    return 1
+  fi
   log_info "Configuration file backed up to: $backup_configpath"
 
   log_info "========== Deployment completed =========="

@@ -399,15 +399,16 @@ async def copy_folder_contents(source_folder, target_folder, debug=False):
     if debug:
         print(f"Copy done! `{source_folder}` -> `{target_folder}`")
 
-async def run_command(command, debug=False, show_output=False):
+async def run_command(command, debug=False, show_output=False, check=False):
     """
     Asynchronously execute command and return output
-    
+
     Args:
         command: The command string to execute
         debug: Whether to print debug information
         show_output: Whether to print the output of the command
-        
+        check: Whether to raise RuntimeError when the command exits non-zero
+
     Returns:
         tuple: (stdout, stderr, return_code)
     """
@@ -432,9 +433,11 @@ async def run_command(command, debug=False, show_output=False):
     stdout_decoded = stdout.decode()
     stderr_decoded = stderr.decode()
     
-    # if process.returncode != 0:
-    #     raise RuntimeError(f"Failed in executing the command: {stderr_decoded}")
-    
+    if check and process.returncode != 0:
+        raise RuntimeError(
+            f"Command exited with code {process.returncode}: {stderr_decoded}"
+        )
+
     if debug:
         print_color("Successfully executed!","green")
     

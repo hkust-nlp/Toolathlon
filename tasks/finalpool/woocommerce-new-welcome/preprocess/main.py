@@ -603,4 +603,4 @@ def get_project_id_from_key(credentials_path: str) -> str | None:
         return None
 
 if __name__ == "__main__":
-    main()
+    sys.exit(0 if main() else 1)

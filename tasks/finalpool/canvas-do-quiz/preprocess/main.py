@@ -29,8 +29,11 @@ async def main(agent_workspace=None, launch_time=None):
         print(f"📅 Updating date fields in config file: {config_path}")
         update_config_dates(str(config_path))
         
-        await setup_courses_main(agent_workspace=agent_workspace)
-        
+        success = await setup_courses_main(agent_workspace=agent_workspace)
+        if not success:
+            print("❌ Course setup failed")
+            sys.exit(1)
+
         print("\n🎉 Canvas environment preprocessing completed successfully!")
         
     except Exception as e:

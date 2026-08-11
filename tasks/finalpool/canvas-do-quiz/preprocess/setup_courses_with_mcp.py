@@ -665,7 +665,8 @@ class CanvasCourseSetup:
             if "teacher" in course_info and course_info["teacher"]:
                 teacher_enrolled = await self.enroll_teacher(course_id, course_info["teacher"])
                 if not teacher_enrolled:
-                    logger.warning(f"Failed to enroll teacher for {course_info['name']}")
+                    logger.error(f"Failed to enroll teacher for {course_info['name']}")
+                    return False
                 else:
                     logger.info(f"Successfully enrolled teacher {course_info['teacher']} in {course_info['name']}")
             
@@ -685,7 +686,8 @@ class CanvasCourseSetup:
                 # Always create quiz (we already deleted existing ones)
                 quiz_created = await self.create_quiz(course_id, course_info["quiz"])
                 if not quiz_created:
-                    logger.warning(f"Failed to create quiz for {course_info['name']}")
+                    logger.error(f"Failed to create quiz for {course_info['name']}")
+                    return False
                 else:
                     logger.info(f"Successfully created quiz for {course_info['name']}")
             else:
@@ -708,14 +710,18 @@ class CanvasCourseSetup:
                     enrollment_success += 1
             
             logger.info(f"Successfully enrolled {enrollment_success}/{len(students_to_enroll)} students in {course_info['name']}")
-            
+            if enrollment_success != len(students_to_enroll):
+                logger.error(f"Failed to enroll all students in {course_info['name']}: {enrollment_success}/{len(students_to_enroll)}")
+                return False
+
             # 6. Publish course (check if course needs to be published)
             course_status = await self.get_course_status(course_id)
             if course_status != "available":
                 logger.info(f"Course {course_info['name']} is not published (status: {course_status}), publishing now...")
                 course_published = await self.publish_course(course_id, course_info["name"])
                 if not course_published:
-                    logger.warning(f"Failed to publish course {course_info['name']}")
+                    logger.error(f"Failed to publish course {course_info['name']}")
+                    return False
                 else:
                     logger.info(f"Successfully published course {course_info['name']}")
             else:
@@ -931,6 +937,8 @@ async def run_with_args(delete=False, publish=False, create_announcements=False,
         else:
             print("\n❌ Course setup encountered errors. Check logs for details.")
 
+    return success
+
 async def main(delete=False, publish=False, create_announcements=False, agent_workspace=None):
     """Main function that can accept external arguments"""
     # If no parameters are passed, parse from command line
@@ -952,7 +960,8 @@ async def main(delete=False, publish=False, create_announcements=False, agent_wo
         agent_workspace = args.agent_workspace
     
     # Call run_with_args function
-    await run_with_args(delete=delete, publish=publish, create_announcements=create_announcements, agent_workspace=agent_workspace)
+    return await run_with_args(delete=delete, publish=publish, create_announcements=create_announcements, agent_workspace=agent_workspace)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    success = asyncio.run(main())
+    sys.exit(0 if success else 1)
