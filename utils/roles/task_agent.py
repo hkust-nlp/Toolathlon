@@ -582,10 +582,10 @@ class TaskAgent:
                     }
                 }
                 tool_calls_in_response.append(tool_call)
-        
+
         # Update tool call statistics
         self.stats["tool_calls"] += len(tool_calls_in_response)
-        
+
         # Record simplified log
         if result.final_output:
             self.logs_to_record.append({
@@ -593,7 +593,24 @@ class TaskAgent:
                 "content": result.final_output,
                 "tool_calls_count": len(tool_calls_in_response)
             })
-        
+
+        # Tool calls made from inside the PTC sandbox never appear in
+        # result.new_items — the trajectory only shows programmatic_tool_call.
+        # Merge them in so the termination checker sees a sandboxed stop tool
+        # (under ptc_only that is the only way claim_done can be invoked).
+        # Appended after stats and logs_to_record, which keep their original
+        # semantics: model-issued direct calls only.
+        if self.mcp_manager is not None:
+            for sandbox_call in self.mcp_manager.drain_ptc_dispatched_tool_calls():
+                tool_calls_in_response.append({
+                    "id": f"ptc_sandbox_{uuid.uuid4().hex[:8]}",
+                    "type": "function",
+                    "function": {
+                        "name": sandbox_call["name"],
+                        "arguments": json.dumps(sandbox_call.get("arguments") or {}),
+                    },
+                })
+
         return tool_calls_in_response
 
     async def run_interaction_loop(self,

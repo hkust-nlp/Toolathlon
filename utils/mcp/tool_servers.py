@@ -361,6 +361,17 @@ class MCPServerManager:
                 f"'{wrapper.CODE_EXECUTION_TOOL}'"
             )
 
+    def drain_ptc_dispatched_tool_calls(self) -> List[Dict[str, Any]]:
+        """Tool calls made from inside the PTC sandbox since the last drain.
+
+        Empty when PTC is off. The agent loop merges these into the round's
+        tool-call list so sandboxed calls count for termination checking
+        (a claim_done routed through the sandbox must still stop the run).
+        """
+        if self._ptc_wrapper is None:
+            return []
+        return self._ptc_wrapper.drain_dispatched_tool_calls()
+
     async def _cleanup_ptc_synthetic_server(self) -> None:
         """Shut down the PTC worker and drop the synthetic server entry."""
         synthetic = self._ptc_synthetic_server
