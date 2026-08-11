@@ -606,11 +606,19 @@ def check_recall_email_sending(agent_workspace: str, wc_client: WooCommerceClien
             # Get the subject and content of the email
             subject = ""
             if msg["Subject"]:
-                subject_parts = decode_header(msg["Subject"])
-                subject = "".join([
-                    part.decode(encoding or 'utf-8') if isinstance(part, bytes) else part
-                    for part, encoding in subject_parts
-                ])
+                decoded_parts = []
+                for part, encoding in decode_header(msg["Subject"]):
+                    if isinstance(part, bytes):
+                        # decode_header can report charsets Python has no codec
+                        # for (e.g. 'unknown-8bit'); fall back instead of failing
+                        # the whole email check.
+                        try:
+                            decoded_parts.append(part.decode(encoding or 'utf-8', errors='replace'))
+                        except LookupError:
+                            decoded_parts.append(part.decode('utf-8', errors='replace'))
+                    else:
+                        decoded_parts.append(part)
+                subject = "".join(decoded_parts)
             
             # Check if it's a recall email
             recall_keywords = ['recall', 'safety', 'urgent notice', 'product alert', 'withdrawal']
