@@ -465,8 +465,14 @@ start_operation() {
   # bitnami chart 19.0.0 default redis tag.  Keep in lockstep with
   # ``initial_version`` above when the chart version is bumped.
   REDIS_TAG="7.2.4-debian-12-r9"
+  # bitnami chart 22.0.0 (the task's upgrade target, see evaluation/main.py)
+  # defaults to this redis tag.  Bitnami purged ``bitnami/*`` tags from Docker
+  # Hub in its 2025 migration, so upgraded pods hit ErrImagePull unless the
+  # ``bitnamilegacy`` variant is preloaded the same way as the initial image.
+  UPGRADE_REDIS_TAG="8.2.0-debian-12-r0"
   BITNAMILEGACY_IMAGES=(
     "redis:${REDIS_TAG}"
+    "redis:${UPGRADE_REDIS_TAG}"
   )
   for _name_tag in "${BITNAMILEGACY_IMAGES[@]}"; do
     src="bitnami/${_name_tag}"
