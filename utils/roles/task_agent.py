@@ -26,6 +26,7 @@ from agents.exceptions import MaxTurnsExceeded
 
 from utils.roles.context_managed_runner import ContextManagedRunner, _ServerConversationTracker
 from utils.api_model.model_provider import ContextTooLongError
+from utils.task_runner.hooks import TaskDoneError
 
 from utils.mcp.tool_servers import MCPServerManager
 from utils.api_model.model_provider import calculate_cost, get_context_window
@@ -733,6 +734,7 @@ class TaskAgent:
                 # Agent response: context reset etc handled with inner loop
                 max_inner_steps = self.agent_config.tool.max_inner_turns if not self.single_turn_mode else self.task_config.max_steps_under_single_turn_mode
                 result = None
+                claim_done_signaled = False
                 
                 while self.cumulative_inner_steps < max_inner_steps:
                     remaining_steps = max_inner_steps - self.cumulative_inner_steps
@@ -761,6 +763,14 @@ class TaskAgent:
                     except MaxTurnsExceeded as e:
                         self._debug_print(f"[THIS IS A TAG FOR MAX TURNS EXCEEDED] Max turns exceeded: {e}")
                         self.task_status = TaskStatus.MAX_TURNS_REACHED
+                        break
+                    except TaskDoneError:
+                        # The agent invoked local-claim_done, which aborts the
+                        # Runner before it produces a RunResult. The task is
+                        # complete: mark it done and stop the interaction loop.
+                        self._debug_print("Task completed via local_claim_done")
+                        self.task_status = TaskStatus.SUCCESS
+                        claim_done_signaled = True
                         break
                     except ContextTooLongError as e:
                         self._debug_print(f"Context too long detected: {e}")
@@ -837,6 +847,11 @@ class TaskAgent:
                         )
                         continue
                 
+                # local-claim_done already terminated the run; skip response
+                # processing (there is no RunResult) and finish successfully.
+                if claim_done_signaled:
+                    break
+
                 # Ensure we got a result
                 if result is None:
                     raise RuntimeError(f"Failed to get agent response within {max_inner_steps} inner steps")

@@ -437,6 +437,38 @@ class ContextTooLongError(Exception):
         self.token_count = token_count
         self.max_tokens = max_tokens
 
+
+class MalformedToolCallError(Exception):
+    """The model (or the serving-side tool parser) emitted a tool call whose
+    arguments are not valid JSON, e.g. concatenated objects like '{}{...}'.
+
+    Raised before the response is accepted, so the retry loop resamples a
+    fresh generation instead of letting the malformed call enter the history —
+    strict OpenAI-compatible servers json.loads historical arguments on every
+    later request and would 400 the whole conversation from then on.
+    """
+
+
+def _validate_tool_calls_for_ptc(output_items) -> None:
+    """Under PTC-only runs, reject a response containing undecodable tool-call
+    arguments (raises MalformedToolCallError). No-op outside PTC-only mode so
+    other scaffolds keep their existing behavior."""
+    if os.getenv("TOOLATHLON_PTC_ONLY", "").strip().lower() not in ("1", "true", "yes", "on"):
+        return
+    for item in output_items:
+        if getattr(item, "type", None) != "function_call":
+            continue
+        arguments = getattr(item, "arguments", None)
+        if not arguments:
+            continue
+        try:
+            json.loads(arguments)
+        except (json.JSONDecodeError, TypeError):
+            raise MalformedToolCallError(
+                f"tool call '{getattr(item, 'name', '?')}' has malformed arguments "
+                f"{str(arguments)[:200]!r}; resampling the response"
+            )
+
 class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
     def __init__(self, model: str, 
                  openai_client: AsyncOpenAI, 
@@ -807,6 +839,7 @@ class OpenAIChatCompletionsModelWithRetry(OpenAIChatCompletionsModel):
             try:
                 model_response = await self.raw_get_response(*args, **kwargs)
                 output_items = model_response.output
+                _validate_tool_calls_for_ptc(output_items)
                 if self.debug:
                     for item in output_items:
                         if isinstance(item, ExtendedResponseOutputMessage):

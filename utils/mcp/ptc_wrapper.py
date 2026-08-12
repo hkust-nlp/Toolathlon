@@ -67,6 +67,12 @@ logger = logging.getLogger(__name__)
 # the context. 0 disables.
 _MAX_OUTPUT_CHARS = int(os.getenv("TOOLATHLON_PTC_MAX_OUTPUT_CHARS", "10000"))
 
+# Byte cap for one line of the worker's stdout protocol. asyncio's default
+# StreamReader limit is 64 KiB; a single oversized JSON line (huge tool-call
+# args built in sandbox code) would raise "Separator is not found, and chunk
+# exceed the limit" and permanently desync the pipe.
+_PIPE_READ_LIMIT = 2 ** 26  # 64 MiB
+
 
 # Persistent worker source. Stays alive across calls; talks JSON-line on
 # stdin/stdout. Kept as a string so we can drop it onto disk lazily.
@@ -130,8 +136,28 @@ class ToolCaller:
         return _ToolProxy(str(name))
 
 
+_max_field_chars = 0  # set from the init message; 0 disables
+
+
+def _trunc(text):
+    # Bound each protocol field *before* it crosses the pipe, so a giant
+    # print() can never produce an oversized protocol line. The parent
+    # re-truncates the joined output to its own (smaller) display limit.
+    if not text or _max_field_chars <= 0 or len(text) <= _max_field_chars:
+        return text
+    head = int(_max_field_chars * 0.7)
+    tail = _max_field_chars - head
+    omitted = len(text) - head - tail
+    return (text[:head]
+            + "\n...[output truncated: %d chars omitted; "
+              "print concise summaries instead of large raw data]...\n" % omitted
+            + text[-tail:])
+
+
 def main():
+    global _max_field_chars
     init = _read_msg()
+    _max_field_chars = int(init.get("max_field_chars") or 0)
     workspace = init.get("workspace") or os.getcwd()
     try:
         os.chdir(workspace)
@@ -175,9 +201,9 @@ def main():
             tb = traceback.format_exc()
 
         _write_msg({"type": "done",
-                    "stdout": out_buf.getvalue() or None,
-                    "stderr": err_buf.getvalue() or None,
-                    "error": tb})
+                    "stdout": _trunc(out_buf.getvalue()) or None,
+                    "stderr": _trunc(err_buf.getvalue()) or None,
+                    "error": _trunc(tb)})
 
 
 if __name__ == "__main__":
@@ -1032,6 +1058,18 @@ class PTCWrapper:
                 except asyncio.TimeoutError:
                     await self._kill_worker()
                     return _ptc_text_result(timeout_msg)
+                except ValueError as exc:
+                    # Oversized protocol line (readline's LimitOverrunError
+                    # surfaces as ValueError) or a desynced/garbled JSON line
+                    # (JSONDecodeError). The pipe cannot be trusted after
+                    # either, so restart the worker instead of failing every
+                    # subsequent call.
+                    await self._kill_worker()
+                    return _ptc_text_result(
+                        f"[ptc] worker output could not be read ({exc}); the "
+                        "output was likely too large — print concise summaries "
+                        f"instead of large raw data{_RESTART_NOTE}"
+                    )
                 if msg is None:
                     await self._kill_worker()
                     return _ptc_text_result(
@@ -1235,9 +1273,16 @@ class PTCWrapper:
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             cwd=self._workspace,
+            limit=_PIPE_READ_LIMIT,
         )
 
-        init = json.dumps({"workspace": self._workspace}) + "\n"
+        # Worker-side cap is deliberately looser than _MAX_OUTPUT_CHARS so the
+        # final text the model sees still carries the parent's canonical
+        # truncation marker; the worker cap only bounds the protocol line.
+        init = json.dumps({
+            "workspace": self._workspace,
+            "max_field_chars": _MAX_OUTPUT_CHARS * 2 if _MAX_OUTPUT_CHARS > 0 else 0,
+        }) + "\n"
         self._proc.stdin.write(init.encode())
         await self._proc.stdin.drain()
 
