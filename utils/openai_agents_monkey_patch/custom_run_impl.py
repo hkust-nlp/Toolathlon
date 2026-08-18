@@ -2,6 +2,7 @@
 from __future__ import annotations
 import os
 from agents._run_impl import *
+from agents.exceptions import AgentsException
 from agents.util import _coro, _error_tracing
 import shortuuid
 
@@ -107,6 +108,15 @@ async def my_execute_function_tool_calls(
                         data={"tool_name": func_tool.name, "error": str(e)},
                     )
                 )
+                # AgentsException (e.g. TaskDoneError raised by the
+                # RunLifecycle.on_tool_start hook when local-claim_done is
+                # invoked) must propagate so the run aborts. The original
+                # _run_impl.py re-raises it; swallowing it here turns the
+                # stop signal into a fake "Error running tool ..." tool
+                # output, the loop keeps going, and the traj fills up with
+                # bogus errors ("Task completed via local-claim_done").
+                if isinstance(e, AgentsException):
+                    raise e
                 return f"Error running tool {func_tool.name}: {e}"
             if config.trace_include_sensitive_data:
                 span_fn.span_data.output = result
