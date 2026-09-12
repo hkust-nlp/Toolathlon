@@ -153,9 +153,7 @@ def check_local(agent_workspace: str, groundtruth_workspace: str):
                         course_diffs.append(f"{col}: Agent='{val_agent_norm}' vs Ground='{val_ground_norm}'")
                 elif col == 'Information Source(Announcement/Email/Message)' and row_ground['Course Code'] == 'NET101':
                     # for this specific course, we can accept examples like email&announcement etc.
-                    if 'email' in val_agent_norm.lower():
-                        course_matches = True
-                    else:
+                    if 'email' not in val_agent_norm.lower():
                         course_matches = False
                         course_diffs.append(f"{col}: Agent='{val_agent_norm}' vs Ground='{val_ground_norm}'")
                 else:
