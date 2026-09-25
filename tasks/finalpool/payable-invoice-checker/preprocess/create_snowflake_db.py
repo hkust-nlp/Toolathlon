@@ -71,6 +71,18 @@ def _raise_if_account_suspended(result):
     return result_text
 
 
+async def _recreate_database(server, name: str) -> None:
+    # create_databases fails on an account with no databases, so use one query
+    result = await call_tool_with_retry(
+        server,
+        tool_name="write_query",
+        arguments={"query": f"CREATE OR REPLACE DATABASE {name}"},
+    )
+    result_text = _raise_if_account_suspended(result)
+    if getattr(result, "isError", False) or result_text.startswith("Error"):
+        raise RuntimeError(f"Failed to create database {name}: {result_text}")
+
+
 def display_table_structure():
     """Display the structure of the tables to be created."""
     print("\n" + "="*60)
@@ -481,17 +493,9 @@ async def initialize_database():
             
             # Skip session setup - use fully-qualified table names instead
             
-            # 1. Drop existing database (if exists) then create new database
-            check_database_sql = "SELECT EXISTS(SELECT 1 FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'PURCHASE_INVOICE');"
-            database_exists = await execute_sql(server, check_database_sql, "Checking if database exists", "read")
-            if database_exists:
-                print("\n📋 Step 0: Dropping existing database...")
-                result = await call_tool_with_retry(server, tool_name="drop_databases", arguments={"databases": ["PURCHASE_INVOICE"]})
-                _raise_if_account_suspended(result)
-
+            # 1. Drop existing database (if any) and create a new one
             print("\n📋 Step 1: Creating new database...")
-            result = await call_tool_with_retry(server, tool_name="create_databases", arguments={"databases": ["PURCHASE_INVOICE"]})
-            _raise_if_account_suspended(result)
+            await _recreate_database(server, "PURCHASE_INVOICE")
         
             # 2. Create INVOICES table
             print("\n📋 Step 2: Creating INVOICES table...")

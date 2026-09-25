@@ -63,6 +63,19 @@ def _raise_if_account_suspended(result):
         raise RuntimeError(result_text)
     return result_text
 
+
+async def _recreate_database(server, name: str) -> None:
+    # create_databases fails on an account with no databases, so use one query
+    result = await call_tool_with_retry(
+        server,
+        tool_name="write_query",
+        arguments={"query": f"CREATE OR REPLACE DATABASE {name}"},
+    )
+    result_text = _raise_if_account_suspended(result)
+    if getattr(result, "isError", False) or result_text.startswith("Error"):
+        raise RuntimeError(f"Failed to create database {name}: {result_text}")
+
+
 # SLA configuration - Updated to longer timeframes
 SLA_CONFIGS = {
     "max": {"response_time_minutes": 1440, "followup_time_minutes": 1080, "priority": 3},  # 24h, 18h
@@ -392,18 +405,9 @@ async def initialize_database():
             print("🚀 EXECUTING DATABASE INITIALIZATION")
             print("="*60)
             
-            # 1. Drop existing database (if any) then create new database
-            # 1.1 Check if the database exists
-            check_database_sql = "SELECT EXISTS(SELECT 1 FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'SLA_MONITOR');"
-            database_exists = await execute_sql(server, check_database_sql, "Checking if database exists", "read")
-            if database_exists:
-                print("\n📋 Step 0: Dropping existing database...")
-                result = await call_tool_with_retry(server, tool_name="drop_databases", arguments={"databases": ["SLA_MONITOR"]})
-                _raise_if_account_suspended(result)
-
+            # 1. Drop existing database (if any) and create a new one
             print("\n📋 Step 1: Creating new database...")
-            result = await call_tool_with_retry(server, tool_name="create_databases", arguments={"databases": ["SLA_MONITOR"]})
-            _raise_if_account_suspended(result)
+            await _recreate_database(server, "SLA_MONITOR")
             
             
             # 2. Create users table
