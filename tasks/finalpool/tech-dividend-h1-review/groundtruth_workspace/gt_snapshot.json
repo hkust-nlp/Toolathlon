@@ -1,0 +1,22 @@
+{
+  "snapshot_date": "2026-09-22",
+  "period": {"start": "2025-01-01", "end": "2025-06-30"},
+  "provenance": {
+    "dividends": "Nasdaq dividend-history API (api.nasdaq.com/api/quote/{TICKER}/dividends?assetclass=stocks): ex-dividend dates and cash amounts per share, captured 2026-09-22. Yahoo Finance reports the same corporate actions on the same ex-dates.",
+    "closes": "Regular (unadjusted) closing prices for 2025-06-30, cross-checked between the Nasdaq chart API (api.nasdaq.com/api/quote/{TICKER}/chart) and East Money daily klines (fqt=0); both sources agree to the cent. Yahoo Finance raw Close is expected to be identical; its default dividend-adjusted Close is slightly lower and is absorbed by the evaluator's 5% price tolerance.",
+    "refresh": "Run evaluation/build_snapshot.py on a host with Yahoo Finance access to regenerate this file from yfinance and diff it against the checked-in values."
+  },
+  "holdings": {
+    "MSFT": {"shares": 40, "dividends": [["2025-02-20", 0.83], ["2025-05-15", 0.83]], "close_2025_06_30": 497.41},
+    "AAPL": {"shares": 150, "dividends": [["2025-02-10", 0.25], ["2025-05-12", 0.26]], "close_2025_06_30": 205.17},
+    "CSCO": {"shares": 250, "dividends": [["2025-01-03", 0.40], ["2025-04-03", 0.41]], "close_2025_06_30": 69.38},
+    "PEP": {"shares": 60, "dividends": [["2025-03-07", 1.355], ["2025-06-06", 1.4225]], "close_2025_06_30": 132.04},
+    "COST": {"shares": 25, "dividends": [["2025-02-07", 1.16], ["2025-05-02", 1.30]], "close_2025_06_30": 989.94},
+    "TXN": {"shares": 50, "dividends": [["2025-01-31", 1.36], ["2025-04-30", 1.36]], "close_2025_06_30": 207.62}
+  },
+  "boundary_notes": {
+    "PEP": "Ex-date 2024-12-06 (paid 2025-01-06) is outside the window and must not be counted; ex-date 2025-06-06 (paid 2025-06-30) is inside.",
+    "CSCO": "Ex-date 2025-01-03 is inside the window; ex-date 2025-07-03 is outside.",
+    "TXN": "Ex-date 2025-07-31 is outside the window."
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "needed_mcp_servers": [
+    "filesystem",
+    "word"
+  ],
+  "needed_local_tools": [
+    "claim_done",
+    "handle_overlong_tool_outputs",
+    "manage_context",
+    "history"
+  ],
+  "meta": {
+    "task_type": "handcrafted_documents_script_derived",
+    "related_task": "interview-report",
+    "description": "Evaluate nine vendor quotations (ten letters, one superseded revision) for RFQ-2025-031 against a written rule set, produce one Word evaluation sheet per vendor with verbatim source excerpts and a computed conclusion table, and name the awarded vendor in award.txt."
+  }
+}

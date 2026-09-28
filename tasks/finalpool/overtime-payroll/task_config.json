@@ -1,0 +1,25 @@
+{
+  "needed_mcp_servers": [
+    "excel",
+    "filesystem",
+    "terminal"
+  ],
+  "needed_local_tools": [
+    "python_execute",
+    "claim_done",
+    "handle_overlong_tool_outputs",
+    "manage_context",
+    "history"
+  ],
+  "meta": {
+    "task_type": "data_processing",
+    "input_files": [
+      "employee_roster.xlsx",
+      "attendance_export.csv",
+      "holiday_calendar_2025.csv",
+      "overtime_policy.md",
+      "overtime_report_template.xlsx"
+    ],
+    "output_file": "overtime_report_2025-08.xlsx"
+  }
+}

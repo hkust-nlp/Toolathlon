@@ -1,0 +1,5 @@
+I hold a small dividend portfolio of six Nasdaq-listed stocks: 40 shares of Microsoft (MSFT), 150 shares of Apple (AAPL), 250 shares of Cisco (CSCO), 60 shares of PepsiCo (PEP), 25 shares of Costco (COST) and 50 shares of Texas Instruments (TXN). Please review the dividend income of this portfolio for the first half of 2025 using Yahoo Finance data.
+
+Count a dividend only if its ex-dividend date falls between 2025-01-01 and 2025-06-30 inclusive; the payment date does not matter. For each stock, record every ex-dividend date and the cash dividend per share in that window, the total dividend per share, the cash I received (dividend per share times my shares), the closing price on 2025-06-30, the half-year yield in percent (total dividend per share divided by the 2025-06-30 close, times 100), and the stock's share of the portfolio's total dividend income in percent. Then report the portfolio's total dividend income, the stock with the highest half-year yield, and the stock that contributed the most cash.
+
+Write the result to `dividend_review.json` in the workspace, following the schema and rounding rules in `report_spec.md` exactly.

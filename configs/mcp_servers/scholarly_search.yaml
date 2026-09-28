@@ -6,6 +6,14 @@ name: scholarly
 params:
   command: uvx
   args:
+    # mcp-scholarly does not pin its dependencies; current PyPI resolutions
+    # break it two ways: bibtexparser 2.x dropped bibtexparser.bibdatabase
+    # (import crash via scholarly), and mcp 2.x removed the legacy
+    # Server.list_tools API the package still uses.
+    - "--with"
+    - "bibtexparser<2"
+    - "--with"
+    - "mcp<2"
     - "mcp-scholarly"
   # env:
   #   HTTPS_PROXY: "${config.proxy}"

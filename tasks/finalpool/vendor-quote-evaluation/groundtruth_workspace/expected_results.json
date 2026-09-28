@@ -1,0 +1,575 @@
+{
+  "rules": {
+    "quantity_required": "150",
+    "award_date": "2025-10-15",
+    "budget_ceiling": "60000.00",
+    "max_lead_days": "45",
+    "min_warranty_months": "60",
+    "eur_usd": "1.08"
+  },
+  "criteria_order": [
+    "Partial quantity",
+    "Lead time exceeds 45 days",
+    "Warranty below 5 years",
+    "Missing or expired certification",
+    "Quote expires before award date",
+    "Exceeds budget ceiling"
+  ],
+  "award": {
+    "code": "ASF",
+    "vendor": "Ashford Seating & Furniture",
+    "total_usd": "44568.00"
+  },
+  "ranking_of_compliant_vendors": [
+    "ASF",
+    "NPS",
+    "HMP",
+    "KWE"
+  ],
+  "vendors": [
+    {
+      "code": "ASF",
+      "vendor": "Ashford Seating & Furniture",
+      "registered_name": "Ashford Seating & Furniture Ltd.",
+      "quotation_reference": "ASF-2509-01-R2",
+      "quotation_date": "2025-09-19",
+      "superseded_references": [
+        "ASF-2509-01"
+      ],
+      "quantity_quoted": 150,
+      "currency": "USD",
+      "unit_price": "309.50",
+      "discount_pct": "4",
+      "discount_threshold": 150,
+      "discount_applied": true,
+      "goods_subtotal": "46425.00",
+      "discount_amount": "1857.00",
+      "freight": "0.00",
+      "freight_included": true,
+      "total_native": "44568.00",
+      "total_usd": "44568.00",
+      "lead_days": 40,
+      "warranty_months": 72,
+      "bifma": true,
+      "iso_valid_until": "2027-02-09",
+      "iso_ok": true,
+      "validity_kind": "date",
+      "valid_until": "2025-12-31",
+      "criteria": [
+        {
+          "reason_if_failed": "Partial quantity",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Lead time exceeds 45 days",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Warranty below 5 years",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Missing or expired certification",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Quote expires before award date",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Exceeds budget ceiling",
+          "met": true
+        }
+      ],
+      "criteria_met": 6,
+      "reasons": [],
+      "quotation_block": "Vendor Code: ASF\nVendor: Ashford Seating & Furniture\nQuotation Reference: ASF-2509-01-R2\nQuotation Date: 19 September 2025\nItem Offered: Ashford Contour Pro task chair with synchro-tilt mechanism and adjustable seat depth\nQuantity Quoted: 150 units\nUnit Price: USD 309.50 per chair\nVolume Discount: 4% on goods for orders of 150 units or more\nFreight: Included in the unit price (single delivery to the Riverside site)\nLead Time: 40 calendar days after receipt of purchase order\nWarranty: 6 years on mechanism and base\nCertifications: BIFMA X5.1 certified\nQuote Validity: Valid until 31 December 2025\nPayment Terms: Net 45 days from invoice\nNotes: This quotation supersedes our quotation ASF-2509-01 dated 5 September 2025 in its entirety.",
+      "notes_block": "Vendor Code: ASF\nRegistered Name: Ashford Seating & Furniture Ltd.\nISO 9001: Certificate AS-9001-0871, valid until 9 February 2027\nReference Checks: Two references contacted (Harlow Insurance, Pinecrest College); both satisfactory\nDelivery History: One previous order (2022 training centre) delivered one week late because of port congestion\nFinancial Standing: Credit rating A-; no adverse findings\nNotes: The vendor confirmed that revised pricing was issued after our clarification call on 18 September 2025.",
+      "rank": 1,
+      "decision": "Award"
+    },
+    {
+      "code": "BVL",
+      "vendor": "Blue Valley Logistics & Furnishing",
+      "registered_name": "Blue Valley Logistics & Furnishing LLC",
+      "quotation_reference": "BVL/0906/RIV",
+      "quotation_date": "2025-09-06",
+      "superseded_references": [],
+      "quantity_quoted": 150,
+      "currency": "USD",
+      "unit_price": "279.00",
+      "discount_pct": null,
+      "discount_threshold": null,
+      "discount_applied": false,
+      "goods_subtotal": "41850.00",
+      "discount_amount": "0.00",
+      "freight": "2400.00",
+      "freight_included": false,
+      "total_native": "44250.00",
+      "total_usd": "44250.00",
+      "lead_days": 50,
+      "warranty_months": 36,
+      "bifma": true,
+      "iso_valid_until": "2026-04-30",
+      "iso_ok": true,
+      "validity_kind": "date",
+      "valid_until": "2025-12-01",
+      "criteria": [
+        {
+          "reason_if_failed": "Partial quantity",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Lead time exceeds 45 days",
+          "met": false
+        },
+        {
+          "reason_if_failed": "Warranty below 5 years",
+          "met": false
+        },
+        {
+          "reason_if_failed": "Missing or expired certification",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Quote expires before award date",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Exceeds budget ceiling",
+          "met": true
+        }
+      ],
+      "criteria_met": 4,
+      "reasons": [
+        "Lead time exceeds 45 days",
+        "Warranty below 5 years"
+      ],
+      "quotation_block": "Vendor Code: BVL\nVendor: Blue Valley Logistics & Furnishing\nQuotation Reference: BVL/0906/RIV\nQuotation Date: 6 September 2025\nItem Offered: BV FlexBack task chair, mesh back, polished aluminium base\nQuantity Quoted: 150 units\nUnit Price: USD 279.00 per chair\nVolume Discount: None (prices quoted are already net)\nFreight: USD 2,400.00 in two shipments to the Riverside site\nLead Time: 50 calendar days after receipt of purchase order\nWarranty: 3 years on mechanism, 1 year on fabric\nCertifications: BIFMA X5.1 certified\nQuote Validity: Valid until 1 December 2025\nPayment Terms: 50% deposit with order, balance on delivery\nNotes: Two shipments are required because of container availability; both are included in the freight figure above.",
+      "notes_block": "Vendor Code: BVL\nRegistered Name: Blue Valley Logistics & Furnishing LLC\nISO 9001: Certificate BV-22-3190, valid until 30 April 2026\nReference Checks: Two references contacted; one reported a late delivery in 2024\nDelivery History: No previous orders with us\nFinancial Standing: Credit rating B+; no adverse findings\nNotes: Consistently the lowest pricing in previous tenders; warranty terms have been raised as a concern before.",
+      "rank": null,
+      "decision": "Disqualified"
+    },
+    {
+      "code": "GRD",
+      "vendor": "Granite Ridge Distribution",
+      "registered_name": "Granite Ridge Distribution Co.",
+      "quotation_reference": "GRD-Q-7720",
+      "quotation_date": "2025-09-12",
+      "superseded_references": [],
+      "quantity_quoted": 150,
+      "currency": "USD",
+      "unit_price": "296.00",
+      "discount_pct": null,
+      "discount_threshold": null,
+      "discount_applied": false,
+      "goods_subtotal": "44400.00",
+      "discount_amount": "0.00",
+      "freight": "0.00",
+      "freight_included": true,
+      "total_native": "44400.00",
+      "total_usd": "44400.00",
+      "lead_days": 45,
+      "warranty_months": 60,
+      "bifma": true,
+      "iso_valid_until": null,
+      "iso_ok": false,
+      "validity_kind": "date",
+      "valid_until": "2025-11-30",
+      "criteria": [
+        {
+          "reason_if_failed": "Partial quantity",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Lead time exceeds 45 days",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Warranty below 5 years",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Missing or expired certification",
+          "met": false
+        },
+        {
+          "reason_if_failed": "Quote expires before award date",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Exceeds budget ceiling",
+          "met": true
+        }
+      ],
+      "criteria_met": 5,
+      "reasons": [
+        "Missing or expired certification"
+      ],
+      "quotation_block": "Vendor Code: GRD\nVendor: Granite Ridge Distribution\nQuotation Reference: GRD-Q-7720\nQuotation Date: 12 September 2025\nItem Offered: Granite Ridge Summit task chair, mesh back, adjustable arms\nQuantity Quoted: 150 units\nUnit Price: USD 296.00 per chair\nVolume Discount: None\nFreight: Included in the unit price (delivered to the Riverside site)\nLead Time: 45 calendar days after receipt of purchase order\nWarranty: 60 months on mechanism\nCertifications: BIFMA X5.1 certified\nQuote Validity: Valid until 30 November 2025\nPayment Terms: Net 30 days from invoice\nNotes: Our quality management system is currently being re-certified; documentation can be provided on request.",
+      "notes_block": "Vendor Code: GRD\nRegistered Name: Granite Ridge Distribution Co.\nISO 9001: Certificate GR-2019-0455 expired on 30 June 2024; the vendor states that a renewal audit is planned but no date has been confirmed\nReference Checks: Two references contacted; both satisfactory\nDelivery History: One previous order (2021 call centre) delivered on schedule\nFinancial Standing: Credit rating A-; no adverse findings\nNotes: Freight is normally included in Granite Ridge pricing.",
+      "rank": null,
+      "decision": "Disqualified"
+    },
+    {
+      "code": "HMP",
+      "vendor": "Harbor & Main Procurement",
+      "registered_name": "Harbor & Main Procurement Inc.",
+      "quotation_reference": "HM-25-0912",
+      "quotation_date": "2025-09-09",
+      "superseded_references": [],
+      "quantity_quoted": 150,
+      "currency": "USD",
+      "unit_price": "299.00",
+      "discount_pct": "10",
+      "discount_threshold": 200,
+      "discount_applied": false,
+      "goods_subtotal": "44850.00",
+      "discount_amount": "0.00",
+      "freight": "1750.00",
+      "freight_included": false,
+      "total_native": "46600.00",
+      "total_usd": "46600.00",
+      "lead_days": 42,
+      "warranty_months": 60,
+      "bifma": true,
+      "iso_valid_until": "2025-10-20",
+      "iso_ok": true,
+      "validity_kind": "date",
+      "valid_until": "2025-10-31",
+      "criteria": [
+        {
+          "reason_if_failed": "Partial quantity",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Lead time exceeds 45 days",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Warranty below 5 years",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Missing or expired certification",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Quote expires before award date",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Exceeds budget ceiling",
+          "met": true
+        }
+      ],
+      "criteria_met": 6,
+      "reasons": [],
+      "quotation_block": "Vendor Code: HMP\nVendor: Harbor & Main Procurement\nQuotation Reference: HM-25-0912\nQuotation Date: 9 September 2025\nItem Offered: Harbor Line Ergo 7 task chair with adjustable lumbar support and seat slide\nQuantity Quoted: 150 units\nUnit Price: USD 299.00 per chair\nVolume Discount: 10% on goods for orders of 200 units or more\nFreight: USD 1,750.00 to the Riverside site\nLead Time: 42 calendar days after receipt of purchase order\nWarranty: 60 months on mechanism and gas lift\nCertifications: BIFMA X5.1 certified\nQuote Validity: Valid until 31 October 2025\nPayment Terms: Net 30 days from invoice\nNotes: Should the order be increased to 200 chairs, the 10% volume discount would apply to the whole order.",
+      "notes_block": "Vendor Code: HMP\nRegistered Name: Harbor & Main Procurement Inc.\nISO 9001: Certificate HM-9001-1160, valid until 20 October 2025 (renewal audit completed, new certificate pending)\nReference Checks: Two references contacted; both satisfactory\nDelivery History: No previous orders with us\nFinancial Standing: Credit rating A; no adverse findings\nNotes: None.",
+      "rank": 3,
+      "decision": "Compliant - Not Selected"
+    },
+    {
+      "code": "KWE",
+      "vendor": "Kestrel Workspace Europe GmbH",
+      "registered_name": "Kestrel Workspace Europe GmbH",
+      "quotation_reference": "KWE-EX-3308",
+      "quotation_date": "2025-09-10",
+      "superseded_references": [],
+      "quantity_quoted": 150,
+      "currency": "EUR",
+      "unit_price": "282.50",
+      "discount_pct": null,
+      "discount_threshold": null,
+      "discount_applied": false,
+      "goods_subtotal": "42375.00",
+      "discount_amount": "0.00",
+      "freight": "900.00",
+      "freight_included": false,
+      "total_native": "43275.00",
+      "total_usd": "46737.00",
+      "lead_days": 35,
+      "warranty_months": 60,
+      "bifma": true,
+      "iso_valid_until": "2027-08-03",
+      "iso_ok": true,
+      "validity_kind": "date",
+      "valid_until": "2025-11-15",
+      "criteria": [
+        {
+          "reason_if_failed": "Partial quantity",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Lead time exceeds 45 days",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Warranty below 5 years",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Missing or expired certification",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Quote expires before award date",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Exceeds budget ceiling",
+          "met": true
+        }
+      ],
+      "criteria_met": 6,
+      "reasons": [],
+      "quotation_block": "Vendor Code: KWE\nVendor: Kestrel Workspace Europe GmbH\nQuotation Reference: KWE-EX-3308\nQuotation Date: 10 September 2025\nItem Offered: Kestrel Motion S2 task chair, mesh back, EN 1335 tested\nQuantity Quoted: 150 units\nUnit Price: EUR 282.50 per unit\nVolume Discount: None\nFreight: EUR 900.00, sea freight delivered to the Riverside site (DAP)\nLead Time: 35 calendar days after receipt of purchase order\nWarranty: 5 years on mechanism\nCertifications: BIFMA X5.1 certified; EN 1335\nQuote Validity: Valid until 15 November 2025\nPayment Terms: Net 30 days from invoice\nNotes: All prices are in euro. Import duties, if any, are for the buyer's account.",
+      "notes_block": "Vendor Code: KWE\nRegistered Name: Kestrel Workspace Europe GmbH\nISO 9001: Certificate DE-9001-55821, valid until 3 August 2027\nReference Checks: Two references contacted; both satisfactory\nDelivery History: No previous orders with us; the vendor quoted in euro in earlier tenders as well\nFinancial Standing: Credit rating A; no adverse findings\nNotes: No import duties are expected for this product category.",
+      "rank": 4,
+      "decision": "Compliant - Not Selected"
+    },
+    {
+      "code": "NPS",
+      "vendor": "Northpeak Office Supply",
+      "registered_name": "Northpeak Office Supply Ltd.",
+      "quotation_reference": "NPS-Q-4471",
+      "quotation_date": "2025-09-02",
+      "superseded_references": [],
+      "quantity_quoted": 150,
+      "currency": "USD",
+      "unit_price": "318.00",
+      "discount_pct": "5",
+      "discount_threshold": 100,
+      "discount_applied": true,
+      "goods_subtotal": "47700.00",
+      "discount_amount": "2385.00",
+      "freight": "1200.00",
+      "freight_included": false,
+      "total_native": "46515.00",
+      "total_usd": "46515.00",
+      "lead_days": 30,
+      "warranty_months": 60,
+      "bifma": true,
+      "iso_valid_until": "2027-03-14",
+      "iso_ok": true,
+      "validity_kind": "date",
+      "valid_until": "2025-11-30",
+      "criteria": [
+        {
+          "reason_if_failed": "Partial quantity",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Lead time exceeds 45 days",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Warranty below 5 years",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Missing or expired certification",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Quote expires before award date",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Exceeds budget ceiling",
+          "met": true
+        }
+      ],
+      "criteria_met": 6,
+      "reasons": [],
+      "quotation_block": "Vendor Code: NPS\nVendor: Northpeak Office Supply\nQuotation Reference: NPS-Q-4471\nQuotation Date: 2 September 2025\nItem Offered: Northpeak Aria mesh-back task chair, model AR-200, with adjustable lumbar support and 4D armrests\nQuantity Quoted: 150 units\nUnit Price: USD 318.00 per chair\nVolume Discount: 5% on goods for orders of 100 units or more\nFreight: USD 1,200.00 for a single delivery to the Riverside site\nLead Time: 30 calendar days after receipt of purchase order\nWarranty: 5 years on mechanism, 2 years on fabric and foam\nCertifications: BIFMA X5.1 certified; GREENGUARD Gold\nQuote Validity: Valid until 30 November 2025\nPayment Terms: Net 30 days from delivery\nNotes: Delivery includes unpacking and removal of packaging. Workstation assembly is available at USD 12.00 per chair on request and is not included in the prices above.",
+      "notes_block": "Vendor Code: NPS\nRegistered Name: Northpeak Office Supply Ltd.\nISO 9001: Certificate NP-9001-2211, valid until 14 March 2027\nReference Checks: Two references contacted (Meridian Bank, Calder Logistics); both satisfactory\nDelivery History: Two previous orders, both delivered on schedule\nFinancial Standing: Credit rating A; no adverse findings\nNotes: Preferred supplier for the 2023 headquarters refurbishment.",
+      "rank": 2,
+      "decision": "Compliant - Not Selected"
+    },
+    {
+      "code": "PRM",
+      "vendor": "Premier Ergonomics Inc.",
+      "registered_name": "Premier Ergonomics Inc.",
+      "quotation_reference": "PE-25-2209",
+      "quotation_date": "2025-09-17",
+      "superseded_references": [],
+      "quantity_quoted": 150,
+      "currency": "USD",
+      "unit_price": "412.00",
+      "discount_pct": "5",
+      "discount_threshold": 100,
+      "discount_applied": true,
+      "goods_subtotal": "61800.00",
+      "discount_amount": "3090.00",
+      "freight": "1900.00",
+      "freight_included": false,
+      "total_native": "60610.00",
+      "total_usd": "60610.00",
+      "lead_days": 20,
+      "warranty_months": 120,
+      "bifma": true,
+      "iso_valid_until": "2028-01-11",
+      "iso_ok": true,
+      "validity_kind": "date",
+      "valid_until": "2025-12-31",
+      "criteria": [
+        {
+          "reason_if_failed": "Partial quantity",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Lead time exceeds 45 days",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Warranty below 5 years",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Missing or expired certification",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Quote expires before award date",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Exceeds budget ceiling",
+          "met": false
+        }
+      ],
+      "criteria_met": 5,
+      "reasons": [
+        "Exceeds budget ceiling"
+      ],
+      "quotation_block": "Vendor Code: PRM\nVendor: Premier Ergonomics Inc.\nQuotation Reference: PE-25-2209\nQuotation Date: 17 September 2025\nItem Offered: Premier Apex executive task chair, mesh back, adjustable headrest and 4D arms\nQuantity Quoted: 150 units\nUnit Price: USD 412.00 per chair\nVolume Discount: 5% on goods for orders of 100 units or more\nFreight: USD 1,900.00 to the Riverside site\nLead Time: 20 calendar days after receipt of purchase order\nWarranty: 10 years on mechanism, 5 years on fabric\nCertifications: BIFMA X5.1 certified; GREENGUARD Gold\nQuote Validity: Valid until 31 December 2025\nPayment Terms: Net 30 days from invoice\nNotes: Price includes white-glove delivery and workstation assembly.",
+      "notes_block": "Vendor Code: PRM\nRegistered Name: Premier Ergonomics Inc.\nISO 9001: Certificate PE-0932, valid until 11 January 2028\nReference Checks: Two references contacted; both satisfactory\nDelivery History: No previous orders with us\nFinancial Standing: Credit rating A; no adverse findings\nNotes: Positioned as a premium brand; pricing has historically exceeded our budgets.",
+      "rank": null,
+      "decision": "Disqualified"
+    },
+    {
+      "code": "SOL",
+      "vendor": "Solstice Contract Interiors",
+      "registered_name": "Solstice Contract Interiors",
+      "quotation_reference": "SCI-Q-2025-118",
+      "quotation_date": "2025-09-08",
+      "superseded_references": [],
+      "quantity_quoted": 150,
+      "currency": "USD",
+      "unit_price": "289.60",
+      "discount_pct": "5",
+      "discount_threshold": 100,
+      "discount_applied": true,
+      "goods_subtotal": "43440.00",
+      "discount_amount": "2172.00",
+      "freight": "1100.00",
+      "freight_included": false,
+      "total_native": "42368.00",
+      "total_usd": "42368.00",
+      "lead_days": 38,
+      "warranty_months": 60,
+      "bifma": true,
+      "iso_valid_until": "2026-05-27",
+      "iso_ok": true,
+      "validity_kind": "duration",
+      "valid_until": "2025-10-08",
+      "criteria": [
+        {
+          "reason_if_failed": "Partial quantity",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Lead time exceeds 45 days",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Warranty below 5 years",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Missing or expired certification",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Quote expires before award date",
+          "met": false
+        },
+        {
+          "reason_if_failed": "Exceeds budget ceiling",
+          "met": true
+        }
+      ],
+      "criteria_met": 5,
+      "reasons": [
+        "Quote expires before award date"
+      ],
+      "quotation_block": "Vendor Code: SOL\nVendor: Solstice Contract Interiors\nQuotation Reference: SCI-Q-2025-118\nQuotation Date: 8 September 2025\nItem Offered: Solstice Meridian task chair, mesh back, height-adjustable arms\nQuantity Quoted: 150 units\nUnit Price: USD 289.60 per chair\nVolume Discount: 5% on goods for orders of 100 units or more\nFreight: USD 1,100.00 for delivery to the Riverside site\nLead Time: 38 calendar days after receipt of purchase order\nWarranty: 5 years on mechanism\nCertifications: BIFMA X5.1 certified\nQuote Validity: Valid for 30 days from the quotation date\nPayment Terms: Net 30 days from invoice\nNotes: Pricing is based on our September production slot; an extension of the validity period can be requested in writing.",
+      "notes_block": "Vendor Code: SOL\nRegistered Name: Solstice Contract Interiors\nISO 9001: Certificate SC-9001-7714, valid until 27 May 2026\nReference Checks: Two references contacted; both satisfactory\nDelivery History: One previous order (2024 meeting rooms) delivered on schedule\nFinancial Standing: Credit rating A-; no adverse findings\nNotes: The sales representative mentioned that quotation validity periods are kept short because of fabric price volatility.",
+      "rank": null,
+      "decision": "Disqualified"
+    },
+    {
+      "code": "TRV",
+      "vendor": "Trevane Commercial Furniture",
+      "registered_name": "Trevane Commercial Furniture",
+      "quotation_reference": "TCF-Q-0915",
+      "quotation_date": "2025-09-15",
+      "superseded_references": [],
+      "quantity_quoted": 120,
+      "currency": "USD",
+      "unit_price": "301.00",
+      "discount_pct": "3",
+      "discount_threshold": 100,
+      "discount_applied": true,
+      "goods_subtotal": "36120.00",
+      "discount_amount": "1083.60",
+      "freight": "950.00",
+      "freight_included": false,
+      "total_native": "35986.40",
+      "total_usd": "35986.40",
+      "lead_days": 28,
+      "warranty_months": 84,
+      "bifma": true,
+      "iso_valid_until": "2026-09-18",
+      "iso_ok": true,
+      "validity_kind": "date",
+      "valid_until": "2025-12-31",
+      "criteria": [
+        {
+          "reason_if_failed": "Partial quantity",
+          "met": false
+        },
+        {
+          "reason_if_failed": "Lead time exceeds 45 days",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Warranty below 5 years",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Missing or expired certification",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Quote expires before award date",
+          "met": true
+        },
+        {
+          "reason_if_failed": "Exceeds budget ceiling",
+          "met": true
+        }
+      ],
+      "criteria_met": 5,
+      "reasons": [
+        "Partial quantity"
+      ],
+      "quotation_block": "Vendor Code: TRV\nVendor: Trevane Commercial Furniture\nQuotation Reference: TCF-Q-0915\nQuotation Date: 15 September 2025\nItem Offered: Trevane Axis task chair with mesh back and adjustable headrest\nQuantity Quoted: 120 units (the balance of 30 units can be supplied from Q1 2026)\nUnit Price: USD 301.00 per chair\nVolume Discount: 3% on goods for orders of 100 units or more\nFreight: USD 950.00 to the Riverside site\nLead Time: 28 calendar days after receipt of purchase order\nWarranty: 7 years on all components\nCertifications: BIFMA X5.1 certified\nQuote Validity: Valid until 31 December 2025\nPayment Terms: Net 30 days from invoice\nNotes: 120 chairs are available from current stock; the remaining 30 would follow in the first quarter of 2026 at the same unit price.",
+      "notes_block": "Vendor Code: TRV\nRegistered Name: Trevane Commercial Furniture\nISO 9001: Certificate TC-9001-4402, valid until 18 September 2026\nReference Checks: Two references contacted; both satisfactory\nDelivery History: No previous orders with us\nFinancial Standing: Credit rating B+; no adverse findings\nNotes: Stock levels are limited; the vendor usually delivers in tranches.",
+      "rank": null,
+      "decision": "Disqualified"
+    }
+  ]
+}

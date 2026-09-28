@@ -112,6 +112,37 @@ def _json_loads_nullable(value: Any) -> Any | None:
     return value
 
 
+def _split_concatenated_tool_arguments(arguments: str) -> tuple[str, bool]:
+    """Some Anthropic->OpenAI gateways merge N parallel tool_use blocks into a
+    single tool_call whose arguments are the N JSON objects concatenated
+    (`{"a":1}{"b":2}`). Observed shape: the surviving `name` is the LAST
+    block's, so the last object is the one that matches it; the earlier
+    calls are lost and the model re-issues them next turn once it sees only
+    one result came back. Returns (matching_object_or_original, was_merged)."""
+    if not arguments:
+        return arguments, False
+    try:
+        json.loads(arguments)
+        return arguments, False
+    except json.JSONDecodeError:
+        pass
+    decoder = json.JSONDecoder()
+    objects: list[str] = []
+    pos = 0
+    while pos < len(arguments):
+        try:
+            _, end = decoder.raw_decode(arguments, pos)
+        except json.JSONDecodeError:
+            return arguments, False
+        objects.append(arguments[pos:end])
+        pos = end
+        while pos < len(arguments) and arguments[pos].isspace():
+            pos += 1
+    if len(objects) < 2:
+        return arguments, False
+    return objects[-1], True
+
+
 def _has_anthropic_thinking_blocks(content: Any) -> bool:
     return any(bool(getattr(content, field_name, None)) for field_name in _ANTHROPIC_THINKING_BLOCK_FIELDS)
 
@@ -202,6 +233,12 @@ class ConverterWithExplicitReasoningContent(Converter):
         if message.tool_calls:
             for tool_call in message.tool_calls:
                 arguments = tool_call.function.arguments if tool_call.function.arguments else "{}"
+                arguments, was_merged = _split_concatenated_tool_arguments(arguments)
+                if was_merged:
+                    print(
+                        f"\033[93m[WARN] gateway merged parallel tool calls into "
+                        f"{tool_call.function.name}; keeping only the last JSON object\033[0m"
+                    )
                 items.append(
                     ResponseFunctionToolCall(
                         id=FAKE_RESPONSES_ID,

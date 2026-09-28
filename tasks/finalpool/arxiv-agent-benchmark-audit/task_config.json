@@ -1,0 +1,21 @@
+{
+  "needed_mcp_servers": [
+    "arxiv_local",
+    "scholarly",
+    "fetch",
+    "filesystem",
+    "terminal"
+  ],
+  "needed_local_tools": [
+    "claim_done",
+    "handle_overlong_tool_outputs",
+    "manage_context",
+    "history"
+  ],
+  "meta": {
+    "task_type": "real_data_snapshot",
+    "snapshot_mode": "live_reparse_at_eval",
+    "data_sources": ["arxiv.org API", "arxiv.org abstract pages", "arxiv.org PDFs"],
+    "description": "Locate four LLM-agent benchmark papers on arXiv from vague clues, record version-sensitive metadata as of today, download the latest-version PDFs, and write a sorted JSON audit."
+  }
+}

@@ -8,6 +8,14 @@ params:
   args:
     - "run"
     - "${local_servers_paths}/yahoo-finance-mcp/server.py"
+  env:
+    # The MCP SDK spawns stdio servers with a minimal env that drops the
+    # host proxy settings; without them Yahoo rejects every request on this
+    # machine ("Too Many Requests").
+    http_proxy: "http://127.0.0.1:7892"
+    https_proxy: "http://127.0.0.1:7892"
+    HTTP_PROXY: "http://127.0.0.1:7892"
+    HTTPS_PROXY: "http://127.0.0.1:7892"
   # cwd: "${agent_workspace}" # do not add this for compatibility
 client_session_timeout_seconds: 60
 cache_tools_list: true

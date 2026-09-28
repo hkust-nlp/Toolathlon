@@ -1,0 +1,73 @@
+{
+  "snapshot_date": "2026-09-22",
+  "source": "arxiv.org metadata API (export.arxiv.org) and abstract-page submission history",
+  "note": "Offline fallback only; the evaluator re-queries arXiv live at grading time.",
+  "papers": [
+    {
+      "key": "webarena",
+      "clue": "original WebArena paper, July 2023",
+      "arxiv_id": "2307.13854",
+      "title": "WebArena: A Realistic Web Environment for Building Autonomous Agents",
+      "first_author": "Shuyan Zhou",
+      "num_authors": 12,
+      "primary_category": "cs.AI",
+      "v1_date": "2023-07-25",
+      "latest_version_at_snapshot": 4,
+      "latest_version_date_at_snapshot": "2024-04-16",
+      "versions": {
+        "1": "2023-07-25T22:59:32Z",
+        "2": "2023-10-24T03:19:22Z",
+        "3": "2023-10-25T01:56:14Z",
+        "4": "2024-04-16T15:13:18Z"
+      }
+    },
+    {
+      "key": "swe-bench",
+      "clue": "original SWE-bench paper, October 2023",
+      "arxiv_id": "2310.06770",
+      "title": "SWE-bench: Can Language Models Resolve Real-World GitHub Issues?",
+      "first_author": "Carlos E. Jimenez",
+      "num_authors": 7,
+      "primary_category": "cs.CL",
+      "v1_date": "2023-10-10",
+      "latest_version_at_snapshot": 3,
+      "latest_version_date_at_snapshot": "2024-11-11",
+      "versions": {
+        "1": "2023-10-10T16:47:29Z",
+        "2": "2024-04-05T18:16:29Z",
+        "3": "2024-11-11T23:05:04Z"
+      }
+    },
+    {
+      "key": "gaia",
+      "clue": "GAIA benchmark for general AI assistants, November 2023",
+      "arxiv_id": "2311.12983",
+      "title": "GAIA: a benchmark for General AI Assistants",
+      "first_author": "Grégoire Mialon",
+      "num_authors": 6,
+      "primary_category": "cs.CL",
+      "v1_date": "2023-11-21",
+      "latest_version_at_snapshot": 1,
+      "latest_version_date_at_snapshot": "2023-11-21",
+      "versions": {
+        "1": "2023-11-21T20:34:47Z"
+      }
+    },
+    {
+      "key": "toolathlon",
+      "clue": "The Tool Decathlon (Toolathlon), October 2025",
+      "arxiv_id": "2510.25726",
+      "title": "The Tool Decathlon: Benchmarking Language Agents for Diverse, Realistic, and Long-Horizon Task Execution",
+      "first_author": "Junlong Li",
+      "num_authors": 21,
+      "primary_category": "cs.CL",
+      "v1_date": "2025-10-29",
+      "latest_version_at_snapshot": 2,
+      "latest_version_date_at_snapshot": "2026-02-26",
+      "versions": {
+        "1": "2025-10-29T17:32:49Z",
+        "2": "2026-02-26T09:46:48Z"
+      }
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+Accessible workspace directory: !!<<<<||||workspace_dir||||>>>>!!
+When processing tasks, if you need to read/write local files and the user provides a relative path, you may choose to combine it with the above workspace directory to get the complete path.
+If you believe the task is completed, you can either call the `local-claim_done` tool or respond without calling any tool to indicate completion. This will immediately terminate the task, and you will have no further opportunity to work on it.

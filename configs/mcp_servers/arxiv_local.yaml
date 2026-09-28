@@ -18,11 +18,12 @@ params:
     - "--storage-path"
     - "${agent_workspace}/arxiv_local_storage"
   env:
-    # Wrapper module lives at /workspace/utils/local_servers/arxiv_local_wrapper.py
-    # (copied in by FILES_TO_COPY).  Since cwd is the agent workspace, we
-    # need to add /workspace to sys.path so ``python -m utils.local_servers...``
-    # resolves.
-    PYTHONPATH: "/workspace"
+    # Wrapper module lives at <repo>/utils/local_servers/arxiv_local_wrapper.py.
+    # Since cwd is the agent workspace, the repo root must be on sys.path so
+    # ``python -m utils.local_servers...`` resolves.  "/workspace" is where the
+    # containerized runner copies the repo (FILES_TO_COPY); on a bare checkout
+    # the repo lives at /home/ubuntu/Toolathlon, so list both.
+    PYTHONPATH: "/workspace:/home/ubuntu/Toolathlon"
   cwd: "${agent_workspace}"
 client_session_timeout_seconds: 60
 cache_tools_list: true

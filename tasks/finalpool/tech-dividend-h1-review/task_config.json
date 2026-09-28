@@ -1,0 +1,22 @@
+{
+  "needed_mcp_servers": [
+    "yahoo-finance",
+    "filesystem",
+    "terminal",
+    "fetch"
+  ],
+  "needed_local_tools": [
+    "claim_done",
+    "python_execute",
+    "handle_overlong_tool_outputs",
+    "manage_context",
+    "history"
+  ],
+  "meta": {
+    "task_type": "real_data_snapshot",
+    "snapshot_mode": "fixed_window_snapshot_with_tolerance",
+    "data_sources": ["Yahoo Finance (yfinance / yahoo-finance MCP)"],
+    "snapshot_date": "2026-09-22",
+    "description": "Review the 2025 H1 dividend income of a six-stock Nasdaq portfolio from Yahoo Finance data (ex-dividend dates, cash per share, 2025-06-30 closes) and write a structured JSON report."
+  }
+}

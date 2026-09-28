@@ -1,0 +1,26 @@
+{
+  "needed_mcp_servers": [
+    "excel",
+    "filesystem",
+    "terminal"
+  ],
+  "needed_local_tools": [
+    "python_execute",
+    "claim_done",
+    "handle_overlong_tool_outputs",
+    "manage_context",
+    "history"
+  ],
+  "meta": {
+    "task_type": "data_processing",
+    "related_task": "overtime-payroll",
+    "input_files": [
+      "shipment_manifest.csv",
+      "carrier_invoice_2025-09.csv",
+      "rate_card_2025.xlsx",
+      "audit_rules.md",
+      "freight_audit_template.xlsx"
+    ],
+    "output_file": "freight_audit_2025-09.xlsx"
+  }
+}

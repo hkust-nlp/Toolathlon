@@ -1,0 +1,25 @@
+{
+  "needed_mcp_servers": [
+    "fetch",
+    "yahoo-finance",
+    "filesystem",
+    "terminal"
+  ],
+  "needed_local_tools": [
+    "claim_done",
+    "python_execute",
+    "handle_overlong_tool_outputs",
+    "manage_context",
+    "history"
+  ],
+  "meta": {
+    "task_type": "real_data_snapshot",
+    "snapshot_mode": "fixed_window_live_first_with_snapshot_fallback",
+    "data_sources": [
+      "Federal Reserve FOMC calendar + policy statements (fetch MCP / HTTP)",
+      "Yahoo Finance ^GSPC and ^TNX daily closes (yfinance / yahoo-finance MCP)"
+    ],
+    "snapshot_date": "2026-09-24",
+    "description": "Scrape the eight scheduled 2025 FOMC decisions from the Fed website, classify each as hold/cut/hike with its new target range, and measure the S&P 500 1-day/5-day return and 10Y yield change around each decision from Yahoo Finance; write a markdown table plus summary."
+  }
+}
